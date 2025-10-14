@@ -1,5 +1,5 @@
 import './index.css'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, ChangeEvent } from 'react'
 
 type ThemeVars = Record<string, string>
 
@@ -271,6 +271,60 @@ function applyTheme(theme: ThemeVars) {
 
 export function CodePenPage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [customVars, setCustomVars] = useState<ThemeVars | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+
+  function extractCssVarsFromObject(obj: unknown): ThemeVars {
+    const vars: ThemeVars = {}
+    const visit = (value: unknown) => {
+      if (value && typeof value === 'object') {
+        if (Array.isArray(value)) {
+          for (const entry of value) visit(entry)
+        } else {
+          for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+            if (k.startsWith('--') && (typeof v === 'string' || typeof v === 'number')) {
+              vars[k] = String(v)
+            } else {
+              visit(v)
+            }
+          }
+        }
+      }
+    }
+    visit(obj)
+    return vars
+  }
+
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadError(null)
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const json = JSON.parse(String(reader.result || '{}'))
+        const vars = extractCssVarsFromObject(json)
+        if (Object.keys(vars).length === 0) {
+          setUploadError('No CSS variables found in JSON.')
+          return
+        }
+        setCustomVars(vars)
+        const base = isDarkMode ? DARK_MODE : LIGHT_MODE
+        applyTheme({ ...base, ...vars })
+      } catch (_err) {
+        setUploadError('Invalid JSON file.')
+      }
+    }
+    reader.onerror = () => setUploadError('Failed to read file.')
+    reader.readAsText(file)
+    e.currentTarget.value = ''
+  }
+
+  const handleReset = () => {
+    setCustomVars(null)
+    const base = isDarkMode ? DARK_MODE : LIGHT_MODE
+    applyTheme(base)
+  }
 
   useEffect(() => {
     applyTheme(LIGHT_MODE)
@@ -280,12 +334,10 @@ export function CodePenPage() {
   }, [])
 
   useEffect(() => {
-    if (isDarkMode) {
-      applyTheme(DARK_MODE)
-    } else {
-      applyTheme(LIGHT_MODE)
-    }
-  }, [isDarkMode])
+    const base = isDarkMode ? DARK_MODE : LIGHT_MODE
+    const merged = customVars ? { ...base, ...customVars } : base
+    applyTheme(merged)
+  }, [isDarkMode, customVars])
 
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
@@ -305,6 +357,16 @@ export function CodePenPage() {
 
         <div className="section">
           <h2>Colors</h2>
+          <div className="toggle-group">
+            <label>
+              <span style={{ marginRight: 8 }}>Upload JSON</span>
+              <input type="file" accept="application/json,.json" onChange={handleFileUpload} />
+            </label>
+            <button onClick={handleReset} disabled={!customVars}>Reset</button>
+          </div>
+          {uploadError ? (
+            <div style={{ color: 'red', marginTop: 8 }}>{uploadError}</div>
+          ) : null}
           <table className="color-swatches">
             <thead>
               <tr>
