@@ -4,9 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { App } from './modules/app/App'
 import { Layout } from './modules/app/Layout'
 import { CodePenPage } from './modules/theme/index'
-import { MantineProvider } from '@mantine/core'
-import '@mantine/core/styles.css'
-import '@mantine/notifications/styles.css'
+import { UiKitProvider } from './modules/uikit/UiKitContext'
 import './styles/index.css'
 import './styles/theme.css.ts'
 
@@ -22,8 +20,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <MantineProvider>
+    <UiKitProvider>
       <RouterProvider router={router} />
-    </MantineProvider>
+    </UiKitProvider>
   </React.StrictMode>,
 )

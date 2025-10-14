@@ -1,27 +1,22 @@
-import { AppShell, Group, Title, Button } from '@mantine/core'
+import { Suspense, lazy, useMemo } from 'react'
 import { Link, Outlet } from 'react-router-dom'
+import { useUiKit } from '../uikit/UiKitContext'
 
 export function Layout() {
-  return (
-    <AppShell header={{ height: 56 }} padding="md">
-      <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between">
-          <Group gap="sm">
-            <Title order={3}>
-              <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>recursica-forge</Link>
-            </Title>
-          </Group>
-          <Group gap="xs">
-            <Button component={Link} to="/">Home</Button>
-            <Button component={Link} to="/theme" variant="light">Theme</Button>
-          </Group>
-        </Group>
-      </AppShell.Header>
+  const { kit, setKit } = useUiKit()
 
-      <AppShell.Main>
+  const Shell = useMemo(() => {
+    if (kit === 'mantine') return lazy(() => import('./shells/MantineShell'))
+    if (kit === 'material') return lazy(() => import('./shells/MaterialShell'))
+    return lazy(() => import('./shells/CarbonShell'))
+  }, [kit])
+
+  return (
+    <Suspense fallback={<div style={{ padding: 16 }}>Loading UI…</div>}>
+      <Shell kit={kit} onKitChange={setKit}>
         <Outlet />
-      </AppShell.Main>
-    </AppShell>
+      </Shell>
+    </Suspense>
   )
 }
 
