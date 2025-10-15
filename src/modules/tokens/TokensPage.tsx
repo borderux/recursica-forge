@@ -1,4 +1,175 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
+// --- Color utilities ---
+function clamp(n: number, min: number, max: number) { return Math.max(min, Math.min(max, n)) }
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  let h = (hex || '').trim()
+  if (!h.startsWith('#')) h = '#' + h
+  if (h.length === 4) {
+    const r = h[1], g = h[2], b = h[3]
+    h = `#${r}${r}${g}${g}${b}${b}`
+  }
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
+  if (!m) return { r: 0, g: 0, b: 0 }
+  return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
+}
+function rgbToHex(r: number, g: number, b: number): string {
+  const toHex = (v: number) => v.toString(16).padStart(2, '0')
+  return `#${toHex(clamp(Math.round(v), 0, 255))}`.replace('v', '')
+}
+function rgbToHexSafe(r: number, g: number, b: number): string {
+  const toHex = (v: number) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0')
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
+function rgbToHsv(r: number, g: number, b: number): { h: number; s: number; v: number } {
+  r /= 255; g /= 255; b /= 255
+  const max = Math.max(r, g, b), min = Math.min(r, g, b)
+  const d = max - min
+  let h = 0
+  if (d === 0) h = 0
+  else if (max === r) h = ((g - b) / d + (g < b ? 6 : 0))
+  else if (max === g) h = (b - r) / d + 2
+  else h = (r - g) / d + 4
+  h *= 60
+  const s = max === 0 ? 0 : d / max
+  const v = max
+  return { h, s, v }
+}
+function hsvToRgb(h: number, s: number, v: number): { r: number; g: number; b: number } {
+  const c = v * s
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
+  const m = v - c
+  let r1 = 0, g1 = 0, b1 = 0
+  if (0 <= h && h < 60) { r1 = c; g1 = x; b1 = 0 }
+  else if (60 <= h && h < 120) { r1 = x; g1 = c; b1 = 0 }
+  else if (120 <= h && h < 180) { r1 = 0; g1 = c; b1 = x }
+  else if (180 <= h && h < 240) { r1 = 0; g1 = x; b1 = c }
+  else if (240 <= h && h < 300) { r1 = x; g1 = 0; b1 = c }
+  else { r1 = c; g1 = 0; b1 = x }
+  const r = (r1 + m) * 255
+  const g = (g1 + m) * 255
+  const b = (b1 + m) * 255
+  return { r, g, b }
+}
+
+function hexToHsv(hex: string): { h: number; s: number; v: number } {
+  const { r, g, b } = hexToRgb(hex)
+  return rgbToHsv(r, g, b)
+}
+function hsvToHex(h: number, s: number, v: number): string {
+  const { r, g, b } = hsvToRgb(h, s, v)
+  return rgbToHexSafe(r, g, b)
+}
+
+function HueGradient() {
+  return (
+    <div style={{ width: '100%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)' }} />
+  )
+}
+
+function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChange }: { tokenName: string; currentHex: string; swatchRect: DOMRect; onClose: () => void; onChange: (hex: string, cascadeDown: boolean, cascadeUp: boolean) => void }) {
+  const overlayRef = useRef<HTMLDivElement | null>(null)
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
+  const [hsvState, setHsvState] = useState<{ h: number; s: number; v: number }>(() => hexToHsv(/^#([0-9a-f]{6})$/i.test(currentHex) ? currentHex : '#000000'))
+  const [cascadeDown, setCascadeDown] = useState<boolean>(false)
+  const [cascadeUp, setCascadeUp] = useState<boolean>(false)
+
+  useEffect(() => {
+    setHsvState(hexToHsv(/^#([0-9a-f]{6})$/i.test(currentHex) ? currentHex : '#000000'))
+  }, [currentHex])
+
+  useEffect(() => {
+    const overlayEl = overlayRef.current
+    if (!overlayEl) return
+    const overlayW = overlayEl.offsetWidth || 300
+    const overlayH = overlayEl.offsetHeight || 320
+    const candidates = [
+      { top: swatchRect.top - overlayH, left: swatchRect.left - overlayW },
+      { top: swatchRect.top - overlayH, left: swatchRect.right },
+      { top: swatchRect.bottom, left: swatchRect.left - overlayW },
+      { top: swatchRect.bottom, left: swatchRect.right },
+    ]
+    const fits = (p: { top: number; left: number }) => p.left >= 0 && p.left + overlayW <= window.innerWidth && p.top >= 0 && p.top + overlayH <= window.innerHeight
+    const chosen = candidates.find(fits) || {
+      top: Math.max(0, Math.min(window.innerHeight - overlayH, swatchRect.top)),
+      left: Math.max(0, Math.min(window.innerWidth - overlayW, swatchRect.left)),
+    }
+    setPos(chosen)
+  }, [swatchRect.left, swatchRect.top, swatchRect.right, swatchRect.bottom])
+
+  const handleSV = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
+    const s = clamp((e.clientX - rect.left) / rect.width, 0, 1)
+    const v = clamp(1 - (e.clientY - rect.top) / rect.height, 0, 1)
+    const next = { ...hsvState, s, v }
+    setHsvState(next)
+    onChange(hsvToHex(next.h, next.s, next.v), cascadeDown, cascadeUp)
+  }
+
+  const handleH = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
+    const h = clamp(((e.clientX - rect.left) / rect.width) * 360, 0, 360)
+    const next = { ...hsvState, h }
+    setHsvState(next)
+    onChange(hsvToHex(next.h, next.s, next.v), cascadeDown, cascadeUp)
+  }
+
+  const thumbLeft = `${hsvState.s * 100}%`
+  const thumbTop = `${(1 - hsvState.v) * 100}%`
+  const gradientColor = hsvToHex(hsvState.h, 1, 1)
+
+  return (
+    <div
+      ref={overlayRef}
+      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 1000, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.25)', padding: 12, display: 'grid', gap: 10, width: 300 }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: 12, opacity: 0.8 }}>{tokenName}</div>
+        <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
+      </div>
+      <div
+        onMouseDown={(e) => {
+          handleSV(e)
+          const move = (ev: MouseEvent) => handleSV(ev as any)
+          const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
+          window.addEventListener('mousemove', move)
+          window.addEventListener('mouseup', up)
+        }}
+        style={{ position: 'relative', width: '100%', height: 180, borderRadius: 8, background: `linear-gradient(0deg, #000, transparent), linear-gradient(90deg, #fff, ${gradientColor})`, cursor: 'crosshair' }}
+      >
+        <div style={{ position: 'absolute', left: thumbLeft, top: thumbTop, transform: 'translate(-50%, -50%)', width: 12, height: 12, borderRadius: '50%', border: '2px solid #fff', boxShadow: '0 0 0 1px rgba(0,0,0,0.5)' }} />
+      </div>
+      <div
+        onMouseDown={(e) => {
+          handleH(e)
+          const move = (ev: MouseEvent) => handleH(ev as any)
+          const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
+          window.addEventListener('mousemove', move)
+          window.addEventListener('mouseup', up)
+        }}
+        style={{ width: '100%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)', cursor: 'ew-resize' }}
+      />
+      <input
+        type="text"
+        value={hsvToHex(hsvState.h, hsvState.s, hsvState.v)}
+        onChange={(e) => {
+          const nextHex = e.currentTarget.value
+          onChange(nextHex, cascadeDown, cascadeUp)
+          setHsvState(hexToHsv(/^#([0-9a-f]{6})$/i.test(nextHex) ? nextHex : '#000000'))
+        }}
+        style={{ fontSize: 13, padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6 }}
+      />
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+        <input type="checkbox" checked={cascadeUp} onChange={(e) => setCascadeUp(e.currentTarget.checked)} />
+        Cascade colors upward
+      </label>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+        <input type="checkbox" checked={cascadeDown} onChange={(e) => setCascadeDown(e.currentTarget.checked)} />
+        Cascade colors downward
+      </label>
+    </div>
+  )
+}
 import tokensJson from '../../vars/Tokens.json'
 import { extractCssVarsFromObject, applyCssVars } from '../theme/varsUtil'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
@@ -15,6 +186,15 @@ type ModeName = 'Mode 1' | 'Mode 2' | string
 
 export default function TokensPage() {
   const [values, setValues] = useState<Record<string, string | number>>(() => readOverrides())
+  const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
+  const [openPicker, setOpenPicker] = useState<{
+    tokenName: string
+    swatchRect: DOMRect
+    baseline?: {
+      base: { h: number; s: number; v: number }
+      deltas: Record<string, { dh: number; ds: number; dv: number }>
+    }
+  } | null>(null)
   useEffect(() => {
     const handler = (ev: Event) => {
       const detail: any = (ev as CustomEvent).detail
@@ -33,6 +213,8 @@ export default function TokensPage() {
     return () => window.removeEventListener('tokenOverridesChanged', handler)
   }, [])
   const [selected, setSelected] = useState<'color' | 'effect' | 'font' | 'opacity' | 'size'>('color')
+
+  // overlay positioning handled inside ColorPickerOverlay
 
   const groupedByMode = useMemo(() => {
     const byMode: Record<ModeName, Array<{ key: string; entry: TokenEntry }>> = {}
@@ -131,8 +313,10 @@ export default function TokensPage() {
                 if (b === 'gray' && a !== 'gray') return 1
                 return a.localeCompare(b)
               })
-              const levelOrder = Array.from(new Set(families.flatMap(([_, lvls]) => lvls.map((l) => l.level))))
-                .sort((a, b) => Number(b) - Number(a))
+              const presentLevels = new Set<string>(families.flatMap(([_, lvls]) => lvls.map((l) => l.level)))
+              const standardLevels = ['900','800','700','600','500','400','300','200','100','050']
+              standardLevels.forEach((lvl) => presentLevels.add(lvl))
+              const levelOrder = Array.from(presentLevels).sort((a, b) => Number(b) - Number(a))
               return (
                 <div style={{ display: 'grid', gridTemplateColumns: `100px repeat(${families.length}, 1fr)`, columnGap: 12, rowGap: 0, alignItems: 'start' }}>
                   <div />
@@ -146,24 +330,85 @@ export default function TokensPage() {
                       {families.map(([family, lvls]) => {
                         const match = lvls.find((l) => l.level === level)
                         const entry = match?.entry
-                        const tokenName = entry?.name
-                        const current = tokenName ? String(values[tokenName] ?? entry!.value) : ''
+                        const tokenName = entry?.name || `color/${family}/${level}`
+                        const current = tokenName ? String(values[tokenName] ?? (entry ? entry.value : '')) : ''
                         let inputEl: HTMLInputElement | null = null
+                        const lvlNum = Number(level)
+                        const isDark = lvlNum >= 500
+                        const isLight = lvlNum <= 400
+                        const isHovered = hoveredSwatch === tokenName
+                        const isActive = !!openPicker && openPicker.tokenName === tokenName
+                        const hoverShadow = isHovered ? (isDark ? 'inset 0 0 0 2px rgba(255,255,255,0.5)' : isLight ? 'inset 0 0 0 2px rgba(0,0,0,0.5)' : undefined) : undefined
+                        const activeShadow = isActive ? (isDark ? 'inset 0 0 0 2px rgba(255,255,255,0.8)' : isLight ? 'inset 0 0 0 2px rgba(0,0,0,0.8)' : undefined) : undefined
+                        const boxShadow = activeShadow || hoverShadow || undefined
                         return (
                           <div key={family + '-' + level}>
                             <div
-                              onClick={() => inputEl && inputEl.click()}
+                              onMouseEnter={() => tokenName && setHoveredSwatch(tokenName)}
+                              onMouseLeave={() => setHoveredSwatch((prev) => (prev === tokenName ? null : prev))}
+                              onClick={(ev) => {
+                                if (!tokenName) return
+                                const rect = (ev.currentTarget as HTMLDivElement).getBoundingClientRect()
+                                setOpenPicker({ tokenName, swatchRect: rect })
+                              }}
                               role="button"
                               title={tokenName ? `${tokenName} ${current}` : ''}
-                              style={{ height: 40, background: tokenName ? current : 'transparent', cursor: tokenName ? 'pointer' : 'default' }}
+                              style={{ height: 40, background: tokenName ? current : 'transparent', cursor: tokenName ? 'pointer' : 'default', boxShadow }}
                             />
-                            {tokenName && (
-                              <input
-                                ref={(el) => { inputEl = el }}
-                                type="color"
-                                value={/^#([0-9a-f]{6})$/i.test(current) ? current : '#000000'}
-                                onChange={(e) => handleChange(tokenName, e.currentTarget.value)}
-                                style={{ display: 'none' }}
+                            {tokenName && openPicker && openPicker.tokenName === tokenName && (
+                              <ColorPickerOverlay
+                                tokenName={tokenName}
+                                currentHex={/^#([0-9a-f]{6})$/i.test(current) ? current : '#000000'}
+                                swatchRect={openPicker.swatchRect}
+                                onClose={() => setOpenPicker(null)}
+                                onChange={(hex, cascadeDown, cascadeUp) => {
+                                  handleChange(tokenName, hex)
+                                  setOverride(tokenName, hex)
+
+                                  // tokenName format: color/<family>/<level>
+                                  const parts = tokenName.split('/')
+                                  if (parts.length === 3) {
+                                    const family = parts[1]
+                                    const levelStr = parts[2]
+                                    const startLevel = Number(levelStr)
+                                    if (!isNaN(startLevel)) {
+                                      const baseHsv = hexToHsv(hex)
+                                      const allLevels = [900, 800, 700, 600, 500, 400, 300, 200, 100, 50, 0]
+                                      const minRef = 50
+                                      const maxRef = 900
+                                      const denomDown = Math.max(1, startLevel - minRef)
+                                      const denomUp = Math.max(1, maxRef - startLevel)
+
+                                      if (cascadeDown) {
+                                        const targetsDown = allLevels.filter((lvl) => lvl < startLevel)
+                                        targetsDown.forEach((lvl) => {
+                                          const name = `color/${family}/${String(lvl).padStart(3, '0')}`
+                                          const t = clamp((startLevel - lvl) / denomDown, 0, 1)
+                                          // lighter downward: increase V, reduce S
+                                          const nextV = clamp(baseHsv.v + (1 - baseHsv.v) * t, 0, 1)
+                                          const nextS = clamp(baseHsv.s * (1 - 0.35 * t), 0, 1)
+                                          const nextHex = hsvToHex(baseHsv.h, nextS, nextV)
+                                          handleChange(name, nextHex)
+                                          setOverride(name, nextHex)
+                                        })
+                                      }
+
+                                      if (cascadeUp) {
+                                        const targetsUp = allLevels.filter((lvl) => lvl > startLevel)
+                                        targetsUp.forEach((lvl) => {
+                                          const name = `color/${family}/${String(lvl).padStart(3, '0')}`
+                                          const t = clamp((lvl - startLevel) / denomUp, 0, 1)
+                                          // darker upward: decrease V, optionally boost S slightly
+                                          const nextV = clamp(baseHsv.v * (1 - 0.6 * t), 0, 1)
+                                          const nextS = clamp(baseHsv.s * (1 + 0.15 * t), 0, 1)
+                                          const nextHex = hsvToHex(baseHsv.h, nextS, nextV)
+                                          handleChange(name, nextHex)
+                                          setOverride(name, nextHex)
+                                        })
+                                      }
+                                    }
+                                  }
+                                }}
                               />
                             )}
                           </div>
