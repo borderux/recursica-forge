@@ -1,9 +1,38 @@
 import './index.css'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import tokensJson from '../../vars/Tokens.json'
+import { readOverrides, setOverride } from './tokenOverrides'
 
 export default function ElevationPage() {
-  const [values, setValues] = useState<Record<string, string | number>>({})
+  const [values, setValues] = useState<Record<string, string | number>>(() => {
+    const init: Record<string, string | number> = {}
+    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
+      if (entry && typeof entry.name === 'string' && (typeof entry.value === 'number' || typeof entry.value === 'string')) {
+        init[entry.name] = entry.value
+      }
+    })
+    const overrides = readOverrides()
+    const merged = { ...init, ...overrides }
+    if (typeof merged['effect/none'] !== 'undefined') merged['effect/none'] = 0
+    return merged
+  })
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      const detail: any = (ev as CustomEvent).detail
+      if (!detail) return
+      const { all, name, value } = detail
+      if (all && typeof all === 'object') {
+        setValues(all)
+        return
+      }
+      if (typeof name === 'string') {
+        const coerced = name === 'effect/none' ? 0 : value
+        setValues((prev) => ({ ...prev, [name]: coerced }))
+      }
+    }
+    window.addEventListener('tokenOverridesChanged', handler)
+    return () => window.removeEventListener('tokenOverridesChanged', handler)
+  }, [])
   const effectItems = useMemo(() => {
     const out: Array<{ name: string; value: string | number }> = []
     Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
@@ -56,6 +85,7 @@ export default function ElevationPage() {
                         onChange={(ev) => {
                           const next = Number(ev.currentTarget.value)
                           setValues((prev) => ({ ...prev, [e.name]: next }))
+                          setOverride(e.name, next)
                         }}
                         style={{ width: '100%' }}
                       />
@@ -67,7 +97,10 @@ export default function ElevationPage() {
                         disabled={isNone}
                         onChange={(ev) => {
                           const next = Number(ev.currentTarget.value)
-                          if (Number.isFinite(next)) setValues((prev) => ({ ...prev, [e.name]: next }))
+                          if (Number.isFinite(next)) {
+                            setValues((prev) => ({ ...prev, [e.name]: next }))
+                            setOverride(e.name, next)
+                          }
                         }}
                         style={{ width: 60 }}
                       />

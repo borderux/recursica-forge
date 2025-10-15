@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import tokensJson from '../../vars/Tokens.json'
 import { extractCssVarsFromObject, applyCssVars } from '../theme/varsUtil'
+import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 type TokenEntry = {
   collection?: string
@@ -13,7 +14,24 @@ type TokenEntry = {
 type ModeName = 'Mode 1' | 'Mode 2' | string
 
 export default function TokensPage() {
-  const [values, setValues] = useState<Record<string, string | number>>({})
+  const [values, setValues] = useState<Record<string, string | number>>(() => readOverrides())
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      const detail: any = (ev as CustomEvent).detail
+      if (!detail) return
+      const { all, name, value } = detail
+      if (all && typeof all === 'object') {
+        setValues(all)
+        return
+      }
+      if (typeof name === 'string') {
+        const coerced = name === 'effect/none' ? 0 : value
+        setValues((prev) => ({ ...prev, [name]: coerced }))
+      }
+    }
+    window.addEventListener('tokenOverridesChanged', handler)
+    return () => window.removeEventListener('tokenOverridesChanged', handler)
+  }, [])
   const [selected, setSelected] = useState<'color' | 'effect' | 'font' | 'opacity' | 'size'>('color')
 
   const groupedByMode = useMemo(() => {
@@ -58,13 +76,16 @@ export default function TokensPage() {
   }, [groupedByMode])
 
   useEffect(() => {
-    // Initialize form values from tokens JSON
+    // Initialize form values from tokens JSON, then overlay any persisted overrides
     const init: Record<string, string | number> = {}
     Object.entries(tokensJson as Record<string, TokenEntry>).forEach(([_, entry]) => {
       if (!entry || !entry.name) return
       init[entry.name] = entry.value
     })
-    setValues(init)
+    const overrides = readOverrides()
+    const merged: Record<string, string | number> = { ...init, ...overrides }
+    if (typeof merged['effect/none'] !== 'undefined') merged['effect/none'] = 0
+    setValues(merged)
   }, [])
 
   const handleChange = (tokenName: string, next: string) => {
@@ -173,24 +194,85 @@ export default function TokensPage() {
           }
           const activeGroup = selected === 'color' ? null : groups[groupKeyMap[selected]]
           if (!activeGroup) return null
+          const sortedActive = selected !== 'effect'
+            ? activeGroup
+            : [...activeGroup].sort((a, b) => {
+                const weight = (full: string) => {
+                  const n = full.replace('effect/', '').replace('-', '.')
+                  if (n === 'none') return [0, 0]
+                  if (n === '0.5x') return [1, 0]
+                  if (n === 'default') return [2, 0]
+                  const asNum = parseFloat(n.replace('x', ''))
+                  return [3, isNaN(asNum) ? Number.POSITIVE_INFINITY : asNum]
+                }
+                const wa = weight(a.entry.name)
+                const wb = weight(b.entry.name)
+                if (wa[0] !== wb[0]) return wa[0] - wb[0]
+                return wa[1] - wb[1]
+              })
           return (
             <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
               <div style={{ display: 'grid', gap: 16 }}>
                 <div>
                   <div style={{ fontWeight: 600, marginBottom: 8 }}>{groupKeyMap[selected]}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 8, alignItems: 'center' }}>
-                    {activeGroup.map(({ entry }) => (
-                      <>
-                        <label key={entry.name + '-label'} htmlFor={entry.name} style={{ fontSize: 13, opacity: 0.9 }}>{entry.name}</label>
-                        <input
-                          key={entry.name}
-                          id={entry.name}
-                          type={typeof entry.value === 'number' ? 'number' : 'text'}
-                          value={(values[entry.name] as any) ?? (entry.value as any)}
-                          onChange={(e) => handleChange(entry.name, e.currentTarget.value)}
-                        />
-                      </>
-                    ))}
+                    {sortedActive.map(({ entry }) => {
+                      const label = entry.name.startsWith('effect/') ? entry.name.replace('effect/', '').replace('-', '.') : entry.name
+                      const isNone = entry.name === 'effect/none'
+                      const numeric = typeof entry.value === 'number'
+                      const current = isNone ? 0 : (values[entry.name] as any) ?? (entry.value as any)
+                      return (
+                        <>
+                          <label key={entry.name + '-label'} htmlFor={entry.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
+                          {entry.name.startsWith('effect/') ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <input
+                                key={entry.name}
+                                id={entry.name}
+                                type="range"
+                                min={0}
+                                max={100}
+                                disabled={isNone}
+                                value={Number(current)}
+                                onChange={(ev) => {
+                                  const next = Number(ev.currentTarget.value)
+                                  setValues((prev) => ({ ...prev, [entry.name]: next }))
+                                  setOverride(entry.name, next)
+                                }}
+                                style={{ width: '100%' }}
+                              />
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={Number(current)}
+                                disabled={isNone}
+                                onChange={(ev) => {
+                                  const next = Number(ev.currentTarget.value)
+                                  if (Number.isFinite(next)) {
+                                    setValues((prev) => ({ ...prev, [entry.name]: next }))
+                                    setOverride(entry.name, next)
+                                  }
+                                }}
+                                style={{ width: 60 }}
+                              />
+                            </div>
+                          ) : (
+                            <input
+                              key={entry.name}
+                              id={entry.name}
+                              type={numeric ? 'number' : 'text'}
+                              value={current}
+                              onChange={(e) => {
+                                const next = numeric ? Number(e.currentTarget.value) : e.currentTarget.value
+                                setValues((prev) => ({ ...prev, [entry.name]: next }))
+                                setOverride(entry.name, next as any)
+                              }}
+                            />
+                          )}
+                        </>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
