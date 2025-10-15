@@ -38,8 +38,10 @@ export default function TokensPage() {
       const parts = entry.name.split('/')
       if (parts.length < 3) return
       const family = parts[1]
-      const level = parts[2]
-      if (!/^\d{3,4}$/.test(level)) return
+      if (family === 'translucent') return
+      const rawLevel = parts[2]
+      if (!/^\d+$/.test(rawLevel)) return
+      const level = rawLevel.length === 2 ? `0${rawLevel}` : rawLevel.length === 1 ? `00${rawLevel}` : rawLevel
       const mode = (entry.mode as ModeName) || 'Mode 1'
       if (!byMode[mode]) byMode[mode] = {}
       if (!byMode[mode][family]) byMode[mode][family] = []
@@ -87,57 +89,55 @@ export default function TokensPage() {
       {Object.entries(groupedByMode).map(([mode, items]) => {
         const colorSection = (
           <section key={mode + '-color'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
-            {colorFamiliesByMode[mode as ModeName] && (
-              <div style={{ display: 'grid', gap: 16 }}>
-                {Object.entries(colorFamiliesByMode[mode as ModeName])
-                  .sort(([a], [b]) => {
-                    if (a === 'gray' && b !== 'gray') return -1
-                    if (b === 'gray' && a !== 'gray') return 1
-                    return a.localeCompare(b)
-                  })
-                  .map(([family, levels]) => (
-                  <div key={family} style={{ display: 'grid', gridTemplateColumns: '220px 1fr', alignItems: 'center', gap: 12 }}>
-                    <input required defaultValue={family} style={{ fontSize: 13, padding: '4px 8px', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6, width: '100%' }} />
-                    <div>
-                      {/* Level labels */}
-                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${levels.length}, 1fr)`, gap: 0 }}>
-                        {levels.map(({ level }) => (
-                          <div key={family + '-' + level + '-label'} style={{ textAlign: 'center', fontSize: 12, opacity: 0.8, paddingBottom: 4 }}>{level}</div>
-                        ))}
-                      </div>
-                      {/* Swatches row with rounded outer corners */}
-                      <div style={{ borderRadius: 8, overflow: 'hidden' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${levels.length}, 1fr)`, gap: 0 }}>
-                          {levels.map(({ level, entry }, idx) => {
-                            let inputEl: HTMLInputElement | null = null
-                            const current = String(values[entry.name] ?? entry.value)
-                            const isFirst = idx === 0
-                            const isLast = idx === levels.length - 1
-                            return (
-                              <div key={family + '-' + level}>
-                                <div
-                                  onClick={() => inputEl && inputEl.click()}
-                                  role="button"
-                                  title={`${entry.name} ${entry.value}`}
-                                  style={{ height: 40, background: current, cursor: 'pointer', borderTopLeftRadius: isFirst ? 8 : 0, borderBottomLeftRadius: isFirst ? 8 : 0, borderTopRightRadius: isLast ? 8 : 0, borderBottomRightRadius: isLast ? 8 : 0 }}
-                                />
-                                <input
-                                  ref={(el) => { inputEl = el }}
-                                  type="color"
-                                  value={/^#([0-9a-f]{6})$/i.test(current) ? current : '#000000'}
-                                  onChange={(e) => handleChange(entry.name, e.currentTarget.value)}
-                                  style={{ display: 'none' }}
-                                />
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            {colorFamiliesByMode[mode as ModeName] && (() => {
+              const families = Object.entries(colorFamiliesByMode[mode as ModeName]).sort(([a], [b]) => {
+                if (a === 'gray' && b !== 'gray') return -1
+                if (b === 'gray' && a !== 'gray') return 1
+                return a.localeCompare(b)
+              })
+              const levelOrder = Array.from(new Set(families.flatMap(([_, lvls]) => lvls.map((l) => l.level))))
+                .sort((a, b) => Number(b) - Number(a))
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: `100px repeat(${families.length}, 1fr)`, columnGap: 12, rowGap: 0, alignItems: 'start' }}>
+                  <div />
+                  {families.map(([family]) => (
+                    <input key={family + '-name'} required defaultValue={family} style={{ fontSize: 13, padding: '4px 8px', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6, width: '100%' }} />
+                  ))}
+                  <div style={{ gridColumn: `1 / span ${families.length + 1}`, height: 20 }} />
+                  {levelOrder.map((level) => (
+                    <>
+                      <div key={'label-' + level} style={{ textAlign: 'center', fontSize: 12, opacity: 0.8, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{level}</div>
+                      {families.map(([family, lvls]) => {
+                        const match = lvls.find((l) => l.level === level)
+                        const entry = match?.entry
+                        const tokenName = entry?.name
+                        const current = tokenName ? String(values[tokenName] ?? entry!.value) : ''
+                        let inputEl: HTMLInputElement | null = null
+                        return (
+                          <div key={family + '-' + level}>
+                            <div
+                              onClick={() => inputEl && inputEl.click()}
+                              role="button"
+                              title={tokenName ? `${tokenName} ${current}` : ''}
+                              style={{ height: 40, background: tokenName ? current : 'transparent', cursor: tokenName ? 'pointer' : 'default' }}
+                            />
+                            {tokenName && (
+                              <input
+                                ref={(el) => { inputEl = el }}
+                                type="color"
+                                value={/^#([0-9a-f]{6})$/i.test(current) ? current : '#000000'}
+                                onChange={(e) => handleChange(tokenName, e.currentTarget.value)}
+                                style={{ display: 'none' }}
+                              />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </>
+                  ))}
+                </div>
+              )
+            })()}
           </section>
         )
 
