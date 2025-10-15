@@ -223,22 +223,22 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
         }}
         style={{ width: '100%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)', cursor: 'ew-resize' }}
       />
-      <input
-        type="text"
-        value={hexInput}
-        onChange={(e) => {
-          const raw = e.currentTarget.value
-          setHexInput(raw)
-          const m = raw.match(/^#?[0-9a-fA-F]{6}$/)
-          if (m) {
-            const normalized = (raw.startsWith('#') ? raw : `#${raw}`).toLowerCase()
-            setHsvState(hexToHsv(normalized))
-            onChange(normalized, cascadeDown, cascadeUp)
-          }
-        }}
-        style={{ fontSize: 13, padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6 }}
-      />
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <input
+          type="text"
+          value={hexInput}
+          onChange={(e) => {
+            const raw = e.currentTarget.value
+            setHexInput(raw)
+            const m = raw.match(/^#?[0-9a-fA-F]{6}$/)
+            if (m) {
+              const normalized = (raw.startsWith('#') ? raw : `#${raw}`).toLowerCase()
+              setHsvState(hexToHsv(normalized))
+              onChange(normalized, cascadeDown, cascadeUp)
+            }
+          }}
+          style={{ flex: 1, fontSize: 13, padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6 }}
+        />
         <button
           title="Name this color"
           onClick={() => {
@@ -247,7 +247,7 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
             const hex = hsvToHex(hsvState.h, hsvState.s, hsvState.v)
             onNameFromHex(family, hex)
           }}
-          style={{ border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 6px' }}
+          style={{ border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px' }}
         >🏷️</button>
       </div>
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
@@ -296,6 +296,18 @@ export default function TokensPage() {
   } | null>(null)
   const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>({})
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
+  const [scaleEffectsByDefault, setScaleEffectsByDefault] = useState<boolean>(() => {
+    const v = localStorage.getItem('effects-scale-by-default')
+    return v === null ? true : v === 'true'
+  })
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      const d = (ev as CustomEvent).detail
+      if (typeof d === 'boolean') setScaleEffectsByDefault(d)
+    }
+    window.addEventListener('effectsScaleByDefaultChanged', handler)
+    return () => window.removeEventListener('effectsScaleByDefaultChanged', handler)
+  }, [])
   useEffect(() => {
     const handler = (ev: Event) => {
       const detail: any = (ev as CustomEvent).detail
@@ -332,6 +344,14 @@ export default function TokensPage() {
     Object.values(byMode).forEach((arr) => arr.sort((a, b) => a.entry.name.localeCompare(b.entry.name)))
     return byMode
   }, [])
+
+  function parseEffectMultiplier(label: string): number {
+    if (label === 'default') return 1
+    if (label === 'none') return 0
+    const m = label.replace('-', '.').replace('x', '')
+    const n = parseFloat(m)
+    return Number.isFinite(n) ? n : 1
+  }
 
   const colorFamiliesByMode = useMemo(() => {
     const byMode: Record<ModeName, Record<string, Array<{ level: string; entry: TokenEntry }>>> = {}
@@ -662,13 +682,34 @@ export default function TokensPage() {
             <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
               <div style={{ display: 'grid', gap: 16 }}>
                 <div>
-                  <div style={{ fontWeight: 600, marginBottom: 8 }}>{groupKeyMap[selected]}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 600 }}>{groupKeyMap[selected]}</div>
+                    {selected === 'effect' && (
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <input type="checkbox" checked={scaleEffectsByDefault} onChange={(e) => {
+                          const next = e.currentTarget.checked
+                          setScaleEffectsByDefault(next)
+                          localStorage.setItem('effects-scale-by-default', String(next))
+                          try { window.dispatchEvent(new CustomEvent('effectsScaleByDefaultChanged', { detail: next })) } catch {}
+                        }} />
+                        Scale based on default
+                      </label>
+                    )}
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 8, alignItems: 'center' }}>
                     {sortedActive.map(({ entry }) => {
                       const label = entry.name.startsWith('effect/') ? entry.name.replace('effect/', '').replace('-', '.') : entry.name
                       const isNone = entry.name === 'effect/none'
                       const numeric = typeof entry.value === 'number'
-                      const current = isNone ? 0 : (values[entry.name] as any) ?? (entry.value as any)
+                      const isDefault = entry.name === 'effect/default'
+                      let current: any
+                      if (selected === 'effect' && scaleEffectsByDefault && !isDefault && !isNone) {
+                        const def = Number((values['effect/default'] as any) ?? (sortedActive.find(({ entry: e }) => e.name === 'effect/default')?.entry.value as any) ?? 0)
+                        const mul = parseEffectMultiplier(label)
+                        current = Math.round(def * mul)
+                      } else {
+                        current = isNone ? 0 : (values[entry.name] as any) ?? (entry.value as any)
+                      }
                       return (
                         <>
                           <label key={entry.name + '-label'} htmlFor={entry.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
@@ -680,7 +721,7 @@ export default function TokensPage() {
                                 type="range"
                                 min={0}
                                 max={100}
-                                disabled={isNone}
+                                disabled={isNone || (selected === 'effect' && scaleEffectsByDefault && !isDefault)}
                                 value={Number(current)}
                                 onChange={(ev) => {
                                   const next = Number(ev.currentTarget.value)
@@ -694,7 +735,7 @@ export default function TokensPage() {
                                 min={0}
                                 max={100}
                                 value={Number(current)}
-                                disabled={isNone}
+                                disabled={isNone || (selected === 'effect' && scaleEffectsByDefault && !isDefault)}
                                 onChange={(ev) => {
                                   const next = Number(ev.currentTarget.value)
                                   if (Number.isFinite(next)) {

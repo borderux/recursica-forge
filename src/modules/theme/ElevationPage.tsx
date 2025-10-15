@@ -2,6 +2,7 @@ import './index.css'
 import { useEffect, useMemo, useState } from 'react'
 import tokensJson from '../../vars/Tokens.json'
 import { readOverrides, setOverride } from './tokenOverrides'
+import EffectTokens from './EffectTokens'
 
 export default function ElevationPage() {
   const [values, setValues] = useState<Record<string, string | number>>(() => {
@@ -16,6 +17,18 @@ export default function ElevationPage() {
     if (typeof merged['effect/none'] !== 'undefined') merged['effect/none'] = 0
     return merged
   })
+  const [scaleByDefault, setScaleByDefault] = useState<boolean>(() => {
+    const v = localStorage.getItem('effects-scale-by-default')
+    return v === null ? true : v === 'true'
+  })
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      const d = (ev as CustomEvent).detail
+      if (typeof d === 'boolean') setScaleByDefault(d)
+    }
+    window.addEventListener('effectsScaleByDefaultChanged', handler)
+    return () => window.removeEventListener('effectsScaleByDefaultChanged', handler)
+  }, [])
   useEffect(() => {
     const handler = (ev: Event) => {
       const detail: any = (ev as CustomEvent).detail
@@ -58,56 +71,40 @@ export default function ElevationPage() {
     })
   }, [])
 
+  function parseMultiplier(label: string): number {
+    if (label === 'default') return 1
+    if (label === 'none') return 0
+    const m = label.replace('-', '.').replace('x', '')
+    const n = parseFloat(m)
+    return Number.isFinite(n) ? n : 1
+  }
+
+  function applyScaledFromDefault(newDefault: number) {
+    if (!scaleByDefault) return
+    const nextUpdates: Record<string, number> = {}
+    effectItems.forEach((e) => {
+      const label = e.name.replace('effect/', '').replace('-', '.')
+      if (label === 'default' || label === 'none') return
+      const mul = parseMultiplier(label)
+      const val = Math.round(newDefault * mul)
+      nextUpdates[e.name] = val
+    })
+    if (Object.keys(nextUpdates).length) {
+      setValues((prev) => ({ ...prev, ...nextUpdates }))
+      Object.entries(nextUpdates).forEach(([k, v]) => setOverride(k, v))
+    }
+  }
+
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
       <div className="container-padding">
         <section style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
           <h3 style={{ marginTop: 0 }}>Tokens</h3>
           <div>
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>Effects</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: 8, alignItems: 'center' }}>
-              {effectItems.map((e) => {
-                const display = e.name.replace('effect/', '').replace('-', '.')
-                const isNone = e.name === 'effect/none'
-                const current = isNone ? 0 : Number((values[e.name] as any) ?? (e.value as any) ?? 0)
-                return (
-                  <>
-                    <label key={e.name + '-label'} htmlFor={e.name} style={{ fontSize: 13, opacity: 0.9 }}>{display}</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <input
-                        key={e.name}
-                        id={e.name}
-                        type="range"
-                        min={0}
-                        max={100}
-                        disabled={isNone}
-                        value={current}
-                        onChange={(ev) => {
-                          const next = Number(ev.currentTarget.value)
-                          setValues((prev) => ({ ...prev, [e.name]: next }))
-                          setOverride(e.name, next)
-                        }}
-                        style={{ width: '100%' }}
-                      />
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={current}
-                        disabled={isNone}
-                        onChange={(ev) => {
-                          const next = Number(ev.currentTarget.value)
-                          if (Number.isFinite(next)) {
-                            setValues((prev) => ({ ...prev, [e.name]: next }))
-                            setOverride(e.name, next)
-                          }
-                        }}
-                        style={{ width: 60 }}
-                      />
-                    </div>
-                  </>
-                )
-              })}
+            <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8 }}>
+              <AccordionSimple label="Effect Tokens">
+                <EffectTokens />
+              </AccordionSimple>
             </div>
           </div>
         </section>
@@ -132,6 +129,23 @@ export default function ElevationPage() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function AccordionSimple({ label, children }: { label: string; children: any }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div>
+      <button onClick={() => setOpen((v) => !v)} style={{ width: '100%', textAlign: 'left', padding: 10, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontWeight: 600 }}>{label}</span>
+        <span>{open ? '▾' : '▸'}</span>
+      </button>
+      {open && (
+        <div style={{ padding: 8 }}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }
