@@ -22,7 +22,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <Navigate to="/tokens" replace /> },
       { path: '/tokens', element: <TokensPage /> },
-      { path: '/color', element: <CodePenPage /> },
+      { path: '/palettes', element: <CodePenPage /> },
       { path: '/elevation', element: <ElevationPage /> },
       { path: '/type', element: <TypePage /> },
       { path: '/layers', element: <LayersPage /> },

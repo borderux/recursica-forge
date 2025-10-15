@@ -46,7 +46,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           </Typography>
           <Tabs value={kit} textColor="inherit" indicatorColor="secondary" sx={{ mx: 'auto' }}>
             <Tab value="tokens" label="Tokens" component={Link as any} to="/tokens" />
-            <Tab value="color" label="Color" component={Link as any} to="/color" />
+            <Tab value="palettes" label="Palettes" component={Link as any} to="/palettes" />
             <Tab value="type" label="Type" component={Link as any} to="/type" />
             <Tab value="elevation" label="Elevation" component={Link as any} to="/elevation" />
             <Tab value="layers" label="Layers" component={Link as any} to="/layers" />

@@ -15,7 +15,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const [isModalOpen, setIsModalOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const currentTab = location.pathname.startsWith('/tokens') ? 'tokens' : location.pathname.startsWith('/type') ? 'type' : location.pathname.startsWith('/elevation') ? 'elevation' : location.pathname.startsWith('/layers') ? 'layers' : location.pathname.startsWith('/preview') ? 'preview' : 'color'
+  const currentTab = location.pathname.startsWith('/tokens') ? 'tokens' : location.pathname.startsWith('/type') ? 'type' : location.pathname.startsWith('/elevation') ? 'elevation' : location.pathname.startsWith('/layers') ? 'layers' : location.pathname.startsWith('/preview') ? 'preview' : 'palettes'
   const onUpload = async (file?: File | null) => {
     if (!file) return
     const text = await file.text()
@@ -35,13 +35,13 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             <Tabs value={currentTab} onChange={(val) => {
               const v = (val as string) || 'tokens'
               if (v === 'tokens') navigate('/tokens')
-              else if (v === 'color') navigate('/color')
+              else if (v === 'palettes') navigate('/palettes')
               else if (v === 'preview') navigate('/preview')
               else navigate(`/${v}`)
             }} keepMounted={false} variant="pills" radius="xl">
               <Tabs.List>
                 <Tabs.Tab value="tokens">Tokens</Tabs.Tab>
-                <Tabs.Tab value="color">Color</Tabs.Tab>
+                <Tabs.Tab value="palettes">Palettes</Tabs.Tab>
                 <Tabs.Tab value="type">Type</Tabs.Tab>
                 <Tabs.Tab value="elevation">Elevation</Tabs.Tab>
                 <Tabs.Tab value="layers">Layers</Tabs.Tab>
