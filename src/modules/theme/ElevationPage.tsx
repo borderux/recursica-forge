@@ -1,6 +1,6 @@
 import './index.css'
 import { useState } from 'react'
-import EffectTokens from './EffectTokens'
+import EffectTokens from '../tokens/EffectTokens'
 
 export default function ElevationPage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false)

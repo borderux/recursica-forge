@@ -265,8 +265,9 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
 import tokensJson from '../../vars/Tokens.json'
 // removed unused varsUtil import
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
-import OpacityTokens from '../theme/OpacityTokens'
-import EffectTokens from '../theme/EffectTokens'
+import OpacityTokens from '../tokens/OpacityTokens'
+import EffectTokens from '../tokens/EffectTokens'
+import SizeTokens from '../tokens/SizeTokens'
 
 type TokenEntry = {
   collection?: string
@@ -313,10 +314,7 @@ export default function TokensPage() {
     return () => window.removeEventListener('tokenOverridesChanged', handler)
   }, [])
   const [selected, setSelected] = useState<'color' | 'effect' | 'font' | 'opacity' | 'size'>('color')
-  const [scaleSizesByDefault, setScaleSizesByDefault] = useState<boolean>(() => {
-    const v = localStorage.getItem('size-scale-by-default')
-    return v === null ? true : v === 'true'
-  })
+  // size-scale-by-default is managed inside SizeTokens
 
   // overlay positioning handled inside ColorPickerOverlay
 
@@ -682,74 +680,7 @@ export default function TokensPage() {
               ) : selected === 'opacity' ? (
                 <OpacityTokens />
               ) : selected === 'size' ? (
-                <div style={{ display: 'grid', gap: 12 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontWeight: 600 }}>Size</div>
-                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <input type="checkbox" checked={scaleSizesByDefault} onChange={(e) => {
-                        const next = e.currentTarget.checked
-                        setScaleSizesByDefault(next)
-                        localStorage.setItem('size-scale-by-default', String(next))
-                      }} />
-                      Scale based on default
-                    </label>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 50px auto', gap: 8, alignItems: 'center' }}>
-                    {sortedActive.map(({ entry }) => {
-                      const raw = entry.name.replace('size/', '')
-                      const display = (() => {
-                        const n = raw.replace('-', '.')
-                        if (n === 'default' || n === 'none') return n.charAt(0).toUpperCase() + n.slice(1)
-                        return n
-                      })()
-                      const numeric = typeof entry.value === 'number'
-                      const isNone = raw === 'none'
-                      const isDefault = raw === 'default'
-                      const currentDefault = Number((values['size/default'] as any) ?? (sortedActive.find(({ entry: e }) => e.name === 'size/default')?.entry.value as any) ?? 0)
-                      const mul = (() => {
-                        if (raw === 'default') return 1
-                        if (raw === 'none') return 0
-                        const n = parseFloat(raw.replace('-', '.').replace('x', ''))
-                        return Number.isFinite(n) ? n : 1
-                      })()
-                      const computed = Math.round(currentDefault * mul)
-                      const current: any = isNone ? 0 : (scaleSizesByDefault && !isDefault) ? computed : ((values[entry.name] as any) ?? (entry.value as any))
-                      const disabled = isNone || (scaleSizesByDefault && !isDefault)
-                      return (
-                        <>
-                          <label key={entry.name + '-label'} htmlFor={entry.name} style={{ fontSize: 13, opacity: 0.9 }}>{display}</label>
-                          <input
-                            type="range"
-                            min={0}
-                            max={200}
-                            step={1}
-                            disabled={disabled}
-                            value={Number(current)}
-                            onChange={(e) => {
-                              const next = Number(e.currentTarget.value)
-                              setValues((prev) => ({ ...prev, [entry.name]: next }))
-                              setOverride(entry.name, next as any)
-                            }}
-                            style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
-                          />
-                          <input
-                            id={entry.name}
-                            type={numeric ? 'number' : 'text'}
-                            value={Number(current)}
-                            disabled={disabled}
-                            onChange={(e) => {
-                              const next = numeric ? Number(e.currentTarget.value) : e.currentTarget.value
-                              setValues((prev) => ({ ...prev, [entry.name]: next }))
-                              setOverride(entry.name, next as any)
-                            }}
-                            style={{ width: 50 }}
-                          />
-                          <span style={{ fontSize: 12, opacity: 0.8 }}>px</span>
-                        </>
-                      )
-                    })}
-                  </div>
-                </div>
+                <SizeTokens />
               ) : (
                 <div style={{ display: 'grid', gap: 16 }}>
                   <div>
