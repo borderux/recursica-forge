@@ -6,6 +6,7 @@ import { CodePenPage } from './modules/theme/index'
 import ElevationPage from './modules/theme/ElevationPage'
 import TypePage from './modules/type/TypePage'
 import SamplesPage from './modules/samples/SamplesPage'
+import LayersPage from './modules/theme/LayersPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { applyTheme, LIGHT_MODE } from './modules/theme/index'
 import './styles/index.css'
@@ -18,10 +19,11 @@ const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      { path: '/', element: <Navigate to="/color" replace /> },
-      { path: '/color', element: <CodePenPage /> },
+      { path: '/', element: <Navigate to="/theme" replace /> },
+      { path: '/theme', element: <CodePenPage /> },
       { path: '/elevation', element: <ElevationPage /> },
       { path: '/type', element: <TypePage /> },
+      { path: '/layers', element: <LayersPage /> },
       { path: '/samples', element: <SamplesPage /> },
     ],
   },
