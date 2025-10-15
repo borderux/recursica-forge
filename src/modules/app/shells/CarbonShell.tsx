@@ -33,15 +33,16 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
 
   return (
     <Theme theme="g10">
-      <Header aria-label="recursica-forge">
-        <HeaderName prefix="">
-          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>recursica-forge</Link>
-        </HeaderName>
+      <Header aria-label="Recursica Theme Forge">
+        <HeaderName prefix="">Recursica Theme Forge</HeaderName>
+        <div style={{ display: 'flex', flex: 1, justifyContent: 'center', gap: 16 }}>
+          <a href="/theme" style={{ color: 'inherit', textDecoration: 'none' }}>Color</a>
+          <a href="/type" style={{ color: 'inherit', textDecoration: 'none' }}>Type</a>
+          <a href="/elevation" style={{ color: 'inherit', textDecoration: 'none' }}>Elevation</a>
+          <a href="/layers" style={{ color: 'inherit', textDecoration: 'none' }}>Layers</a>
+        </div>
         <HeaderGlobalBar>
-          <a href="/" style={{ color: 'inherit', textDecoration: 'none', marginRight: 8 }}>Home</a>
-          <a href="/theme" style={{ color: 'inherit', textDecoration: 'none', marginRight: 8 }}>Theme</a>
-          <a href="/type" style={{ color: 'inherit', textDecoration: 'none', marginRight: 8 }}>Type</a>
-          <Button kind="tertiary" onClick={() => setIsOpen(true)} style={{ marginRight: 8 }}>Import/Export</Button>
+          <button onClick={() => downloadCurrentCssVars()} title="Download" style={{ marginRight: 8 }}>⤓</button>
           <div style={{ minWidth: 180 }}>
             <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
               <SelectItem text="Mantine" value="mantine" />

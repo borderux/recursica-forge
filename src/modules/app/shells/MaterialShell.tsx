@@ -30,7 +30,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
 
   if (!mat || !styles) return <div style={{ padding: 16 }}>Loading Material UI…</div>
 
-  const { AppBar, Toolbar, Typography, Button, Select, MenuItem, Container, CssBaseline, Dialog, DialogTitle, DialogContent, DialogActions, Stack } = mat
+  const { AppBar, Toolbar, Typography, Button, Select, MenuItem, Container, CssBaseline, Tabs, Tab, IconButton } = mat
   const { ThemeProvider, createTheme } = styles
   const theme = createTheme()
   return (
@@ -38,13 +38,16 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
       <CssBaseline />
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>recursica-forge</Link>
+          <Typography variant="h6" component="div">
+            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Recursica Theme Forge</Link>
           </Typography>
-          <Button color="inherit" href="/">Home</Button>
-          <Button color="inherit" href="/theme">Theme</Button>
-          <Button color="inherit" href="/type">Type</Button>
-          <Button color="inherit" onClick={() => setIsDialogOpen(true)}>Import/Export</Button>
+          <Tabs value={kit} textColor="inherit" indicatorColor="secondary" sx={{ mx: 'auto' }}>
+            <Tab value="color" label="Color" component={Link as any} to="/theme" />
+            <Tab value="type" label="Type" component={Link as any} to="/type" />
+            <Tab value="elevation" label="Elevation" component={Link as any} to="/elevation" />
+            <Tab value="layers" label="Layers" component={Link as any} to="/layers" />
+          </Tabs>
+          <IconButton color="inherit" size="small" onClick={() => {/* open modal not implemented for MUI shell */}} title="Import / Export">⤓</IconButton>
           <Select
             size="small"
             value={kit}
@@ -57,25 +60,6 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           </Select>
         </Toolbar>
       </AppBar>
-      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
-        <DialogTitle>Import/Export</DialogTitle>
-        <DialogContent>
-          <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
-            <input
-              type="file"
-              accept="application/json,.json"
-              onChange={(e: any) => {
-                onUpload(e.currentTarget.files?.[0])
-                e.currentTarget.value = ''
-              }}
-            />
-            <Button onClick={() => downloadCurrentCssVars()}>Download</Button>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
       <Container maxWidth="lg" sx={{ py: 2 }}>
         {children}
       </Container>
