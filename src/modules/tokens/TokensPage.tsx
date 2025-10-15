@@ -14,7 +14,7 @@ type ModeName = 'Mode 1' | 'Mode 2' | string
 
 export default function TokensPage() {
   const [values, setValues] = useState<Record<string, string | number>>({})
-  const [subTab, setSubTab] = useState<'color' | 'measurements'>('color')
+  const [selected, setSelected] = useState<'color' | 'effect' | 'font' | 'opacity' | 'size'>('color')
 
   const groupedByMode = useMemo(() => {
     const byMode: Record<ModeName, Array<{ key: string; entry: TokenEntry }>> = {}
@@ -73,19 +73,34 @@ export default function TokensPage() {
 
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-        <h2 style={{ margin: 0 }}>Tokens</h2>
-        <div style={{ display: 'inline-flex', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, overflow: 'hidden' }}>
-          <button
-            onClick={() => setSubTab('color')}
-            style={{ padding: '6px 12px', border: 0, cursor: 'pointer', background: subTab === 'color' ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent', color: subTab === 'color' ? '#fff' : 'inherit' }}
-          >Color</button>
-          <button
-            onClick={() => setSubTab('measurements')}
-            style={{ padding: '6px 12px', border: 0, cursor: 'pointer', background: subTab === 'measurements' ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent', color: subTab === 'measurements' ? '#fff' : 'inherit' }}
-          >Measurements</button>
-        </div>
-      </div>
+      <h2 style={{ margin: 0 }}>Tokens</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 16 }}>
+        <nav style={{ alignSelf: 'start', position: 'sticky', top: 8 }}>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {[
+              { key: 'color', label: 'Color' },
+              { key: 'effect', label: 'Effect' },
+              { key: 'font', label: 'Font' },
+              { key: 'opacity', label: 'Opacity' },
+              { key: 'size', label: 'Size' },
+            ].map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setSelected(item.key as any)}
+                style={{
+                  textAlign: 'left',
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  border: '1px solid var(--layer-layer-1-property-border-color)',
+                  background: selected === (item.key as any) ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent',
+                  color: selected === (item.key as any) ? '#fff' : 'inherit',
+                  cursor: 'pointer'
+                }}
+              >{item.label}</button>
+            ))}
+          </div>
+        </nav>
+        <div style={{ display: 'grid', gap: 12 }}>
       {Object.entries(groupedByMode).map(([mode, items]) => {
         const colorSection = (
           <section key={mode + '-color'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
@@ -150,30 +165,34 @@ export default function TokensPage() {
             Opacity: measurementItems.filter(({ entry }) => entry.name.startsWith('opacity/')),
             Size: measurementItems.filter(({ entry }) => entry.name.startsWith('size/')),
           }
+          const groupKeyMap: Record<'effect'|'font'|'opacity'|'size', keyof typeof groups> = {
+            effect: 'Effects',
+            font: 'Font',
+            opacity: 'Opacity',
+            size: 'Size',
+          }
+          const activeGroup = selected === 'color' ? null : groups[groupKeyMap[selected]]
+          if (!activeGroup) return null
           return (
             <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
               <div style={{ display: 'grid', gap: 16 }}>
-                {Object.entries(groups).map(([groupName, groupItems]) => (
-                  groupItems.length ? (
-                    <div key={groupName}>
-                      <div style={{ fontWeight: 600, marginBottom: 8 }}>{groupName}</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 8, alignItems: 'center' }}>
-                        {groupItems.map(({ entry }) => (
-                          <>
-                            <label key={entry.name + '-label'} htmlFor={entry.name} style={{ fontSize: 13, opacity: 0.9 }}>{entry.name}</label>
-                            <input
-                              key={entry.name}
-                              id={entry.name}
-                              type={typeof entry.value === 'number' ? 'number' : 'text'}
-                              value={(values[entry.name] as any) ?? (entry.value as any)}
-                              onChange={(e) => handleChange(entry.name, e.currentTarget.value)}
-                            />
-                          </>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null
-                ))}
+                <div>
+                  <div style={{ fontWeight: 600, marginBottom: 8 }}>{groupKeyMap[selected]}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 8, alignItems: 'center' }}>
+                    {activeGroup.map(({ entry }) => (
+                      <>
+                        <label key={entry.name + '-label'} htmlFor={entry.name} style={{ fontSize: 13, opacity: 0.9 }}>{entry.name}</label>
+                        <input
+                          key={entry.name}
+                          id={entry.name}
+                          type={typeof entry.value === 'number' ? 'number' : 'text'}
+                          value={(values[entry.name] as any) ?? (entry.value as any)}
+                          onChange={(e) => handleChange(entry.name, e.currentTarget.value)}
+                        />
+                      </>
+                    ))}
+                  </div>
+                </div>
               </div>
             </section>
           )
@@ -181,11 +200,12 @@ export default function TokensPage() {
 
         return (
           <div key={mode} style={{ display: 'grid', gap: 12 }}>
-            {subTab === 'color' ? colorSection : measurementSection}
+            {selected === 'color' ? colorSection : measurementSection}
           </div>
         )
       })}
-      
+        </div>
+      </div>
     </div>
   )
 }
