@@ -32,7 +32,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
 
             <Tabs value={currentTab} onChange={(val) => {
               const v = (val as string) || 'color'
-              if (v === 'color') navigate('/theme')
+              if (v === 'color') navigate('/color')
               else if (v === 'preview') navigate('/preview')
               else navigate(`/${v}`)
             }} keepMounted={false} variant="pills" radius="xl">

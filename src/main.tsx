@@ -19,8 +19,8 @@ const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      { path: '/', element: <Navigate to="/theme" replace /> },
-      { path: '/theme', element: <CodePenPage /> },
+      { path: '/', element: <Navigate to="/color" replace /> },
+      { path: '/color', element: <CodePenPage /> },
       { path: '/elevation', element: <ElevationPage /> },
       { path: '/type', element: <TypePage /> },
       { path: '/layers', element: <LayersPage /> },

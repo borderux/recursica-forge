@@ -22,7 +22,7 @@ export default function PreviewPage() {
     return [
       {
         name: 'Accordion',
-        url: `${base}`,
+        url: `${base}/accordion`,
         render: () => (
           <div>
             <details open>
@@ -38,7 +38,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Avatar',
-        url: `${base}`,
+        url: `${base}/avatar`,
         render: () => (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--palette-neutral-300-tone)' }} />
@@ -48,7 +48,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Badge',
-        url: `${base}`,
+        url: `${base}/badge`,
         render: () => (
           <div style={{ display: 'flex', gap: 8 }}>
             <span style={{ background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
@@ -59,7 +59,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Breadcrumb',
-        url: `${base}`,
+        url: `${base}/breadcrumb`,
         render: () => (
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <a href="#">Home</a>
@@ -72,7 +72,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Button',
-        url: `${base}`,
+        url: `${base}/button`,
         render: () => (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button>Text</button>
@@ -85,7 +85,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Date picker',
-        url: `${base}`,
+        url: `${base}/date-picker`,
         render: () => (
           <div style={{ display: 'flex', gap: 8 }}>
             <input type="date" />
@@ -95,7 +95,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Dropdown',
-        url: `${base}`,
+        url: `${base}/dropdown`,
         render: () => (
           <div style={{ display: 'flex', gap: 8 }}>
             <select>
@@ -111,7 +111,7 @@ export default function PreviewPage() {
       },
       {
         name: 'File input',
-        url: `${base}`,
+        url: `${base}/file-input`,
         render: () => (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <input type="file" />
@@ -121,7 +121,7 @@ export default function PreviewPage() {
       },
       {
         name: 'File upload',
-        url: `${base}`,
+        url: `${base}/file-upload`,
         render: () => (
           <div style={{ display: 'grid', gap: 8 }}>
             <div style={{ border: '1px dashed var(--layer-layer-1-property-border-color)', padding: 16, borderRadius: 8, textAlign: 'center' }}>Drag & drop files here</div>
@@ -131,7 +131,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Hover card',
-        url: `${base}`,
+        url: `${base}/hover-card`,
         render: () => (
           <div style={{ position: 'relative', display: 'inline-block' }}>
             <span title="Extra information appears on hover" style={{ textDecoration: 'underline', cursor: 'help' }}>Hover me</span>
@@ -140,7 +140,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Link',
-        url: `${base}`,
+        url: `${base}/link`,
         render: () => (
           <div style={{ display: 'flex', gap: 12 }}>
             <a href="#">Default link</a>
@@ -150,7 +150,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Loader',
-        url: `${base}`,
+        url: `${base}/loader`,
         render: () => (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <div style={{ width: 16, height: 16, border: '2px solid var(--layer-layer-1-property-border-color)', borderTopColor: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
@@ -163,7 +163,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Menu',
-        url: `${base}`,
+        url: `${base}/menu`,
         render: () => (
           <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8 }}>
             <li style={{ padding: 8 }}>Profile</li>
@@ -174,7 +174,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Modal',
-        url: `${base}`,
+        url: `${base}/modal`,
         render: () => (
           <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', padding: 12, borderRadius: 8, background: 'var(--layer-layer-0-property-surface)' }}>
             <strong>Modal</strong>
@@ -184,7 +184,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Card',
-        url: `${base}`,
+        url: `${base}/card`,
         render: () => (
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ width: 240, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
@@ -201,7 +201,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Checkbox',
-        url: `${base}`,
+        url: `${base}/checkbox`,
         render: () => (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <label><input type="checkbox" defaultChecked /> Checked</label>
@@ -215,7 +215,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Chip',
-        url: `${base}`,
+        url: `${base}/chip`,
         render: () => (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
@@ -258,7 +258,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Number input',
-        url: `${base}`,
+        url: `${base}/number-input`,
         render: () => (
           <div style={{ display: 'flex', gap: 8 }}>
             <input type="number" defaultValue={1} style={{ width: 120 }} />
@@ -268,7 +268,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Pagination',
-        url: `${base}`,
+        url: `${base}/pagination`,
         render: () => (
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <button>{'<'}</button>
@@ -281,21 +281,21 @@ export default function PreviewPage() {
       },
       {
         name: 'Panel',
-        url: `${base}`,
+        url: `${base}/panel`,
         render: () => (
           <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>Panel content</div>
         ),
       },
       {
         name: 'Popover',
-        url: `${base}`,
+        url: `${base}/popover`,
         render: () => (
           <div title="Popover content" style={{ display: 'inline-block', border: '1px solid var(--layer-layer-1-property-border-color)', padding: '6px 10px', borderRadius: 6, cursor: 'help' }}>Hover for popover</div>
         ),
       },
       {
         name: 'Radio',
-        url: `${base}`,
+        url: `${base}/radio`,
         render: () => (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <label><input type="radio" name="r1" defaultChecked /> First</label>
@@ -306,7 +306,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Read-only field',
-        url: `${base}`,
+        url: `${base}/read-only-field`,
         render: () => (
           <div style={{ display: 'grid', gap: 8, width: 320 }}>
             <input value="Read-only value" readOnly style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)' }} />
@@ -315,7 +315,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Search',
-        url: `${base}`,
+        url: `${base}/search`,
         render: () => (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <input placeholder="Search…" style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)' }} />
@@ -325,7 +325,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Segmented control',
-        url: `${base}`,
+        url: `${base}/segmented-control`,
         render: () => (
           <div style={{ display: 'inline-flex', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, overflow: 'hidden' }}>
             <button style={{ padding: '6px 10px', background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 0 }}>First</button>
@@ -336,14 +336,14 @@ export default function PreviewPage() {
       },
       {
         name: 'Slider',
-        url: `${base}`,
+        url: `${base}/slider`,
         render: () => (
           <input type="range" min={0} max={100} defaultValue={25} />
         ),
       },
       {
         name: 'Stepper',
-        url: `${base}`,
+        url: `${base}/stepper`,
         render: () => (
           <ol style={{ display: 'flex', gap: 12, listStyle: 'none', padding: 0 }}>
             {['One', 'Two', 'Three'].map((s, i) => (
@@ -357,7 +357,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Switch',
-        url: `${base}`,
+        url: `${base}/switch`,
         render: () => (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -374,7 +374,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Tabs',
-        url: `${base}`,
+        url: `${base}/tabs`,
         render: () => (
           <div style={{ display: 'flex', gap: 6 }}>
             <button style={{ padding: '6px 10px', borderRadius: 999, background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 0 }}>Active</button>
@@ -385,7 +385,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Text field',
-        url: `${base}`,
+        url: `${base}/text-field`,
         render: () => (
           <div style={{ display: 'grid', gap: 8, width: 320 }}>
             <input placeholder="Default" style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)' }} />
@@ -396,7 +396,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Time picker',
-        url: `${base}`,
+        url: `${base}/time-picker`,
         render: () => (
           <div style={{ display: 'flex', gap: 8 }}>
             <input type="time" />
@@ -406,7 +406,7 @@ export default function PreviewPage() {
       },
       {
         name: 'Timeline',
-        url: `${base}`,
+        url: `${base}/timeline`,
         render: () => (
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {[['08:00', 'Start'], ['10:30', 'Checkpoint'], ['13:00', 'Finish']].map(([t, l], i) => (
@@ -421,21 +421,21 @@ export default function PreviewPage() {
       },
       {
         name: 'Toast',
-        url: `${base}`,
+        url: `${base}/toast`,
         render: () => (
           <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', padding: 12, borderRadius: 8, background: 'var(--layer-layer-alternative-success-property-surface)' }}>Success toast</div>
         ),
       },
       {
         name: 'Tooltip',
-        url: `${base}`,
+        url: `${base}/tooltip`,
         render: () => (
           <span title="Tooltip text" style={{ textDecoration: 'underline', cursor: 'help' }}>Hover for tooltip</span>
         ),
       },
       {
         name: 'Transfer list',
-        url: `${base}`,
+        url: `${base}/transfer-list`,
         render: () => (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, alignItems: 'center' }}>
             <ul style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6, padding: 8, margin: 0, listStyle: 'none' }}>
