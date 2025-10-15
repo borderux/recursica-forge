@@ -6,6 +6,14 @@ import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const [mat, setMat] = useState<any>(null)
   const [styles, setStyles] = useState<any>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const onUpload = async (file?: File | null) => {
+    if (!file) return
+    const text = await file.text()
+    const json = JSON.parse(text)
+    const vars = extractCssVarsFromObject(json)
+    if (Object.keys(vars).length) applyCssVars(vars)
+  }
 
   useEffect(() => {
     let mounted = true
@@ -22,7 +30,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
 
   if (!mat || !styles) return <div style={{ padding: 16 }}>Loading Material UI…</div>
 
-  const { AppBar, Toolbar, Typography, Button, Select, MenuItem, Container, CssBaseline } = mat
+  const { AppBar, Toolbar, Typography, Button, Select, MenuItem, Container, CssBaseline, Dialog, DialogTitle, DialogContent, DialogActions, Stack } = mat
   const { ThemeProvider, createTheme } = styles
   const theme = createTheme()
   return (
@@ -36,16 +44,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           <Button color="inherit" href="/">Home</Button>
           <Button color="inherit" href="/theme">Theme</Button>
           <Button color="inherit" href="/type">Type</Button>
-          <input type="file" accept="application/json,.json" onChange={async (e: any) => {
-            const file = e.currentTarget.files?.[0]
-            if (!file) return
-            const text = await file.text()
-            const json = JSON.parse(text)
-            const vars = extractCssVarsFromObject(json)
-            if (Object.keys(vars).length) applyCssVars(vars)
-            e.currentTarget.value = ''
-          }} />
-          <Button color="inherit" onClick={() => downloadCurrentCssVars()}>Download</Button>
+          <Button color="inherit" onClick={() => setIsDialogOpen(true)}>Import/Export</Button>
           <Select
             size="small"
             value={kit}
@@ -58,6 +57,25 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           </Select>
         </Toolbar>
       </AppBar>
+      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+        <DialogTitle>Import/Export</DialogTitle>
+        <DialogContent>
+          <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={(e: any) => {
+                onUpload(e.currentTarget.files?.[0])
+                e.currentTarget.value = ''
+              }}
+            />
+            <Button onClick={() => downloadCurrentCssVars()}>Download</Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
       <Container maxWidth="lg" sx={{ py: 2 }}>
         {children}
       </Container>

@@ -297,11 +297,7 @@ export function CodePenPage() {
 
   // Upload moved to header shells
 
-  const handleReset = () => {
-    setCustomVars(null)
-    const base = isDarkMode ? DARK_MODE : LIGHT_MODE
-    applyTheme(base)
-  }
+  
 
   useEffect(() => {
     applyTheme(LIGHT_MODE)
@@ -334,9 +330,6 @@ export function CodePenPage() {
 
         <div className="section">
           <h2>Colors</h2>
-          <div className="toggle-group">
-            <button onClick={handleReset} disabled={!customVars}>Reset</button>
-          </div>
           <table className="color-swatches">
             <thead>
               <tr>
@@ -608,5 +601,7 @@ export function CodePenPage() {
     </div>
   )
 }
+
+export { applyTheme, LIGHT_MODE }
 
 

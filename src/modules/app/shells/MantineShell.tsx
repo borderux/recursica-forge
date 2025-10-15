@@ -1,11 +1,16 @@
-import { ReactNode } from 'react'
-import { AppShell, Group, Title, Button, Select, MantineProvider } from '@mantine/core'
+import { ReactNode, useEffect, useState } from 'react'
+import { AppShell, Group, Title, Button, Select, MantineProvider, Modal } from '@mantine/core'
 import '@mantine/core/styles.css'
 import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
+import { applyTheme, LIGHT_MODE } from '../../theme/index'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
+  useEffect(() => {
+    applyTheme(LIGHT_MODE)
+  }, [])
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const onUpload = async (file?: File | null) => {
     if (!file) return
     const text = await file.text()
@@ -27,8 +32,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
               <Button component={Link} to="/">Home</Button>
               <Button component={Link} to="/theme" variant="light">Theme</Button>
               <Button component={Link} to="/type" variant="subtle">Type</Button>
-              <input type="file" accept="application/json,.json" onChange={(e) => onUpload(e.currentTarget.files?.[0])} />
-              <Button variant="default" onClick={() => downloadCurrentCssVars()}>Download</Button>
+              <Button variant="default" onClick={() => setIsModalOpen(true)}>Import/Export</Button>
               <Select
                 value={kit}
                 onChange={(v) => onKitChange((v as UiKit) ?? 'mantine')}
@@ -43,6 +47,19 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             </Group>
           </Group>
         </AppShell.Header>
+        <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Import/Export">
+          <Group gap="sm">
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={(e) => {
+                onUpload(e.currentTarget.files?.[0])
+                e.currentTarget.value = ''
+              }}
+            />
+            <Button variant="default" onClick={() => downloadCurrentCssVars()}>Download</Button>
+          </Group>
+        </Modal>
 
         <AppShell.Main>
           {children}

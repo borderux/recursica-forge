@@ -5,6 +5,14 @@ import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const [carbon, setCarbon] = useState<any>(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const onUpload = async (file?: File | null) => {
+    if (!file) return
+    const text = await file.text()
+    const json = JSON.parse(text)
+    const vars = extractCssVarsFromObject(json)
+    if (Object.keys(vars).length) applyCssVars(vars)
+  }
 
   useEffect(() => {
     let mounted = true
@@ -21,7 +29,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
 
   if (!carbon) return <div style={{ padding: 16 }}>Loading Carbon…</div>
 
-  const { Header, HeaderName, HeaderGlobalBar, Select, SelectItem, Theme, Grid, Column } = carbon
+  const { Header, HeaderName, HeaderGlobalBar, Select, SelectItem, Theme, Grid, Column, ComposedModal, ModalHeader, ModalBody, ModalFooter, Button } = carbon
 
   return (
     <Theme theme="g10">
@@ -33,16 +41,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           <a href="/" style={{ color: 'inherit', textDecoration: 'none', marginRight: 8 }}>Home</a>
           <a href="/theme" style={{ color: 'inherit', textDecoration: 'none', marginRight: 8 }}>Theme</a>
           <a href="/type" style={{ color: 'inherit', textDecoration: 'none', marginRight: 8 }}>Type</a>
-          <input type="file" accept="application/json,.json" onChange={async (e: any) => {
-            const file = e.currentTarget.files?.[0]
-            if (!file) return
-            const text = await file.text()
-            const json = JSON.parse(text)
-            const vars = extractCssVarsFromObject(json)
-            if (Object.keys(vars).length) applyCssVars(vars)
-            e.currentTarget.value = ''
-          }} />
-          <button onClick={() => downloadCurrentCssVars()} style={{ marginRight: 8 }}>Download</button>
+          <Button kind="tertiary" onClick={() => setIsOpen(true)} style={{ marginRight: 8 }}>Import/Export</Button>
           <div style={{ minWidth: 180 }}>
             <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
               <SelectItem text="Mantine" value="mantine" />
@@ -52,6 +51,23 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           </div>
         </HeaderGlobalBar>
       </Header>
+      <ComposedModal open={isOpen} onClose={() => setIsOpen(false)} size="sm">
+        <ModalHeader label="Import/Export" title="Import/Export" />
+        <ModalBody hasForm>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={(e: any) => {
+                onUpload(e.currentTarget.files?.[0])
+                e.currentTarget.value = ''
+              }}
+            />
+            <Button kind="secondary" onClick={() => downloadCurrentCssVars()}>Download</Button>
+          </div>
+        </ModalBody>
+        <ModalFooter primaryButtonText="Close" onRequestClose={() => setIsOpen(false)} onRequestSubmit={() => setIsOpen(false)} />
+      </ComposedModal>
       <Grid condensed style={{ padding: 16 }}>
         <Column lg={16} md={8} sm={4}>
           {children}
