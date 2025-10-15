@@ -61,15 +61,16 @@ export default function OpacityTokens() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 8, alignItems: 'center' }}>
-      {items.map((it) => {
-        const label = toTitleCase(it.name.replace('opacity/', ''))
-        const currentRaw = (values[it.name] as any) ?? it.value
-        const current = toPctNumber(currentRaw)
-        return (
-          <>
-            <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{ display: 'grid', gap: 8 }}>
+      <div style={{ fontWeight: 600 }}>Opacity</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 50px auto', gap: 8, alignItems: 'center' }}>
+        {items.map((it) => {
+          const label = toTitleCase(it.name.replace('opacity/', ''))
+          const currentRaw = (values[it.name] as any) ?? it.value
+          const current = toPctNumber(currentRaw)
+          return (
+            <>
+              <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
               <input
                 key={it.name}
                 id={it.name}
@@ -82,7 +83,7 @@ export default function OpacityTokens() {
                   setValues((prev) => ({ ...prev, [it.name]: next }))
                   setOverride(it.name, next)
                 }}
-                style={{ width: '100%' }}
+                style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
               />
               <input
                 type="number"
@@ -96,12 +97,13 @@ export default function OpacityTokens() {
                     setOverride(it.name, next)
                   }
                 }}
-                style={{ width: 60 }}
+                style={{ width: 50 }}
               />
-            </div>
-          </>
-        )
-      })}
+              <span style={{ fontSize: 12, opacity: 0.8 }}>%</span>
+            </>
+          )
+        })}
+      </div>
     </div>
   )
 }

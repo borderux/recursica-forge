@@ -100,7 +100,7 @@ export default function EffectTokens() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ fontWeight: 600 }}>Effects</div>
+        <div style={{ fontWeight: 600 }}>Effect</div>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <input type="checkbox" checked={scaleByDefault} onChange={(e) => {
             const next = e.currentTarget.checked
@@ -115,9 +115,12 @@ export default function EffectTokens() {
           Scale based on default
         </label>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: 8, alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 50px auto', gap: 8, alignItems: 'center' }}>
         {effectItems.map((e) => {
-          const display = e.name.replace('effect/', '').replace('-', '.')
+          const displayRaw = e.name.replace('effect/', '').replace('-', '.')
+          const display = (displayRaw === 'default' || displayRaw === 'none')
+            ? displayRaw.charAt(0).toUpperCase() + displayRaw.slice(1)
+            : displayRaw
           const isNone = e.name === 'effect/none'
           const currentDefault = Number((values['effect/default'] as any) ?? 0)
           const mul = parseMultiplier(display)
@@ -127,40 +130,39 @@ export default function EffectTokens() {
           return (
             <>
               <label key={e.name + '-label'} htmlFor={e.name} style={{ fontSize: 13, opacity: 0.9 }}>{display}</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input
-                  key={e.name}
-                  id={e.name}
-                  type="range"
-                  min={0}
-                  max={100}
-                  disabled={isNone || (scaleByDefault && !isDefault)}
-                  value={current}
-                  onChange={(ev) => {
-                    const next = Number(ev.currentTarget.value)
+              <input
+                key={e.name}
+                id={e.name}
+                type="range"
+                min={0}
+                max={100}
+                disabled={isNone || (scaleByDefault && !isDefault)}
+                value={current}
+                onChange={(ev) => {
+                  const next = Number(ev.currentTarget.value)
+                  setValues((prev) => ({ ...prev, [e.name]: next }))
+                  setOverride(e.name, next)
+                  if (scaleByDefault && isDefault) applyScaledFromDefault(next)
+                }}
+                style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
+              />
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={current}
+                disabled={isNone || (scaleByDefault && !isDefault)}
+                onChange={(ev) => {
+                  const next = Number(ev.currentTarget.value)
+                  if (Number.isFinite(next)) {
                     setValues((prev) => ({ ...prev, [e.name]: next }))
                     setOverride(e.name, next)
                     if (scaleByDefault && isDefault) applyScaledFromDefault(next)
-                  }}
-                  style={{ width: '100%' }}
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={current}
-                  disabled={isNone || (scaleByDefault && !isDefault)}
-                  onChange={(ev) => {
-                    const next = Number(ev.currentTarget.value)
-                    if (Number.isFinite(next)) {
-                      setValues((prev) => ({ ...prev, [e.name]: next }))
-                      setOverride(e.name, next)
-                      if (scaleByDefault && isDefault) applyScaledFromDefault(next)
-                    }
-                  }}
-                  style={{ width: 60 }}
-                />
-              </div>
+                  }
+                }}
+                style={{ width: 50 }}
+              />
+              <span style={{ fontSize: 12, opacity: 0.8 }}>px</span>
             </>
           )
         })}
