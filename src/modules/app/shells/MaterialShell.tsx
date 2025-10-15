@@ -2,6 +2,9 @@ import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
+import { applyTheme, LIGHT_MODE } from '../../theme/index'
+import { clearOverrides } from '../../theme/tokenOverrides'
+import tokensJson from '../../../vars/Tokens.json'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const [mat, setMat] = useState<any>(null)
@@ -49,6 +52,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             <Tab value="layers" label="Layers" component={Link as any} to="/layers" />
             <Tab value="preview" label="Preview" component={Link as any} to="/preview" />
           </Tabs>
+          <IconButton color="inherit" size="small" onClick={() => { clearOverrides(tokensJson as any); applyTheme(LIGHT_MODE) }} title="Reset to defaults">↺</IconButton>
           <IconButton color="inherit" size="small" onClick={() => {/* open modal not implemented for MUI shell */}} title="Import / Export">⤓</IconButton>
           <Select
             size="small"

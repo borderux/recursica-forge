@@ -3,6 +3,8 @@ import { AppShell, Group, Title, Button, Select, MantineProvider, Modal, Tabs, A
 import '@mantine/core/styles.css'
 import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
 import { applyTheme, LIGHT_MODE } from '../../theme/index'
+import { clearOverrides } from '../../theme/tokenOverrides'
+import tokensJson from '../../../vars/Tokens.json'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 
@@ -48,6 +50,12 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             </Tabs>
 
             <Group gap="xs" wrap="nowrap">
+              <ActionIcon variant="default" onClick={() => {
+                clearOverrides(tokensJson as any)
+                applyTheme(LIGHT_MODE)
+              }} title="Reset to defaults">
+                ↺
+              </ActionIcon>
               <ActionIcon variant="default" onClick={() => setIsModalOpen(true)} title="Import / Export">
                 ⤓
               </ActionIcon>

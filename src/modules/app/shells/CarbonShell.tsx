@@ -2,6 +2,9 @@ import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
+import { applyTheme, LIGHT_MODE } from '../../theme/index'
+import { clearOverrides } from '../../theme/tokenOverrides'
+import tokensJson from '../../../vars/Tokens.json'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const [carbon, setCarbon] = useState<any>(null)
@@ -44,6 +47,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           <a href="/preview" style={{ color: 'inherit', textDecoration: 'none' }}>Preview</a>
         </div>
         <HeaderGlobalBar>
+          <button onClick={() => { clearOverrides(tokensJson as any); applyTheme(LIGHT_MODE) }} title="Reset to defaults" style={{ marginRight: 8 }}>↺</button>
           <button onClick={() => downloadCurrentCssVars()} title="Download" style={{ marginRight: 8 }}>⤓</button>
           <div style={{ minWidth: 180 }}>
             <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>

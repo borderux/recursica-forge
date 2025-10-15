@@ -27,4 +27,13 @@ export function setOverride(name: string, value: number | string) {
   } catch {}
 }
 
+export function clearOverrides(initialAll?: TokenOverrides) {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {}
+  try {
+    window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: initialAll || {} } }))
+  } catch {}
+}
+
 

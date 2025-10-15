@@ -373,14 +373,25 @@ export default function TokensPage() {
                                     const startLevel = Number(levelStr)
                                     if (!isNaN(startLevel)) {
                                       const baseHsv = hexToHsv(hex)
-                                      const allLevels = [900, 800, 700, 600, 500, 400, 300, 200, 100, 50, 0]
+                                      const allLevels = [900, 800, 700, 600, 500, 400, 300, 200, 100, 50]
                                       const minRef = 50
                                       const maxRef = 900
                                       const denomDown = Math.max(1, startLevel - minRef)
                                       const denomUp = Math.max(1, maxRef - startLevel)
 
+                                      const hasToken = (lvl: number) => {
+                                        const lvlStr = String(lvl).padStart(3, '0')
+                                        // Always allow 050 to be set; otherwise require an existing token entry
+                                        if (lvl === 50) return true
+                                        for (const entry of Object.values(tokensJson as any)) {
+                                          if (entry && entry.type === 'color' && entry.name === `color/${family}/${lvlStr}`) return true
+                                        }
+                                        return false
+                                      }
+
                                       if (cascadeDown) {
-                                        const targetsDown = allLevels.filter((lvl) => lvl < startLevel)
+                                        let targetsDown = allLevels.filter((lvl) => lvl < startLevel && hasToken(lvl))
+                                        if (!targetsDown.includes(50) && startLevel > 50) targetsDown = [...targetsDown, 50]
                                         targetsDown.forEach((lvl) => {
                                           const name = `color/${family}/${String(lvl).padStart(3, '0')}`
                                           const t = clamp((startLevel - lvl) / denomDown, 0, 1)
@@ -391,10 +402,21 @@ export default function TokensPage() {
                                           handleChange(name, nextHex)
                                           setOverride(name, nextHex)
                                         })
+                                        // Extra safety: explicitly update 050
+                                        if (startLevel > 50) {
+                                          const lvl = 50
+                                          const name050 = `color/${family}/050`
+                                          const t050 = clamp((startLevel - lvl) / denomDown, 0, 1)
+                                          const nextV050 = clamp(baseHsv.v + (1 - baseHsv.v) * t050, 0, 1)
+                                          const nextS050 = clamp(baseHsv.s * (1 - 0.35 * t050), 0, 1)
+                                          const nextHex050 = hsvToHex(baseHsv.h, nextS050, nextV050)
+                                          handleChange(name050, nextHex050)
+                                          setOverride(name050, nextHex050)
+                                        }
                                       }
 
                                       if (cascadeUp) {
-                                        const targetsUp = allLevels.filter((lvl) => lvl > startLevel)
+                                        const targetsUp = allLevels.filter((lvl) => lvl > startLevel && hasToken(lvl))
                                         targetsUp.forEach((lvl) => {
                                           const name = `color/${family}/${String(lvl).padStart(3, '0')}`
                                           const t = clamp((lvl - startLevel) / denomUp, 0, 1)
