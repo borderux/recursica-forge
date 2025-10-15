@@ -1,9 +1,83 @@
 import './index.css'
+import { useMemo, useState } from 'react'
+import tokensJson from '../../vars/Tokens.json'
 
 export default function ElevationPage() {
+  const [values, setValues] = useState<Record<string, string | number>>({})
+  const effectItems = useMemo(() => {
+    const out: Array<{ name: string; value: string | number }> = []
+    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
+      if (!entry || typeof entry !== 'object') return
+      if (typeof entry.name !== 'string') return
+      if (!entry.name.startsWith('effect/')) return
+      if (typeof entry.value !== 'number' && typeof entry.value !== 'string') return
+      out.push({ name: entry.name, value: entry.value })
+    })
+    const weight = (full: string) => {
+      const n = full.replace('effect/', '')
+      if (n === 'none') return [0, 0]
+      if (n === '0-5x') return [1, 0]
+      if (n === 'default') return [2, 0]
+      const asNum = parseFloat(n.replace('x', '').replace('-', '.'))
+      return [3, isNaN(asNum) ? Number.POSITIVE_INFINITY : asNum]
+    }
+    return out.sort((a, b) => {
+      const wa = weight(a.name)
+      const wb = weight(b.name)
+      if (wa[0] !== wb[0]) return wa[0] - wb[0]
+      return wa[1] - wb[1]
+    })
+  }, [])
+
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
       <div className="container-padding">
+        <section style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+          <h3 style={{ marginTop: 0 }}>Tokens</h3>
+          <div>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Effects</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: 8, alignItems: 'center' }}>
+              {effectItems.map((e) => {
+                const display = e.name.replace('effect/', '').replace('-', '.')
+                const isNone = e.name === 'effect/none'
+                const current = isNone ? 0 : Number((values[e.name] as any) ?? (e.value as any) ?? 0)
+                return (
+                  <>
+                    <label key={e.name + '-label'} htmlFor={e.name} style={{ fontSize: 13, opacity: 0.9 }}>{display}</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input
+                        key={e.name}
+                        id={e.name}
+                        type="range"
+                        min={0}
+                        max={100}
+                        disabled={isNone}
+                        value={current}
+                        onChange={(ev) => {
+                          const next = Number(ev.currentTarget.value)
+                          setValues((prev) => ({ ...prev, [e.name]: next }))
+                        }}
+                        style={{ width: '100%' }}
+                      />
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={current}
+                        disabled={isNone}
+                        onChange={(ev) => {
+                          const next = Number(ev.currentTarget.value)
+                          if (Number.isFinite(next)) setValues((prev) => ({ ...prev, [e.name]: next }))
+                        }}
+                        style={{ width: 60 }}
+                      />
+                    </div>
+                  </>
+                )
+              })}
+            </div>
+          </div>
+        </section>
         <div className="section">
           <h2>Elevation</h2>
           <div className="elevation-grid">
