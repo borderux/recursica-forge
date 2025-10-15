@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
+import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const [carbon, setCarbon] = useState<any>(null)
@@ -31,6 +32,17 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
         <HeaderGlobalBar>
           <a href="/" style={{ color: 'inherit', textDecoration: 'none', marginRight: 8 }}>Home</a>
           <a href="/theme" style={{ color: 'inherit', textDecoration: 'none', marginRight: 8 }}>Theme</a>
+          <a href="/type" style={{ color: 'inherit', textDecoration: 'none', marginRight: 8 }}>Type</a>
+          <input type="file" accept="application/json,.json" onChange={async (e: any) => {
+            const file = e.currentTarget.files?.[0]
+            if (!file) return
+            const text = await file.text()
+            const json = JSON.parse(text)
+            const vars = extractCssVarsFromObject(json)
+            if (Object.keys(vars).length) applyCssVars(vars)
+            e.currentTarget.value = ''
+          }} />
+          <button onClick={() => downloadCurrentCssVars()} style={{ marginRight: 8 }}>Download</button>
           <div style={{ minWidth: 180 }}>
             <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
               <SelectItem text="Mantine" value="mantine" />

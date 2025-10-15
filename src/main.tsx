@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { App } from './modules/app/App'
 import { Layout } from './modules/app/Layout'
 import { CodePenPage } from './modules/theme/index'
+import TypePage from './modules/type/TypePage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import './styles/index.css'
 import './styles/theme.css.ts'
@@ -14,6 +15,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <App /> },
       { path: '/theme', element: <CodePenPage /> },
+      { path: '/type', element: <TypePage /> },
     ],
   },
 ])

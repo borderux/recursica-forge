@@ -295,30 +295,7 @@ export function CodePenPage() {
     return vars
   }
 
-  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploadError(null)
-    const reader = new FileReader()
-    reader.onload = () => {
-      try {
-        const json = JSON.parse(String(reader.result || '{}'))
-        const vars = extractCssVarsFromObject(json)
-        if (Object.keys(vars).length === 0) {
-          setUploadError('No CSS variables found in JSON.')
-          return
-        }
-        setCustomVars(vars)
-        const base = isDarkMode ? DARK_MODE : LIGHT_MODE
-        applyTheme({ ...base, ...vars })
-      } catch (_err) {
-        setUploadError('Invalid JSON file.')
-      }
-    }
-    reader.onerror = () => setUploadError('Failed to read file.')
-    reader.readAsText(file)
-    e.currentTarget.value = ''
-  }
+  // Upload moved to header shells
 
   const handleReset = () => {
     setCustomVars(null)
@@ -358,15 +335,8 @@ export function CodePenPage() {
         <div className="section">
           <h2>Colors</h2>
           <div className="toggle-group">
-            <label>
-              <span style={{ marginRight: 8 }}>Upload JSON</span>
-              <input type="file" accept="application/json,.json" onChange={handleFileUpload} />
-            </label>
             <button onClick={handleReset} disabled={!customVars}>Reset</button>
           </div>
-          {uploadError ? (
-            <div style={{ color: 'red', marginTop: 8 }}>{uploadError}</div>
-          ) : null}
           <table className="color-swatches">
             <thead>
               <tr>

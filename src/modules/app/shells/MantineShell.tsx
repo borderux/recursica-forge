@@ -1,10 +1,18 @@
 import { ReactNode } from 'react'
 import { AppShell, Group, Title, Button, Select, MantineProvider } from '@mantine/core'
 import '@mantine/core/styles.css'
+import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
+  const onUpload = async (file?: File | null) => {
+    if (!file) return
+    const text = await file.text()
+    const json = JSON.parse(text)
+    const vars = extractCssVarsFromObject(json)
+    if (Object.keys(vars).length) applyCssVars(vars)
+  }
   return (
     <MantineProvider>
       <AppShell header={{ height: 56 }} padding="md">
@@ -18,6 +26,9 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             <Group gap="xs">
               <Button component={Link} to="/">Home</Button>
               <Button component={Link} to="/theme" variant="light">Theme</Button>
+              <Button component={Link} to="/type" variant="subtle">Type</Button>
+              <input type="file" accept="application/json,.json" onChange={(e) => onUpload(e.currentTarget.files?.[0])} />
+              <Button variant="default" onClick={() => downloadCurrentCssVars()}>Download</Button>
               <Select
                 value={kit}
                 onChange={(v) => onKitChange((v as UiKit) ?? 'mantine')}

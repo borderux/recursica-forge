@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
+import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const [mat, setMat] = useState<any>(null)
@@ -34,6 +35,17 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           </Typography>
           <Button color="inherit" href="/">Home</Button>
           <Button color="inherit" href="/theme">Theme</Button>
+          <Button color="inherit" href="/type">Type</Button>
+          <input type="file" accept="application/json,.json" onChange={async (e: any) => {
+            const file = e.currentTarget.files?.[0]
+            if (!file) return
+            const text = await file.text()
+            const json = JSON.parse(text)
+            const vars = extractCssVarsFromObject(json)
+            if (Object.keys(vars).length) applyCssVars(vars)
+            e.currentTarget.value = ''
+          }} />
+          <Button color="inherit" onClick={() => downloadCurrentCssVars()}>Download</Button>
           <Select
             size="small"
             value={kit}
