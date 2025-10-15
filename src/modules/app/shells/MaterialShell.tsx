@@ -42,11 +42,11 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Recursica Theme Forge</Link>
           </Typography>
           <Tabs value={kit} textColor="inherit" indicatorColor="secondary" sx={{ mx: 'auto' }}>
-            <Tab value="color" label="Color" component={Link as any} to="/color" />
+            <Tab value="color" label="Color" component={Link as any} to="/theme" />
             <Tab value="type" label="Type" component={Link as any} to="/type" />
             <Tab value="elevation" label="Elevation" component={Link as any} to="/elevation" />
             <Tab value="layers" label="Layers" component={Link as any} to="/layers" />
-            <Tab value="samples" label="Samples" component={Link as any} to="/samples" />
+            <Tab value="preview" label="Preview" component={Link as any} to="/preview" />
           </Tabs>
           <IconButton color="inherit" size="small" onClick={() => {/* open modal not implemented for MUI shell */}} title="Import / Export">⤓</IconButton>
           <Select
