@@ -1,10 +1,22 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
+import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
+import { applyTheme, LIGHT_MODE } from '../../theme/index'
+import { clearOverrides } from '../../theme/tokenOverrides'
+import tokensJson from '../../../vars/Tokens.json'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const [mat, setMat] = useState<any>(null)
   const [styles, setStyles] = useState<any>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const onUpload = async (file?: File | null) => {
+    if (!file) return
+    const text = await file.text()
+    const json = JSON.parse(text)
+    const vars = extractCssVarsFromObject(json)
+    if (Object.keys(vars).length) applyCssVars(vars)
+  }
 
   useEffect(() => {
     let mounted = true
@@ -21,7 +33,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
 
   if (!mat || !styles) return <div style={{ padding: 16 }}>Loading Material UI…</div>
 
-  const { AppBar, Toolbar, Typography, Button, Select, MenuItem, Container, CssBaseline } = mat
+  const { AppBar, Toolbar, Typography, Button, Select, MenuItem, Container, CssBaseline, Tabs, Tab, IconButton } = mat
   const { ThemeProvider, createTheme } = styles
   const theme = createTheme()
   return (
@@ -29,11 +41,19 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
       <CssBaseline />
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>recursica-forge</Link>
+          <Typography variant="h6" component="div">
+            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Recursica Theme Forge</Link>
           </Typography>
-          <Button color="inherit" href="/">Home</Button>
-          <Button color="inherit" href="/theme">Theme</Button>
+          <Tabs value={kit} textColor="inherit" indicatorColor="secondary" sx={{ mx: 'auto' }}>
+            <Tab value="tokens" label="Tokens" component={Link as any} to="/tokens" />
+            <Tab value="palettes" label="Palettes" component={Link as any} to="/palettes" />
+            <Tab value="type" label="Type" component={Link as any} to="/type" />
+            <Tab value="elevation" label="Elevation" component={Link as any} to="/elevation" />
+            <Tab value="layers" label="Layers" component={Link as any} to="/layers" />
+            <Tab value="preview" label="Preview" component={Link as any} to="/preview" />
+          </Tabs>
+          <IconButton color="inherit" size="small" onClick={() => { clearOverrides(tokensJson as any); applyTheme(LIGHT_MODE) }} title="Reset to defaults">↺</IconButton>
+          <IconButton color="inherit" size="small" onClick={() => {/* open modal not implemented for MUI shell */}} title="Import / Export">⤓</IconButton>
           <Select
             size="small"
             value={kit}
