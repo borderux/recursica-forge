@@ -27,12 +27,25 @@ export function setOverride(name: string, value: number | string) {
   } catch {}
 }
 
-export function clearOverrides(initialAll?: TokenOverrides) {
+export function clearOverrides(initialAll?: any) {
   try {
     localStorage.removeItem(STORAGE_KEY)
   } catch {}
   try {
-    window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: initialAll || {} } }))
+    let payload: Record<string, any> = {}
+    if (initialAll && typeof initialAll === 'object') {
+      const maybeEntries = Object.values(initialAll as Record<string, any>)
+      if (maybeEntries.length && typeof maybeEntries[0] === 'object' && 'name' in (maybeEntries[0] as any) && 'value' in (maybeEntries[0] as any)) {
+        const map: Record<string, any> = {}
+        for (const e of maybeEntries as any[]) {
+          if (e && typeof e.name === 'string') map[e.name] = e.value
+        }
+        payload = map
+      } else {
+        payload = initialAll as any
+      }
+    }
+    window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: payload, reset: true } }))
   } catch {}
 }
 
