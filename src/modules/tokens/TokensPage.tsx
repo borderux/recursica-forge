@@ -272,6 +272,7 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
 import tokensJson from '../../vars/Tokens.json'
 import { extractCssVarsFromObject, applyCssVars } from '../theme/varsUtil'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import OpacityTokens from '../theme/OpacityTokens'
 
 type TokenEntry = {
   collection?: string
@@ -696,7 +697,10 @@ export default function TokensPage() {
                       </label>
                     )}
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 8, alignItems: 'center' }}>
+                  {selected === 'opacity' ? (
+                    <OpacityTokens />
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 8, alignItems: 'center' }}>
                     {sortedActive.map(({ entry }) => {
                       const label = entry.name.startsWith('effect/') ? entry.name.replace('effect/', '').replace('-', '.') : entry.name
                       const isNone = entry.name === 'effect/none'
@@ -762,7 +766,8 @@ export default function TokensPage() {
                         </>
                       )
                     })}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </section>
