@@ -265,9 +265,13 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
 import tokensJson from '../../vars/Tokens.json'
 // removed unused varsUtil import
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
-import OpacityTokens from '../tokens/OpacityTokens'
-import EffectTokens from '../tokens/EffectTokens'
-import SizeTokens from '../tokens/SizeTokens'
+import OpacityTokens from './OpacityTokens'
+import EffectTokens from './EffectTokens'
+import SizeTokens from './SizeTokens'
+import FontFamiliesTokens from './FontFamiliesTokens'
+import FontLetterSpacingTokens from './FontLetterSpacingTokens'
+import FontSizeTokens from './FontSizeTokens'
+import FontWeightTokens from './FontWeightTokens'
 
 type TokenEntry = {
   collection?: string
@@ -642,37 +646,7 @@ export default function TokensPage() {
           }
           const activeGroup = selected === 'color' ? null : groups[groupKeyMap[selected]]
           if (!activeGroup) return null
-          const sortedActive = selected === 'effect'
-            ? [...activeGroup].sort((a, b) => {
-                const weight = (full: string) => {
-                  const n = full.replace('effect/', '').replace('-', '.')
-                  if (n === 'none') return [0, 0]
-                  if (n === '0.5x') return [1, 0]
-                  if (n === 'default') return [2, 0]
-                  const asNum = parseFloat(n.replace('x', ''))
-                  return [3, isNaN(asNum) ? Number.POSITIVE_INFINITY : asNum]
-                }
-                const wa = weight(a.entry.name)
-                const wb = weight(b.entry.name)
-                if (wa[0] !== wb[0]) return wa[0] - wb[0]
-                return wa[1] - wb[1]
-              })
-            : selected === 'size'
-            ? [...activeGroup].sort((a, b) => {
-                const weight = (full: string) => {
-                  const n = full.replace('size/', '').replace('-', '.')
-                  if (n === 'none') return [0, 0]
-                  if (n === '0.5x') return [1, 0]
-                  if (n === 'default') return [2, 0]
-                  const asNum = parseFloat(n.replace('x', ''))
-                  return [3, isNaN(asNum) ? Number.POSITIVE_INFINITY : asNum]
-                }
-                const wa = weight(a.entry.name)
-                const wb = weight(b.entry.name)
-                if (wa[0] !== wb[0]) return wa[0] - wb[0]
-                return wa[1] - wb[1]
-              })
-            : activeGroup
+          // sortedActive no longer needed: effect/size handled by modules
           return (
             <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
               {selected === 'effect' ? (
@@ -683,31 +657,10 @@ export default function TokensPage() {
                 <SizeTokens />
               ) : (
                 <div style={{ display: 'grid', gap: 16 }}>
-                  <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 8, alignItems: 'center' }}>
-                      {sortedActive.map(({ entry }) => {
-                        const label = entry.name
-                        const numeric = typeof entry.value === 'number'
-                        const current: any = (values[entry.name] as any) ?? (entry.value as any)
-                        return (
-                          <>
-                            <label key={entry.name + '-label'} htmlFor={entry.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
-                            <input
-                              key={entry.name}
-                              id={entry.name}
-                              type={numeric ? 'number' : 'text'}
-                              value={current}
-                              onChange={(e) => {
-                                const next = numeric ? Number(e.currentTarget.value) : e.currentTarget.value
-                                setValues((prev) => ({ ...prev, [entry.name]: next }))
-                                setOverride(entry.name, next as any)
-                              }}
-                            />
-                          </>
-                        )
-                      })}
-                    </div>
-                  </div>
+                  <FontFamiliesTokens />
+                  <FontLetterSpacingTokens />
+                  <FontSizeTokens />
+                  <FontWeightTokens />
                 </div>
               )}
             </section>
