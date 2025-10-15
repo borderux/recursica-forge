@@ -6,6 +6,7 @@ import { CodePenPage } from './modules/theme/index'
 import ElevationPage from './modules/theme/ElevationPage'
 import TypePage from './modules/type/TypePage'
 import PreviewPage from './modules/preview/PreviewPage'
+import TokensPage from './modules/tokens/TokensPage'
 import LayersPage from './modules/theme/LayersPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { applyTheme, LIGHT_MODE } from './modules/theme/index'
@@ -19,7 +20,8 @@ const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      { path: '/', element: <Navigate to="/color" replace /> },
+      { path: '/', element: <Navigate to="/tokens" replace /> },
+      { path: '/tokens', element: <TokensPage /> },
       { path: '/color', element: <CodePenPage /> },
       { path: '/elevation', element: <ElevationPage /> },
       { path: '/type', element: <TypePage /> },
