@@ -29,7 +29,6 @@ export default function TokensPage() {
   }, [])
 
   const colorFamiliesByMode = useMemo(() => {
-    const ORDER = ['900','800','700','600','500','400','300','200','100','050']
     const byMode: Record<ModeName, Record<string, Array<{ level: string; entry: TokenEntry }>>> = {}
     Object.values(groupedByMode).forEach(() => {}) // force dependency for TS
     Object.entries(tokensJson as Record<string, TokenEntry>).forEach(([_, entry]) => {
@@ -39,16 +38,17 @@ export default function TokensPage() {
       if (parts.length < 3) return
       const family = parts[1]
       const level = parts[2]
-      if (!ORDER.includes(level)) return
+      if (!/^\d{3,4}$/.test(level)) return
       const mode = (entry.mode as ModeName) || 'Mode 1'
       if (!byMode[mode]) byMode[mode] = {}
       if (!byMode[mode][family]) byMode[mode][family] = []
       byMode[mode][family].push({ level, entry })
     })
-    // sort each family by ORDER
+    // sort each family numerically descending (e.g., 1000, 900 ... 050, 000)
+    const levelToNum = (lvl: string) => Number(lvl)
     Object.values(byMode).forEach((fam) => {
       Object.keys(fam).forEach((k) => {
-        fam[k] = fam[k].sort((a, b) => ORDER.indexOf(a.level) - ORDER.indexOf(b.level))
+        fam[k] = fam[k].sort((a, b) => levelToNum(b.level) - levelToNum(a.level))
       })
     })
     return byMode
@@ -81,17 +81,26 @@ export default function TokensPage() {
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gap: 16 }}>
       <h2 style={{ margin: 0 }}>Tokens</h2>
-      <p style={{ marginTop: -4, opacity: 0.8 }}>Edit token values by mode. Mode 1 = Light, Mode 2 = Dark.</p>
       {Object.entries(groupedByMode).map(([mode, items]) => (
         <section key={mode} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
-          <h3 style={{ marginTop: 0 }}>{mode === 'Mode 1' ? 'Light Mode' : mode === 'Mode 2' ? 'Dark Mode' : mode}</h3>
+          <h3 style={{ marginTop: 0 }}>{mode === 'Mode 1' ? 'Color' : mode === 'Mode 2' ? 'Dark Mode' : mode}</h3>
           {/* Color families laid out horizontally (900 -> 050) */}
           {colorFamiliesByMode[mode as ModeName] && (
             <div style={{ display: 'grid', gap: 16 }}>
-              {Object.entries(colorFamiliesByMode[mode as ModeName]).sort((a, b) => a[0].localeCompare(b[0])).map(([family, levels]) => (
+              {Object.entries(colorFamiliesByMode[mode as ModeName])
+                .sort(([a], [b]) => {
+                  // Put gray first
+                  if (a === 'gray' && b !== 'gray') return -1
+                  if (b === 'gray' && a !== 'gray') return 1
+                  return a.localeCompare(b)
+                })
+                .map(([family, levels]) => (
                 <div key={family}>
-                  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>{`color/${family}`}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${levels.length}, 1fr)`, gap: 6 }}>
+                  <input defaultValue={family} style={{ fontSize: 13, marginBottom: 6, padding: '4px 8px', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6, width: 200 }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${levels.length}, 1fr)`, gap: 0 }}>
+                    {levels.map(({ level }) => (
+                      <div key={family + '-' + level + '-label'} style={{ textAlign: 'center', fontSize: 12, opacity: 0.8, paddingBottom: 4 }}>{level}</div>
+                    ))}
                     {levels.map(({ level, entry }) => {
                       let inputEl: HTMLInputElement | null = null
                       const current = String(values[entry.name] ?? entry.value)
@@ -101,7 +110,7 @@ export default function TokensPage() {
                             onClick={() => inputEl && inputEl.click()}
                             role="button"
                             title={`${entry.name} ${entry.value}`}
-                            style={{ height: 72, borderRadius: 8, border: '1px solid var(--layer-layer-1-property-border-color)', background: current, cursor: 'pointer' }}
+                            style={{ height: 72, borderRadius: 0, background: current, cursor: 'pointer' }}
                           />
                           <input
                             ref={(el) => { inputEl = el }}
