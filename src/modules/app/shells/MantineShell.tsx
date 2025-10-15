@@ -32,7 +32,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
 
             <Tabs value={currentTab} onChange={(val) => {
               const v = (val as string) || 'color'
-              if (v === 'color') navigate('/theme')
+              if (v === 'color') navigate('/color')
               else navigate(`/${v}`)
             }} keepMounted={false} variant="pills" radius="xl">
               <Tabs.List>
@@ -40,6 +40,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 <Tabs.Tab value="type">Type</Tabs.Tab>
                 <Tabs.Tab value="elevation">Elevation</Tabs.Tab>
                 <Tabs.Tab value="layers">Layers</Tabs.Tab>
+                <Tabs.Tab value="samples">Samples</Tabs.Tab>
               </Tabs.List>
             </Tabs>
 

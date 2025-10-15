@@ -4,8 +4,8 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Layout } from './modules/app/Layout'
 import { CodePenPage } from './modules/theme/index'
 import ElevationPage from './modules/theme/ElevationPage'
-import LayersPage from './modules/theme/LayersPage'
 import TypePage from './modules/type/TypePage'
+import SamplesPage from './modules/samples/SamplesPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { applyTheme, LIGHT_MODE } from './modules/theme/index'
 import './styles/index.css'
@@ -18,11 +18,11 @@ const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      { path: '/', element: <Navigate to="/theme" replace /> },
-      { path: '/theme', element: <CodePenPage /> },
+      { path: '/', element: <Navigate to="/color" replace /> },
+      { path: '/color', element: <CodePenPage /> },
       { path: '/elevation', element: <ElevationPage /> },
-      { path: '/layers', element: <LayersPage /> },
       { path: '/type', element: <TypePage /> },
+      { path: '/samples', element: <SamplesPage /> },
     ],
   },
 ])

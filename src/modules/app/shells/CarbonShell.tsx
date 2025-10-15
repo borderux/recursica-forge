@@ -36,10 +36,11 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
       <Header aria-label="Recursica Theme Forge">
         <HeaderName prefix="">Recursica Theme Forge</HeaderName>
         <div style={{ display: 'flex', flex: 1, justifyContent: 'center', gap: 16 }}>
-          <a href="/theme" style={{ color: 'inherit', textDecoration: 'none' }}>Color</a>
+          <a href="/color" style={{ color: 'inherit', textDecoration: 'none' }}>Color</a>
           <a href="/type" style={{ color: 'inherit', textDecoration: 'none' }}>Type</a>
           <a href="/elevation" style={{ color: 'inherit', textDecoration: 'none' }}>Elevation</a>
           <a href="/layers" style={{ color: 'inherit', textDecoration: 'none' }}>Layers</a>
+          <a href="/samples" style={{ color: 'inherit', textDecoration: 'none' }}>Samples</a>
         </div>
         <HeaderGlobalBar>
           <button onClick={() => downloadCurrentCssVars()} title="Download" style={{ marginRight: 8 }}>⤓</button>
