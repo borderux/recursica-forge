@@ -31,6 +31,7 @@ export default function FontFamiliesTokens() {
     try { localStorage.setItem(DELETED_KEY, JSON.stringify(m)) } catch {}
     try { window.dispatchEvent(new CustomEvent('fontFamiliesDeletedChanged', { detail: m })) } catch {}
   }
+  
 
   const buildRows = (): FamilyRow[] => {
     const base: Record<string, FamilyRow> = {}
@@ -47,7 +48,7 @@ export default function FontFamiliesTokens() {
       if (!name.startsWith('font/family/')) return
       if (!base[name]) base[name] = { name, value: String((overrides as any)[name]), custom: false }
     })
-    return Object.values(base).sort((a, b) => a.name.localeCompare(b.name))
+    return Object.values(base)
   }
 
   const [rows, setRows] = useState<FamilyRow[]>(() => buildRows())
@@ -58,10 +59,18 @@ export default function FontFamiliesTokens() {
     const handler = (ev: Event) => {
       const detail: any = (ev as CustomEvent).detail
       if (!detail) return
-      const { all, name, value } = detail
+      const { all, name, value, reset } = detail
       if (all && typeof all === 'object') {
         setValues(all)
         setRows(buildRows())
+        if (reset) {
+          // clear any locally persisted deletions so all default families reappear
+          setDeleted(() => {
+            const empty: Record<string, true> = {}
+            writeDeleted(empty)
+            return empty
+          })
+        }
         return
       }
       if (typeof name === 'string') {
@@ -97,8 +106,23 @@ export default function FontFamiliesTokens() {
 
   const visibleRows = useMemo(() => rows.filter((r) => !deleted[r.name]), [rows, deleted])
 
+  // Ensure there is always at least one visible font family row
+  useEffect(() => {
+    if (visibleRows.length === 0) {
+      const name = uniqueTokenName(`font/family/`)
+      const row: FamilyRow = { name, value: '', custom: false }
+      setRows((prev) => [...prev, row])
+      setDeleted((prev) => {
+        const next: Record<string, true> = { ...prev }
+        delete (next as any)[name]
+        try { localStorage.setItem(DELETED_KEY, JSON.stringify(next)) } catch {}
+        return next
+      })
+    }
+  }, [visibleRows.length])
+
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
-  const firstWordSlug = (family: string) => (family.split(/\s+/)[0] || '').toLowerCase().replace(/[^a-z0-9]/g, '')
+  // no renaming of token keys; values only
   const uniqueTokenName = (base: string) => {
     let attempt = base
     let i = 2
@@ -128,13 +152,7 @@ export default function FontFamiliesTokens() {
             const name = uniqueTokenName(`font/family/`)
             const row: FamilyRow = { name, value: defaultFamily, custom: false }
             setRows((prev) => [...prev, row])
-            // clear any deleted flag for this new row (local only; avoid broadcast until a value is chosen)
-            setDeleted((prev) => {
-              const next: Record<string, true> = { ...prev }
-              delete (next as any)[name]
-              try { localStorage.setItem(DELETED_KEY, JSON.stringify(next)) } catch {}
-              return next
-            })
+            // nothing else
           }}
           style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer' }}
         >+Font Family</button>
@@ -143,12 +161,18 @@ export default function FontFamiliesTokens() {
         {visibleRows.map((r) => {
           const label = toTitle(r.name.replace('font/family/', ''))
           const options = (() => {
-            const list = fonts.filter((f) => f !== 'Custom...').slice().sort((a, b) => a.localeCompare(b))
+            // Exclude families already selected in other rows to prevent duplicates
+            const used = new Set(visibleRows.filter((x) => x.name !== r.name).map((x) => x.value).filter((v) => v && v !== 'Custom...'))
+            const list = fonts
+              .filter((f) => f !== 'Custom...')
+              .filter((f) => !used.has(f))
+              .slice()
+              .sort((a, b) => a.localeCompare(b))
             return [...list, 'Custom...']
           })()
           const isCustom = r.custom || (!options.includes(r.value) && r.value !== '')
           return (
-            <>
+            <span key={r.name} style={{ display: 'contents' }}>
               <label key={r.name + '-label'} htmlFor={r.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
               {isCustom ? (
                 <input
@@ -160,18 +184,6 @@ export default function FontFamiliesTokens() {
                     const next = ev.currentTarget.value
                     setRows((prev) => prev.map((row) => row.name === r.name ? ({ ...row, value: next, custom: true }) : row))
                     setOverride(r.name, next)
-                  }}
-                  onBlur={(ev) => {
-                    const next = ev.currentTarget.value
-                    const newSlug = firstWordSlug(next)
-                    if (!newSlug) return
-                    const newNameBase = `font/family/${newSlug}`
-                    const newName = r.name === newNameBase ? r.name : uniqueTokenName(newNameBase)
-                    if (newName !== r.name) {
-                      removeOverride(r.name)
-                      setOverride(newName, next)
-                      setRows((prev) => prev.map((row) => row.name === r.name ? ({ name: newName, value: next, custom: true }) : row))
-                    }
                   }}
                   placeholder="Enter font family"
                 />
@@ -187,20 +199,8 @@ export default function FontFamiliesTokens() {
                       return
                     }
                     const newValue = chosen
-                    const newSlug = firstWordSlug(newValue)
-                    const newNameBase = `font/family/${newSlug}`
-                    const newName = r.name === newNameBase ? r.name : uniqueTokenName(newNameBase)
-                    // rename: remove old override, set new override
-                    removeOverride(r.name)
-                    setOverride(newName, newValue)
-                    setRows((prev) => prev.map((row) => row.name === r.name ? ({ name: newName, value: newValue, custom: false }) : row))
-                    // clear deleted flag for new name
-                    setDeleted((prev) => {
-                      const next: Record<string, true> = { ...prev }
-                      delete (next as any)[newName]
-                      writeDeleted(next)
-                      return next
-                    })
+                    setRows((prev) => prev.map((row) => row.name === r.name ? ({ ...row, value: newValue, custom: false }) : row))
+                    setOverride(r.name, newValue)
                   }}
                   style={{ width: '100%' }}
                 >
@@ -212,6 +212,7 @@ export default function FontFamiliesTokens() {
               )}
               <button
                 onClick={() => {
+                  if (visibleRows.length <= 1) return
                   setDeleted((prev) => {
                     const next: Record<string, true> = { ...prev, [r.name]: true as true }
                     writeDeleted(next)
@@ -220,9 +221,10 @@ export default function FontFamiliesTokens() {
                   removeOverride(r.name)
                 }}
                 title="Delete"
-                style={{ border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px' }}
+                disabled={visibleRows.length <= 1}
+                style={{ border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: visibleRows.length <= 1 ? 'not-allowed' : 'pointer', borderRadius: 6, padding: '6px 8px', opacity: visibleRows.length <= 1 ? 0.5 : 1 }}
               >🗑️</button>
-            </>
+            </span>
           )
         })}
       </div>

@@ -32,6 +32,24 @@ export function clearOverrides(initialAll?: any) {
     localStorage.removeItem(STORAGE_KEY)
   } catch {}
   try {
+    // Clear other ephemeral client-side state
+    const removeKeys = (
+      Object.keys(localStorage || {}) as Array<string>
+    ).filter((k) => (
+      k === 'family-friendly-names' ||
+      k === 'font-families-deleted' ||
+      k === 'effects-scale-by-default' ||
+      k === 'font-letter-scale-by-tight-wide' ||
+      k === 'palette-bindings' ||
+      k === 'palette-opacity-bindings' ||
+      k === 'dynamic-palettes' ||
+      k === 'type-token-choices' ||
+      k.startsWith('palette-grid-family:')
+    ))
+    removeKeys.forEach((k) => {
+      try { localStorage.removeItem(k) } catch {}
+    })
+
     let payload: Record<string, any> = {}
     if (initialAll && typeof initialAll === 'object') {
       const maybeEntries = Object.values(initialAll as Record<string, any>)
