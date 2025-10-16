@@ -44,7 +44,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           <a href="/type" style={{ color: 'inherit', textDecoration: 'none' }}>Type</a>
           <a href="/elevation" style={{ color: 'inherit', textDecoration: 'none' }}>Elevation</a>
           <a href="/layers" style={{ color: 'inherit', textDecoration: 'none' }}>Layers</a>
-          <a href="/preview" style={{ color: 'inherit', textDecoration: 'none' }}>Preview</a>
+          <a href="/uikit" style={{ color: 'inherit', textDecoration: 'none' }}>UI Kit</a>
         </div>
         <HeaderGlobalBar>
           <button onClick={() => { clearOverrides(tokensJson as any); applyTheme(LIGHT_MODE) }} title="Reset to defaults" style={{ marginRight: 8 }}>↺</button>
