@@ -5,7 +5,8 @@ import { readOverrides, setOverride, writeOverrides } from '../theme/tokenOverri
 type FamilyRow = { name: string; value: string; custom: boolean }
 
 export default function FontFamiliesTokens() {
-  const [values, setValues] = useState<Record<string, string | number>>(() => {
+  // Local snapshot writer (we don't read it to avoid re-renders)
+  const [, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
     Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
       if (entry && typeof entry.name === 'string' && (typeof entry.value === 'number' || typeof entry.value === 'string')) {
@@ -15,17 +16,42 @@ export default function FontFamiliesTokens() {
     const overrides = readOverrides()
     return { ...init, ...overrides }
   })
-  const [rows, setRows] = useState<FamilyRow[]>(() => {
-    const base: FamilyRow[] = []
+  // helpers to persist deleted families across components
+  const DELETED_KEY = 'font-families-deleted'
+  const readDeleted = (): Record<string, true> => {
+    try {
+      const raw = localStorage.getItem(DELETED_KEY)
+      if (!raw) return {}
+      const obj = JSON.parse(raw)
+      if (obj && typeof obj === 'object') return obj as Record<string, true>
+    } catch {}
+    return {}
+  }
+  const writeDeleted = (m: Record<string, true>) => {
+    try { localStorage.setItem(DELETED_KEY, JSON.stringify(m)) } catch {}
+    try { window.dispatchEvent(new CustomEvent('fontFamiliesDeletedChanged', { detail: m })) } catch {}
+  }
+
+  const buildRows = (): FamilyRow[] => {
+    const base: Record<string, FamilyRow> = {}
+    const overrides = readOverrides()
+    // from tokens
     Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
       if (!entry || typeof entry.name !== 'string') return
       if (!entry.name.startsWith('font/family/')) return
-      const val = String((readOverrides()[entry.name] as any) ?? entry.value)
-      base.push({ name: entry.name, value: val, custom: false })
+      const ov = (overrides as any)[entry.name]
+      base[entry.name] = { name: entry.name, value: String(ov ?? entry.value), custom: false }
     })
-    return base.sort((a,b) => a.name.localeCompare(b.name))
-  })
-  const [deleted, setDeleted] = useState<Record<string, true>>({})
+    // from overrides-only (newly added)
+    Object.keys(overrides as Record<string, any>).forEach((name) => {
+      if (!name.startsWith('font/family/')) return
+      if (!base[name]) base[name] = { name, value: String((overrides as any)[name]), custom: false }
+    })
+    return Object.values(base).sort((a, b) => a.name.localeCompare(b.name))
+  }
+
+  const [rows, setRows] = useState<FamilyRow[]>(() => buildRows())
+  const [deleted, setDeleted] = useState<Record<string, true>>(() => readDeleted())
   const [fonts, setFonts] = useState<string[]>(["Inter","Roboto","Open Sans","Lato","Montserrat","Poppins","Source Sans 3","Nunito","Raleway","Merriweather","PT Sans","Ubuntu","Noto Sans","Playfair Display","Work Sans","Rubik","Fira Sans","Manrope","Crimson Pro","Space Grotesk","Custom..."])
 
   useEffect(() => {
@@ -35,17 +61,25 @@ export default function FontFamiliesTokens() {
       const { all, name, value } = detail
       if (all && typeof all === 'object') {
         setValues(all)
-        // refresh rows' values
-        setRows((prev) => prev.map((r) => ({ ...r, value: String((all as any)[r.name] ?? r.value) })))
+        setRows(buildRows())
         return
       }
       if (typeof name === 'string') {
         setValues((prev) => ({ ...prev, [name]: value }))
-        setRows((prev) => prev.map((r) => (r.name === name ? { ...r, value: String(value) } : r)))
+        setRows(buildRows())
       }
     }
     window.addEventListener('tokenOverridesChanged', handler)
     return () => window.removeEventListener('tokenOverridesChanged', handler)
+  }, [])
+
+  useEffect(() => {
+    const handler = () => {
+      setDeleted(readDeleted())
+      setRows(buildRows())
+    }
+    window.addEventListener('fontFamiliesDeletedChanged', handler)
+    return () => window.removeEventListener('fontFamiliesDeletedChanged', handler)
   }, [])
 
   useEffect(() => {
@@ -91,11 +125,16 @@ export default function FontFamiliesTokens() {
         <button
           onClick={() => {
             const defaultFamily = ''
-            const slug = firstWordSlug('')
-            const name = uniqueTokenName(`font/family/${slug}`)
+            const name = uniqueTokenName(`font/family/`)
             const row: FamilyRow = { name, value: defaultFamily, custom: false }
             setRows((prev) => [...prev, row])
-            // do not set override until a value is chosen
+            // clear any deleted flag for this new row (local only; avoid broadcast until a value is chosen)
+            setDeleted((prev) => {
+              const next: Record<string, true> = { ...prev }
+              delete (next as any)[name]
+              try { localStorage.setItem(DELETED_KEY, JSON.stringify(next)) } catch {}
+              return next
+            })
           }}
           style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer' }}
         >+Font Family</button>
@@ -155,6 +194,13 @@ export default function FontFamiliesTokens() {
                     removeOverride(r.name)
                     setOverride(newName, newValue)
                     setRows((prev) => prev.map((row) => row.name === r.name ? ({ name: newName, value: newValue, custom: false }) : row))
+                    // clear deleted flag for new name
+                    setDeleted((prev) => {
+                      const next: Record<string, true> = { ...prev }
+                      delete (next as any)[newName]
+                      writeDeleted(next)
+                      return next
+                    })
                   }}
                   style={{ width: '100%' }}
                 >
@@ -166,7 +212,11 @@ export default function FontFamiliesTokens() {
               )}
               <button
                 onClick={() => {
-                  setDeleted((prev) => ({ ...prev, [r.name]: true }))
+                  setDeleted((prev) => {
+                    const next: Record<string, true> = { ...prev, [r.name]: true as true }
+                    writeDeleted(next)
+                    return next
+                  })
                   removeOverride(r.name)
                 }}
                 title="Delete"
