@@ -222,42 +222,6 @@ h3 {
 
 
 
-/* temps - delete, only for illustration */
-.palette-box {
-  background-color: gray !important;
-}
-.palette-dot {
-  background-color: black !important;
-}
-.color-palettes tr .palette-box:nth-child(2) {
-  opacity: 1.0 !important;
-}
-.color-palettes tr .palette-box:nth-child(3) {
-  opacity: 0.9 !important;
-}
-.color-palettes tr .palette-box:nth-child(4) {
-  opacity: 0.8 !important;
-}
-.color-palettes tr .palette-box:nth-child(5) {
-  opacity: 0.7 !important;
-}
-.color-palettes tr .palette-box:nth-child(6) {
-  opacity: 0.6 !important;
-}
-.color-palettes tr .palette-box:nth-child(7) {
-  opacity: 0.5 !important;
-}
-.color-palettes tr .palette-box:nth-child(8) {
-  opacity: 0.4 !important;
-}
-.color-palettes tr .palette-box:nth-child(9) {
-  opacity: 0.3 !important;
-}
-.color-palettes tr .palette-box:nth-child(10) {
-  opacity: 0.2 !important;
-}
-.color-palettes tr .palette-box:nth-child(11) {
-  opacity: 0.1 !important;
-}
+/* removed temp illustration overrides */
 
 

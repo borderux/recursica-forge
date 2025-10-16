@@ -1,7 +1,9 @@
 import './index.css'
 import { useEffect, useMemo, useState } from 'react'
+import PaletteGrid from './PaletteGrid'
 import tokensJson from '../../vars/Tokens.json'
 import { applyCssVars } from './varsUtil'
+import themeJson from '../../vars/Theme.json'
 
 type ThemeVars = Record<string, string>
 
@@ -323,6 +325,58 @@ export function CodePenPage() {
 
   
 
+  // --- Theme.json resolver for palette scales ---
+  const themeIndex = useMemo(() => {
+    const bucket: Record<string, any> = {}
+    const entries = (themeJson as any)?.RecursicaBrand ? Object.values((themeJson as any).RecursicaBrand as Record<string, any>) : []
+    ;(entries as any[]).forEach((e) => {
+      if (e && typeof e.name === 'string' && typeof e.mode === 'string') {
+        bucket[`${e.mode}::${e.name}`] = e
+      }
+    })
+    return bucket
+  }, [])
+
+  
+
+  const resolveThemeRef = (ref: any, modeLabel: 'Light' | 'Dark'): string | number | undefined => {
+    if (ref == null) return undefined
+    if (typeof ref === 'string' || typeof ref === 'number') return ref
+    if (typeof ref === 'object') {
+      const coll = ref.collection
+      const name = ref.name
+      if (coll === 'Tokens' && typeof name === 'string') {
+        return getTokenValue(name)
+      }
+      if (coll === 'Theme' && typeof name === 'string') {
+        const entry = themeIndex[`${modeLabel}::${name}`]
+        if (!entry) return undefined
+        return resolveThemeRef(entry.value, modeLabel)
+      }
+    }
+    return undefined
+  }
+
+  const applyThemePalettesFromJson = (modeLabel: 'Light' | 'Dark') => {
+    const levels = ['900','800','700','600','500','400','300','200','100','050']
+    const palettes = ['neutral','palette-1','palette-2']
+    const vars: Record<string, string> = {}
+    palettes.forEach((pk) => {
+      levels.forEach((lvl) => {
+        const onToneName = `palette/${pk}/${lvl}/on-tone`
+        const hiName = `palette/${pk}/${lvl}/high-emphasis`
+        const loName = `palette/${pk}/${lvl}/low-emphasis`
+        const onTone = resolveThemeRef((themeIndex as any)[`${modeLabel}::${onToneName}`]?.value ?? { collection: 'Theme', name: onToneName }, modeLabel)
+        const hi = resolveThemeRef((themeIndex as any)[`${modeLabel}::${hiName}`]?.value ?? { collection: 'Theme', name: hiName }, modeLabel)
+        const lo = resolveThemeRef((themeIndex as any)[`${modeLabel}::${loName}`]?.value ?? { collection: 'Theme', name: loName }, modeLabel)
+        if (typeof onTone === 'string') vars[`--palette-${pk}-${lvl}-on-tone`] = onTone
+        if (typeof hi === 'number' || typeof hi === 'string') vars[`--palette-${pk}-${lvl}-high-emphasis`] = String(hi)
+        if (typeof lo === 'number' || typeof lo === 'string') vars[`--palette-${pk}-${lvl}-low-emphasis`] = String(lo)
+      })
+    })
+    applyCssVars(vars)
+  }
+
   useEffect(() => {
     applyTheme(LIGHT_MODE)
     // set initial switch background for light mode
@@ -346,6 +400,8 @@ export function CodePenPage() {
       Object.entries(merged).forEach(([cssVar, info]) => { colors[cssVar] = info.hex })
       writeBindings(merged)
       applyCssVars(colors)
+      // Seed palette scale variables from Theme.json (Light mode)
+      applyThemePalettesFromJson('Light')
     } catch {}
   }, [])
 
@@ -353,6 +409,8 @@ export function CodePenPage() {
     const base = isDarkMode ? DARK_MODE : LIGHT_MODE
     const merged = customVars ? { ...base, ...customVars } : base
     applyTheme(merged)
+    // Update palette scale variables for current mode
+    applyThemePalettesFromJson(isDarkMode ? 'Dark' : 'Light')
   }, [isDarkMode, customVars])
 
   return (
@@ -444,107 +502,9 @@ export function CodePenPage() {
             </tbody>
           </table>
 
-          <div className="palette-container">
-            <h3>Neutral (Grayscale)</h3>
-            <table className="color-palettes">
-              <thead>
-                <tr>
-                  <th>Emphasis</th>
-                  <th>900</th>
-                  <th>800</th>
-                  <th>700</th>
-                  <th>600</th>
-                  <th>500</th>
-                  <th>400</th>
-                  <th>300</th>
-                  <th className="default">200</th>
-                  <th>100</th>
-                  <th>050</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="high-emphasis">
-                  <td>High</td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-900-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-900-on-tone)', opacity: 'var(--palette-neutral-900-high-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-800-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-800-on-tone)', opacity: 'var(--palette-neutral-800-high-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-700-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-700-on-tone)', opacity: 'var(--palette-neutral-700-high-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-600-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-600-on-tone)', opacity: 'var(--palette-neutral-600-high-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-500-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-500-on-tone)', opacity: 'var(--palette-neutral-500-high-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-400-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-400-on-tone)', opacity: 'var(--palette-neutral-400-high-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-300-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-300-on-tone)', opacity: 'var(--palette-neutral-300-high-emphasis)' }} />
-                  </td>
-                  <td className="palette-box default" style={{ backgroundColor: 'var(--palette-neutral-200-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-200-on-tone)', opacity: 'var(--palette-neutral-200-high-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-100-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-100-on-tone)', opacity: 'var(--palette-neutral-100-high-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-050-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-050-on-tone)', opacity: 'var(--palette-neutral-050-high-emphasis)' }} />
-                  </td>
-                </tr>
-                <tr className="low-emphasis">
-                  <td>Low</td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-900-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-900-on-tone)', opacity: 'var(--palette-neutral-900-low-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-800-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-800-on-tone)', opacity: 'var(--palette-neutral-800-low-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-700-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-700-on-tone)', opacity: 'var(--palette-neutral-700-low-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-600-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-600-on-tone)', opacity: 'var(--palette-neutral-600-low-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-500-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-500-on-tone)', opacity: 'var(--palette-neutral-500-low-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-400-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-400-on-tone)', opacity: 'var(--palette-neutral-400-low-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-300-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-300-on-tone)', opacity: 'var(--palette-neutral-300-low-emphasis)' }} />
-                  </td>
-                  <td className="palette-box default" style={{ backgroundColor: 'var(--palette-neutral-200-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-200-on-tone)', opacity: 'var(--palette-neutral-200-low-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-100-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-100-on-tone)', opacity: 'var(--palette-neutral-100-low-emphasis)' }} />
-                  </td>
-                  <td className="palette-box" style={{ backgroundColor: 'var(--palette-neutral-050-tone)' }}>
-                    <div className="palette-dot" style={{ backgroundColor: 'var(--palette-neutral-050-on-tone)', opacity: 'var(--palette-neutral-050-low-emphasis)' }} />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Tone</td>
-                  <td>#ffffff<br />@varname</td>
-                  <td>#ffffff<br />@varname</td>
-                  <td>#ffffff<br />@varname</td>
-                  <td>#ffffff<br />@varname</td>
-                  <td>#ffffff<br />@varname</td>
-                  <td>#ffffff<br />@varname</td>
-                  <td>#ffffff<br />@varname</td>
-                  <td className="default">#ffffff<br />@varname</td>
-                  <td>#ffffff<br />@varname</td>
-                  <td>#ffffff<br />@varname</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <PaletteGrid paletteKey="neutral" title="Neutral (Grayscale)" defaultLevel={200} mode={isDarkMode ? 'Dark' : 'Light'} />
+          <PaletteGrid paletteKey="palette-1" title="Palette 1" defaultLevel={500} mode={isDarkMode ? 'Dark' : 'Light'} />
+          <PaletteGrid paletteKey="palette-2" title="Palette 2" defaultLevel={500} mode={isDarkMode ? 'Dark' : 'Light'} />
         </div>
 
         {/* palette swatch picker menu */}
