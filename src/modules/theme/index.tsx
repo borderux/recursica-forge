@@ -478,11 +478,11 @@ export function CodePenPage() {
               })()}
               </tr>
               <tr>
-              <td>{(paletteBindings['--palette-black']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-black']?.token ?? ''}</td>
-              <td>{(paletteBindings['--palette-white']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-white']?.token ?? ''}</td>
-              <td>{(paletteBindings['--palette-alert']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-alert']?.token ?? ''}</td>
-              <td>{(paletteBindings['--palette-warning']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-warning']?.token ?? ''}</td>
-              <td>{(paletteBindings['--palette-success']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-success']?.token ?? ''}</td>
+              <td>{(paletteBindings['--palette-black']?.hex ?? '').toUpperCase()}</td>
+              <td>{(paletteBindings['--palette-white']?.hex ?? '').toUpperCase()}</td>
+              <td>{(paletteBindings['--palette-alert']?.hex ?? '').toUpperCase()}</td>
+              <td>{(paletteBindings['--palette-warning']?.hex ?? '').toUpperCase()}</td>
+              <td>{(paletteBindings['--palette-success']?.hex ?? '').toUpperCase()}</td>
               {(() => {
                 const faintRaw: any = opacityBindings.disabled?.value ?? getTokenValue('opacity/faint')
                 const veiledRaw: any = opacityBindings.overlay?.value ?? getTokenValue('opacity/veiled')

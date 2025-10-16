@@ -90,15 +90,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   const usedByOthers = new Set(Object.entries(selections).filter(([k]) => k !== paletteKey).map(([, v]) => v))
   const availableFamilies = families.filter((f) => f === selectedFamily || !usedByOthers.has(f))
 
-  // Enforce uniqueness: if our selected family is already used by another palette, switch to first available
-  useEffect(() => {
-    if (selectedFamily && usedByOthers.has(selectedFamily)) {
-      const fallback = availableFamilies.find((f) => !usedByOthers.has(f)) || families.find((f) => !usedByOthers.has(f)) || selectedFamily
-      if (fallback !== selectedFamily) setSelectedFamily(fallback)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paletteKey, mode, selections, families.length])
-
   const themeIndex = useMemo(() => {
     const bucket: Record<string, any> = {}
     const entries = (themeJson as any)?.RecursicaBrand ? Object.values((themeJson as any).RecursicaBrand as Record<string, any>) : []
@@ -274,7 +265,17 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     <div className="palette-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
         <h3 style={{ margin: 0 }}>{title ?? paletteKey}</h3>
-        <FamilyDropdown paletteKey={paletteKey} families={availableFamilies} selectedFamily={selectedFamily} onSelect={(fam) => setSelectedFamily(fam)} titleCase={titleCase} getSwatchHex={optionSwatchHex} />
+        <FamilyDropdown
+          paletteKey={paletteKey}
+          families={availableFamilies}
+          selectedFamily={selectedFamily}
+          onSelect={(fam) => {
+            if (fam !== selectedFamily && usedByOthers.has(fam)) return
+            setSelectedFamily(fam)
+          }}
+          titleCase={titleCase}
+          getSwatchHex={optionSwatchHex}
+        />
       </div>
       <table className="color-palettes">
         <thead>
@@ -324,9 +325,12 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           </tr>
           <tr>
             <td>Tone</td>
-            {headerLevels.map((lvl) => (
-              <td key={`tone-${lvl}`} className={lvl === defaultLevelStr ? 'default' : undefined}>#ffffff<br />@varname</td>
-            ))}
+            {headerLevels.map((lvl) => {
+              const toneHex = (getSelectedFamilyHexForLevel(lvl) || '#ffffff').toUpperCase()
+              return (
+                <td key={`tone-${lvl}`} className={lvl === defaultLevelStr ? 'default' : undefined}>{toneHex}</td>
+              )
+            })}
           </tr>
         </tbody>
       </table>
