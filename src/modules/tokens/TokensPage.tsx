@@ -647,6 +647,16 @@ export default function TokensPage() {
           const activeGroup = selected === 'color' ? null : groups[groupKeyMap[selected]]
           if (!activeGroup) return null
           // sortedActive no longer needed: effect/size handled by modules
+          if (selected === 'font') {
+            return (
+              <div key={mode + '-font'} style={{ display: 'grid', gap: 16 }}>
+                <FontFamiliesTokens />
+                <FontSizeTokens />
+                <FontWeightTokens />
+                <FontLetterSpacingTokens />
+              </div>
+            )
+          }
           return (
             <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
               {selected === 'effect' ? (
@@ -655,14 +665,7 @@ export default function TokensPage() {
                 <OpacityTokens />
               ) : selected === 'size' ? (
                 <SizeTokens />
-              ) : (
-                <div style={{ display: 'grid', gap: 16 }}>
-                  <FontFamiliesTokens />
-                  <FontLetterSpacingTokens />
-                  <FontSizeTokens />
-                  <FontWeightTokens />
-                </div>
-              )}
+              ) : null}
             </section>
           )
         })()

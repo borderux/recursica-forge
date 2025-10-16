@@ -53,7 +53,7 @@ export default function FontWeightTokens() {
   return (
     <section style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
       <div style={{ fontWeight: 600, marginBottom: 8 }}>Font Weight</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 50px auto', gap: 8, alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 80px', gap: 8, alignItems: 'center' }}>
         {items.map((it) => {
           const label = toTitle(it.name.replace('font/weight/', ''))
           const current = Number((values[it.name] as any) ?? it.value)
@@ -84,9 +84,9 @@ export default function FontWeightTokens() {
                   setValues((prev) => ({ ...prev, [it.name]: next }))
                   setOverride(it.name, next)
                 }}
-                style={{ width: 50 }}
+                style={{ width: 80 }}
               />
-              <span style={{ fontSize: 12, opacity: 0.8 }}>wght</span>
+              
             </>
           )
         })}
