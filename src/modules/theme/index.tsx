@@ -1,9 +1,11 @@
 import './index.css'
-import { useEffect, useMemo, useState, ChangeEvent } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import tokensJson from '../../vars/Tokens.json'
+import { applyCssVars } from './varsUtil'
 
 type ThemeVars = Record<string, string>
 
-const HSL = (h: number, s: number, l: number) => `hsl(${h}, ${s}%, ${l}%)`
+// const HSL = (h: number, s: number, l: number) => `hsl(${h}, ${s}%, ${l}%)`
 
 const LIGHT_MODE: ThemeVars = {
   "--temp-disabled": "rgba(0,0,0,0.38)",
@@ -271,29 +273,51 @@ function applyTheme(theme: ThemeVars) {
 
 export function CodePenPage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
-  const [customVars, setCustomVars] = useState<ThemeVars | null>(null)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-
-  function extractCssVarsFromObject(obj: unknown): ThemeVars {
-    const vars: ThemeVars = {}
-    const visit = (value: unknown) => {
-      if (value && typeof value === 'object') {
-        if (Array.isArray(value)) {
-          for (const entry of value) visit(entry)
-        } else {
-          for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-            if (k.startsWith('--') && (typeof v === 'string' || typeof v === 'number')) {
-              vars[k] = String(v)
-            } else {
-              visit(v)
-            }
-          }
-        }
-      }
-    }
-    visit(obj)
-    return vars
+  const [customVars] = useState<ThemeVars | null>(null)
+  const [paletteBindings, setPaletteBindings] = useState<Record<string, { token: string; hex: string }>>(() => {
+    try {
+      const raw = localStorage.getItem('palette-bindings')
+      if (raw) return JSON.parse(raw)
+    } catch {}
+    return {}
+  })
+  const writeBindings = (next: Record<string, { token: string; hex: string }>) => {
+    setPaletteBindings(next)
+    try { localStorage.setItem('palette-bindings', JSON.stringify(next)) } catch {}
   }
+
+  type OpacityBindingKey = 'disabled' | 'overlay'
+  const [opacityBindings, setOpacityBindings] = useState<Record<OpacityBindingKey, { token: string; value: number }>>(() => {
+    try {
+      const raw = localStorage.getItem('palette-opacity-bindings')
+      if (raw) return JSON.parse(raw)
+    } catch {}
+    return {} as any
+  })
+  const writeOpacityBindings = (next: Record<OpacityBindingKey, { token: string; value: number }>) => {
+    setOpacityBindings(next)
+    try { localStorage.setItem('palette-opacity-bindings', JSON.stringify(next)) } catch {}
+  }
+
+  const getToken = (name: string): any => Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
+  const getTokenValue = (name: string): string | number | undefined => {
+    const entry: any = getToken(name)
+    return entry ? entry.value : undefined
+  }
+  const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
+    let h = hex.trim()
+    if (!h.startsWith('#')) h = '#' + h
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
+    if (!m) return { r: 0, g: 0, b: 0 }
+    return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
+  }
+  const alphaColor = (hex: string, alpha: number): string => {
+    const { r, g, b } = hexToRgb(hex)
+    const a = Math.max(0, Math.min(1, alpha))
+    return `rgba(${r}, ${g}, ${b}, ${a})`
+  }
+
+  // extractCssVarsFromObject helper retained in varsUtil in app shells
 
   // Upload moved to header shells
 
@@ -304,6 +328,25 @@ export function CodePenPage() {
     // set initial switch background for light mode
     const el = document.getElementById('darkModeSwitch') as HTMLDivElement | null
     if (el) el.style.backgroundColor = 'var(--color-neutral-300)'
+    // initialize palette swatches defaults from Tokens.json
+    try {
+      const colors: Record<string, string> = {}
+      const get = (name: string): string | undefined => {
+        const entry = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
+        return entry ? String(entry.value) : undefined
+      }
+      const defaults: Record<string, { token: string; hex: string }> = {
+        '--palette-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
+        '--palette-white': { token: 'color/gray/000', hex: get('color/gray/000') || '#ffffff' },
+        '--palette-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
+        '--palette-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
+        '--palette-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
+      }
+      const merged = { ...defaults, ...paletteBindings }
+      Object.entries(merged).forEach(([cssVar, info]) => { colors[cssVar] = info.hex })
+      writeBindings(merged)
+      applyCssVars(colors)
+    } catch {}
   }, [])
 
   useEffect(() => {
@@ -315,21 +358,21 @@ export function CodePenPage() {
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
       <div className="container-padding">
-        <div className="header-group">
-          <h1 id="theme-mode-label">{isDarkMode ? 'Dark Theme' : 'Light Theme'}</h1>
-          <div className="toggle-group">
-            <span>Dark Mode</span>
-            <div
-              id="darkModeSwitch"
-              className={`toggle-switch${isDarkMode ? ' dark-mode' : ''}`}
-              style={{ backgroundColor: isDarkMode ? 'var(--color-scale1-500)' : 'var(--color-neutral-300)' }}
-              onClick={() => setIsDarkMode((v) => !v)}
-            />
+        <div className="header-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <h2 id="theme-mode-label" style={{ margin: 0 }}>Palettes</h2>
+          <div style={{ display: 'inline-flex', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, overflow: 'hidden' }}>
+            <button
+              onClick={() => setIsDarkMode(false)}
+              style={{ padding: '6px 10px', border: 'none', background: !isDarkMode ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent', color: !isDarkMode ? '#fff' : 'inherit', cursor: 'pointer' }}
+            >Light</button>
+            <button
+              onClick={() => setIsDarkMode(true)}
+              style={{ padding: '6px 10px', border: 'none', borderLeft: '1px solid var(--layer-layer-1-property-border-color)', background: isDarkMode ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent', color: isDarkMode ? '#fff' : 'inherit', cursor: 'pointer' }}
+            >Dark</button>
           </div>
         </div>
 
         <div className="section">
-          <h2>Colors</h2>
           <table className="color-swatches">
             <thead>
               <tr>
@@ -350,22 +393,53 @@ export function CodePenPage() {
             </thead>
             <tbody>
               <tr>
-                <td className="swatch-box" style={{ backgroundColor: 'var(--palette-black)' }} />
-                <td className="swatch-box" style={{ backgroundColor: 'var(--palette-white)' }} />
-                <td className="swatch-box" style={{ backgroundColor: 'var(--palette-alert)' }} />
-                <td className="swatch-box" style={{ backgroundColor: 'var(--palette-warning)' }} />
-                <td className="swatch-box" style={{ backgroundColor: 'var(--palette-success)' }} />
-                <td className="swatch-box disabled" />
-                <td className="swatch-box overlay" />
+              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--palette-black']?.hex || 'var(--palette-black)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--palette-black')} />
+              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--palette-white']?.hex || 'var(--palette-white)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--palette-white')} />
+              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--palette-alert']?.hex || 'var(--palette-alert)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--palette-alert')} />
+              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--palette-warning']?.hex || 'var(--palette-warning)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--palette-warning')} />
+              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--palette-success']?.hex || 'var(--palette-success)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--palette-success')} />
+              {(() => {
+                const blackHex = (paletteBindings['--palette-black']?.hex) || String(getTokenValue('color/gray/1000') || '#000000')
+                const faintDefault: any = getTokenValue('opacity/faint')
+                const veiledDefault: any = getTokenValue('opacity/veiled')
+                const toAlpha = (v: any) => {
+                  const n = typeof v === 'number' ? v : parseFloat(String(v))
+                  if (!Number.isFinite(n)) return 1
+                  return n <= 1 ? n : n / 100
+                }
+                const faint = toAlpha(opacityBindings.disabled?.value ?? faintDefault)
+                const veiled = toAlpha(opacityBindings.overlay?.value ?? veiledDefault)
+                const disabledColor = alphaColor(blackHex, faint)
+                const overlayColor = alphaColor(blackHex, veiled)
+                return (
+                  <>
+                    <td className="swatch-box disabled" style={{ backgroundColor: disabledColor, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'disabled')} />
+                    <td className="swatch-box overlay" style={{ backgroundColor: overlayColor, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'overlay')} />
+                  </>
+                )
+              })()}
               </tr>
               <tr>
-                <td>#ffffff<br />@varname</td>
-                <td>#ffffff<br />@varname</td>
-                <td>#ffffff<br />@varname</td>
-                <td>#ffffff<br />@varname</td>
-                <td>#ffffff<br />@varname</td>
-                <td>68%<br />@varname</td>
-                <td>38%<br />@varname</td>
+              <td>{(paletteBindings['--palette-black']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-black']?.token ?? ''}</td>
+              <td>{(paletteBindings['--palette-white']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-white']?.token ?? ''}</td>
+              <td>{(paletteBindings['--palette-alert']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-alert']?.token ?? ''}</td>
+              <td>{(paletteBindings['--palette-warning']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-warning']?.token ?? ''}</td>
+              <td>{(paletteBindings['--palette-success']?.hex ?? '').toUpperCase()}<br />{paletteBindings['--palette-success']?.token ?? ''}</td>
+              {(() => {
+                const faintRaw: any = opacityBindings.disabled?.value ?? getTokenValue('opacity/faint')
+                const veiledRaw: any = opacityBindings.overlay?.value ?? getTokenValue('opacity/veiled')
+                const pct = (v: any) => {
+                  const n = typeof v === 'number' ? v : parseFloat(String(v))
+                  if (!Number.isFinite(n)) return ''
+                  return `${Math.round(n <= 1 ? n * 100 : n)}%`
+                }
+                return (
+                  <>
+                    <td>{pct(faintRaw)}<br />{opacityBindings.disabled?.token ?? 'opacity/faint'}</td>
+                    <td>{pct(veiledRaw)}<br />{opacityBindings.overlay?.token ?? 'opacity/veiled'}</td>
+                  </>
+                )
+              })()}
               </tr>
             </tbody>
           </table>
@@ -473,6 +547,17 @@ export function CodePenPage() {
           </div>
         </div>
 
+        {/* palette swatch picker menu */}
+        <SwatchPicker onSelect={(cssVar: string, tokenName: string, hex: string) => {
+          document.documentElement.style.setProperty(cssVar, hex)
+          writeBindings({ ...paletteBindings, [cssVar]: { token: tokenName, hex } })
+        }} />
+
+        <OpacityPicker onSelect={(slot: 'disabled' | 'overlay', tokenName: string, value: number) => {
+          const next = { ...opacityBindings, [slot]: { token: tokenName, value } } as any
+          writeOpacityBindings(next)
+        }} />
+
         
 
         
@@ -484,5 +569,152 @@ export function CodePenPage() {
 }
 
 export { applyTheme, LIGHT_MODE }
+
+function SwatchPicker({ onSelect }: { onSelect: (cssVar: string, tokenName: string, hex: string) => void }) {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+  const [targetVar, setTargetVar] = useState<string | null>(null)
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
+  const options = useMemo(() => {
+    const fams = new Set<string>()
+    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string' && e.name.startsWith('color/')) {
+        const parts = e.name.split('/')
+        if (parts.length === 3) fams.add(parts[1])
+      }
+    })
+    const families = Array.from(fams).filter((f) => f !== 'translucent').sort()
+    const byFamily: Record<string, Array<{ level: string; name: string; value: string }>> = {}
+    families.forEach((f) => { byFamily[f] = [] })
+    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string' && e.name.startsWith('color/')) {
+        const parts = e.name.split('/')
+        if (parts.length === 3) {
+          const fam = parts[1]
+          const lvl = parts[2]
+          if (!byFamily[fam]) byFamily[fam] = []
+          byFamily[fam].push({ level: lvl, name: e.name, value: String(e.value) })
+        }
+      }
+    })
+    Object.values(byFamily).forEach((arr) => arr.sort((a, b) => Number(b.level) - Number(a.level)))
+    return byFamily
+  }, [])
+
+  ;(window as any).openPicker = (el: HTMLElement, cssVar: string) => {
+    setAnchor(el)
+    setTargetVar(cssVar)
+    const rect = el.getBoundingClientRect()
+    const top = rect.bottom + 8
+    const left = Math.min(rect.left, window.innerWidth - 420)
+    setPos({ top, left })
+  }
+
+  if (!anchor || !targetVar) return null
+  const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
+  const maxCount = Math.max(...Object.values(options).map((arr) => arr.length || 0))
+  const labelCol = 110
+  const swatch = 18
+  const gap = 1
+  const overlayWidth = labelCol + maxCount * (swatch + gap) + 32
+  return (
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 1100 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
+        onMouseDown={(e) => {
+          const startX = e.clientX
+          const startY = e.clientY
+          const start = { ...pos }
+          const move = (ev: MouseEvent) => {
+            const dx = ev.clientX - startX
+            const dy = ev.clientY - startY
+            const next = { left: Math.max(0, Math.min(window.innerWidth - overlayWidth, start.left + dx)), top: Math.max(0, Math.min(window.innerHeight - 120, start.top + dy)) }
+            setPos(next)
+          }
+          const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
+          window.addEventListener('mousemove', move)
+          window.addEventListener('mouseup', up)
+        }}
+      >
+        <div style={{ fontWeight: 600 }}>Pick color</div>
+        <button onClick={() => { setAnchor(null); setTargetVar(null) }} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
+      </div>
+      <div style={{ display: 'grid', gap: 6 }}>
+        {Object.entries(options).map(([family, items]) => (
+          <div key={family} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
+            <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize' }}>{toTitle(family)}</div>
+            <div style={{ display: 'flex', flexWrap: 'nowrap', gap, overflow: 'auto' }}>
+              {items.map((it) => (
+                <div key={it.name} title={it.name} onClick={() => {
+                  onSelect(targetVar!, it.name, it.value)
+                  setAnchor(null); setTargetVar(null)
+                }} style={{ width: swatch, height: swatch, background: it.value, cursor: 'pointer', border: '1px solid rgba(0,0,0,0.15)', flex: '0 0 auto' }} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function OpacityPicker({ onSelect }: { onSelect: (slot: 'disabled' | 'overlay', tokenName: string, value: number) => void }) {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+  const [slot, setSlot] = useState<'disabled' | 'overlay' | null>(null)
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
+  const options = useMemo(() => {
+    const list: Array<{ name: string; value: number }> = []
+    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string' && e.name.startsWith('opacity/')) {
+        const n = Number(e.value)
+        if (Number.isFinite(n)) list.push({ name: e.name, value: n })
+      }
+    })
+    list.sort((a, b) => a.value - b.value)
+    return list
+  }, [])
+
+  ;(window as any).openOpacityPicker = (el: HTMLElement, s: 'disabled' | 'overlay') => {
+    setAnchor(el)
+    setSlot(s)
+    const rect = el.getBoundingClientRect()
+    const top = rect.bottom + 8
+    const left = Math.min(rect.left, window.innerWidth - 260)
+    setPos({ top, left })
+  }
+
+  if (!anchor || !slot) return null
+  return (
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: 240, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 1100 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
+        onMouseDown={(e) => {
+          const startX = e.clientX
+          const startY = e.clientY
+          const start = { ...pos }
+          const move = (ev: MouseEvent) => {
+            const dx = ev.clientX - startX
+            const dy = ev.clientY - startY
+            const next = { left: Math.max(0, Math.min(window.innerWidth - 240, start.left + dx)), top: Math.max(0, Math.min(window.innerHeight - 120, start.top + dy)) }
+            setPos(next)
+          }
+          const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
+          window.addEventListener('mousemove', move)
+          window.addEventListener('mouseup', up)
+        }}
+      >
+        <div style={{ fontWeight: 600 }}>Pick opacity</div>
+        <button onClick={() => { setAnchor(null); setSlot(null) }} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
+      </div>
+      <div style={{ display: 'grid', gap: 6 }}>
+        {options.map((opt) => (
+          <button key={opt.name} onClick={() => { onSelect(slot, opt.name, opt.value); setAnchor(null); setSlot(null) }} style={{ display: 'flex', justifyContent: 'space-between', width: '100%', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, padding: '6px 8px', cursor: 'pointer' }}>
+            <span style={{ textTransform: 'capitalize' }}>{opt.name.replace('opacity/','')}</span>
+            <span>{`${Math.round(opt.value <= 1 ? opt.value * 100 : opt.value)}%`}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 

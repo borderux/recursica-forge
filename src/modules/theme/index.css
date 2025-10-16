@@ -30,8 +30,7 @@ h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--temp-disabled);
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 .toggle-group {
   display: flex;
