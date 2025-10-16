@@ -460,7 +460,7 @@ export default function PreviewPage() {
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto' }}>
-      <h2 style={{ marginTop: 0 }}>Preview</h2>
+      <h2 style={{ marginTop: 0 }}>UI Kit</h2>
       {sections.map((s) => (
         <SectionCard key={s.name} title={s.name} url={s.url}>
           {s.render()}

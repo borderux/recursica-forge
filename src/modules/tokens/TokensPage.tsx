@@ -298,6 +298,20 @@ export default function TokensPage() {
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   // Effect scale state managed inside EffectTokens module
   useEffect(() => {
+    // hydrate from localStorage
+    try {
+      const raw = localStorage.getItem('family-friendly-names')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (parsed && typeof parsed === 'object') setFamilyNames(parsed)
+      }
+    } catch {}
+  }, [])
+  useEffect(() => {
+    try { localStorage.setItem('family-friendly-names', JSON.stringify(familyNames)) } catch {}
+    try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: familyNames })) } catch {}
+  }, [familyNames])
+  useEffect(() => {
     const handler = (ev: Event) => {
       const detail: any = (ev as CustomEvent).detail
       if (!detail) return
@@ -379,6 +393,38 @@ export default function TokensPage() {
     })
     return byMode
   }, [groupedByMode, values])
+
+  // Auto-fill missing friendly names using color values
+  useEffect(() => {
+    (async () => {
+      try {
+        const allFamilies = new Set<string>()
+        Object.values(colorFamiliesByMode).forEach((famMap) => {
+          Object.keys(famMap).forEach((f) => allFamilies.add(f))
+        })
+        if (!allFamilies.size) return
+        let changed = false
+        const next: Record<string, string> = { ...familyNames }
+        for (const fam of allFamilies) {
+          if (fam === 'translucent') continue
+          if (next[fam] && next[fam].trim()) continue
+          // Prefer 500 level; otherwise pick the closest available
+          const levels = (colorFamiliesByMode['Mode 1']?.[fam] || [])
+          const preferred = levels.find((l) => l.level === '500') || levels[Math.floor(levels.length / 2)] || levels[0]
+          const hex = preferred?.entry?.value as string | undefined
+          if (typeof hex === 'string' && /^#?[0-9a-fA-F]{6}$/.test(hex.trim())) {
+            const normalized = hex.startsWith('#') ? hex : `#${hex}`
+            const label = await getNtcName(normalized)
+            if (label && label.trim()) {
+              next[fam] = toTitleCase(label.trim())
+              changed = true
+            }
+          }
+        }
+        if (changed) setFamilyNames(next)
+      } catch {}
+    })()
+  }, [colorFamiliesByMode])
 
   useEffect(() => {
     // Initialize form values from tokens JSON, then overlay any persisted overrides

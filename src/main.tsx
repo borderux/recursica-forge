@@ -26,7 +26,7 @@ const router = createBrowserRouter([
       { path: '/elevation', element: <ElevationPage /> },
       { path: '/type', element: <TypePage /> },
       { path: '/layers', element: <LayersPage /> },
-      { path: '/preview', element: <PreviewPage /> },
+      { path: '/uikit', element: <PreviewPage /> },
     ],
   },
 ])

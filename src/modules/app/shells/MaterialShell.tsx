@@ -50,7 +50,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             <Tab value="type" label="Type" component={Link as any} to="/type" />
             <Tab value="elevation" label="Elevation" component={Link as any} to="/elevation" />
             <Tab value="layers" label="Layers" component={Link as any} to="/layers" />
-            <Tab value="preview" label="Preview" component={Link as any} to="/preview" />
+            <Tab value="uikit" label="UI Kit" component={Link as any} to="/uikit" />
           </Tabs>
           <IconButton color="inherit" size="small" onClick={() => { clearOverrides(tokensJson as any); applyTheme(LIGHT_MODE) }} title="Reset to defaults">↺</IconButton>
           <IconButton color="inherit" size="small" onClick={() => {/* open modal not implemented for MUI shell */}} title="Import / Export">⤓</IconButton>

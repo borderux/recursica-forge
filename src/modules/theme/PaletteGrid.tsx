@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import tokensJson from '../../vars/Tokens.json'
 import themeJson from '../../vars/Theme.json'
+import { readOverrides } from './tokenOverrides'
 
 type PaletteGridProps = {
   paletteKey: string
@@ -8,6 +9,8 @@ type PaletteGridProps = {
   defaultLevel?: string | number
   initialFamily?: string
   mode: 'Light' | 'Dark'
+  deletable?: boolean
+  onDelete?: () => void
 }
 
 const LEVELS: Array<number> = [900, 800, 700, 600, 500, 400, 300, 200, 100, 50]
@@ -22,9 +25,17 @@ function toTokenLevel(levelStr: string): string {
   return levelStr === '050' ? '50' : levelStr
 }
 
-export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, initialFamily, mode }: PaletteGridProps) {
+export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, initialFamily, mode, deletable, onDelete }: PaletteGridProps) {
   const defaultLevelStr = typeof defaultLevel === 'number' ? toLevelString(defaultLevel) : String(defaultLevel).padStart(3, '0')
   const headerLevels = LEVELS.map(toLevelString)
+
+  // Track token override changes and re-apply palette mapping (declared early for dependencies below)
+  const [overrideVersion, forceOverrideVersion] = useState(0)
+  useEffect(() => {
+    const handler = () => forceOverrideVersion((v) => v + 1)
+    window.addEventListener('tokenOverridesChanged', handler as any)
+    return () => window.removeEventListener('tokenOverridesChanged', handler as any)
+  }, [])
 
   const families = useMemo(() => {
     const fams = new Set<string>()
@@ -34,6 +45,15 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         if (parts.length === 3) fams.add(parts[1])
       }
     })
+    try {
+      const overrides = readOverrides() as Record<string, any>
+      Object.keys(overrides || {}).forEach((name) => {
+        if (typeof name === 'string' && name.startsWith('color/')) {
+          const parts = name.split('/')
+          if (parts.length === 3) fams.add(parts[1])
+        }
+      })
+    } catch {}
     const list = Array.from(fams).filter((f) => f !== 'translucent')
     list.sort((a, b) => {
       if (a === 'gray' && b !== 'gray') return -1
@@ -41,7 +61,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       return a.localeCompare(b)
     })
     return list
-  }, [])
+  }, [overrideVersion])
 
   const [selectedFamily, setSelectedFamily] = useState<string>(() => {
     if (typeof initialFamily === 'string' && initialFamily) return initialFamily
@@ -137,6 +157,14 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   // }
 
   const getTokenValueByName = (name: string): string | undefined => {
+    // Prefer runtime overrides, then fall back to Tokens.json
+    try {
+      const overrides = readOverrides() as Record<string, any>
+      if (overrides && Object.prototype.hasOwnProperty.call(overrides, name)) {
+        const ov = overrides[name]
+        if (ov != null) return String(ov)
+      }
+    } catch {}
     const entry: any = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
     return entry ? String(entry.value) : undefined
   }
@@ -188,6 +216,19 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   }
 
   const titleCase = (s: string): string => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
+
+  // Choose black/white text that best satisfies WCAG AA (4.5:1). If neither meets, choose max contrast.
+  function pickAATextColor(toneHex: string): string {
+    const black = '#000000'
+    const white = '#ffffff'
+    const cBlack = contrastRatio(toneHex, black)
+    const cWhite = contrastRatio(toneHex, white)
+    const AA = 4.5
+    if (cBlack >= AA && cWhite >= AA) return cBlack >= cWhite ? black : white
+    if (cBlack >= AA) return black
+    if (cWhite >= AA) return white
+    return cBlack >= cWhite ? black : white
+  }
 
   const resolveDefaultLevelForPalette = useMemo(() => {
     const key = `palette/${paletteKey}/default/tone`
@@ -245,7 +286,17 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       const onTone = resolveThemeRef((themeIndex as any)[`${modeLabel}::${onToneName}`]?.value ?? { collection: 'Theme', name: onToneName }, modeLabel)
       const hi = resolveThemeRef((themeIndex as any)[`${modeLabel}::${hiName}`]?.value ?? { collection: 'Theme', name: hiName }, modeLabel)
       const lo = resolveThemeRef((themeIndex as any)[`${modeLabel}::${loName}`]?.value ?? { collection: 'Theme', name: loName }, modeLabel)
-      if (typeof onTone === 'string') root.style.setProperty(`--palette-${paletteKey}-${lvl}-on-tone`, onTone)
+      // Enforce AA on-tone against the current tone hex when available
+      if (typeof hex === 'string') {
+        const aa = pickAATextColor(hex)
+        let finalOnTone: string | undefined = typeof onTone === 'string' ? onTone : aa
+        if (typeof finalOnTone === 'string') {
+          if (contrastRatio(hex, finalOnTone) < 4.5) finalOnTone = aa
+          root.style.setProperty(`--palette-${paletteKey}-${lvl}-on-tone`, finalOnTone)
+        }
+      } else if (typeof onTone === 'string') {
+        root.style.setProperty(`--palette-${paletteKey}-${lvl}-on-tone`, onTone)
+      }
       const hiNorm = normalizeOpacity(hi)
       if (typeof hiNorm === 'string') root.style.setProperty(`--palette-${paletteKey}-${lvl}-high-emphasis`, hiNorm)
       const loNorm = normalizeOpacity(lo)
@@ -259,23 +310,33 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     // Then, if a family is selected, map tones from that family onto this palette
     if (selectedFamily) applyFamilyToCssVars(selectedFamily, mode)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFamily, mode])
+  }, [selectedFamily, mode, overrideVersion])
 
   return (
     <div className="palette-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
         <h3 style={{ margin: 0 }}>{title ?? paletteKey}</h3>
-        <FamilyDropdown
-          paletteKey={paletteKey}
-          families={availableFamilies}
-          selectedFamily={selectedFamily}
-          onSelect={(fam) => {
-            if (fam !== selectedFamily && usedByOthers.has(fam)) return
-            setSelectedFamily(fam)
-          }}
-          titleCase={titleCase}
-          getSwatchHex={optionSwatchHex}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {deletable && (
+            <button
+              type="button"
+              onClick={onDelete}
+              title="Delete palette"
+              style={{ padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+            >Delete</button>
+          )}
+          <FamilyDropdown
+            paletteKey={paletteKey}
+            families={availableFamilies}
+            selectedFamily={selectedFamily}
+            onSelect={(fam) => {
+              if (fam !== selectedFamily && usedByOthers.has(fam)) return
+              setSelectedFamily(fam)
+            }}
+            titleCase={titleCase}
+            getSwatchHex={optionSwatchHex}
+          />
+        </div>
       </div>
       <table className="color-palettes">
         <thead>
@@ -355,6 +416,31 @@ function FamilyDropdown({
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement | null>(null)
+  const [tokenVersion, setTokenVersion] = useState(0)
+
+  // ntc loader for friendly naming fallback
+  let ntcReadyPromise: Promise<void> | null = null
+  function ensureNtcLoaded(): Promise<void> {
+    if ((window as any).ntc) return Promise.resolve()
+    if (ntcReadyPromise) return ntcReadyPromise
+    ntcReadyPromise = new Promise<void>((resolve, reject) => {
+      const s = document.createElement('script')
+      s.src = 'https://chir.ag/projects/ntc/ntc.js'
+      s.async = true
+      s.onload = () => resolve()
+      s.onerror = () => reject(new Error('Failed to load ntc.js'))
+      document.head.appendChild(s)
+    })
+    return ntcReadyPromise
+  }
+  async function getNtcName(hex: string): Promise<string | null> {
+    try {
+      await ensureNtcLoaded()
+      const res = (window as any).ntc?.name?.(hex)
+      if (Array.isArray(res) && typeof res[1] === 'string' && res[1]) return res[1]
+    } catch {}
+    return null
+  }
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -365,10 +451,61 @@ function FamilyDropdown({
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [])
 
+  useEffect(() => {
+    const handler = () => setTokenVersion((v) => v + 1)
+    window.addEventListener('tokenOverridesChanged', handler as any)
+    window.addEventListener('familyNamesChanged', handler as any)
+    return () => {
+      window.removeEventListener('tokenOverridesChanged', handler as any)
+      window.removeEventListener('familyNamesChanged', handler as any)
+    }
+  }, [])
+
+  // Auto-generate friendly names for any families missing labels
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = localStorage.getItem('family-friendly-names')
+        const map = raw ? JSON.parse(raw || '{}') || {} : {}
+        let changed = false
+        for (const fam of families) {
+          if (map[fam]) continue
+          const hex = getSwatchHex(fam)
+          if (typeof hex === 'string' && /^#?[0-9a-fA-F]{6}$/.test(hex.trim())) {
+            const normalized = hex.startsWith('#') ? hex : `#${hex}`
+            const label = await getNtcName(normalized)
+            if (label && label.trim()) {
+              map[fam] = label.trim()
+              changed = true
+            }
+          }
+        }
+        if (changed) {
+          try { localStorage.setItem('family-friendly-names', JSON.stringify(map)) } catch {}
+          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+          setTokenVersion((v) => v + 1)
+        }
+      } catch {}
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [families])
+
+  const getFriendlyName = (family: string): string => {
+    try {
+      const raw = localStorage.getItem('family-friendly-names')
+      if (raw) {
+        const map = JSON.parse(raw)
+        const v = map?.[family]
+        if (typeof v === 'string' && v.trim()) return v
+      }
+    } catch {}
+    return titleCase(family)
+  }
+
   const currentHex = getSwatchHex(selectedFamily)
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-token-version={tokenVersion}>
       <label htmlFor={`family-${paletteKey}`} style={{ fontSize: 12, opacity: 0.8 }}>Color Token</label>
       <div ref={ref} style={{ position: 'relative' }}>
         <button
@@ -379,7 +516,7 @@ function FamilyDropdown({
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid rgba(0,0,0,0.15)', background: currentHex || 'transparent' }} />
-            <span>{titleCase(selectedFamily)}</span>
+            <span>{getFriendlyName(selectedFamily)}</span>
           </span>
           <span aria-hidden style={{ opacity: 0.6 }}>▾</span>
         </button>
@@ -395,7 +532,7 @@ function FamilyDropdown({
                     style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}
                   >
                     <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid rgba(0,0,0,0.15)', background: hex || 'transparent' }} />
-                    <span>{titleCase(fam)}</span>
+                    <span>{getFriendlyName(fam)}</span>
                   </button>
                 )
               })}

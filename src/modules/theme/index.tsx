@@ -7,13 +7,15 @@ import themeJson from '../../vars/Theme.json'
 
 type ThemeVars = Record<string, string>
 
+type PaletteEntry = { key: string; title: string; defaultLevel: number; initialFamily?: string }
+
 // const HSL = (h: number, s: number, l: number) => `hsl(${h}, ${s}%, ${l}%)`
 
 const LIGHT_MODE: ThemeVars = {
   "--temp-disabled": "rgba(0,0,0,0.38)",
   "--temp-overlay": "rgba(0,0,0,0.68)",
   "--temp-elevation-0": "rgba(0,0,0,0.14)",
-
+  
   "--palette-alert": "#000000",
   "--palette-black": "#000000",
   "--palette-success": "#000000",
@@ -21,7 +23,7 @@ const LIGHT_MODE: ThemeVars = {
   "--palette-white": "#000000",
   "--palette-overlay": "0.38",
   "--palette-disabled": "0.38",
-
+  
   "--palette-neutral-900-tone": "#000000",
   "--palette-neutral-800-tone": "#000000",
   "--palette-neutral-700-tone": "#000000",
@@ -32,7 +34,7 @@ const LIGHT_MODE: ThemeVars = {
   "--palette-neutral-200-tone": "#000000",
   "--palette-neutral-100-tone": "#000000",
   "--palette-neutral-050-tone": "#000000",
-
+  
   "--palette-neutral-900-on-tone": "#000000",
   "--palette-neutral-800-on-tone": "#000000",
   "--palette-neutral-700-on-tone": "#000000",
@@ -43,7 +45,7 @@ const LIGHT_MODE: ThemeVars = {
   "--palette-neutral-200-on-tone": "#000000",
   "--palette-neutral-100-on-tone": "#000000",
   "--palette-neutral-050-on-tone": "#000000",
-
+  
   "--palette-neutral-900-high-emphasis": "1",
   "--palette-neutral-800-high-emphasis": "1",
   "--palette-neutral-700-high-emphasis": "1",
@@ -54,7 +56,7 @@ const LIGHT_MODE: ThemeVars = {
   "--palette-neutral-200-high-emphasis": "1",
   "--palette-neutral-100-high-emphasis": "1",
   "--palette-neutral-050-high-emphasis": "1",
-
+  
   "--palette-neutral-900-low-emphasis": "0.38",
   "--palette-neutral-800-low-emphasis": "0.38",
   "--palette-neutral-700-low-emphasis": "0.38",
@@ -65,106 +67,106 @@ const LIGHT_MODE: ThemeVars = {
   "--palette-neutral-200-low-emphasis": "0.38",
   "--palette-neutral-100-low-emphasis": "0.38",
   "--palette-neutral-050-low-emphasis": "0.38",
-
+  
   "--elevation-elevation-0-shadow-color": "#000000",
   "--elevation-elevation-0-blur": "0px",
   "--elevation-elevation-0-spread": "0px",
   "--elevation-elevation-0-x-axis": "0px",
   "--elevation-elevation-0-y-axis": "0px",
-
+  
   "--elevation-elevation-1-shadow-color": "#000000",
   "--elevation-elevation-1-blur": "4px",
   "--elevation-elevation-1-spread": "4px",
   "--elevation-elevation-1-x-axis": "4px",
   "--elevation-elevation-1-y-axis": "4px",
-
+  
   "--elevation-elevation-2-shadow-color": "#000000",
   "--elevation-elevation-2-blur": "8px",
   "--elevation-elevation-2-spread": "8px",
   "--elevation-elevation-2-x-axis": "8px",
   "--elevation-elevation-2-y-axis": "8px",
-
+  
   "--elevation-elevation-3-shadow-color": "#000000",
   "--elevation-elevation-3-blur": "12px",
   "--elevation-elevation-3-spread": "12px",
   "--elevation-elevation-3-x-axis": "12px",
   "--elevation-elevation-3-y-axis": "12px",
-
+  
   "--elevation-elevation-4-shadow-color": "#000000",
   "--elevation-elevation-4-blur": "16px",
   "--elevation-elevation-4-spread": "16px",
   "--elevation-elevation-4-x-axis": "16px",
   "--elevation-elevation-4-y-axis": "16px",
-
+  
   "--font-h1-font-family": "lexend",
   "--font-h1-font-size": "64",
   "--font-h1-font-weight": "bold",
   "--font-h1-font-letter-spacing": "0",
-
+  
   "--font-h2-font-family": "lexend",
   "--font-h2-font-size": "64",
   "--font-h2-font-weight": "bold",
   "--font-h2-font-letter-spacing": "0",
-
+  
   "--font-h3-font-family": "lexend",
   "--font-h3-font-size": "64",
   "--font-h3-font-weight": "bold",
   "--font-h3-font-letter-spacing": "0",
-
+  
   "--font-h4-font-family": "lexend",
   "--font-h4-font-size": "64",
   "--font-h4-font-weight": "bold",
   "--font-h4-font-letter-spacing": "0",
-
+  
   "--font-h5-font-family": "lexend",
   "--font-h5-font-size": "64",
   "--font-h5-font-weight": "bold",
   "--font-h5-font-letter-spacing": "0",
-
+  
   "--font-h6-font-family": "lexend",
   "--font-h6-font-size": "64",
   "--font-h6-font-weight": "bold",
   "--font-h6-font-letter-spacing": "0",
-
+  
   "--font-button-font-family": "lexend",
   "--font-button-font-size": "16",
   "--font-button-font-weight": "regular",
   "--font-button-font-letter-spacing": "0",
-
+  
   "--font-caption-font-family": "lexend",
   "--font-caption-font-size": "16",
   "--font-caption-font-weight": "regular",
   "--font-caption-font-letter-spacing": "0",
-
+  
   "--font-overline-font-family": "lexend",
   "--font-overline-font-size": "16",
   "--font-overline-font-weight": "regular",
   "--font-overline-font-letter-spacing": "0",
-
+  
   "--font-body-1-font-family": "lexend",
   "--font-body-1-font-size": "16",
   "--font-body-1-font-weight-normal": "regular",
   "--font-body-1-font-weight-strong": "bold",
   "--font-body-1-font-letter-spacing": "0",
-
+  
   "--font-body-2-font-family": "lexend",
   "--font-body-2-font-size": "16",
   "--font-body-2-font-weight-normal": "regular",
   "--font-body-2-font-weight-strong": "bold",
   "--font-body-2-font-letter-spacing": "0",
-
+  
   "--font-subtitle-1-font-family": "lexend",
   "--font-subtitle-1-font-size": "16",
   "--font-subtitle-1-font-weight-normal": "regular",
   "--font-subtitle-1-font-weight-strong": "bold",
   "--font-subtitle-1-font-letter-spacing": "0",
-
+  
   "--font-subtitle-2-font-family": "lexend",
   "--font-subtitle-2-font-size": "16",
   "--font-subtitle-2-font-weight-normal": "regular",
   "--font-subtitle-2-font-weight-strong": "bold",
   "--font-subtitle-2-font-letter-spacing": "0",
-
+  
   "--layer-layer-0-property-surface": "#FFFFFF",
   "--layer-layer-0-property-padding": "24px",
   "--layer-layer-0-property-element-text-alert": "#000000",
@@ -175,7 +177,7 @@ const LIGHT_MODE: ThemeVars = {
   "--layer-layer-0-property-element-text-low-emphasis": "0.5",
   "--layer-layer-0-property-element-interactive-color": "#000000",
   "--layer-layer-0-property-element-interactive-high-emphasis": "1",
-
+  
   "--layer-layer-1-property-surface": "#FFFFFF",
   "--layer-layer-1-property-border-color": "#000000",
   "--layer-layer-1-property-border-thickness": "1px",
@@ -190,7 +192,7 @@ const LIGHT_MODE: ThemeVars = {
   "--layer-layer-1-property-element-text-low-emphasis": "0.5",
   "--layer-layer-1-property-element-interactive-color": "#000000",
   "--layer-layer-1-property-element-interactive-high-emphasis": "1",
-
+  
   "--layer-layer-2-property-surface": "#FFFFFF",
   "--layer-layer-2-property-border-color": "#000000",
   "--layer-layer-2-property-border-thickness": "1px",
@@ -205,7 +207,7 @@ const LIGHT_MODE: ThemeVars = {
   "--layer-layer-2-property-element-text-low-emphasis": "0.5",
   "--layer-layer-2-property-element-interactive-color": "#000000",
   "--layer-layer-2-property-element-interactive-high-emphasis": "1",
-
+  
   "--layer-layer-3-property-surface": "#FFFFFF",
   "--layer-layer-3-property-border-color": "#000000",
   "--layer-layer-3-property-border-thickness": "1px",
@@ -220,7 +222,7 @@ const LIGHT_MODE: ThemeVars = {
   "--layer-layer-3-property-element-text-low-emphasis": "0.5",
   "--layer-layer-3-property-element-interactive-color": "#000000",
   "--layer-layer-3-property-element-interactive-high-emphasis": "1",
-
+  
   "--layer-layer-alternative-warning-property-surface": "gray",
   "--layer-layer-alternative-warning-property-padding": "24px",
   "--layer-layer-alternative-warning-property-element-text-color": "#000000",
@@ -228,7 +230,7 @@ const LIGHT_MODE: ThemeVars = {
   "--layer-layer-alternative-warning-property-element-text-low-emphasis": "0.5",
   "--layer-layer-alternative-warning-property-element-interactive-color": "#000000",
   "--layer-layer-alternative-warning-property-element-interactive-high-emphasis": "1",
-
+  
   "--layer-layer-alternative-high-contrast-property-surface": "gray",
   "--layer-layer-alternative-high-contrast-property-padding": "24px",
   "--layer-layer-alternative-high-contrast-property-element-text-color": "#000000",
@@ -236,7 +238,7 @@ const LIGHT_MODE: ThemeVars = {
   "--layer-layer-alternative-high-contrast-property-element-text-low-emphasis": "0.5",
   "--layer-layer-alternative-high-contrast-property-element-interactive-color": "#000000",
   "--layer-layer-alternative-high-contrast-property-element-interactive-high-emphasis": "1",
-
+  
   "--layer-layer-alternative-primary-color-property-surface": "gray",
   "--layer-layer-alternative-primary-color-property-padding": "24px",
   "--layer-layer-alternative-primary-color-property-element-text-color": "#000000",
@@ -244,7 +246,7 @@ const LIGHT_MODE: ThemeVars = {
   "--layer-layer-alternative-primary-color-property-element-text-low-emphasis": "0.5",
   "--layer-layer-alternative-primary-color-property-element-interactive-color": "#000000",
   "--layer-layer-alternative-primary-color-property-element-interactive-high-emphasis": "1",
-
+  
   "--layer-layer-alternative-alert-property-surface": "gray",
   "--layer-layer-alternative-alert-property-padding": "24px",
   "--layer-layer-alternative-alert-property-element-text-color": "#000000",
@@ -252,7 +254,7 @@ const LIGHT_MODE: ThemeVars = {
   "--layer-layer-alternative-alert-property-element-text-low-emphasis": "0.5",
   "--layer-layer-alternative-alert-property-element-interactive-color": "#000000",
   "--layer-layer-alternative-alert-property-element-interactive-high-emphasis": "1",
-
+  
   "--layer-layer-alternative-success-property-surface": "gray",
   "--layer-layer-alternative-success-property-padding": "24px",
   "--layer-layer-alternative-success-property-element-text-color": "#000000",
@@ -276,6 +278,86 @@ function applyTheme(theme: ThemeVars) {
 export function CodePenPage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [customVars] = useState<ThemeVars | null>(null)
+  const [tokenVersion, setTokenVersion] = useState(0)
+  useEffect(() => {
+    const handler = () => setTokenVersion((v) => v + 1)
+    window.addEventListener('tokenOverridesChanged', handler as any)
+    return () => window.removeEventListener('tokenOverridesChanged', handler as any)
+  }, [])
+  const allFamilies = useMemo(() => {
+    const fams = new Set<string>()
+    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string' && e.name.startsWith('color/')) {
+        const parts = e.name.split('/')
+        if (parts.length === 3) fams.add(parts[1])
+      }
+    })
+    try {
+      const raw = localStorage.getItem('token-overrides')
+      if (raw) {
+        const overrides = JSON.parse(raw)
+        if (overrides && typeof overrides === 'object') {
+          Object.keys(overrides).forEach((name) => {
+            if (typeof name === 'string' && name.startsWith('color/')) {
+              const parts = name.split('/')
+              if (parts.length === 3) fams.add(parts[1])
+            }
+          })
+        }
+      }
+    } catch {}
+    return Array.from(fams).filter((f) => f !== 'translucent').sort()
+  }, [tokenVersion])
+  const [palettes, setPalettes] = useState<PaletteEntry[]>(() => {
+    try {
+      const raw = localStorage.getItem('dynamic-palettes')
+      if (raw) return JSON.parse(raw)
+    } catch {}
+    return [
+      { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
+      { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
+      { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
+    ]
+  })
+  const writePalettes = (next: PaletteEntry[]) => {
+    setPalettes(next)
+    try { localStorage.setItem('dynamic-palettes', JSON.stringify(next)) } catch {}
+  }
+  const getPersistedFamily = (key: string): string | undefined => {
+    try {
+      const raw = localStorage.getItem(`palette-grid-family:${key}`)
+      if (raw) return JSON.parse(raw)
+    } catch {}
+    if (key === 'neutral') return 'gray'
+    if (key === 'palette-1') return 'salmon'
+    if (key === 'palette-2') return 'mandarin'
+    return undefined
+  }
+  const usedFamilies = useMemo(() => {
+    const set = new Set<string>()
+    palettes.forEach((p) => {
+      const fam = p.initialFamily || getPersistedFamily(p.key)
+      if (fam) set.add(fam)
+    })
+    return set
+  }, [palettes, tokenVersion])
+  const unusedFamilies = useMemo(() => allFamilies.filter((f) => !usedFamilies.has(f)), [allFamilies, usedFamilies])
+  const canAddPalette = unusedFamilies.length > 0
+  const addPalette = () => {
+    if (!canAddPalette) return
+    const family = unusedFamilies[0]
+    const existing = new Set(palettes.map((p) => p.key))
+    let i = 1
+    while (existing.has(`palette-${i}`)) i += 1
+    const nextKey = `palette-${i}`
+    try { localStorage.setItem(`palette-grid-family:${nextKey}`, JSON.stringify(family)) } catch {}
+    writePalettes([...palettes, { key: nextKey, title: `Palette ${i}`, defaultLevel: 500, initialFamily: family }])
+  }
+  const deletePalette = (key: string) => {
+    if (key === 'neutral' || key === 'palette-1') return
+    try { localStorage.removeItem(`palette-grid-family:${key}`) } catch {}
+    writePalettes(palettes.filter((p) => p.key !== key))
+  }
   const [paletteBindings, setPaletteBindings] = useState<Record<string, { token: string; hex: string }>>(() => {
     try {
       const raw = localStorage.getItem('palette-bindings')
@@ -359,9 +441,9 @@ export function CodePenPage() {
 
   const applyThemePalettesFromJson = (modeLabel: 'Light' | 'Dark') => {
     const levels = ['900','800','700','600','500','400','300','200','100','050']
-    const palettes = ['neutral','palette-1','palette-2']
     const vars: Record<string, string> = {}
-    palettes.forEach((pk) => {
+    palettes.forEach((p) => {
+      const pk = p.key
       levels.forEach((lvl) => {
         const onToneName = `palette/${pk}/${lvl}/on-tone`
         const hiName = `palette/${pk}/${lvl}/high-emphasis`
@@ -411,7 +493,7 @@ export function CodePenPage() {
     applyTheme(merged)
     // Update palette scale variables for current mode
     applyThemePalettesFromJson(isDarkMode ? 'Dark' : 'Light')
-  }, [isDarkMode, customVars])
+  }, [isDarkMode, customVars, palettes])
 
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
@@ -430,7 +512,12 @@ export function CodePenPage() {
           </div>
         </div>
 
-        <div className="section">
+        <div className="section" style={{ display: 'grid', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0 }}>Core</h3>
+            <button type="button" onClick={addPalette} disabled={!canAddPalette} style={{ padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: canAddPalette ? 'pointer' : 'not-allowed', opacity: canAddPalette ? 1 : 0.5 }}>Add Palette</button>
+          </div>
+
           <table className="color-swatches">
             <thead>
               <tr>
@@ -502,9 +589,18 @@ export function CodePenPage() {
             </tbody>
           </table>
 
-          <PaletteGrid paletteKey="neutral" title="Neutral (Grayscale)" defaultLevel={200} mode={isDarkMode ? 'Dark' : 'Light'} />
-          <PaletteGrid paletteKey="palette-1" title="Palette 1" defaultLevel={500} mode={isDarkMode ? 'Dark' : 'Light'} />
-          <PaletteGrid paletteKey="palette-2" title="Palette 2" defaultLevel={500} mode={isDarkMode ? 'Dark' : 'Light'} />
+          {palettes.map((p) => (
+            <PaletteGrid
+              key={p.key}
+              paletteKey={p.key}
+              title={p.title}
+              defaultLevel={p.defaultLevel}
+              mode={isDarkMode ? 'Dark' : 'Light'}
+              deletable={!(p.key === 'neutral' || p.key === 'palette-1')}
+              onDelete={() => deletePalette(p.key)}
+              initialFamily={p.initialFamily}
+            />
+          ))}
         </div>
 
         {/* palette swatch picker menu */}
@@ -519,9 +615,9 @@ export function CodePenPage() {
         }} />
 
         
-
         
-
+        
+        
         
       </div>
     </div>
