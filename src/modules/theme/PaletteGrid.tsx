@@ -58,7 +58,46 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
 
   useEffect(() => {
     try { localStorage.setItem(`palette-grid-family:${paletteKey}`, JSON.stringify(selectedFamily)) } catch {}
+    try { window.dispatchEvent(new CustomEvent('paletteFamilyChanged', { detail: { key: paletteKey, family: selectedFamily } })) } catch {}
   }, [paletteKey, selectedFamily])
+
+  // Track changes from other palette grids
+  const [, forceVersion] = useState(0)
+  useEffect(() => {
+    const handler = () => forceVersion((v) => v + 1)
+    window.addEventListener('paletteFamilyChanged', handler as any)
+    return () => window.removeEventListener('paletteFamilyChanged', handler as any)
+  }, [])
+
+  const readAllSelections = (): Record<string, string> => {
+    const out: Record<string, string> = {}
+    try {
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const k = localStorage.key(i) || ''
+        if (k.startsWith('palette-grid-family:')) {
+          const key = k.slice('palette-grid-family:'.length)
+          try {
+            const v = JSON.parse(localStorage.getItem(k) || '""')
+            if (typeof v === 'string' && v) out[key] = v
+          } catch {}
+        }
+      }
+    } catch {}
+    return out
+  }
+
+  const selections = readAllSelections()
+  const usedByOthers = new Set(Object.entries(selections).filter(([k]) => k !== paletteKey).map(([, v]) => v))
+  const availableFamilies = families.filter((f) => f === selectedFamily || !usedByOthers.has(f))
+
+  // Enforce uniqueness: if our selected family is already used by another palette, switch to first available
+  useEffect(() => {
+    if (selectedFamily && usedByOthers.has(selectedFamily)) {
+      const fallback = availableFamilies.find((f) => !usedByOthers.has(f)) || families.find((f) => !usedByOthers.has(f)) || selectedFamily
+      if (fallback !== selectedFamily) setSelectedFamily(fallback)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paletteKey, mode, selections, families.length])
 
   const themeIndex = useMemo(() => {
     const bucket: Record<string, any> = {}
@@ -235,7 +274,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     <div className="palette-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
         <h3 style={{ margin: 0 }}>{title ?? paletteKey}</h3>
-        <FamilyDropdown paletteKey={paletteKey} families={families} selectedFamily={selectedFamily} onSelect={(fam) => setSelectedFamily(fam)} titleCase={titleCase} getSwatchHex={optionSwatchHex} />
+        <FamilyDropdown paletteKey={paletteKey} families={availableFamilies} selectedFamily={selectedFamily} onSelect={(fam) => setSelectedFamily(fam)} titleCase={titleCase} getSwatchHex={optionSwatchHex} />
       </div>
       <table className="color-palettes">
         <thead>
