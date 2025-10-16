@@ -71,13 +71,30 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     return bucket
   }, [])
 
-  // function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  //   let h = hex.trim()
-  //   if (!h.startsWith('#')) h = '#' + h
-  //   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
-  //   if (!m) return null
-  //   return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
-  // }
+  function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+    let h = (hex || '').trim()
+    if (!h) return null
+    if (!h.startsWith('#')) h = '#' + h
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
+    if (!m) return null
+    return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
+  }
+
+  function relativeLuminance(hex: string): number {
+    const rgb = hexToRgb(hex)
+    if (!rgb) return 0
+    const srgb = [rgb.r, rgb.g, rgb.b].map((c) => c / 255)
+    const lin = srgb.map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4))) as number[]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+  }
+
+  function contrastRatio(hex1: string, hex2: string): number {
+    const L1 = relativeLuminance(hex1)
+    const L2 = relativeLuminance(hex2)
+    const lighter = Math.max(L1, L2)
+    const darker = Math.min(L1, L2)
+    return (lighter + 0.05) / (darker + 0.05)
+  }
 
   // kept for potential future local contrast calc needs
   // function pickOnTone(toneHex: string): string {
@@ -117,6 +134,27 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     const n = typeof v === 'number' ? v : parseFloat(String(v))
     if (!Number.isFinite(n)) return undefined
     return n <= 1 ? String(n) : String(n / 100)
+  }
+
+  const getOpacityToken = (name: string): number => {
+    const v = getTokenValueByName(name)
+    const n = v == null ? NaN : Number(v)
+    if (!Number.isFinite(n)) return 1
+    return n <= 1 ? n : n / 100
+  }
+
+  const getCssVarNumber = (prop: string, fallback: number): number => {
+    try {
+      const v = getComputedStyle(document.documentElement).getPropertyValue(prop).trim()
+      if (!v) return fallback
+      const n = Number(v)
+      if (Number.isFinite(n)) return n
+      const n2 = parseFloat(v)
+      if (Number.isFinite(n2)) return n2
+      return fallback
+    } catch {
+      return fallback
+    }
   }
 
   const titleCase = (s: string): string => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
@@ -212,12 +250,17 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           <tr className="high-emphasis">
             <td>High</td>
             {headerLevels.map((lvl) => {
-              const onToneVar = `--palette-${paletteKey}-${lvl}-on-tone`
-              const emphVar = `--palette-${paletteKey}-${lvl}-high-emphasis`
               const toneHex = getSelectedFamilyHexForLevel(lvl) || '#ffffff'
+              const hiOpacity = getOpacityToken('opacity/solid')
+              // choose dot color for AA 4.5:1 when possible
+              const black = '#000000'
+              const white = '#ffffff'
+              const cBlack = contrastRatio(toneHex, black)
+              const cWhite = contrastRatio(toneHex, white)
+              const hiDot = (cBlack >= 4.5 || cBlack >= cWhite) ? black : white
               return (
                 <td key={`high-${lvl}`} className={`palette-box${lvl === defaultLevelStr ? ' default' : ''}`} style={{ backgroundColor: toneHex }}>
-                  <div className="palette-dot" style={{ backgroundColor: `var(${onToneVar})`, opacity: `var(${emphVar})` }} />
+                  <div className="palette-dot" style={{ backgroundColor: hiDot, opacity: hiOpacity }} />
                 </td>
               )
             })}
@@ -225,12 +268,17 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           <tr className="low-emphasis">
             <td>Low</td>
             {headerLevels.map((lvl) => {
-              const onToneVar = `--palette-${paletteKey}-${lvl}-on-tone`
-              const emphVar = `--palette-${paletteKey}-${lvl}-low-emphasis`
               const toneHex = getSelectedFamilyHexForLevel(lvl) || '#ffffff'
+              const disabledOpacity = getCssVarNumber('--palette-disabled', 0.38)
+              // Use same dot color as high (ensuring contrast choice is consistent)
+              const black = '#000000'
+              const white = '#ffffff'
+              const cBlack = contrastRatio(toneHex, black)
+              const cWhite = contrastRatio(toneHex, white)
+              const hiDot = (cBlack >= 4.5 || cBlack >= cWhite) ? black : white
               return (
                 <td key={`low-${lvl}`} className={`palette-box${lvl === defaultLevelStr ? ' default' : ''}`} style={{ backgroundColor: toneHex }}>
-                  <div className="palette-dot" style={{ backgroundColor: `var(${onToneVar})`, opacity: `var(${emphVar})` }} />
+                  <div className="palette-dot" style={{ backgroundColor: hiDot, opacity: disabledOpacity }} />
                 </td>
               )
             })}
