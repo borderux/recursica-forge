@@ -123,6 +123,47 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   }, [])
   const overrides = useMemo(() => readOverrides(), [version])
 
+  // options
+  const sizeOptions = useMemo(() => {
+    const out: Array<{ short: string; value: number; token: string; label: string }> = []
+    Object.values(tokens as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string' && e.name.startsWith('font/size/')) {
+        const short = e.name.split('/').pop() as string
+        const val = Number(e.value)
+        if (Number.isFinite(val)) out.push({ short, value: val, token: e.name, label: toTitleCase(short) })
+      }
+    })
+    out.sort((a,b) => a.value - b.value)
+    return out
+  }, [])
+  const weightOptions = useMemo(() => {
+    const out: Array<{ short: string; value: number; token: string; label: string }> = []
+    Object.values(tokens as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string' && e.name.startsWith('font/weight/')) {
+        const short = e.name.split('/').pop() as string
+        const val = Number(e.value)
+        if (Number.isFinite(val)) out.push({ short, value: val, token: e.name, label: toTitleCase(short) })
+      }
+    })
+    out.sort((a,b) => a.value - b.value)
+    return out
+  }, [])
+  const spacingOptions = useMemo(() => {
+    const out: Array<{ short: string; value: number; token: string; label: string }> = []
+    Object.values(tokens as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string' && e.name.startsWith('font/letter-spacing/')) {
+        const short = e.name.split('/').pop() as string
+        const val = Number(e.value)
+        if (Number.isFinite(val)) out.push({ short, value: val, token: e.name, label: toTitleCase(short) })
+      }
+    })
+    const idx = (s: string) => {
+      const i = letterOrder.indexOf(s)
+      return i === -1 ? Number.POSITIVE_INFINITY : i
+    }
+    return out.sort((a,b) => idx(a.short) - idx(b.short))
+  }, [])
+
   // resolve current style
   const familyRec = getThemeEntry(prefix, 'font-family')
   const sizeRec = getThemeEntry(prefix, 'size')
@@ -166,47 +207,6 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   const sizeToken = getTokenNameFor(prefix, 'size')
   const weightToken = getTokenNameFor(prefix, 'weight')
   const spacingToken = getTokenNameFor(prefix, 'letter-spacing')
-
-  // options
-  const sizeOptions = useMemo(() => {
-    const out: Array<{ short: string; value: number; token: string; label: string }> = []
-    Object.values(tokens as Record<string, any>).forEach((e: any) => {
-      if (e && typeof e.name === 'string' && e.name.startsWith('font/size/')) {
-        const short = e.name.split('/').pop() as string
-        const val = Number(e.value)
-        if (Number.isFinite(val)) out.push({ short, value: val, token: e.name, label: toTitleCase(short) })
-      }
-    })
-    out.sort((a,b) => a.value - b.value)
-    return out
-  }, [])
-  const weightOptions = useMemo(() => {
-    const out: Array<{ short: string; value: number; token: string; label: string }> = []
-    Object.values(tokens as Record<string, any>).forEach((e: any) => {
-      if (e && typeof e.name === 'string' && e.name.startsWith('font/weight/')) {
-        const short = e.name.split('/').pop() as string
-        const val = Number(e.value)
-        if (Number.isFinite(val)) out.push({ short, value: val, token: e.name, label: toTitleCase(short) })
-      }
-    })
-    out.sort((a,b) => a.value - b.value)
-    return out
-  }, [])
-  const spacingOptions = useMemo(() => {
-    const out: Array<{ short: string; value: number; token: string; label: string }> = []
-    Object.values(tokens as Record<string, any>).forEach((e: any) => {
-      if (e && typeof e.name === 'string' && e.name.startsWith('font/letter-spacing/')) {
-        const short = e.name.split('/').pop() as string
-        const val = Number(e.value)
-        if (Number.isFinite(val)) out.push({ short, value: val, token: e.name, label: toTitleCase(short) })
-      }
-    })
-    const idx = (s: string) => {
-      const i = letterOrder.indexOf(s)
-      return i === -1 ? Number.POSITIVE_INFINITY : i
-    }
-    return out.sort((a,b) => idx(a.short) - idx(b.short))
-  }, [])
 
   // preview style when editing
   const previewStyle: Style = (() => {
