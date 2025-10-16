@@ -1,4 +1,8 @@
 import { useMemo, useState } from 'react'
+import FontFamiliesTokens from '../tokens/FontFamiliesTokens'
+import FontSizeTokens from '../tokens/FontSizeTokens'
+import FontWeightTokens from '../tokens/FontWeightTokens'
+import FontLetterSpacingTokens from '../tokens/FontLetterSpacingTokens'
 import tokens from '../../vars/Tokens.json'
 import theme from '../../vars/Theme.json'
 
@@ -221,9 +225,14 @@ export function TypePage() {
     setEditing(null)
   }
 
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
+
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto' }}>
-      <h2 style={{ marginTop: 0 }}>Type Scale</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ marginTop: 0, marginBottom: 0 }}>Type</h2>
+        <button onClick={() => setIsPanelOpen(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer' }}>Edit Tokens</button>
+      </div>
       {samples.map((s) => {
         const Tag = s.tag as any
         const sStyle = sampleStyle(s.prefix)
@@ -317,6 +326,22 @@ export function TypePage() {
           </div>
         )
       })}
+      {/* Slide-in fonts panel */}
+      <div
+        aria-hidden={!isPanelOpen}
+        style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(200px, 30vw, 500px)', background: 'var(--layer-layer-0-property-surface)', borderLeft: '1px solid var(--layer-layer-1-property-border-color)', boxShadow: '-8px 0 24px rgba(0,0,0,0.15)', transform: isPanelOpen ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 1000, padding: 12, overflowY: 'auto' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <div style={{ fontWeight: 600 }}>Font Tokens</div>
+          <button onClick={() => setIsPanelOpen(false)} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
+        </div>
+        <div style={{ display: 'grid', gap: 16 }}>
+          <FontFamiliesTokens />
+          <FontSizeTokens />
+          <FontWeightTokens />
+          <FontLetterSpacingTokens />
+        </div>
+      </div>
     </div>
   )
 }

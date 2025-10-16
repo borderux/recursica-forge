@@ -13,10 +13,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   if (!m) return { r: 0, g: 0, b: 0 }
   return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
 }
-function rgbToHex(r: number, g: number, b: number): string {
-  const toHex = (val: number) => clamp(Math.round(val), 0, 255).toString(16).padStart(2, '0')
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
-}
+// rgbToHex unused (prefer rgbToHexSafe)
 function rgbToHexSafe(r: number, g: number, b: number): string {
   const toHex = (v: number) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0')
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`
@@ -97,11 +94,7 @@ async function getNtcName(hex: string): Promise<string> {
   return hex.toUpperCase()
 }
 
-function HueGradient() {
-  return (
-    <div style={{ width: '100%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)' }} />
-  )
-}
+// HueGradient unused
 
 function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChange, onNameFromHex, displayFamilyName }: { tokenName: string; currentHex: string; swatchRect: DOMRect; onClose: () => void; onChange: (hex: string, cascadeDown: boolean, cascadeUp: boolean) => void; onNameFromHex: (family: string, hex: string) => void; displayFamilyName?: string }) {
   const overlayRef = useRef<HTMLDivElement | null>(null)
@@ -270,9 +263,15 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
   )
 }
 import tokensJson from '../../vars/Tokens.json'
-import { extractCssVarsFromObject, applyCssVars } from '../theme/varsUtil'
+// removed unused varsUtil import
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
-import OpacityTokens from '../theme/OpacityTokens'
+import OpacityTokens from './OpacityTokens'
+import EffectTokens from './EffectTokens'
+import SizeTokens from './SizeTokens'
+import FontFamiliesTokens from './FontFamiliesTokens'
+import FontLetterSpacingTokens from './FontLetterSpacingTokens'
+import FontSizeTokens from './FontSizeTokens'
+import FontWeightTokens from './FontWeightTokens'
 
 type TokenEntry = {
   collection?: string
@@ -297,18 +296,7 @@ export default function TokensPage() {
   } | null>(null)
   const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>({})
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
-  const [scaleEffectsByDefault, setScaleEffectsByDefault] = useState<boolean>(() => {
-    const v = localStorage.getItem('effects-scale-by-default')
-    return v === null ? true : v === 'true'
-  })
-  useEffect(() => {
-    const handler = (ev: Event) => {
-      const d = (ev as CustomEvent).detail
-      if (typeof d === 'boolean') setScaleEffectsByDefault(d)
-    }
-    window.addEventListener('effectsScaleByDefaultChanged', handler)
-    return () => window.removeEventListener('effectsScaleByDefaultChanged', handler)
-  }, [])
+  // Effect scale state managed inside EffectTokens module
   useEffect(() => {
     const handler = (ev: Event) => {
       const detail: any = (ev as CustomEvent).detail
@@ -330,12 +318,13 @@ export default function TokensPage() {
     return () => window.removeEventListener('tokenOverridesChanged', handler)
   }, [])
   const [selected, setSelected] = useState<'color' | 'effect' | 'font' | 'opacity' | 'size'>('color')
+  // size-scale-by-default is managed inside SizeTokens
 
   // overlay positioning handled inside ColorPickerOverlay
 
   const groupedByMode = useMemo(() => {
     const byMode: Record<ModeName, Array<{ key: string; entry: TokenEntry }>> = {}
-    Object.entries(tokensJson as Record<string, TokenEntry>).forEach(([key, entry]) => {
+    Object.entries(tokensJson as Record<string, any>).forEach(([key, entry]) => {
       if (!entry || !entry.name) return
       const mode = entry.mode as ModeName || 'Mode 1'
       if (!byMode[mode]) byMode[mode] = []
@@ -346,18 +335,12 @@ export default function TokensPage() {
     return byMode
   }, [])
 
-  function parseEffectMultiplier(label: string): number {
-    if (label === 'default') return 1
-    if (label === 'none') return 0
-    const m = label.replace('-', '.').replace('x', '')
-    const n = parseFloat(m)
-    return Number.isFinite(n) ? n : 1
-  }
+// parseEffectMultiplier removed (handled in EffectTokens)
 
   const colorFamiliesByMode = useMemo(() => {
     const byMode: Record<ModeName, Record<string, Array<{ level: string; entry: TokenEntry }>>> = {}
     Object.values(groupedByMode).forEach(() => {}) // force dependency for TS
-    Object.entries(tokensJson as Record<string, TokenEntry>).forEach(([_, entry]) => {
+    Object.entries(tokensJson as Record<string, any>).forEach(([_, entry]) => {
       if (!entry || entry.type !== 'color') return
       if (!entry.name.startsWith('color/')) return
       const parts = entry.name.split('/')
@@ -400,7 +383,7 @@ export default function TokensPage() {
   useEffect(() => {
     // Initialize form values from tokens JSON, then overlay any persisted overrides
     const init: Record<string, string | number> = {}
-    Object.entries(tokensJson as Record<string, TokenEntry>).forEach(([_, entry]) => {
+    Object.entries(tokensJson as Record<string, any>).forEach(([_, entry]) => {
       if (!entry || !entry.name) return
       init[entry.name] = entry.value
     })
@@ -513,7 +496,7 @@ export default function TokensPage() {
                         const isEdgeLevel = level === '1000' || level === '000'
                         const tokenName = entry?.name || (isEdgeLevel && !isGrayFamily ? undefined : `color/${family}/${level}`)
                         const current = tokenName ? String(values[tokenName] ?? (entry ? entry.value : '')) : ''
-                        let inputEl: HTMLInputElement | null = null
+                        
                         const lvlNum = Number(level)
                         const isDark = lvlNum >= 500
                         const isLight = lvlNum <= 400
@@ -570,8 +553,8 @@ export default function TokensPage() {
                                         const lvlStr = String(lvl).padStart(3, '0')
                                         // Always allow 050 to be set; otherwise require an existing token entry
                                         if (lvl === 50) return true
-                                        for (const entry of Object.values(tokensJson as any)) {
-                                          if (entry && entry.type === 'color' && entry.name === `color/${family}/${lvlStr}`) return true
+                                        for (const entry of Object.values(tokensJson as Record<string, any>)) {
+                                          if (entry && (entry as any).type === 'color' && (entry as any).name === `color/${family}/${lvlStr}`) return true
                                         }
                                         return false
                                       }
@@ -663,113 +646,26 @@ export default function TokensPage() {
           }
           const activeGroup = selected === 'color' ? null : groups[groupKeyMap[selected]]
           if (!activeGroup) return null
-          const sortedActive = selected !== 'effect'
-            ? activeGroup
-            : [...activeGroup].sort((a, b) => {
-                const weight = (full: string) => {
-                  const n = full.replace('effect/', '').replace('-', '.')
-                  if (n === 'none') return [0, 0]
-                  if (n === '0.5x') return [1, 0]
-                  if (n === 'default') return [2, 0]
-                  const asNum = parseFloat(n.replace('x', ''))
-                  return [3, isNaN(asNum) ? Number.POSITIVE_INFINITY : asNum]
-                }
-                const wa = weight(a.entry.name)
-                const wb = weight(b.entry.name)
-                if (wa[0] !== wb[0]) return wa[0] - wb[0]
-                return wa[1] - wb[1]
-              })
+          // sortedActive no longer needed: effect/size handled by modules
+          if (selected === 'font') {
+            return (
+              <div key={mode + '-font'} style={{ display: 'grid', gap: 16 }}>
+                <FontFamiliesTokens />
+                <FontSizeTokens />
+                <FontWeightTokens />
+                <FontLetterSpacingTokens />
+              </div>
+            )
+          }
           return (
             <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
-              <div style={{ display: 'grid', gap: 16 }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ fontWeight: 600 }}>{groupKeyMap[selected]}</div>
-                    {selected === 'effect' && (
-                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        <input type="checkbox" checked={scaleEffectsByDefault} onChange={(e) => {
-                          const next = e.currentTarget.checked
-                          setScaleEffectsByDefault(next)
-                          localStorage.setItem('effects-scale-by-default', String(next))
-                          try { window.dispatchEvent(new CustomEvent('effectsScaleByDefaultChanged', { detail: next })) } catch {}
-                        }} />
-                        Scale based on default
-                      </label>
-                    )}
-                  </div>
-                  {selected === 'opacity' ? (
-                    <OpacityTokens />
-                  ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 8, alignItems: 'center' }}>
-                    {sortedActive.map(({ entry }) => {
-                      const label = entry.name.startsWith('effect/') ? entry.name.replace('effect/', '').replace('-', '.') : entry.name
-                      const isNone = entry.name === 'effect/none'
-                      const numeric = typeof entry.value === 'number'
-                      const isDefault = entry.name === 'effect/default'
-                      let current: any
-                      if (selected === 'effect' && scaleEffectsByDefault && !isDefault && !isNone) {
-                        const def = Number((values['effect/default'] as any) ?? (sortedActive.find(({ entry: e }) => e.name === 'effect/default')?.entry.value as any) ?? 0)
-                        const mul = parseEffectMultiplier(label)
-                        current = Math.round(def * mul)
-                      } else {
-                        current = isNone ? 0 : (values[entry.name] as any) ?? (entry.value as any)
-                      }
-                      return (
-                        <>
-                          <label key={entry.name + '-label'} htmlFor={entry.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
-                          {entry.name.startsWith('effect/') ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <input
-                                key={entry.name}
-                                id={entry.name}
-                                type="range"
-                                min={0}
-                                max={100}
-                                disabled={isNone || (selected === 'effect' && scaleEffectsByDefault && !isDefault)}
-                                value={Number(current)}
-                                onChange={(ev) => {
-                                  const next = Number(ev.currentTarget.value)
-                                  setValues((prev) => ({ ...prev, [entry.name]: next }))
-                                  setOverride(entry.name, next)
-                                }}
-                                style={{ width: '100%' }}
-                              />
-                              <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                value={Number(current)}
-                                disabled={isNone || (selected === 'effect' && scaleEffectsByDefault && !isDefault)}
-                                onChange={(ev) => {
-                                  const next = Number(ev.currentTarget.value)
-                                  if (Number.isFinite(next)) {
-                                    setValues((prev) => ({ ...prev, [entry.name]: next }))
-                                    setOverride(entry.name, next)
-                                  }
-                                }}
-                                style={{ width: 60 }}
-                              />
-                            </div>
-                          ) : (
-                            <input
-                              key={entry.name}
-                              id={entry.name}
-                              type={numeric ? 'number' : 'text'}
-                              value={current}
-                              onChange={(e) => {
-                                const next = numeric ? Number(e.currentTarget.value) : e.currentTarget.value
-                                setValues((prev) => ({ ...prev, [entry.name]: next }))
-                                setOverride(entry.name, next as any)
-                              }}
-                            />
-                          )}
-                        </>
-                      )
-                    })}
-                    </div>
-                  )}
-                </div>
-              </div>
+              {selected === 'effect' ? (
+                <EffectTokens />
+              ) : selected === 'opacity' ? (
+                <OpacityTokens />
+              ) : selected === 'size' ? (
+                <SizeTokens />
+              ) : null}
             </section>
           )
         })()
