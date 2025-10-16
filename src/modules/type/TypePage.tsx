@@ -55,18 +55,95 @@ function mapWeightKeywordToNumber(value?: string): number | undefined {
   }
 }
 
-function sampleStyle(prefix: string): Style {
-  const fontFamily = readCssVar(`--font-${prefix}-font-family`)
-  const fontSize = readCssVar(`--font-${prefix}-font-size`)
-  const fontWeight = readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)
-  const letterSpacing = readCssVar(`--font-${prefix}-font-letter-spacing`)
+// --- Theme resolver (Light mode) ---
+type ThemeRecord = { name: string; mode?: string; value?: any }
+const themeIndex: Record<string, ThemeRecord> = (() => {
+  const bucket: Record<string, ThemeRecord> = {}
+  const rec: any = (theme as any).RecursicaBrand || {}
+  Object.values(rec as Record<string, any>).forEach((e: any) => {
+    if (e && typeof e.name === 'string') bucket[e.name] = e
+  })
+  return bucket
+})()
+
+function toTitleCase(label: string): string {
+  return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
+}
+
+function getTokenValueByName(name?: string): string | number | undefined {
+  if (!name) return undefined
+  const entry = Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === name)
+  return entry ? (entry as any).value : undefined
+}
+
+function resolveThemeValue(ref: any): string | number | undefined {
+  if (ref == null) return undefined
+  if (typeof ref === 'string' || typeof ref === 'number') return ref
+  if (typeof ref === 'object') {
+    const coll = (ref as any).collection
+    const name = (ref as any).name
+    if (coll === 'Tokens') return getTokenValueByName(name)
+    if (coll === 'Theme') {
+      const entry = themeIndex[name]
+      if (!entry) return undefined
+      return resolveThemeValue(entry.value)
+    }
+  }
+  return undefined
+}
+
+function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'weight-strong'): ThemeRecord | undefined {
+  const map: Record<string, string> = {
+    'subtitle-1': 'subtitle',
+    'subtitle-2': 'subtitle-small',
+    'body-1': 'body',
+    'body-2': 'body-small',
+  }
+  const themePrefix = map[prefix] || prefix
+  const key = `[themes][Light][font/${themePrefix}/${prop}]`
+  const rec: any = (theme as any).RecursicaBrand
+  return rec ? (rec[key] as ThemeRecord | undefined) : undefined
+}
+
+function getResolvedSampleStyle(prefix: string): Style {
+  // Resolve from Theme.json token references when available
+  const familyRec = getThemeEntry(prefix, 'font-family')
+  const sizeRec = getThemeEntry(prefix, 'size')
+  const spacingRec = getThemeEntry(prefix, 'letter-spacing')
+  const weightRec = getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')
+
+  const familyVal = resolveThemeValue(familyRec?.value)
+  const sizeVal = resolveThemeValue(sizeRec?.value)
+  const spacingVal = resolveThemeValue(spacingRec?.value)
+  const weightVal = resolveThemeValue(weightRec?.value)
+
+  const fontFamily = typeof familyVal === 'string' && familyVal ? familyVal : (readCssVar(`--font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial')
+  const fontSize = typeof sizeVal === 'number' || typeof sizeVal === 'string' ? pxOrUndefined(String(sizeVal)) : pxOrUndefined(readCssVar(`--font-${prefix}-font-size`))
+  const letterSpacing = (() => {
+    if (typeof spacingVal === 'number') return `${spacingVal}em`
+    if (typeof spacingVal === 'string' && spacingVal.trim() !== '') return spacingVal
+    return pxOrUndefined(readCssVar(`--font-${prefix}-font-letter-spacing`))
+  })()
+  const fontWeight = ((): any => {
+    if (typeof weightVal === 'number' || typeof weightVal === 'string') return weightVal
+    return (readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)) as any
+  })()
+
   return {
-    fontFamily: fontFamily || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
-    fontSize: pxOrUndefined(fontSize),
-    fontWeight: fontWeight as any,
-    letterSpacing: pxOrUndefined(letterSpacing),
+    fontFamily,
+    fontSize,
+    fontWeight,
+    letterSpacing,
     margin: '0 0 12px 0',
   }
+}
+
+function getTokenNameFor(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight'): string | undefined {
+  // Prefer canonical keys, fall back for weight-normal
+  const rec = prop === 'weight' ? (getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')) : getThemeEntry(prefix, prop)
+  const v: any = rec?.value
+  if (v && typeof v === 'object' && v.collection === 'Tokens' && typeof v.name === 'string') return v.name
+  return undefined
 }
 
 export function TypePage() {
@@ -97,27 +174,22 @@ export function TypePage() {
   }, [])
 
   const samples: Sample[] = [
-    { label: 'H1', tag: 'h1', text: 'Heading 1 – The quick brown fox jumps over the lazy dog', prefix: 'h1' },
-    { label: 'H2', tag: 'h2', text: 'Heading 2 – The quick brown fox jumps over the lazy dog', prefix: 'h2' },
-    { label: 'H3', tag: 'h3', text: 'Heading 3 – The quick brown fox jumps over the lazy dog', prefix: 'h3' },
-    { label: 'H4', tag: 'h4', text: 'Heading 4 – The quick brown fox jumps over the lazy dog', prefix: 'h4' },
-    { label: 'H5', tag: 'h5', text: 'Heading 5 – The quick brown fox jumps over the lazy dog', prefix: 'h5' },
-    { label: 'H6', tag: 'h6', text: 'Heading 6 – The quick brown fox jumps over the lazy dog', prefix: 'h6' },
+    { label: 'H1', tag: 'h1', text: 'H1 – The quick brown fox jumps over the lazy dog', prefix: 'h1' },
+    { label: 'H2', tag: 'h2', text: 'H2 – The quick brown fox jumps over the lazy dog', prefix: 'h2' },
+    { label: 'H3', tag: 'h3', text: 'H3 – The quick brown fox jumps over the lazy dog', prefix: 'h3' },
+    { label: 'H4', tag: 'h4', text: 'H4 – The quick brown fox jumps over the lazy dog', prefix: 'h4' },
+    { label: 'H5', tag: 'h5', text: 'H5 – The quick brown fox jumps over the lazy dog', prefix: 'h5' },
+    { label: 'H6', tag: 'h6', text: 'H6 – The quick brown fox jumps over the lazy dog', prefix: 'h6' },
     { label: 'Subtitle 1', tag: 'p', text: 'Subtitle 1 – The quick brown fox jumps over the lazy dog', prefix: 'subtitle-1' },
     { label: 'Subtitle 2', tag: 'p', text: 'Subtitle 2 – The quick brown fox jumps over the lazy dog', prefix: 'subtitle-2' },
     { label: 'Body 1', tag: 'p', text: 'Body 1 – The quick brown fox jumps over the lazy dog', prefix: 'body-1' },
     { label: 'Body 2', tag: 'p', text: 'Body 2 – The quick brown fox jumps over the lazy dog', prefix: 'body-2' },
     { label: 'Button', tag: 'button', text: 'Button', prefix: 'button' },
     { label: 'Caption', tag: 'p', text: 'Caption – The quick brown fox jumps over the lazy dog', prefix: 'caption' },
-    { label: 'Overline', tag: 'p', text: 'OVERLINE – THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG', prefix: 'overline' },
+    { label: 'Overline', tag: 'p', text: 'Overline – THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG', prefix: 'overline' },
   ]
 
-  // Determine if a given sample property is backed by Tokens in Theme.json (Light mode)
-  function isTokenBacked(prefix: string, prop: 'size' | 'font-family' | 'font-weight' | 'letter-spacing') {
-    const key = `[themes][Light][font/${prefix}/${prop}]`
-    const record: any = (theme as any).RecursicaBrand?.[key]
-    return record && record.value && record.value.collection === 'Tokens'
-  }
+  // (removed) token-backed helpers replaced by getTokenNameFor
 
   const fontSizeTokenOptions = useMemo(() => {
     const opts: Array<{ label: string; value: string; token: string; short: string }> = []
@@ -134,12 +206,7 @@ export function TypePage() {
     return deduped
   }, [])
 
-  function findSizeTokenShortByPx(px?: string): string | undefined {
-    if (!px) return undefined
-    const v = stripUnits(px)
-    const match = fontSizeTokenOptions.find((o) => o.value === v)
-    return match?.short
-  }
+  // (removed) no longer displaying value-derived chip text
 
   const fontWeightTokenOptions = useMemo(() => {
     const opts: Array<{ label: string; value: number; token: string; short: string }> = []
@@ -156,43 +223,14 @@ export function TypePage() {
     return opts
   }, [])
 
-  function isTokenBackedWeight(prefix: string): boolean {
-    const rec: any = (theme as any).RecursicaBrand
-    if (!rec) return false
-    const candidates = [
-      `[themes][Light][font/${prefix}/weight]`,
-      `[themes][Light][font/${prefix}/weight-normal]`,
-      `[themes][Light][font/${prefix}/weight-strong]`,
-    ]
-    for (const key of candidates) {
-      const r = rec[key]
-      if (r && r.value && r.value.collection === 'Tokens') return true
-    }
-    for (const [k, v] of Object.entries(rec)) {
-      if (k.startsWith(`[themes][Light][font/${prefix}/`) && k.includes('weight')) {
-        if ((v as any).value && (v as any).value.collection === 'Tokens') return true
-      }
-    }
-    return false
-  }
+  // (removed) superseded by getTokenNameFor
 
-  function findWeightTokenShortByValue(weight?: string | number): string | undefined {
-    if (weight == null) return undefined
-    const n = typeof weight === 'number' ? weight : mapWeightKeywordToNumber(String(weight))
-    if (n == null) return undefined
-    const match = fontWeightTokenOptions.find((o) => o.value === n)
-    return match?.short
-  }
+  // (removed) no longer displaying value-derived chip text
 
   const [editing, setEditing] = useState<string | null>(null)
   const [form, setForm] = useState<{ family?: string; size?: string; weight?: number | string; spacing?: string }>({})
 
-  function displayFontLabel(family?: string) {
-    if (!family) return '—'
-    const normalized = String(family).toLowerCase().trim()
-    const match = fontFamilyOptions.find((o) => o.slug.toLowerCase() === normalized || o.label.toLowerCase() === normalized)
-    return match ? match.label : family
-  }
+  // (removed) chips show token names only
 
   function startEdit(prefix: string) {
     const currentFamily = readCssVar(`--font-${prefix}-font-family`)
@@ -235,22 +273,23 @@ export function TypePage() {
       </div>
       {samples.map((s) => {
         const Tag = s.tag as any
-        const sStyle = sampleStyle(s.prefix)
-        const tokenBackedWeight = isTokenBackedWeight(s.prefix)
-        const weightTokenShort = tokenBackedWeight ? findWeightTokenShortByValue(sStyle.fontWeight as any) : undefined
-        const tokenBackedSize = isTokenBacked(s.prefix, 'size')
-        const sizeTokenShort = tokenBackedSize ? findSizeTokenShortByPx(String(sStyle.fontSize)) : undefined
+        const sStyle = getResolvedSampleStyle(s.prefix)
+        const familyToken = getTokenNameFor(s.prefix, 'font-family')
+        const sizeToken = getTokenNameFor(s.prefix, 'size')
+        const weightToken = getTokenNameFor(s.prefix, 'weight')
+        const spacingToken = getTokenNameFor(s.prefix, 'letter-spacing')
+        const tokenBackedSize = !!sizeToken
+        const tokenBackedWeight = !!weightToken
         return (
           <div key={s.label} style={{ border: '1px solid var(--temp-disabled)', borderRadius: 8, padding: 16 }}>
-            <div style={{ opacity: 0.65, marginBottom: 6 }}>{s.label}</div>
             <Tag style={sStyle}>{s.text}</Tag>
             <div style={{ marginTop: 12 }}>
               {editing !== s.prefix ? (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} onClick={() => startEdit(s.prefix)}>
-                  <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{displayFontLabel(sStyle.fontFamily as string)}</span>
-                  <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{sizeTokenShort ?? (sStyle.fontSize || '—')}</span>
-                  <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{weightTokenShort ?? (sStyle.fontWeight || '—')}</span>
-                  <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{sStyle.letterSpacing || '—'}</span>
+                  <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{familyToken ? toTitleCase(familyToken.split('/').pop() as string) : '—'}</span>
+                  <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{sizeToken ? `Size / ${toTitleCase(sizeToken.split('/').pop() as string)}` : '—'}</span>
+                  <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{weightToken ? `Weight / ${toTitleCase(weightToken.split('/').pop() as string)}` : '—'}</span>
+                  <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{spacingToken ? `Letter Spacing / ${toTitleCase(spacingToken.split('/').pop() as string)}` : '—'}</span>
                 </div>
               ) : (
                 <form style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 4 }} onSubmit={(e) => { e.preventDefault(); saveEdit(s.prefix) }}>

@@ -58,10 +58,18 @@ export default function FontFamiliesTokens() {
     const handler = (ev: Event) => {
       const detail: any = (ev as CustomEvent).detail
       if (!detail) return
-      const { all, name, value } = detail
+      const { all, name, value, reset } = detail
       if (all && typeof all === 'object') {
         setValues(all)
         setRows(buildRows())
+        if (reset) {
+          // clear any locally persisted deletions so all default families reappear
+          setDeleted(() => {
+            const empty: Record<string, true> = {}
+            writeDeleted(empty)
+            return empty
+          })
+        }
         return
       }
       if (typeof name === 'string') {
@@ -96,6 +104,21 @@ export default function FontFamiliesTokens() {
   }, [])
 
   const visibleRows = useMemo(() => rows.filter((r) => !deleted[r.name]), [rows, deleted])
+
+  // Ensure there is always at least one visible font family row
+  useEffect(() => {
+    if (visibleRows.length === 0) {
+      const name = uniqueTokenName(`font/family/`)
+      const row: FamilyRow = { name, value: '', custom: false }
+      setRows((prev) => [...prev, row])
+      setDeleted((prev) => {
+        const next: Record<string, true> = { ...prev }
+        delete (next as any)[name]
+        try { localStorage.setItem(DELETED_KEY, JSON.stringify(next)) } catch {}
+        return next
+      })
+    }
+  }, [visibleRows.length])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
   const firstWordSlug = (family: string) => (family.split(/\s+/)[0] || '').toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -212,6 +235,7 @@ export default function FontFamiliesTokens() {
               )}
               <button
                 onClick={() => {
+                  if (visibleRows.length <= 1) return
                   setDeleted((prev) => {
                     const next: Record<string, true> = { ...prev, [r.name]: true as true }
                     writeDeleted(next)
@@ -220,7 +244,8 @@ export default function FontFamiliesTokens() {
                   removeOverride(r.name)
                 }}
                 title="Delete"
-                style={{ border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px' }}
+                disabled={visibleRows.length <= 1}
+                style={{ border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: visibleRows.length <= 1 ? 'not-allowed' : 'pointer', borderRadius: 6, padding: '6px 8px', opacity: visibleRows.length <= 1 ? 0.5 : 1 }}
               >🗑️</button>
             </>
           )
