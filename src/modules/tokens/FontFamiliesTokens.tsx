@@ -133,6 +133,34 @@ export default function FontFamiliesTokens() {
     return attempt
   }
 
+  const isFromTokens = (name: string): boolean => {
+    return !!Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
+  }
+
+  const sanitizeFamilyShort = (family: string): string => {
+    const first = String(family || '').trim().split(/\s+/)[0] || ''
+    return first.replace(/[^a-z0-9]/gi, '').toLowerCase()
+  }
+
+  const renameRowTokenIfNeeded = (rowName: string, familyValue: string) => {
+    if (!familyValue) return
+    // Only rename rows that are not sourced from Tokens.json to avoid duplicating source tokens
+    if (isFromTokens(rowName)) return
+    const short = sanitizeFamilyShort(familyValue)
+    if (!short) return
+    const base = `font/family/${short}`
+    const nextName = uniqueTokenName(base)
+    if (nextName === rowName) return
+    const all = readOverrides()
+    const currentValue = (all as any)[rowName] ?? familyValue
+    delete (all as any)[rowName]
+    ;(all as any)[nextName] = currentValue
+    writeOverrides(all)
+    try { window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all } })) } catch {}
+    // reflect locally
+    setRows((prev) => prev.map((r) => r.name === rowName ? ({ ...r, name: nextName }) : r))
+  }
+
   const removeOverride = (key: string) => {
     const all = readOverrides()
     if (key in all) {
@@ -185,6 +213,10 @@ export default function FontFamiliesTokens() {
                     setRows((prev) => prev.map((row) => row.name === r.name ? ({ ...row, value: next, custom: true }) : row))
                     setOverride(r.name, next)
                   }}
+                  onBlur={(ev) => {
+                    const next = ev.currentTarget.value
+                    renameRowTokenIfNeeded(r.name, next)
+                  }}
                   placeholder="Enter font family"
                 />
               ) : (
@@ -201,6 +233,10 @@ export default function FontFamiliesTokens() {
                     const newValue = chosen
                     setRows((prev) => prev.map((row) => row.name === r.name ? ({ ...row, value: newValue, custom: false }) : row))
                     setOverride(r.name, newValue)
+                  }}
+                  onBlur={(ev) => {
+                    const chosen = ev.currentTarget.value
+                    if (chosen && chosen !== 'Custom...') renameRowTokenIfNeeded(r.name, chosen)
                   }}
                   style={{ width: '100%' }}
                 >
