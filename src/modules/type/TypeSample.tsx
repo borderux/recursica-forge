@@ -91,13 +91,13 @@ function getTokenValueWithOverrides(name: string | undefined, overrides: Record<
   return entry ? (entry as any).value : undefined
 }
 
-function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal') {
+function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'line-height') {
   const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
   const key = `[themes][Light][font/${map[prefix] || prefix}/${prop}]`
   return (theme as any).RecursicaBrand?.[key] as ThemeRecord | undefined
 }
 
-function getTokenNameFor(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight'): string | undefined {
+function getTokenNameFor(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'line-height'): string | undefined {
   const rec = prop === 'weight' ? (getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')) : getThemeEntry(prefix, prop)
   const v: any = rec?.value
   if (v && typeof v === 'object' && v.collection === 'Tokens' && typeof v.name === 'string') return v.name
@@ -109,7 +109,7 @@ const letterOrder = ['tighest','tighter','tight','default','wide','wider','wides
 export default function TypeSample({ label, tag, text, prefix }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }) {
   const Tag = tag as any
   const [editing, setEditing] = useState<boolean>(false)
-  const [form, setForm] = useState<{ family?: string; sizeToken?: string; weightToken?: string; spacingToken?: string }>({})
+  const [form, setForm] = useState<{ family?: string; sizeToken?: string; weightToken?: string; spacingToken?: string; lineHeightToken?: string }>({})
   const [version, setVersion] = useState(0)
   const { kit } = useUiKit()
   const CHOICES_KEY = 'type-token-choices'
@@ -218,6 +218,11 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
       fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--font-${prefix}-font-size`)),
       fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)) as any,
       letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--font-${prefix}-font-letter-spacing`))),
+      lineHeight: ((): any => {
+        const rec = getThemeEntry(prefix, 'line-height')
+        const v = resolveThemeValue(rec?.value, overrides)
+        return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--font-${prefix}-line-height`) as any)
+      })(),
       margin: '0 0 12px 0',
     }
     // Apply per-style saved choices so only this style is affected
@@ -229,6 +234,12 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
         const tokenName = `font/size/${c.size}`
         const v = getTokenValueWithOverrides(tokenName, overrides)
         if (typeof v === 'number' || typeof v === 'string') base.fontSize = pxOrUndefined(String(v))
+      }
+      const lhChoice: any = (c as any).lineHeight
+      if (lhChoice) {
+        const tokenName = `font/line-height/${lhChoice}`
+        const v = getTokenValueWithOverrides(tokenName, overrides)
+        if (typeof v === 'number' || typeof v === 'string') base.lineHeight = v as any
       }
       if (c.weight) {
         const tokenName = `font/weight/${c.weight}`
@@ -250,6 +261,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   const sizeToken = getTokenNameFor(prefix, 'size')
   const weightToken = getTokenNameFor(prefix, 'weight')
   const spacingToken = getTokenNameFor(prefix, 'letter-spacing')
+  const lineHeightToken = getTokenNameFor(prefix, 'line-height')
 
   // preview style when editing
   const previewStyle: Style = (() => {
@@ -271,6 +283,14 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
       const v = getTokenValueWithOverrides(`font/letter-spacing/${spacingShort}`, overrides)
       if (typeof v === 'number') next.letterSpacing = `${v}em`
       else if (typeof v === 'string') next.letterSpacing = v
+    }
+    const lineHeightShortDefault = (lineHeightToken ? lineHeightToken.split('/').pop() : '') as string
+    if (form.lineHeightToken || lineHeightShortDefault) {
+      const short = (form.lineHeightToken ?? lineHeightShortDefault) as string
+      if (short) {
+        const v = getTokenValueWithOverrides(`font/line-height/${short}`, overrides)
+        if (typeof v === 'number' || typeof v === 'string') next.lineHeight = v as any
+      }
     }
     return next
   })()
@@ -309,6 +329,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
                 const sizeChanged = !!choice.size
                 const weightChanged = !!choice.weight
                 const spacingChanged = !!choice.spacing
+                const lineHeightChanged = !!(choice as any).lineHeight
                 return (
                   <>
                     <span style={{ ...(famChanged ? changedStyle : baseStyle), ...common }}>{toTitleCase(extractBaseFamily(previewStyle.fontFamily as string) || '') || '—'}</span>
@@ -327,6 +348,11 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
               const short = c ?? (spacingToken ? (spacingToken.split('/').pop() as string) : '')
               return short ? `Letter Spacing / ${toTitleCase(short)}` : '—'
                     })()}</span>
+                    <span style={{ ...(lineHeightChanged ? changedStyle : baseStyle), ...common }}>{(() => {
+                const c = (choice as any).lineHeight
+                const short = c ?? (lineHeightToken ? (lineHeightToken.split('/').pop() as string) : '')
+                return short ? `Line Height / ${toTitleCase(short)}` : '—'
+                    })()}</span>
                   </>
                 )
               })()}
@@ -342,6 +368,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
             if (form.sizeToken) entry.size = form.sizeToken
             if (form.weightToken) entry.weight = form.weightToken
             if (form.spacingToken) entry.spacing = form.spacingToken
+            if (form.lineHeightToken) (entry as any).lineHeight = form.lineHeightToken
             cur[prefix] = entry
             writeChoices(cur)
             setEditing(false)
@@ -371,6 +398,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
                 </select>
               </label>
             )}
+            
             {weightToken && (
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span style={{ fontSize: 12, opacity: 0.7 }}>Weight</span>
@@ -384,6 +412,18 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
                 <span style={{ fontSize: 12, opacity: 0.7 }}>Letter Spacing</span>
                 <select value={form.spacingToken ?? (spacingToken ? (spacingToken.split('/').pop() as string) : '')} onChange={(e) => { const val = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, spacingToken: val })) }}>
                   {spacingOptions.map((o) => (<option key={o.token} value={o.short}>{o.label}</option>))}
+                </select>
+              </label>
+            )}
+            {lineHeightToken && (
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, opacity: 0.7 }}>Line Height</span>
+                <select value={form.lineHeightToken ?? (lineHeightToken ? (lineHeightToken.split('/').pop() as string) : '')} onChange={(e) => { const val = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, lineHeightToken: val })) }}>
+                  {Object.values(tokens as Record<string, any>).filter((e: any) => e && typeof e.name === 'string' && e.name.startsWith('font/line-height/')).map((e: any) => {
+                    const short = (e.name as string).split('/').pop() as string
+                    const label = toTitleCase(short)
+                    return (<option key={e.name} value={short}>{label}</option>)
+                  })}
                 </select>
               </label>
             )}
