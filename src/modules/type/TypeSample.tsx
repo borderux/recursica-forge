@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useUiKit } from '../uikit/UiKitContext'
 import tokens from '../../vars/Tokens.json'
 import theme from '../../vars/Theme.json'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
@@ -83,13 +84,20 @@ function resolveThemeValue(ref: any, overrides: Record<string, any>): string | n
   return undefined
 }
 
-function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal') {
+function getTokenValueWithOverrides(name: string | undefined, overrides: Record<string, any>): string | number | undefined {
+  if (!name) return undefined
+  if (Object.prototype.hasOwnProperty.call(overrides, name)) return overrides[name]
+  const entry = Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === name)
+  return entry ? (entry as any).value : undefined
+}
+
+function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'line-height') {
   const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
   const key = `[themes][Light][font/${map[prefix] || prefix}/${prop}]`
   return (theme as any).RecursicaBrand?.[key] as ThemeRecord | undefined
 }
 
-function getTokenNameFor(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight'): string | undefined {
+function getTokenNameFor(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'line-height'): string | undefined {
   const rec = prop === 'weight' ? (getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')) : getThemeEntry(prefix, prop)
   const v: any = rec?.value
   if (v && typeof v === 'object' && v.collection === 'Tokens' && typeof v.name === 'string') return v.name
@@ -101,8 +109,9 @@ const letterOrder = ['tighest','tighter','tight','default','wide','wider','wides
 export default function TypeSample({ label, tag, text, prefix }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }) {
   const Tag = tag as any
   const [editing, setEditing] = useState<boolean>(false)
-  const [form, setForm] = useState<{ family?: string; sizeToken?: string; weightToken?: string; spacingToken?: string }>({})
+  const [form, setForm] = useState<{ family?: string; sizeToken?: string; weightToken?: string; spacingToken?: string; lineHeightToken?: string }>({})
   const [version, setVersion] = useState(0)
+  const { kit } = useUiKit()
   const CHOICES_KEY = 'type-token-choices'
   const [choicesVersion, setChoicesVersion] = useState(0)
   const readChoices = (): Record<string, { family?: string; size?: string; weight?: string; spacing?: string }> => {
@@ -123,49 +132,10 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   }, [])
   const overrides = useMemo(() => readOverrides(), [version])
 
-  // resolve current style
-  const familyRec = getThemeEntry(prefix, 'font-family')
-  const sizeRec = getThemeEntry(prefix, 'size')
-  const spacingRec = getThemeEntry(prefix, 'letter-spacing')
-  const weightRec = getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')
-  const currentStyle: Style = (() => {
-    const fam = resolveThemeValue(familyRec?.value, overrides)
-    const size = resolveThemeValue(sizeRec?.value, overrides)
-    const spacing = resolveThemeValue(spacingRec?.value, overrides)
-    const weight = resolveThemeValue(weightRec?.value, overrides)
-    const base: any = {
-      fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
-      fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--font-${prefix}-font-size`)),
-      fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)) as any,
-      letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--font-${prefix}-font-letter-spacing`))),
-      margin: '0 0 12px 0',
-    }
-    // Apply per-style saved choices so only this style is affected
-    const choices = readChoices()
-    const c = choices[prefix]
-    if (c) {
-      if (c.family) base.fontFamily = c.family
-      if (c.size) {
-        const so = sizeOptions.find((o) => o.short === c.size)
-        if (so) base.fontSize = pxOrUndefined(String(so.value))
-      }
-      if (c.weight) {
-        const wo = weightOptions.find((o) => o.short === c.weight)
-        if (wo) base.fontWeight = wo.value as any
-      }
-      if (c.spacing) {
-        const lo = spacingOptions.find((o) => o.short === c.spacing)
-        if (lo) base.letterSpacing = `${lo.value}em`
-      }
-    }
-    return base
-  })()
-
-  // token names
-  const familyToken = getTokenNameFor(prefix, 'font-family')
-  const sizeToken = getTokenNameFor(prefix, 'size')
-  const weightToken = getTokenNameFor(prefix, 'weight')
-  const spacingToken = getTokenNameFor(prefix, 'letter-spacing')
+  const hasLineHeightDefault = useMemo(() => {
+    return !!Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === 'font/line-height/default')
+  }, [])
+  // lineHeight options are ordered when rendering the select
 
   // options
   const sizeOptions = useMemo(() => {
@@ -208,49 +178,194 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
     return out.sort((a,b) => idx(a.short) - idx(b.short))
   }, [])
 
+  const familyOptions = useMemo(() => {
+    const out: Array<{ short: string; value: string; token: string; label: string }> = []
+    const seen = new Set<string>()
+    // from Tokens.json
+    Object.values(tokens as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string' && e.name.startsWith('font/family/')) {
+        const short = e.name.split('/').pop() as string
+        const val = String(e.value || '')
+        if (val && !seen.has(val)) {
+          seen.add(val)
+          out.push({ short, value: val, token: e.name, label: toTitleCase(short) })
+        }
+      }
+    })
+    // include overrides-only additions
+    const ov = readOverrides() as Record<string, any>
+    Object.keys(ov || {}).forEach((name) => {
+      if (typeof name === 'string' && name.startsWith('font/family/')) {
+        const short = name.split('/').pop() as string
+        const val = String(ov[name] || '')
+        if (val && !seen.has(val)) {
+          seen.add(val)
+          out.push({ short, value: val, token: name, label: toTitleCase(short) })
+        }
+      }
+    })
+    out.sort((a,b) => a.label.localeCompare(b.label))
+    return out
+  }, [version])
+
+  // resolve current style
+  const familyRec = getThemeEntry(prefix, 'font-family')
+  const sizeRec = getThemeEntry(prefix, 'size')
+  const spacingRec = getThemeEntry(prefix, 'letter-spacing')
+  const weightRec = getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')
+  const currentStyle: Style = (() => {
+    const fam = resolveThemeValue(familyRec?.value, overrides)
+    const size = resolveThemeValue(sizeRec?.value, overrides)
+    const spacing = resolveThemeValue(spacingRec?.value, overrides)
+    const weight = resolveThemeValue(weightRec?.value, overrides)
+    const base: any = {
+      fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
+      fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--font-${prefix}-font-size`)),
+      fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)) as any,
+      letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--font-${prefix}-font-letter-spacing`))),
+      lineHeight: ((): any => {
+        const rec = getThemeEntry(prefix, 'line-height')
+        const v = resolveThemeValue(rec?.value, overrides)
+        return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--font-${prefix}-line-height`) as any)
+      })(),
+      margin: '0 0 12px 0',
+    }
+    // Apply per-style saved choices so only this style is affected
+    const choices = readChoices()
+    const c = choices[prefix]
+    if (c) {
+      if (c.family) base.fontFamily = c.family
+      if (c.size) {
+        const tokenName = `font/size/${c.size}`
+        const v = getTokenValueWithOverrides(tokenName, overrides)
+        if (typeof v === 'number' || typeof v === 'string') base.fontSize = pxOrUndefined(String(v))
+      }
+      const lhChoice: any = (c as any).lineHeight
+      if (lhChoice) {
+        const tokenName = `font/line-height/${lhChoice}`
+        const v = getTokenValueWithOverrides(tokenName, overrides)
+        if (typeof v === 'number' || typeof v === 'string') base.lineHeight = v as any
+      }
+      if (c.weight) {
+        const tokenName = `font/weight/${c.weight}`
+        const v = getTokenValueWithOverrides(tokenName, overrides)
+        if (typeof v === 'number' || typeof v === 'string') base.fontWeight = v as any
+      }
+      if (c.spacing) {
+        const tokenName = `font/letter-spacing/${c.spacing}`
+        const v = getTokenValueWithOverrides(tokenName, overrides)
+        if (typeof v === 'number') base.letterSpacing = `${v}em`
+        else if (typeof v === 'string') base.letterSpacing = v
+      }
+    }
+    return base
+  })()
+
+  // token names
+  const familyToken = getTokenNameFor(prefix, 'font-family')
+  const sizeToken = getTokenNameFor(prefix, 'size')
+  const weightToken = getTokenNameFor(prefix, 'weight')
+  const spacingToken = getTokenNameFor(prefix, 'letter-spacing')
+  const lineHeightToken = getTokenNameFor(prefix, 'line-height')
+
   // preview style when editing
   const previewStyle: Style = (() => {
     if (!editing) return currentStyle
     const next: any = { ...currentStyle }
     if (form.family) { ensureGoogleFontLoaded(form.family); next.fontFamily = form.family }
-    const so = sizeOptions.find((o) => o.short === (form.sizeToken ?? (sizeToken ? sizeToken.split('/').pop() : '')))
-    if (so) next.fontSize = pxOrUndefined(String(so.value))
-    const wo = weightOptions.find((o) => o.short === (form.weightToken ?? (weightToken ? weightToken.split('/').pop() : '')))
-    if (wo) next.fontWeight = wo.value as any
-    const lo = spacingOptions.find((o) => o.short === (form.spacingToken ?? (spacingToken ? spacingToken.split('/').pop() : '')))
-    if (lo) next.letterSpacing = `${lo.value}em`
+    const sizeShort = (form.sizeToken ?? (sizeToken ? sizeToken.split('/').pop() : '')) as string
+    if (sizeShort) {
+      const v = getTokenValueWithOverrides(`font/size/${sizeShort}`, overrides)
+      if (typeof v === 'number' || typeof v === 'string') next.fontSize = pxOrUndefined(String(v))
+    }
+    const weightShort = (form.weightToken ?? (weightToken ? weightToken.split('/').pop() : '')) as string
+    if (weightShort) {
+      const v = getTokenValueWithOverrides(`font/weight/${weightShort}`, overrides)
+      if (typeof v === 'number' || typeof v === 'string') next.fontWeight = v as any
+    }
+    const spacingShort = (form.spacingToken ?? (spacingToken ? spacingToken.split('/').pop() : '')) as string
+    if (spacingShort) {
+      const v = getTokenValueWithOverrides(`font/letter-spacing/${spacingShort}`, overrides)
+      if (typeof v === 'number') next.letterSpacing = `${v}em`
+      else if (typeof v === 'string') next.letterSpacing = v
+    }
+    const lineHeightShortDefault = (lineHeightToken ? lineHeightToken.split('/').pop() : '') as string
+    const fallbackShort = hasLineHeightDefault ? 'default' : ''
+    if (form.lineHeightToken || lineHeightShortDefault || fallbackShort) {
+      const tmp = (form.lineHeightToken ?? lineHeightShortDefault) as string | undefined
+      const short = (tmp || fallbackShort) as string
+      if (short) {
+        const v = getTokenValueWithOverrides(`font/line-height/${short}`, overrides)
+        if (typeof v === 'number' || typeof v === 'string') next.lineHeight = v as any
+      }
+    }
     return next
   })()
 
   const previewFamily = extractBaseFamily(previewStyle.fontFamily as string)
   const fontAvailable = isFontAvailable(previewFamily)
+  const kitLabel = kit === 'mantine' ? 'Mantine' : kit === 'material' ? 'Material UI' : 'Carbon'
 
   return (
     <div style={{ border: '1px solid var(--temp-disabled)', borderRadius: 8, padding: 16 }}>
       <Tag style={previewStyle}>{text}</Tag>
       {!fontAvailable && previewFamily && (
-        <div style={{ marginTop: 6, fontSize: 12, color: 'var(--temp-disabled)' }}>{previewFamily} is not available for previewing</div>
+        <div style={{ marginTop: 6 }}>
+          <span style={{ display: 'inline-block', fontSize: 11, border: '1px solid var(--temp-disabled)', borderRadius: 999, padding: '2px 8px', color: 'var(--temp-disabled)' }}>
+            Font unavailable in Recursica Forge, displaying fallback from {kitLabel}
+          </span>
+        </div>
       )}
       <div style={{ marginTop: 12 }}>
         {!editing ? (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} onClick={() => setEditing(true)}>
-            <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{toTitleCase(extractBaseFamily(previewStyle.fontFamily as string) || '') || '—'}</span>
-            <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{(() => {
-              const c = readChoices()[prefix]?.size
+          <>
+            {!fontAvailable && previewFamily && (
+              <div style={{ marginBottom: 8 }}>
+                <span style={{ display: 'inline-block', fontSize: 11, border: '1px solid var(--temp-disabled)', borderRadius: 999, padding: '2px 8px', color: 'var(--temp-disabled)' }}>
+                  Font unavailable in Recursica Forge, displaying fallback from {kitLabel}
+                </span>
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} onClick={() => setEditing(true)}>
+              {(() => {
+                const choice = readChoices()[prefix] || {}
+                const changedStyle = { background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 'none' }
+                const baseStyle = { border: '1px solid var(--temp-disabled)', color: 'inherit' }
+                const common = { borderRadius: 16, padding: '4px 10px', cursor: 'pointer' } as React.CSSProperties
+                const famChanged = !!choice.family
+                const sizeChanged = !!choice.size
+                const weightChanged = !!choice.weight
+                const spacingChanged = !!choice.spacing
+                const lineHeightChanged = !!(choice as any).lineHeight
+                return (
+                  <>
+                    <span style={{ ...(famChanged ? changedStyle : baseStyle), ...common }}>{toTitleCase(extractBaseFamily(previewStyle.fontFamily as string) || '') || '—'}</span>
+                    <span style={{ ...(sizeChanged ? changedStyle : baseStyle), ...common }}>{(() => {
+                      const c = choice.size
               const short = c ?? (sizeToken ? (sizeToken.split('/').pop() as string) : '')
               return short ? `Size / ${toTitleCase(short)}` : '—'
-            })()}</span>
-            <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{(() => {
-              const c = readChoices()[prefix]?.weight
+                    })()}</span>
+                    <span style={{ ...(weightChanged ? changedStyle : baseStyle), ...common }}>{(() => {
+                const c = choice.weight
               const short = c ?? (weightToken ? (weightToken.split('/').pop() as string) : '')
               return short ? `Weight / ${toTitleCase(short)}` : '—'
-            })()}</span>
-            <span style={{ border: '1px solid var(--temp-disabled)', borderRadius: 16, padding: '4px 10px', cursor: 'pointer' }}>{(() => {
-              const c = readChoices()[prefix]?.spacing
+                    })()}</span>
+                    <span style={{ ...(spacingChanged ? changedStyle : baseStyle), ...common }}>{(() => {
+                const c = choice.spacing
               const short = c ?? (spacingToken ? (spacingToken.split('/').pop() as string) : '')
               return short ? `Letter Spacing / ${toTitleCase(short)}` : '—'
-            })()}</span>
-          </div>
+                    })()}</span>
+                    <span style={{ ...(lineHeightChanged ? changedStyle : baseStyle), ...common }}>{(() => {
+                const c = (choice as any).lineHeight
+                const shortRaw = c ?? (lineHeightToken ? (lineHeightToken.split('/').pop() as string) : '')
+                const short = shortRaw || (hasLineHeightDefault ? 'default' : '')
+                return `Line Height / ${toTitleCase(short || 'default')}`
+                    })()}</span>
+                  </>
+                )
+              })()}
+            </div>
+          </>
         ) : (
           <form style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 4 }} onSubmit={(e) => {
             e.preventDefault()
@@ -261,13 +376,27 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
             if (form.sizeToken) entry.size = form.sizeToken
             if (form.weightToken) entry.weight = form.weightToken
             if (form.spacingToken) entry.spacing = form.spacingToken
+            if (form.lineHeightToken) (entry as any).lineHeight = form.lineHeightToken
             cur[prefix] = entry
             writeChoices(cur)
             setEditing(false)
           }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 12, opacity: 0.7 }}>Font</span>
-              <input value={form.family ?? (extractBaseFamily(currentStyle.fontFamily as string) || '')} onChange={(e) => { const v = (e.target as HTMLInputElement).value; ensureGoogleFontLoaded(v); setForm((f) => ({ ...f, family: v })) }} />
+              {(() => {
+                const base = extractBaseFamily(currentStyle.fontFamily as string) || ''
+                const selected = (() => {
+                  const v = form.family ?? base
+                  return familyOptions.some((o) => o.value === v) ? v : (familyOptions[0]?.value || '')
+                })()
+                return (
+                  <select required value={selected} onChange={(e) => { const v = (e.target as HTMLSelectElement).value; ensureGoogleFontLoaded(v); setForm((f) => ({ ...f, family: v })) }}>
+                    {familyOptions.map((o) => (
+                      <option key={o.token} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                )
+              })()}
             </label>
             {sizeToken && (
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -277,6 +406,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
                 </select>
               </label>
             )}
+            
             {weightToken && (
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span style={{ fontSize: 12, opacity: 0.7 }}>Weight</span>
@@ -293,6 +423,22 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
                 </select>
               </label>
             )}
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, opacity: 0.7 }}>Line Height</span>
+              <select value={(() => {
+                const fromForm = form.lineHeightToken
+                if (fromForm) return fromForm
+                const tokenShort = lineHeightToken ? (lineHeightToken.split('/').pop() as string) : ''
+                return tokenShort || 'default'
+              })()} onChange={(e) => { const val = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, lineHeightToken: val })) }}>
+                {(() => {
+                  const order = ['shortest','shorter','short','default','tall','taller','tallest']
+                  return order.map((short) => (
+                    <option key={short} value={short}>{toTitleCase(short)}</option>
+                  ))
+                })()}
+              </select>
+            </label>
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="submit">Save</button>
               <button type="button" onClick={() => setEditing(false)}>Cancel</button>

@@ -146,6 +146,22 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     return (lighter + 0.05) / (darker + 0.05)
   }
 
+  function rgbToHexSafe(r: number, g: number, b: number): string {
+    const clamp = (n: number) => Math.max(0, Math.min(255, Math.round(n)))
+    const toHex = (n: number) => clamp(n).toString(16).padStart(2, '0')
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+  }
+
+  function blendHexOver(hexFg: string, hexBg: string, alpha: number): string {
+    const fg = hexToRgb(hexFg) || { r: 0, g: 0, b: 0 }
+    const bg = hexToRgb(hexBg) || { r: 255, g: 255, b: 255 }
+    const a = Math.max(0, Math.min(1, alpha))
+    const r = a * fg.r + (1 - a) * bg.r
+    const g = a * fg.g + (1 - a) * bg.g
+    const b = a * fg.b + (1 - a) * bg.b
+    return rgbToHexSafe(r, g, b)
+  }
+
   // kept for potential future local contrast calc needs
   // function pickOnTone(toneHex: string): string {
   //   const rgb = hexToRgb(toneHex)
@@ -201,19 +217,33 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     return n <= 1 ? n : n / 100
   }
 
-  const getCssVarNumber = (prop: string, fallback: number): number => {
-    try {
-      const v = getComputedStyle(document.documentElement).getPropertyValue(prop).trim()
-      if (!v) return fallback
-      const n = Number(v)
-      if (Number.isFinite(n)) return n
-      const n2 = parseFloat(v)
-      if (Number.isFinite(n2)) return n2
-      return fallback
-    } catch {
-      return fallback
+  const opacityTokenValuesAsc = useMemo(() => {
+    const vals: number[] = []
+    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
+      if (!e || typeof e.name !== 'string') return
+      if (!e.name.startsWith('opacity/')) return
+      const raw = Number(e.value)
+      if (!Number.isFinite(raw)) return
+      const v = raw <= 1 ? raw : raw / 100
+      if (v > 0 && v <= 1) vals.push(v)
+    })
+    // include solid as a fallback if missing
+    if (!vals.some((v) => Math.abs(v - 1) < 1e-6)) vals.push(1)
+    // de-duplicate and sort ascending (most translucent first)
+    return Array.from(new Set(vals)).sort((a, b) => a - b)
+  }, [])
+
+  function pickMinAlphaForAA(toneHex: string, dotHex: string): number {
+    const AA = 4.5
+    for (const a of opacityTokenValuesAsc) {
+      const blended = blendHexOver(dotHex, toneHex, a)
+      if (contrastRatio(blended, toneHex) >= AA) return a
     }
+    // fallback: solid
+    return 1
   }
+
+  // getCssVarNumber removed (unused)
 
   const titleCase = (s: string): string => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
@@ -370,16 +400,16 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
             <td>Low</td>
             {headerLevels.map((lvl) => {
               const toneHex = getSelectedFamilyHexForLevel(lvl) || '#ffffff'
-              const disabledOpacity = getCssVarNumber('--palette-disabled', 0.38)
               // Use same dot color as high (ensuring contrast choice is consistent)
               const black = '#000000'
               const white = '#ffffff'
               const cBlack = contrastRatio(toneHex, black)
               const cWhite = contrastRatio(toneHex, white)
               const hiDot = (cBlack >= 4.5 || cBlack >= cWhite) ? black : white
+              const chosenOpacity = pickMinAlphaForAA(toneHex, hiDot)
               return (
                 <td key={`low-${lvl}`} className={`palette-box${lvl === defaultLevelStr ? ' default' : ''}`} style={{ backgroundColor: toneHex }}>
-                  <div className="palette-dot" style={{ backgroundColor: hiDot, opacity: disabledOpacity }} />
+                  <div className="palette-dot" style={{ backgroundColor: hiDot, opacity: chosenOpacity }} />
                 </td>
               )
             })}
