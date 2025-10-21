@@ -99,7 +99,7 @@ export default function FontLineHeightTokens() {
           Scale based on short/tall
         </label>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px 80px', gap: 8, alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 80px', gap: 8, alignItems: 'center' }}>
         {order.map((k) => {
           const name = `font/line-height/${k}`
           const label = toTitle(k)

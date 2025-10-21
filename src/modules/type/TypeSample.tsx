@@ -132,6 +132,11 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   }, [])
   const overrides = useMemo(() => readOverrides(), [version])
 
+  const hasLineHeightDefault = useMemo(() => {
+    return !!Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === 'font/line-height/default')
+  }, [])
+  // lineHeight options are ordered when rendering the select
+
   // options
   const sizeOptions = useMemo(() => {
     const out: Array<{ short: string; value: number; token: string; label: string }> = []
@@ -285,8 +290,10 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
       else if (typeof v === 'string') next.letterSpacing = v
     }
     const lineHeightShortDefault = (lineHeightToken ? lineHeightToken.split('/').pop() : '') as string
-    if (form.lineHeightToken || lineHeightShortDefault) {
-      const short = (form.lineHeightToken ?? lineHeightShortDefault) as string
+    const fallbackShort = hasLineHeightDefault ? 'default' : ''
+    if (form.lineHeightToken || lineHeightShortDefault || fallbackShort) {
+      const tmp = (form.lineHeightToken ?? lineHeightShortDefault) as string | undefined
+      const short = (tmp || fallbackShort) as string
       if (short) {
         const v = getTokenValueWithOverrides(`font/line-height/${short}`, overrides)
         if (typeof v === 'number' || typeof v === 'string') next.lineHeight = v as any
@@ -350,8 +357,9 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
                     })()}</span>
                     <span style={{ ...(lineHeightChanged ? changedStyle : baseStyle), ...common }}>{(() => {
                 const c = (choice as any).lineHeight
-                const short = c ?? (lineHeightToken ? (lineHeightToken.split('/').pop() as string) : '')
-                return short ? `Line Height / ${toTitleCase(short)}` : '—'
+                const shortRaw = c ?? (lineHeightToken ? (lineHeightToken.split('/').pop() as string) : '')
+                const short = shortRaw || (hasLineHeightDefault ? 'default' : '')
+                return `Line Height / ${toTitleCase(short || 'default')}`
                     })()}</span>
                   </>
                 )
@@ -415,18 +423,22 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
                 </select>
               </label>
             )}
-            {lineHeightToken && (
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, opacity: 0.7 }}>Line Height</span>
-                <select value={form.lineHeightToken ?? (lineHeightToken ? (lineHeightToken.split('/').pop() as string) : '')} onChange={(e) => { const val = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, lineHeightToken: val })) }}>
-                  {Object.values(tokens as Record<string, any>).filter((e: any) => e && typeof e.name === 'string' && e.name.startsWith('font/line-height/')).map((e: any) => {
-                    const short = (e.name as string).split('/').pop() as string
-                    const label = toTitleCase(short)
-                    return (<option key={e.name} value={short}>{label}</option>)
-                  })}
-                </select>
-              </label>
-            )}
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, opacity: 0.7 }}>Line Height</span>
+              <select value={(() => {
+                const fromForm = form.lineHeightToken
+                if (fromForm) return fromForm
+                const tokenShort = lineHeightToken ? (lineHeightToken.split('/').pop() as string) : ''
+                return tokenShort || 'default'
+              })()} onChange={(e) => { const val = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, lineHeightToken: val })) }}>
+                {(() => {
+                  const order = ['shortest','shorter','short','default','tall','taller','tallest']
+                  return order.map((short) => (
+                    <option key={short} value={short}>{toTitleCase(short)}</option>
+                  ))
+                })()}
+              </select>
+            </label>
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="submit">Save</button>
               <button type="button" onClick={() => setEditing(false)}>Cancel</button>
