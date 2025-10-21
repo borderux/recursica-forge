@@ -16,11 +16,7 @@ const LIGHT_MODE: ThemeVars = {
   "--temp-overlay": "rgba(0,0,0,0.68)",
   "--temp-elevation-0": "rgba(0,0,0,0.14)",
   
-  "--palette-alert": "#000000",
-  "--palette-black": "#000000",
-  "--palette-success": "#000000",
-  "--palette-warning": "#000000",
-  "--palette-white": "#000000",
+  // palette vars are seeded at startup; avoid overriding here
   "--palette-overlay": "0.38",
   "--palette-disabled": "0.38",
   
