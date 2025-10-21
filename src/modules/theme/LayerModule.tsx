@@ -11,12 +11,18 @@ export default function LayerModule({ level, alternativeKey, title, className, c
   const layerId = level != null ? String(level) : '0'
   const base = isAlternative ? `--layer-layer-alternative-${alternativeKey}-property-` : `--layer-layer-${layerId}-property-`
   const includeBorder = !isAlternative && !(layerId === '0')
+  const paletteBackground = isAlternative
+    ? alternativeKey === 'alert' ? 'var(--palette-alert)'
+      : alternativeKey === 'warning' ? 'var(--palette-warning)'
+      : alternativeKey === 'success' ? 'var(--palette-success)'
+      : null
+    : null
 
   return (
     <div
       className={className ? `layer-container ${className}` : 'layer-container'}
       style={{
-        backgroundColor: `var(${base}surface)`,
+        backgroundColor: paletteBackground ?? `var(${base}surface)`,
         color: `var(${base}element-text-color)`,
         padding: `var(${base}padding)`,
         border: includeBorder ? `var(${base}border-thickness) solid var(${base}border-color)` : undefined,
