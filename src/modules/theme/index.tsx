@@ -305,15 +305,16 @@ export function CodePenPage() {
     return Array.from(fams).filter((f) => f !== 'translucent').sort()
   }, [tokenVersion])
   const [palettes, setPalettes] = useState<PaletteEntry[]>(() => {
-    try {
-      const raw = localStorage.getItem('dynamic-palettes')
-      if (raw) return JSON.parse(raw)
-    } catch {}
-    return [
+    const DEFAULTS: PaletteEntry[] = [
       { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
       { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
       { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
     ]
+    try {
+      const raw = localStorage.getItem('dynamic-palettes')
+      if (raw) return JSON.parse(raw)
+    } catch {}
+    return DEFAULTS
   })
   const writePalettes = (next: PaletteEntry[]) => {
     setPalettes(next)
@@ -491,6 +492,31 @@ export function CodePenPage() {
     applyThemePalettesFromJson(isDarkMode ? 'Dark' : 'Light')
   }, [isDarkMode, customVars, palettes])
 
+  // Handle palette reset requests from shells (reset to defaults and clear primary selections)
+  useEffect(() => {
+    const DEFAULTS: PaletteEntry[] = [
+      { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
+      { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
+      { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
+    ]
+    const onReset = () => {
+      // Remove any custom primary selections
+      try {
+        const keys: string[] = []
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const k = localStorage.key(i) || ''
+          if (k.startsWith('palette-primary-level:')) keys.push(k)
+        }
+        keys.forEach((k) => localStorage.removeItem(k))
+      } catch {}
+      // Reset palettes to defaults (removes any extras)
+      writePalettes(DEFAULTS)
+    }
+    window.addEventListener('paletteReset', onReset as any)
+    return () => window.removeEventListener('paletteReset', onReset as any)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
       <div className="container-padding">
@@ -560,28 +586,7 @@ export function CodePenPage() {
                 )
               })()}
               </tr>
-              <tr>
-              <td>{(paletteBindings['--palette-black']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-white']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-alert']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-warning']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-success']?.hex ?? '').toUpperCase()}</td>
-              {(() => {
-                const faintRaw: any = opacityBindings.disabled?.value ?? getTokenValue('opacity/faint')
-                const veiledRaw: any = opacityBindings.overlay?.value ?? getTokenValue('opacity/veiled')
-                const pct = (v: any) => {
-                  const n = typeof v === 'number' ? v : parseFloat(String(v))
-                  if (!Number.isFinite(n)) return ''
-                  return `${Math.round(n <= 1 ? n * 100 : n)}%`
-                }
-                return (
-                  <>
-                    <td>{pct(faintRaw)}<br />{opacityBindings.disabled?.token ?? 'opacity/faint'}</td>
-                    <td>{pct(veiledRaw)}<br />{opacityBindings.overlay?.token ?? 'opacity/veiled'}</td>
-                  </>
-                )
-              })()}
-              </tr>
+              {/* Removed hex values row under swatches per request */}
             </tbody>
           </table>
 
