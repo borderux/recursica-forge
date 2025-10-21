@@ -29,7 +29,7 @@ export default function ElevationPage() {
       console.warn('Failed to load shadow color control from localStorage')
     }
     return {
-      paletteKey: 'neutral',
+      paletteKey: 'gray',
       colorShade: '900',
       alphaToken: 'opacity/veiled'
     }
@@ -66,6 +66,9 @@ export default function ElevationPage() {
     const overrides = readOverrides()
     return { ...tokens, ...overrides }
   })
+
+  // State to trigger re-renders when tokens change (for shadow color)
+  const [tokenUpdateTrigger, setTokenUpdateTrigger] = useState(0)
 
   // Load saved elevation controls from localStorage
   useEffect(() => {
@@ -190,12 +193,16 @@ export default function ElevationPage() {
     const paletteKey = shadowColorControl.paletteKey
     const colorShade = shadowColorControl.colorShade
     
-    // Use CSS variable for palette color
-    const cssVar = `--palette-${paletteKey}-${colorShade}-tone`
+    // Get the base color from the palette using the selected shade
+    const colorToken = `color/${paletteKey}/${colorShade}`
     
-    // Get computed style value from CSS variable
-    const root = document.documentElement
-    const colorValue = getComputedStyle(root).getPropertyValue(cssVar).trim() || '#000000'
+    // Get color value from tokens JSON directly
+    let colorValue = '#000000'
+    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
+      if (entry && entry.name === colorToken && entry.value) {
+        colorValue = entry.value
+      }
+    })
     
     // Convert hex to rgba
     const hex = colorValue.replace('#', '')
@@ -242,9 +249,9 @@ export default function ElevationPage() {
   // Get available palette colors (the three main palettes)
   const availablePaletteColors = useMemo(() => {
     return [
-      { key: 'neutral', title: 'Neutral' },
-      { key: 'palette-1', title: 'Primary' },
-      { key: 'palette-2', title: 'Secondary' }
+      { key: 'gray', title: 'Neutral' },
+      { key: 'mandy', title: 'Primary' },
+      { key: 'salmon', title: 'Secondary' }
     ]
   }, [])
 
@@ -270,34 +277,37 @@ export default function ElevationPage() {
     const shades: Array<{ value: string; label: string }> = []
     const paletteKey = shadowColorControl.paletteKey
     
-    // Standard color shades available for all palettes
-    const standardShades = ['050', '100', '200', '300', '400', '500', '600', '700', '800', '900']
-    
-    // Check which shades are available by testing CSS variables
-    standardShades.forEach(shade => {
-      const cssVar = `--palette-${paletteKey}-${shade}-tone`
-      const root = document.documentElement
-      const colorValue = getComputedStyle(root).getPropertyValue(cssVar).trim()
-      
-      if (colorValue && colorValue !== '') {
-        shades.push({
-          value: shade,
-          label: shade
-        })
+    // Find all available shades for this palette by checking tokens JSON
+    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
+      if (entry && entry.name && entry.name.startsWith(`color/${paletteKey}/`) && entry.value) {
+        // Extract shade from token name (e.g., "color/gray/900" -> "900")
+        const shade = entry.name.split('/').pop()
+        if (shade) {
+          shades.push({
+            value: shade,
+            label: shade
+          })
+        }
       }
     })
     
-    return shades
+    // Sort shades numerically (050, 100, 200, etc.)
+    return shades.sort((a, b) => {
+      const aNum = parseInt(a.value)
+      const bNum = parseInt(b.value)
+      return aNum - bNum
+    })
   }, [shadowColorControl.paletteKey])
 
   // Reset color shade when palette color changes
   useEffect(() => {
     const currentShades = availableColorShades.map(s => s.value)
     if (!currentShades.includes(shadowColorControl.colorShade)) {
-      // If current shade is not available for the new color, reset to 900 (darkest)
-      setShadowColorControl(prev => ({ ...prev, colorShade: '900' }))
+      // If current shade is not available for the new color, reset to the darkest available shade
+      const darkestShade = availableColorShades.length > 0 ? availableColorShades[availableColorShades.length - 1].value : '900'
+      setShadowColorControl(prev => ({ ...prev, colorShade: darkestShade }))
     }
-  }, [shadowColorControl.paletteColor, availableColorShades, shadowColorControl.colorShade])
+  }, [shadowColorControl.paletteKey, availableColorShades, shadowColorControl.colorShade])
 
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
