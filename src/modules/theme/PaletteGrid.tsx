@@ -360,6 +360,13 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFamily, mode, overrideVersion])
 
+  // Expose a primary alias CSS variable for this palette
+  useEffect(() => {
+    const lvl = primaryLevelStr
+    const hex = getSelectedFamilyHexForLevel(lvl) || '#ffffff'
+    try { document.documentElement.style.setProperty(`--palette-${paletteKey}-primary-tone`, hex) } catch {}
+  }, [primaryLevelStr, selectedFamily, overrideVersion, mode, paletteKey])
+
   return (
     <div className="palette-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
