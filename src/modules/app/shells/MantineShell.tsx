@@ -53,6 +53,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
               <ActionIcon variant="default" onClick={() => {
                 clearOverrides(tokensJson as any)
                 applyTheme(LIGHT_MODE)
+                try { window.dispatchEvent(new CustomEvent('paletteReset')) } catch {}
               }} title="Reset to defaults">
                 ↺
               </ActionIcon>
