@@ -273,8 +273,26 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paletteKey, themeIndex, defaultLevelStr, mode])
 
+  // Primary level: initialize from Theme.json default, allow user override per palette
+  const [primaryLevelStr, setPrimaryLevelStr] = useState<string>(() => {
+    try {
+      const raw = localStorage.getItem(`palette-primary-level:${paletteKey}`)
+      if (raw) {
+        const v = JSON.parse(raw)
+        if (typeof v === 'string') return v.padStart(3, '0')
+      }
+    } catch {}
+    return resolveDefaultLevelForPalette
+  })
+
+  useEffect(() => {
+    try { localStorage.setItem(`palette-primary-level:${paletteKey}`, JSON.stringify(primaryLevelStr)) } catch {}
+  }, [paletteKey, primaryLevelStr])
+
+  const [hoverLevelStr, setHoverLevelStr] = useState<string | null>(null)
+
   const optionSwatchHex = (family: string): string | undefined => {
-    const lvl = resolveDefaultLevelForPalette
+    const lvl = primaryLevelStr
     return getTokenValueByName(`color/${family}/${lvl}`)
   }
 
@@ -368,12 +386,20 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           />
         </div>
       </div>
-      <table className="color-palettes">
+      <table className="color-palettes" style={{ tableLayout: 'fixed', width: '100%' }}>
         <thead>
           <tr>
-            <th>Emphasis</th>
+            <th style={{ width: 80 }}>Emphasis</th>
             {headerLevels.map((lvl) => (
-              <th key={lvl} className={lvl === defaultLevelStr ? 'default' : undefined}>{lvl}</th>
+              <th
+                key={lvl}
+                className={lvl === primaryLevelStr ? 'default' : undefined}
+                onMouseEnter={() => setHoverLevelStr(lvl)}
+                onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
+                onClick={() => setPrimaryLevelStr(lvl)}
+                title={lvl === primaryLevelStr ? 'Primary' : 'Set as Primary'}
+                style={{ cursor: 'pointer', width: lvl === primaryLevelStr ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%' }}
+              >{lvl}</th>
             ))}
           </tr>
         </thead>
@@ -390,7 +416,15 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
               const cWhite = contrastRatio(toneHex, white)
               const hiDot = (cBlack >= 4.5 || cBlack >= cWhite) ? black : white
               return (
-                <td key={`high-${lvl}`} className={`palette-box${lvl === defaultLevelStr ? ' default' : ''}`} style={{ backgroundColor: toneHex }}>
+                <td
+                  key={`high-${lvl}`}
+                  className={`palette-box${lvl === primaryLevelStr ? ' default' : ''}`}
+                  style={{ backgroundColor: toneHex, cursor: 'pointer', width: lvl === primaryLevelStr ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%' }}
+                  title={lvl === primaryLevelStr ? 'Primary' : 'Set as Primary'}
+                  onMouseEnter={() => setHoverLevelStr(lvl)}
+                  onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
+                  onClick={() => setPrimaryLevelStr(lvl)}
+                >
                   <div className="palette-dot" style={{ backgroundColor: hiDot, opacity: hiOpacity }} />
                 </td>
               )
@@ -408,21 +442,58 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
               const hiDot = (cBlack >= 4.5 || cBlack >= cWhite) ? black : white
               const chosenOpacity = pickMinAlphaForAA(toneHex, hiDot)
               return (
-                <td key={`low-${lvl}`} className={`palette-box${lvl === defaultLevelStr ? ' default' : ''}`} style={{ backgroundColor: toneHex }}>
+                <td
+                  key={`low-${lvl}`}
+                  className={`palette-box${lvl === primaryLevelStr ? ' default' : ''}`}
+                  style={{ backgroundColor: toneHex, cursor: 'pointer', width: lvl === primaryLevelStr ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%' }}
+                  title={lvl === primaryLevelStr ? 'Primary' : 'Set as Primary'}
+                  onMouseEnter={() => setHoverLevelStr(lvl)}
+                  onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
+                  onClick={() => setPrimaryLevelStr(lvl)}
+                >
                   <div className="palette-dot" style={{ backgroundColor: hiDot, opacity: chosenOpacity }} />
                 </td>
               )
             })}
           </tr>
           <tr>
-            <td>Tone</td>
-            {headerLevels.map((lvl) => {
-              const toneHex = (getSelectedFamilyHexForLevel(lvl) || '#ffffff').toUpperCase()
-              return (
-                <td key={`tone-${lvl}`} className={lvl === defaultLevelStr ? 'default' : undefined}>{toneHex}</td>
-              )
-            })}
+            <td></td>
+            {headerLevels.map((lvl) => (
+              <td key={`primary-${lvl}`} className={lvl === primaryLevelStr ? 'default' : undefined} style={{ textAlign: 'center', verticalAlign: 'top', height: 28 }}>
+                {lvl === primaryLevelStr ? (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      fontSize: 11,
+                      lineHeight: '14px',
+                      padding: '2px 8px',
+                      border: '1px solid var(--layer-layer-1-property-border-color)',
+                      borderRadius: 999,
+                      background: 'transparent',
+                      textTransform: 'capitalize',
+                    }}
+                  >primary</span>
+                ) : hoverLevelStr === lvl ? (
+                  <button
+                    onClick={() => setPrimaryLevelStr(lvl)}
+                    style={{
+                      display: 'inline-block',
+                      fontSize: 11,
+                      lineHeight: '14px',
+                      padding: '2px 8px',
+                      border: '1px dashed var(--layer-layer-1-property-border-color)',
+                      borderRadius: 999,
+                      background: 'transparent',
+                      textTransform: 'capitalize',
+                      cursor: 'pointer',
+                    }}
+                    title="Set as Primary"
+                  >Set as Primary</button>
+                ) : null}
+              </td>
+            ))}
           </tr>
+          {/* Removed tone hex row per request */}
         </tbody>
       </table>
     </div>

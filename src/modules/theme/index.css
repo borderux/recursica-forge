@@ -71,7 +71,7 @@ h3 {
 }
 .palette-container table {
   border: 1px solid var(--temp-disabled);
-  padding: 16px;
+  padding: 0;
   border-radius: 8px;
   width: 100%;
   border-collapse: separate;
@@ -79,8 +79,8 @@ h3 {
   padding-top: 36px;
 }
 .palette-container th, .palette-container td {
-  padding-top: 4px;
-  padding-bottom: 4px;
+  padding-top: 0;
+  padding-bottom: 0;
   text-align: center;
 }
 .palette-box {
@@ -93,7 +93,7 @@ h3 {
   border-radius: 50%;
   margin: 0 auto;
 }
-.color-palettes .palette-box.default, .color-palettes th.default, .color-palettes .palette-label.default {
+.color-palettes .palette-label.default {
   border: 5px solid var(--scale-black);
 }
 .color-palettes th.default {

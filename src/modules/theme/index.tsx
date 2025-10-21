@@ -564,28 +564,7 @@ export function CodePenPage() {
                 )
               })()}
               </tr>
-              <tr>
-              <td>{(paletteBindings['--palette-black']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-white']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-alert']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-warning']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-success']?.hex ?? '').toUpperCase()}</td>
-              {(() => {
-                const faintRaw: any = opacityBindings.disabled?.value ?? getTokenValue('opacity/faint')
-                const veiledRaw: any = opacityBindings.overlay?.value ?? getTokenValue('opacity/veiled')
-                const pct = (v: any) => {
-                  const n = typeof v === 'number' ? v : parseFloat(String(v))
-                  if (!Number.isFinite(n)) return ''
-                  return `${Math.round(n <= 1 ? n * 100 : n)}%`
-                }
-                return (
-                  <>
-                    <td>{pct(faintRaw)}<br />{opacityBindings.disabled?.token ?? 'opacity/faint'}</td>
-                    <td>{pct(veiledRaw)}<br />{opacityBindings.overlay?.token ?? 'opacity/veiled'}</td>
-                  </>
-                )
-              })()}
-              </tr>
+              {/* Removed hex values row under swatches per request */}
             </tbody>
           </table>
 
