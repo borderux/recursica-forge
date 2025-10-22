@@ -4,6 +4,7 @@ import FontFamiliesTokens from '../tokens/FontFamiliesTokens'
 import FontSizeTokens from '../tokens/FontSizeTokens'
 import FontWeightTokens from '../tokens/FontWeightTokens'
 import FontLetterSpacingTokens from '../tokens/FontLetterSpacingTokens'
+import FontLineHeightTokens from '../tokens/FontLineHeightTokens'
 import tokens from '../../vars/Tokens.json'
 import theme from '../../vars/Theme.json'
 import { readOverrides } from '../theme/tokenOverrides'
@@ -156,6 +157,7 @@ export function TypePage() {
           <FontSizeTokens />
           <FontWeightTokens />
           <FontLetterSpacingTokens />
+          <FontLineHeightTokens />
         </div>
       </div>
     </div>

@@ -270,6 +270,7 @@ import EffectTokens from './EffectTokens'
 import SizeTokens from './SizeTokens'
 import FontFamiliesTokens from './FontFamiliesTokens'
 import FontLetterSpacingTokens from './FontLetterSpacingTokens'
+import FontLineHeightTokens from './FontLineHeightTokens'
 import FontSizeTokens from './FontSizeTokens'
 import FontWeightTokens from './FontWeightTokens'
 
@@ -700,6 +701,7 @@ export default function TokensPage() {
                 <FontSizeTokens />
                 <FontWeightTokens />
                 <FontLetterSpacingTokens />
+                <FontLineHeightTokens />
               </div>
             )
           }
