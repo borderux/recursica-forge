@@ -1,5 +1,5 @@
 import './index.css'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import EffectTokens from '../tokens/EffectTokens'
 import { readOverrides, setOverride } from './tokenOverrides'
 import tokensJson from '../../vars/Tokens.json'
@@ -12,9 +12,266 @@ interface ElevationControl {
 }
 
 interface ShadowColorControl {
-  paletteKey: string // Selected palette (e.g., 'neutral', 'palette-1', 'palette-2')
-  colorShade: string // Selected color shade (e.g., '050', '100', '200', ..., '900')
+  colorToken: string // Selected color token (e.g., 'color/gray/900', 'color/mandy/500')
   alphaToken: string // Reference to opacity token for alpha
+}
+
+// Shadow Color Picker Component
+function ShadowColorPicker({ 
+  onSelect, 
+  currentColor 
+}: { 
+  onSelect: (tokenName: string, hex: string) => void
+  currentColor: string 
+}) {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // Helper function to get token value (same as PaletteGrid)
+  const getTokenValueByName = (name: string): string | undefined => {
+    // Prefer runtime overrides, then fall back to Tokens.json
+    try {
+      const overrides = readOverrides() as Record<string, any>
+      if (overrides && Object.prototype.hasOwnProperty.call(overrides, name)) {
+        const ov = overrides[name]
+        if (ov != null) return String(ov)
+      }
+    } catch {}
+    const entry: any = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
+    return entry ? String(entry.value) : undefined
+  }
+
+  // Track token override changes and palette family changes to make options reactive
+  const [overrideVersion, setOverrideVersion] = useState(0)
+  useEffect(() => {
+    const tokenHandler = () => setOverrideVersion((v) => v + 1)
+    const paletteHandler = () => setOverrideVersion((v) => v + 1)
+    
+    window.addEventListener('tokenOverridesChanged', tokenHandler as any)
+    window.addEventListener('paletteFamilyChanged', paletteHandler as any)
+    
+    // Force initial update
+    setOverrideVersion(1)
+    
+    return () => {
+      window.removeEventListener('tokenOverridesChanged', tokenHandler as any)
+      window.removeEventListener('paletteFamilyChanged', paletteHandler as any)
+    }
+  }, [])
+
+  const options = useMemo(() => {
+    // Get the actual palette families that are currently being used
+    const getCurrentPaletteFamilies = (): string[] => {
+      const families: string[] = []
+      try {
+        // Get the palette family mappings from localStorage
+        const raw = localStorage.getItem('palette-grid-family:neutral')
+        if (raw) families.push(JSON.parse(raw))
+        
+        const raw1 = localStorage.getItem('palette-grid-family:palette-1')
+        if (raw1) families.push(JSON.parse(raw1))
+        
+        const raw2 = localStorage.getItem('palette-grid-family:palette-2')
+        if (raw2) families.push(JSON.parse(raw2))
+      } catch (e) {
+        // Ignore errors
+      }
+      
+      // Fallback to defaults if no mappings found
+      if (families.length === 0) {
+        families.push('gray', 'salmon', 'mandarin')
+      }
+      
+      return families.filter(Boolean)
+    }
+    
+    const mainPalettes = getCurrentPaletteFamilies()
+    const byFamily: Record<string, Array<{ level: string; name: string; value: string }>> = {}
+    
+    mainPalettes.forEach((fam) => { byFamily[fam] = [] })
+    
+    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string' && e.name.startsWith('color/')) {
+        const parts = e.name.split('/')
+        if (parts.length === 3) {
+          const fam = parts[1]
+          const lvl = parts[2]
+          if (mainPalettes.includes(fam) && byFamily[fam]) {
+            // Use the actual current value (including overrides) instead of static token value
+            const currentValue = getTokenValueByName(e.name) || String(e.value)
+            byFamily[fam].push({ level: lvl, name: e.name, value: currentValue })
+          }
+        }
+      }
+    })
+    
+    Object.values(byFamily).forEach((arr) => arr.sort((a, b) => Number(b.level) - Number(a.level)))
+    return byFamily
+  }, [overrideVersion])
+
+  const openPicker = () => {
+    if (buttonRef.current) {
+      setAnchor(buttonRef.current)
+      const rect = buttonRef.current.getBoundingClientRect()
+      const top = rect.bottom + 8
+      const left = Math.min(rect.left, window.innerWidth - 420)
+      setPos({ top, left })
+    }
+  }
+
+  const closePicker = () => {
+    setAnchor(null)
+  }
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (anchor) {
+        const target = e.target as Node
+        // Check if click is outside both the button and the popup
+        const isInsideButton = anchor.contains(target)
+        const isInsidePopup = document.querySelector('[data-color-picker-popup]')?.contains(target)
+        
+        if (!isInsideButton && !isInsidePopup) {
+          closePicker()
+        }
+      }
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [anchor])
+
+  const toTitle = (s: string) => {
+    if (s === 'gray') return 'Neutral'
+    if (s === 'mandarin') return 'Primary'
+    if (s === 'salmon') return 'Secondary'
+    return s.replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
+  }
+
+  const maxCount = Math.max(...Object.values(options).map((arr) => arr.length || 0))
+  const labelCol = 110
+  const swatch = 18
+  const gap = 1
+  const overlayWidth = labelCol + maxCount * (swatch + gap) + 32
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={openPicker}
+        style={{
+          width: '60px',
+          height: '40px',
+          background: currentColor,
+          border: '2px solid var(--layer-layer-1-property-border-color)',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          transition: 'all 0.2s ease'
+        }}
+        title={`Current shadow color: ${currentColor}`}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)'
+          e.currentTarget.style.borderColor = 'var(--layer-layer-2-property-border-color)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)'
+          e.currentTarget.style.borderColor = 'var(--layer-layer-1-property-border-color)'
+        }}
+      >
+        <span style={{ 
+          fontSize: '0.75rem', 
+          color: currentColor === '#000000' || currentColor === '#ffffff' ? 'var(--layer-layer-0-property-element-text-color)' : 'white',
+          textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+          fontWeight: '500'
+        }}>
+          Pick
+        </span>
+      </button>
+      
+      {anchor && (
+        <div 
+          data-color-picker-popup
+          style={{ 
+            position: 'fixed', 
+            top: pos.top, 
+            left: pos.left, 
+            width: overlayWidth, 
+            background: 'var(--layer-layer-0-property-surface)', 
+            border: '1px solid var(--layer-layer-1-property-border-color)', 
+            borderRadius: 8, 
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)', 
+            padding: 10, 
+            zIndex: 1100,
+            maxHeight: '300px',
+            overflowY: 'auto'
+          }}
+        >
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: 8 
+          }}>
+            <div style={{ fontWeight: 600, color: 'var(--layer-layer-0-property-element-text-color)' }}>Pick Shadow Color</div>
+            <button 
+              onClick={closePicker} 
+              aria-label="Close" 
+              style={{ 
+                border: 'none', 
+                background: 'transparent', 
+                cursor: 'pointer', 
+                fontSize: 16,
+                color: 'var(--layer-layer-0-property-element-text-color)'
+              }}
+            >
+              &times;
+            </button>
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {Object.entries(options).map(([family, items]) => (
+              <div key={family} style={{ 
+                display: 'grid', 
+                gridTemplateColumns: `${labelCol}px 1fr`, 
+                alignItems: 'center', 
+                gap: 6 
+              }}>
+                <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize', color: 'var(--layer-layer-0-property-element-text-color)' }}>
+                  {toTitle(family)}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'nowrap', gap, overflow: 'auto' }}>
+                  {items.map((it) => (
+                    <div 
+                      key={it.name} 
+                      title={it.name} 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        onSelect(it.name, it.value)
+                        closePicker()
+                      }} 
+                      style={{ 
+                        width: swatch, 
+                        height: swatch, 
+                        background: it.value, 
+                        cursor: 'pointer', 
+                        border: '1px solid rgba(0,0,0,0.15)', 
+                        flex: '0 0 auto',
+                        borderRadius: '2px'
+                      }} 
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  )
 }
 
 export default function ElevationPage() {
@@ -29,8 +286,7 @@ export default function ElevationPage() {
       console.warn('Failed to load shadow color control from localStorage')
     }
     return {
-      paletteKey: 'gray',
-      colorShade: '900',
+      colorToken: 'color/gray/900',
       alphaToken: 'opacity/veiled'
     }
   })
@@ -181,53 +437,70 @@ export default function ElevationPage() {
     return tokenValue || 0
   }
 
-  const getShadowColor = () => {
+  // Helper function to get token value (same as PaletteGrid)
+  const getTokenValueByName = (name: string): string | undefined => {
+    // Prefer runtime overrides, then fall back to Tokens.json
+    try {
+      const overrides = readOverrides() as Record<string, any>
+      if (overrides && Object.prototype.hasOwnProperty.call(overrides, name)) {
+        const ov = overrides[name]
+        if (ov != null) {
+          return String(ov)
+        }
+      }
+    } catch {}
+    const entry: any = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
+    const result = entry ? String(entry.value) : undefined
+    return result
+  }
+
+  const getBaseColor = useMemo(() => {
+    // Get color value from the selected color token (without alpha)
+    const colorValue = getTokenValueByName(shadowColorControl.colorToken) || '#000000'
+    return colorValue
+  }, [shadowColorControl.colorToken, tokenUpdateTrigger])
+
+  const getShadowColor = useMemo(() => {
     // Get alpha value from opacity tokens
-    let alphaValue = 0
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && entry.name === shadowColorControl.alphaToken && entry.value) {
-        alphaValue = entry.value
-      }
-    })
+    const alphaValue = Number(getTokenValueByName(shadowColorControl.alphaToken)) || 0
     const alpha = alphaValue / 100 // Convert percentage to decimal
-    const paletteKey = shadowColorControl.paletteKey
-    const colorShade = shadowColorControl.colorShade
     
-    // Get the base color from the palette using the selected shade
-    const colorToken = `color/${paletteKey}/${colorShade}`
-    
-    // Get color value from tokens JSON directly
-    let colorValue = '#000000'
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && entry.name === colorToken && entry.value) {
-        colorValue = entry.value
-      }
-    })
+    // Get the base color
+    const colorValue = getBaseColor
     
     // Convert hex to rgba
     const hex = colorValue.replace('#', '')
-    const r = parseInt(hex.substr(0, 2), 16)
-    const g = parseInt(hex.substr(2, 2), 16)
-    const b = parseInt(hex.substr(4, 2), 16)
-    
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-
-  const getElevationStyle = (elevation: string) => {
-    const control = elevationControls[elevation]
-    if (!control) return {}
-    
-    const blurValue = getBlurValue(elevation)
-    const spreadValue = getSpreadValue(elevation)
-    const offsetXValue = getOffsetXValue(elevation)
-    const offsetYValue = getOffsetYValue(elevation)
-    const shadowColor = getShadowColor()
-    
-    return {
-      backgroundColor: 'var(--layer-layer-0-property-surface)',
-      boxShadow: `${offsetXValue}px ${offsetYValue}px ${blurValue}px ${spreadValue}px ${shadowColor}`
+    if (hex.length === 6) {
+      const r = parseInt(hex.substr(0, 2), 16)
+      const g = parseInt(hex.substr(2, 2), 16)
+      const b = parseInt(hex.substr(4, 2), 16)
+      const result = `rgba(${r}, ${g}, ${b}, ${alpha})`
+      return result
     }
-  }
+    
+    // Fallback to the original color if hex parsing fails
+    return colorValue
+  }, [getBaseColor, shadowColorControl.alphaToken, tokenUpdateTrigger])
+
+  const getElevationStyle = useMemo(() => {
+    return (elevation: string) => {
+      const control = elevationControls[elevation]
+      if (!control) return {}
+      
+      const blurValue = getBlurValue(elevation)
+      const spreadValue = getSpreadValue(elevation)
+      const offsetXValue = getOffsetXValue(elevation)
+      const offsetYValue = getOffsetYValue(elevation)
+      const shadowColor = getShadowColor
+      
+      const boxShadow = `${offsetXValue}px ${offsetYValue}px ${blurValue}px ${spreadValue}px ${shadowColor}`
+      
+      return {
+        backgroundColor: 'var(--layer-layer-0-property-surface)',
+        boxShadow: boxShadow
+      }
+    }
+  }, [elevationControls, getShadowColor, tokenUpdateTrigger, effectTokens])
 
   // Get available effect tokens for dropdowns
   const availableEffectTokens = useMemo(() => {
@@ -244,15 +517,6 @@ export default function ElevationPage() {
     })
     // Sort tokens by value
     return tokens.sort((a, b) => a.value - b.value)
-  }, [])
-
-  // Get available palette colors (the three main palettes)
-  const availablePaletteColors = useMemo(() => {
-    return [
-      { key: 'gray', title: 'Neutral' },
-      { key: 'mandy', title: 'Primary' },
-      { key: 'salmon', title: 'Secondary' }
-    ]
   }, [])
 
   // Get available opacity tokens
@@ -272,42 +536,6 @@ export default function ElevationPage() {
     return tokens.sort((a, b) => a.value - b.value)
   }, [])
 
-  // Get available color shades for the selected palette
-  const availableColorShades = useMemo(() => {
-    const shades: Array<{ value: string; label: string }> = []
-    const paletteKey = shadowColorControl.paletteKey
-    
-    // Find all available shades for this palette by checking tokens JSON
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && entry.name && entry.name.startsWith(`color/${paletteKey}/`) && entry.value) {
-        // Extract shade from token name (e.g., "color/gray/900" -> "900")
-        const shade = entry.name.split('/').pop()
-        if (shade) {
-          shades.push({
-            value: shade,
-            label: shade
-          })
-        }
-      }
-    })
-    
-    // Sort shades numerically (050, 100, 200, etc.)
-    return shades.sort((a, b) => {
-      const aNum = parseInt(a.value)
-      const bNum = parseInt(b.value)
-      return aNum - bNum
-    })
-  }, [shadowColorControl.paletteKey])
-
-  // Reset color shade when palette color changes
-  useEffect(() => {
-    const currentShades = availableColorShades.map(s => s.value)
-    if (!currentShades.includes(shadowColorControl.colorShade)) {
-      // If current shade is not available for the new color, reset to the darkest available shade
-      const darkestShade = availableColorShades.length > 0 ? availableColorShades[availableColorShades.length - 1].value : '900'
-      setShadowColorControl(prev => ({ ...prev, colorShade: darkestShade }))
-    }
-  }, [shadowColorControl.paletteKey, availableColorShades, shadowColorControl.colorShade])
 
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
@@ -324,39 +552,7 @@ export default function ElevationPage() {
           {/* Shadow Color Controls */}
           <div className="shadow-color-controls" style={{ marginBottom: '24px', padding: '16px', background: 'var(--layer-layer-1-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: '8px' }}>
             <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem' }}>Shadow Color</h3>
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              <div className="control-group" style={{ minWidth: '200px' }}>
-                <label>
-                  Palette
-                </label>
-                <select
-                  value={shadowColorControl.paletteKey}
-                  onChange={(e) => setShadowColorControl(prev => ({ ...prev, paletteKey: e.target.value }))}
-                  style={{ width: '100%', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}
-                >
-                  {availablePaletteColors.map(palette => (
-                    <option key={palette.key} value={palette.key}>
-                      {palette.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="control-group" style={{ minWidth: '150px' }}>
-                <label>
-                  Color Shade
-                </label>
-                <select
-                  value={shadowColorControl.colorShade}
-                  onChange={(e) => setShadowColorControl(prev => ({ ...prev, colorShade: e.target.value }))}
-                  style={{ width: '100%', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}
-                >
-                  {availableColorShades.map(shade => (
-                    <option key={shade.value} value={shade.value}>
-                      {shade.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'end' }}>
               <div className="control-group" style={{ minWidth: '200px' }}>
                 <label>
                   Alpha: {(() => {
@@ -381,25 +577,21 @@ export default function ElevationPage() {
                   ))}
                 </select>
               </div>
-              <div className="control-group" style={{ minWidth: '100px', display: 'flex', alignItems: 'end' }}>
-                <div style={{ 
-                  width: '60px', 
-                  height: '40px', 
-                  background: getShadowColor(), 
-                  border: '1px solid var(--layer-layer-1-property-border-color)', 
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <span style={{ 
-                    fontSize: '0.75rem', 
-                    color: 'var(--layer-layer-0-property-element-text-color)',
-                    textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
-                  }}>
-                    Preview
-                  </span>
-                </div>
+              <div className="control-group" style={{ minWidth: '100px' }}>
+                <label>Color</label>
+                <ShadowColorPicker
+                  onSelect={(tokenName, hex) => {
+                    setShadowColorControl(prev => {
+                      const newState = { ...prev, colorToken: tokenName }
+                      // Save to localStorage with the new state
+                      localStorage.setItem('shadow-color-control', JSON.stringify(newState))
+                      return newState
+                    })
+                    // Force a re-render to update the shadow colors
+                    setTokenUpdateTrigger(prev => prev + 1)
+                  }}
+                  currentColor={getBaseColor}
+                />
               </div>
             </div>
           </div>
