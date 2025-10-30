@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride, writeOverrides } from '../theme/tokenOverrides'
 
 type FamilyRow = { name: string; value: string; custom: boolean }
 
 export default function FontFamiliesTokens() {
+  const { tokens: tokensJson } = useVars()
   // Local snapshot writer (we don't read it to avoid re-renders)
   const [, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}

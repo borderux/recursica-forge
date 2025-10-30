@@ -1,5 +1,4 @@
-import tokens from '../../vars/Tokens.json'
-import theme from '../../vars/Theme.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides } from './tokenOverrides'
 import { useEffect, useState } from 'react'
 
@@ -12,6 +11,7 @@ type LayerModuleProps = {
 }
 
 export default function LayerModule({ level, alternativeKey, title, className, children }: LayerModuleProps) {
+  const { tokens, theme } = useVars()
   // Force re-render when overrides are cleared/reset so computed styles refresh
   const [version, setVersion] = useState(0)
   useEffect(() => {

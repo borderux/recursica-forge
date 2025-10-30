@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useUiKit } from '../uikit/UiKitContext'
-import tokens from '../../vars/Tokens.json'
-import theme from '../../vars/Theme.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 type Style = React.CSSProperties
@@ -55,16 +54,8 @@ function isFontAvailable(family?: string): boolean {
 }
 
 type ThemeRecord = { name: string; mode?: string; value?: any }
-const themeIndex: Record<string, ThemeRecord> = (() => {
-  const bucket: Record<string, ThemeRecord> = {}
-  const rec: any = (theme as any).RecursicaBrand || {}
-  Object.values(rec as Record<string, any>).forEach((e: any) => {
-    if (e && typeof e.name === 'string') bucket[e.name] = e
-  })
-  return bucket
-})()
 
-function resolveThemeValue(ref: any, overrides: Record<string, any>): string | number | undefined {
+function resolveThemeValue(ref: any, overrides: Record<string, any>, tokens: Record<string, any>, themeIndex: Record<string, ThemeRecord>): string | number | undefined {
   if (ref == null) return undefined
   if (typeof ref === 'string' || typeof ref === 'number') return ref
   if (typeof ref === 'object') {
@@ -78,20 +69,20 @@ function resolveThemeValue(ref: any, overrides: Record<string, any>): string | n
     if (coll === 'Theme') {
       const entry = themeIndex[name]
       if (!entry) return undefined
-      return resolveThemeValue(entry.value, overrides)
+      return resolveThemeValue(entry.value, overrides, tokens, themeIndex)
     }
   }
   return undefined
 }
 
-function getTokenValueWithOverrides(name: string | undefined, overrides: Record<string, any>): string | number | undefined {
+function getTokenValueWithOverrides(name: string | undefined, overrides: Record<string, any>, tokens: Record<string, any>): string | number | undefined {
   if (!name) return undefined
   if (Object.prototype.hasOwnProperty.call(overrides, name)) return overrides[name]
   const entry = Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === name)
   return entry ? (entry as any).value : undefined
 }
 
-function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'line-height') {
+function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'line-height', theme: Record<string, any>) {
   const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
   const key = `[themes][Light][font/${map[prefix] || prefix}/${prop}]`
   return (theme as any).RecursicaBrand?.[key] as ThemeRecord | undefined
@@ -112,6 +103,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   const [form, setForm] = useState<{ family?: string; sizeToken?: string; weightToken?: string; spacingToken?: string; lineHeightToken?: string }>({})
   const [version, setVersion] = useState(0)
   const { kit } = useUiKit()
+  const { tokens, theme } = useVars()
   const CHOICES_KEY = 'type-token-choices'
   const [choicesVersion, setChoicesVersion] = useState(0)
   const readChoices = (): Record<string, { family?: string; size?: string; weight?: string; spacing?: string }> => {
@@ -134,7 +126,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
 
   const hasLineHeightDefault = useMemo(() => {
     return !!Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === 'font/line-height/default')
-  }, [])
+  }, [tokens])
   // lineHeight options are ordered when rendering the select
 
   // options
@@ -149,7 +141,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
     })
     out.sort((a,b) => a.value - b.value)
     return out
-  }, [])
+  }, [tokens])
   const weightOptions = useMemo(() => {
     const out: Array<{ short: string; value: number; token: string; label: string }> = []
     Object.values(tokens as Record<string, any>).forEach((e: any) => {
@@ -161,7 +153,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
     })
     out.sort((a,b) => a.value - b.value)
     return out
-  }, [])
+  }, [tokens])
   const spacingOptions = useMemo(() => {
     const out: Array<{ short: string; value: number; token: string; label: string }> = []
     Object.values(tokens as Record<string, any>).forEach((e: any) => {
@@ -176,7 +168,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
       return i === -1 ? Number.POSITIVE_INFINITY : i
     }
     return out.sort((a,b) => idx(a.short) - idx(b.short))
-  }, [])
+  }, [tokens])
 
   const familyOptions = useMemo(() => {
     const out: Array<{ short: string; value: string; token: string; label: string }> = []
@@ -206,26 +198,34 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
     })
     out.sort((a,b) => a.label.localeCompare(b.label))
     return out
-  }, [version])
+  }, [tokens, version])
 
+  const themeIndex = useMemo(() => {
+    const bucket: Record<string, ThemeRecord> = {}
+    const rec: any = (theme as any).RecursicaBrand || {}
+    Object.values(rec as Record<string, any>).forEach((e: any) => {
+      if (e && typeof e.name === 'string') bucket[e.name] = e
+    })
+    return bucket
+  }, [theme])
   // resolve current style
-  const familyRec = getThemeEntry(prefix, 'font-family')
-  const sizeRec = getThemeEntry(prefix, 'size')
-  const spacingRec = getThemeEntry(prefix, 'letter-spacing')
-  const weightRec = getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')
+  const familyRec = getThemeEntry(prefix, 'font-family', theme as any)
+  const sizeRec = getThemeEntry(prefix, 'size', theme as any)
+  const spacingRec = getThemeEntry(prefix, 'letter-spacing', theme as any)
+  const weightRec = getThemeEntry(prefix, 'weight', theme as any) || getThemeEntry(prefix, 'weight-normal', theme as any)
   const currentStyle: Style = (() => {
-    const fam = resolveThemeValue(familyRec?.value, overrides)
-    const size = resolveThemeValue(sizeRec?.value, overrides)
-    const spacing = resolveThemeValue(spacingRec?.value, overrides)
-    const weight = resolveThemeValue(weightRec?.value, overrides)
+    const fam = resolveThemeValue(familyRec?.value, overrides, tokens as any, themeIndex)
+    const size = resolveThemeValue(sizeRec?.value, overrides, tokens as any, themeIndex)
+    const spacing = resolveThemeValue(spacingRec?.value, overrides, tokens as any, themeIndex)
+    const weight = resolveThemeValue(weightRec?.value, overrides, tokens as any, themeIndex)
     const base: any = {
       fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
       fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--font-${prefix}-font-size`)),
       fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)) as any,
       letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--font-${prefix}-font-letter-spacing`))),
       lineHeight: ((): any => {
-        const rec = getThemeEntry(prefix, 'line-height')
-        const v = resolveThemeValue(rec?.value, overrides)
+        const rec = getThemeEntry(prefix, 'line-height', theme as any)
+        const v = resolveThemeValue(rec?.value, overrides, tokens as any, themeIndex)
         return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--font-${prefix}-line-height`) as any)
       })(),
       margin: '0 0 12px 0',
@@ -237,23 +237,23 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
       if (c.family) base.fontFamily = c.family
       if (c.size) {
         const tokenName = `font/size/${c.size}`
-        const v = getTokenValueWithOverrides(tokenName, overrides)
+        const v = getTokenValueWithOverrides(tokenName, overrides, tokens as any)
         if (typeof v === 'number' || typeof v === 'string') base.fontSize = pxOrUndefined(String(v))
       }
       const lhChoice: any = (c as any).lineHeight
       if (lhChoice) {
         const tokenName = `font/line-height/${lhChoice}`
-        const v = getTokenValueWithOverrides(tokenName, overrides)
+        const v = getTokenValueWithOverrides(tokenName, overrides, tokens as any)
         if (typeof v === 'number' || typeof v === 'string') base.lineHeight = v as any
       }
       if (c.weight) {
         const tokenName = `font/weight/${c.weight}`
-        const v = getTokenValueWithOverrides(tokenName, overrides)
+        const v = getTokenValueWithOverrides(tokenName, overrides, tokens as any)
         if (typeof v === 'number' || typeof v === 'string') base.fontWeight = v as any
       }
       if (c.spacing) {
         const tokenName = `font/letter-spacing/${c.spacing}`
-        const v = getTokenValueWithOverrides(tokenName, overrides)
+        const v = getTokenValueWithOverrides(tokenName, overrides, tokens as any)
         if (typeof v === 'number') base.letterSpacing = `${v}em`
         else if (typeof v === 'string') base.letterSpacing = v
       }

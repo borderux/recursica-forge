@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 export default function SizeTokens() {
+  const { tokens: tokensJson } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
