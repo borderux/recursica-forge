@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import tokensJson from '../../vars/Tokens.json'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
@@ -109,8 +109,8 @@ export default function FontLineHeightTokens() {
           const isTall = k === 'tall'
           const disabled = scaleByST && !(isDefault || isShort || isTall)
           return (
-            <>
-              <label key={name + '-label'} htmlFor={name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
+            <React.Fragment key={name}>
+              <label htmlFor={name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
               <input
                 type="range"
                 min={0.5}
@@ -153,7 +153,7 @@ export default function FontLineHeightTokens() {
                 }}
                 style={{ width: 80, paddingRight: 0, textAlign: 'right' }}
               />
-            </>
+            </React.Fragment>
           )
         })}
       </div>
