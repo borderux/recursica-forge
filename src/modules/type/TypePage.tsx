@@ -37,38 +37,6 @@ function ensureGoogleFontLoaded(family: string | undefined) {
 
 // moved to TypeSample
 
-function getTokenValueWithOverrides(name: string | undefined, overrides: Record<string, any>): string | number | undefined {
-  if (!name) return undefined
-  if (Object.prototype.hasOwnProperty.call(overrides, name)) return overrides[name]
-  const entry = Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === name)
-  return entry ? (entry as any).value : undefined
-}
-
-// resolveThemeValue moved to TypeSample
-
-function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'weight-strong'): ThemeRecord | undefined {
-  const map: Record<string, string> = {
-    'subtitle-1': 'subtitle',
-    'subtitle-2': 'subtitle-small',
-    'body-1': 'body',
-    'body-2': 'body-small',
-  }
-  const themePrefix = map[prefix] || prefix
-  const key = `[themes][Light][font/${themePrefix}/${prop}]`
-  const rec: any = (theme as any).RecursicaBrand
-  return rec ? (rec[key] as ThemeRecord | undefined) : undefined
-}
-
-// legacy helper retained elsewhere
-
-function getTokenNameFor(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight'): string | undefined {
-  // Prefer canonical keys, fall back for weight-normal
-  const rec = prop === 'weight' ? (getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')) : getThemeEntry(prefix, prop)
-  const v: any = rec?.value
-  if (v && typeof v === 'object' && v.collection === 'Tokens' && typeof v.name === 'string') return v.name
-  return undefined
-}
-
 export function TypePage() {
   const { tokens, theme } = useVars()
   type Sample = { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }
@@ -120,6 +88,25 @@ export function TypePage() {
   // Ensure fonts used by samples are loaded on initial load and whenever overrides change
   useEffect(() => {
     const families = new Set<string>()
+    const getThemeEntry = (prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal'): ThemeRecord | undefined => {
+      const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
+      const themePrefix = map[prefix] || prefix
+      const key = `[themes][Light][font/${themePrefix}/${prop}]`
+      const rec: any = (theme as any)?.RecursicaBrand
+      return rec ? (rec[key] as ThemeRecord | undefined) : undefined
+    }
+    const getTokenNameFor = (prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight'): string | undefined => {
+      const rec = prop === 'weight' ? (getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')) : getThemeEntry(prefix, prop)
+      const v: any = rec?.value
+      if (v && typeof v === 'object' && v.collection === 'Tokens' && typeof v.name === 'string') return v.name
+      return undefined
+    }
+    const getTokenValueWithOverrides = (name: string | undefined, overrides: Record<string, any>): string | number | undefined => {
+      if (!name) return undefined
+      if (Object.prototype.hasOwnProperty.call(overrides, name)) return overrides[name]
+      const entry = Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === name)
+      return entry ? (entry as any).value : undefined
+    }
     samples.forEach((s) => {
       const token = getTokenNameFor(s.prefix, 'font-family')
       const val = token ? getTokenValueWithOverrides(token, overrides) : readCssVar(`--font-${s.prefix}-font-family`)
