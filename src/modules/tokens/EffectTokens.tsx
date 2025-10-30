@@ -3,13 +3,24 @@ import tokensJson from '../../vars/Tokens.json'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 export default function EffectTokens() {
+  const flattenEffect = (): Array<{ name: string; value: number }> => {
+    const list: Array<{ name: string; value: number }> = []
+    try {
+      const src: any = (tokensJson as any)?.effect || {}
+      Object.keys(src).forEach((k) => {
+        const v = src[k]?.$value
+        const num = typeof v === 'number' ? v : Number(v)
+        if (Number.isFinite(num)) list.push({ name: `effect/${k}`, value: num })
+      })
+    } catch {}
+    return list
+  }
+
+  const baseEffects = useMemo(() => flattenEffect(), [])
+
   const [values, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && typeof entry.name === 'string' && (typeof entry.value === 'number' || typeof entry.value === 'string')) {
-        init[entry.name] = entry.value
-      }
-    })
+    baseEffects.forEach((e) => { init[e.name] = e.value })
     const overrides = readOverrides()
     const merged = { ...init, ...overrides }
     if (typeof merged['effect/none'] !== 'undefined') merged['effect/none'] = 0
@@ -49,14 +60,7 @@ export default function EffectTokens() {
   }, [])
 
   const effectItems = useMemo(() => {
-    const out: Array<{ name: string; value: string | number }> = []
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (!entry || typeof entry !== 'object') return
-      if (typeof entry.name !== 'string') return
-      if (!entry.name.startsWith('effect/')) return
-      if (typeof entry.value !== 'number' && typeof entry.value !== 'string') return
-      out.push({ name: entry.name, value: entry.value })
-    })
+    const out: Array<{ name: string; value: string | number }> = baseEffects
     const weight = (full: string) => {
       const n = full.replace('effect/', '')
       if (n === 'none') return [0, 0]
@@ -71,7 +75,7 @@ export default function EffectTokens() {
       if (wa[0] !== wb[0]) return wa[0] - wb[0]
       return wa[1] - wb[1]
     })
-  }, [])
+  }, [baseEffects])
 
   function parseMultiplier(label: string): number {
     if (label === 'default') return 1

@@ -3,13 +3,22 @@ import tokensJson from '../../vars/Tokens.json'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 export default function FontLetterSpacingTokens() {
+  const flattened = useMemo(() => {
+    const list: Array<{ name: string; value: number }> = []
+    try {
+      const src: any = (tokensJson as any)?.font?.['letter-spacing'] || {}
+      Object.keys(src).forEach((k) => {
+        const v = src[k]?.$value
+        const num = typeof v === 'number' ? v : Number(v)
+        if (Number.isFinite(num)) list.push({ name: `font/letter-spacing/${k}`, value: num })
+      })
+    } catch {}
+    return list
+  }, [])
+
   const [values, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && typeof entry.name === 'string' && (typeof entry.value === 'number' || typeof entry.value === 'string')) {
-        init[entry.name] = entry.value
-      }
-    })
+    flattened.forEach((it) => { init[it.name] = it.value })
     const overrides = readOverrides()
     return { ...init, ...overrides }
   })
@@ -32,13 +41,7 @@ export default function FontLetterSpacingTokens() {
   }, [])
 
   const items = useMemo(() => {
-    const out: Array<{ name: string; value: number | string }> = []
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (!entry || typeof entry !== 'object') return
-      if (typeof entry.name !== 'string') return
-      if (!entry.name.startsWith('font/letter-spacing/')) return
-      out.push({ name: entry.name, value: entry.value })
-    })
+    const out: Array<{ name: string; value: number | string }> = flattened
     const order = ['tighest','tighter','tight','default','wide','wider','widest']
     const weight = (n: string) => {
       const key = n.replace('font/letter-spacing/','')
@@ -46,7 +49,7 @@ export default function FontLetterSpacingTokens() {
       return idx === -1 ? Number.POSITIVE_INFINITY : idx
     }
     return out.sort((a,b) => weight(a.name) - weight(b.name))
-  }, [])
+  }, [flattened])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 

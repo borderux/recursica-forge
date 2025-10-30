@@ -58,8 +58,14 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 // Re-seed core palette CSS variables so alternative layers reset immediately
                 try {
                   const get = (name: string): string | undefined => {
-                    const entry = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
-                    return entry ? String((entry as any).value) : undefined
+                    const parts = (name || '').split('/')
+                    if (parts[0] === 'color' && parts.length >= 3) {
+                      const fam = parts[1]
+                      const lvl = parts[2]
+                      const v = (tokensJson as any)?.color?.[fam]?.[lvl]?.$value
+                      return typeof v === 'string' ? v : undefined
+                    }
+                    return undefined
                   }
                   const defaults: Record<string, { token: string; hex: string }> = {
                     '--palette-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
