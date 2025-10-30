@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 export default function EffectTokens() {
+  const { tokens: tokensJson } = useVars()
   const flattenEffect = (): Array<{ name: string; value: number }> => {
     const list: Array<{ name: string; value: number }> = []
     try {

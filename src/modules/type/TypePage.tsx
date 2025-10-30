@@ -5,8 +5,7 @@ import FontSizeTokens from '../tokens/FontSizeTokens'
 import FontWeightTokens from '../tokens/FontWeightTokens'
 import FontLetterSpacingTokens from '../tokens/FontLetterSpacingTokens'
 import FontLineHeightTokens from '../tokens/FontLineHeightTokens'
-import tokens from '../../vars/Tokens.json'
-import theme from '../../vars/Theme.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 
 // local helpers retained for legacy but no longer used directly in this file
@@ -71,6 +70,7 @@ function getTokenNameFor(prefix: string, prop: 'size' | 'font-family' | 'letter-
 }
 
 export function TypePage() {
+  const { tokens, theme } = useVars()
   type Sample = { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }
 
   // removed: family options handled inside TypeSample when needed

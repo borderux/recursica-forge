@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 export default function FontLineHeightTokens() {
+  const { tokens: tokensJson } = useVars()
   const [values, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
     Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {

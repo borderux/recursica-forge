@@ -262,7 +262,7 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
     </div>
   )
 }
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 // removed unused varsUtil import
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 import OpacityTokens from './OpacityTokens'
@@ -285,6 +285,7 @@ type TokenEntry = {
 type ModeName = 'Mode 1' | 'Mode 2' | string
 
 export default function TokensPage() {
+  const { tokens: tokensJson } = useVars()
   const flatTokens: TokenEntry[] = useMemo(() => {
     const list: TokenEntry[] = []
     const push = (name: string, type: string, value: any) => {

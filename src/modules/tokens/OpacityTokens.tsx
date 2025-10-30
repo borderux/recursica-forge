@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 function toTitleCase(label: string): string {
@@ -10,6 +10,7 @@ function toTitleCase(label: string): string {
 }
 
 export default function OpacityTokens() {
+  const { tokens: tokensJson } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {

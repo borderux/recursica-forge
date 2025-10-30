@@ -5,8 +5,10 @@ import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '
 import { applyTheme, LIGHT_MODE } from '../../theme/index'
 import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
+import { useVars } from '../../vars/VarsContext'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
+  const { resetAll } = useVars()
   const [carbon, setCarbon] = useState<any>(null)
   const [isOpen, setIsOpen] = useState(false)
   const onUpload = async (file?: File | null) => {
@@ -47,7 +49,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           <a href="/uikit" style={{ color: 'inherit', textDecoration: 'none' }}>UI Kit</a>
         </div>
         <HeaderGlobalBar>
-          <button onClick={() => { clearOverrides(tokensJson as any); applyTheme(LIGHT_MODE); try { window.dispatchEvent(new CustomEvent('paletteReset')) } catch {} }} title="Reset to defaults" style={{ marginRight: 8 }}>↺</button>
+          <button onClick={() => { clearOverrides(tokensJson as any); resetAll() }} title="Reset to defaults" style={{ marginRight: 8 }}>↺</button>
           <button onClick={() => downloadCurrentCssVars()} title="Download" style={{ marginRight: 8 }}>⤓</button>
           <div style={{ minWidth: 180 }}>
             <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>

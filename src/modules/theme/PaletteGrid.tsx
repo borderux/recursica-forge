@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
-import themeJson from '../../vars/Theme.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides } from './tokenOverrides'
 
 type PaletteGridProps = {
@@ -26,6 +25,7 @@ function toTokenLevel(levelStr: string): string {
 }
 
 export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, initialFamily, mode, deletable, onDelete }: PaletteGridProps) {
+  const { tokens: tokensJson, theme: themeJson } = useVars()
   const defaultLevelStr = typeof defaultLevel === 'number' ? toLevelString(defaultLevel) : String(defaultLevel).padStart(3, '0')
   const headerLevels = LEVELS.map(toLevelString)
 
@@ -38,7 +38,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   }, [])
 
   const families = useMemo(() => {
-    const fams = new Set<string>(Object.keys((tokensJson as any)?.color || {}))
+    const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))
     fams.delete('translucent')
     const list = Array.from(fams)
     list.sort((a, b) => {
@@ -171,8 +171,8 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       }
     } catch {}
     const parts = (name || '').split('/')
-    if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.color?.[parts[1]]?.[parts[2]]?.$value
-    if (parts[0] === 'opacity' && parts[1]) return String((tokensJson as any)?.opacity?.[parts[1]]?.$value)
+    if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.tokens?.color?.[parts[1]]?.[parts[2]]?.$value
+    if (parts[0] === 'opacity' && parts[1]) return String((tokensJson as any)?.tokens?.opacity?.[parts[1]]?.$value)
     return undefined
   }
 
@@ -221,19 +221,16 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
 
   const opacityTokenValuesAsc = useMemo(() => {
     const vals: number[] = []
-    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
-      if (!e || typeof e.name !== 'string') return
-      if (!e.name.startsWith('opacity/')) return
-      const raw = Number(e.value)
+    const src = (tokensJson as any)?.tokens?.opacity || {}
+    Object.values(src).forEach((entry: any) => {
+      const raw = Number(entry?.$value)
       if (!Number.isFinite(raw)) return
       const v = raw <= 1 ? raw : raw / 100
       if (v > 0 && v <= 1) vals.push(v)
     })
-    // include solid as a fallback if missing
     if (!vals.some((v) => Math.abs(v - 1) < 1e-6)) vals.push(1)
-    // de-duplicate and sort ascending (most translucent first)
     return Array.from(new Set(vals)).sort((a, b) => a - b)
-  }, [])
+  }, [tokensJson])
 
   function pickMinAlphaForAA(toneHex: string, dotHex: string): number {
     const AA = 4.5
