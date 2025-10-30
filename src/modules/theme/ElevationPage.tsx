@@ -276,6 +276,10 @@ function ShadowColorPicker({
 
 export default function ElevationPage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [blurScaleByDefault, setBlurScaleByDefault] = useState<boolean>(() => {
+    const v = localStorage.getItem('blur-scale-by-default')
+    return v === null ? true : v === 'true'
+  })
   const [shadowColorControl, setShadowColorControl] = useState<ShadowColorControl>(() => {
     try {
       const saved = localStorage.getItem('shadow-color-control')
@@ -405,12 +409,61 @@ export default function ElevationPage() {
     }))
   }
 
+  // Helper function to get the next token in the effect tokens progression
+  const getNextTokenInProgression = useMemo(() => {
+    return (baseToken: string, steps: number): string => {
+      // Use the current effectTokens state which includes overrides
+      const effectItems: Array<{ name: string; value: number }> = []
+      Object.entries(effectTokens).forEach(([name, value]) => {
+        if (name.startsWith('effect/') && typeof value === 'number') {
+          effectItems.push({ name, value })
+        }
+      })
+      
+      const weight = (full: string) => {
+        const n = full.replace('effect/', '')
+        if (n === 'none') return [0, 0]
+        if (n === '0-5x') return [1, 0]
+        if (n === 'default') return [2, 0]
+        const asNum = parseFloat(n.replace('x', '').replace('-', '.'))
+        return [3, isNaN(asNum) ? Number.POSITIVE_INFINITY : asNum]
+      }
+      
+      const sortedTokens = effectItems.sort((a, b) => {
+        const wa = weight(a.name)
+        const wb = weight(b.name)
+        if (wa[0] !== wb[0]) return wa[0] - wb[0]
+        return wa[1] - wb[1]
+      })
+      
+      const currentIndex = sortedTokens.findIndex(token => token.name === baseToken)
+      
+      if (currentIndex === -1) return baseToken
+      
+      // Go one step above the base for each elevation level
+      const nextIndex = Math.min(currentIndex + steps, sortedTokens.length - 1)
+      return sortedTokens[nextIndex].name
+    }
+  }, [effectTokens])
+
   const getBlurValue = (elevation: string) => {
     const control = elevationControls[elevation]
     if (!control) return 0
     
     const tokenValue = effectTokens[control.blurToken]
-    return tokenValue || 0
+    const baseValue = tokenValue || 0
+    
+    // If blur scaling is enabled, use token progression from level 0 base
+    if (blurScaleByDefault) {
+      const elevationLevel = parseInt(elevation.replace('elevation-', ''))
+      // Always use level 0's token as the base for all calculations
+      const level0Control = elevationControls['elevation-0']
+      const baseToken = level0Control?.blurToken || 'effect/default'
+      const nextToken = getNextTokenInProgression(baseToken, elevationLevel)
+      return effectTokens[nextToken] || baseValue
+    }
+    
+    return baseValue
   }
 
   const getSpreadValue = (elevation: string) => {
@@ -500,18 +553,19 @@ export default function ElevationPage() {
         boxShadow: boxShadow
       }
     }
-  }, [elevationControls, getShadowColor, tokenUpdateTrigger, effectTokens])
+  }, [elevationControls, getShadowColor, tokenUpdateTrigger, effectTokens, blurScaleByDefault])
 
   // Get available effect tokens for dropdowns
   const availableEffectTokens = useMemo(() => {
     const tokens: Array<{ name: string; value: number; label: string }> = []
     Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
       if (entry && typeof entry.name === 'string' && entry.name.startsWith('effect/') && typeof entry.value === 'number') {
-        const label = entry.name.replace('effect/', '').replace('-', '.')
+        const baseLabel = entry.name.replace('effect/', '')
+        const label = baseLabel.replace('-', '.')
         tokens.push({
           name: entry.name,
           value: entry.value,
-          label: label === 'none' ? 'None' : label === 'default' ? 'Default' : `${label}x`
+          label: label === 'none' ? 'None' : label === 'default' ? 'Default' : label.endsWith('x') ? label : `${label}x`
         })
       }
     })
@@ -596,6 +650,30 @@ export default function ElevationPage() {
             </div>
           </div>
           
+          {/* Blur Scaling Controls */}
+          <div className="blur-scaling-controls" style={{ marginBottom: '16px', padding: '12px', background: 'var(--layer-layer-1-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: '0', fontSize: '1rem' }}>Blur Scaling</h3>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <input 
+                  type="checkbox" 
+                  checked={blurScaleByDefault} 
+                  onChange={(e) => {
+                    const next = e.currentTarget.checked
+                    setBlurScaleByDefault(next)
+                    localStorage.setItem('blur-scale-by-default', String(next))
+                  }} 
+                />
+                Scale blur based on elevation level
+              </label>
+            </div>
+            {blurScaleByDefault && (
+              <div style={{ marginTop: '8px', fontSize: '0.875rem', opacity: 0.8, color: 'var(--layer-layer-0-property-element-text-color)' }}>
+                Blur values will progress through effect tokens: Level 0 (base) uses selected token, each level goes one step above the previous in the effect token sequence.
+              </div>
+            )}
+          </div>
+          
           <div className="elevation-grid">
             {[0, 1, 2, 3, 4].map(i => {
               const elevation = `elevation-${i}`
@@ -609,23 +687,78 @@ export default function ElevationPage() {
                     <div className="control-group">
                       <label>
                         Blur: {getBlurValue(elevation)}px
-                        {control?.blurToken && (
+                        {blurScaleByDefault ? (
+                          <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
+                            ({(() => {
+                              const level0Control = elevationControls['elevation-0']
+                              const baseToken = level0Control?.blurToken || 'effect/default'
+                              const tokenName = getNextTokenInProgression(baseToken, parseInt(elevation.replace('elevation-', '')))
+                              const baseLabel = tokenName.replace('effect/', '')
+                              const label = baseLabel.replace('-', '.')
+                              return label === 'none' ? 'None' : label === 'default' ? 'Default' : label.endsWith('x') ? label : `${label}x`
+                            })()})
+                            {i === 0 && ' (base)'}
+                          </span>
+                        ) : control?.blurToken && (
                           <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
                             ({control.blurToken.replace('effect/', '')})
                           </span>
                         )}
                       </label>
-                      <select
-                        value={control?.blurToken || 'effect/none'}
-                        onChange={(e) => updateElevationControl(elevation, 'blurToken', e.target.value)}
-                        style={{ width: '100%', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}
-                      >
-                        {availableEffectTokens.map(token => (
-                          <option key={token.name} value={token.name}>
-                            {token.label} ({token.value}px)
-                          </option>
-                        ))}
-                      </select>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={getBlurValue(elevation)}
+                          onChange={(e) => {
+                            const newValue = Number(e.target.value)
+                            // Find the closest effect token to this value
+                            const closestToken = availableEffectTokens.reduce((closest, token) => {
+                              const currentDiff = Math.abs(token.value - newValue)
+                              const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
+                              return currentDiff < closestDiff ? token.name : closest
+                            }, 'effect/none')
+                            updateElevationControl(elevation, 'blurToken', closestToken)
+                          }}
+                          disabled={blurScaleByDefault && i !== 0}
+                          style={{ 
+                            width: '100%', 
+                            maxWidth: '300px',
+                            cursor: (blurScaleByDefault && i !== 0) ? 'not-allowed' : 'pointer'
+                          }}
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={getBlurValue(elevation)}
+                          onChange={(e) => {
+                            const newValue = Number(e.target.value)
+                            if (Number.isFinite(newValue)) {
+                              // Find the closest effect token to this value
+                              const closestToken = availableEffectTokens.reduce((closest, token) => {
+                                const currentDiff = Math.abs(token.value - newValue)
+                                const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
+                                return currentDiff < closestDiff ? token.name : closest
+                              }, 'effect/none')
+                              updateElevationControl(elevation, 'blurToken', closestToken)
+                            }
+                          }}
+                          disabled={blurScaleByDefault && i !== 0}
+                          style={{ 
+                            width: '50px',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            border: '1px solid var(--layer-layer-1-property-border-color)',
+                            background: (blurScaleByDefault && i !== 0) ? 'var(--layer-layer-2-property-surface)' : 'var(--layer-layer-0-property-surface)',
+                            color: (blurScaleByDefault && i !== 0) ? 'var(--layer-layer-2-property-element-text-color)' : 'var(--layer-layer-0-property-element-text-color)',
+                            cursor: (blurScaleByDefault && i !== 0) ? 'not-allowed' : 'pointer'
+                          }}
+                        />
+                        <span style={{ fontSize: '12px', opacity: 0.8 }}>px</span>
+                      </div>
                     </div>
                     <div className="control-group">
                       <label>
