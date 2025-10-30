@@ -6,7 +6,7 @@ export default function FontSizeTokens() {
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.font?.size || {}
+      const src: any = (tokensJson as any)?.tokens?.font?.size || {}
       Object.keys(src).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)

@@ -293,7 +293,7 @@ export default function TokensPage() {
       if (typeof v === 'string' || typeof v === 'number') list.push({ name, type, value: v })
     }
     try {
-      const t: any = tokensJson as any
+      const t: any = (tokensJson as any)?.tokens || {}
       // colors
       const colors = t?.color || {}
       Object.keys(colors).forEach((family) => {
