@@ -85,7 +85,7 @@ function getTokenValueWithOverrides(name: string | undefined, overrides: Record<
 function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'line-height', theme: Record<string, any>) {
   const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
   const key = `[themes][Light][font/${map[prefix] || prefix}/${prop}]`
-  return (theme as any).RecursicaBrand?.[key] as ThemeRecord | undefined
+  return ((theme as any)?.RecursicaBrand)?.[key] as ThemeRecord | undefined
 }
 
 function getTokenNameFor(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'line-height'): string | undefined {
@@ -202,7 +202,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
 
   const themeIndex = useMemo(() => {
     const bucket: Record<string, ThemeRecord> = {}
-    const rec: any = (theme as any).RecursicaBrand || {}
+    const rec: any = ((theme as any)?.RecursicaBrand) || {}
     Object.values(rec as Record<string, any>).forEach((e: any) => {
       if (e && typeof e.name === 'string') bucket[e.name] = e
     })
