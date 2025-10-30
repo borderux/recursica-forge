@@ -1,6 +1,7 @@
 import tokens from '../../vars/Tokens.json'
 import theme from '../../vars/Theme.json'
 import { readOverrides } from './tokenOverrides'
+import { useEffect, useState } from 'react'
 
 type LayerModuleProps = {
   level?: number | string
@@ -11,6 +12,21 @@ type LayerModuleProps = {
 }
 
 export default function LayerModule({ level, alternativeKey, title, className, children }: LayerModuleProps) {
+  // Force re-render when overrides are cleared/reset so computed styles refresh
+  const [version, setVersion] = useState(0)
+  useEffect(() => {
+    const handler = () => setVersion((v) => v + 1)
+    try {
+      window.addEventListener('tokenOverridesChanged', handler as any)
+      window.addEventListener('paletteReset', handler as any)
+    } catch {}
+    return () => {
+      try {
+        window.removeEventListener('tokenOverridesChanged', handler as any)
+        window.removeEventListener('paletteReset', handler as any)
+      } catch {}
+    }
+  }, [])
   const isAlternative = typeof alternativeKey === 'string' && alternativeKey.length > 0
   const layerId = level != null ? String(level) : '0'
   const base = isAlternative ? `--layer-layer-alternative-${alternativeKey}-property-` : `--layer-layer-${layerId}-property-`
@@ -27,7 +43,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
   // Alternative layer text color/opacity binding to palette on-tone and emphasis
   const altOnToneColor = isAlternative
     ? alternativeKey === 'primary-color' ? 'var(--palette-palette-1-primary-on-tone)'
-      : alternativeKey === 'high-contrast' ? 'var(--palette-white)'
+      : alternativeKey === 'high-contrast' ? 'var(--palette-black-on-tone)'
       : alternativeKey === 'alert' ? 'var(--palette-alert-on-tone)'
       : alternativeKey === 'warning' ? 'var(--palette-warning-on-tone)'
       : alternativeKey === 'success' ? 'var(--palette-success-on-tone)'
@@ -142,8 +158,17 @@ export default function LayerModule({ level, alternativeKey, title, className, c
           {title ? <h3 style={{ ...(headingStyle as any), ...(isAlternative ? { color: altOnToneColor, opacity: altHighOpacity } as any : {}) }}>{title}</h3> : null}
           <p style={{ ...(bodyStyle as any), ...(isAlternative ? { color: altOnToneColor, opacity: altHighOpacity } as any : { opacity: `var(${base}element-text-high-emphasis)` }) }}>High Emphasis Text / Icon</p>
           <p style={{ ...(bodyStyle as any), ...(isAlternative ? { color: altOnToneColor, opacity: altLowOpacity } as any : { opacity: `var(${base}element-text-low-emphasis)` }) }}>Low Emphasis Text / Icon</p>
-          <p style={{ ...(bodyStyle as any), color: `var(${base}element-interactive-color)`, opacity: `var(${base}element-interactive-high-emphasis)` }}>Interactive (Link / Button)</p>
-          <p style={{ ...(bodyStyle as any), color: `var(${base}element-interactive-color)`, opacity: 'var(--palette-disabled)' }}>Disabled Interactive</p>
+          <p style={{
+            ...(bodyStyle as any),
+            // For alternative layers, use the palette on-tone color; otherwise use layer interactive color
+            color: isAlternative ? (altOnToneColor as any) : (`var(${base}element-interactive-color)` as any),
+            opacity: isAlternative ? (altHighOpacity as any) : (`var(${base}element-interactive-high-emphasis)` as any)
+          }}>Interactive (Link / Button)</p>
+          <p style={{
+            ...(bodyStyle as any),
+            color: isAlternative ? (altOnToneColor as any) : (`var(${base}element-interactive-color)` as any),
+            opacity: 'var(--palette-disabled)'
+          }}>Disabled Interactive</p>
           {!isAlternative && (
             <>
               <p style={{ color: `var(${base}element-text-alert)`, opacity: `var(${base}element-interactive-high-emphasis)` }}>Alert</p>

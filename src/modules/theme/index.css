@@ -155,12 +155,14 @@ h3 {
 }
 .alt-layers-wrapper {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Keep all alternative layers on one row */
   gap: 24px;
+  overflow-x: auto;
 }
 .alt-layer-card {
   padding: 24px;
-  flex-grow: 1;
+  flex: 1 0 0; /* Evenly distribute across one row */
+  min-width: 0;
 }
 
 /* --- Elevation --- */
