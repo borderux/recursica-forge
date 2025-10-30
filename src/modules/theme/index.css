@@ -138,6 +138,11 @@ h3 {
   flex-direction: column;
   gap: 24px;
 }
+.layer-content > :last-child {
+  /* Ensure the nested examples area stretches to fill available space */
+  flex: 1;
+  min-width: 0;
+}
 .layer-text-samples p {
   line-height: 1.25;
   margin-bottom: 3.5px;
@@ -205,8 +210,10 @@ h3 {
     flex-direction: row;
   }
   .layer-text-samples {
-    min-width: 200px;
-    width: 200px; /* Fixed width on desktop for visual consistency */
+    /* Fixed 25% column on desktop */
+    flex: 0 0 25%;
+    width: 25%;
+    min-width: 25%;
   }
 }
 @media (max-width: 768px) {
