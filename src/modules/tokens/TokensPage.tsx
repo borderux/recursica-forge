@@ -285,6 +285,48 @@ type TokenEntry = {
 type ModeName = 'Mode 1' | 'Mode 2' | string
 
 export default function TokensPage() {
+  const flatTokens: TokenEntry[] = useMemo(() => {
+    const list: TokenEntry[] = []
+    const push = (name: string, type: string, value: any) => {
+      if (value == null) return
+      const v = typeof value === 'object' && '$value' in value ? (value as any)['$value'] : value
+      if (typeof v === 'string' || typeof v === 'number') list.push({ name, type, value: v })
+    }
+    try {
+      const t: any = tokensJson as any
+      // colors
+      const colors = t?.color || {}
+      Object.keys(colors).forEach((family) => {
+        if (family === 'translucent') return
+        const levels = colors[family] || {}
+        Object.keys(levels).forEach((lvl) => {
+          push(`color/${family}/${lvl}`, 'color', levels[lvl]?.$value)
+        })
+      })
+      // grayscale special levels 000 and 1000 if present
+      if (t?.color?.gray?.['000']) push('color/gray/000', 'color', t.color.gray['000'].$value)
+      if (t?.color?.gray?.['1000']) push('color/gray/1000', 'color', t.color.gray['1000'].$value)
+      // opacity
+      const opacity = t?.opacity || {}
+      Object.keys(opacity).forEach((k) => push(`opacity/${k}`, 'opacity', opacity[k]?.$value))
+      // size
+      const size = t?.size || {}
+      Object.keys(size).forEach((k) => push(`size/${k}`, 'size', size[k]?.$value))
+      // effect
+      const effect = t?.effect || {}
+      Object.keys(effect).forEach((k) => push(`effect/${k}`, 'effect', effect[k]?.$value))
+      // font
+      const font = t?.font || {}
+      const sizes = font?.size || {}
+      Object.keys(sizes).forEach((k) => push(`font/size/${k}`, 'font', sizes[k]?.$value))
+      const weights = font?.weight || {}
+      Object.keys(weights).forEach((k) => push(`font/weight/${k}`, 'font', weights[k]?.$value))
+      const spacing = font?.['letter-spacing'] || {}
+      Object.keys(spacing).forEach((k) => push(`font/letter-spacing/${k}`, 'font', spacing[k]?.$value))
+    } catch {}
+    return list
+  }, [])
+
   const [values, setValues] = useState<Record<string, string | number>>(() => readOverrides())
   const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
   const [openPicker, setOpenPicker] = useState<{
@@ -338,24 +380,20 @@ export default function TokensPage() {
   // overlay positioning handled inside ColorPickerOverlay
 
   const groupedByMode = useMemo(() => {
-    const byMode: Record<ModeName, Array<{ key: string; entry: TokenEntry }>> = {}
-    Object.entries(tokensJson as Record<string, any>).forEach(([key, entry]) => {
-      if (!entry || !entry.name) return
-      const mode = entry.mode as ModeName || 'Mode 1'
-      if (!byMode[mode]) byMode[mode] = []
-      byMode[mode].push({ key, entry })
+    const byMode: Record<ModeName, Array<{ key: string; entry: TokenEntry }>> = { 'Mode 1': [] }
+    flatTokens.forEach((entry, idx) => {
+      byMode['Mode 1'].push({ key: String(idx), entry })
     })
-    // Stable sort by token name
-    Object.values(byMode).forEach((arr) => arr.sort((a, b) => a.entry.name.localeCompare(b.entry.name)))
+    byMode['Mode 1'].sort((a, b) => a.entry.name.localeCompare(b.entry.name))
     return byMode
-  }, [])
+  }, [flatTokens])
 
 // parseEffectMultiplier removed (handled in EffectTokens)
 
   const colorFamiliesByMode = useMemo(() => {
     const byMode: Record<ModeName, Record<string, Array<{ level: string; entry: TokenEntry }>>> = {}
-    Object.values(groupedByMode).forEach(() => {}) // force dependency for TS
-    Object.entries(tokensJson as Record<string, any>).forEach(([_, entry]) => {
+    Object.values(groupedByMode).forEach(() => {})
+    flatTokens.forEach((entry) => {
       if (!entry || entry.type !== 'color') return
       if (!entry.name.startsWith('color/')) return
       const parts = entry.name.split('/')
@@ -430,15 +468,12 @@ export default function TokensPage() {
   useEffect(() => {
     // Initialize form values from tokens JSON, then overlay any persisted overrides
     const init: Record<string, string | number> = {}
-    Object.entries(tokensJson as Record<string, any>).forEach(([_, entry]) => {
-      if (!entry || !entry.name) return
-      init[entry.name] = entry.value
-    })
+    flatTokens.forEach((entry) => { init[entry.name] = entry.value })
     const overrides = readOverrides()
     const merged: Record<string, string | number> = { ...init, ...overrides }
     if (typeof merged['effect/none'] !== 'undefined') merged['effect/none'] = 0
     setValues(merged)
-  }, [])
+  }, [flatTokens])
 
   const handleChange = (tokenName: string, next: string) => {
     setValues((prev) => ({ ...prev, [tokenName]: next }))
@@ -596,13 +631,11 @@ export default function TokensPage() {
                                       const denomDown = Math.max(1, startLevel - minRef)
                                       const denomUp = Math.max(1, maxRef - startLevel)
 
-                                      const hasToken = (lvl: number) => {
+                        const hasToken = (lvl: number) => {
                                         const lvlStr = String(lvl).padStart(3, '0')
                                         // Always allow 050 to be set; otherwise require an existing token entry
                                         if (lvl === 50) return true
-                                        for (const entry of Object.values(tokensJson as Record<string, any>)) {
-                                          if (entry && (entry as any).type === 'color' && (entry as any).name === `color/${family}/${lvlStr}`) return true
-                                        }
+                          if (flatTokens.some((e) => e.type === 'color' && e.name === `color/${family}/${lvlStr}`)) return true
                                         return false
                                       }
 

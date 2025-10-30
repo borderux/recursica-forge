@@ -281,28 +281,9 @@ export function CodePenPage() {
     return () => window.removeEventListener('tokenOverridesChanged', handler as any)
   }, [])
   const allFamilies = useMemo(() => {
-    const fams = new Set<string>()
-    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
-      if (e && typeof e.name === 'string' && e.name.startsWith('color/')) {
-        const parts = e.name.split('/')
-        if (parts.length === 3) fams.add(parts[1])
-      }
-    })
-    try {
-      const raw = localStorage.getItem('token-overrides')
-      if (raw) {
-        const overrides = JSON.parse(raw)
-        if (overrides && typeof overrides === 'object') {
-          Object.keys(overrides).forEach((name) => {
-            if (typeof name === 'string' && name.startsWith('color/')) {
-              const parts = name.split('/')
-              if (parts.length === 3) fams.add(parts[1])
-            }
-          })
-        }
-      }
-    } catch {}
-    return Array.from(fams).filter((f) => f !== 'translucent').sort()
+    const fams = new Set<string>(Object.keys((tokensJson as any)?.color || {}))
+    fams.delete('translucent')
+    return Array.from(fams).sort()
   }, [tokenVersion])
   const [palettes, setPalettes] = useState<PaletteEntry[]>(() => {
     const DEFAULTS: PaletteEntry[] = [
@@ -380,11 +361,6 @@ export function CodePenPage() {
     try { localStorage.setItem('palette-opacity-bindings', JSON.stringify(next)) } catch {}
   }
 
-  const getToken = (name: string): any => Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
-  const getTokenValue = (name: string): string | number | undefined => {
-    const entry: any = getToken(name)
-    return entry ? entry.value : undefined
-  }
   const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
     let h = hex.trim()
     if (!h.startsWith('#')) h = '#' + h
@@ -456,31 +432,56 @@ export function CodePenPage() {
 
   // --- Theme.json resolver for palette scales ---
   const themeIndex = useMemo(() => {
-    const bucket: Record<string, any> = {}
-    const entries = (themeJson as any)?.RecursicaBrand ? Object.values((themeJson as any).RecursicaBrand as Record<string, any>) : []
-    ;(entries as any[]).forEach((e) => {
-      if (e && typeof e.name === 'string' && typeof e.mode === 'string') {
-        bucket[`${e.mode}::${e.name}`] = e
+    const out: Record<string, { value: any }> = {}
+    const visit = (node: any, prefix: string, mode: 'Light' | 'Dark') => {
+      if (!node || typeof node !== 'object') return
+      if (Object.prototype.hasOwnProperty.call(node, '$value')) {
+        out[`${mode}::${prefix}`] = { value: (node as any)['$value'] }
+        return
       }
-    })
-    return bucket
+      Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
+    }
+    if ((themeJson as any)?.light?.palette) visit((themeJson as any).light.palette, 'palette', 'Light')
+    if ((themeJson as any)?.dark?.palette) visit((themeJson as any).dark.palette, 'palette', 'Dark')
+    return out
   }, [])
 
   
 
+  const getTokenValue = (name: string): string | number | undefined => {
+    const normalized = (name || '').replace(/^token\./, '').replace(/\./g, '/')
+    const parts = normalized.split('/')
+    if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.color?.[parts[1]]?.[parts[2]]?.$value
+    if (parts[0] === 'opacity' && parts[1]) return (tokensJson as any)?.opacity?.[parts[1]]?.$value
+    if (parts[0] === 'font' && parts[1] === 'weight' && parts[2]) return (tokensJson as any)?.font?.weight?.[parts[2]]?.$value
+    if (parts[0] === 'font' && parts[1] === 'size' && parts[2]) return (tokensJson as any)?.font?.size?.[parts[2]]?.$value
+    return undefined
+  }
+
   const resolveThemeRef = (ref: any, modeLabel: 'Light' | 'Dark'): string | number | undefined => {
     if (ref == null) return undefined
-    if (typeof ref === 'string' || typeof ref === 'number') return ref
-    if (typeof ref === 'object') {
-      const coll = ref.collection
-      const name = ref.name
-      if (coll === 'Tokens' && typeof name === 'string') {
-        return getTokenValue(name)
+    if (typeof ref === 'number') return ref
+    if (typeof ref === 'string') {
+      const s = ref.trim()
+      if (!s.startsWith('{')) return s
+      const inner = s.slice(1, -1)
+      if (inner.startsWith('token.')) return getTokenValue(inner)
+      if (inner.startsWith('theme.')) {
+        const parts = inner.split('.')
+        const mode = (parts[1] || '').toLowerCase() === 'dark' ? 'Dark' : 'Light'
+        const path = parts.slice(2).join('/')
+        const entry = themeIndex[`${mode}::${path}`]
+        return resolveThemeRef(entry?.value, mode)
       }
+      return s
+    }
+    if (typeof ref === 'object') {
+      const coll = (ref as any).collection
+      const name = (ref as any).name
+      if (coll === 'Tokens' && typeof name === 'string') return getTokenValue(name)
       if (coll === 'Theme' && typeof name === 'string') {
         const entry = themeIndex[`${modeLabel}::${name}`]
-        if (!entry) return undefined
-        return resolveThemeRef(entry.value, modeLabel)
+        return resolveThemeRef(entry?.value, modeLabel)
       }
     }
     return undefined
@@ -515,8 +516,9 @@ export function CodePenPage() {
     try {
       const colors: Record<string, string> = {}
       const get = (name: string): string | undefined => {
-        const entry = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
-        return entry ? String(entry.value) : undefined
+        const parts = (name || '').split('/')
+        if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.color?.[parts[1]]?.[parts[2]]?.$value
+        return undefined
       }
       const defaults: Record<string, { token: string; hex: string }> = {
         '--palette-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
@@ -684,28 +686,13 @@ function SwatchPicker({ onSelect }: { onSelect: (cssVar: string, tokenName: stri
   const [targetVar, setTargetVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const options = useMemo(() => {
-    const fams = new Set<string>()
-    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
-      if (e && typeof e.name === 'string' && e.name.startsWith('color/')) {
-        const parts = e.name.split('/')
-        if (parts.length === 3) fams.add(parts[1])
-      }
-    })
-    const families = Array.from(fams).filter((f) => f !== 'translucent').sort()
+    const families = Object.keys((tokensJson as any)?.color || {}).filter((f) => f !== 'translucent').sort()
     const byFamily: Record<string, Array<{ level: string; name: string; value: string }>> = {}
-    families.forEach((f) => { byFamily[f] = [] })
-    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
-      if (e && typeof e.name === 'string' && e.name.startsWith('color/')) {
-        const parts = e.name.split('/')
-        if (parts.length === 3) {
-          const fam = parts[1]
-          const lvl = parts[2]
-          if (!byFamily[fam]) byFamily[fam] = []
-          byFamily[fam].push({ level: lvl, name: e.name, value: String(e.value) })
-        }
-      }
+    families.forEach((fam) => {
+      const levels = Object.keys((tokensJson as any)?.color?.[fam] || {})
+      byFamily[fam] = levels.map((lvl) => ({ level: lvl, name: `color/${fam}/${lvl}`, value: String((tokensJson as any).color[fam][lvl].$value) }))
+      byFamily[fam].sort((a, b) => Number(b.level) - Number(a.level))
     })
-    Object.values(byFamily).forEach((arr) => arr.sort((a, b) => Number(b.level) - Number(a.level)))
     return byFamily
   }, [])
 
@@ -771,13 +758,8 @@ function OpacityPicker({ onSelect }: { onSelect: (slot: 'disabled' | 'overlay', 
   const [slot, setSlot] = useState<'disabled' | 'overlay' | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const options = useMemo(() => {
-    const list: Array<{ name: string; value: number }> = []
-    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
-      if (e && typeof e.name === 'string' && e.name.startsWith('opacity/')) {
-        const n = Number(e.value)
-        if (Number.isFinite(n)) list.push({ name: e.name, value: n })
-      }
-    })
+    const src = (tokensJson as any)?.opacity || {}
+    const list: Array<{ name: string; value: number }> = Object.keys(src).map((k) => ({ name: `opacity/${k}`, value: Number(src[k]?.$value) }))
     list.sort((a, b) => a.value - b.value)
     return list
   }, [])

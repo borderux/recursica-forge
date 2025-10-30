@@ -38,23 +38,9 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   }, [])
 
   const families = useMemo(() => {
-    const fams = new Set<string>()
-    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
-      if (e && typeof e.name === 'string' && e.name.startsWith('color/')) {
-        const parts = e.name.split('/')
-        if (parts.length === 3) fams.add(parts[1])
-      }
-    })
-    try {
-      const overrides = readOverrides() as Record<string, any>
-      Object.keys(overrides || {}).forEach((name) => {
-        if (typeof name === 'string' && name.startsWith('color/')) {
-          const parts = name.split('/')
-          if (parts.length === 3) fams.add(parts[1])
-        }
-      })
-    } catch {}
-    const list = Array.from(fams).filter((f) => f !== 'translucent')
+    const fams = new Set<string>(Object.keys((tokensJson as any)?.color || {}))
+    fams.delete('translucent')
+    const list = Array.from(fams)
     list.sort((a, b) => {
       if (a === 'gray' && b !== 'gray') return -1
       if (b === 'gray' && a !== 'gray') return 1
@@ -111,14 +97,18 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   const availableFamilies = families.filter((f) => f === selectedFamily || !usedByOthers.has(f))
 
   const themeIndex = useMemo(() => {
-    const bucket: Record<string, any> = {}
-    const entries = (themeJson as any)?.RecursicaBrand ? Object.values((themeJson as any).RecursicaBrand as Record<string, any>) : []
-    ;(entries as any[]).forEach((e) => {
-      if (e && typeof e.name === 'string' && typeof e.mode === 'string') {
-        bucket[`${e.mode}::${e.name}`] = e
+    const out: Record<string, { value: any }> = {}
+    const visit = (node: any, prefix: string, mode: 'Light' | 'Dark') => {
+      if (!node || typeof node !== 'object') return
+      if (Object.prototype.hasOwnProperty.call(node, '$value')) {
+        out[`${mode}::${prefix}`] = { value: (node as any)['$value'] }
+        return
       }
-    })
-    return bucket
+      Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
+    }
+    if ((themeJson as any)?.light?.palette) visit((themeJson as any).light.palette, 'palette', 'Light')
+    if ((themeJson as any)?.dark?.palette) visit((themeJson as any).dark.palette, 'palette', 'Dark')
+    return out
   }, [])
 
   function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -173,7 +163,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   // }
 
   const getTokenValueByName = (name: string): string | undefined => {
-    // Prefer runtime overrides, then fall back to Tokens.json
     try {
       const overrides = readOverrides() as Record<string, any>
       if (overrides && Object.prototype.hasOwnProperty.call(overrides, name)) {
@@ -181,23 +170,36 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         if (ov != null) return String(ov)
       }
     } catch {}
-    const entry: any = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
-    return entry ? String(entry.value) : undefined
+    const parts = (name || '').split('/')
+    if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.color?.[parts[1]]?.[parts[2]]?.$value
+    if (parts[0] === 'opacity' && parts[1]) return String((tokensJson as any)?.opacity?.[parts[1]]?.$value)
+    return undefined
   }
 
   const resolveThemeRef = (ref: any, modeLabel: 'Light' | 'Dark'): string | number | undefined => {
     if (ref == null) return undefined
-    if (typeof ref === 'string' || typeof ref === 'number') return ref
-    if (typeof ref === 'object') {
-      const coll = ref.collection
-      const name = ref.name
-      if (coll === 'Tokens' && typeof name === 'string') {
-        return getTokenValueByName(name)
+    if (typeof ref === 'number') return ref
+    if (typeof ref === 'string') {
+      const s = ref.trim()
+      if (!s.startsWith('{')) return s
+      const inner = s.slice(1, -1)
+      if (inner.startsWith('token.')) return getTokenValueByName(inner.replace(/^token\./, '').replace(/\./g, '/'))
+      if (inner.startsWith('theme.')) {
+        const parts = inner.split('.')
+        const mode = (parts[1] || '').toLowerCase() === 'dark' ? 'Dark' : 'Light'
+        const path = parts.slice(2).join('/')
+        const entry = (themeIndex as any)[`${mode}::${path}`]
+        return resolveThemeRef(entry?.value, mode)
       }
+      return s
+    }
+    if (typeof ref === 'object') {
+      const coll = (ref as any).collection
+      const name = (ref as any).name
+      if (coll === 'Tokens' && typeof name === 'string') return getTokenValueByName(name)
       if (coll === 'Theme' && typeof name === 'string') {
         const entry = (themeIndex as any)[`${modeLabel}::${name}`]
-        if (!entry) return undefined
-        return resolveThemeRef(entry.value, modeLabel)
+        return resolveThemeRef(entry?.value, modeLabel)
       }
     }
     return undefined
