@@ -360,6 +360,23 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFamily, mode, overrideVersion])
 
+  // Expose a primary alias CSS variable for this palette
+  useEffect(() => {
+    const lvl = primaryLevelStr
+    const hex = getSelectedFamilyHexForLevel(lvl) || '#ffffff'
+    try {
+      const root = document.documentElement
+      const computed = getComputedStyle(root)
+      root.style.setProperty(`--palette-${paletteKey}-primary-tone`, hex)
+      const onTone = (computed.getPropertyValue(`--palette-${paletteKey}-${lvl}-on-tone`) || '').trim()
+      if (onTone) root.style.setProperty(`--palette-${paletteKey}-primary-on-tone`, onTone)
+      const hi = (computed.getPropertyValue(`--palette-${paletteKey}-${lvl}-high-emphasis`) || '').trim()
+      if (hi) root.style.setProperty(`--palette-${paletteKey}-primary-high-emphasis`, hi)
+      const lo = (computed.getPropertyValue(`--palette-${paletteKey}-${lvl}-low-emphasis`) || '').trim()
+      if (lo) root.style.setProperty(`--palette-${paletteKey}-primary-low-emphasis`, lo)
+    } catch {}
+  }, [primaryLevelStr, selectedFamily, overrideVersion, mode, paletteKey])
+
   return (
     <div className="palette-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
