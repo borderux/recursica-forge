@@ -6,7 +6,7 @@ export default function EffectTokens() {
   const flattenEffect = (): Array<{ name: string; value: number }> => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.effect || {}
+      const src: any = (tokensJson as any)?.tokens?.effect || {}
       Object.keys(src).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)

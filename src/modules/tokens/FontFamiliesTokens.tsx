@@ -8,11 +8,13 @@ export default function FontFamiliesTokens() {
   // Local snapshot writer (we don't read it to avoid re-renders)
   const [, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && typeof entry.name === 'string' && (typeof entry.value === 'number' || typeof entry.value === 'string')) {
-        init[entry.name] = entry.value
-      }
-    })
+    try {
+      const fams: any = (tokensJson as any)?.font?.family || {}
+      Object.keys(fams).forEach((k) => {
+        const v = fams[k]?.$value
+        if (typeof v === 'string' && v) init[`font/family/${k}`] = v
+      })
+    } catch {}
     const overrides = readOverrides()
     return { ...init, ...overrides }
   })
@@ -37,12 +39,15 @@ export default function FontFamiliesTokens() {
     const base: Record<string, FamilyRow> = {}
     const overrides = readOverrides()
     // from tokens
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (!entry || typeof entry.name !== 'string') return
-      if (!entry.name.startsWith('font/family/')) return
-      const ov = (overrides as any)[entry.name]
-      base[entry.name] = { name: entry.name, value: String(ov ?? entry.value), custom: false }
-    })
+    try {
+      const fams: any = (tokensJson as any)?.font?.family || {}
+      Object.keys(fams).forEach((key) => {
+        const name = `font/family/${key}`
+        const val = fams[key]?.$value
+        const ov = (overrides as any)[name]
+        base[name] = { name, value: String(ov ?? val ?? ''), custom: false }
+      })
+    } catch {}
     // from overrides-only (newly added)
     Object.keys(overrides as Record<string, any>).forEach((name) => {
       if (!name.startsWith('font/family/')) return
@@ -134,7 +139,9 @@ export default function FontFamiliesTokens() {
   }
 
   const isFromTokens = (name: string): boolean => {
-    return !!Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
+    if (!name.startsWith('font/family/')) return false
+    const key = name.replace('font/family/','')
+    return Boolean((tokensJson as any)?.font?.family?.[key])
   }
 
   const sanitizeFamilyShort = (family: string): string => {

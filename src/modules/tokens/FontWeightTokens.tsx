@@ -6,7 +6,7 @@ export default function FontWeightTokens() {
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.font?.weight || {}
+      const src: any = (tokensJson as any)?.tokens?.font?.weight || {}
       Object.keys(src).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)

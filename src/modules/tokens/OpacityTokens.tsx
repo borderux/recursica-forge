@@ -13,7 +13,7 @@ export default function OpacityTokens() {
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.opacity || {}
+      const src: any = (tokensJson as any)?.tokens?.opacity || {}
       Object.keys(src).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
