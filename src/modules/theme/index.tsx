@@ -16,11 +16,7 @@ const LIGHT_MODE: ThemeVars = {
   "--temp-overlay": "rgba(0,0,0,0.68)",
   "--temp-elevation-0": "rgba(0,0,0,0.14)",
   
-  "--palette-alert": "#000000",
-  "--palette-black": "#000000",
-  "--palette-success": "#000000",
-  "--palette-warning": "#000000",
-  "--palette-white": "#000000",
+  // palette vars are seeded at startup; avoid overriding here
   "--palette-overlay": "0.38",
   "--palette-disabled": "0.38",
   
@@ -309,15 +305,16 @@ export function CodePenPage() {
     return Array.from(fams).filter((f) => f !== 'translucent').sort()
   }, [tokenVersion])
   const [palettes, setPalettes] = useState<PaletteEntry[]>(() => {
-    try {
-      const raw = localStorage.getItem('dynamic-palettes')
-      if (raw) return JSON.parse(raw)
-    } catch {}
-    return [
+    const DEFAULTS: PaletteEntry[] = [
       { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
       { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
       { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
     ]
+    try {
+      const raw = localStorage.getItem('dynamic-palettes')
+      if (raw) return JSON.parse(raw)
+    } catch {}
+    return DEFAULTS
   })
   const writePalettes = (next: PaletteEntry[]) => {
     setPalettes(next)
@@ -399,6 +396,56 @@ export function CodePenPage() {
     const { r, g, b } = hexToRgb(hex)
     const a = Math.max(0, Math.min(1, alpha))
     return `rgba(${r}, ${g}, ${b}, ${a})`
+  }
+
+  const relativeLuminance = (hex: string): number => {
+    const { r, g, b } = hexToRgb(hex)
+    const srgb = [r, g, b].map((v) => v / 255)
+    const lin = srgb.map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))) as [number, number, number]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+  }
+
+  const contrastRatio = (hex1: string, hex2: string): number => {
+    const L1 = relativeLuminance(hex1)
+    const L2 = relativeLuminance(hex2)
+    const lighter = Math.max(L1, L2)
+    const darker = Math.min(L1, L2)
+    return (lighter + 0.05) / (darker + 0.05)
+  }
+
+  const pickAATextColor = (toneHex: string): string => {
+    const black = '#000000'
+    const white = '#ffffff'
+    const cBlack = contrastRatio(toneHex, black)
+    const cWhite = contrastRatio(toneHex, white)
+    const AA = 4.5
+    if (cBlack >= AA && cWhite >= AA) return cBlack >= cWhite ? black : white
+    if (cBlack >= AA) return black
+    if (cWhite >= AA) return white
+    return cBlack >= cWhite ? black : white
+  }
+
+  const applyAliasOnTones = () => {
+    try {
+      const style = getComputedStyle(document.documentElement)
+      const read = (v: string): string | null => (style.getPropertyValue(v) || '').trim() || null
+      const set = (k: string, v: string) => document.documentElement.style.setProperty(k, v)
+      const alertHex = read('--palette-alert')
+      const warnHex = read('--palette-warning')
+      const successHex = read('--palette-success')
+      const blackHex = read('--palette-black')
+      if (alertHex) set('--palette-alert-on-tone', pickAATextColor(alertHex))
+      if (warnHex) set('--palette-warning-on-tone', pickAATextColor(warnHex))
+      if (successHex) set('--palette-success-on-tone', pickAATextColor(successHex))
+      if (blackHex) set('--palette-black-on-tone', pickAATextColor(blackHex))
+      // Provide emphasis defaults (can be refined later if needed)
+      set('--palette-alert-high-emphasis', '1')
+      set('--palette-alert-low-emphasis', '0.5')
+      set('--palette-warning-high-emphasis', '1')
+      set('--palette-warning-low-emphasis', '0.5')
+      set('--palette-success-high-emphasis', '1')
+      set('--palette-success-low-emphasis', '0.5')
+    } catch {}
   }
 
   // extractCssVarsFromObject helper retained in varsUtil in app shells
@@ -484,6 +531,7 @@ export function CodePenPage() {
       applyCssVars(colors)
       // Seed palette scale variables from Theme.json (Light mode)
       applyThemePalettesFromJson('Light')
+      applyAliasOnTones()
     } catch {}
   }, [])
 
@@ -494,6 +542,31 @@ export function CodePenPage() {
     // Update palette scale variables for current mode
     applyThemePalettesFromJson(isDarkMode ? 'Dark' : 'Light')
   }, [isDarkMode, customVars, palettes])
+
+  // Handle palette reset requests from shells (reset to defaults and clear primary selections)
+  useEffect(() => {
+    const DEFAULTS: PaletteEntry[] = [
+      { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
+      { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
+      { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
+    ]
+    const onReset = () => {
+      // Remove any custom primary selections
+      try {
+        const keys: string[] = []
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const k = localStorage.key(i) || ''
+          if (k.startsWith('palette-primary-level:')) keys.push(k)
+        }
+        keys.forEach((k) => localStorage.removeItem(k))
+      } catch {}
+      // Reset palettes to defaults (removes any extras)
+      writePalettes(DEFAULTS)
+    }
+    window.addEventListener('paletteReset', onReset as any)
+    return () => window.removeEventListener('paletteReset', onReset as any)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
@@ -564,28 +637,7 @@ export function CodePenPage() {
                 )
               })()}
               </tr>
-              <tr>
-              <td>{(paletteBindings['--palette-black']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-white']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-alert']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-warning']?.hex ?? '').toUpperCase()}</td>
-              <td>{(paletteBindings['--palette-success']?.hex ?? '').toUpperCase()}</td>
-              {(() => {
-                const faintRaw: any = opacityBindings.disabled?.value ?? getTokenValue('opacity/faint')
-                const veiledRaw: any = opacityBindings.overlay?.value ?? getTokenValue('opacity/veiled')
-                const pct = (v: any) => {
-                  const n = typeof v === 'number' ? v : parseFloat(String(v))
-                  if (!Number.isFinite(n)) return ''
-                  return `${Math.round(n <= 1 ? n * 100 : n)}%`
-                }
-                return (
-                  <>
-                    <td>{pct(faintRaw)}<br />{opacityBindings.disabled?.token ?? 'opacity/faint'}</td>
-                    <td>{pct(veiledRaw)}<br />{opacityBindings.overlay?.token ?? 'opacity/veiled'}</td>
-                  </>
-                )
-              })()}
-              </tr>
+              {/* Removed hex values row under swatches per request */}
             </tbody>
           </table>
 
@@ -607,6 +659,7 @@ export function CodePenPage() {
         <SwatchPicker onSelect={(cssVar: string, tokenName: string, hex: string) => {
           document.documentElement.style.setProperty(cssVar, hex)
           writeBindings({ ...paletteBindings, [cssVar]: { token: tokenName, hex } })
+          applyAliasOnTones()
         }} />
 
         <OpacityPicker onSelect={(slot: 'disabled' | 'overlay', tokenName: string, value: number) => {

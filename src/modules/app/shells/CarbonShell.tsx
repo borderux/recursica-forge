@@ -47,7 +47,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           <a href="/uikit" style={{ color: 'inherit', textDecoration: 'none' }}>UI Kit</a>
         </div>
         <HeaderGlobalBar>
-          <button onClick={() => { clearOverrides(tokensJson as any); applyTheme(LIGHT_MODE) }} title="Reset to defaults" style={{ marginRight: 8 }}>↺</button>
+          <button onClick={() => { clearOverrides(tokensJson as any); applyTheme(LIGHT_MODE); try { window.dispatchEvent(new CustomEvent('paletteReset')) } catch {} }} title="Reset to defaults" style={{ marginRight: 8 }}>↺</button>
           <button onClick={() => downloadCurrentCssVars()} title="Download" style={{ marginRight: 8 }}>⤓</button>
           <div style={{ minWidth: 180 }}>
             <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>

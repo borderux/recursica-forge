@@ -10,11 +10,39 @@ import TokensPage from './modules/tokens/TokensPage'
 import LayersPage from './modules/theme/LayersPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { applyTheme, LIGHT_MODE } from './modules/theme/index'
+import tokensJson from './vars/Tokens.json'
+import { applyCssVars } from './modules/theme/varsUtil'
 import './styles/index.css'
 import './styles/theme.css.ts'
 
 // Ensure CSS variables are set before initial render to avoid half-loaded state
 applyTheme(LIGHT_MODE)
+
+// Seed core palette CSS variables so alternative layers render correct backgrounds
+try {
+  const get = (name: string): string | undefined => {
+    const entry = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
+    return entry ? String(entry.value) : undefined
+  }
+  const defaults: Record<string, { token: string; hex: string }> = {
+    '--palette-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
+    '--palette-white': { token: 'color/gray/000', hex: get('color/gray/000') || '#ffffff' },
+    '--palette-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
+    '--palette-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
+    '--palette-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
+  }
+  let merged = { ...defaults }
+  try {
+    const raw = localStorage.getItem('palette-bindings')
+    if (raw) {
+      const bindings = JSON.parse(raw) as Record<string, { token: string; hex: string }>
+      merged = { ...merged, ...bindings }
+    }
+  } catch {}
+  const colors: Record<string, string> = {}
+  Object.entries(merged).forEach(([cssVar, info]) => { colors[cssVar] = info.hex })
+  applyCssVars(colors)
+} catch {}
 
 const router = createBrowserRouter([
   {

@@ -51,8 +51,29 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
 
             <Group gap="xs" wrap="nowrap">
               <ActionIcon variant="default" onClick={() => {
+                // Clear all saved overrides (colors, type, palette choices, etc.)
                 clearOverrides(tokensJson as any)
+                // Re-apply baseline theme CSS variables
                 applyTheme(LIGHT_MODE)
+                // Re-seed core palette CSS variables so alternative layers reset immediately
+                try {
+                  const get = (name: string): string | undefined => {
+                    const entry = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
+                    return entry ? String((entry as any).value) : undefined
+                  }
+                  const defaults: Record<string, { token: string; hex: string }> = {
+                    '--palette-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
+                    '--palette-white': { token: 'color/gray/000', hex: get('color/gray/000') || '#ffffff' },
+                    '--palette-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
+                    '--palette-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
+                    '--palette-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
+                  }
+                  const colors: Record<string, string> = {}
+                  Object.entries(defaults).forEach(([cssVar, info]) => { colors[cssVar] = info.hex })
+                  applyCssVars(colors)
+                } catch {}
+                // Notify interested pages/components (e.g., Palettes, Layers) to refresh any derived state
+                try { window.dispatchEvent(new CustomEvent('paletteReset')) } catch {}
               }} title="Reset to defaults">
                 ↺
               </ActionIcon>

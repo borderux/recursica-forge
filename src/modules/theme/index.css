@@ -41,6 +41,7 @@ h3 {
 /* --- Color Swatches --- */
 .color-swatches {
   width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 16px;
   border: 1px solid var(--temp-disabled);
@@ -71,16 +72,16 @@ h3 {
 }
 .palette-container table {
   border: 1px solid var(--temp-disabled);
-  padding: 16px;
+  padding: 0;
   border-radius: 8px;
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  padding-top: 36px;
+  padding: 20px;
 }
 .palette-container th, .palette-container td {
-  padding-top: 4px;
-  padding-bottom: 4px;
+  padding-top: 0;
+  padding-bottom: 0;
   text-align: center;
 }
 .palette-box {
@@ -93,7 +94,7 @@ h3 {
   border-radius: 50%;
   margin: 0 auto;
 }
-.color-palettes .palette-box.default, .color-palettes th.default, .color-palettes .palette-label.default {
+.color-palettes .palette-label.default {
   border: 5px solid var(--scale-black);
 }
 .color-palettes th.default {
@@ -137,6 +138,11 @@ h3 {
   flex-direction: column;
   gap: 24px;
 }
+.layer-content > :last-child {
+  /* Ensure the nested examples area stretches to fill available space */
+  flex: 1;
+  min-width: 0;
+}
 .layer-text-samples p {
   line-height: 1.25;
   margin-bottom: 3.5px;
@@ -149,12 +155,14 @@ h3 {
 }
 .alt-layers-wrapper {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Keep all alternative layers on one row */
   gap: 24px;
+  overflow-x: auto;
 }
 .alt-layer-card {
   padding: 24px;
-  flex-grow: 1;
+  flex: 1 0 0; /* Evenly distribute across one row */
+  min-width: 0;
 }
 
 /* --- Elevation --- */
@@ -261,8 +269,10 @@ h3 {
     flex-direction: row;
   }
   .layer-text-samples {
-    min-width: 200px;
-    width: 200px; /* Fixed width on desktop for visual consistency */
+    /* Fixed 25% column on desktop */
+    flex: 0 0 25%;
+    width: 25%;
+    min-width: 25%;
   }
 }
 @media (max-width: 768px) {
