@@ -202,7 +202,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
 
   const themeIndex = useMemo(() => {
     const bucket: Record<string, ThemeRecord> = {}
-    const rec: any = ((theme as any)?.RecursicaBrand) || {}
+    const rec: any = ((theme as any)?.brand?.RecursicaBrand) || ((theme as any)?.RecursicaBrand) || {}
     Object.values(rec as Record<string, any>).forEach((e: any) => {
       if (e && typeof e.name === 'string') bucket[e.name] = e
     })
@@ -214,17 +214,22 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   const spacingRec = getThemeEntry(prefix, 'letter-spacing', theme as any)
   const weightRec = getThemeEntry(prefix, 'weight', theme as any) || getThemeEntry(prefix, 'weight-normal', theme as any)
   const currentStyle: Style = (() => {
-    const fam = resolveThemeValue(familyRec?.value, overrides, tokens as any, themeIndex)
-    const size = resolveThemeValue(sizeRec?.value, overrides, tokens as any, themeIndex)
-    const spacing = resolveThemeValue(spacingRec?.value, overrides, tokens as any, themeIndex)
-    const weight = resolveThemeValue(weightRec?.value, overrides, tokens as any, themeIndex)
+    // Prefer brand.typography if provided, else fall back to theme entries
+    const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+    const spec: any = root?.typography?.[prefix]?.$value || (prefix.startsWith('body') ? root?.typography?.body?.normal?.$value : undefined)
+    const fam = spec?.fontFamily ?? resolveThemeValue(familyRec?.value, overrides, tokens as any, themeIndex)
+    const size = spec?.fontSize ?? resolveThemeValue(sizeRec?.value, overrides, tokens as any, themeIndex)
+    const spacing = spec?.letterSpacing ?? resolveThemeValue(spacingRec?.value, overrides, tokens as any, themeIndex)
+    const weight = (spec?.fontWeight ?? spec?.weight) ?? resolveThemeValue(weightRec?.value, overrides, tokens as any, themeIndex)
     const base: any = {
       fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
       fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--font-${prefix}-font-size`)),
       fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)) as any,
       letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--font-${prefix}-font-letter-spacing`))),
       lineHeight: ((): any => {
-        const rec = getThemeEntry(prefix, 'line-height', theme as any)
+        const fromSpec = spec?.lineHeight
+        if (typeof fromSpec === 'number' || typeof fromSpec === 'string') return fromSpec as any
+        const rec = getThemeEntry(prefix, 'line-height', (theme as any)?.brand ? (theme as any).brand : (theme as any))
         const v = resolveThemeValue(rec?.value, overrides, tokens as any, themeIndex)
         return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--font-${prefix}-line-height`) as any)
       })(),
