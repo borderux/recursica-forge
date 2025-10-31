@@ -12,16 +12,17 @@ type PaletteGridProps = {
   onDelete?: () => void
 }
 
-const LEVELS: Array<number> = [900, 800, 700, 600, 500, 400, 300, 200, 100, 50]
+const LEVELS: Array<number> = [1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 50, 0]
 
 function toLevelString(level: number): string {
   if (level === 50) return '050'
+  if (level === 0) return '000'
   return String(level)
 }
 
 function toTokenLevel(levelStr: string): string {
-  // Tokens use 50 (no leading zero), but CSS vars use 050
-  return levelStr === '050' ? '50' : levelStr
+  // Tokens now include explicit keys for 000 and 050; use level string as-is
+  return levelStr
 }
 
 export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, initialFamily, mode, deletable, onDelete }: PaletteGridProps) {
