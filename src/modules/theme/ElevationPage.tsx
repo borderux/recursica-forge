@@ -1,7 +1,7 @@
 import './index.css'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import EffectTokens from '../tokens/EffectTokens'
-import { readOverrides, setOverride } from './tokenOverrides'
+import { readOverrides } from './tokenOverrides'
 import tokensJson from '../../vars/Tokens.json'
 
 interface ElevationControl {
@@ -324,7 +324,14 @@ export default function ElevationPage() {
       }
     })
     const overrides = readOverrides()
-    return { ...tokens, ...overrides }
+    // Filter overrides to only include numeric values for effect tokens
+    const effectOverrides: Record<string, number> = {}
+    Object.entries(overrides).forEach(([key, value]) => {
+      if (key.startsWith('effect/') && typeof value === 'number') {
+        effectOverrides[key] = value
+      }
+    })
+    return { ...tokens, ...effectOverrides }
   })
 
   // State to trigger re-renders when tokens change (for shadow color)
@@ -634,7 +641,7 @@ export default function ElevationPage() {
               <div className="control-group" style={{ minWidth: '100px' }}>
                 <label>Color</label>
                 <ShadowColorPicker
-                  onSelect={(tokenName, hex) => {
+                  onSelect={(tokenName, _hex) => {
                     setShadowColorControl(prev => {
                       const newState = { ...prev, colorToken: tokenName }
                       // Save to localStorage with the new state
