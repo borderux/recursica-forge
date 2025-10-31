@@ -38,7 +38,18 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   }, [])
 
   const families = useMemo(() => {
+    // Merge families from Tokens.json and overrides so custom scales appear
     const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))
+    try {
+      const overrides = readOverrides() as Record<string, any>
+      Object.keys(overrides || {}).forEach((name) => {
+        if (typeof name !== 'string') return
+        if (!name.startsWith('color/')) return
+        const parts = name.split('/')
+        const fam = parts[1]
+        if (fam && fam !== 'translucent') fams.add(fam)
+      })
+    } catch {}
     fams.delete('translucent')
     const list = Array.from(fams)
     list.sort((a, b) => {
@@ -47,7 +58,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       return a.localeCompare(b)
     })
     return list
-  }, [overrideVersion])
+  }, [tokensJson, overrideVersion])
 
   const [selectedFamily, setSelectedFamily] = useState<string>(() => {
     if (typeof initialFamily === 'string' && initialFamily) return initialFamily

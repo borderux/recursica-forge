@@ -36,7 +36,7 @@ export function clearOverrides(initialAll?: any) {
     const removeKeys = (
       Object.keys(localStorage || {}) as Array<string>
     ).filter((k) => (
-      k === 'family-friendly-names' ||
+      // keep 'family-friendly-names' intact; it is sourced from Tokens.json
       k === 'font-families-deleted' ||
       k === 'effects-scale-by-default' ||
       k === 'font-letter-scale-by-tight-wide' ||

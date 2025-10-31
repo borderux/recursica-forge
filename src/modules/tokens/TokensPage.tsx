@@ -94,6 +94,34 @@ async function getNtcName(hex: string): Promise<string> {
   return hex.toUpperCase()
 }
 
+function fallbackHueNameFromHex(hex: string): string {
+  const { h, s, v } = hexToHsv(hex)
+  if (s < 0.05) {
+    // near grayscale
+    if (v > 0.9) return 'White'
+    if (v < 0.1) return 'Black'
+    return 'Gray'
+  }
+  const hue = ((h % 360) + 360) % 360
+  if (hue >= 345 || hue < 15) return 'Red'
+  if (hue < 45) return 'Orange'
+  if (hue < 65) return 'Yellow'
+  if (hue < 170) return 'Green'
+  if (hue < 200) return 'Cyan'
+  if (hue < 255) return 'Blue'
+  if (hue < 290) return 'Indigo'
+  if (hue < 330) return 'Violet'
+  return 'Magenta'
+}
+
+async function getFriendlyNamePreferNtc(hex: string): Promise<string> {
+  try {
+    const label = await getNtcName(hex)
+    if (label && label.trim() && !/^#/.test(label)) return toTitleCase(label.trim())
+  } catch {}
+  return toTitleCase(fallbackHueNameFromHex(hex))
+}
+
 // HueGradient unused
 
 function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChange, onNameFromHex, displayFamilyName }: { tokenName: string; currentHex: string; swatchRect: DOMRect; onClose: () => void; onChange: (hex: string, cascadeDown: boolean, cascadeUp: boolean) => void; onNameFromHex: (family: string, hex: string) => void; displayFamilyName?: string }) {
@@ -340,6 +368,7 @@ export default function TokensPage() {
   } | null>(null)
   const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>({})
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
+  const [namesHydrated, setNamesHydrated] = useState(false)
   // Effect scale state managed inside EffectTokens module
   useEffect(() => {
     // hydrate from localStorage
@@ -350,11 +379,52 @@ export default function TokensPage() {
         if (parsed && typeof parsed === 'object') setFamilyNames(parsed)
       }
     } catch {}
+    setNamesHydrated(true)
   }, [])
   useEffect(() => {
+    const onNames = (ev: Event) => {
+      try {
+        const detail: any = (ev as CustomEvent).detail
+        if (detail && typeof detail === 'object') {
+          setFamilyNames(detail)
+          setNamesHydrated(true)
+          return
+        }
+        const raw = localStorage.getItem('family-friendly-names')
+        setFamilyNames(raw ? JSON.parse(raw) : {})
+        setNamesHydrated(true)
+      } catch {
+        setFamilyNames({})
+      }
+    }
+    window.addEventListener('familyNamesChanged', onNames as any)
+    return () => window.removeEventListener('familyNamesChanged', onNames as any)
+  }, [])
+  useEffect(() => {
+    if (!namesHydrated) return
     try { localStorage.setItem('family-friendly-names', JSON.stringify(familyNames)) } catch {}
     try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: familyNames })) } catch {}
-  }, [familyNames])
+  }, [familyNames, namesHydrated])
+  // (moved below colorFamiliesByMode definition to avoid TDZ)
+  // Seed family names from Tokens.json keys on init/reset while preserving existing names (including custom scales)
+  useEffect(() => {
+    try {
+      const t: any = (tokensJson as any)?.tokens?.color || {}
+      const keys = Object.keys(t).filter((k) => k !== 'translucent')
+      const raw = localStorage.getItem('family-friendly-names')
+      const existing = raw ? (JSON.parse(raw) || {}) : {}
+      const next: Record<string, string> = { ...existing }
+      let changed = false
+      keys.forEach((fam) => {
+        const desired = toTitleCase(fam)
+        if (!next[fam] || !String(next[fam]).trim()) {
+          next[fam] = desired
+          changed = true
+        }
+      })
+      if (changed) setFamilyNames(next)
+    } catch {}
+  }, [tokensJson])
   // Maintain visual column order; newly added families append to the end
   const [familyOrder, setFamilyOrder] = useState<string[]>(() => {
     try {
@@ -445,36 +515,49 @@ export default function TokensPage() {
     return byMode
   }, [groupedByMode, values])
 
-  // Auto-fill missing friendly names using color values
+  // Ensure all families present have a friendly name (only fills missing; never overwrites)
   useEffect(() => {
     (async () => {
       try {
-        const allFamilies = new Set<string>()
-        Object.values(colorFamiliesByMode).forEach((famMap) => {
-          Object.keys(famMap).forEach((f) => allFamilies.add(f))
-        })
-        if (!allFamilies.size) return
+        const famSet = new Set<string>()
+        const byMode = colorFamiliesByMode['Mode 1'] || {}
+        Object.keys(byMode).forEach((fam) => { if (fam !== 'translucent') famSet.add(fam) })
+        if (!famSet.size) return
+        const raw = localStorage.getItem('family-friendly-names')
+        const existing = raw ? (JSON.parse(raw) || {}) : {}
         let changed = false
-        const next: Record<string, string> = { ...familyNames }
-        for (const fam of allFamilies) {
-          if (fam === 'translucent') continue
-          if (next[fam] && next[fam].trim()) continue
-          // Prefer 500 level; otherwise pick the closest available
-          const levels = (colorFamiliesByMode['Mode 1']?.[fam] || [])
-          const preferred = levels.find((l) => l.level === '500') || levels[Math.floor(levels.length / 2)] || levels[0]
-          const hex = preferred?.entry?.value as string | undefined
+        const next: Record<string, string> = { ...existing }
+        for (const fam of famSet) {
+          if (next[fam] && String(next[fam]).trim()) continue
+          // Prefer 500 value from current values; fallback to any level present
+          const levels = byMode[fam] || []
+          const five = levels.find((l: any) => l.level === '500') || levels[Math.floor(levels.length / 2)] || levels[0]
+          const hex = five?.entry?.value as string | undefined
           if (typeof hex === 'string' && /^#?[0-9a-fA-F]{6}$/.test(hex.trim())) {
             const normalized = hex.startsWith('#') ? hex : `#${hex}`
-            const label = await getNtcName(normalized)
+            const label = await getFriendlyNamePreferNtc(normalized)
             if (label && label.trim()) {
-              next[fam] = toTitleCase(label.trim())
+              next[fam] = label.trim()
               changed = true
             }
+          } else {
+            // fallback to titlecased key
+            next[fam] = toTitleCase(fam)
+            changed = true
           }
         }
-        if (changed) setFamilyNames(next)
+        if (changed) {
+          setFamilyNames(next)
+          try { localStorage.setItem('family-friendly-names', JSON.stringify(next)) } catch {}
+          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: next })) } catch {}
+        }
       } catch {}
     })()
+  }, [colorFamiliesByMode])
+
+  // Disabled auto-namer: only rename on explicit edits or when adding a new scale
+  useEffect(() => {
+    // intentionally no-op
   }, [colorFamiliesByMode])
 
   useEffect(() => {
@@ -553,8 +636,15 @@ export default function TokensPage() {
                         const seedHex = hsvToHex(newHue, Math.max(0.6, baseHSV.s), Math.max(0.6, baseHSV.v))
                         write(`color/${newFamily}/500`, seedHex)
                         // name the column
-                        const name = await getNtcName(seedHex)
-                        setFamilyNames((prev) => ({ ...prev, [newFamily]: toTitleCase(name) }))
+                        const name = await getFriendlyNamePreferNtc(seedHex)
+                        setFamilyNames((prev) => ({ ...prev, [newFamily]: name }))
+                        try {
+                          const raw = localStorage.getItem('family-friendly-names')
+                          const map = raw ? JSON.parse(raw) || {} : {}
+                          map[newFamily] = name
+                          localStorage.setItem('family-friendly-names', JSON.stringify(map))
+                          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+                        } catch {}
                         setFamilyOrder((prev) => (prev.includes(newFamily) ? prev : [...prev, newFamily]))
                         // Evenly step the scale from 000 → 500 → 1000, with 500 fixed to seed
                         const idxMap: Record<number, number> = { 0:0, 50:1, 100:2, 200:3, 300:4, 400:5, 500:6, 600:7, 700:8, 800:9, 900:10, 1000:11 }
@@ -595,7 +685,17 @@ export default function TokensPage() {
                       <input
                         required
                         value={toTitleCase(familyNames[family] ?? family)}
-                        onChange={(e) => setFamilyNames((prev) => ({ ...prev, [family]: toTitleCase(e.currentTarget.value) }))}
+                        onChange={(e) => {
+                          const v = toTitleCase(e.currentTarget.value)
+                          setFamilyNames((prev) => ({ ...prev, [family]: v }))
+                          try {
+                            const raw = localStorage.getItem('family-friendly-names')
+                            const map = raw ? JSON.parse(raw) || {} : {}
+                            map[family] = v
+                            localStorage.setItem('family-friendly-names', JSON.stringify(map))
+                            try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+                          } catch {}
+                        }}
                         style={{ fontSize: 13, padding: '4px 8px', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6, width: '100%' }}
                       />
                     </div>
@@ -731,8 +831,15 @@ export default function TokensPage() {
                                     }
                                     const finalHex = normHex(fiveHex)
                                     if (finalHex) {
-                                      const label = await getNtcName(finalHex)
-                                      setFamilyNames((prev) => ({ ...prev, [family]: toTitleCase(label) }))
+                                      const label = await getFriendlyNamePreferNtc(finalHex)
+                                      setFamilyNames((prev) => ({ ...prev, [family]: label }))
+                                      try {
+                                        const raw = localStorage.getItem('family-friendly-names')
+                                        const map = raw ? JSON.parse(raw) || {} : {}
+                                        map[family] = label
+                                        localStorage.setItem('family-friendly-names', JSON.stringify(map))
+                                        try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+                                      } catch {}
                                     }
                                   })()
                                 }}

@@ -4,6 +4,7 @@ import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
 import { applyCssVars } from '../theme/varsUtil'
 import { readOverrides } from '../theme/tokenOverrides'
+import { clearOverrides } from '../theme/tokenOverrides'
 
 type JsonLike = Record<string, any>
 
@@ -91,6 +92,10 @@ function writeLSJson<T>(key: string, value: T) {
 
 function removeLS(key: string) {
   try { localStorage.removeItem(key) } catch {}
+}
+
+function toTitleCase(label: string): string {
+  return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
 }
 
 function migratePaletteLocalKeys(): PaletteStore {
@@ -207,21 +212,27 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
   // Seed or re-seed when bundled JSON changes
   useEffect(() => {
     if (!lsAvailable) return
-    const currentVersion = localStorage.getItem(STORAGE_KEYS.version)
     const bundleVersion = computeBundleVersion()
-    if (currentVersion !== bundleVersion) {
       writeLSJson(STORAGE_KEYS.tokens, tokensImport)
       // Normalize to { brand: { ... } } shape regardless of source JSON
       const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
       writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
       writeLSJson(STORAGE_KEYS.uikit, uikitImport)
       writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
+      try {
+        const colors: any = (tokensImport as any)?.tokens?.color || {}
+        const names: Record<string, string> = {}
+        Object.keys(colors).forEach((fam) => { if (fam !== 'translucent') names[fam] = toTitleCase(fam) })
+        writeLSJson('family-friendly-names', names)
+        try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names })) } catch {}
+      } catch {}
+      // Clear all token overrides so LS reflects the JSON fully on load
+      try { clearOverrides(tokensImport as any) } catch {}
       localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
       setTokensState(tokensImport as any)
       setThemeState(normalizedTheme as any)
       setUiKitState(uikitImport as any)
       setPalettesState(migratePaletteLocalKeys())
-    }
   }, [lsAvailable])
 
   // Ensure rf:* keys exist even if version matches (e.g., partial clears)
@@ -237,6 +248,16 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     }
     if (!localStorage.getItem(STORAGE_KEYS.uikit)) { writeLSJson(STORAGE_KEYS.uikit, uikitImport); setUiKitState(uikitImport as any); wrote = true }
     if (!localStorage.getItem(STORAGE_KEYS.palettes)) { const pal = migratePaletteLocalKeys(); writeLSJson(STORAGE_KEYS.palettes, pal); setPalettesState(pal); wrote = true }
+    if (!localStorage.getItem('family-friendly-names')) {
+      try {
+        const colors: any = (tokensImport as any)?.tokens?.color || {}
+        const names: Record<string, string> = {}
+        Object.keys(colors).forEach((fam) => { if (fam !== 'translucent') names[fam] = toTitleCase(fam) })
+        writeLSJson('family-friendly-names', names)
+        try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names })) } catch {}
+        wrote = true
+      } catch {}
+    }
     if (wrote && !localStorage.getItem(STORAGE_KEYS.version)) {
       localStorage.setItem(STORAGE_KEYS.version, computeBundleVersion())
     }
@@ -298,12 +319,32 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       removeLS(STORAGE_KEYS.uikit)
       removeLS(STORAGE_KEYS.palettes)
       removeLS(STORAGE_KEYS.resolved)
+      // Reset friendly names for Tokens > Color to the JSON defaults
+      try {
+        const colors: any = (tokensImport as any)?.tokens?.color || {}
+        const names: Record<string, string> = {}
+        Object.keys(colors).forEach((fam) => { if (fam !== 'translucent') names[fam] = toTitleCase(fam) })
+        writeLSJson('family-friendly-names', names)
+        try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names })) } catch {}
+      } catch {
+        removeLS('family-friendly-names')
+        try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: {} })) } catch {}
+      }
+      // Re-seed LS values and clear overrides
+      writeLSJson(STORAGE_KEYS.tokens, tokensImport)
+      const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
+      writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
+      writeLSJson(STORAGE_KEYS.uikit, uikitImport)
+      writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
+      try { clearOverrides(tokensImport as any) } catch {}
+      localStorage.setItem(STORAGE_KEYS.version, computeBundleVersion())
       // Also clear legacy palette keys for good measure
       try {
         const toRemove: string[] = []
         for (let i = 0; i < localStorage.length; i += 1) {
           const k = localStorage.key(i) || ''
-          if (k.startsWith('palette-') || k === 'family-friendly-names' || k === 'type-token-choices') toRemove.push(k)
+          // Do not remove 'family-friendly-names'; it is re-seeded above
+          if (k.startsWith('palette-') || k === 'type-token-choices') toRemove.push(k)
         }
         toRemove.forEach((k) => removeLS(k))
       } catch {}
