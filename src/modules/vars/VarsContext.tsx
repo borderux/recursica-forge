@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import tokensImport from '../../vars/Tokens.json'
-import themeImport from '../../vars/Theme.json'
+import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
 import { applyCssVars } from '../theme/varsUtil'
 import { readOverrides } from '../theme/tokenOverrides'
@@ -129,8 +129,9 @@ function buildResolvedTheme(tokens: JsonLike, theme: JsonLike): ResolvedTheme {
       }
       Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
     }
-    if (t?.light?.palette) visit(t.light.palette, 'palette', 'Light')
-    if (t?.dark?.palette) visit(t.dark.palette, 'palette', 'Dark')
+    const root: any = (t as any)?.brand ? (t as any).brand : t
+    if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
+    if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
     return out
   }
   const themeIndex = makeIndex(theme)
@@ -210,12 +211,14 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     const bundleVersion = computeBundleVersion()
     if (currentVersion !== bundleVersion) {
       writeLSJson(STORAGE_KEYS.tokens, tokensImport)
-      writeLSJson(STORAGE_KEYS.theme, themeImport)
+      // Normalize to { brand: { ... } } shape regardless of source JSON
+      const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
+      writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
       writeLSJson(STORAGE_KEYS.uikit, uikitImport)
       writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
       localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
       setTokensState(tokensImport as any)
-      setThemeState(themeImport as any)
+      setThemeState(normalizedTheme as any)
       setUiKitState(uikitImport as any)
       setPalettesState(migratePaletteLocalKeys())
     }
@@ -226,7 +229,12 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     if (!lsAvailable) return
     let wrote = false
     if (!localStorage.getItem(STORAGE_KEYS.tokens)) { writeLSJson(STORAGE_KEYS.tokens, tokensImport); setTokensState(tokensImport as any); wrote = true }
-    if (!localStorage.getItem(STORAGE_KEYS.theme)) { writeLSJson(STORAGE_KEYS.theme, themeImport); setThemeState(themeImport as any); wrote = true }
+    if (!localStorage.getItem(STORAGE_KEYS.theme)) {
+      const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
+      writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
+      setThemeState(normalizedTheme as any)
+      wrote = true
+    }
     if (!localStorage.getItem(STORAGE_KEYS.uikit)) { writeLSJson(STORAGE_KEYS.uikit, uikitImport); setUiKitState(uikitImport as any); wrote = true }
     if (!localStorage.getItem(STORAGE_KEYS.palettes)) { const pal = migratePaletteLocalKeys(); writeLSJson(STORAGE_KEYS.palettes, pal); setPalettesState(pal); wrote = true }
     if (wrote && !localStorage.getItem(STORAGE_KEYS.version)) {
@@ -352,7 +360,8 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     const applyTypography = () => {
       const vars: Record<string, string> = {}
       const choices = readChoices()
-      const ttyp: any = (theme as any)?.typography || {}
+      const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const ttyp: any = troot?.typography || {}
       const usedFamilies = new Set<string>()
       const overrides = readOverrides()
       const familyTokens: Record<string, string> = (() => {
