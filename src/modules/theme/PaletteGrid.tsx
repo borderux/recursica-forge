@@ -106,8 +106,9 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       }
       Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
     }
-    if ((themeJson as any)?.light?.palette) visit((themeJson as any).light.palette, 'palette', 'Light')
-    if ((themeJson as any)?.dark?.palette) visit((themeJson as any).dark.palette, 'palette', 'Dark')
+    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+    if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
+    if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
     return out
   }, [])
 
