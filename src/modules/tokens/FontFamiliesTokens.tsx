@@ -10,7 +10,7 @@ export default function FontFamiliesTokens() {
   const [, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
     try {
-      const fams: any = (tokensJson as any)?.font?.family || {}
+      const fams: any = (tokensJson as any)?.tokens?.font?.family || (tokensJson as any)?.font?.family || {}
       Object.keys(fams).forEach((k) => {
         const v = fams[k]?.$value
         if (typeof v === 'string' && v) init[`font/family/${k}`] = v
@@ -41,7 +41,7 @@ export default function FontFamiliesTokens() {
     const overrides = readOverrides()
     // from tokens
     try {
-      const fams: any = (tokensJson as any)?.font?.family || {}
+      const fams: any = (tokensJson as any)?.tokens?.font?.family || (tokensJson as any)?.font?.family || {}
       Object.keys(fams).forEach((key) => {
         const name = `font/family/${key}`
         const val = fams[key]?.$value
@@ -142,7 +142,7 @@ export default function FontFamiliesTokens() {
   const isFromTokens = (name: string): boolean => {
     if (!name.startsWith('font/family/')) return false
     const key = name.replace('font/family/','')
-    return Boolean((tokensJson as any)?.font?.family?.[key])
+    return Boolean((tokensJson as any)?.tokens?.font?.family?.[key] || (tokensJson as any)?.font?.family?.[key])
   }
 
   const sanitizeFamilyShort = (family: string): string => {
@@ -203,7 +203,7 @@ export default function FontFamiliesTokens() {
             const set = new Set<string>()
             fonts.forEach((f) => { if (f && f !== 'Custom...') set.add(f) })
             try {
-              const fams: any = (tokensJson as any)?.tokens?.font?.family || {}
+              const fams: any = (tokensJson as any)?.tokens?.font?.family || (tokensJson as any)?.font?.family || {}
               Object.keys(fams).forEach((k) => { const v = String(fams[k]?.$value || ''); if (v) set.add(v) })
             } catch {}
             try {
