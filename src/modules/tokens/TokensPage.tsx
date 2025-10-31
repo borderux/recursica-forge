@@ -355,6 +355,17 @@ export default function TokensPage() {
     try { localStorage.setItem('family-friendly-names', JSON.stringify(familyNames)) } catch {}
     try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: familyNames })) } catch {}
   }, [familyNames])
+  // Maintain visual column order; newly added families append to the end
+  const [familyOrder, setFamilyOrder] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('color-family-order')
+      if (raw) return JSON.parse(raw)
+    } catch {}
+    return []
+  })
+  useEffect(() => {
+    try { localStorage.setItem('color-family-order', JSON.stringify(familyOrder)) } catch {}
+  }, [familyOrder])
   useEffect(() => {
     const handler = (ev: Event) => {
       const detail: any = (ev as CustomEvent).detail
@@ -514,11 +525,15 @@ export default function TokensPage() {
         const colorSection = (
           <section key={mode + '-color'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
             {colorFamiliesByMode[mode as ModeName] && (() => {
-              const families = Object.entries(colorFamiliesByMode[mode as ModeName]).filter(([family]) => family !== 'translucent' && !deletedFamilies[family]).sort(([a], [b]) => {
+              let families = Object.entries(colorFamiliesByMode[mode as ModeName]).filter(([family]) => family !== 'translucent' && !deletedFamilies[family]).sort(([a], [b]) => {
                 if (a === 'gray' && b !== 'gray') return -1
                 if (b === 'gray' && a !== 'gray') return 1
                 return a.localeCompare(b)
               })
+              // Reorder to ensure newly added families appear as right-most columns
+              const existing = families.filter(([fam]) => !familyOrder.includes(fam))
+              const appended = familyOrder.map((fam) => families.find(([f]) => f === fam)).filter((v): v is typeof families[number] => Array.isArray(v))
+              families = [...existing, ...appended]
               const presentLevels = new Set<string>(families.flatMap(([_, lvls]) => lvls.map((l) => l.level)))
               const standardLevels = ['900','800','700','600','500','400','300','200','100','050']
               standardLevels.forEach((lvl) => presentLevels.add(lvl))
@@ -540,19 +555,36 @@ export default function TokensPage() {
                         // name the column
                         const name = await getNtcName(seedHex)
                         setFamilyNames((prev) => ({ ...prev, [newFamily]: toTitleCase(name) }))
-                        // cascade down from 500
-                        ;[400,300,200,100,50].forEach((lvl) => {
-                          const t = (500 - lvl) / 450
-                          const nextV = clamp(baseHSV.v + (1 - baseHSV.v) * t, 0, 1)
-                          const nextS = clamp(baseHSV.s * (1 - 0.35 * t), 0, 1)
-                          write(`color/${newFamily}/${String(lvl).padStart(3,'0')}`, hsvToHex(newHue, nextS, nextV))
-                        })
-                        // cascade up to 900 (no 1000 for non-gray)
-                        ;[600,700,800,900].forEach((lvl) => {
-                          const t = (lvl - 500) / 500
-                          const nextV = clamp(baseHSV.v * (1 - 0.6 * t), 0, 1)
-                          const nextS = clamp(baseHSV.s * (1 + 0.15 * t), 0, 1)
-                          write(`color/${newFamily}/${String(lvl).padStart(3,'0')}`, hsvToHex(newHue, nextS, nextV))
+                        setFamilyOrder((prev) => (prev.includes(newFamily) ? prev : [...prev, newFamily]))
+                        // Evenly step the scale from 000 → 500 → 1000, with 500 fixed to seed
+                        const idxMap: Record<number, number> = { 0:0, 50:1, 100:2, 200:3, 300:4, 400:5, 500:6, 600:7, 700:8, 800:9, 900:10, 1000:11 }
+                        const levelsAsc = [0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+                        const seedS = baseHSV.s
+                        const seedV = baseHSV.v
+                        // Set near-white and near-black endpoints
+                        // Make 000 almost achromatic near-white (very low saturation), just darker than white
+                        const endS000 = 0.02
+                        const endV000 = 0.98 // slightly below pure white
+                        const endS1000 = clamp(seedS * 1.2, 0, 1)
+                        const endV1000 = clamp(Math.max(0.03, seedV * 0.08), 0, 1) // near-black but not pure
+                        const lerp = (a: number, b: number, t: number) => (a + (b - a) * t)
+                        levelsAsc.forEach((lvl) => {
+                          const idx = idxMap[lvl]
+                          if (idx === 6) { // 500 stays seed
+                            write(`color/${newFamily}/500`, seedHex)
+                            return
+                          }
+                          if (idx < 6) {
+                            const t = idx / 6
+                            const s = clamp(lerp(endS000, seedS, t), 0, 1)
+                            const v = clamp(lerp(endV000, seedV, t), 0, 1)
+                            write(`color/${newFamily}/${String(lvl).padStart(3,'0')}`, hsvToHex(newHue, s, v))
+                            return
+                          }
+                          const t = (idx - 6) / (11 - 6)
+                          const s = clamp(lerp(seedS, endS1000, t), 0, 1)
+                          const v = clamp(lerp(seedV, endV1000, t), 0, 1)
+                          write(`color/${newFamily}/${String(lvl).padStart(3,'0')}`, hsvToHex(newHue, s, v))
                         })
                       }}
                       style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer' }}
@@ -571,7 +603,7 @@ export default function TokensPage() {
                   <div style={{ gridColumn: `1 / span ${families.length + 1}`, height: 20 }} />
                   {levelOrder.map((level) => (
                     <>
-                      <div key={'label-' + level} style={{ textAlign: 'center', fontSize: 12, opacity: 0.8, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{level === '1000' ? 'Black' : level === '000' ? 'White' : level}</div>
+                      <div key={'label-' + level} style={{ textAlign: 'center', fontSize: 12, opacity: 0.8, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{level}</div>
                       {families.map(([family, lvls]) => {
                         const match = lvls.find((l) => l.level === level)
                         const entry = match?.entry
@@ -620,67 +652,89 @@ export default function TokensPage() {
 
                                   // tokenName format: color/<family>/<level>
                                   const parts = tokenName.split('/')
-                                  if (parts.length === 3) {
-                                    const family = parts[1]
-                                    const levelStr = parts[2]
-                                    const startLevel = Number(levelStr)
-                                    if (!isNaN(startLevel)) {
-                                      const baseHsv = hexToHsv(hex)
-                                      const allLevels = [900, 800, 700, 600, 500, 400, 300, 200, 100, 50]
-                                      const minRef = 50
-                                      const maxRef = 900
-                                      const denomDown = Math.max(1, startLevel - minRef)
-                                      const denomUp = Math.max(1, maxRef - startLevel)
+                                  if (parts.length !== 3) return
+                                  const family = parts[1]
+                                  const levelStrRaw = parts[2]
+                                  const levelNum = (() => {
+                                    if (levelStrRaw === '000') return 0
+                                    if (levelStrRaw === '050') return 50
+                                    const n = Number(levelStrRaw)
+                                    return Number.isFinite(n) ? n : NaN
+                                  })()
+                                  if (!Number.isFinite(levelNum)) return
 
-                        const hasToken = (lvl: number) => {
-                                        const lvlStr = String(lvl).padStart(3, '0')
-                                        // Always allow 050 to be set; otherwise require an existing token entry
-                                        if (lvl === 50) return true
-                          if (flatTokens.some((e) => e.type === 'color' && e.name === `color/${family}/${lvlStr}`)) return true
-                                        return false
-                                      }
+                                  const baseHsv = hexToHsv(hex)
+                                  const idxMap: Record<number, number> = { 0:0, 50:1, 100:2, 200:3, 300:4, 400:5, 500:6, 600:7, 700:8, 800:9, 900:10, 1000:11 }
+                                  const levelsAsc = [0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+                                  const startIdx = idxMap[levelNum]
+                                  const endS000 = 0.02
+                                  const endV000 = 0.98
+                                  const endS1000 = clamp(baseHsv.s * 1.2, 0, 1)
+                                  const endV1000 = clamp(Math.max(0.03, baseHsv.v * 0.08), 0, 1)
+                                  const lerp = (a: number, b: number, t: number) => (a + (b - a) * t)
 
-                                      if (cascadeDown) {
-                                        let targetsDown = allLevels.filter((lvl) => lvl < startLevel && hasToken(lvl))
-                                        if (!targetsDown.includes(50) && startLevel > 50) targetsDown = [...targetsDown, 50]
-                                        targetsDown.forEach((lvl) => {
-                                          const name = `color/${family}/${String(lvl).padStart(3, '0')}`
-                                          const t = clamp((startLevel - lvl) / denomDown, 0, 1)
-                                          // lighter downward: increase V, reduce S
-                                          const nextV = clamp(baseHsv.v + (1 - baseHsv.v) * t, 0, 1)
-                                          const nextS = clamp(baseHsv.s * (1 - 0.35 * t), 0, 1)
-                                          const nextHex = hsvToHex(baseHsv.h, nextS, nextV)
-                                          handleChange(name, nextHex)
-                                          setOverride(name, nextHex)
-                                        })
-                                        // Extra safety: explicitly update 050
-                                        if (startLevel > 50) {
-                                          const lvl = 50
-                                          const name050 = `color/${family}/050`
-                                          const t050 = clamp((startLevel - lvl) / denomDown, 0, 1)
-                                          const nextV050 = clamp(baseHsv.v + (1 - baseHsv.v) * t050, 0, 1)
-                                          const nextS050 = clamp(baseHsv.s * (1 - 0.35 * t050), 0, 1)
-                                          const nextHex050 = hsvToHex(baseHsv.h, nextS050, nextV050)
-                                          handleChange(name050, nextHex050)
-                                          setOverride(name050, nextHex050)
-                                        }
-                                      }
-
-                                      if (cascadeUp) {
-                                        const targetsUp = allLevels.filter((lvl) => lvl > startLevel && hasToken(lvl))
-                                        targetsUp.forEach((lvl) => {
-                                          const name = `color/${family}/${String(lvl).padStart(3, '0')}`
-                                          const t = clamp((lvl - startLevel) / denomUp, 0, 1)
-                                          // darker upward: decrease V, optionally boost S slightly
-                                          const nextV = clamp(baseHsv.v * (1 - 0.6 * t), 0, 1)
-                                          const nextS = clamp(baseHsv.s * (1 + 0.15 * t), 0, 1)
-                                          const nextHex = hsvToHex(baseHsv.h, nextS, nextV)
-                                          handleChange(name, nextHex)
-                                          setOverride(name, nextHex)
-                                        })
-                                      }
+                                  if (cascadeDown && startIdx > 0) {
+                                    const span = startIdx
+                                    for (let i = startIdx - 1; i >= 0; i -= 1) {
+                                      const t = i / span
+                                      const s = clamp(lerp(endS000, baseHsv.s, t), 0, 1)
+                                      const v = clamp(lerp(endV000, baseHsv.v, t), 0, 1)
+                                      const name = `color/${family}/${String(levelsAsc[i]).padStart(3, '0')}`
+                                      const nextHex = hsvToHex(baseHsv.h, s, v)
+                                      handleChange(name, nextHex)
+                                      setOverride(name, nextHex)
                                     }
                                   }
+
+                                  if (cascadeUp && startIdx < levelsAsc.length - 1) {
+                                    const span = (levelsAsc.length - 1) - startIdx
+                                    for (let i = startIdx + 1; i < levelsAsc.length; i += 1) {
+                                      const t = (i - startIdx) / span
+                                      const s = clamp(lerp(baseHsv.s, endS1000, t), 0, 1)
+                                      const v = clamp(lerp(baseHsv.v, endV1000, t), 0, 1)
+                                      const name = `color/${family}/${String(levelsAsc[i]).padStart(3, '0')}`
+                                      const nextHex = hsvToHex(baseHsv.h, s, v)
+                                      handleChange(name, nextHex)
+                                      setOverride(name, nextHex)
+                                    }
+                                  }
+
+                                  // Update friendly family name using the 500 level hex
+                                  ;(async () => {
+                                    const fiveKey = `color/${family}/500`
+                                    let fiveHex: string | undefined
+                                    const normHex = (h: string | undefined) => {
+                                      if (!h) return undefined
+                                      const m = h.match(/^#?[0-9a-fA-F]{6}$/)
+                                      if (!m) return undefined
+                                      return h.startsWith('#') ? h.toLowerCase() : (`#${h}`).toLowerCase()
+                                    }
+                                    if (levelNum === 500) {
+                                      fiveHex = normHex(hex)
+                                    } else {
+                                      // If cascade touched 500, compute it consistently with the interpolation
+                                      const targetIdx = 6
+                                      if (cascadeDown && targetIdx < startIdx) {
+                                        const t = targetIdx / startIdx
+                                        const s = clamp(lerp(0.02, baseHsv.s, t), 0, 1)
+                                        const v = clamp(lerp(0.98, baseHsv.v, t), 0, 1)
+                                        fiveHex = hsvToHex(baseHsv.h, s, v)
+                                      } else if (cascadeUp && targetIdx > startIdx) {
+                                        const span = (levelsAsc.length - 1) - startIdx
+                                        const t = (targetIdx - startIdx) / span
+                                        const s = clamp(lerp(baseHsv.s, clamp(baseHsv.s * 1.2, 0, 1), t), 0, 1)
+                                        const v = clamp(lerp(baseHsv.v, clamp(Math.max(0.03, baseHsv.v * 0.08), 0, 1), t), 0, 1)
+                                        fiveHex = hsvToHex(baseHsv.h, s, v)
+                                      } else {
+                                        fiveHex = normHex(String(values[fiveKey] as any))
+                                      }
+                                    }
+                                    const finalHex = normHex(fiveHex)
+                                    if (finalHex) {
+                                      const label = await getNtcName(finalHex)
+                                      setFamilyNames((prev) => ({ ...prev, [family]: toTitleCase(label) }))
+                                    }
+                                  })()
                                 }}
                               />
                             )}
@@ -697,7 +751,7 @@ export default function TokensPage() {
                         <div style={{ height: 24 }} />
                       ) : (
                         <button
-                          onClick={() => { setDeletedFamilies((prev) => ({ ...prev, [family]: true })); setOpenPicker(null) }}
+                          onClick={() => { setDeletedFamilies((prev) => ({ ...prev, [family]: true })); setOpenPicker(null); setFamilyOrder((prev) => prev.filter((f) => f !== family)) }}
                           title="Delete color column"
                           style={{ border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px', width: '100%' }}
                         >🗑️</button>
