@@ -3,6 +3,7 @@ import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Theme.json'
 import uikitImport from '../../vars/UIKit.json'
 import { applyCssVars } from '../theme/varsUtil'
+import { readOverrides } from '../theme/tokenOverrides'
 
 type JsonLike = Record<string, any>
 
@@ -220,6 +221,19 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [lsAvailable])
 
+  // Ensure rf:* keys exist even if version matches (e.g., partial clears)
+  useEffect(() => {
+    if (!lsAvailable) return
+    let wrote = false
+    if (!localStorage.getItem(STORAGE_KEYS.tokens)) { writeLSJson(STORAGE_KEYS.tokens, tokensImport); setTokensState(tokensImport as any); wrote = true }
+    if (!localStorage.getItem(STORAGE_KEYS.theme)) { writeLSJson(STORAGE_KEYS.theme, themeImport); setThemeState(themeImport as any); wrote = true }
+    if (!localStorage.getItem(STORAGE_KEYS.uikit)) { writeLSJson(STORAGE_KEYS.uikit, uikitImport); setUiKitState(uikitImport as any); wrote = true }
+    if (!localStorage.getItem(STORAGE_KEYS.palettes)) { const pal = migratePaletteLocalKeys(); writeLSJson(STORAGE_KEYS.palettes, pal); setPalettesState(pal); wrote = true }
+    if (wrote && !localStorage.getItem(STORAGE_KEYS.version)) {
+      localStorage.setItem(STORAGE_KEYS.version, computeBundleVersion())
+    }
+  }, [lsAvailable])
+
   // Recompute resolved theme when inputs change and persist cache (both light/dark)
   useEffect(() => {
     const next = buildResolvedTheme(tokens, theme)
@@ -294,6 +308,96 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     // Notify interested pages (legacy listeners)
     try { window.dispatchEvent(new CustomEvent('paletteReset')) } catch {}
   }, [lsAvailable])
+
+  // Apply typography CSS variables globally and ensure web fonts load on startup and changes
+  useEffect(() => {
+    const PREFIXES = ['h1','h2','h3','h4','h5','h6','subtitle-1','subtitle-2','body-1','body-2','button','caption','overline']
+    const readChoices = (): Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }> => {
+      try {
+        const raw = localStorage.getItem('type-token-choices')
+        if (raw) return JSON.parse(raw)
+      } catch {}
+      return {}
+    }
+    const ensureGoogleFontLoaded = (family?: string) => {
+      try {
+        if (!family) return
+        const trimmed = String(family).trim()
+        if (!trimmed) return
+        const id = `gf-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+        if (document.getElementById(id)) return
+        const href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(trimmed).replace(/%20/g, '+')}:wght@100..900&display=swap`
+        const link = document.createElement('link')
+        link.id = id
+        link.rel = 'stylesheet'
+        link.href = href
+        document.head.appendChild(link)
+      } catch {}
+    }
+    const getFontToken = (path: string): any => {
+      const parts = path.split('/')
+      const root: any = (tokens as any)?.tokens?.font || {}
+      if (parts[0] === 'size') return root?.size?.[parts[1]]?.$value
+      if (parts[0] === 'weight') return root?.weight?.[parts[1]]?.$value
+      if (parts[0] === 'letter-spacing') return root?.['letter-spacing']?.[parts[1]]?.$value
+      if (parts[0] === 'line-height') return root?.['line-height']?.[parts[1]]?.$value
+      if (parts[0] === 'family') return root?.family?.[parts[1]]?.$value
+      return undefined
+    }
+    const toCssValue = (v: any, unitIfNumber?: string) => {
+      if (v == null) return undefined
+      if (typeof v === 'number') return unitIfNumber ? `${v}${unitIfNumber}` : String(v)
+      return String(v)
+    }
+    const applyTypography = () => {
+      const vars: Record<string, string> = {}
+      const choices = readChoices()
+      const ttyp: any = (theme as any)?.typography || {}
+      const usedFamilies = new Set<string>()
+      const overrides = readOverrides()
+      const familyTokens: Record<string, string> = (() => {
+        const src: any = (tokens as any)?.tokens?.font?.family || {}
+        const map: Record<string, string> = {}
+        Object.keys(src).forEach((short) => { const val = String(src[short]?.$value || ''); if (val) map[short] = val })
+        return map
+      })()
+      const findOverrideForFamilyLiteral = (literal?: string): string | undefined => {
+        if (!literal) return undefined
+        const entry = Object.entries(familyTokens).find(([, val]) => val === literal)
+        if (!entry) return undefined
+        const short = entry[0]
+        const ov = (overrides as any)[`font/family/${short}`]
+        return typeof ov === 'string' && ov.trim() ? ov : undefined
+      }
+      PREFIXES.forEach((p) => {
+        const spec: any = ttyp?.[p]?.$value || (p.startsWith('body') ? ttyp?.body?.normal?.$value : undefined)
+        const ch = choices[p] || {}
+        const familyFromChoice = ch.family ? getFontToken(`family/${ch.family}`) : undefined
+        const family = familyFromChoice ?? findOverrideForFamilyLiteral(spec?.fontFamily) ?? spec?.fontFamily
+        const size = ch.size ? getFontToken(`size/${ch.size}`) : spec?.fontSize
+        const weight = ch.weight ? getFontToken(`weight/${ch.weight}`) : (spec?.fontWeight ?? spec?.weight)
+        const spacing = ch.spacing ? getFontToken(`letter-spacing/${ch.spacing}`) : spec?.letterSpacing
+        const lineHeight = (ch as any).lineHeight ? getFontToken(`line-height/${(ch as any).lineHeight}`) : spec?.lineHeight
+        if (family != null) vars[`--font-${p}-font-family`] = toCssValue(family)!
+        if (size != null) vars[`--font-${p}-font-size`] = toCssValue(size)!
+        if (weight != null) vars[`--font-${p}-font-weight`] = toCssValue(weight)!
+        if (spacing != null) vars[`--font-${p}-font-letter-spacing`] = toCssValue(spacing)!
+        if (lineHeight != null) vars[`--font-${p}-line-height`] = toCssValue(lineHeight)!
+        if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
+      })
+      if (Object.keys(vars).length) applyCssVars(vars)
+      usedFamilies.forEach((fam) => ensureGoogleFontLoaded(fam))
+    }
+    applyTypography()
+    const onChoices = () => applyTypography()
+    const onTokens = () => applyTypography()
+    window.addEventListener('typeChoicesChanged', onChoices as any)
+    window.addEventListener('tokenOverridesChanged', onTokens as any)
+    return () => {
+      window.removeEventListener('typeChoicesChanged', onChoices as any)
+      window.removeEventListener('tokenOverridesChanged', onTokens as any)
+    }
+  }, [tokens, theme])
 
   const value = useMemo<VarsContextValue>(() => ({
     tokens, setTokens,

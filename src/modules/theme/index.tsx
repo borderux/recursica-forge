@@ -266,6 +266,8 @@ const DARK_MODE: ThemeVars = {
 function applyTheme(theme: ThemeVars) {
   const root = document.documentElement
   for (const [key, value] of Object.entries(theme)) {
+    // Do not overwrite typography variables; VarsProvider manages them live
+    if (key.startsWith('--font-')) continue
     root.style.setProperty(key, value)
   }
 }

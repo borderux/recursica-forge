@@ -7,7 +7,7 @@ export default function FontLetterSpacingTokens() {
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.font?.['letter-spacing'] || {}
+      const src: any = (tokensJson as any)?.tokens?.font?.['letter-spacing'] || {}
       Object.keys(src).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
@@ -15,7 +15,7 @@ export default function FontLetterSpacingTokens() {
       })
     } catch {}
     return list
-  }, [])
+  }, [tokensJson])
 
   const [values, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
@@ -43,25 +43,36 @@ export default function FontLetterSpacingTokens() {
 
   const items = useMemo(() => {
     const out: Array<{ name: string; value: number | string }> = flattened
-    const order = ['tighest','tighter','tight','default','wide','wider','widest']
+    const canonical = ['tightest','tighter','tight','default','wide','wider','widest']
     const weight = (n: string) => {
-      const key = n.replace('font/letter-spacing/','')
-      const idx = order.indexOf(key)
+      const raw = n.replace('font/letter-spacing/','')
+      const key = raw === 'tighest' ? 'tightest' : raw
+      const idx = canonical.indexOf(key)
       return idx === -1 ? Number.POSITIVE_INFINITY : idx
     }
-    return out.sort((a,b) => weight(a.name) - weight(b.name))
+    return out.slice().sort((a,b) => weight(a.name) - weight(b.name))
   }, [flattened])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
-  const order = ['tighest','tighter','tight','default','wide','wider','widest'] as const
+  const order = ['tightest','tighter','tight','default','wide','wider','widest'] as const
   const defaultIdx = 3
   const [scaleByTW, setScaleByTW] = useState<boolean>(() => {
     const v = localStorage.getItem('font-letter-scale-by-tight-wide')
     return v === null ? false : v === 'true'
   })
-  const getVal = (name: string): number => {
-    const v = (values[name] as any)
+  const availableShorts = useMemo(() => new Set(flattened.map((f) => f.name.replace('font/letter-spacing/',''))), [flattened])
+  const resolveShortToActual = (short: string): string => {
+    if (availableShorts.has(short)) return short
+    if (short === 'tightest' && availableShorts.has('tighest')) return 'tighest'
+    return short
+  }
+  const getVal = (fullName: string): number => {
+    // fullName is like 'font/letter-spacing/{short}'
+    const short = fullName.replace('font/letter-spacing/','')
+    const actual = resolveShortToActual(short)
+    const key = `font/letter-spacing/${actual}`
+    const v = (values[key] as any)
     const n = typeof v === 'number' ? v : parseFloat(v)
     return Number.isFinite(n) ? n : 0
   }
@@ -78,7 +89,8 @@ export default function FontLetterSpacingTokens() {
 
     const updates: Record<string, number> = {}
     order.forEach((k, idx) => {
-      const name = `font/letter-spacing/${k}`
+      const actual = resolveShortToActual(k)
+      const name = `font/letter-spacing/${actual}`
       if (k === 'default') {
         updates[name] = def
       } else if (k === 'tight') {
@@ -110,9 +122,9 @@ export default function FontLetterSpacingTokens() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 80px auto', gap: 8, alignItems: 'center' }}>
         {items.map((it) => {
-          const label = toTitle(it.name.replace('font/letter-spacing/', ''))
-          const current = Number((values[it.name] as any) ?? it.value)
           const keyName = it.name.replace('font/letter-spacing/','')
+          const label = keyName === 'tighest' ? 'Tightest' : toTitle(keyName)
+          const current = Number((values[it.name] as any) ?? it.value)
           const isDefault = keyName === 'default'
           const isTight = keyName === 'tight'
           const isWide = keyName === 'wide'

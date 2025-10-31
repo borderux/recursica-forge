@@ -199,11 +199,24 @@ export default function FontFamiliesTokens() {
           const options = (() => {
             // Exclude families already selected in other rows to prevent duplicates
             const used = new Set(visibleRows.filter((x) => x.name !== r.name).map((x) => x.value).filter((v) => v && v !== 'Custom...'))
-            const list = fonts
-              .filter((f) => f !== 'Custom...')
+            // Union of built-in fonts, token-defined families, and override-only families
+            const set = new Set<string>()
+            fonts.forEach((f) => { if (f && f !== 'Custom...') set.add(f) })
+            try {
+              const fams: any = (tokensJson as any)?.tokens?.font?.family || {}
+              Object.keys(fams).forEach((k) => { const v = String(fams[k]?.$value || ''); if (v) set.add(v) })
+            } catch {}
+            try {
+              const ov = readOverrides() as Record<string, any>
+              Object.entries(ov || {}).forEach(([name, val]) => {
+                if (name.startsWith('font/family/')) { const v = String(val || ''); if (v) set.add(v) }
+              })
+            } catch {}
+            let list = Array.from(set)
               .filter((f) => !used.has(f))
-              .slice()
               .sort((a, b) => a.localeCompare(b))
+            // Ensure the current value is present so the control shows it
+            if (r.value && !list.includes(r.value)) list = [r.value, ...list]
             return [...list, 'Custom...']
           })()
           const isCustom = r.custom || (!options.includes(r.value) && r.value !== '')
@@ -231,7 +244,7 @@ export default function FontFamiliesTokens() {
                 <select
                   key={r.name}
                   id={r.name}
-                  value={options.includes(r.value) ? r.value : ''}
+                  value={r.value || ''}
                   onChange={(ev) => {
                     const chosen = ev.currentTarget.value
                     if (chosen === 'Custom...') {
