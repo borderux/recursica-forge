@@ -294,7 +294,6 @@ import { useVars } from '../vars/VarsContext'
 // removed unused varsUtil import
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 import OpacityTokens from './OpacityTokens'
-import EffectTokens from './EffectTokens'
 import SizeTokens from './SizeTokens'
 import FontFamiliesTokens from './FontFamiliesTokens'
 import FontLetterSpacingTokens from './FontLetterSpacingTokens'
@@ -316,9 +315,18 @@ export default function TokensPage() {
   const { tokens: tokensJson } = useVars()
   const flatTokens: TokenEntry[] = useMemo(() => {
     const list: TokenEntry[] = []
+    const coerce = (v: any): any => {
+      if (v == null) return undefined
+      if (typeof v === 'string' || typeof v === 'number') return v
+      if (typeof v === 'object') {
+        if ('$value' in v) return coerce((v as any)['$value'])
+        if ('value' in v) return (v as any).value
+        if ('hex' in v) return (v as any).hex
+      }
+      return undefined
+    }
     const push = (name: string, type: string, value: any) => {
-      if (value == null) return
-      const v = typeof value === 'object' && '$value' in value ? (value as any)['$value'] : value
+      const v = coerce(value)
       if (typeof v === 'string' || typeof v === 'number') list.push({ name, type, value: v })
     }
     try {
@@ -342,8 +350,8 @@ export default function TokensPage() {
       const size = t?.size || {}
       Object.keys(size).forEach((k) => push(`size/${k}`, 'size', size[k]?.$value))
       // effect
-      const effect = t?.effect || {}
-      Object.keys(effect).forEach((k) => push(`effect/${k}`, 'effect', effect[k]?.$value))
+      const shadow = t?.shadow || t?.effect || {}
+      Object.keys(shadow).forEach((k) => push(`shadow/${k}`, 'shadow', shadow[k]?.$value))
       // font
       const font = t?.font || {}
       const sizes = font?.size || {}
@@ -582,7 +590,6 @@ export default function TokensPage() {
           <div style={{ display: 'grid', gap: 6 }}>
             {[
               { key: 'color', label: 'Color' },
-              { key: 'effect', label: 'Effect' },
               { key: 'font', label: 'Font' },
               { key: 'opacity', label: 'Opacity' },
               { key: 'size', label: 'Size' },
@@ -871,22 +878,20 @@ export default function TokensPage() {
           </section>
         )
 
-        const measurementSection = (() => {
+  const measurementSection = (() => {
           const measurementItems = items.filter(({ entry }) => entry.type !== 'color' && (typeof entry.value === 'number' || typeof entry.value === 'string'))
           if (!measurementItems.length) return null
           const groups: Record<string, typeof measurementItems> = {
-            Effects: measurementItems.filter(({ entry }) => entry.name.startsWith('effect/')),
             Font: measurementItems.filter(({ entry }) => entry.name.startsWith('font/')),
             Opacity: measurementItems.filter(({ entry }) => entry.name.startsWith('opacity/')),
             Size: measurementItems.filter(({ entry }) => entry.name.startsWith('size/')),
           }
-          const groupKeyMap: Record<'effect'|'font'|'opacity'|'size', keyof typeof groups> = {
-            effect: 'Effects',
+          const groupKeyMap: Record<'font'|'opacity'|'size', keyof typeof groups> = {
             font: 'Font',
             opacity: 'Opacity',
             size: 'Size',
           }
-          const activeGroup = selected === 'color' ? null : groups[groupKeyMap[selected]]
+          const activeGroup = selected === 'color' ? null : groups[groupKeyMap[selected as 'font'|'opacity'|'size']]
           if (!activeGroup) return null
           // sortedActive no longer needed: effect/size handled by modules
           if (selected === 'font') {
@@ -902,9 +907,7 @@ export default function TokensPage() {
           }
           return (
             <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
-              {selected === 'effect' ? (
-                <EffectTokens />
-              ) : selected === 'opacity' ? (
+              {selected === 'opacity' ? (
                 <OpacityTokens />
               ) : selected === 'size' ? (
                 <SizeTokens />
