@@ -474,7 +474,15 @@ export function CodePenPage() {
         const parts = inner.split('.')
         const mode = (parts[1] || '').toLowerCase() === 'dark' ? 'Dark' : 'Light'
         const path = parts.slice(2).join('/')
-        const entry = themeIndex[`${mode}::${path}`]
+        let entry = themeIndex[`${mode}::${path}`]
+        if (!entry && /\/high-emphasis$/.test(path)) {
+          const alt = path.replace(/\/high-emphasis$/, '/text/high-emphasis')
+          entry = themeIndex[`${mode}::${alt}`]
+        }
+        if (!entry && /\/low-emphasis$/.test(path)) {
+          const alt = path.replace(/\/low-emphasis$/, '/text/low-emphasis')
+          entry = themeIndex[`${mode}::${alt}`]
+        }
         return resolveThemeRef(entry?.value, mode)
       }
       return s

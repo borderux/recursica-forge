@@ -161,7 +161,15 @@ function buildResolvedTheme(tokens: JsonLike, theme: JsonLike): ResolvedTheme {
         const parts = inner.split('.')
         const mode = (parts[1] || '').toLowerCase() === 'dark' ? 'Dark' : 'Light'
         const path = parts.slice(2).join('/')
-        const entry = (themeIndex as any)[`${mode}::${path}`]
+        let entry = (themeIndex as any)[`${mode}::${path}`]
+        if (!entry && /\/high-emphasis$/.test(path)) {
+          const alt = path.replace(/\/high-emphasis$/, '/text/high-emphasis')
+          entry = (themeIndex as any)[`${mode}::${alt}`]
+        }
+        if (!entry && /\/low-emphasis$/.test(path)) {
+          const alt = path.replace(/\/low-emphasis$/, '/text/low-emphasis')
+          entry = (themeIndex as any)[`${mode}::${alt}`]
+        }
         return resolveThemeRef(entry?.value, mode)
       }
       return s
