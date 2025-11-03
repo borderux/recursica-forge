@@ -309,7 +309,7 @@ export default function ElevationPage() {
         blurToken: blurToken,
         spreadToken: 'effect/none', // Default spread to none
         offsetXToken: 'effect/none', // Default horizontal offset to none
-        offsetYToken: i === 0 ? 'effect/none' : `effect/${i}x` // Default vertical offset
+        offsetYToken: 'effect/none' // Default vertical offset to 0
       }
     }
     return defaults
@@ -597,6 +597,11 @@ export default function ElevationPage() {
     return tokens.sort((a, b) => a.value - b.value)
   }, [])
 
+  // Get maximum value from effect tokens for slider max
+  const maxEffectTokenValue = useMemo(() => {
+    if (availableEffectTokens.length === 0) return 100
+    return Math.max(...availableEffectTokens.map(token => token.value))
+  }, [availableEffectTokens])
 
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
@@ -657,40 +662,17 @@ export default function ElevationPage() {
             </div>
           </div>
           
-          {/* Blur Scaling Controls */}
-          <div className="blur-scaling-controls" style={{ marginBottom: '16px', padding: '12px', background: 'var(--layer-layer-1-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: '0', fontSize: '1rem' }}>Blur Scaling</h3>
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <input 
-                  type="checkbox" 
-                  checked={blurScaleByDefault} 
-                  onChange={(e) => {
-                    const next = e.currentTarget.checked
-                    setBlurScaleByDefault(next)
-                    localStorage.setItem('blur-scale-by-default', String(next))
-                  }} 
-                />
-                Scale blur based on elevation level
-              </label>
-            </div>
-            {blurScaleByDefault && (
-              <div style={{ marginTop: '8px', fontSize: '0.875rem', opacity: 0.8, color: 'var(--layer-layer-0-property-element-text-color)' }}>
-                Blur values will progress through effect tokens: Level 0 (base) uses selected token, each level goes one step above the previous in the effect token sequence.
-              </div>
-            )}
-          </div>
-          
           <div className="elevation-grid">
             {[0, 1, 2, 3, 4].map(i => {
               const elevation = `elevation-${i}`
               const control = elevationControls[elevation]
               return (
                 <div key={i} className="elevation-card">
-                  <div className="card text-center" style={getElevationStyle(elevation)}>
-                    <span style={{ color: 'var(--color-black)' }}>{i}</span>
-                  </div>
                   <div className="elevation-controls">
+                    <div className="card text-center" style={getElevationStyle(elevation)}>
+                      <span style={{ color: 'var(--color-black)' }}>{i}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
                     <div className="control-group">
                       <label>
                         Blur: {getBlurValue(elevation)}px
@@ -716,7 +698,7 @@ export default function ElevationPage() {
                         <input
                           type="range"
                           min={0}
-                          max={100}
+                          max={maxEffectTokenValue}
                           step={1}
                           value={getBlurValue(elevation)}
                           onChange={(e) => {
@@ -739,7 +721,7 @@ export default function ElevationPage() {
                         <input
                           type="number"
                           min={0}
-                          max={100}
+                          max={maxEffectTokenValue}
                           value={getBlurValue(elevation)}
                           onChange={(e) => {
                             const newValue = Number(e.target.value)
@@ -767,6 +749,28 @@ export default function ElevationPage() {
                         <span style={{ fontSize: '12px', opacity: 0.8 }}>px</span>
                       </div>
                     </div>
+                    {i === 0 && (
+                      <div className="control-group" style={{ marginTop: '4px' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 500 }}>
+                          <input 
+                            type="checkbox" 
+                            checked={blurScaleByDefault} 
+                            onChange={(e) => {
+                              const next = e.currentTarget.checked
+                              setBlurScaleByDefault(next)
+                              localStorage.setItem('blur-scale-by-default', String(next))
+                            }} 
+                            style={{ cursor: 'pointer' }}
+                          />
+                          Set as base to scale blur
+                        </label>
+                        {blurScaleByDefault && (
+                          <div style={{ marginTop: '4px', fontSize: '0.75rem', opacity: 0.8, color: 'var(--layer-layer-0-property-element-text-color)' }}>
+                            Level 0 (base) uses selected token, each level goes one step above the previous in the effect token sequence.
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div className="control-group">
                       <label>
                         Spread: {getSpreadValue(elevation)}px
@@ -776,17 +780,58 @@ export default function ElevationPage() {
                           </span>
                         )}
                       </label>
-                      <select
-                        value={control?.spreadToken || 'effect/none'}
-                        onChange={(e) => updateElevationControl(elevation, 'spreadToken', e.target.value)}
-                        style={{ width: '100%', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}
-                      >
-                        {availableEffectTokens.map(token => (
-                          <option key={token.name} value={token.name}>
-                            {token.label} ({token.value}px)
-                          </option>
-                        ))}
-                      </select>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                          type="range"
+                          min={0}
+                          max={maxEffectTokenValue}
+                          step={1}
+                          value={getSpreadValue(elevation)}
+                          onChange={(e) => {
+                            const newValue = Number(e.target.value)
+                            // Find the closest effect token to this value
+                            const closestToken = availableEffectTokens.reduce((closest, token) => {
+                              const currentDiff = Math.abs(token.value - newValue)
+                              const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
+                              return currentDiff < closestDiff ? token.name : closest
+                            }, 'effect/none')
+                            updateElevationControl(elevation, 'spreadToken', closestToken)
+                          }}
+                          style={{ 
+                            width: '100%', 
+                            maxWidth: '300px',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          max={maxEffectTokenValue}
+                          value={getSpreadValue(elevation)}
+                          onChange={(e) => {
+                            const newValue = Number(e.target.value)
+                            if (Number.isFinite(newValue)) {
+                              // Find the closest effect token to this value
+                              const closestToken = availableEffectTokens.reduce((closest, token) => {
+                                const currentDiff = Math.abs(token.value - newValue)
+                                const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
+                                return currentDiff < closestDiff ? token.name : closest
+                              }, 'effect/none')
+                              updateElevationControl(elevation, 'spreadToken', closestToken)
+                            }
+                          }}
+                          style={{ 
+                            width: '50px',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            border: '1px solid var(--layer-layer-1-property-border-color)',
+                            background: 'var(--layer-layer-0-property-surface)',
+                            color: 'var(--layer-layer-0-property-element-text-color)',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        <span style={{ fontSize: '12px', opacity: 0.8 }}>px</span>
+                      </div>
                     </div>
                     <div className="control-group">
                       <label>
@@ -797,17 +842,58 @@ export default function ElevationPage() {
                           </span>
                         )}
                       </label>
-                      <select
-                        value={control?.offsetXToken || 'effect/none'}
-                        onChange={(e) => updateElevationControl(elevation, 'offsetXToken', e.target.value)}
-                        style={{ width: '100%', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}
-                      >
-                        {availableEffectTokens.map(token => (
-                          <option key={token.name} value={token.name}>
-                            {token.label} ({token.value}px)
-                          </option>
-                        ))}
-                      </select>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                          type="range"
+                          min={0}
+                          max={maxEffectTokenValue}
+                          step={1}
+                          value={getOffsetXValue(elevation)}
+                          onChange={(e) => {
+                            const newValue = Number(e.target.value)
+                            // Find the closest effect token to this value
+                            const closestToken = availableEffectTokens.reduce((closest, token) => {
+                              const currentDiff = Math.abs(token.value - newValue)
+                              const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
+                              return currentDiff < closestDiff ? token.name : closest
+                            }, 'effect/none')
+                            updateElevationControl(elevation, 'offsetXToken', closestToken)
+                          }}
+                          style={{ 
+                            width: '100%', 
+                            maxWidth: '300px',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          max={maxEffectTokenValue}
+                          value={getOffsetXValue(elevation)}
+                          onChange={(e) => {
+                            const newValue = Number(e.target.value)
+                            if (Number.isFinite(newValue)) {
+                              // Find the closest effect token to this value
+                              const closestToken = availableEffectTokens.reduce((closest, token) => {
+                                const currentDiff = Math.abs(token.value - newValue)
+                                const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
+                                return currentDiff < closestDiff ? token.name : closest
+                              }, 'effect/none')
+                              updateElevationControl(elevation, 'offsetXToken', closestToken)
+                            }
+                          }}
+                          style={{ 
+                            width: '50px',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            border: '1px solid var(--layer-layer-1-property-border-color)',
+                            background: 'var(--layer-layer-0-property-surface)',
+                            color: 'var(--layer-layer-0-property-element-text-color)',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        <span style={{ fontSize: '12px', opacity: 0.8 }}>px</span>
+                      </div>
                     </div>
                     <div className="control-group">
                       <label>
@@ -818,17 +904,59 @@ export default function ElevationPage() {
                           </span>
                         )}
                       </label>
-                      <select
-                        value={control?.offsetYToken || 'effect/none'}
-                        onChange={(e) => updateElevationControl(elevation, 'offsetYToken', e.target.value)}
-                        style={{ width: '100%', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}
-                      >
-                        {availableEffectTokens.map(token => (
-                          <option key={token.name} value={token.name}>
-                            {token.label} ({token.value}px)
-                          </option>
-                        ))}
-                      </select>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                          type="range"
+                          min={0}
+                          max={maxEffectTokenValue}
+                          step={1}
+                          value={getOffsetYValue(elevation)}
+                          onChange={(e) => {
+                            const newValue = Number(e.target.value)
+                            // Find the closest effect token to this value
+                            const closestToken = availableEffectTokens.reduce((closest, token) => {
+                              const currentDiff = Math.abs(token.value - newValue)
+                              const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
+                              return currentDiff < closestDiff ? token.name : closest
+                            }, 'effect/none')
+                            updateElevationControl(elevation, 'offsetYToken', closestToken)
+                          }}
+                          style={{ 
+                            width: '100%', 
+                            maxWidth: '300px',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          max={maxEffectTokenValue}
+                          value={getOffsetYValue(elevation)}
+                          onChange={(e) => {
+                            const newValue = Number(e.target.value)
+                            if (Number.isFinite(newValue)) {
+                              // Find the closest effect token to this value
+                              const closestToken = availableEffectTokens.reduce((closest, token) => {
+                                const currentDiff = Math.abs(token.value - newValue)
+                                const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
+                                return currentDiff < closestDiff ? token.name : closest
+                              }, 'effect/none')
+                              updateElevationControl(elevation, 'offsetYToken', closestToken)
+                            }
+                          }}
+                          style={{ 
+                            width: '50px',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            border: '1px solid var(--layer-layer-1-property-border-color)',
+                            background: 'var(--layer-layer-0-property-surface)',
+                            color: 'var(--layer-layer-0-property-element-text-color)',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        <span style={{ fontSize: '12px', opacity: 0.8 }}>px</span>
+                      </div>
+                    </div>
                     </div>
                   </div>
                 </div>

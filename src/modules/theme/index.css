@@ -168,30 +168,39 @@ h3 {
 /* --- Elevation --- */
 .elevation-grid {
   display: flex;
+  flex-direction: row;
   gap: 24px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .elevation-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
 }
 .elevation-card .card {
   text-align: center;
   padding: 24px;
-  min-height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 100%;
+  align-self: stretch;
 }
 .elevation-controls {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   padding: 16px;
   background: var(--layer-layer-1-property-surface);
   border: 1px solid var(--layer-layer-1-property-border-color);
   border-radius: 8px;
+  align-items: flex-start;
+  min-width: 0;
+  width: 100%;
 }
 .control-group {
   display: flex;
@@ -288,6 +297,13 @@ h3 {
   .elevation-card {
     flex: 1 1 100%;
     min-width: 200px;
+  }
+  .elevation-controls {
+    flex-direction: column;
+  }
+  .elevation-card .card {
+    width: 100%;
+    min-width: auto;
   }
   .shadow-color-controls .control-group {
     min-width: 150px;
