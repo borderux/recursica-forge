@@ -3,7 +3,7 @@ import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
 import { applyCssVars } from '../theme/varsUtil'
-import { readOverrides } from '../theme/tokenOverrides'
+import { readOverrides, writeOverrides } from '../theme/tokenOverrides'
 import { clearOverrides } from '../theme/tokenOverrides'
 
 type JsonLike = Record<string, any>
@@ -226,6 +226,25 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
         writeLSJson('family-friendly-names', names)
         try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names })) } catch {}
       } catch {}
+      // Seed typeface overrides from Brand.json literals if present
+      try {
+        const brand: any = (themeImport as any)?.brand || (themeImport as any)
+        const typ: any = brand?.typography || {}
+        const seen = new Set<string>()
+        const faceKeys = ['primary','secondary','tertiary','quaternary','quinary']
+        const found: string[] = []
+        Object.values(typ).forEach((node: any) => {
+          const v = node?.$value?.fontFamily
+          if (typeof v === 'string' && v.trim() && !seen.has(v)) { seen.add(v); found.push(v) }
+        })
+        if (found.length) {
+          const current = readOverrides()
+          const next = { ...current }
+          found.slice(0, faceKeys.length).forEach((val, idx) => { next[`font/typeface/${faceKeys[idx]}`] = val })
+          writeOverrides(next)
+          try { window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: next } })) } catch {}
+        }
+      } catch {}
       // Clear all token overrides so LS reflects the JSON fully on load
       try { clearOverrides(tokensImport as any) } catch {}
       localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
@@ -277,7 +296,7 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     try {
       const get = (name: string): string | undefined => {
         const parts = (name || '').split('/')
-        if (parts[0] === 'color' && parts.length >= 3) return (tokens as any)?.color?.[parts[1]]?.[parts[2]]?.$value
+        if (parts[0] === 'color' && parts.length >= 3) return (tokens as any)?.tokens?.color?.[parts[1]]?.[parts[2]]?.$value
         return undefined
       }
       const defaults: Record<string, { token: string; hex: string }> = {
@@ -386,11 +405,16 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     const getFontToken = (path: string): any => {
       const parts = path.split('/')
       const root: any = (tokens as any)?.tokens?.font || {}
-      if (parts[0] === 'size') return root?.size?.[parts[1]]?.$value
+      if (parts[0] === 'size') {
+        const v = root?.size?.[parts[1]]?.$value
+        if (v && typeof v === 'object' && typeof v.value !== 'undefined') return v.value
+        return v
+      }
       if (parts[0] === 'weight') return root?.weight?.[parts[1]]?.$value
       if (parts[0] === 'letter-spacing') return root?.['letter-spacing']?.[parts[1]]?.$value
       if (parts[0] === 'line-height') return root?.['line-height']?.[parts[1]]?.$value
       if (parts[0] === 'family') return root?.family?.[parts[1]]?.$value
+      if (parts[0] === 'typeface') return root?.typeface?.[parts[1]]?.$value
       return undefined
     }
     const toCssValue = (v: any, unitIfNumber?: string) => {
@@ -423,7 +447,19 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
         const spec: any = ttyp?.[p]?.$value || (p.startsWith('body') ? ttyp?.body?.normal?.$value : undefined)
         const ch = choices[p] || {}
         const familyFromChoice = ch.family ? getFontToken(`family/${ch.family}`) : undefined
-        const family = familyFromChoice ?? findOverrideForFamilyLiteral(spec?.fontFamily) ?? spec?.fontFamily
+        const familyResolvedFromTokenRef = (() => {
+          const v: any = spec?.fontFamily
+          if (v && typeof v === 'object') {
+            if (v.collection === 'Tokens' && typeof v.name === 'string') {
+              const name = v.name.replace(/^token\./, '')
+              const parts = name.split('/').slice(1) // drop leading 'font'
+              if (parts[0] === 'typeface' && parts[1]) return getFontToken(`typeface/${parts[1]}`)
+              if (parts[0] === 'family' && parts[1]) return getFontToken(`family/${parts[1]}`)
+            }
+          }
+          return undefined
+        })()
+        const family = familyFromChoice ?? familyResolvedFromTokenRef ?? findOverrideForFamilyLiteral(spec?.fontFamily) ?? spec?.fontFamily
         const size = ch.size ? getFontToken(`size/${ch.size}`) : spec?.fontSize
         const weight = ch.weight ? getFontToken(`weight/${ch.weight}`) : (spec?.fontWeight ?? spec?.weight)
         const spacing = ch.spacing ? getFontToken(`letter-spacing/${ch.spacing}`) : spec?.letterSpacing

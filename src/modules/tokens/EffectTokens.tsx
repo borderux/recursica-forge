@@ -7,11 +7,12 @@ export default function EffectTokens() {
   const flattenEffect = (): Array<{ name: string; value: number }> => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.effect || {}
+      const src: any = (tokensJson as any)?.tokens?.shadow || (tokensJson as any)?.tokens?.effect || {}
       Object.keys(src).forEach((k) => {
-        const v = src[k]?.$value
+        const raw = src[k]?.$value
+        const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)
-        if (Number.isFinite(num)) list.push({ name: `effect/${k}`, value: num })
+        if (Number.isFinite(num)) list.push({ name: `shadow/${k}`, value: num })
       })
     } catch {}
     return list
@@ -24,7 +25,7 @@ export default function EffectTokens() {
     baseEffects.forEach((e) => { init[e.name] = e.value })
     const overrides = readOverrides()
     const merged = { ...init, ...overrides }
-    if (typeof merged['effect/none'] !== 'undefined') merged['effect/none'] = 0
+    if (typeof merged['shadow/none'] !== 'undefined') merged['shadow/none'] = 0
     return merged
   })
 
@@ -43,7 +44,7 @@ export default function EffectTokens() {
         return
       }
       if (typeof name === 'string') {
-        const coerced = name === 'effect/none' ? 0 : value
+        const coerced = name === 'shadow/none' ? 0 : value
         setValues((prev) => ({ ...prev, [name]: coerced }))
       }
     }
@@ -63,7 +64,7 @@ export default function EffectTokens() {
   const effectItems = useMemo(() => {
     const out: Array<{ name: string; value: string | number }> = baseEffects
     const weight = (full: string) => {
-      const n = full.replace('effect/', '')
+      const n = full.replace('shadow/', '')
       if (n === 'none') return [0, 0]
       if (n === '0-5x') return [1, 0]
       if (n === 'default') return [2, 0]
@@ -105,7 +106,7 @@ export default function EffectTokens() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ fontWeight: 600 }}>Effect</div>
+        <div style={{ fontWeight: 600 }}>Shadow</div>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <input type="checkbox" checked={scaleByDefault} onChange={(e) => {
             const next = e.currentTarget.checked
@@ -113,7 +114,7 @@ export default function EffectTokens() {
             localStorage.setItem('effects-scale-by-default', String(next))
             try { window.dispatchEvent(new CustomEvent('effectsScaleByDefaultChanged', { detail: next })) } catch {}
             if (next) {
-              const def = Number((values['effect/default'] as any) ?? 0)
+              const def = Number((values['shadow/default'] as any) ?? 0)
               applyScaledFromDefault(def)
             }
           }} />
@@ -122,15 +123,15 @@ export default function EffectTokens() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 50px auto', gap: 8, alignItems: 'center' }}>
         {effectItems.map((e) => {
-          const displayRaw = e.name.replace('effect/', '').replace('-', '.')
+          const displayRaw = e.name.replace('shadow/', '').replace('-', '.')
           const display = (displayRaw === 'default' || displayRaw === 'none')
             ? displayRaw.charAt(0).toUpperCase() + displayRaw.slice(1)
             : displayRaw
-          const isNone = e.name === 'effect/none'
-          const currentDefault = Number((values['effect/default'] as any) ?? 0)
+          const isNone = e.name === 'shadow/none'
+          const currentDefault = Number((values['shadow/default'] as any) ?? 0)
           const mul = parseMultiplier(display)
           const computed = mul * currentDefault
-          const isDefault = e.name === 'effect/default'
+          const isDefault = e.name === 'shadow/default'
           const current = isNone ? 0 : scaleByDefault && !isDefault ? Math.round(computed) : Number((values[e.name] as any) ?? (e.value as any) ?? 0)
           return (
             <>

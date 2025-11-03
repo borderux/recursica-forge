@@ -2697,33 +2697,160 @@
       }
     },
     "typography": {
-      "body": {
-        "normal": {
-          "$type": "typography",
-          "$value": {
-            "fontFamily": "Bellota Text",
-            "fontSize": 16,
-            "fontWeight": "{token.font.weight.regular}",
-            "letterSpacing": 0
-          }
-        },
-        "strong": {
-          "$type": "typography",
-          "$value": {
-            "fontFamily": "Bellota Text",
-            "fontSize": 16,
-            "fontWeight": "{token.font.weight.bold}",
-            "letterSpacing": 0
-          }
-        }
-      },
       "h1": {
         "$type": "typography",
         "$value": {
-          "fontFamily": "Lexend",
-          "fontSize": 40,
+          "fontFamily": "{token.font.typeface.primary}",
+          "fontSize": "{token.font.size.6xl}",
           "fontWeight": "{token.font.weight.bold}",
-          "letterSpacing": 0
+          "letterSpacing": "{token.font.letter-spacing.default}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "h2": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.primary}",
+          "fontSize": "{token.font.size.5xl}",
+          "fontWeight": "{token.font.weight.semi-bold}",
+          "letterSpacing": "{token.font.letter-spacing.default}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "h3": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.primary}",
+          "fontSize": "{token.font.size.4xl}",
+          "fontWeight": "{token.font.weight.regular}",
+          "letterSpacing": "{token.font.letter-spacing.default}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "h4": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.primary}",
+          "fontSize": "{token.font.size.3xl}",
+          "fontWeight": "{token.font.weight.bold}",
+          "letterSpacing": "{token.font.letter-spacing.default}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "h5": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.primary}",
+          "fontSize": "{token.font.size.2xl}",
+          "fontWeight": "{token.font.weight.medium}",
+          "letterSpacing": "{token.font.letter-spacing.default}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "h6": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.primary}",
+          "fontSize": "{token.font.size.xl}",
+          "fontWeight": "{token.font.weight.regular}",
+          "letterSpacing": "{token.font.letter-spacing.default}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "subtitle": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.secondary}",
+          "fontSize": "{token.font.size.lg}",
+          "fontWeight": "{token.font.weight.light}",
+          "letterSpacing": "{token.font.letter-spacing.default}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "subtitle-small": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.secondary}",
+          "fontSize": "{token.font.size.6xl}",
+          "fontWeight": "{token.font.weight.bold}",
+          "letterSpacing": "{token.font.letter-spacing.default}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "body": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.secondary}",
+          "fontSize": "{token.font.size.md}",
+          "fontWeight": "{token.font.weight.regular}",
+          "letterSpacing": "{token.font.letter-spacing.default}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "body-small": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.secondary}",
+          "fontSize": "{token.font.size.sm}",
+          "fontWeight": "{token.font.weight.regular}",
+          "letterSpacing": "{token.font.letter-spacing.wide}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "button": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.primary}",
+          "fontSize": "{token.font.size.sm}",
+          "fontWeight": "{token.font.weight.regular}",
+          "letterSpacing": "{token.font.letter-spacing.wide}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "caption": {  
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.primary}",
+          "fontSize": "{token.font.size.sx}",
+          "fontWeight": "{token.font.weight.regular}",
+          "letterSpacing": "{token.font.letter-spacing.wide}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "ORIGINAL",
+          "textDecoration": "NONE"
+        }
+      },
+      "overline": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{token.font.typeface.primary}",
+          "fontSize": "{token.font.size.2xs}",
+          "fontWeight": "{token.font.weight.medium}",
+          "letterSpacing": "{token.font.letter-spacing.wide}",
+          "lineHeight": "{token.font.line-height.default}",
+          "textCase": "UPPER",
+          "textDecoration": "NONE"
         }
       }
     },

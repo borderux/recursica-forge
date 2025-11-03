@@ -8,14 +8,15 @@ export default function SizeTokens() {
     const list: Array<{ name: string; value: number }> = []
     try {
       const src: any = (tokensJson as any)?.tokens?.size || {}
-      Object.keys(src).forEach((k) => {
-        const v = src[k]?.$value
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+        const raw = src[k]?.$value
+        const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `size/${k}`, value: num })
       })
     } catch {}
     return list
-  }, [])
+  }, [tokensJson])
 
   const [values, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}

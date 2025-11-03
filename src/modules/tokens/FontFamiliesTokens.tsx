@@ -10,10 +10,16 @@ export default function FontFamiliesTokens() {
   const [, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
     try {
-      const fams: any = (tokensJson as any)?.tokens?.font?.family || (tokensJson as any)?.font?.family || {}
-      Object.keys(fams).forEach((k) => {
+      const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+      const fams: any = fontRoot?.family || {}
+      const typeface: any = fontRoot?.typeface || {}
+      Object.keys(fams).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = fams[k]?.$value
         if (typeof v === 'string' && v) init[`font/family/${k}`] = v
+      })
+      Object.keys(typeface).filter((k) => !k.startsWith('$')).forEach((k) => {
+        const v = typeface[k]?.$value
+        if (typeof v === 'string' && v) init[`font/typeface/${k}`] = v
       })
     } catch {}
     const overrides = readOverrides()
@@ -36,25 +42,49 @@ export default function FontFamiliesTokens() {
   }
   
 
+  const ORDER = ['primary','secondary','tertiary','quaternary','quinary','senary','septenary','octonary']
   const buildRows = (): FamilyRow[] => {
     const base: Record<string, FamilyRow> = {}
     const overrides = readOverrides()
     // from tokens
     try {
-      const fams: any = (tokensJson as any)?.tokens?.font?.family || (tokensJson as any)?.font?.family || {}
-      Object.keys(fams).forEach((key) => {
+      const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+      const fams: any = fontRoot?.family || {}
+      const typeface: any = fontRoot?.typeface || {}
+      Object.keys(fams).filter((key) => !key.startsWith('$')).forEach((key) => {
         const name = `font/family/${key}`
         const val = fams[key]?.$value
+        const ov = (overrides as any)[name]
+        base[name] = { name, value: String(ov ?? val ?? ''), custom: false }
+      })
+      Object.keys(typeface).filter((key) => !key.startsWith('$')).forEach((key) => {
+        const name = `font/typeface/${key}`
+        const val = typeface[key]?.$value
         const ov = (overrides as any)[name]
         base[name] = { name, value: String(ov ?? val ?? ''), custom: false }
       })
     } catch {}
     // from overrides-only (newly added)
     Object.keys(overrides as Record<string, any>).forEach((name) => {
-      if (!name.startsWith('font/family/')) return
+      if (!(name.startsWith('font/family/') || name.startsWith('font/typeface/'))) return
       if (!base[name]) base[name] = { name, value: String((overrides as any)[name]), custom: false }
     })
-    return Object.values(base)
+    const rows = Object.values(base)
+    // Sort: typeface in canonical order first, then families alphabetically
+    rows.sort((a, b) => {
+      const aTF = a.name.startsWith('font/typeface/')
+      const bTF = b.name.startsWith('font/typeface/')
+      if (aTF && bTF) {
+        const aKey = a.name.replace('font/typeface/','')
+        const bKey = b.name.replace('font/typeface/','')
+        const ai = ORDER.indexOf(aKey)
+        const bi = ORDER.indexOf(bKey)
+        return (ai === -1 ? Number.POSITIVE_INFINITY : ai) - (bi === -1 ? Number.POSITIVE_INFINITY : bi)
+      }
+      if (aTF !== bTF) return aTF ? -1 : 1
+      return a.name.localeCompare(b.name)
+    })
+    return rows
   }
 
   const [rows, setRows] = useState<FamilyRow[]>(() => buildRows())
@@ -184,18 +214,22 @@ export default function FontFamiliesTokens() {
         <div style={{ fontWeight: 600 }}>Families</div>
         <button
           onClick={() => {
-            const defaultFamily = ''
-            const name = uniqueTokenName(`font/family/`)
-            const row: FamilyRow = { name, value: defaultFamily, custom: false }
+            // add next typeface row in canonical order
+            const existing = new Set(visibleRows.filter((r) => r.name.startsWith('font/typeface/')).map((r) => r.name.replace('font/typeface/','')))
+            const nextKey = ORDER.find((k) => !existing.has(k)) || `custom-${existing.size+1}`
+            const name = `font/typeface/${nextKey}`
+            const row: FamilyRow = { name, value: '', custom: false }
             setRows((prev) => [...prev, row])
-            // nothing else
           }}
           style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer' }}
         >+Font Family</button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(240px, 1fr) auto', gap: 8, alignItems: 'center' }}>
         {visibleRows.map((r) => {
-          const label = toTitle(r.name.replace('font/family/', ''))
+          const label = (() => {
+            if (r.name.startsWith('font/typeface/')) return toTitle(r.name.replace('font/typeface/',''))
+            return toTitle(r.name.replace('font/family/', ''))
+          })()
           const options = (() => {
             // Exclude families already selected in other rows to prevent duplicates
             const used = new Set(visibleRows.filter((x) => x.name !== r.name).map((x) => x.value).filter((v) => v && v !== 'Custom...'))
@@ -203,8 +237,11 @@ export default function FontFamiliesTokens() {
             const set = new Set<string>()
             fonts.forEach((f) => { if (f && f !== 'Custom...') set.add(f) })
             try {
-              const fams: any = (tokensJson as any)?.tokens?.font?.family || (tokensJson as any)?.font?.family || {}
-              Object.keys(fams).forEach((k) => { const v = String(fams[k]?.$value || ''); if (v) set.add(v) })
+              const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+              const fams: any = fontRoot?.family || {}
+              const typeface: any = fontRoot?.typeface || {}
+              Object.keys(fams).filter((k) => !k.startsWith('$')).forEach((k) => { const v = String(fams[k]?.$value || ''); if (v) set.add(v) })
+              Object.keys(typeface).filter((k) => !k.startsWith('$')).forEach((k) => { const v = String(typeface[k]?.$value || ''); if (v) set.add(v) })
             } catch {}
             try {
               const ov = readOverrides() as Record<string, any>

@@ -97,6 +97,7 @@ function getTokenValueWithOverrides(name: string | undefined, overrides: Record<
     }
     const val = (cur && typeof cur === 'object' && '$value' in cur) ? (cur as any)['$value'] : cur
     if (typeof val === 'number' || typeof val === 'string') return val
+    if (val && typeof val === 'object' && typeof (val as any).value !== 'undefined') return (val as any).value
   } catch {}
   return undefined
 }
@@ -330,7 +331,14 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
     // Prefer brand.typography if provided, else fall back to theme entries
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
     const spec: any = root?.typography?.[prefix]?.$value || (prefix.startsWith('body') ? root?.typography?.body?.normal?.$value : undefined)
-    const fam = spec?.fontFamily ?? resolveThemeValue(familyRec?.value, overrides, tokens as any, themeIndex)
+    const fam = (() => {
+      const v: any = spec?.fontFamily
+      if (v && typeof v === 'object' && v.collection === 'Tokens' && typeof v.name === 'string') {
+        const resolved = getTokenValueWithOverrides(v.name.replace(/^token\./, ''), overrides, tokens as any)
+        if (resolved != null) return resolved
+      }
+      return spec?.fontFamily ?? resolveThemeValue(familyRec?.value, overrides, tokens as any, themeIndex)
+    })()
     const size = spec?.fontSize ?? resolveThemeValue(sizeRec?.value, overrides, tokens as any, themeIndex)
     const spacing = spec?.letterSpacing ?? resolveThemeValue(spacingRec?.value, overrides, tokens as any, themeIndex)
     const weight = (spec?.fontWeight ?? spec?.weight) ?? resolveThemeValue(weightRec?.value, overrides, tokens as any, themeIndex)

@@ -10,7 +10,7 @@ export default function FontSizeTokens() {
       const src: any = (tokensJson as any)?.tokens?.font?.size || {}
       Object.keys(src).forEach((k) => {
         const v = src[k]?.$value
-        const num = typeof v === 'number' ? v : Number(v)
+        const num = typeof v === 'number' ? v : (typeof v === 'object' && v && typeof v.value === 'number' ? v.value : Number(v))
         if (Number.isFinite(num)) list.push({ name: `font/size/${k}`, value: num })
       })
     } catch {}
