@@ -1,6 +1,14 @@
+/**
+ * PaletteGrid
+ *
+ * Interactive grid for a single theme palette (neutral/palette-1..4).
+ * - Allows choosing a color family mapped to tone levels
+ * - Applies Brand.json text/opacity mappings to CSS vars
+ * - Enforces WCAG AA for dot contrast when possible
+ * - Persists selections per-palette in localStorage
+ */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
-import themeJson from '../../vars/Theme.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides } from './tokenOverrides'
 
 type PaletteGridProps = {
@@ -13,19 +21,21 @@ type PaletteGridProps = {
   onDelete?: () => void
 }
 
-const LEVELS: Array<number> = [900, 800, 700, 600, 500, 400, 300, 200, 100, 50]
+const LEVELS: Array<number> = [1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 50, 0]
 
 function toLevelString(level: number): string {
   if (level === 50) return '050'
+  if (level === 0) return '000'
   return String(level)
 }
 
 function toTokenLevel(levelStr: string): string {
-  // Tokens use 50 (no leading zero), but CSS vars use 050
-  return levelStr === '050' ? '50' : levelStr
+  // Tokens now include explicit keys for 000 and 050; use level string as-is
+  return levelStr
 }
 
 export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, initialFamily, mode, deletable, onDelete }: PaletteGridProps) {
+  const { tokens: tokensJson, theme: themeJson } = useVars()
   const defaultLevelStr = typeof defaultLevel === 'number' ? toLevelString(defaultLevel) : String(defaultLevel).padStart(3, '0')
   const headerLevels = LEVELS.map(toLevelString)
 
@@ -38,30 +48,27 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   }, [])
 
   const families = useMemo(() => {
-    const fams = new Set<string>()
-    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
-      if (e && typeof e.name === 'string' && e.name.startsWith('color/')) {
-        const parts = e.name.split('/')
-        if (parts.length === 3) fams.add(parts[1])
-      }
-    })
+    // Merge families from Tokens.json and overrides so custom scales appear
+    const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))
     try {
       const overrides = readOverrides() as Record<string, any>
       Object.keys(overrides || {}).forEach((name) => {
-        if (typeof name === 'string' && name.startsWith('color/')) {
-          const parts = name.split('/')
-          if (parts.length === 3) fams.add(parts[1])
-        }
+        if (typeof name !== 'string') return
+        if (!name.startsWith('color/')) return
+        const parts = name.split('/')
+        const fam = parts[1]
+        if (fam && fam !== 'translucent') fams.add(fam)
       })
     } catch {}
-    const list = Array.from(fams).filter((f) => f !== 'translucent')
+    fams.delete('translucent')
+    const list = Array.from(fams)
     list.sort((a, b) => {
       if (a === 'gray' && b !== 'gray') return -1
       if (b === 'gray' && a !== 'gray') return 1
       return a.localeCompare(b)
     })
     return list
-  }, [overrideVersion])
+  }, [tokensJson, overrideVersion])
 
   const [selectedFamily, setSelectedFamily] = useState<string>(() => {
     if (typeof initialFamily === 'string' && initialFamily) return initialFamily
@@ -111,14 +118,19 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   const availableFamilies = families.filter((f) => f === selectedFamily || !usedByOthers.has(f))
 
   const themeIndex = useMemo(() => {
-    const bucket: Record<string, any> = {}
-    const entries = (themeJson as any)?.RecursicaBrand ? Object.values((themeJson as any).RecursicaBrand as Record<string, any>) : []
-    ;(entries as any[]).forEach((e) => {
-      if (e && typeof e.name === 'string' && typeof e.mode === 'string') {
-        bucket[`${e.mode}::${e.name}`] = e
+    const out: Record<string, { value: any }> = {}
+    const visit = (node: any, prefix: string, mode: 'Light' | 'Dark') => {
+      if (!node || typeof node !== 'object') return
+      if (Object.prototype.hasOwnProperty.call(node, '$value')) {
+        out[`${mode}::${prefix}`] = { value: (node as any)['$value'] }
+        return
       }
-    })
-    return bucket
+      Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
+    }
+    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+    if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
+    if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
+    return out
   }, [])
 
   function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -173,7 +185,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   // }
 
   const getTokenValueByName = (name: string): string | undefined => {
-    // Prefer runtime overrides, then fall back to Tokens.json
     try {
       const overrides = readOverrides() as Record<string, any>
       if (overrides && Object.prototype.hasOwnProperty.call(overrides, name)) {
@@ -181,23 +192,44 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         if (ov != null) return String(ov)
       }
     } catch {}
-    const entry: any = Object.values(tokensJson as Record<string, any>).find((e: any) => e && e.name === name)
-    return entry ? String(entry.value) : undefined
+    const parts = (name || '').split('/')
+    if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.tokens?.color?.[parts[1]]?.[parts[2]]?.$value
+    if (parts[0] === 'opacity' && parts[1]) return String((tokensJson as any)?.tokens?.opacity?.[parts[1]]?.$value)
+    return undefined
   }
 
   const resolveThemeRef = (ref: any, modeLabel: 'Light' | 'Dark'): string | number | undefined => {
     if (ref == null) return undefined
-    if (typeof ref === 'string' || typeof ref === 'number') return ref
-    if (typeof ref === 'object') {
-      const coll = ref.collection
-      const name = ref.name
-      if (coll === 'Tokens' && typeof name === 'string') {
-        return getTokenValueByName(name)
+    if (typeof ref === 'number') return ref
+    if (typeof ref === 'string') {
+      const s = ref.trim()
+      if (!s.startsWith('{')) return s
+      const inner = s.slice(1, -1)
+      if (inner.startsWith('token.')) return getTokenValueByName(inner.replace(/^token\./, '').replace(/\./g, '/'))
+      if (inner.startsWith('theme.')) {
+        const parts = inner.split('.')
+        const mode = (parts[1] || '').toLowerCase() === 'dark' ? 'Dark' : 'Light'
+        const path = parts.slice(2).join('/')
+        let entry = (themeIndex as any)[`${mode}::${path}`]
+        if (!entry && /\/high-emphasis$/.test(path)) {
+          const alt = path.replace(/\/high-emphasis$/, '/text/high-emphasis')
+          entry = (themeIndex as any)[`${mode}::${alt}`]
+        }
+        if (!entry && /\/low-emphasis$/.test(path)) {
+          const alt = path.replace(/\/low-emphasis$/, '/text/low-emphasis')
+          entry = (themeIndex as any)[`${mode}::${alt}`]
+        }
+        return resolveThemeRef(entry?.value, mode)
       }
+      return s
+    }
+    if (typeof ref === 'object') {
+      const coll = (ref as any).collection
+      const name = (ref as any).name
+      if (coll === 'Tokens' && typeof name === 'string') return getTokenValueByName(name)
       if (coll === 'Theme' && typeof name === 'string') {
         const entry = (themeIndex as any)[`${modeLabel}::${name}`]
-        if (!entry) return undefined
-        return resolveThemeRef(entry.value, modeLabel)
+        return resolveThemeRef(entry?.value, modeLabel)
       }
     }
     return undefined
@@ -219,19 +251,16 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
 
   const opacityTokenValuesAsc = useMemo(() => {
     const vals: number[] = []
-    Object.values(tokensJson as Record<string, any>).forEach((e: any) => {
-      if (!e || typeof e.name !== 'string') return
-      if (!e.name.startsWith('opacity/')) return
-      const raw = Number(e.value)
+    const src = (tokensJson as any)?.tokens?.opacity || {}
+    Object.values(src).forEach((entry: any) => {
+      const raw = Number(entry?.$value)
       if (!Number.isFinite(raw)) return
       const v = raw <= 1 ? raw : raw / 100
       if (v > 0 && v <= 1) vals.push(v)
     })
-    // include solid as a fallback if missing
     if (!vals.some((v) => Math.abs(v - 1) < 1e-6)) vals.push(1)
-    // de-duplicate and sort ascending (most translucent first)
     return Array.from(new Set(vals)).sort((a, b) => a - b)
-  }, [])
+  }, [tokensJson])
 
   function pickMinAlphaForAA(toneHex: string, dotHex: string): number {
     const AA = 4.5

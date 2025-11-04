@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 function toTitleCase(label: string): string {
@@ -10,13 +10,23 @@ function toTitleCase(label: string): string {
 }
 
 export default function OpacityTokens() {
+  const { tokens: tokensJson } = useVars()
+  const flattened = useMemo(() => {
+    const list: Array<{ name: string; value: number }> = []
+    try {
+      const src: any = (tokensJson as any)?.tokens?.opacity || {}
+      Object.keys(src).forEach((k) => {
+        const v = src[k]?.$value
+        const num = typeof v === 'number' ? v : Number(v)
+        if (Number.isFinite(num)) list.push({ name: `opacity/${k}`, value: num })
+      })
+    } catch {}
+    return list
+  }, [])
+
   const [values, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && typeof entry.name === 'string' && (typeof entry.value === 'number' || typeof entry.value === 'string')) {
-        init[entry.name] = entry.value
-      }
-    })
+    flattened.forEach((it) => { init[it.name] = it.value })
     const overrides = readOverrides()
     return { ...init, ...overrides }
   })
@@ -39,20 +49,14 @@ export default function OpacityTokens() {
   }, [])
 
   const items = useMemo(() => {
-    const out: Array<{ name: string; value: number | string }> = []
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (!entry || typeof entry !== 'object') return
-      if (typeof entry.name !== 'string') return
-      if (!entry.name.startsWith('opacity/')) return
-      out.push({ name: entry.name, value: entry.value })
-    })
+    const out: Array<{ name: string; value: number | string }> = flattened
     const toPct = (v: any) => {
       const n = typeof v === 'number' ? v : parseFloat(v)
       if (!Number.isFinite(n)) return Number.POSITIVE_INFINITY
       return n <= 1 ? n * 100 : n
     }
     return out.sort((a, b) => toPct(a.value) - toPct(b.value))
-  }, [])
+  }, [flattened])
 
   const toPctNumber = (v: any) => {
     const n = typeof v === 'number' ? v : parseFloat(v)

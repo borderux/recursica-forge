@@ -1,15 +1,26 @@
 import { useMemo, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 export default function SizeTokens() {
+  const { tokens: tokensJson } = useVars()
+  const flattened = useMemo(() => {
+    const list: Array<{ name: string; value: number }> = []
+    try {
+      const src: any = (tokensJson as any)?.tokens?.size || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+        const raw = src[k]?.$value
+        const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
+        const num = typeof v === 'number' ? v : Number(v)
+        if (Number.isFinite(num)) list.push({ name: `size/${k}`, value: num })
+      })
+    } catch {}
+    return list
+  }, [tokensJson])
+
   const [values, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && typeof entry.name === 'string' && (typeof entry.value === 'number' || typeof entry.value === 'string')) {
-        init[entry.name] = entry.value
-      }
-    })
+    flattened.forEach((it) => { init[it.name] = it.value })
     const overrides = readOverrides()
     return { ...init, ...overrides }
   })
@@ -20,13 +31,7 @@ export default function SizeTokens() {
   })
 
   const items = useMemo(() => {
-    const out: Array<{ name: string; value: number | string }> = []
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (!entry || typeof entry !== 'object') return
-      if (typeof entry.name !== 'string') return
-      if (!entry.name.startsWith('size/')) return
-      out.push({ name: entry.name, value: entry.value })
-    })
+    const out: Array<{ name: string; value: number | string }> = flattened
     const weight = (full: string) => {
       const n = full.replace('size/', '').replace('-', '.')
       if (n === 'none') return [0, 0]
@@ -41,7 +46,7 @@ export default function SizeTokens() {
       if (wa[0] !== wb[0]) return wa[0] - wb[0]
       return wa[1] - wb[1]
     })
-  }, [])
+  }, [flattened])
 
   function parseMultiplier(raw: string): number {
     if (raw === 'default') return 1

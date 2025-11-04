@@ -1,15 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 export default function FontLineHeightTokens() {
+  const { tokens: tokensJson } = useVars()
+  const flattened = useMemo(() => {
+    const list: Array<{ name: string; value: number }> = []
+    try {
+      const src: any = (tokensJson as any)?.tokens?.font?.['line-height'] || {}
+      Object.keys(src).forEach((k) => {
+        const v = src[k]?.$value
+        const num = typeof v === 'number' ? v : Number(v)
+        if (Number.isFinite(num)) list.push({ name: `font/line-height/${k}`, value: num })
+      })
+    } catch {}
+    return list
+  }, [tokensJson])
   const [values, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && typeof entry.name === 'string' && (typeof entry.value === 'number' || typeof entry.value === 'string')) {
-        init[entry.name] = entry.value
-      }
-    })
+    flattened.forEach((it) => { init[it.name] = it.value })
     const overrides = readOverrides()
     return { ...init, ...overrides }
   })

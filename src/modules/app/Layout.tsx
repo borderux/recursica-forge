@@ -1,3 +1,9 @@
+/**
+ * Layout
+ *
+ * Chooses a UI shell (Mantine/Material/Carbon) based on UiKitContext and
+ * hosts the routed pages inside it.
+ */
 import { Suspense, lazy, useMemo } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import { useUiKit } from '../uikit/UiKitContext'

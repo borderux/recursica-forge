@@ -1,15 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
-import tokensJson from '../../vars/Tokens.json'
+import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 
 export default function FontSizeTokens() {
+  const { tokens: tokensJson } = useVars()
+  const flattened = useMemo(() => {
+    const list: Array<{ name: string; value: number }> = []
+    try {
+      const src: any = (tokensJson as any)?.tokens?.font?.size || {}
+      Object.keys(src).forEach((k) => {
+        const v = src[k]?.$value
+        const num = typeof v === 'number' ? v : (typeof v === 'object' && v && typeof v.value === 'number' ? v.value : Number(v))
+        if (Number.isFinite(num)) list.push({ name: `font/size/${k}`, value: num })
+      })
+    } catch {}
+    return list
+  }, [])
+
   const [values, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && typeof entry.name === 'string' && (typeof entry.value === 'number' || typeof entry.value === 'string')) {
-        init[entry.name] = entry.value
-      }
-    })
+    flattened.forEach((it) => { init[it.name] = it.value })
     const overrides = readOverrides()
     return { ...init, ...overrides }
   })
@@ -32,20 +42,14 @@ export default function FontSizeTokens() {
   }, [])
 
   const items = useMemo(() => {
-    const out: Array<{ name: string; value: number | string }> = []
-    Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (!entry || typeof entry !== 'object') return
-      if (typeof entry.name !== 'string') return
-      if (!entry.name.startsWith('font/size/')) return
-      out.push({ name: entry.name, value: entry.value })
-    })
+    const out: Array<{ name: string; value: number | string }> = flattened
     // Order by numeric px
     const px = (v: any) => {
       const n = typeof v === 'number' ? v : parseFloat(v)
       return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY
     }
     return out.sort((a,b) => px(a.value) - px(b.value))
-  }, [])
+  }, [flattened])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 

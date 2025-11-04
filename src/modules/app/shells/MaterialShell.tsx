@@ -1,3 +1,9 @@
+/**
+ * MaterialShell
+ *
+ * App frame using Material UI; lazy-loads MUI packages on mount and
+ * provides navigation, reset defaults, and download controls.
+ */
 import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
@@ -5,8 +11,10 @@ import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '
 import { applyTheme, LIGHT_MODE } from '../../theme/index'
 import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
+import { useVars } from '../../vars/VarsContext'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
+  const { resetAll } = useVars()
   const [mat, setMat] = useState<any>(null)
   const [styles, setStyles] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -52,7 +60,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             <Tab value="layers" label="Layers" component={Link as any} to="/layers" />
             <Tab value="uikit" label="UI Kit" component={Link as any} to="/uikit" />
           </Tabs>
-          <IconButton color="inherit" size="small" onClick={() => { clearOverrides(tokensJson as any); applyTheme(LIGHT_MODE) }} title="Reset to defaults">↺</IconButton>
+          <IconButton color="inherit" size="small" onClick={() => { clearOverrides(tokensJson as any); resetAll() }} title="Reset to defaults">↺</IconButton>
           <IconButton color="inherit" size="small" onClick={() => {/* open modal not implemented for MUI shell */}} title="Import / Export">⤓</IconButton>
           <Select
             size="small"

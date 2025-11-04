@@ -1,3 +1,16 @@
+/**
+ * tokenOverrides.ts
+ *
+ * Small utility for reading/writing token overrides to localStorage and
+ * notifying the app when values change.
+ *
+ * Storage
+ * - Key: 'token-overrides' (JSON object of name -> value)
+ *
+ * Events
+ * - Dispatches 'tokenOverridesChanged' with detail { name, value, all }
+ *   on set; and { all, reset: true } when cleared
+ */
 const STORAGE_KEY = 'token-overrides'
 
 export type TokenOverrides = Record<string, number | string>
@@ -36,7 +49,7 @@ export function clearOverrides(initialAll?: any) {
     const removeKeys = (
       Object.keys(localStorage || {}) as Array<string>
     ).filter((k) => (
-      k === 'family-friendly-names' ||
+      // keep 'family-friendly-names' intact; it is sourced from Tokens.json
       k === 'font-families-deleted' ||
       k === 'effects-scale-by-default' ||
       k === 'font-letter-scale-by-tight-wide' ||
