@@ -5,15 +5,138 @@ import { readOverrides } from './tokenOverrides'
 import tokensJson from '../../vars/Tokens.json'
 
 interface ElevationControl {
-  blurToken: string // Reference to effect token for blur
-  spreadToken: string // Reference to effect token for spread
-  offsetXToken: string // Reference to effect token for horizontal offset
-  offsetYToken: string // Reference to effect token for vertical offset
+  blurToken: string // Reference to size token for blur
+  spreadToken: string // Reference to size token for spread
+  offsetXToken: string // Reference to size token for horizontal offset
+  offsetYToken: string // Reference to size token for vertical offset
 }
 
 interface ShadowColorControl {
   colorToken: string // Selected color token (e.g., 'color/gray/900', 'color/mandy/500')
   alphaToken: string // Reference to opacity token for alpha
+}
+
+// Chip Selector Component for Token Selection
+function ChipSelector({
+  selectedToken,
+  availableTokens,
+  onSelect,
+  disabled,
+  labelFormatter
+}: {
+  selectedToken: string | undefined
+  availableTokens: Array<{ name: string; label: string; value: number }>
+  onSelect: (tokenName: string) => void
+  disabled?: boolean
+  labelFormatter?: (label: string, value: number) => string
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!ref.current) return
+      if (!ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [])
+
+  const selectedTokenData = availableTokens.find(t => t.name === selectedToken)
+  const displayLabel = selectedTokenData 
+    ? (labelFormatter ? labelFormatter(selectedTokenData.label, selectedTokenData.value) : `${selectedTokenData.label} (${selectedTokenData.value}px)`)
+    : '—'
+
+  const changedStyle = { 
+    background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', 
+    color: '#fff', 
+    border: 'none' 
+  }
+  const baseStyle = { 
+    border: '1px solid var(--layer-layer-1-property-border-color)', 
+    color: 'inherit' 
+  }
+  const common = { 
+    borderRadius: 16, 
+    padding: '4px 10px', 
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontSize: '0.875rem'
+  } as React.CSSProperties
+
+  return (
+    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+      <span
+        onClick={() => !disabled && setOpen(!open)}
+        style={{
+          ...(selectedTokenData ? changedStyle : baseStyle),
+          ...common,
+          opacity: disabled ? 0.5 : 1,
+          display: 'inline-block'
+        }}
+      >
+        {displayLabel}
+      </span>
+      {open && !disabled && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            marginTop: '4px',
+            background: 'var(--layer-layer-0-property-surface)',
+            border: '1px solid var(--layer-layer-1-property-border-color)',
+            borderRadius: 8,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+            minWidth: 200,
+            maxHeight: 300,
+            overflowY: 'auto',
+            padding: '4px'
+          }}
+        >
+          {availableTokens.map((token) => {
+            const isSelected = token.name === selectedToken
+            const tokenLabel = labelFormatter ? labelFormatter(token.label, token.value) : `${token.label} (${token.value}px)`
+            return (
+              <button
+                key={token.name}
+                type="button"
+                onClick={() => {
+                  onSelect(token.name)
+                  setOpen(false)
+                }}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '6px 10px',
+                  border: 'none',
+                  background: isSelected
+                    ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)'
+                    : 'transparent',
+                  color: isSelected ? '#fff' : 'var(--layer-layer-0-property-element-text-color)',
+                  cursor: 'pointer',
+                  borderRadius: 4,
+                  fontSize: '0.875rem'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = 'var(--layer-layer-1-property-surface)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = 'transparent'
+                  }
+                }}
+              >
+                {tokenLabel}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // Shadow Color Picker Component
@@ -280,6 +403,18 @@ export default function ElevationPage() {
     const v = localStorage.getItem('blur-scale-by-default')
     return v === null ? true : v === 'true'
   })
+  const [spreadScaleByDefault, setSpreadScaleByDefault] = useState<boolean>(() => {
+    const v = localStorage.getItem('spread-scale-by-default')
+    return v === null ? false : v === 'true'
+  })
+  const [offsetXScaleByDefault, setOffsetXScaleByDefault] = useState<boolean>(() => {
+    const v = localStorage.getItem('offset-x-scale-by-default')
+    return v === null ? false : v === 'true'
+  })
+  const [offsetYScaleByDefault, setOffsetYScaleByDefault] = useState<boolean>(() => {
+    const v = localStorage.getItem('offset-y-scale-by-default')
+    return v === null ? false : v === 'true'
+  })
   const [shadowColorControl, setShadowColorControl] = useState<ShadowColorControl>(() => {
     try {
       const saved = localStorage.getItem('shadow-color-control')
@@ -298,40 +433,40 @@ export default function ElevationPage() {
     // Initialize with default values
     const defaults: Record<string, ElevationControl> = {}
     for (let i = 0; i <= 4; i++) {
-      // Map elevations to available effect tokens
-      let blurToken = 'effect/none'
-      if (i === 1) blurToken = 'effect/default'
-      else if (i === 2) blurToken = 'effect/2x'
-      else if (i === 3) blurToken = 'effect/3x'
-      else if (i === 4) blurToken = 'effect/4x'
+      // Map elevations to available size tokens
+      let blurToken = 'size/none'
+      if (i === 1) blurToken = 'size/default'
+      else if (i === 2) blurToken = 'size/2x'
+      else if (i === 3) blurToken = 'size/3x'
+      else if (i === 4) blurToken = 'size/4x'
       
       defaults[`elevation-${i}`] = {
         blurToken: blurToken,
-        spreadToken: 'effect/none', // Default spread to none
-        offsetXToken: 'effect/none', // Default horizontal offset to none
-        offsetYToken: 'effect/none' // Default vertical offset to 0
+        spreadToken: 'size/none', // Default spread to none
+        offsetXToken: 'size/none', // Default horizontal offset to none
+        offsetYToken: 'size/none' // Default vertical offset to 0
       }
     }
     return defaults
   })
 
-  // Get current effect token values - make it reactive to changes
-  const [effectTokens, setEffectTokens] = useState<Record<string, number>>(() => {
+  // Get current size token values - make it reactive to changes
+  const [sizeTokens, setSizeTokens] = useState<Record<string, number>>(() => {
     const tokens: Record<string, number> = {}
     Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && typeof entry.name === 'string' && entry.name.startsWith('effect/') && typeof entry.value === 'number') {
+      if (entry && typeof entry.name === 'string' && entry.name.startsWith('size/') && typeof entry.value === 'number') {
         tokens[entry.name] = entry.value
       }
     })
     const overrides = readOverrides()
-    // Filter overrides to only include numeric values for effect tokens
-    const effectOverrides: Record<string, number> = {}
+    // Filter overrides to only include numeric values for size tokens
+    const sizeOverrides: Record<string, number> = {}
     Object.entries(overrides).forEach(([key, value]) => {
-      if (key.startsWith('effect/') && typeof value === 'number') {
-        effectOverrides[key] = value
+      if (key.startsWith('size/') && typeof value === 'number') {
+        sizeOverrides[key] = value
       }
     })
-    return { ...tokens, ...effectOverrides }
+    return { ...tokens, ...sizeOverrides }
   })
 
   // State to trigger re-renders when tokens change (for shadow color)
@@ -377,23 +512,23 @@ export default function ElevationPage() {
       const { all, name, value } = detail
       
       if (all && typeof all === 'object') {
-        // Update effect tokens when all tokens are updated
-        const newEffectTokens: Record<string, number> = {}
+        // Update size tokens when all tokens are updated
+        const newSizeTokens: Record<string, number> = {}
         Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-          if (entry && typeof entry.name === 'string' && entry.name.startsWith('effect/') && typeof entry.value === 'number') {
-            newEffectTokens[entry.name] = entry.value
+          if (entry && typeof entry.name === 'string' && entry.name.startsWith('size/') && typeof entry.value === 'number') {
+            newSizeTokens[entry.name] = entry.value
           }
         })
-        setEffectTokens({ ...newEffectTokens, ...all })
+        setSizeTokens({ ...newSizeTokens, ...all })
         // Force re-render for shadow color updates
         setShadowColorControl(prev => ({ ...prev }))
         return
       }
       
-      if (typeof name === 'string' && (name.startsWith('effect/') || name.startsWith('opacity/') || name.startsWith('color/'))) {
+      if (typeof name === 'string' && (name.startsWith('size/') || name.startsWith('opacity/') || name.startsWith('color/'))) {
         // Update specific token
-        if (name.startsWith('effect/')) {
-          setEffectTokens(prev => ({
+        if (name.startsWith('size/')) {
+          setSizeTokens(prev => ({
             ...prev,
             [name]: value
           }))
@@ -416,27 +551,27 @@ export default function ElevationPage() {
     }))
   }
 
-  // Helper function to get the next token in the effect tokens progression
+  // Helper function to get the next token in the size tokens progression
   const getNextTokenInProgression = useMemo(() => {
     return (baseToken: string, steps: number): string => {
-      // Use the current effectTokens state which includes overrides
-      const effectItems: Array<{ name: string; value: number }> = []
-      Object.entries(effectTokens).forEach(([name, value]) => {
-        if (name.startsWith('effect/') && typeof value === 'number') {
-          effectItems.push({ name, value })
+      // Use the current sizeTokens state which includes overrides
+      const sizeItems: Array<{ name: string; value: number }> = []
+      Object.entries(sizeTokens).forEach(([name, value]) => {
+        if (name.startsWith('size/') && typeof value === 'number') {
+          sizeItems.push({ name, value })
         }
       })
       
       const weight = (full: string) => {
-        const n = full.replace('effect/', '')
+        const n = full.replace('size/', '').replace('-', '.')
         if (n === 'none') return [0, 0]
-        if (n === '0-5x') return [1, 0]
+        if (n === '0.5x') return [1, 0]
         if (n === 'default') return [2, 0]
-        const asNum = parseFloat(n.replace('x', '').replace('-', '.'))
+        const asNum = parseFloat(n.replace('x', ''))
         return [3, isNaN(asNum) ? Number.POSITIVE_INFINITY : asNum]
       }
       
-      const sortedTokens = effectItems.sort((a, b) => {
+      const sortedTokens = sizeItems.sort((a, b) => {
         const wa = weight(a.name)
         const wb = weight(b.name)
         if (wa[0] !== wb[0]) return wa[0] - wb[0]
@@ -451,13 +586,13 @@ export default function ElevationPage() {
       const nextIndex = Math.min(currentIndex + steps, sortedTokens.length - 1)
       return sortedTokens[nextIndex].name
     }
-  }, [effectTokens])
+  }, [sizeTokens])
 
   const getBlurValue = (elevation: string) => {
     const control = elevationControls[elevation]
     if (!control) return 0
     
-    const tokenValue = effectTokens[control.blurToken]
+    const tokenValue = sizeTokens[control.blurToken]
     const baseValue = tokenValue || 0
     
     // If blur scaling is enabled, use token progression from level 0 base
@@ -465,9 +600,9 @@ export default function ElevationPage() {
       const elevationLevel = parseInt(elevation.replace('elevation-', ''))
       // Always use level 0's token as the base for all calculations
       const level0Control = elevationControls['elevation-0']
-      const baseToken = level0Control?.blurToken || 'effect/default'
+      const baseToken = level0Control?.blurToken || 'size/default'
       const nextToken = getNextTokenInProgression(baseToken, elevationLevel)
-      return effectTokens[nextToken] || baseValue
+      return sizeTokens[nextToken] || baseValue
     }
     
     return baseValue
@@ -477,24 +612,60 @@ export default function ElevationPage() {
     const control = elevationControls[elevation]
     if (!control) return 0
     
-    const tokenValue = effectTokens[control.spreadToken]
-    return tokenValue || 0
+    const tokenValue = sizeTokens[control.spreadToken]
+    const baseValue = tokenValue || 0
+    
+    // If spread scaling is enabled, use token progression from level 0 base
+    if (spreadScaleByDefault) {
+      const elevationLevel = parseInt(elevation.replace('elevation-', ''))
+      // Always use level 0's token as the base for all calculations
+      const level0Control = elevationControls['elevation-0']
+      const baseToken = level0Control?.spreadToken || 'size/default'
+      const nextToken = getNextTokenInProgression(baseToken, elevationLevel)
+      return sizeTokens[nextToken] || baseValue
+    }
+    
+    return baseValue
   }
 
   const getOffsetXValue = (elevation: string) => {
     const control = elevationControls[elevation]
     if (!control) return 0
     
-    const tokenValue = effectTokens[control.offsetXToken]
-    return tokenValue || 0
+    const tokenValue = sizeTokens[control.offsetXToken]
+    const baseValue = tokenValue || 0
+    
+    // If offset X scaling is enabled, use token progression from level 0 base
+    if (offsetXScaleByDefault) {
+      const elevationLevel = parseInt(elevation.replace('elevation-', ''))
+      // Always use level 0's token as the base for all calculations
+      const level0Control = elevationControls['elevation-0']
+      const baseToken = level0Control?.offsetXToken || 'size/default'
+      const nextToken = getNextTokenInProgression(baseToken, elevationLevel)
+      return sizeTokens[nextToken] || baseValue
+    }
+    
+    return baseValue
   }
 
   const getOffsetYValue = (elevation: string) => {
     const control = elevationControls[elevation]
     if (!control) return 0
     
-    const tokenValue = effectTokens[control.offsetYToken]
-    return tokenValue || 0
+    const tokenValue = sizeTokens[control.offsetYToken]
+    const baseValue = tokenValue || 0
+    
+    // If offset Y scaling is enabled, use token progression from level 0 base
+    if (offsetYScaleByDefault) {
+      const elevationLevel = parseInt(elevation.replace('elevation-', ''))
+      // Always use level 0's token as the base for all calculations
+      const level0Control = elevationControls['elevation-0']
+      const baseToken = level0Control?.offsetYToken || 'size/default'
+      const nextToken = getNextTokenInProgression(baseToken, elevationLevel)
+      return sizeTokens[nextToken] || baseValue
+    }
+    
+    return baseValue
   }
 
   // Helper function to get token value (same as PaletteGrid)
@@ -560,19 +731,19 @@ export default function ElevationPage() {
         boxShadow: boxShadow
       }
     }
-  }, [elevationControls, getShadowColor, tokenUpdateTrigger, effectTokens, blurScaleByDefault])
+  }, [elevationControls, getShadowColor, tokenUpdateTrigger, sizeTokens, blurScaleByDefault, spreadScaleByDefault, offsetXScaleByDefault, offsetYScaleByDefault])
 
-  // Get available effect tokens for dropdowns
-  const availableEffectTokens = useMemo(() => {
+  // Get available size tokens for dropdowns
+  const availableSizeTokens = useMemo(() => {
     const tokens: Array<{ name: string; value: number; label: string }> = []
     Object.values(tokensJson as Record<string, any>).forEach((entry: any) => {
-      if (entry && typeof entry.name === 'string' && entry.name.startsWith('effect/') && typeof entry.value === 'number') {
-        const baseLabel = entry.name.replace('effect/', '')
-        const label = baseLabel.replace('-', '.')
+      if (entry && typeof entry.name === 'string' && entry.name.startsWith('size/') && typeof entry.value === 'number') {
+        const baseLabel = entry.name.replace('size/', '').replace('-', '.')
+        const label = baseLabel === 'none' ? 'None' : baseLabel === 'default' ? 'Default' : baseLabel.endsWith('x') ? baseLabel : `${baseLabel}x`
         tokens.push({
           name: entry.name,
           value: entry.value,
-          label: label === 'none' ? 'None' : label === 'default' ? 'Default' : label.endsWith('x') ? label : `${label}x`
+          label: label
         })
       }
     })
@@ -597,11 +768,11 @@ export default function ElevationPage() {
     return tokens.sort((a, b) => a.value - b.value)
   }, [])
 
-  // Get maximum value from effect tokens for slider max
-  const maxEffectTokenValue = useMemo(() => {
-    if (availableEffectTokens.length === 0) return 100
-    return Math.max(...availableEffectTokens.map(token => token.value))
-  }, [availableEffectTokens])
+  // Get maximum value from size tokens for slider max
+  const maxSizeTokenValue = useMemo(() => {
+    if (availableSizeTokens.length === 0) return 100
+    return Math.max(...availableSizeTokens.map(token => token.value))
+  }, [availableSizeTokens])
 
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
@@ -672,7 +843,7 @@ export default function ElevationPage() {
                     <div className="card text-center" style={getElevationStyle(elevation)}>
                       <span style={{ color: 'var(--color-black)' }}>{i}</span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, width: '100%', minWidth: 0 }}>
                     <div className="control-group">
                       <label>
                         Blur: {getBlurValue(elevation)}px
@@ -680,9 +851,9 @@ export default function ElevationPage() {
                           <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
                             ({(() => {
                               const level0Control = elevationControls['elevation-0']
-                              const baseToken = level0Control?.blurToken || 'effect/default'
+                              const baseToken = level0Control?.blurToken || 'size/default'
                               const tokenName = getNextTokenInProgression(baseToken, parseInt(elevation.replace('elevation-', '')))
-                              const baseLabel = tokenName.replace('effect/', '')
+                              const baseLabel = tokenName.replace('size/', '')
                               const label = baseLabel.replace('-', '.')
                               return label === 'none' ? 'None' : label === 'default' ? 'Default' : label.endsWith('x') ? label : `${label}x`
                             })()})
@@ -690,272 +861,219 @@ export default function ElevationPage() {
                           </span>
                         ) : control?.blurToken && (
                           <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
-                            ({control.blurToken.replace('effect/', '')})
+                            ({control.blurToken.replace('size/', '')})
                           </span>
                         )}
                       </label>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <input
-                          type="range"
-                          min={0}
-                          max={maxEffectTokenValue}
-                          step={1}
-                          value={getBlurValue(elevation)}
-                          onChange={(e) => {
-                            const newValue = Number(e.target.value)
-                            // Find the closest effect token to this value
-                            const closestToken = availableEffectTokens.reduce((closest, token) => {
-                              const currentDiff = Math.abs(token.value - newValue)
-                              const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
-                              return currentDiff < closestDiff ? token.name : closest
-                            }, 'effect/none')
-                            updateElevationControl(elevation, 'blurToken', closestToken)
-                          }}
-                          disabled={blurScaleByDefault && i !== 0}
-                          style={{ 
-                            width: '100%', 
-                            maxWidth: '300px',
-                            cursor: (blurScaleByDefault && i !== 0) ? 'not-allowed' : 'pointer'
-                          }}
-                        />
-                        <input
-                          type="number"
-                          min={0}
-                          max={maxEffectTokenValue}
-                          value={getBlurValue(elevation)}
-                          onChange={(e) => {
-                            const newValue = Number(e.target.value)
-                            if (Number.isFinite(newValue)) {
-                              // Find the closest effect token to this value
-                              const closestToken = availableEffectTokens.reduce((closest, token) => {
-                                const currentDiff = Math.abs(token.value - newValue)
-                                const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
-                                return currentDiff < closestDiff ? token.name : closest
-                              }, 'effect/none')
-                              updateElevationControl(elevation, 'blurToken', closestToken)
+                      <div style={{ marginTop: '4px' }}>
+                        <ChipSelector
+                          selectedToken={(() => {
+                            if (blurScaleByDefault && i !== 0) {
+                              // When scaling is enabled, calculate the token from the base
+                              const level0Control = elevationControls['elevation-0']
+                              const baseToken = level0Control?.blurToken || 'size/default'
+                              return getNextTokenInProgression(baseToken, parseInt(elevation.replace('elevation-', '')))
                             }
+                            return control?.blurToken
+                          })()}
+                          availableTokens={availableSizeTokens}
+                          onSelect={(tokenName) => {
+                            updateElevationControl(elevation, 'blurToken', tokenName)
                           }}
                           disabled={blurScaleByDefault && i !== 0}
-                          style={{ 
-                            width: '50px',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            border: '1px solid var(--layer-layer-1-property-border-color)',
-                            background: (blurScaleByDefault && i !== 0) ? 'var(--layer-layer-2-property-surface)' : 'var(--layer-layer-0-property-surface)',
-                            color: (blurScaleByDefault && i !== 0) ? 'var(--layer-layer-2-property-element-text-color)' : 'var(--layer-layer-0-property-element-text-color)',
-                            cursor: (blurScaleByDefault && i !== 0) ? 'not-allowed' : 'pointer'
-                          }}
                         />
-                        <span style={{ fontSize: '12px', opacity: 0.8 }}>px</span>
                       </div>
+                      {i === 0 && (
+                        <div style={{ marginTop: '4px' }}>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 500 }}>
+                            <input 
+                              type="checkbox" 
+                              checked={blurScaleByDefault} 
+                              onChange={(e) => {
+                                const next = e.currentTarget.checked
+                                setBlurScaleByDefault(next)
+                                localStorage.setItem('blur-scale-by-default', String(next))
+                              }} 
+                              style={{ cursor: 'pointer' }}
+                            />
+                            Set as base to scale blur
+                          </label>
+                        </div>
+                      )}
                     </div>
-                    {i === 0 && (
-                      <div className="control-group" style={{ marginTop: '4px' }}>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 500 }}>
-                          <input 
-                            type="checkbox" 
-                            checked={blurScaleByDefault} 
-                            onChange={(e) => {
-                              const next = e.currentTarget.checked
-                              setBlurScaleByDefault(next)
-                              localStorage.setItem('blur-scale-by-default', String(next))
-                            }} 
-                            style={{ cursor: 'pointer' }}
-                          />
-                          Set as base to scale blur
-                        </label>
-                        {blurScaleByDefault && (
-                          <div style={{ marginTop: '4px', fontSize: '0.75rem', opacity: 0.8, color: 'var(--layer-layer-0-property-element-text-color)' }}>
-                            Level 0 (base) uses selected token, each level goes one step above the previous in the effect token sequence.
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div style={{ height: '1px', background: 'var(--layer-layer-1-property-border-color)', margin: '12px 0', width: '100%', alignSelf: 'stretch' }}></div>
                     <div className="control-group">
                       <label>
                         Spread: {getSpreadValue(elevation)}px
-                        {control?.spreadToken && (
+                        {spreadScaleByDefault ? (
                           <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
-                            ({control.spreadToken.replace('effect/', '')})
+                            ({(() => {
+                              const level0Control = elevationControls['elevation-0']
+                              const baseToken = level0Control?.spreadToken || 'size/default'
+                              const tokenName = getNextTokenInProgression(baseToken, parseInt(elevation.replace('elevation-', '')))
+                              const baseLabel = tokenName.replace('size/', '')
+                              const label = baseLabel.replace('-', '.')
+                              return label === 'none' ? 'None' : label === 'default' ? 'Default' : label.endsWith('x') ? label : `${label}x`
+                            })()})
+                            {i === 0 && ' (base)'}
+                          </span>
+                        ) : control?.spreadToken && (
+                          <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
+                            ({control.spreadToken.replace('size/', '')})
                           </span>
                         )}
                       </label>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <input
-                          type="range"
-                          min={0}
-                          max={maxEffectTokenValue}
-                          step={1}
-                          value={getSpreadValue(elevation)}
-                          onChange={(e) => {
-                            const newValue = Number(e.target.value)
-                            // Find the closest effect token to this value
-                            const closestToken = availableEffectTokens.reduce((closest, token) => {
-                              const currentDiff = Math.abs(token.value - newValue)
-                              const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
-                              return currentDiff < closestDiff ? token.name : closest
-                            }, 'effect/none')
-                            updateElevationControl(elevation, 'spreadToken', closestToken)
-                          }}
-                          style={{ 
-                            width: '100%', 
-                            maxWidth: '300px',
-                            cursor: 'pointer'
-                          }}
-                        />
-                        <input
-                          type="number"
-                          min={0}
-                          max={maxEffectTokenValue}
-                          value={getSpreadValue(elevation)}
-                          onChange={(e) => {
-                            const newValue = Number(e.target.value)
-                            if (Number.isFinite(newValue)) {
-                              // Find the closest effect token to this value
-                              const closestToken = availableEffectTokens.reduce((closest, token) => {
-                                const currentDiff = Math.abs(token.value - newValue)
-                                const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
-                                return currentDiff < closestDiff ? token.name : closest
-                              }, 'effect/none')
-                              updateElevationControl(elevation, 'spreadToken', closestToken)
+                      <div style={{ marginTop: '4px' }}>
+                        <ChipSelector
+                          selectedToken={(() => {
+                            if (spreadScaleByDefault && i !== 0) {
+                              // When scaling is enabled, calculate the token from the base
+                              const level0Control = elevationControls['elevation-0']
+                              const baseToken = level0Control?.spreadToken || 'size/default'
+                              return getNextTokenInProgression(baseToken, parseInt(elevation.replace('elevation-', '')))
                             }
+                            return control?.spreadToken
+                          })()}
+                          availableTokens={availableSizeTokens}
+                          onSelect={(tokenName) => {
+                            updateElevationControl(elevation, 'spreadToken', tokenName)
                           }}
-                          style={{ 
-                            width: '50px',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            border: '1px solid var(--layer-layer-1-property-border-color)',
-                            background: 'var(--layer-layer-0-property-surface)',
-                            color: 'var(--layer-layer-0-property-element-text-color)',
-                            cursor: 'pointer'
-                          }}
+                          disabled={spreadScaleByDefault && i !== 0}
                         />
-                        <span style={{ fontSize: '12px', opacity: 0.8 }}>px</span>
                       </div>
+                      {i === 0 && (
+                        <div style={{ marginTop: '4px' }}>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 500 }}>
+                            <input 
+                              type="checkbox" 
+                              checked={spreadScaleByDefault} 
+                              onChange={(e) => {
+                                const next = e.currentTarget.checked
+                                setSpreadScaleByDefault(next)
+                                localStorage.setItem('spread-scale-by-default', String(next))
+                              }} 
+                              style={{ cursor: 'pointer' }}
+                            />
+                            Set as base to scale spread
+                          </label>
+                        </div>
+                      )}
                     </div>
+                    <div style={{ height: '1px', background: 'var(--layer-layer-1-property-border-color)', margin: '12px 0', width: '100%', alignSelf: 'stretch' }}></div>
                     <div className="control-group">
                       <label>
                         Offset X: {getOffsetXValue(elevation)}px
-                        {control?.offsetXToken && (
+                        {offsetXScaleByDefault ? (
                           <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
-                            ({control.offsetXToken.replace('effect/', '')})
+                            ({(() => {
+                              const level0Control = elevationControls['elevation-0']
+                              const baseToken = level0Control?.offsetXToken || 'size/default'
+                              const tokenName = getNextTokenInProgression(baseToken, parseInt(elevation.replace('elevation-', '')))
+                              const baseLabel = tokenName.replace('size/', '')
+                              const label = baseLabel.replace('-', '.')
+                              return label === 'none' ? 'None' : label === 'default' ? 'Default' : label.endsWith('x') ? label : `${label}x`
+                            })()})
+                            {i === 0 && ' (base)'}
+                          </span>
+                        ) : control?.offsetXToken && (
+                          <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
+                            ({control.offsetXToken.replace('size/', '')})
                           </span>
                         )}
                       </label>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <input
-                          type="range"
-                          min={0}
-                          max={maxEffectTokenValue}
-                          step={1}
-                          value={getOffsetXValue(elevation)}
-                          onChange={(e) => {
-                            const newValue = Number(e.target.value)
-                            // Find the closest effect token to this value
-                            const closestToken = availableEffectTokens.reduce((closest, token) => {
-                              const currentDiff = Math.abs(token.value - newValue)
-                              const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
-                              return currentDiff < closestDiff ? token.name : closest
-                            }, 'effect/none')
-                            updateElevationControl(elevation, 'offsetXToken', closestToken)
-                          }}
-                          style={{ 
-                            width: '100%', 
-                            maxWidth: '300px',
-                            cursor: 'pointer'
-                          }}
-                        />
-                        <input
-                          type="number"
-                          min={0}
-                          max={maxEffectTokenValue}
-                          value={getOffsetXValue(elevation)}
-                          onChange={(e) => {
-                            const newValue = Number(e.target.value)
-                            if (Number.isFinite(newValue)) {
-                              // Find the closest effect token to this value
-                              const closestToken = availableEffectTokens.reduce((closest, token) => {
-                                const currentDiff = Math.abs(token.value - newValue)
-                                const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
-                                return currentDiff < closestDiff ? token.name : closest
-                              }, 'effect/none')
-                              updateElevationControl(elevation, 'offsetXToken', closestToken)
+                      <div style={{ marginTop: '4px' }}>
+                        <ChipSelector
+                          selectedToken={(() => {
+                            if (offsetXScaleByDefault && i !== 0) {
+                              // When scaling is enabled, calculate the token from the base
+                              const level0Control = elevationControls['elevation-0']
+                              const baseToken = level0Control?.offsetXToken || 'size/default'
+                              return getNextTokenInProgression(baseToken, parseInt(elevation.replace('elevation-', '')))
                             }
+                            return control?.offsetXToken
+                          })()}
+                          availableTokens={availableSizeTokens}
+                          onSelect={(tokenName) => {
+                            updateElevationControl(elevation, 'offsetXToken', tokenName)
                           }}
-                          style={{ 
-                            width: '50px',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            border: '1px solid var(--layer-layer-1-property-border-color)',
-                            background: 'var(--layer-layer-0-property-surface)',
-                            color: 'var(--layer-layer-0-property-element-text-color)',
-                            cursor: 'pointer'
-                          }}
+                          disabled={offsetXScaleByDefault && i !== 0}
                         />
-                        <span style={{ fontSize: '12px', opacity: 0.8 }}>px</span>
                       </div>
+                      {i === 0 && (
+                        <div style={{ marginTop: '4px' }}>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 500 }}>
+                            <input 
+                              type="checkbox" 
+                              checked={offsetXScaleByDefault} 
+                              onChange={(e) => {
+                                const next = e.currentTarget.checked
+                                setOffsetXScaleByDefault(next)
+                                localStorage.setItem('offset-x-scale-by-default', String(next))
+                              }} 
+                              style={{ cursor: 'pointer' }}
+                            />
+                            Set as base to scale offset X
+                          </label>
+                        </div>
+                      )}
                     </div>
+                    <div style={{ height: '1px', background: 'var(--layer-layer-1-property-border-color)', margin: '12px 0', width: '100%', alignSelf: 'stretch' }}></div>
                     <div className="control-group">
                       <label>
                         Offset Y: {getOffsetYValue(elevation)}px
-                        {control?.offsetYToken && (
+                        {offsetYScaleByDefault ? (
                           <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
-                            ({control.offsetYToken.replace('effect/', '')})
+                            ({(() => {
+                              const level0Control = elevationControls['elevation-0']
+                              const baseToken = level0Control?.offsetYToken || 'size/default'
+                              const tokenName = getNextTokenInProgression(baseToken, parseInt(elevation.replace('elevation-', '')))
+                              const baseLabel = tokenName.replace('size/', '')
+                              const label = baseLabel.replace('-', '.')
+                              return label === 'none' ? 'None' : label === 'default' ? 'Default' : label.endsWith('x') ? label : `${label}x`
+                            })()})
+                            {i === 0 && ' (base)'}
+                          </span>
+                        ) : control?.offsetYToken && (
+                          <span style={{ fontSize: '0.75rem', opacity: 0.7, marginLeft: 4 }}>
+                            ({control.offsetYToken.replace('size/', '')})
                           </span>
                         )}
                       </label>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <input
-                          type="range"
-                          min={0}
-                          max={maxEffectTokenValue}
-                          step={1}
-                          value={getOffsetYValue(elevation)}
-                          onChange={(e) => {
-                            const newValue = Number(e.target.value)
-                            // Find the closest effect token to this value
-                            const closestToken = availableEffectTokens.reduce((closest, token) => {
-                              const currentDiff = Math.abs(token.value - newValue)
-                              const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
-                              return currentDiff < closestDiff ? token.name : closest
-                            }, 'effect/none')
-                            updateElevationControl(elevation, 'offsetYToken', closestToken)
-                          }}
-                          style={{ 
-                            width: '100%', 
-                            maxWidth: '300px',
-                            cursor: 'pointer'
-                          }}
-                        />
-                        <input
-                          type="number"
-                          min={0}
-                          max={maxEffectTokenValue}
-                          value={getOffsetYValue(elevation)}
-                          onChange={(e) => {
-                            const newValue = Number(e.target.value)
-                            if (Number.isFinite(newValue)) {
-                              // Find the closest effect token to this value
-                              const closestToken = availableEffectTokens.reduce((closest, token) => {
-                                const currentDiff = Math.abs(token.value - newValue)
-                                const closestDiff = Math.abs((effectTokens[closest] || 0) - newValue)
-                                return currentDiff < closestDiff ? token.name : closest
-                              }, 'effect/none')
-                              updateElevationControl(elevation, 'offsetYToken', closestToken)
+                      <div style={{ marginTop: '4px' }}>
+                        <ChipSelector
+                          selectedToken={(() => {
+                            if (offsetYScaleByDefault && i !== 0) {
+                              // When scaling is enabled, calculate the token from the base
+                              const level0Control = elevationControls['elevation-0']
+                              const baseToken = level0Control?.offsetYToken || 'size/default'
+                              return getNextTokenInProgression(baseToken, parseInt(elevation.replace('elevation-', '')))
                             }
+                            return control?.offsetYToken
+                          })()}
+                          availableTokens={availableSizeTokens}
+                          onSelect={(tokenName) => {
+                            updateElevationControl(elevation, 'offsetYToken', tokenName)
                           }}
-                          style={{ 
-                            width: '50px',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            border: '1px solid var(--layer-layer-1-property-border-color)',
-                            background: 'var(--layer-layer-0-property-surface)',
-                            color: 'var(--layer-layer-0-property-element-text-color)',
-                            cursor: 'pointer'
-                          }}
+                          disabled={offsetYScaleByDefault && i !== 0}
                         />
-                        <span style={{ fontSize: '12px', opacity: 0.8 }}>px</span>
                       </div>
+                      {i === 0 && (
+                        <div style={{ marginTop: '4px' }}>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 500 }}>
+                            <input 
+                              type="checkbox" 
+                              checked={offsetYScaleByDefault} 
+                              onChange={(e) => {
+                                const next = e.currentTarget.checked
+                                setOffsetYScaleByDefault(next)
+                                localStorage.setItem('offset-y-scale-by-default', String(next))
+                              }} 
+                              style={{ cursor: 'pointer' }}
+                            />
+                            Set as base to scale offset Y
+                          </label>
+                        </div>
+                      )}
                     </div>
                     </div>
                   </div>
