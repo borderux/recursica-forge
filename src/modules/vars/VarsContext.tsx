@@ -315,6 +315,24 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [lsAvailable])
 
+  // Normalize UIKit modes to prevent runtime undefined when modes '1' and '2' are expected
+  useEffect(() => {
+    try {
+      setUiKitState((prev) => {
+        if (!prev) return prev
+        const has1 = Object.prototype.hasOwnProperty.call(prev as any, '1')
+        const has2 = Object.prototype.hasOwnProperty.call(prev as any, '2')
+        if (has1 && has2) return prev
+        const next: any = { ...(prev as any) }
+        if (!has1) next['1'] = (prev as any)['0'] ? { ...(prev as any)['0'] } : {}
+        if (!has2) next['2'] = (prev as any)['3'] ? { ...(prev as any)['3'] } : ((prev as any)['0'] ? { ...(prev as any)['0'] } : {})
+        if (lsAvailable) writeLSJson(STORAGE_KEYS.uikit, next)
+        return next
+      })
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Recompute resolved theme when inputs change and persist cache (both light/dark)
   useEffect(() => {
     const next = buildResolvedTheme(tokens, theme)
