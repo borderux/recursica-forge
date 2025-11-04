@@ -3102,46 +3102,46 @@
       "elevation-0": {
         "$type": "boxShadow",
         "$value": {
-          "x": { "$value": "{tokens.size.0}", "$unit": "px" },
-          "y": { "$value": "{tokens.size.0}", "$unit": "px" },
-          "blur": { "$value": "{tokens.size.0}", "$unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "$unit": "px" }
+          "x": { "$value": "{tokens.size.0}", "unit": "px" },
+          "y": { "$value": "{tokens.size.0}", "unit": "px" },
+          "blur": { "$value": "{tokens.size.0}", "unit": "px" },
+          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
         }
       },
       "elevation-1": {
         "$type": "boxShadow",
         "$value": {
-          "x": { "$value": "{tokens.size.0}", "$unit": "px" },
-          "y": { "$value": "{tokens.size.4}", "$unit": "px" },
-          "blur": { "$value": "{tokens.size.4}", "$unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "$unit": "px" }
+          "x": { "$value": "{tokens.size.0}", "unit": "px" },
+          "y": { "$value": "{tokens.size.4}", "unit": "px" },
+          "blur": { "$value": "{tokens.size.4}", "unit": "px" },
+          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
         }
       },
       "elevation-2": {
         "$type": "boxShadow",
         "$value": {
-          "x": { "$value": "{tokens.size.0}", "$unit": "px" },
-          "y": { "$value": "{tokens.size.8}", "$unit": "px" },
-          "blur": { "$value": "{tokens.size.8}", "$unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "$unit": "px" }
+          "x": { "$value": "{tokens.size.0}", "unit": "px" },
+          "y": { "$value": "{tokens.size.8}", "unit": "px" },
+          "blur": { "$value": "{tokens.size.8}", "unit": "px" },
+          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
         }
       },
       "elevation-3": {
         "$type": "boxShadow",
         "$value": {
-          "x": { "$value": "{tokens.size.0}", "$unit": "px" },
-          "y": { "$value": "{tokens.size.12}", "$unit": "px" },
-          "blur": { "$value": "{tokens.size.16}", "$unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "$unit": "px" }
+          "x": { "$value": "{tokens.size.0}", "unit": "px" },
+          "y": { "$value": "{tokens.size.12}", "unit": "px" },
+          "blur": { "$value": "{tokens.size.16}", "unit": "px" },
+          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
         }
       },
       "elevation-4": {
         "$type": "boxShadow",
         "$value": {
-          "x": { "$value": "{tokens.size.0}", "$unit": "px" },
-          "y": { "$value": "{tokens.size.16}", "$unit": "px" },
-          "blur": { "$value": "{tokens.size.32}", "$unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "$unit": "px" }
+          "x": { "$value": "{tokens.size.0}", "unit": "px" },
+          "y": { "$value": "{tokens.size.16}", "unit": "px" },
+          "blur": { "$value": "{tokens.size.32}", "unit": "px" },
+          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
         }
       }
     },
