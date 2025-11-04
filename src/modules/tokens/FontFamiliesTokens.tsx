@@ -1,3 +1,10 @@
+/**
+ * FontFamiliesTokens
+ *
+ * Editor for font family and typeface tokens. Reads built-in tokens and
+ * override-only entries, allows adding/renaming, and persists changes via
+ * tokenOverrides. Maintains a helper list of deleted rows across reloads.
+ */
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride, writeOverrides } from '../theme/tokenOverrides'

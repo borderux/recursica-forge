@@ -1,3 +1,28 @@
+/**
+ * VarsContext
+ *
+ * Purpose
+ * - Central source of truth for Tokens, Brand Theme and UI Kit variables
+ * - Seeds/persists data in localStorage (rf:* keys) and applies core CSS vars
+ * - Computes a minimal "resolvedTheme" index (light/dark palette mappings)
+ * - Exposes resetAll() to fully restore defaults and clear ephemeral state
+ *
+ * Important events (window.dispatchEvent)
+ * - 'tokenOverridesChanged': emitted by tokenOverrides.ts when overrides change
+ * - 'paletteReset': emitted after resetAll() for legacy listeners
+ * - 'familyNamesChanged': emitted when friendly color family names change
+ * - 'typeChoicesChanged': listened to apply global typography CSS vars
+ *
+ * Data shapes
+ * - tokens: nested Tokens.json as loaded (tokens.*)
+ * - theme: Brand.json normalized to { brand: { ... } } when needed
+ * - uikit: UIKit.json as loaded
+ * - palettes: consolidated store for palette bindings and selections
+ *
+ * Consumers
+ * - Use useVars() inside components to access { tokens, theme, uikit, resolvedTheme, palettes }
+ * - Use setTokens/setTheme/setUiKit/setPalettes to persist edits
+ */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
@@ -412,21 +437,49 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     }
     const getFontToken = (path: string): any => {
       const parts = path.split('/')
+      const overrides = readOverrides()
+      const name = (() => {
+        const [kind, key] = [parts[0], parts[1]]
+        if (!kind || !key) return undefined
+        return `font/${kind}/${key}`
+      })()
+      if (name && Object.prototype.hasOwnProperty.call(overrides, name)) {
+        const ov = (overrides as any)[name]
+        return ov
+      }
       const root: any = (tokens as any)?.tokens?.font || {}
       if (parts[0] === 'size') {
         const v = root?.size?.[parts[1]]?.$value
-        if (v && typeof v === 'object' && typeof v.value !== 'undefined') return v.value
+        if (v && typeof v === 'object' && typeof (v as any).value !== 'undefined') return v
         return v
       }
       if (parts[0] === 'weight') return root?.weight?.[parts[1]]?.$value
-      if (parts[0] === 'letter-spacing') return root?.['letter-spacing']?.[parts[1]]?.$value
-      if (parts[0] === 'line-height') return root?.['line-height']?.[parts[1]]?.$value
+      if (parts[0] === 'letter-spacing') {
+        const v = root?.['letter-spacing']?.[parts[1]]?.$value
+        if (v && typeof v === 'object' && typeof (v as any).value !== 'undefined') return v
+        return v
+      }
+      if (parts[0] === 'line-height') {
+        const v = root?.['line-height']?.[parts[1]]?.$value
+        if (v && typeof v === 'object' && typeof (v as any).value !== 'undefined') return v
+        return v
+      }
       if (parts[0] === 'family') return root?.family?.[parts[1]]?.$value
       if (parts[0] === 'typeface') return root?.typeface?.[parts[1]]?.$value
       return undefined
     }
     const toCssValue = (v: any, unitIfNumber?: string) => {
       if (v == null) return undefined
+      if (v && typeof v === 'object') {
+        const anyV: any = v
+        if (Object.prototype.hasOwnProperty.call(anyV, 'value')) {
+          const val: any = anyV.value
+          const unit: any = anyV.unit
+          if (typeof val === 'number') return unit ? `${val}${unit}` : (unitIfNumber ? `${val}${unitIfNumber}` : String(val))
+          return unit ? `${val}${unit}` : String(val)
+        }
+        return String(anyV)
+      }
       if (typeof v === 'number') return unitIfNumber ? `${v}${unitIfNumber}` : String(v)
       return String(v)
     }
@@ -451,25 +504,28 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
         const ov = (overrides as any)[`font/family/${short}`]
         return typeof ov === 'string' && ov.trim() ? ov : undefined
       }
-      const resolveBraceRef = (ref: any): any => {
+    const resolveBraceRef = (ref: any): any => {
         try {
           if (typeof ref !== 'string') return undefined
           const s = ref.trim()
-          if (!s.startsWith('{') || !s.endsWith('}')) return undefined
-          const inner = s.slice(1, -1) // e.g. tokens.font.size.md
-          if (!inner.startsWith('tokens.')) return undefined
-          const fontPrefix = 'tokens.font.'
-          if (inner.startsWith(fontPrefix)) {
-            const path = inner.slice(fontPrefix.length).replace(/\./g, '/') // e.g. size/md
-            return getFontToken(path)
-          }
-          return undefined
+        // Accept both braced and unbraced forms, case-insensitive 'tokens.'
+        const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
+        if (!/^(tokens|token)\./i.test(inner)) return undefined
+        const fontPrefixRe = /^(tokens|token)\.font\./i
+        if (fontPrefixRe.test(inner)) {
+          const rest = inner.replace(fontPrefixRe, '') // e.g. size.md or weight.regular OR with slashes
+          const path = rest.replace(/[\.]/g, '/').replace(/\/+/, '/')
+          return getFontToken(path)
+        }
+        return undefined
         } catch {
           return undefined
         }
       }
       PREFIXES.forEach((p) => {
-        const spec: any = ttyp?.[p]?.$value || (p.startsWith('body') ? ttyp?.body?.normal?.$value : undefined)
+        const mapKey: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
+        const brandKey = mapKey[p] || p
+        const spec: any = ttyp?.[brandKey]?.$value
         const ch = choices[p] || {}
         const familyFromChoice = (() => {
           const v = (ch as any).family

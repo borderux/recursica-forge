@@ -3029,7 +3029,7 @@
         "$type": "typography",
         "$value": {
           "fontFamily": "{tokens.font.typeface.secondary}",
-          "fontSize": "{tokens.font.size.6xl}",
+          "fontSize": "{tokens.font.size.md}",
           "fontWeight": "{tokens.font.weight.bold}",
           "letterSpacing": "{tokens.font.letter-spacing.default}",
           "lineHeight": "{tokens.font.line-height.default}",
@@ -3077,7 +3077,7 @@
         "$type": "typography",
         "$value": {
           "fontFamily": "{tokens.font.typeface.primary}",
-          "fontSize": "{tokens.font.size.sx}",
+          "fontSize": "{tokens.font.size.xs}",
           "fontWeight": "{tokens.font.weight.regular}",
           "letterSpacing": "{tokens.font.letter-spacing.wide}",
           "lineHeight": "{tokens.font.line-height.default}",

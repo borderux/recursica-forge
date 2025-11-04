@@ -1,3 +1,16 @@
+/**
+ * tokenOverrides.ts
+ *
+ * Small utility for reading/writing token overrides to localStorage and
+ * notifying the app when values change.
+ *
+ * Storage
+ * - Key: 'token-overrides' (JSON object of name -> value)
+ *
+ * Events
+ * - Dispatches 'tokenOverridesChanged' with detail { name, value, all }
+ *   on set; and { all, reset: true } when cleared
+ */
 const STORAGE_KEY = 'token-overrides'
 
 export type TokenOverrides = Record<string, number | string>

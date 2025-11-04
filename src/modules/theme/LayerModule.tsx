@@ -1,3 +1,11 @@
+/**
+ * LayerModule
+ *
+ * Visual module demonstrating a single UI layer level or alternative layer
+ * (alert, warning, success, high-contrast, primary-color). Pulls palette
+ * CSS variables and typography styles to render a representative block.
+ * Listens for 'tokenOverridesChanged' and 'paletteReset' to refresh.
+ */
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from './tokenOverrides'
 import { useEffect, useState } from 'react'
