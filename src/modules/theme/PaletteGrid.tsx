@@ -1,3 +1,12 @@
+/**
+ * PaletteGrid
+ *
+ * Interactive grid for a single theme palette (neutral/palette-1..4).
+ * - Allows choosing a color family mapped to tone levels
+ * - Applies Brand.json text/opacity mappings to CSS vars
+ * - Enforces WCAG AA for dot contrast when possible
+ * - Persists selections per-palette in localStorage
+ */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from './tokenOverrides'

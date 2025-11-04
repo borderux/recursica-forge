@@ -1,3 +1,9 @@
+/**
+ * MantineShell
+ *
+ * App frame using Mantine components; provides navigation, reset defaults,
+ * and import/export of CSS variables.
+ */
 import { ReactNode, useEffect, useState } from 'react'
 import { AppShell, Group, Title, Button, Select, MantineProvider, Modal, Tabs, ActionIcon } from '@mantine/core'
 import '@mantine/core/styles.css'

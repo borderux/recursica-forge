@@ -1,3 +1,9 @@
+/**
+ * CarbonShell
+ *
+ * App frame using IBM Carbon components; lazy-loads Carbon and wiring for
+ * navigation, reset defaults and import/export of CSS variables.
+ */
 import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'

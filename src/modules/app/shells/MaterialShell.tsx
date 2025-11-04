@@ -1,3 +1,9 @@
+/**
+ * MaterialShell
+ *
+ * App frame using Material UI; lazy-loads MUI packages on mount and
+ * provides navigation, reset defaults, and download controls.
+ */
 import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'

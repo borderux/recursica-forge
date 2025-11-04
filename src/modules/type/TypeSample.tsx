@@ -1,7 +1,16 @@
+/**
+ * TypeSample
+ *
+ * Renders a single typography preview (e.g. H1, Body) and delegates
+ * chips and editing UX to TypeControls. Resolves the effective style from
+ * brand.typography entries (or legacy Theme records), token overrides, and
+ * user per-style choices.
+ */
 import { useEffect, useMemo, useState } from 'react'
 import { useUiKit } from '../uikit/UiKitContext'
 import { useVars } from '../vars/VarsContext'
-import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import { readOverrides } from '../theme/tokenOverrides'
+import TypeControls, { readChoices, writeChoices } from './TypeControls'
 
 type Style = React.CSSProperties
 
@@ -18,23 +27,7 @@ function pxOrUndefined(value?: string) {
   return value
 }
 
-function toTitleCase(label: string): string {
-  return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
-}
-
-function ensureGoogleFontLoaded(family: string | undefined) {
-  if (!family) return
-  const trimmed = String(family).trim()
-  if (!trimmed) return
-  const id = `gf-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
-  if (document.getElementById(id)) return
-  const href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(trimmed).replace(/%20/g, '+')}:wght@100..900&display=swap`
-  const link = document.createElement('link')
-  link.id = id
-  link.rel = 'stylesheet'
-  link.href = href
-  document.head.appendChild(link)
-}
+// helpers moved to TypeControls
 
 function extractBaseFamily(value?: string): string | undefined {
   if (!value) return undefined
@@ -154,29 +147,15 @@ function findFontTokenNameByNumericValue(tokens: any, kind: 'size' | 'letter-spa
   return undefined
 }
 
-const letterOrder = ['tighest','tighter','tight','default','wide','wider','widest']
+// letter order moved into TypeControls
 
-export default function TypeSample({ label, tag, text, prefix }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }) {
+export default function TypeSample({ tag, text, prefix }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }) {
   const Tag = tag as any
-  const [editing, setEditing] = useState<boolean>(false)
-  const [form, setForm] = useState<{ family?: string; sizeToken?: string; weightToken?: string; spacingToken?: string; lineHeightToken?: string }>({})
+  const [livePreview, setLivePreview] = useState<Partial<Style> | null>(null)
   const [version, setVersion] = useState(0)
   const { kit } = useUiKit()
   const { tokens, theme } = useVars()
-  const CHOICES_KEY = 'type-token-choices'
-  const [choicesVersion, setChoicesVersion] = useState(0)
-  const readChoices = (): Record<string, { family?: string; size?: string; weight?: string; spacing?: string }> => {
-    try {
-      const raw = localStorage.getItem(CHOICES_KEY)
-      if (raw) return JSON.parse(raw)
-    } catch {}
-    return {}
-  }
-  const writeChoices = (next: Record<string, { family?: string; size?: string; weight?: string; spacing?: string }>) => {
-    try { localStorage.setItem(CHOICES_KEY, JSON.stringify(next)) } catch {}
-    setChoicesVersion((v) => v + 1)
-    try { window.dispatchEvent(new CustomEvent('typeChoicesChanged', { detail: next })) } catch {}
-  }
+  // removed choicesVersion state (not needed)
   useEffect(() => {
     const handler = () => setVersion((v) => v + 1)
     window.addEventListener('tokenOverridesChanged', handler as any)
@@ -244,75 +223,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   }, [theme, tokens])
 
   // options
-  const sizeOptions = useMemo(() => {
-    const out: Array<{ short: string; value: number; token: string; label: string }> = []
-    try {
-      const src = (tokens as any)?.tokens?.font?.size || {}
-      Object.entries(src).forEach(([short, rec]: [string, any]) => {
-        const val = Number(rec?.$value)
-        if (Number.isFinite(val)) out.push({ short, value: val, token: `font/size/${short}`, label: toTitleCase(short) })
-      })
-    } catch {}
-    out.sort((a,b) => a.value - b.value)
-    return out
-  }, [tokens])
-  const weightOptions = useMemo(() => {
-    const out: Array<{ short: string; value: number; token: string; label: string }> = []
-    try {
-      const src = (tokens as any)?.tokens?.font?.weight || {}
-      Object.entries(src).forEach(([short, rec]: [string, any]) => {
-        const val = Number(rec?.$value)
-        if (Number.isFinite(val)) out.push({ short, value: val, token: `font/weight/${short}`, label: toTitleCase(short) })
-      })
-    } catch {}
-    out.sort((a,b) => a.value - b.value)
-    return out
-  }, [tokens])
-  const spacingOptions = useMemo(() => {
-    const out: Array<{ short: string; value: number; token: string; label: string }> = []
-    try {
-      const src = (tokens as any)?.tokens?.font?.['letter-spacing'] || {}
-      Object.entries(src).forEach(([short, rec]: [string, any]) => {
-        const val = Number(rec?.$value)
-        if (Number.isFinite(val)) out.push({ short, value: val, token: `font/letter-spacing/${short}`, label: toTitleCase(short) })
-      })
-    } catch {}
-    const idx = (s: string) => {
-      const i = letterOrder.indexOf(s)
-      return i === -1 ? Number.POSITIVE_INFINITY : i
-    }
-    return out.sort((a,b) => idx(a.short) - idx(b.short))
-  }, [tokens])
-
-  const familyOptions = useMemo(() => {
-    const out: Array<{ short: string; value: string; token: string; label: string }> = []
-    const seen = new Set<string>()
-    // from Tokens.json
-    try {
-      const src = (tokens as any)?.tokens?.font?.family || {}
-      Object.entries(src).forEach(([short, rec]: [string, any]) => {
-        const val = String((rec as any)?.$value || '')
-        if (val && !seen.has(val)) {
-          seen.add(val)
-          out.push({ short, value: val, token: `font/family/${short}`, label: toTitleCase(short) })
-        }
-      })
-    } catch {}
-    // include overrides-only additions
-    const ov = readOverrides() as Record<string, any>
-    Object.keys(ov || {}).forEach((name) => {
-      if (typeof name === 'string' && name.startsWith('font/family/')) {
-        const short = name.split('/').pop() as string
-        const val = String(ov[name] || '')
-        if (val && !seen.has(val)) {
-          seen.add(val)
-          out.push({ short, value: val, token: name, label: toTitleCase(short) })
-        }
-      }
-    })
-    out.sort((a,b) => a.label.localeCompare(b.label))
-    return out
-  }, [tokens, version])
+  // Options moved into TypeControls
 
   const themeIndex = useMemo(() => {
     const bucket: Record<string, ThemeRecord> = {}
@@ -331,13 +242,13 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
     try {
       if (typeof ref !== 'string') return undefined
       const s = ref.trim()
-      if (!s.startsWith('{') || !s.endsWith('}')) return undefined
-      const inner = s.slice(1, -1) // tokens.font.size.md
-      if (!inner.startsWith('tokens.')) return undefined
-      const fontPrefix = 'tokens.font.'
-      if (!inner.startsWith(fontPrefix)) return undefined
-      const rest = inner.slice(fontPrefix.length) // size.md or weight.regular etc
-      const name = `font/${rest.replace(/\./g, '/')}`
+      // Accept both braced and unbraced forms, case-insensitive 'tokens.'
+      const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
+      if (!/^(tokens|token)\./i.test(inner)) return undefined
+      const fontPrefixRe = /^(tokens|token)\.font\./i
+      if (!fontPrefixRe.test(inner)) return undefined
+      const rest = inner.replace(fontPrefixRe, '') // size.md or weight.regular etc (dots or slashes)
+      const name = `font/${rest.replace(/[\.]/g, '/').replace(/\/+/, '/')}`
       return getTokenValueWithOverrides(name, overrides, tokens as any)
     } catch {
       return undefined
@@ -355,7 +266,13 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
       }
       const fromString = resolveBraceRefToTokenValue(v)
       if (fromString != null) return fromString
-      return spec?.fontFamily ?? resolveThemeValue(familyRec?.value, overrides, tokens as any, themeIndex)
+      const fallback = spec?.fontFamily ?? resolveThemeValue(familyRec?.value, overrides, tokens as any, themeIndex)
+      // As a last resort, try to resolve string-like token refs that slipped through
+      if (typeof fallback === 'string') {
+        const again = resolveBraceRefToTokenValue(fallback)
+        if (again != null) return again
+      }
+      return fallback
     })()
     const size = ((): any => {
       const fromString = resolveBraceRefToTokenValue(spec?.fontSize)
@@ -389,7 +306,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
         const v = resolveThemeValue(rec?.value, overrides, tokens as any, themeIndex)
         return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--font-${prefix}-line-height`) as any)
       })(),
-      margin: '0 0 12px 0',
+      margin: '0',
     }
     // Apply per-style saved choices so only this style is affected
     const choices = readChoices()
@@ -423,7 +340,7 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   })()
 
   // token names
-  const familyToken = getTokenNameFor(prefix, 'font-family', theme as any)
+  // const familyToken = getTokenNameFor(prefix, 'font-family', theme as any)
   const brandSpec: any = getBrandTypographySpec(theme as any, prefix)
   let sizeToken = getTokenNameFromBrand(theme as any, prefix, 'fontSize')
     || (typeof brandSpec?.fontSize === 'number' ? findFontTokenNameByNumericValue(tokens as any, 'size', Number(brandSpec.fontSize)) : undefined)
@@ -443,38 +360,9 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   if (!lineHeightToken && hasLineHeightDefault) lineHeightToken = 'font/line-height/default'
 
   // preview style when editing
-  const previewStyle: Style = (() => {
-    if (!editing) return currentStyle
-    const next: any = { ...currentStyle }
-    if (form.family) { ensureGoogleFontLoaded(form.family); next.fontFamily = form.family }
-    const sizeShort = (form.sizeToken ?? (sizeToken ? sizeToken.split('/').pop() : '')) as string
-    if (sizeShort) {
-      const v = getTokenValueWithOverrides(`font/size/${sizeShort}`, overrides, tokens as any)
-      if (typeof v === 'number' || typeof v === 'string') next.fontSize = pxOrUndefined(String(v))
-    }
-    const weightShort = (form.weightToken ?? (weightToken ? weightToken.split('/').pop() : '')) as string
-    if (weightShort) {
-      const v = getTokenValueWithOverrides(`font/weight/${weightShort}`, overrides, tokens as any)
-      if (typeof v === 'number' || typeof v === 'string') next.fontWeight = v as any
-    }
-    const spacingShort = (form.spacingToken ?? (spacingToken ? spacingToken.split('/').pop() : '')) as string
-    if (spacingShort) {
-      const v = getTokenValueWithOverrides(`font/letter-spacing/${spacingShort}`, overrides, tokens as any)
-      if (typeof v === 'number') next.letterSpacing = `${v}em`
-      else if (typeof v === 'string') next.letterSpacing = v
-    }
-    const lineHeightShortDefault = (lineHeightToken ? lineHeightToken.split('/').pop() : '') as string
-    const fallbackShort = hasLineHeightDefault ? 'default' : ''
-    if (form.lineHeightToken || lineHeightShortDefault || fallbackShort) {
-      const tmp = (form.lineHeightToken ?? lineHeightShortDefault) as string | undefined
-      const short = (tmp || fallbackShort) as string
-      if (short) {
-        const v = getTokenValueWithOverrides(`font/line-height/${short}`, overrides, tokens as any)
-        if (typeof v === 'number' || typeof v === 'string') next.lineHeight = v as any
-      }
-    }
-    return next
-  })()
+  const previewStyle: Style = useMemo(() => {
+    return livePreview ? { ...currentStyle, ...livePreview } : currentStyle
+  }, [currentStyle, livePreview])
 
   const previewFamily = extractBaseFamily(previewStyle.fontFamily as string)
   const fontAvailable = isFontAvailable(previewFamily)
@@ -490,149 +378,18 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
           </span>
         </div>
       )}
-      <div style={{ marginTop: 12 }}>
-        {!editing ? (
-          <>
-            {!fontAvailable && previewFamily && (
-              <div style={{ marginBottom: 8 }}>
-                <span style={{ display: 'inline-block', fontSize: 11, border: '1px solid var(--temp-disabled)', borderRadius: 999, padding: '2px 8px', color: 'var(--temp-disabled)' }}>
-                  Font unavailable in Recursica Forge, displaying fallback from {kitLabel}
-                </span>
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} onClick={() => {
-              try {
-                const choices = readChoices()
-                const c = choices[prefix] || {}
-                setForm({
-                  family: c.family,
-                  sizeToken: c.size,
-                  weightToken: c.weight,
-                  spacingToken: c.spacing,
-                  lineHeightToken: (c as any).lineHeight,
-                })
-              } catch { setForm({}) }
-              setEditing(true)
-            }}>
-              {(() => {
-                const choice = readChoices()[prefix] || {}
-                const changedStyle = { background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 'none' }
-                const baseStyle = { border: '1px solid var(--temp-disabled)', color: 'inherit' }
-                const common = { borderRadius: 16, padding: '4px 10px', cursor: 'pointer' } as React.CSSProperties
-                const famChanged = !!choice.family
-                const sizeChanged = !!choice.size
-                const weightChanged = !!choice.weight
-                const spacingChanged = !!choice.spacing
-                const lineHeightChanged = !!(choice as any).lineHeight
-                return (
-                  <>
-                    <span style={{ ...(famChanged ? changedStyle : baseStyle), ...common }}>{toTitleCase(extractBaseFamily(previewStyle.fontFamily as string) || '') || '—'}</span>
-                    <span style={{ ...(sizeChanged ? changedStyle : baseStyle), ...common }}>{(() => {
-                      const c = choice.size
-              const short = c ?? (sizeToken ? (sizeToken.split('/').pop() as string) : '')
-              return short ? `Size / ${toTitleCase(short)}` : '—'
-                    })()}</span>
-                    <span style={{ ...(weightChanged ? changedStyle : baseStyle), ...common }}>{(() => {
-                const c = choice.weight
-              const short = c ?? (weightToken ? (weightToken.split('/').pop() as string) : '')
-              return short ? `Weight / ${toTitleCase(short)}` : '—'
-                    })()}</span>
-                    <span style={{ ...(spacingChanged ? changedStyle : baseStyle), ...common }}>{(() => {
-                const c = choice.spacing
-              const short = c ?? (spacingToken ? (spacingToken.split('/').pop() as string) : '')
-              return short ? `Letter Spacing / ${toTitleCase(short)}` : '—'
-                    })()}</span>
-                    <span style={{ ...(lineHeightChanged ? changedStyle : baseStyle), ...common }}>{(() => {
-                const c = (choice as any).lineHeight
-                const shortRaw = c ?? (lineHeightToken ? (lineHeightToken.split('/').pop() as string) : '')
-                const short = shortRaw || (hasLineHeightDefault ? 'default' : '')
-                return `Line Height / ${toTitleCase(short || 'default')}`
-                    })()}</span>
-                  </>
-                )
-              })()}
-            </div>
-          </>
-        ) : (
-          <form style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 4 }} onSubmit={(e) => {
-            e.preventDefault()
-            // Persist per-style selections; do not change global tokens so other styles are not affected
-            const cur = readChoices()
-            const entry = cur[prefix] || {}
-            if (form.family) entry.family = form.family
-            if (form.sizeToken) entry.size = form.sizeToken
-            if (form.weightToken) entry.weight = form.weightToken
-            if (form.spacingToken) entry.spacing = form.spacingToken
-            if (form.lineHeightToken) (entry as any).lineHeight = form.lineHeightToken
-            cur[prefix] = entry
-            writeChoices(cur)
-            setEditing(false)
-          }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, opacity: 0.7 }}>Font</span>
-              {(() => {
-                const base = extractBaseFamily(currentStyle.fontFamily as string) || ''
-                const selected = (() => {
-                  const v = form.family ?? base
-                  return familyOptions.some((o) => o.value === v) ? v : (familyOptions[0]?.value || '')
-                })()
-                return (
-                  <select required value={selected} onChange={(e) => { const v = (e.target as HTMLSelectElement).value; ensureGoogleFontLoaded(v); setForm((f) => ({ ...f, family: v })) }}>
-                    {familyOptions.map((o) => (
-                      <option key={o.token} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                )
-              })()}
-            </label>
-            {sizeToken && (
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, opacity: 0.7 }}>Size</span>
-                <select value={form.sizeToken ?? (sizeToken ? (sizeToken.split('/').pop() as string) : '')} onChange={(e) => { const val = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, sizeToken: val })) }}>
-                  {sizeOptions.map((o) => (<option key={o.token} value={o.short}>{o.label}</option>))}
-                </select>
-              </label>
-            )}
-            
-            {weightToken && (
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, opacity: 0.7 }}>Weight</span>
-                <select value={form.weightToken ?? (weightToken ? (weightToken.split('/').pop() as string) : '')} onChange={(e) => { const val = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, weightToken: val })) }}>
-                  {weightOptions.map((o) => (<option key={o.token} value={o.short}>{o.label}</option>))}
-                </select>
-              </label>
-            )}
-            {spacingToken && (
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, opacity: 0.7 }}>Letter Spacing</span>
-                <select value={form.spacingToken ?? (spacingToken ? (spacingToken.split('/').pop() as string) : '')} onChange={(e) => { const val = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, spacingToken: val })) }}>
-                  {spacingOptions.map((o) => (<option key={o.token} value={o.short}>{o.label}</option>))}
-                </select>
-              </label>
-            )}
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, opacity: 0.7 }}>Line Height</span>
-              <select value={(() => {
-                const fromForm = form.lineHeightToken
-                if (fromForm) return fromForm
-                const tokenShort = lineHeightToken ? (lineHeightToken.split('/').pop() as string) : ''
-                return tokenShort || 'default'
-              })()} onChange={(e) => { const val = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, lineHeightToken: val })) }}>
-                {(() => {
-                  const order = ['shortest','shorter','short','default','tall','taller','tallest']
-                  return order.map((short) => (
-                    <option key={short} value={short}>{toTitleCase(short)}</option>
-                  ))
-                })()}
-              </select>
-            </label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="submit">Save</button>
-              <button type="button" onClick={() => { setForm({}); setEditing(false) }}>Cancel</button>
-            </div>
-          </form>
-        )}
-      </div>
+      <TypeControls
+        prefix={prefix}
+        currentStyle={previewStyle}
+        sizeToken={sizeToken}
+        weightToken={weightToken}
+        spacingToken={spacingToken}
+        lineHeightToken={lineHeightToken}
+        hasLineHeightDefault={hasLineHeightDefault}
+        overrides={overrides as any}
+        tokens={tokens as any}
+        onPreview={setLivePreview}
+      />
     </div>
   )
 }

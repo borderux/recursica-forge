@@ -1,3 +1,9 @@
+/**
+ * UiKitContext
+ *
+ * Keeps track of which UI library shell to render ('mantine' | 'material' | 'carbon').
+ * Persists selection to localStorage under 'uikit'.
+ */
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
 
 export type UiKit = 'mantine' | 'material' | 'carbon'
