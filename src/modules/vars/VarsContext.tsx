@@ -451,10 +451,30 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
         const ov = (overrides as any)[`font/family/${short}`]
         return typeof ov === 'string' && ov.trim() ? ov : undefined
       }
+      const resolveBraceRef = (ref: any): any => {
+        try {
+          if (typeof ref !== 'string') return undefined
+          const s = ref.trim()
+          if (!s.startsWith('{') || !s.endsWith('}')) return undefined
+          const inner = s.slice(1, -1) // e.g. tokens.font.size.md
+          if (!inner.startsWith('tokens.')) return undefined
+          const fontPrefix = 'tokens.font.'
+          if (inner.startsWith(fontPrefix)) {
+            const path = inner.slice(fontPrefix.length).replace(/\./g, '/') // e.g. size/md
+            return getFontToken(path)
+          }
+          return undefined
+        } catch {
+          return undefined
+        }
+      }
       PREFIXES.forEach((p) => {
         const spec: any = ttyp?.[p]?.$value || (p.startsWith('body') ? ttyp?.body?.normal?.$value : undefined)
         const ch = choices[p] || {}
-        const familyFromChoice = ch.family ? getFontToken(`family/${ch.family}`) : undefined
+        const familyFromChoice = (() => {
+          const v = (ch as any).family
+          return (typeof v === 'string' && v.trim()) ? v : undefined
+        })()
         const familyResolvedFromTokenRef = (() => {
           const v: any = spec?.fontFamily
           if (v && typeof v === 'object') {
@@ -465,13 +485,20 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
               if (parts[0] === 'family' && parts[1]) return getFontToken(`family/${parts[1]}`)
             }
           }
+          // Handle string brace refs like "{tokens.font.typeface.primary}"
+          const strResolved = resolveBraceRef(v)
+          if (typeof strResolved !== 'undefined') return strResolved
           return undefined
         })()
-        const family = familyFromChoice ?? familyResolvedFromTokenRef ?? findOverrideForFamilyLiteral(spec?.fontFamily) ?? spec?.fontFamily
-        const size = ch.size ? getFontToken(`size/${ch.size}`) : spec?.fontSize
-        const weight = ch.weight ? getFontToken(`weight/${ch.weight}`) : (spec?.fontWeight ?? spec?.weight)
-        const spacing = ch.spacing ? getFontToken(`letter-spacing/${ch.spacing}`) : spec?.letterSpacing
-        const lineHeight = (ch as any).lineHeight ? getFontToken(`line-height/${(ch as any).lineHeight}`) : spec?.lineHeight
+        const family = familyFromChoice ?? familyResolvedFromTokenRef ?? findOverrideForFamilyLiteral(spec?.fontFamily) ?? resolveBraceRef(spec?.fontFamily) ?? spec?.fontFamily
+        const sizeChoice = ch.size ? getFontToken(`size/${ch.size}`) : undefined
+        const size = (sizeChoice != null ? sizeChoice : (resolveBraceRef(spec?.fontSize) ?? spec?.fontSize))
+        const weightChoice = ch.weight ? getFontToken(`weight/${ch.weight}`) : undefined
+        const weight = (weightChoice != null ? weightChoice : (resolveBraceRef(spec?.fontWeight ?? spec?.weight) ?? (spec?.fontWeight ?? spec?.weight)))
+        const spacingChoice = ch.spacing ? getFontToken(`letter-spacing/${ch.spacing}`) : undefined
+        const spacing = (spacingChoice != null ? spacingChoice : (resolveBraceRef(spec?.letterSpacing) ?? spec?.letterSpacing))
+        const lineHeightChoice = (ch as any).lineHeight ? getFontToken(`line-height/${(ch as any).lineHeight}`) : undefined
+        const lineHeight = (lineHeightChoice != null ? lineHeightChoice : (resolveBraceRef(spec?.lineHeight) ?? spec?.lineHeight))
         if (family != null) vars[`--font-${p}-font-family`] = toCssValue(family)!
         if (size != null) vars[`--font-${p}-font-size`] = toCssValue(size)!
         if (weight != null) vars[`--font-${p}-font-weight`] = toCssValue(weight)!

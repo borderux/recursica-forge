@@ -327,6 +327,22 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
   const sizeRec = getThemeEntry(prefix, 'size', theme as any)
   const spacingRec = getThemeEntry(prefix, 'letter-spacing', theme as any)
   const weightRec = getThemeEntry(prefix, 'weight', theme as any) || getThemeEntry(prefix, 'weight-normal', theme as any)
+  const resolveBraceRefToTokenValue = (ref: any): string | number | undefined => {
+    try {
+      if (typeof ref !== 'string') return undefined
+      const s = ref.trim()
+      if (!s.startsWith('{') || !s.endsWith('}')) return undefined
+      const inner = s.slice(1, -1) // tokens.font.size.md
+      if (!inner.startsWith('tokens.')) return undefined
+      const fontPrefix = 'tokens.font.'
+      if (!inner.startsWith(fontPrefix)) return undefined
+      const rest = inner.slice(fontPrefix.length) // size.md or weight.regular etc
+      const name = `font/${rest.replace(/\./g, '/')}`
+      return getTokenValueWithOverrides(name, overrides, tokens as any)
+    } catch {
+      return undefined
+    }
+  }
   const currentStyle: Style = (() => {
     // Prefer brand.typography if provided, else fall back to theme entries
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
@@ -337,11 +353,25 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
         const resolved = getTokenValueWithOverrides(v.name.replace(/^token\./, ''), overrides, tokens as any)
         if (resolved != null) return resolved
       }
+      const fromString = resolveBraceRefToTokenValue(v)
+      if (fromString != null) return fromString
       return spec?.fontFamily ?? resolveThemeValue(familyRec?.value, overrides, tokens as any, themeIndex)
     })()
-    const size = spec?.fontSize ?? resolveThemeValue(sizeRec?.value, overrides, tokens as any, themeIndex)
-    const spacing = spec?.letterSpacing ?? resolveThemeValue(spacingRec?.value, overrides, tokens as any, themeIndex)
-    const weight = (spec?.fontWeight ?? spec?.weight) ?? resolveThemeValue(weightRec?.value, overrides, tokens as any, themeIndex)
+    const size = ((): any => {
+      const fromString = resolveBraceRefToTokenValue(spec?.fontSize)
+      if (fromString != null) return fromString
+      return spec?.fontSize ?? resolveThemeValue(sizeRec?.value, overrides, tokens as any, themeIndex)
+    })()
+    const spacing = ((): any => {
+      const fromString = resolveBraceRefToTokenValue(spec?.letterSpacing)
+      if (fromString != null) return fromString
+      return spec?.letterSpacing ?? resolveThemeValue(spacingRec?.value, overrides, tokens as any, themeIndex)
+    })()
+    const weight = ((): any => {
+      const fromString = resolveBraceRefToTokenValue(spec?.fontWeight ?? spec?.weight)
+      if (fromString != null) return fromString
+      return (spec?.fontWeight ?? spec?.weight) ?? resolveThemeValue(weightRec?.value, overrides, tokens as any, themeIndex)
+    })()
     const base: any = {
       fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
       fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--font-${prefix}-font-size`)),
@@ -349,7 +379,12 @@ export default function TypeSample({ label, tag, text, prefix }: { label: string
       letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--font-${prefix}-font-letter-spacing`))),
       lineHeight: ((): any => {
         const fromSpec = spec?.lineHeight
-        if (typeof fromSpec === 'number' || typeof fromSpec === 'string') return fromSpec as any
+        if (typeof fromSpec === 'number') return fromSpec as any
+        if (typeof fromSpec === 'string') {
+          const fromString = resolveBraceRefToTokenValue(fromSpec)
+          if (fromString != null) return fromString as any
+          return fromSpec as any
+        }
         const rec = getThemeEntry(prefix, 'line-height', (theme as any)?.brand ? (theme as any).brand : (theme as any))
         const v = resolveThemeValue(rec?.value, overrides, tokens as any, themeIndex)
         return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--font-${prefix}-line-height`) as any)
