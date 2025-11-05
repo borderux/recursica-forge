@@ -125,12 +125,16 @@ export default function ElevationStylePanel({
                 max={stops.length - 1}
                 step={1}
                 value={blurIdx}
+                list="blur-ticks"
                 onChange={(e) => {
                   const idx = Number(e.currentTarget.value)
                   const token = stops[idx]?.name || stops[0].name
                   levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blurToken', token))
                 }}
               />
+              <datalist id="blur-ticks">
+                {stops.map((_, i) => (<option key={i} value={i} />))}
+              </datalist>
             </div>
           )
         })()}
@@ -154,12 +158,16 @@ export default function ElevationStylePanel({
                 max={stops.length - 1}
                 step={1}
                 value={spreadIdx}
+                list="spread-ticks"
                 onChange={(e) => {
                   const idx = Number(e.currentTarget.value)
                   const token = stops[idx]?.name || stops[0].name
                   levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spreadToken', token))
                 }}
               />
+              <datalist id="spread-ticks">
+                {stops.map((_, i) => (<option key={i} value={i} />))}
+              </datalist>
             </div>
           )
         })()}
@@ -188,6 +196,7 @@ export default function ElevationStylePanel({
                 max={max}
                 step={1}
                 value={signed}
+                list="offsetx-ticks"
                 onChange={(e) => {
                   const v = Number(e.currentTarget.value)
                   const nextDir = v < 0 ? 'left' : 'right'
@@ -197,6 +206,12 @@ export default function ElevationStylePanel({
                   levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetXToken', token))
                 }}
               />
+              <datalist id="offsetx-ticks">
+                {Array.from({ length: max - min + 1 }, (_, j) => min + j).map((val) => (
+                  <option key={val} value={val} label={val === 0 ? '0' : undefined as any} />
+                ))}
+              </datalist>
+              <div style={{ textAlign: 'center', fontSize: 12, opacity: 0.7 }}>0</div>
             </div>
           )
         })()}
@@ -225,6 +240,7 @@ export default function ElevationStylePanel({
                 max={max}
                 step={1}
                 value={signed}
+                list="offsety-ticks"
                 onChange={(e) => {
                   const v = Number(e.currentTarget.value)
                   const nextDir = v < 0 ? 'up' : 'down'
@@ -234,6 +250,12 @@ export default function ElevationStylePanel({
                   levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetYToken', token))
                 }}
               />
+              <datalist id="offsety-ticks">
+                {Array.from({ length: max - min + 1 }, (_, j) => min + j).map((val) => (
+                  <option key={val} value={val} label={val === 0 ? '0' : undefined as any} />
+                ))}
+              </datalist>
+              <div style={{ textAlign: 'center', fontSize: 12, opacity: 0.7 }}>0</div>
             </div>
           )
         })()}

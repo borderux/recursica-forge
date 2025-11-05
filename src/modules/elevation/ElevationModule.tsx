@@ -11,9 +11,10 @@ export type ElevationExampleProps = {
   isSelected?: boolean
   onToggle?: () => void
   selectable?: boolean
+  zIndex?: number
 }
 
-export default function ElevationModule({ label, blurPx, spreadPx, offsetXPx, offsetYPx, colorHex, alpha, isSelected = false, onToggle, selectable = true }: ElevationExampleProps) {
+export default function ElevationModule({ label, blurPx, spreadPx, offsetXPx, offsetYPx, colorHex, alpha, isSelected = false, onToggle, selectable = true, zIndex }: ElevationExampleProps) {
   const canToggle = selectable && !!onToggle
   const toRgba = (hex: string, aIn: number): string => {
     try {
@@ -37,7 +38,7 @@ export default function ElevationModule({ label, blurPx, spreadPx, offsetXPx, of
   return (
     <div
       className="elevation-card"
-      style={{ boxShadow, display: 'flex', alignItems: 'center', gap: 12, height: 100, borderRadius: 8, padding: 16, cursor: canToggle ? 'pointer' : undefined }}
+      style={{ boxShadow, display: 'flex', alignItems: 'center', gap: 12, height: 100, borderRadius: 8, padding: 16, cursor: canToggle ? 'pointer' : undefined, zIndex }}
       onClick={canToggle ? onToggle : undefined}
     >
       {canToggle && (

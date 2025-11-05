@@ -543,7 +543,7 @@ export default function ElevationPage() {
             <h2 style={{ margin: 0 }}>Elevation</h2>
           </div>
           {/* Shadow color controls moved into side panel */}
-          <div className="elevation-grid">
+          <div className="elevation-grid" style={{ display: 'grid', gap: 48 }}>
             {[0,1,2,3,4].map((i) => (
               <ElevationModule
                 key={i}
@@ -557,6 +557,7 @@ export default function ElevationPage() {
                 isSelected={i === 0 ? false : selectedLevels.has(i)}
                 onToggle={i === 0 ? undefined : () => setSelectedLevels(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next })}
                 selectable={i > 0}
+                zIndex={i}
               />
             ))}
           </div>
