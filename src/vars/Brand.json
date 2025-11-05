@@ -603,118 +603,6 @@
           }
         }
       },
-      "elevation": {
-        "elevation-0": {
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.14}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          }
-        },
-        "elevation-4": {
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.4x}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.14}"
-          },
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.2x}"
-          }
-        },
-        "elevation-1": {
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.0-5x}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.14}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.0-5x}"
-          }
-        },
-        "elevation-2": {
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.default}"
-          },
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.default}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.14}"
-          },
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          }
-        },
-        "elevation-3": {
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.1-5x}"
-          },
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.14}"
-          },
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.2x}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          }
-        }
-      },
       "palettes": {
         "core-colors": {
           "$type": "color",
@@ -1461,6 +1349,73 @@
             }
           }
         }
+      },
+      "elevations": {
+        "elevation-0": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.none}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.none}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.invisible}", "$type": "opacity"}
+          }
+        },
+        "elevation-1": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.0-5x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.0-5x}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.faint}", "$type": "opacity"}
+          }
+        },
+        "elevation-2": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.1-5x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.1-5x}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.faint}", "$type": "opacity"}
+          }
+        },
+        "elevation-3": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.faint}", "$type": "opacity"}
+          }
+        },
+        "elevation-4": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.3x}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.faint}", "$type": "opacity"}
+          }
+        }
       }
     },
     "dark": {
@@ -2076,118 +2031,6 @@
           }
         }
       },
-      "elevation": {
-        "elevation-0": {
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.40}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          }
-        },
-        "elevation-4": {
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.4x}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.40}"
-          },
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.2x}"
-          }
-        },
-        "elevation-1": {
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.0-5x}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.40}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.0-5x}"
-          }
-        },
-        "elevation-2": {
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.default}"
-          },
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.default}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.40}"
-          },
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          }
-        },
-        "elevation-3": {
-          "y-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.1-5x}"
-          },
-          "spread": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          },
-          "shadow-color": {
-            "$type": "color",
-            "$value": "{tokens.color.translucent.40}"
-          },
-          "blur": {
-            "$type": "number",
-            "$value": "{tokens.effect.2x}"
-          },
-          "x-axis": {
-            "$type": "number",
-            "$value": "{tokens.effect.none}"
-          }
-        }
-      },
       "palettes": {
         "neutral": {
           "100": {
@@ -2430,7 +2273,10 @@
               }
             }
           },
-          "default": {}
+          "default": {
+            "$type": "color",
+            "$value": "{brand.light.palettes.neutral.400}"
+          }
         },
         "palette-1": {
           "100": {
@@ -2673,7 +2519,10 @@
               }
             }
           },
-          "default": {}
+          "default": {
+            "$type": "color",
+            "$value": "{brand.light.palettes.palette-1.400}"
+          }
         },
         "palette-2": {
           "100": {
@@ -2916,7 +2765,10 @@
               }
             }
           },
-          "default": {}
+          "default": {
+            "$type": "color",
+            "$value": "{brand.light.palettes.palette-2.400}"
+          }
         },
         "black": {
           "$type": "color",
@@ -2937,6 +2789,73 @@
         "warning": {
           "$type": "color",
           "$value": "{tokens.color.mandarin.100}"
+        }
+      },
+      "elevations": {
+        "elevation-0": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.none}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.none}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.invisible}", "$type": "opacity"}
+          }
+        },
+        "elevation-1": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.0-5x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.0-5x}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.faint}", "$type": "opacity"}
+          }
+        },
+        "elevation-2": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.1-5x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.1-5x}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.faint}", "$type": "opacity"}
+          }
+        },
+        "elevation-3": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.faint}", "$type": "opacity"}
+          }
+        },
+        "elevation-4": {
+          "$type": "boxShadow",
+          "$value": {
+            "x": { "$value": "{tokens.size.none}", "unit": "px" },
+            "y": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
+            "blur": { "$value": "{tokens.size.3x}", "unit": "px" },
+            "spread": { "$value": "{tokens.size.none}", "unit": "px" },
+            "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
+            "opacity": { "$value": "{tokens.opacity.faint}", "$type": "opacity"}
+          }
         }
       }
     },
@@ -3095,53 +3014,6 @@
           "lineHeight": "{tokens.font.line-height.default}",
           "textCase": "UPPER",
           "textDecoration": "NONE"
-        }
-      }
-    },
-    "elevations": {
-      "elevation-0": {
-        "$type": "boxShadow",
-        "$value": {
-          "x": { "$value": "{tokens.size.0}", "unit": "px" },
-          "y": { "$value": "{tokens.size.0}", "unit": "px" },
-          "blur": { "$value": "{tokens.size.0}", "unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
-        }
-      },
-      "elevation-1": {
-        "$type": "boxShadow",
-        "$value": {
-          "x": { "$value": "{tokens.size.0}", "unit": "px" },
-          "y": { "$value": "{tokens.size.4}", "unit": "px" },
-          "blur": { "$value": "{tokens.size.4}", "unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
-        }
-      },
-      "elevation-2": {
-        "$type": "boxShadow",
-        "$value": {
-          "x": { "$value": "{tokens.size.0}", "unit": "px" },
-          "y": { "$value": "{tokens.size.8}", "unit": "px" },
-          "blur": { "$value": "{tokens.size.8}", "unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
-        }
-      },
-      "elevation-3": {
-        "$type": "boxShadow",
-        "$value": {
-          "x": { "$value": "{tokens.size.0}", "unit": "px" },
-          "y": { "$value": "{tokens.size.12}", "unit": "px" },
-          "blur": { "$value": "{tokens.size.16}", "unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
-        }
-      },
-      "elevation-4": {
-        "$type": "boxShadow",
-        "$value": {
-          "x": { "$value": "{tokens.size.0}", "unit": "px" },
-          "y": { "$value": "{tokens.size.16}", "unit": "px" },
-          "blur": { "$value": "{tokens.size.32}", "unit": "px" },
-          "spread": { "$value": "{tokens.size.0}", "unit": "px" }
         }
       }
     },

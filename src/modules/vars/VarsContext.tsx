@@ -246,6 +246,8 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!lsAvailable) return
     const bundleVersion = computeBundleVersion()
+    const storedVersion = localStorage.getItem(STORAGE_KEYS.version)
+    if (storedVersion !== bundleVersion) {
       writeLSJson(STORAGE_KEYS.tokens, tokensImport)
       // Normalize to { brand: { ... } } shape regardless of source JSON
       const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
@@ -285,6 +287,7 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       setThemeState(normalizedTheme as any)
       setUiKitState(uikitImport as any)
       setPalettesState(migratePaletteLocalKeys())
+    }
   }, [lsAvailable])
 
   // Ensure rf:* keys exist even if version matches (e.g., partial clears)
@@ -389,6 +392,15 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       removeLS(STORAGE_KEYS.uikit)
       removeLS(STORAGE_KEYS.palettes)
       removeLS(STORAGE_KEYS.resolved)
+      // Clear elevation-related keys so pages reseed from JSON
+      removeLS('elevation-controls')
+      removeLS('shadow-color-control')
+      removeLS('elevation-color-tokens')
+      removeLS('elevation-alpha-tokens')
+      removeLS('elevation-palette-selections')
+      removeLS('elevation-directions')
+      removeLS('offset-x-direction')
+      removeLS('offset-y-direction')
       // Reset friendly names for Tokens > Color to the JSON defaults
       try {
         const colors: any = (tokensImport as any)?.tokens?.color || {}
