@@ -375,9 +375,12 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
         const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
         const layersLight: any = troot?.light?.layer || {}
         const tokensRoot: any = (tokens as any)?.tokens || {}
+        const overrides = readOverrides()
 
         const getTokenValue = (path: string): any => {
           const parts = path.split('/')
+          // prefer overrides
+          if (Object.prototype.hasOwnProperty.call(overrides, path)) return (overrides as any)[path]
           if (parts[0] === 'color' && parts[1] && parts[2]) return tokensRoot?.color?.[parts[1]]?.[parts[2]]?.$value
           if (parts[0] === 'opacity' && parts[1]) return tokensRoot?.opacity?.[parts[1]]?.$value
           if (parts[0] === 'size' && parts[1]) return tokensRoot?.size?.[parts[1]]?.$value

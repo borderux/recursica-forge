@@ -554,7 +554,7 @@ export default function LayersPage() {
               {[0,1,2,3,4].map((i) => (
                 <ElevationModule
                   key={i}
-                  label={`Elevation ${i}`}
+                  label={i === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${i}`}
                   blurPx={getBlurValue(`elevation-${i}`)}
                   spreadPx={getSpreadValue(`elevation-${i}`)}
                   offsetXPx={getOffsetXValue(`elevation-${i}`)}
@@ -647,6 +647,11 @@ export default function LayersPage() {
                 container[key] = updater(container[key] || {})
               })
               setTheme(nextTheme)
+              try {
+                // Nudge listeners to re-apply CSS vars immediately
+                window.dispatchEvent(new Event('tokenOverridesChanged'))
+                window.dispatchEvent(new Event('paletteReset'))
+              } catch {}
             }}
           />
         )}

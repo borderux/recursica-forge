@@ -119,11 +119,18 @@ export default function LayerStylePanel({
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       const elev: any = root?.light?.elevations || {}
-      return Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a,b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
+      const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a,b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
+      return names.map((n) => {
+        const idx = Number(n.split('-')[1])
+        const label = idx === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${idx}`
+        return { name: n, label }
+      })
     } catch {
       return []
     }
   }, [themeJson])
+
+  const isOnlyLayer0 = selectedLevels.length === 1 && selectedLevels[0] === 0
 
   const updateValue = (path: string[], raw: string) => {
     const value: any = (() => {
@@ -208,32 +215,35 @@ export default function LayerStylePanel({
         <button onClick={onClose} aria-label="Close" style={{ border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        {/* Elevation dropdown */}
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>Elevation</span>
-          <select
-            value={(() => {
-              const v = (spec as any)?.property?.elevation?.$value
-              const s = typeof v === 'string' ? v : ''
-              const m = s.match(/elevations\.(elevation-\d+)/)
-              return m ? m[1] : ''
-            })()}
-            onChange={(e) => {
-              const name = e.currentTarget.value
-              if (!name) return
-              updateValue(['property','elevation'], `{brand.light.elevations.${name}}`)
-            }}
-            style={{ padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 6 }}
-          >
-            <option value="">-- select elevation --</option>
-            {elevationOptions.map((n) => (<option key={n} value={n}>{n}</option>))}
-          </select>
-        </label>
+        {/* Elevation dropdown (hidden for only layer 0) */}
+        {!isOnlyLayer0 && (
+          <label style={{ display: 'grid', gap: 4 }}>
+            <span style={{ fontSize: 12, opacity: 0.7 }}>Elevation</span>
+            <select
+              value={(() => {
+                const v = (spec as any)?.property?.elevation?.$value
+                const s = typeof v === 'string' ? v : ''
+                const m = s.match(/elevations\.(elevation-\d+)/)
+                return m ? m[1] : ''
+              })()}
+              onChange={(e) => {
+                const name = e.currentTarget.value
+                if (!name) return
+                updateValue(['property','elevation'], `{brand.light.elevations.${name}}`)
+              }}
+              style={{ padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 6 }}
+            >
+              <option value="">-- select elevation --</option>
+              {elevationOptions.map((o) => (<option key={o.name} value={o.name}>{o.label}</option>))}
+            </select>
+          </label>
+        )}
 
         {/* Surface color via palette */}
         <PaletteColorControl
           label="Surface"
           getCurrentCssVar={() => `var(--layer-layer-${selectedLevels[0]}-property-surface)`}
+          currentRef={String((spec as any)?.property?.surface?.$value || '')}
           onPick={(paletteKey, level, hex) => {
             updateValue(['property','surface'], `{brand.light.palettes.${paletteKey}.${level}.color.tone}`)
             const onTone = pickAAOnTone(hex)
@@ -251,32 +261,125 @@ export default function LayerStylePanel({
           }}
         />
 
-        {/* Border color via palette */}
-        <PaletteColorControl
-          label="Border Color"
-          getCurrentCssVar={() => `var(--layer-layer-${selectedLevels[0]}-property-border-color)`}
-          onPick={(paletteKey, level) => {
-            updateValue(['property','border-color'], `{brand.light.palettes.${paletteKey}.${level}.color.tone}`)
-          }}
-        />
+        {/* Padding (size token slider with ticks) */}
+        <div className="control-group">
+          <label>Padding</label>
+          {(() => {
+            const stops = sizeOptions
+            const curShort = (() => {
+              const v = (spec as any)?.property?.padding?.$value
+              const s = typeof v === 'string' ? v : ''
+              const m = s.match(/\{tokens\.size\.([^}]+)\}/)
+              return m ? m[1] : ''
+            })()
+            const curIdx = Math.max(0, stops.findIndex((o) => o.label === curShort))
+            return (
+              <>
+                <input
+                  type="range"
+                  min={0}
+                  max={Math.max(0, stops.length - 1)}
+                  step={1}
+                  value={curIdx < 0 ? 0 : curIdx}
+                  list="padding-ticks"
+                  onChange={(e) => {
+                    const idx = Number(e.currentTarget.value)
+                    const sel = stops[idx]
+                    if (sel) updateValue(['property','padding'], sel.value)
+                  }}
+                />
+                <datalist id="padding-ticks">
+                  {stops.map((o, i) => (<option key={o.label} value={i} label={o.label} />))}
+                </datalist>
+              </>
+            )
+          })()}
+        </div>
 
-        {/* Border thickness (integer) */}
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>Border Thickness</span>
-          <input
-            type="number"
-            step={1}
-            value={(() => {
-              const v = (spec as any)?.property?.['border-thickness']?.$value
-              return typeof v === 'number' ? v : ''
+        {/* Border Radius (size token slider with ticks) hidden for only layer 0 */}
+        {!isOnlyLayer0 && (
+          <div className="control-group">
+            <label>Border Radius</label>
+            {(() => {
+              const stops = sizeOptions
+              const curShort = (() => {
+                const v = (spec as any)?.property?.['border-radius']?.$value
+                const s = typeof v === 'string' ? v : ''
+                const m = s.match(/\{tokens\.size\.([^}]+)\}/)
+                return m ? m[1] : ''
+              })()
+              const curIdx = Math.max(0, stops.findIndex((o) => o.label === curShort))
+              return (
+                <>
+                  <input
+                    type="range"
+                    min={0}
+                    max={Math.max(0, stops.length - 1)}
+                    step={1}
+                    value={curIdx < 0 ? 0 : curIdx}
+                    list="radius-ticks"
+                    onChange={(e) => {
+                      const idx = Number(e.currentTarget.value)
+                      const sel = stops[idx]
+                      if (sel) updateValue(['property','border-radius'], sel.value)
+                    }}
+                  />
+                  <datalist id="radius-ticks">
+                    {stops.map((o, i) => (<option key={o.label} value={i} label={o.label} />))}
+                  </datalist>
+                </>
+              )
             })()}
-            onChange={(e) => {
-              const n = parseInt(e.currentTarget.value || '0', 10)
-              updateValue(['property','border-thickness'], String(Number.isFinite(n) ? n : 0))
+          </div>
+        )}
+
+        {/* Border color via palette (hidden for only layer 0) */}
+        {!isOnlyLayer0 && (
+          <PaletteColorControl
+            label="Border Color"
+            getCurrentCssVar={() => `var(--layer-layer-${selectedLevels[0]}-property-border-color)`}
+            currentRef={String((spec as any)?.property?.['border-color']?.$value || '')}
+            onPick={(paletteKey, level) => {
+              updateValue(['property','border-color'], `{brand.light.palettes.${paletteKey}.${level}.color.tone}`)
             }}
-            style={{ padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 6 }}
           />
-        </label>
+        )}
+
+        {/* Border thickness (slider with ticks), hidden for only layer 0 */}
+        {!isOnlyLayer0 && (
+          <div className="control-group">
+            <label>Border Thickness</label>
+            {(() => {
+              const current = (() => {
+                const v = (spec as any)?.property?.['border-thickness']?.$value
+                return typeof v === 'number' ? v : 0
+              })()
+              const min = 0
+              const max = 16
+              return (
+                <>
+                  <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={1}
+                    value={current}
+                    list="border-thickness-ticks"
+                    onChange={(e) => {
+                      const n = parseInt(e.currentTarget.value || '0', 10)
+                      updateValue(['property','border-thickness'], String(Number.isFinite(n) ? n : 0))
+                    }}
+                  />
+                  <datalist id="border-thickness-ticks">
+                    {Array.from({ length: (max - min) + 1 }, (_, i) => min + i).map((v) => (
+                      <option key={v} value={v} label={v % 2 === 0 ? String(v) : undefined as any} />
+                    ))}
+                  </datalist>
+                </>
+              )
+            })()}
+          </div>
+        )}
 
         {/* Revert button */}
         <div>
@@ -311,8 +414,16 @@ export default function LayerStylePanel({
   )
 }
 
-function PaletteColorControl({ label, getCurrentCssVar, onPick }: { label: string; getCurrentCssVar: () => string; onPick: (paletteKey: string, level: string, hex: string) => void }) {
+function PaletteColorControl({ label, getCurrentCssVar, currentRef, onPick }: { label: string; getCurrentCssVar: () => string; currentRef?: string; onPick: (paletteKey: string, level: string, hex: string) => void }) {
   const btnRef = useRef<HTMLButtonElement | null>(null)
+  const display = (() => {
+    try {
+      const s = String(currentRef || '')
+      const m = s.match(/brand\.light\.palettes\.(neutral|palette-\d+)\.(\d{2,4}|000)\.color\.tone/i)
+      if (m) return `${m[1]} / ${m[2]}`
+    } catch {}
+    return label
+  })()
   return (
     <div className="control-group">
       <label>{label}</label>
@@ -323,24 +434,24 @@ function PaletteColorControl({ label, getCurrentCssVar, onPick }: { label: strin
         style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
       >
         <span aria-hidden style={{ width: 16, height: 16, borderRadius: 4, border: '1px solid rgba(0,0,0,0.15)', background: getCurrentCssVar() }} />
-        <span style={{ textTransform: 'capitalize' }}>{label}</span>
+        <span style={{ textTransform: 'capitalize' }}>{display}</span>
       </button>
       <PaletteSwatchPicker onSelect={({ paletteKey, level }) => {
-        // derive hex for AA calc
-        const fam = (() => {
-          const f = localStorage.getItem(`palette-grid-family:${paletteKey}`)
-          if (f) try { return JSON.parse(f || 'null') } catch {}
-          if (paletteKey === 'neutral') return 'gray'
-          if (paletteKey === 'palette-1') return 'salmon'
-          if (paletteKey === 'palette-2') return 'mandarin'
-          if (paletteKey === 'palette-3') return 'cornflower'
-          if (paletteKey === 'palette-4') return 'greensheen'
-          return undefined
-        })()
+        // derive hex for AA calc from tokensJson (via window.vars if available)
         let hex = ''
         try {
-          const tokens: any = (window as any).rfTokens || {}
-          const colors: any = tokens?.tokens?.color || {}
+          const fam = (() => {
+            const f = localStorage.getItem(`palette-grid-family:${paletteKey}`)
+            if (f) try { return JSON.parse(f || 'null') } catch {}
+            if (paletteKey === 'neutral') return 'gray'
+            if (paletteKey === 'palette-1') return 'salmon'
+            if (paletteKey === 'palette-2') return 'mandarin'
+            if (paletteKey === 'palette-3') return 'cornflower'
+            if (paletteKey === 'palette-4') return 'greensheen'
+            return undefined
+          })()
+          const ctx: any = (window as any).rfTokens || {}
+          const colors: any = (ctx?.tokens?.color) || ((window as any).tokensJson?.tokens?.color) || {}
           hex = String(colors?.[fam || '']?.[level]?.$value || '')
         } catch {}
         onPick(paletteKey, level, hex)

@@ -52,6 +52,82 @@ export default function LayerModule({ level, alternativeKey, title, className, c
 
   // Alternative-specific text bindings removed; using brand layer text vars
 
+  // --- Elevation (box-shadow) computation from Brand -> Tokens
+  const toRgba = (hex: string, aIn: number): string => {
+    try {
+      let h = (hex || '').trim()
+      if (!h) return 'rgba(0,0,0,0)'
+      if (!h.startsWith('#')) h = `#${h}`
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
+      if (!m) return 'rgba(0,0,0,0)'
+      const r = parseInt(m[1], 16)
+      const g = parseInt(m[2], 16)
+      const b = parseInt(m[3], 16)
+      const a = Math.max(0, Math.min(1, Number(aIn) || 0))
+      return `rgba(${r}, ${g}, ${b}, ${a})`
+    } catch { return 'rgba(0,0,0,0)' }
+  }
+  const getTokenValue = (name: string): any => {
+    try {
+      const t: any = (tokens as any)?.tokens || {}
+      const parts = name.split('/')
+      if (parts[0] === 'color' && parts[1] && parts[2]) return t?.color?.[parts[1]]?.[parts[2]]?.$value
+      if (parts[0] === 'opacity' && parts[1]) return t?.opacity?.[parts[1]]?.$value
+      if (parts[0] === 'size' && parts[1]) return t?.size?.[parts[1]]?.$value
+    } catch {}
+    return undefined
+  }
+  const resolveBraceRef = (input: any, depth = 0): any => {
+    if (depth > 8) return undefined
+    if (input == null) return undefined
+    if (typeof input === 'number') return input
+    if (typeof input === 'object') return resolveBraceRef((input as any).$value ?? (input as any).value ?? input, depth + 1)
+    const s = String(input).trim()
+    if (!s) return undefined
+    if (s.startsWith('{') && s.endsWith('}')) {
+      const inner = s.slice(1, -1).trim()
+      if (/^(tokens|token)\./i.test(inner)) {
+        const path = inner.replace(/^(tokens|token)\./i, '').replace(/[.]/g, '/').trim()
+        return resolveBraceRef(getTokenValue(path), depth + 1)
+      }
+      if (/^brand\./i.test(inner)) {
+        const parts = inner.split('.').filter(Boolean)
+        let node: any = (theme as any)
+        for (const p of parts) { if (!node) break; node = node[p] }
+        return resolveBraceRef(node, depth + 1)
+      }
+      return undefined
+    }
+    return s
+  }
+  const computeBoxShadow = (): string | undefined => {
+    try {
+      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const layerSpec: any = root?.light?.layer?.[`layer-${layerId}`] || {}
+      const elevRef = layerSpec?.property?.elevation
+      if (!elevRef) return undefined
+      const elev: any = (() => {
+        const refVal = resolveBraceRef(elevRef)
+        // refVal should resolve to the elevation object or its $value
+        if (refVal && typeof refVal === 'object' && ('$value' in refVal)) return (refVal as any).$value
+        return refVal
+      })()
+      if (!elev || typeof elev !== 'object') return undefined
+      const x = Number(resolveBraceRef(elev.x)) || 0
+      const y = Number(resolveBraceRef(elev.y)) || 0
+      const xd = Number(resolveBraceRef(elev['x-direction'])) || 1
+      const yd = Number(resolveBraceRef(elev['y-direction'])) || 1
+      const blur = Number(resolveBraceRef(elev.blur)) || 0
+      const spread = Number(resolveBraceRef(elev.spread)) || 0
+      const colorHex = String(resolveBraceRef(elev.color) || '#000000')
+      const opacityVal = Number(resolveBraceRef(elev.opacity))
+      const alpha = Number.isFinite(opacityVal) ? (opacityVal <= 1 ? opacityVal : opacityVal / 100) : 1
+      const shadowColor = toRgba(colorHex, alpha)
+      return `${xd * x}px ${yd * y}px ${blur}px ${spread}px ${shadowColor}`
+    } catch { return undefined }
+  }
+  const boxShadow = computeBoxShadow()
+
   // --- Typography styling (match Type page selections) ---
   type Style = React.CSSProperties
   const readCssVar = (name: string, fallback?: string): string | undefined => {
@@ -146,6 +222,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
         border: includeBorder ? `var(${base}border-thickness) solid var(${base}border-color)` : undefined,
         borderRadius: includeBorder ? `var(${base}border-radius)` : undefined,
         cursor: onSelect ? 'pointer' as const : undefined,
+        boxShadow: boxShadow,
       }}
       onClick={(e) => { if (onSelect) { e.stopPropagation(); onSelect() } }}
     >
