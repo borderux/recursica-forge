@@ -168,14 +168,15 @@ h3 {
 /* --- Elevation --- */
 .elevation-grid {
   display: flex;
-  flex-direction: row;
+  flex-direction: column; /* stack vertically */
   gap: 24px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
 }
 .elevation-card {
-  flex: 1 1 0;
+  flex: 0 0 auto;
+  width: 100%;
   min-width: 0;
   max-width: 100%;
 }
