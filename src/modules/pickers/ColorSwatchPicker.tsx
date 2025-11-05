@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 
@@ -93,8 +94,8 @@ export default function ColorSwatchPicker({ onSelect }: { onSelect: (tokenName: 
   const swatch = 18
   const gap = 1
   const overlayWidth = labelCol + maxCount * (swatch + gap) + 32
-  return (
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 1100 }}>
+  return createPortal(
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--layer-layer-0-property-surface, #ffffff)', color: 'var(--layer-layer-0-property-element-text-color, #111111)', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 9999 }}>
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
         onMouseDown={(e) => {
@@ -130,7 +131,8 @@ export default function ColorSwatchPicker({ onSelect }: { onSelect: (tokenName: 
           </div>
         ))}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

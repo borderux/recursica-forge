@@ -1,5 +1,6 @@
 import './index.css'
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import PaletteGrid from './PaletteGrid'
 import { applyCssVars } from './varsUtil'
 import { useVars } from '../vars/VarsContext'
@@ -585,7 +586,7 @@ export function CodePenPage() {
   }, [])
 
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface, #ffffff)', color: 'var(--layer-layer-0-property-element-text-color, #111111)' }}>
       <div className="container-padding">
         <div className="header-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <h2 id="theme-mode-label" style={{ margin: 0 }}>Palettes</h2>
@@ -615,6 +616,7 @@ export function CodePenPage() {
                 <th>Alert</th>
                 <th>Warn</th>
                 <th>Success</th>
+                <th>Interactive</th>
                 <th>
                   Disabled
                   <br />(opacity)
@@ -632,6 +634,7 @@ export function CodePenPage() {
               <td className="swatch-box" style={{ backgroundColor: paletteBindings['--palette-alert']?.hex || 'var(--palette-alert)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--palette-alert')} />
               <td className="swatch-box" style={{ backgroundColor: paletteBindings['--palette-warning']?.hex || 'var(--palette-warning)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--palette-warning')} />
               <td className="swatch-box" style={{ backgroundColor: paletteBindings['--palette-success']?.hex || 'var(--palette-success)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--palette-success')} />
+              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--palette-interactive']?.hex || 'var(--palette-interactive)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--palette-interactive')} />
               {(() => {
                 const blackHex = (paletteBindings['--palette-black']?.hex) || String(getTokenValue('color/gray/1000') || '#000000')
                 const faintDefault: any = getTokenValue('opacity/faint')
@@ -786,8 +789,8 @@ function SwatchPicker({ onSelect }: { onSelect: (cssVar: string, tokenName: stri
   const swatch = 18
   const gap = 1
   const overlayWidth = labelCol + maxCount * (swatch + gap) + 32
-  return (
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 1100 }}>
+  return createPortal(
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 9999 }}>
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
         onMouseDown={(e) => {
@@ -823,7 +826,8 @@ function SwatchPicker({ onSelect }: { onSelect: (cssVar: string, tokenName: stri
           </div>
         ))}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

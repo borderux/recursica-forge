@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 // --- Color utilities ---
 function clamp(n: number, min: number, max: number) { return Math.max(min, Math.min(max, n)) }
@@ -181,10 +182,10 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
   const thumbTop = `${(1 - hsvState.v) * 100}%`
   const gradientColor = hsvToHex(hsvState.h, 1, 1)
 
-  return (
+  return createPortal(
     <div
       ref={overlayRef}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 1000, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.25)', padding: 12, display: 'grid', gap: 10, width: 300 }}
+      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 9999, background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.25)', padding: 12, display: 'grid', gap: 10, width: 300 }}
     >
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'move' }}
@@ -287,7 +288,8 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
         }} />
         Cascade colors downward
       </label>
-    </div>
+    </div>,
+    document.body
   )
 }
 import { useVars } from '../vars/VarsContext'
@@ -613,7 +615,7 @@ export default function TokensPage() {
         <div style={{ display: 'grid', gap: 12 }}>
       {Object.entries(groupedByMode).map(([mode, items]) => {
         const colorSection = (
-          <section key={mode + '-color'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+          <section key={mode + '-color'} style={{ background: 'var(--layer-layer-0-property-surface, #ffffff)', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, padding: 12 }}>
             {colorFamiliesByMode[mode as ModeName] && (() => {
               let families = Object.entries(colorFamiliesByMode[mode as ModeName]).filter(([family]) => family !== 'translucent' && !deletedFamilies[family]).sort(([a], [b]) => {
                 if (a === 'gray' && b !== 'gray') return -1
@@ -906,7 +908,7 @@ export default function TokensPage() {
             )
           }
           return (
-            <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+            <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface, #ffffff)', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, padding: 12 }}>
               {selected === 'opacity' ? (
                 <OpacityTokens />
               ) : selected === 'size' ? (

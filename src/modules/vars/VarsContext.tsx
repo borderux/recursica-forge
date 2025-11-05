@@ -359,6 +359,7 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
         '--palette-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
         '--palette-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
         '--palette-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
+        '--palette-interactive': { token: 'color/salmon/400', hex: get('color/salmon/400') || '#ff6b6b' },
       }
       const merged = { ...defaults, ...(palettes?.bindings || {}) }
       const colors: Record<string, string> = {}

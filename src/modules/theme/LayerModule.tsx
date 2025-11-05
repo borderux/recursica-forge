@@ -16,12 +16,14 @@ type LayerModuleProps = {
   title?: string
   className?: string
   children?: any
+  onSelect?: () => void
+  isSelected?: boolean
 }
 
-export default function LayerModule({ level, alternativeKey, title, className, children }: LayerModuleProps) {
+export default function LayerModule({ level, alternativeKey, title, className, children, onSelect, isSelected }: LayerModuleProps) {
   const { tokens, theme } = useVars()
   // Force re-render when overrides are cleared/reset so computed styles refresh
-  const [version, setVersion] = useState(0)
+  const [, setVersion] = useState(0)
   useEffect(() => {
     const handler = () => setVersion((v) => v + 1)
     try {
@@ -48,23 +50,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       : null
     : null
 
-  // Alternative layer text color/opacity binding to palette on-tone and emphasis
-  const altOnToneColor = isAlternative
-    ? alternativeKey === 'primary-color' ? 'var(--palette-palette-1-primary-on-tone)'
-      : alternativeKey === 'high-contrast' ? 'var(--palette-black-on-tone)'
-      : alternativeKey === 'alert' ? 'var(--palette-alert-on-tone)'
-      : alternativeKey === 'warning' ? 'var(--palette-warning-on-tone)'
-      : alternativeKey === 'success' ? 'var(--palette-success-on-tone)'
-      : undefined
-    : undefined
-  const altHighOpacity = isAlternative
-    ? alternativeKey === 'primary-color' ? 'var(--palette-palette-1-primary-high-emphasis)'
-      : '1'
-    : '1'
-  const altLowOpacity = isAlternative
-    ? alternativeKey === 'primary-color' ? 'var(--palette-palette-1-primary-low-emphasis)'
-      : '0.5'
-    : '0.5'
+  // Alternative-specific text bindings removed; using brand layer text vars
 
   // --- Typography styling (match Type page selections) ---
   type Style = React.CSSProperties
@@ -148,7 +134,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
   }
 
   const headingStyle = buildTypeStyle('h3')
-  const bodyStyle = buildTypeStyle('body-2')
+  const bodyStyle = buildTypeStyle('body-1')
 
   return (
     <div
@@ -159,22 +145,36 @@ export default function LayerModule({ level, alternativeKey, title, className, c
         padding: `var(${base}padding)`,
         border: includeBorder ? `var(${base}border-thickness) solid var(${base}border-color)` : undefined,
         borderRadius: includeBorder ? `var(${base}border-radius)` : undefined,
+        cursor: onSelect ? 'pointer' as const : undefined,
       }}
+      onClick={(e) => { if (onSelect) { e.stopPropagation(); onSelect() } }}
     >
       <div className="layer-content">
         <div className="layer-text-samples">
-          {title ? <h3 style={{ ...(headingStyle as any), ...(isAlternative ? { color: altOnToneColor, opacity: altHighOpacity } as any : {}) }}>{title}</h3> : null}
-          <p style={{ ...(bodyStyle as any), ...(isAlternative ? { color: altOnToneColor, opacity: altHighOpacity } as any : { opacity: `var(${base}element-text-high-emphasis)` }) }}>High Emphasis Text / Icon</p>
-          <p style={{ ...(bodyStyle as any), ...(isAlternative ? { color: altOnToneColor, opacity: altLowOpacity } as any : { opacity: `var(${base}element-text-low-emphasis)` }) }}>Low Emphasis Text / Icon</p>
+          {onSelect ? (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }} onClick={(e) => e.stopPropagation()}>
+              <input
+                type="radio"
+                name="layer-select"
+                checked={!!isSelected}
+                onChange={(e) => { e.stopPropagation(); onSelect?.() }}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <span style={{ fontWeight: 700 }}>{title || `Layer ${layerId}`}</span>
+            </label>
+          ) : (
+            title ? <h3 style={{ ...(headingStyle as any), fontWeight: 700 }}>{title}</h3> : null
+          )}
+          <p style={{ ...(bodyStyle as any), color: `var(${base}element-text-color)`, opacity: `var(${base}element-text-high-emphasis)` }}>High Emphasis Text / Icon</p>
+          <p style={{ ...(bodyStyle as any), color: `var(${base}element-text-color)`, opacity: `var(${base}element-text-low-emphasis)` }}>Low Emphasis Text / Icon</p>
           <p style={{
             ...(bodyStyle as any),
-            // For alternative layers, use the palette on-tone color; otherwise use layer interactive color
-            color: isAlternative ? (altOnToneColor as any) : (`var(${base}element-interactive-color)` as any),
-            opacity: isAlternative ? (altHighOpacity as any) : (`var(${base}element-interactive-high-emphasis)` as any)
+            color: `var(${base}element-interactive-color)` as any,
+            opacity: `var(${base}element-interactive-high-emphasis)` as any
           }}>Interactive (Link / Button)</p>
           <p style={{
             ...(bodyStyle as any),
-            color: isAlternative ? (altOnToneColor as any) : (`var(${base}element-interactive-color)` as any),
+            color: `var(${base}element-interactive-color)` as any,
             opacity: 'var(--palette-disabled)'
           }}>Disabled Interactive</p>
           {!isAlternative && (

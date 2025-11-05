@@ -1,5 +1,6 @@
 import './index.css'
 import LayerModule from './LayerModule'
+import LayerStylePanel from './LayerStylePanel'
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from './tokenOverrides'
@@ -7,7 +8,8 @@ import ElevationModule from '../elevation/ElevationModule'
 import ElevationStylePanel from '../elevation/ElevationStylePanel'
 
 export default function LayersPage() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, theme, setTheme } = useVars()
+  const [selectedLayerLevels, setSelectedLayerLevels] = useState<Set<number>>(() => new Set())
   const { theme: themeJson } = useVars()
   const [blurScaleByDefault] = useState<boolean>(() => { const v = localStorage.getItem('blur-scale-by-default'); return v === null ? true : v === 'true' })
   const [spreadScaleByDefault] = useState<boolean>(() => { const v = localStorage.getItem('spread-scale-by-default'); return v === null ? false : v === 'true' })
@@ -516,17 +518,20 @@ export default function LayersPage() {
     })
   }
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)' }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface, #ffffff)', color: 'var(--layer-layer-0-property-element-text-color, #111111)' }}>
       <div className="container-padding">
         <div className="section">
           <h2>Layers</h2>
-          <LayerModule level={0} title="Layer 0 (Background)">
-            <LayerModule level={1} title="Layer 1">
-              <LayerModule level={2} title="Layer 2">
-                <LayerModule level={3} title="Layer 3" />
+          {/* Selection controls + modules (0-3) */}
+          <div style={{ display: 'grid', gap: 12 }}>
+            <LayerModule level={0} title="Layer 0 (Background)" onSelect={() => { setSelectedLevels(new Set()); setSelectedLayerLevels(new Set([0])) }} isSelected={selectedLayerLevels.has(0)}>
+              <LayerModule level={1} title="Layer 1" onSelect={() => { setSelectedLevels(new Set()); setSelectedLayerLevels(new Set([1])) }} isSelected={selectedLayerLevels.has(1)}>
+                <LayerModule level={2} title="Layer 2" onSelect={() => { setSelectedLevels(new Set()); setSelectedLayerLevels(new Set([2])) }} isSelected={selectedLayerLevels.has(2)}>
+                  <LayerModule level={3} title="Layer 3" onSelect={() => { setSelectedLevels(new Set()); setSelectedLayerLevels(new Set([3])) }} isSelected={selectedLayerLevels.has(3)} />
+                </LayerModule>
               </LayerModule>
             </LayerModule>
-          </LayerModule>
+          </div>
         </div>
 
         <div className="section">
@@ -557,7 +562,11 @@ export default function LayersPage() {
                   colorHex={getColorHexForLevel(i)}
                   alpha={getAlphaForLevel(i)}
                   isSelected={i === 0 ? false : selectedLevels.has(i)}
-                  onToggle={i === 0 ? undefined : () => setSelectedLevels(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next })}
+                  onToggle={i === 0 ? undefined : () => {
+                    // ensure mutual exclusivity: clear layer selection when selecting elevation
+                    setSelectedLayerLevels(new Set())
+                    setSelectedLevels(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next })
+                  }}
                   selectable={i > 0}
                   zIndex={i}
                 />
@@ -614,6 +623,31 @@ export default function LayersPage() {
             offsetXScaleByDefault={offsetXScaleByDefault}
             offsetYScaleByDefault={offsetYScaleByDefault}
             onClose={() => setSelectedLevels(new Set())}
+          />
+        )}
+
+        {/* Layer style panel */}
+        {selectedLayerLevels.size > 0 && (
+          <LayerStylePanel
+            open={selectedLayerLevels.size > 0}
+            selectedLevels={Array.from(selectedLayerLevels).sort((a,b) => a-b)}
+            theme={theme}
+            onClose={() => setSelectedLayerLevels(new Set())}
+            onUpdate={(updater) => {
+              // Apply updates across selected layers
+              const t: any = theme
+              const root: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
+              const nextTheme = JSON.parse(JSON.stringify(root))
+              const target = nextTheme.brand || nextTheme
+              const container = target?.light?.layer
+              if (!container) return
+              Array.from(selectedLayerLevels).forEach((lvl) => {
+                const key = `layer-${lvl}`
+                if (!container[key]) container[key] = {}
+                container[key] = updater(container[key] || {})
+              })
+              setTheme(nextTheme)
+            }}
           />
         )}
       </div>
