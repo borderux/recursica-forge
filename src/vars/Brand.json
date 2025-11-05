@@ -9,36 +9,46 @@
                 "$type": "color",
                 "$value": "{theme.light.palettes.palette-1.default.color.tone}"
               },
-              "opacity": {
-                "$type": "opacity",
-                "$value": {
-                  "high-emphasis": "{tokens.opacity.solid}",
-                  "low-emphasis": "{tokens.opacity.veiled}"
-                }
+              "high-emphasis": {
+                "$type": "number",
+                "$value": "{tokens.opacity.solid}"
+              },
+              "hover-color": {
+                "$type": "color",
+                "$value": "{theme.light.palettes.palette-1.600.color.tone}"
               }
             },
             "text": {
+              "warning": {
+                "$type": "color",
+                "$value": "{theme.light.palettes.warning}"
+              },
+              "success": {
+                "$type": "color",
+                "$value": "{theme.light.palettes.success}"
+              },
+              "high-emphasis": {
+                "$type": "number",
+                "$value": "{tokens.opacity.solid}"
+              },
+              "low-emphasis": {
+                "$type": "number",
+                "$value": "{tokens.opacity.veiled}"
+              },
+              "alert": {
+                "$type": "color",
+                "$value": "{theme.light.palettes.alert}"
+              },
               "color": {
                 "$type": "color",
-                "$value": {
-                  "warning": "{theme.light.palettes.warning}",
-                  "success": "{theme.light.palettes.success}",
-                  "alert": "{theme.light.palettes.alert}"
-                }
-              },
-              "opacity": {
-                "$type": "opacity",
-                "$value": {
-                  "high-emphasis": "{tokens.opacity.solid}",
-                  "low-emphasis": "{tokens.opacity.veiled}"
-                }
+                "$value": "{theme.light.palettes.neutral.050.color.on-tone}"
               }
             }
           },
           "property": {
             "elevation": {
               "$type": "elevation",
-              "$value": "elevations/elevation-0"
+              "$value": "{brand.light.elevations.elevation-0}"
             },
             "surface": {
               "$type": "color",
@@ -47,6 +57,18 @@
             "padding": {
               "$type": "number",
               "$value": "{tokens.size.3x}"
+            },
+            "border-color": {
+              "$type": "color",
+              "$value": "{theme.light.palettes.neutral.200.color.tone}"
+            },
+            "border-radius": {
+              "$type": "number",
+              "$value": "{tokens.size.3x}"
+            },
+            "border-thickness": {
+              "$type": "number",
+              "$value": 0
             }
           }
         },
@@ -57,8 +79,8 @@
               "$value": 2
             },
             "elevation": {
-              "$type": "string",
-              "$value": "elevations/elevation-0"
+              "$type": "elevation",
+              "$value": "{brand.light.elevations.elevation-1}"
             },
             "border-radius": {
               "$type": "number",
@@ -123,8 +145,8 @@
         "layer-3": {
           "property": {
             "elevation": {
-              "$type": "string",
-              "$value": "elevations/elevation-1"
+              "$type": "elevation",
+              "$value": "{brand.light.elevations.elevation-2}"
             },
             "border-radius": {
               "$type": "number",
@@ -243,8 +265,8 @@
               "$value": "{tokens.size.2x}"
             },
             "elevation": {
-              "$type": "string",
-              "$value": "elevations/elevation-0"
+              "$type": "elevation",
+              "$value": "{brand.light.elevations.elevation-3}"
             },
             "border-radius": {
               "$type": "number",
@@ -1465,8 +1487,8 @@
           },
           "property": {
             "elevation": {
-              "$type": "string",
-              "$value": "elevations/elevation-0"
+              "$type": "elevation",
+              "$value": "{brand.dark.elevations.elevation-0}"
             },
             "surface": {
               "$type": "color",
@@ -1475,6 +1497,18 @@
             "padding": {
               "$type": "number",
               "$value": "{tokens.size.3x}"
+            },
+            "border-color": {
+              "$type": "color",
+              "$value": "{theme.dark.palettes.neutral.100.color.tone}"
+            },
+            "border-radius": {
+              "$type": "number",
+              "$value": "{tokens.size.3x}"
+            },
+            "border-thickness": {
+              "$type": "number",
+              "$value": 0
             }
           }
         },
@@ -1485,8 +1519,8 @@
               "$value": 2
             },
             "elevation": {
-              "$type": "string",
-              "$value": "elevations/elevation-0"
+              "$type": "elevation",
+              "$value": "{brand.dark.elevations.elevation-1}"
             },
             "border-radius": {
               "$type": "number",
@@ -1551,8 +1585,8 @@
         "layer-3": {
           "property": {
             "elevation": {
-              "$type": "string",
-              "$value": "elevations/elevation-1"
+              "$type": "elevation",
+              "$value": "{brand.dark.elevations.elevation-2}"
             },
             "border-radius": {
               "$type": "number",
@@ -1671,8 +1705,8 @@
               "$value": "{tokens.size.2x}"
             },
             "elevation": {
-              "$type": "string",
-              "$value": "elevations/elevation-0"
+              "$type": "elevation",
+              "$value": "{brand.dark.elevations.elevation-3}"
             },
             "border-radius": {
               "$type": "number",

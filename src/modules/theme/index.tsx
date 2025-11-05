@@ -269,6 +269,8 @@ function applyTheme(theme: ThemeVars) {
   for (const [key, value] of Object.entries(theme)) {
     // Do not overwrite typography variables; VarsProvider manages them live
     if (key.startsWith('--font-')) continue
+    // Do not overwrite layer variables; VarsContext/bootstrap manage layers from Brand.json
+    if (key.startsWith('--layer-')) continue
     root.style.setProperty(key, value)
   }
 }
