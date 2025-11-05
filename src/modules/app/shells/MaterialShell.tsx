@@ -56,7 +56,6 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             <Tab value="tokens" label="Tokens" component={Link as any} to="/tokens" />
             <Tab value="palettes" label="Palettes" component={Link as any} to="/palettes" />
             <Tab value="type" label="Type" component={Link as any} to="/type" />
-            <Tab value="elevation" label="Elevation" component={Link as any} to="/elevation" />
             <Tab value="layers" label="Layers" component={Link as any} to="/layers" />
             <Tab value="uikit" label="UI Kit" component={Link as any} to="/uikit" />
           </Tabs>

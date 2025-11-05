@@ -23,7 +23,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const [isModalOpen, setIsModalOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const currentTab = location.pathname.startsWith('/tokens') ? 'tokens' : location.pathname.startsWith('/type') ? 'type' : location.pathname.startsWith('/elevation') ? 'elevation' : location.pathname.startsWith('/layers') ? 'layers' : location.pathname.startsWith('/uikit') ? 'uikit' : 'palettes'
+  const currentTab = location.pathname.startsWith('/tokens') ? 'tokens' : location.pathname.startsWith('/type') ? 'type' : location.pathname.startsWith('/layers') ? 'layers' : location.pathname.startsWith('/uikit') ? 'uikit' : 'palettes'
   const onUpload = async (file?: File | null) => {
     if (!file) return
     const text = await file.text()
@@ -51,7 +51,6 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 <Tabs.Tab value="tokens">Tokens</Tabs.Tab>
                 <Tabs.Tab value="palettes">Palettes</Tabs.Tab>
                 <Tabs.Tab value="type">Type</Tabs.Tab>
-                <Tabs.Tab value="elevation">Elevation</Tabs.Tab>
                 <Tabs.Tab value="layers">Layers</Tabs.Tab>
                 <Tabs.Tab value="uikit">UI Kit</Tabs.Tab>
               </Tabs.List>

@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Layout } from './modules/app/Layout'
 import { CodePenPage } from './modules/theme/index'
-import ElevationPage from './modules/elevation/ElevationPage'
 import TypePage from './modules/type/TypePage'
 import PreviewPage from './modules/preview/PreviewPage'
 import TokensPage from './modules/tokens/TokensPage'
@@ -22,7 +21,7 @@ const router = createBrowserRouter([
       { path: '/', element: <Navigate to="/tokens" replace /> },
       { path: '/tokens', element: <TokensPage /> },
       { path: '/palettes', element: <CodePenPage /> },
-      { path: '/elevation', element: <ElevationPage /> },
+      { path: '/elevation', element: <Navigate to="/layers" replace /> },
       { path: '/type', element: <TypePage /> },
       { path: '/layers', element: <LayersPage /> },
       { path: '/uikit', element: <PreviewPage /> },
