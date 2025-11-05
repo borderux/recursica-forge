@@ -1356,6 +1356,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.none}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.none}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
@@ -1367,6 +1369,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.0-5x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.0-5x}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
@@ -1378,6 +1382,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.1-5x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.1-5x}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
@@ -1389,6 +1395,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.2x}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
@@ -1400,6 +1408,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.3x}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
@@ -2787,6 +2797,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.none}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.none}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
@@ -2798,6 +2810,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.0-5x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.0-5x}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
@@ -2809,6 +2823,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.1-5x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.1-5x}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
@@ -2820,6 +2836,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.2x}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},
@@ -2831,6 +2849,8 @@
           "$value": {
             "x": { "$value": "{tokens.size.none}", "unit": "px" },
             "y": { "$value": "{tokens.size.2x}", "unit": "px" },
+            "x-direction": { "$value": "1", "$type": "number"},
+            "y-direction": { "$value": "1", "$type": "number"},
             "blur": { "$value": "{tokens.size.3x}", "unit": "px" },
             "spread": { "$value": "{tokens.size.none}", "unit": "px" },
             "color": { "$value": "{brand.light.palettes.neutral.default.color.tone}", "$type": "color"},

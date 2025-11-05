@@ -389,6 +389,15 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       removeLS(STORAGE_KEYS.uikit)
       removeLS(STORAGE_KEYS.palettes)
       removeLS(STORAGE_KEYS.resolved)
+      // Clear elevation-related keys so pages reseed from JSON
+      removeLS('elevation-controls')
+      removeLS('shadow-color-control')
+      removeLS('elevation-color-tokens')
+      removeLS('elevation-alpha-tokens')
+      removeLS('elevation-palette-selections')
+      removeLS('elevation-directions')
+      removeLS('offset-x-direction')
+      removeLS('offset-y-direction')
       // Reset friendly names for Tokens > Color to the JSON defaults
       try {
         const colors: any = (tokensImport as any)?.tokens?.color || {}
