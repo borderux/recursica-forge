@@ -79,7 +79,8 @@ export default function ElevationPage() {
         const shade = parts[idx + 2]
         const map: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
         const family = map[paletteKey] || 'gray'
-        const level = shade === 'default' ? '500' : shade
+        const defaultLevelMap: Record<string, string> = { neutral: '200', 'palette-1': '400', 'palette-2': '400' }
+        const level = shade === 'default' ? (defaultLevelMap[paletteKey] || '500') : shade
         if (family && level) return `color/${family}/${level}`
       }
       return 'color/gray/900'
@@ -244,10 +245,11 @@ export default function ElevationPage() {
         const idx = parts.findIndex((p) => p === 'palettes')
         if (idx >= 0) {
           const paletteKey = parts[idx + 1]
-          const shade = parts[idx + 2]
+        const shade = parts[idx + 2]
           const map: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
           const family = map[paletteKey] || 'gray'
-          const level = shade === 'default' ? '500' : shade
+        const defaultLevelMap: Record<string, string> = { neutral: '200', 'palette-1': '400', 'palette-2': '400' }
+        const level = shade === 'default' ? (defaultLevelMap[paletteKey] || '500') : shade
           if (family && level) return `color/${family}/${level}`
         }
         return 'color/gray/900'
