@@ -95,7 +95,7 @@ class VarsStore {
     const theme = (themeRaw as any)?.brand ? themeRaw : ({ brand: themeRaw } as any)
     const uikit = this.lsAvailable ? readLSJson(STORAGE_KEYS.uikit, uikitImport as any) : (uikitImport as any)
     const palettes = this.lsAvailable ? readLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys()) : migratePaletteLocalKeys()
-    const elevation = this.initElevationState(tokens as any, theme as any)
+    const elevation = this.initElevationState(theme as any)
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
 
     // Versioning and seeding when bundle changes
@@ -115,7 +115,7 @@ class VarsStore {
           writeLSJson('family-friendly-names', names)
         } catch {}
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
-        this.state = { tokens: tokensImport as any, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(tokensImport as any, normalizedTheme as any), version: (this.state?.version || 0) + 1 }
+        this.state = { tokens: tokensImport as any, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any), version: (this.state?.version || 0) + 1 }
       }
       // Ensure keys exist
       if (!localStorage.getItem(STORAGE_KEYS.tokens)) writeLSJson(STORAGE_KEYS.tokens, this.state.tokens)
@@ -168,6 +168,8 @@ class VarsStore {
       writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
       writeLSJson(STORAGE_KEYS.uikit, uikitImport)
       writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
+      // Ensure elevation storage is cleared so stale values aren't reapplied by the UI
+      try { localStorage.removeItem(STORAGE_KEYS.elevation) } catch {}
       try {
         const colors: any = (tokensImport as any)?.tokens?.color || {}
         const names: Record<string, string> = {}
@@ -190,12 +192,18 @@ class VarsStore {
       ['elevation-controls','shadow-color-control','elevation-color-tokens','elevation-alpha-tokens','elevation-palette-selections','elevation-directions','offset-x-direction','offset-y-direction']
         .forEach((k) => { try { localStorage.removeItem(k) } catch {} })
     } catch {}
-    this.state = { tokens: tokensImport as any, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(tokensImport as any, normalizedTheme as any), version: (this.state.version || 0) + 1 }
+    this.state = { tokens: tokensImport as any, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any), version: (this.state.version || 0) + 1 }
+    // Persist freshly initialized elevation defaults so future reads are consistent
+    if (this.lsAvailable) {
+      try { writeLSJson(STORAGE_KEYS.elevation, this.state.elevation) } catch {}
+    }
     this.emit()
     this.recomputeAndApplyAll()
+    // Notify legacy listeners so UI components can force refresh where needed
+    try { window.dispatchEvent(new CustomEvent('paletteReset')) } catch {}
   }
 
-  private initElevationState(tokens: any, theme: any): ElevationState {
+  private initElevationState(theme: any): ElevationState {
     // Try consolidated key first
     if (this.lsAvailable) {
       try {
@@ -338,6 +346,58 @@ class VarsStore {
         const n = toNumber(v)
         return Number.isFinite(n) ? n : 0
       }
+      // Build ordered list of size tokens by numeric value for stepped progression
+      const sizeTokenOrder: Array<{ name: string; value: number }> = (() => {
+        try {
+          const src: any = (this.state.tokens as any)?.tokens?.size || {}
+          const list: Array<{ name: string; value: number }> = []
+          Object.keys(src).forEach((short) => {
+            const raw = src[short]?.$value
+            const val = toNumber(raw)
+            if (Number.isFinite(val)) list.push({ name: `size/${short}`, value: val })
+          })
+          // sort by numeric ascending
+          list.sort((a, b) => a.value - b.value)
+          return list
+        } catch { return [] }
+      })()
+      const nextSizeValue = (baseToken: string, steps: number): number => {
+        if (!steps || steps < 0) return getSize(baseToken)
+        const idx = sizeTokenOrder.findIndex((t) => t.name === baseToken)
+        if (idx === -1) return getSize(baseToken)
+        const nextIdx = Math.min(sizeTokenOrder.length - 1, idx + steps)
+        return sizeTokenOrder[nextIdx]?.value ?? getSize(baseToken)
+      }
+      // Read scaling preferences (defaults match prior UI)
+      const readBool = (k: string, def: boolean) => {
+        try {
+          const v = localStorage.getItem(k)
+          if (v === null) return def
+          return v === 'true'
+        } catch { return def }
+      }
+      const scaleBlur = readBool('blur-scale-by-default', true)
+      const scaleSpread = readBool('spread-scale-by-default', false)
+      const scaleX = readBool('offset-x-scale-by-default', false)
+      const scaleY = readBool('offset-y-scale-by-default', false)
+      const parseAlphaValue = (v: any): number => {
+        const n = toNumber(v)
+        if (!Number.isFinite(n)) return 1
+        return n <= 1 ? Math.max(0, Math.min(1, n)) : Math.max(0, Math.min(1, n / 100))
+      }
+      const hexToRgba = (hex: string, a: number): string => {
+        try {
+          let h = String(hex || '').trim()
+          if (!h) return `rgba(0,0,0,${a})`
+          if (!h.startsWith('#')) h = `#${h}`
+          const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
+          if (!m) return h
+          const r = parseInt(m[1], 16)
+          const g = parseInt(m[2], 16)
+          const b = parseInt(m[3], 16)
+          return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, a))})`
+        } catch { return hex }
+      }
       const familyForPalette: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
       const shadowColorForLevel = (level: number): string => {
         const key = `elevation-${level}`
@@ -345,30 +405,47 @@ class VarsStore {
         if (sel) {
           const family = familyForPalette[sel.paletteKey] || 'gray'
           const hex = tokenIndex.get(`color/${family}/${sel.level}`)
-          return typeof hex === 'string' ? hex : '#000000'
+          const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
+          const alphaVal = parseAlphaValue(tokenIndex.get(alphaTok))
+          return typeof hex === 'string' ? hexToRgba(hex, alphaVal) : `rgba(0,0,0,${alphaVal})`
         }
         const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
         const hex = tokenIndex.get(tok)
-        return typeof hex === 'string' ? hex : '#000000'
+        const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
+        const alphaVal = parseAlphaValue(tokenIndex.get(alphaTok))
+        return typeof hex === 'string' ? hexToRgba(hex, alphaVal) : `rgba(0,0,0,${alphaVal})`
       }
       const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
         const key = `elevation-${level}`
         return this.state.elevation.directions[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
       }
       const vars: Record<string, string> = {}
+      const baseCtrl = this.state.elevation.controls['elevation-0']
       for (let i = 0; i <= 4; i += 1) {
         const k = `elevation-${i}`
         const ctrl = this.state.elevation.controls[k]
         if (!ctrl) continue
-        const blur = getSize(ctrl.blurToken)
-        const spread = getSize(ctrl.spreadToken)
-        const x = getSize(ctrl.offsetXToken)
-        const y = getSize(ctrl.offsetYToken)
+        const blur = (() => {
+          if (i > 0 && scaleBlur && ctrl.blurToken === baseCtrl?.blurToken) return nextSizeValue(ctrl.blurToken, i)
+          return getSize(ctrl.blurToken)
+        })()
+        const spread = (() => {
+          if (i > 0 && scaleSpread && ctrl.spreadToken === baseCtrl?.spreadToken) return nextSizeValue(ctrl.spreadToken, i)
+          return getSize(ctrl.spreadToken)
+        })()
+        const x = (() => {
+          if (i > 0 && scaleX && ctrl.offsetXToken === baseCtrl?.offsetXToken) return nextSizeValue(ctrl.offsetXToken, i)
+          return getSize(ctrl.offsetXToken)
+        })()
+        const y = (() => {
+          if (i > 0 && scaleY && ctrl.offsetYToken === baseCtrl?.offsetYToken) return nextSizeValue(ctrl.offsetYToken, i)
+          return getSize(ctrl.offsetYToken)
+        })()
         const dir = dirForLevel(i)
         const sx = dir.x === 'right' ? x : -x
         const sy = dir.y === 'down' ? y : -y
-        const colorHex = shadowColorForLevel(i)
-        vars[`--elevation-elevation-${i}-shadow-color`] = String(colorHex)
+        const color = shadowColorForLevel(i)
+        vars[`--elevation-elevation-${i}-shadow-color`] = String(color)
         vars[`--elevation-elevation-${i}-blur`] = `${blur}px`
         vars[`--elevation-elevation-${i}-spread`] = `${spread}px`
         vars[`--elevation-elevation-${i}-x-axis`] = `${sx}px`

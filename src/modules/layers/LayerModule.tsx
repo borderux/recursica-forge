@@ -1,13 +1,5 @@
-/**
- * LayerModule
- *
- * Visual module demonstrating a single UI layer level or alternative layer
- * (alert, warning, success, high-contrast, primary-color). Pulls palette
- * CSS variables and typography styles to render a representative block.
- * Listens for 'tokenOverridesChanged' and 'paletteReset' to refresh.
- */
 import { useVars } from '../vars/VarsContext'
-import { readOverrides } from './tokenOverrides'
+import { readOverrides } from '../theme/tokenOverrides'
 import { useEffect, useState } from 'react'
 
 type LayerModuleProps = {
@@ -22,7 +14,6 @@ type LayerModuleProps = {
 
 export default function LayerModule({ level, alternativeKey, title, className, children, onSelect, isSelected }: LayerModuleProps) {
   const { tokens, theme } = useVars()
-  // Force re-render when overrides are cleared/reset so computed styles refresh
   const [, setVersion] = useState(0)
   useEffect(() => {
     const handler = () => setVersion((v) => v + 1)
@@ -50,23 +41,6 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       : null
     : null
 
-  // Alternative-specific text bindings removed; using brand layer text vars
-
-  // --- Elevation (box-shadow) computation from Brand -> Tokens
-  const toRgba = (hex: string, aIn: number): string => {
-    try {
-      let h = (hex || '').trim()
-      if (!h) return 'rgba(0,0,0,0)'
-      if (!h.startsWith('#')) h = `#${h}`
-      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
-      if (!m) return 'rgba(0,0,0,0)'
-      const r = parseInt(m[1], 16)
-      const g = parseInt(m[2], 16)
-      const b = parseInt(m[3], 16)
-      const a = Math.max(0, Math.min(1, Number(aIn) || 0))
-      return `rgba(${r}, ${g}, ${b}, ${a})`
-    } catch { return 'rgba(0,0,0,0)' }
-  }
   const getTokenValue = (name: string): any => {
     try {
       const t: any = (tokens as any)?.tokens || {}
@@ -100,35 +74,21 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     }
     return s
   }
-  const computeBoxShadow = (): string | undefined => {
+  const getElevationLevelForLayer = (): string => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const layerSpec: any = root?.light?.layer?.[`layer-${layerId}`] || {}
-      const elevRef = layerSpec?.property?.elevation
-      if (!elevRef) return undefined
-      const elev: any = (() => {
-        const refVal = resolveBraceRef(elevRef)
-        // refVal should resolve to the elevation object or its $value
-        if (refVal && typeof refVal === 'object' && ('$value' in refVal)) return (refVal as any).$value
-        return refVal
-      })()
-      if (!elev || typeof elev !== 'object') return undefined
-      const x = Number(resolveBraceRef(elev.x)) || 0
-      const y = Number(resolveBraceRef(elev.y)) || 0
-      const xd = Number(resolveBraceRef(elev['x-direction'])) || 1
-      const yd = Number(resolveBraceRef(elev['y-direction'])) || 1
-      const blur = Number(resolveBraceRef(elev.blur)) || 0
-      const spread = Number(resolveBraceRef(elev.spread)) || 0
-      const colorHex = String(resolveBraceRef(elev.color) || '#000000')
-      const opacityVal = Number(resolveBraceRef(elev.opacity))
-      const alpha = Number.isFinite(opacityVal) ? (opacityVal <= 1 ? opacityVal : opacityVal / 100) : 1
-      const shadowColor = toRgba(colorHex, alpha)
-      return `${xd * x}px ${yd * y}px ${blur}px ${spread}px ${shadowColor}`
-    } catch { return undefined }
+      const v: any = layerSpec?.property?.elevation?.$value
+      if (typeof v === 'string') {
+        const m = v.match(/elevations\.(elevation-(\d+))/i)
+        if (m) return m[2]
+      }
+    } catch {}
+    return String(layerId)
   }
-  const boxShadow = computeBoxShadow()
+  const elevationLevel = getElevationLevelForLayer()
+  const cssVarBoxShadow = `var(--elevation-elevation-${elevationLevel}-x-axis, 0px) var(--elevation-elevation-${elevationLevel}-y-axis, 0px) var(--elevation-elevation-${elevationLevel}-blur, 0px) var(--elevation-elevation-${elevationLevel}-spread, 0px) var(--elevation-elevation-${elevationLevel}-shadow-color, rgba(0,0,0,0))`
 
-  // --- Typography styling (match Type page selections) ---
   type Style = React.CSSProperties
   const readCssVar = (name: string, fallback?: string): string | undefined => {
     try { return (getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback) } catch { return fallback }
@@ -180,7 +140,6 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       lineHeight: (() => { const rec = getThemeEntry(prefix, 'line-height'); const v = resolveThemeValue(rec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? (v as any) : (readCssVar(`--font-${prefix}-line-height`) as any) })(),
       margin: '0 0 12px 0',
     }
-    // apply per-style saved choices from Type page (optional)
     try {
       const raw = localStorage.getItem('type-token-choices')
       if (raw) {
@@ -208,10 +167,8 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     } catch {}
     return base
   }
-
   const headingStyle = buildTypeStyle('h3')
   const bodyStyle = buildTypeStyle('body-1')
-
   return (
     <div
       className={className ? `layer-container ${className}` : 'layer-container'}
@@ -222,7 +179,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
         border: includeBorder ? `var(${base}border-thickness) solid var(${base}border-color)` : undefined,
         borderRadius: includeBorder ? `var(${base}border-radius)` : undefined,
         cursor: onSelect ? 'pointer' as const : undefined,
-        boxShadow: boxShadow,
+        boxShadow: cssVarBoxShadow,
       }}
       onClick={(e) => { if (onSelect) { e.stopPropagation(); onSelect() } }}
     >
@@ -262,7 +219,6 @@ export default function LayerModule({ level, alternativeKey, title, className, c
             </>
           )}
         </div>
-
         {children ? (
           <div style={{ display: 'grid', gap: 12 }}>
             {children}
@@ -272,5 +228,4 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     </div>
   )
 }
-
 

@@ -59,7 +59,7 @@ export default function FontLetterSpacingTokens() {
   const defaultIdx = 3
   const [scaleByTW, setScaleByTW] = useState<boolean>(() => {
     const v = localStorage.getItem('font-letter-scale-by-tight-wide')
-    return v === null ? false : v === 'true'
+    return v === null ? true : v === 'true'
   })
   const availableShorts = useMemo(() => new Set(flattened.map((f) => f.name.replace('font/letter-spacing/',''))), [flattened])
   const resolveShortToActual = (short: string): string => {

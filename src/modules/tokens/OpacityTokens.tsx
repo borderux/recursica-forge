@@ -24,8 +24,14 @@ export default function OpacityTokens() {
     return list
   }, [])
 
-  // Always reflect latest overrides; store emits cause useVars consumers to re-render
-  const overrides = useMemo(() => readOverrides(), [])
+  // Reflect latest overrides; listen to tokenOverridesChanged events
+  const [version, setVersion] = useState(0)
+  useEffect(() => {
+    const handler = () => setVersion((v) => v + 1)
+    window.addEventListener('tokenOverridesChanged', handler as any)
+    return () => window.removeEventListener('tokenOverridesChanged', handler as any)
+  }, [])
+  const overrides = useMemo(() => readOverrides(), [version])
 
   const items = useMemo(() => {
     const out: Array<{ name: string; value: number | string }> = flattened

@@ -2,19 +2,23 @@ import React from 'react'
 
 export type ElevationExampleProps = {
   label: React.ReactNode
-  blurPx: number
-  spreadPx: number
-  offsetXPx: number
-  offsetYPx: number
-  colorHex: string
-  alpha: number // 0-1 decimal as stored in tokens
+  // If level is provided (0..4), box-shadow will be read from centrally
+  // computed CSS variables: --elevation-elevation-{level}-{x|y|blur|spread|shadow-color}
+  level?: number
+  // Legacy explicit props (used only when level is not provided)
+  blurPx?: number
+  spreadPx?: number
+  offsetXPx?: number
+  offsetYPx?: number
+  colorHex?: string
+  alpha?: number // 0-1 decimal as stored in tokens
   isSelected?: boolean
   onToggle?: () => void
   selectable?: boolean
   zIndex?: number
 }
 
-export default function ElevationModule({ label, blurPx, spreadPx, offsetXPx, offsetYPx, colorHex, alpha, isSelected = false, onToggle, selectable = true, zIndex }: ElevationExampleProps) {
+export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0, offsetXPx = 0, offsetYPx = 0, colorHex = '#000000', alpha = 1, isSelected = false, onToggle, selectable = true, zIndex }: ElevationExampleProps) {
   const canToggle = selectable && !!onToggle
   const toRgba = (hex: string, aIn: number): string => {
     try {
@@ -33,8 +37,15 @@ export default function ElevationModule({ label, blurPx, spreadPx, offsetXPx, of
       return hex
     }
   }
-  const shadowColor = toRgba(colorHex, alpha)
-  const boxShadow = `${offsetXPx}px ${offsetYPx}px ${blurPx}px ${spreadPx}px ${shadowColor}`
+  const boxShadow = (() => {
+    if (typeof level === 'number' && level >= 0) {
+      const k = String(level)
+      // Use centrally computed CSS variables so preview matches layers exactly
+      return `var(--elevation-elevation-${k}-x-axis, 0px) var(--elevation-elevation-${k}-y-axis, 0px) var(--elevation-elevation-${k}-blur, 0px) var(--elevation-elevation-${k}-spread, 0px) var(--elevation-elevation-${k}-shadow-color, rgba(0,0,0,0))`
+    }
+    const shadowColor = toRgba(colorHex, alpha)
+    return `${offsetXPx}px ${offsetYPx}px ${blurPx}px ${spreadPx}px ${shadowColor}`
+  })()
   return (
     <div
       className="elevation-card"

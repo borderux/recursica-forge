@@ -1,9 +1,9 @@
-import './index.css'
+import '../theme/index.css'
 import LayerModule from './LayerModule'
 import LayerStylePanel from './LayerStylePanel'
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
-import { readOverrides } from './tokenOverrides'
+import { readOverrides } from '../theme/tokenOverrides'
 import ElevationModule from '../elevation/ElevationModule'
 import ElevationStylePanel from '../elevation/ElevationStylePanel'
 
@@ -24,7 +24,7 @@ export default function LayersPage() {
   const [elevationPaletteSelections, setElevationPaletteSelections] = useState<Record<string, { paletteKey: string; level: string }>>(() => elevation?.paletteSelections || {})
   const [elevationAlphaTokens, setElevationAlphaTokens] = useState<Record<string, string>>(() => elevation?.alphaTokens || {})
   const [elevationControls, setElevationControls] = useState<Record<string, { blurToken: string; spreadToken: string; offsetXToken: string; offsetYToken: string }>>(() => elevation?.controls || {})
-  const [sizeTokens, setSizeTokens] = useState<Record<string, number>>(() => {
+  const [sizeTokens] = useState<Record<string, number>>(() => {
     const tokens: Record<string, number> = {}
     try {
       const src: any = (tokensJson as any)?.tokens?.size || {}
@@ -39,7 +39,6 @@ export default function LayersPage() {
     Object.entries(overrides).forEach(([key, value]) => { if (key.startsWith('size/') && typeof value === 'number') sizeOverrides[key] = value as number })
     return { ...tokens, ...sizeOverrides }
   })
-  // Sync to central store
   useEffect(() => { setElevation({ ...elevation, controls: elevationControls }) }, [elevationControls])
   useEffect(() => { setElevation({ ...elevation, shadowColorControl }) }, [shadowColorControl])
   useEffect(() => { setElevation({ ...elevation, colorTokens: elevationColorTokens }) }, [elevationColorTokens])
@@ -48,8 +47,6 @@ export default function LayersPage() {
   useEffect(() => { setElevation({ ...elevation, baseXDirection: xDirection }) }, [xDirection])
   useEffect(() => { setElevation({ ...elevation, baseYDirection: yDirection }) }, [yDirection])
   useEffect(() => { setElevation({ ...elevation, directions: elevationDirections }) }, [elevationDirections])
-  // No event listeners: VarsContext triggers re-render after overrides; component reads LS/state
-  // Re-initialize LS-backed states after a full reset (when LS keys are missing)
   useEffect(() => {
     try {
       const lsHasAny = (
@@ -146,148 +143,12 @@ export default function LayersPage() {
     if (elevation === 'elevation-0') return
     setElevationAlphaTokens((prev) => ({ ...prev, [elevation]: token }))
   }
-  const getNextTokenInProgression = useMemo(() => {
-    return (baseToken: string, steps: number): string => {
-      const sizeItems: Array<{ name: string; value: number }> = []
-      Object.entries(sizeTokens).forEach(([name, value]) => { if (name.startsWith('size/') && typeof value === 'number') sizeItems.push({ name, value }) })
-      const weight = (full: string) => { const n = full.replace('size/', '').replace('-', '.'); if (n === 'none') return [0, 0] as const; if (n === '0.5x') return [1, 0] as const; if (n === 'default') return [2, 0] as const; const asNum = parseFloat(n.replace('x', '')); return [3, isNaN(asNum) ? Number.POSITIVE_INFINITY : asNum] as const }
-      const sortedTokens = sizeItems.sort((a, b) => { const wa = weight(a.name); const wb = weight(b.name); if (wa[0] !== wb[0]) return wa[0] - wb[0]; return wa[1] - wb[1] })
-      const currentIndex = sortedTokens.findIndex(token => token.name === baseToken)
-      if (currentIndex === -1) return baseToken
-      const nextIndex = Math.min(currentIndex + steps, sortedTokens.length - 1)
-      return sortedTokens[nextIndex].name
-    }
-  }, [sizeTokens])
-  const getBlurValue = (elevation: string) => {
-    if (elevation === 'elevation-0') return 0
-    const control = elevationControls[elevation]; if (!control) return 0
-    const tokenValue = sizeTokens[control.blurToken]; const baseValue = tokenValue || 0
-    if (blurScaleByDefault) {
-      const level0Token = elevationControls['elevation-0']?.blurToken || 'size/default'
-      if (control.blurToken === level0Token) {
-        const elevationLevel = parseInt(elevation.replace('elevation-', ''))
-        const nextToken = getNextTokenInProgression(level0Token, elevationLevel)
-        return sizeTokens[nextToken] || baseValue
-      }
-    }
-    return baseValue
-  }
-  const getSpreadValue = (elevation: string) => {
-    if (elevation === 'elevation-0') return 0
-    const control = elevationControls[elevation]; if (!control) return 0
-    const tokenValue = sizeTokens[control.spreadToken]; const baseValue = tokenValue || 0
-    if (spreadScaleByDefault) {
-      const level0Token = elevationControls['elevation-0']?.spreadToken || 'size/default'
-      if (control.spreadToken === level0Token) {
-        const elevationLevel = parseInt(elevation.replace('elevation-', ''))
-        const nextToken = getNextTokenInProgression(level0Token, elevationLevel)
-        return sizeTokens[nextToken] || baseValue
-      }
-    }
-    return baseValue
-  }
   const getXDirForLevel = (elevation: string): 'left' | 'right' => (elevationDirections[elevation]?.x ?? xDirection)
   const getYDirForLevel = (elevation: string): 'up' | 'down' => (elevationDirections[elevation]?.y ?? yDirection)
-  const getOffsetXValue = (elevation: string) => {
-    if (elevation === 'elevation-0') return 0
-    const control = elevationControls[elevation]; if (!control) return 0
-    const tokenValue = sizeTokens[control.offsetXToken]
-    const baseValue = tokenValue || 0
-    const scaled = (() => {
-      if (offsetXScaleByDefault) {
-        const level0Token = elevationControls['elevation-0']?.offsetXToken || 'size/default'
-        if (control.offsetXToken === level0Token) {
-          const elevationLevel = parseInt(elevation.replace('elevation-', ''))
-          const nextToken = getNextTokenInProgression(level0Token, elevationLevel)
-          return sizeTokens[nextToken] || baseValue
-        }
-      }
-      return baseValue
-    })()
-    const dir = getXDirForLevel(elevation)
-    const sign = dir === 'right' ? 1 : -1
-    return scaled * sign
-  }
-  const getOffsetYValue = (elevation: string) => {
-    if (elevation === 'elevation-0') return 0
-    const control = elevationControls[elevation]; if (!control) return 0
-    const tokenValue = sizeTokens[control.offsetYToken]
-    const baseValue = tokenValue || 0
-    const scaled = (() => {
-      if (offsetYScaleByDefault) {
-        const level0Token = elevationControls['elevation-0']?.offsetYToken || 'size/default'
-        if (control.offsetYToken === level0Token) {
-          const elevationLevel = parseInt(elevation.replace('elevation-', ''))
-          const nextToken = getNextTokenInProgression(level0Token, elevationLevel)
-          return sizeTokens[nextToken] || baseValue
-        }
-      }
-      return baseValue
-    })()
-    const dir = getYDirForLevel(elevation)
-    const sign = dir === 'down' ? 1 : -1
-    return scaled * sign
-  }
-  const getTokenValueByName = (name: string): string | number | undefined => {
-    try {
-      const overrides = readOverrides() as Record<string, any>
-      if (overrides && Object.prototype.hasOwnProperty.call(overrides, name)) {
-        const ov = overrides[name]
-        if (ov != null) return ov as any
-      }
-    } catch {}
-    try {
-      const parts = (name || '').split('/')
-      const root: any = (tokensJson as any)?.tokens || {}
-      if (parts[0] === 'color' && parts.length >= 3) {
-        const v = root?.color?.[parts[1]]?.[parts[2]]?.$value
-        return typeof v === 'string' ? v : undefined
-      }
-      if (parts[0] === 'opacity' && parts[1]) {
-        const v = root?.opacity?.[parts[1]]?.$value
-        return typeof v === 'number' ? v : (typeof v === 'string' ? Number(v) : undefined)
-      }
-    } catch {}
-    return undefined
-  }
-  const getPaletteFamily = (paletteKey: string): string | undefined => {
-    try {
-      const raw = localStorage.getItem(`palette-grid-family:${paletteKey}`)
-      if (raw) return JSON.parse(raw)
-    } catch {}
-    if (paletteKey === 'neutral') return 'gray'
-    if (paletteKey === 'palette-1') return 'salmon'
-    if (paletteKey === 'palette-2') return 'mandarin'
-    if (paletteKey === 'palette-3') return 'cornflower'
-    if (paletteKey === 'palette-4') return 'greensheen'
-    return undefined
-  }
-  const getColorHexForLevel = (level: number): string => {
-    const key = `elevation-${level}`
-    const sel = elevationPaletteSelections[key]
-    if (sel) {
-      const family = getPaletteFamily(sel.paletteKey)
-      if (family) {
-        const name = `color/${family}/${sel.level}`
-        const v = getTokenValueByName(name)
-        if (typeof v === 'string' && v) return v
-      }
-    }
-    const token = elevationColorTokens[key] || shadowColorControl.colorToken
-    const v = getTokenValueByName(token)
-    return (typeof v === 'string' && v) ? v : '#000000'
-  }
   const getAlphaTokenForLevel = (level: number): string => {
     const key = `elevation-${level}`
     return elevationAlphaTokens[key] || shadowColorControl.alphaToken
   }
-  const getAlphaForLevel = (level: number): number => {
-    const token = getAlphaTokenForLevel(level)
-    const v = getTokenValueByName(token)
-    const n = typeof v === 'number' ? v : Number(v)
-    return Number.isFinite(n) ? n : 0
-  }
-  // Elevation CSS vars are computed centrally by the store
   const getColorTokenForLevel = (elevationKey: string): string => elevationColorTokens[elevationKey] || shadowColorControl.colorToken
   const availableSizeTokens = useMemo(() => {
     const tokens: Array<{ name: string; value: number; label: string }> = []
@@ -406,7 +267,6 @@ export default function LayersPage() {
       <div className="container-padding">
         <div className="section">
           <h2>Layers</h2>
-          {/* Selection controls + modules (0-3) */}
           <div style={{ display: 'grid', gap: 12 }}>
             <LayerModule level={0} title="Layer 0 (Background)" onSelect={() => { setSelectedLevels(new Set()); setSelectedLayerLevels(new Set([0])) }} isSelected={selectedLayerLevels.has(0)}>
               <LayerModule level={1} title="Layer 1" onSelect={() => { setSelectedLevels(new Set()); setSelectedLayerLevels(new Set([1])) }} isSelected={selectedLayerLevels.has(1)}>
@@ -417,7 +277,6 @@ export default function LayersPage() {
             </LayerModule>
           </div>
         </div>
-
         <div className="section">
           <h2>Alternative Layers</h2>
           <div className="alt-layers-wrapper">
@@ -428,26 +287,19 @@ export default function LayersPage() {
             <LayerModule alternativeKey="success" title="Success" className="card alt-layer-card" />
           </div>
         </div>
-
         <div className="section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ margin: 0 }}>Elevation</h2>
           </div>
-          <div style={{ border: '1px solid var(--temp-disabled)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
+          <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
             <div className="elevation-grid" style={{ display: 'grid', gap: 48 }}>
               {[0,1,2,3,4].map((i) => (
                 <ElevationModule
                   key={i}
                   label={i === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${i}`}
-                  blurPx={getBlurValue(`elevation-${i}`)}
-                  spreadPx={getSpreadValue(`elevation-${i}`)}
-                  offsetXPx={getOffsetXValue(`elevation-${i}`)}
-                  offsetYPx={getOffsetYValue(`elevation-${i}`)}
-                  colorHex={getColorHexForLevel(i)}
-                  alpha={getAlphaForLevel(i)}
+                  level={i}
                   isSelected={i === 0 ? false : selectedLevels.has(i)}
                   onToggle={i === 0 ? undefined : () => {
-                    // ensure mutual exclusivity: clear layer selection when selecting elevation
                     setSelectedLayerLevels(new Set())
                     setSelectedLevels(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next })
                   }}
@@ -458,7 +310,6 @@ export default function LayersPage() {
             </div>
           </div>
         </div>
-
         {selectedLevels.size > 0 && (
           <ElevationStylePanel
             selectedLevels={selectedLevels}
@@ -509,8 +360,6 @@ export default function LayersPage() {
             onClose={() => setSelectedLevels(new Set())}
           />
         )}
-
-        {/* Layer style panel */}
         {selectedLayerLevels.size > 0 && (
           <LayerStylePanel
             open={selectedLayerLevels.size > 0}
@@ -518,7 +367,6 @@ export default function LayersPage() {
             theme={theme}
             onClose={() => setSelectedLayerLevels(new Set())}
             onUpdate={(updater) => {
-              // Apply updates across selected layers
               const t: any = theme
               const root: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
               const nextTheme = JSON.parse(JSON.stringify(root))
@@ -531,7 +379,6 @@ export default function LayersPage() {
                 container[key] = updater(container[key] || {})
               })
               setTheme(nextTheme)
-              // VarsContext/store will recompute CSS vars; no events needed
             }}
           />
         )}
@@ -539,5 +386,4 @@ export default function LayersPage() {
     </div>
   )
 }
-
 

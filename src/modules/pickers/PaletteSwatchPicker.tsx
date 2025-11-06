@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
@@ -74,7 +74,11 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect: (sel: Sele
             <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize' }}>{toTitle(pk)}</div>
             <div style={{ display: 'flex', flexWrap: 'nowrap', gap, overflow: 'auto' }}>
               {(options[pk] || []).map((it) => (
-                <div key={`${pk}-${it.level}`} title={`${pk}/${it.level}`} onClick={() => { onSelect({ paletteKey: pk, level: it.level }); setAnchor(null) }} style={{ width: swatch, height: swatch, background: it.hex, cursor: 'pointer', border: '1px solid rgba(0,0,0,0.15)', flex: '0 0 auto' }} />
+                <div key={`${pk}-${it.level}`} title={`${pk}/${it.level}`} onClick={() => {
+                  try { onSelect({ paletteKey: pk, level: it.level }) } catch {}
+                  try { (window as any).__onPalettePick && (window as any).__onPalettePick({ paletteKey: pk, level: it.level }) } catch {}
+                  setAnchor(null)
+                }} style={{ width: swatch, height: swatch, background: it.hex, cursor: 'pointer', border: '1px solid rgba(0,0,0,0.15)', flex: '0 0 auto' }} />
               ))}
             </div>
           </div>

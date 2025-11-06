@@ -1,5 +1,5 @@
 import type { JsonLike } from './tokens'
-import { buildTokenIndex, resolveBraceRef } from './tokens'
+import { buildTokenIndex } from './tokens'
 
 export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Record<string, any>): Record<string, string> {
   const tokenIndex = buildTokenIndex(tokens)
@@ -18,6 +18,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       }
     }
     if (typeof v === 'number') return unitIfNumber ? `${v}${unitIfNumber}` : String(v)
+    if (typeof v === 'string' && unitIfNumber && /^-?\d+(\.\d+)?$/.test(v.trim())) return `${v}${unitIfNumber}`
     return String(v)
   }
   const resolveRef = (input: any, depth = 0): any => {
@@ -53,7 +54,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   }
 
   const result: Record<string, string> = {}
-  const applyForLayer = (id: string, spec: any, prefix: string) => {
+  const applyForLayer = (spec: any, prefix: string) => {
     const base = `--layer-layer-${prefix}-property-`
     const surf = resolveRef(spec?.property?.surface)
     const pad = resolveRef(spec?.property?.padding)
@@ -91,12 +92,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
 
   ;['0','1','2','3'].forEach((lvl) => {
     const key = `layer-${lvl}`
-    if (layersLight && Object.prototype.hasOwnProperty.call(layersLight, key)) applyForLayer(lvl, layersLight[key], lvl)
+    if (layersLight && Object.prototype.hasOwnProperty.call(layersLight, key)) applyForLayer(layersLight[key], lvl)
   })
 
   const alts: any = layersLight?.['layer-alternative'] || {}
   Object.keys(alts).forEach((altKey) => {
-    applyForLayer(altKey, alts[altKey], `alternative-${altKey}`)
+    applyForLayer(alts[altKey], `alternative-${altKey}`)
   })
 
   return result
