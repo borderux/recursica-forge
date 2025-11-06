@@ -55,7 +55,21 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     return typeof ov === 'string' && ov.trim() ? ov : undefined
   }
 
-  const resolveTokenRef = (ref: any) => resolveBraceRef(ref, tokenIndex)
+  const resolveTokenRef = (ref: any) => {
+    try {
+      if (typeof ref === 'string') {
+        const s = ref.trim()
+        const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
+        const fontPrefixRe = /^(tokens|token)\.font\./i
+        if (fontPrefixRe.test(inner)) {
+          const rest = inner.replace(fontPrefixRe, '')
+          const path = rest.replace(/[\.]/g, '/').replace(/\/+/, '/')
+          return getFontToken(path)
+        }
+      }
+    } catch {}
+    return resolveBraceRef(ref, tokenIndex)
+  }
 
   PREFIXES.forEach((p) => {
     const mapKey: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
