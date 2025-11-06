@@ -152,17 +152,11 @@ function findFontTokenNameByNumericValue(tokens: any, kind: 'size' | 'letter-spa
 export default function TypeSample({ tag, text, prefix }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }) {
   const Tag = tag as any
   const [livePreview, setLivePreview] = useState<Partial<Style> | null>(null)
-  const [version, setVersion] = useState(0)
+  // Rely on VarsContext subscription to re-render when overrides or choices change
   const { kit } = useUiKit()
   const { tokens, theme } = useVars()
   // removed choicesVersion state (not needed)
-  useEffect(() => {
-    const handler = () => setVersion((v) => v + 1)
-    window.addEventListener('tokenOverridesChanged', handler as any)
-    window.addEventListener('typeChoicesChanged', handler as any)
-    return () => { window.removeEventListener('tokenOverridesChanged', handler as any); window.removeEventListener('typeChoicesChanged', handler as any) }
-  }, [])
-  const overrides = useMemo(() => readOverrides(), [version])
+  const overrides = useMemo(() => readOverrides(), [])
 
   const hasLineHeightDefault = useMemo(() => {
     return !!Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === 'font/line-height/default')

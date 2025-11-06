@@ -40,23 +40,12 @@ export function TypePage() {
 
   function SimpleTypeSample({ tag, text, prefix, isSelected, onToggle }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string; isSelected: boolean; onToggle: (checked: boolean) => void }) {
     const Tag = tag as any
-    const readCssVar = (name: string, fallback?: string): string | undefined => {
-      if (typeof document === 'undefined') return fallback
-      const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-      return value || fallback
-    }
-    const pxOrUndefined = (value?: string) => {
-      if (!value) return undefined
-      if (/px$|em$|rem$|%$/.test(value)) return value
-      if (!Number.isNaN(Number(value))) return `${value}px`
-      return value
-    }
     const style: React.CSSProperties = {
-      fontFamily: readCssVar(`--font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
-      fontSize: pxOrUndefined(readCssVar(`--font-${prefix}-font-size`)),
-      fontWeight: (readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)) as any,
-      letterSpacing: readCssVar(`--font-${prefix}-font-letter-spacing`),
-      lineHeight: readCssVar(`--font-${prefix}-line-height`) as any,
+      fontFamily: `var(--font-${prefix}-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`,
+      fontSize: `var(--font-${prefix}-font-size, 16px)`,
+      fontWeight: `var(--font-${prefix}-font-weight, var(--font-${prefix}-font-weight-normal, 400))` as any,
+      letterSpacing: `var(--font-${prefix}-font-letter-spacing, 0)`,
+      lineHeight: `var(--font-${prefix}-line-height, normal)` as any,
       margin: '0',
     }
     return (
@@ -73,19 +62,6 @@ export function TypePage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [version, setVersion] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
-  useEffect(() => {
-    const handler = () => setVersion((v) => v + 1)
-    try {
-      window.addEventListener('tokenOverridesChanged', handler as any)
-      window.addEventListener('typeChoicesChanged', handler as any)
-    } catch {}
-    return () => {
-      try {
-        window.removeEventListener('tokenOverridesChanged', handler as any)
-        window.removeEventListener('typeChoicesChanged', handler as any)
-      } catch {}
-    }
-  }, [])
   // Open/close style panel automatically based on selection
   useEffect(() => {
     if (selected.length > 0) setIsPanelOpen(false) // leave tokens panel closed when editing styles

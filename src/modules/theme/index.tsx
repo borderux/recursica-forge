@@ -276,37 +276,17 @@ function applyTheme(theme: ThemeVars) {
   }
 }
 
-export function CodePenPage() {
-  const { tokens: tokensJson, theme: themeJson } = useVars()
+export function PalettesPage() {
+  const { tokens: tokensJson, theme: themeJson, palettes: palettesState, setPalettes } = useVars()
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [customVars] = useState<ThemeVars | null>(null)
-  const [tokenVersion, setTokenVersion] = useState(0)
-  useEffect(() => {
-    const handler = () => setTokenVersion((v) => v + 1)
-    window.addEventListener('tokenOverridesChanged', handler as any)
-    return () => window.removeEventListener('tokenOverridesChanged', handler as any)
-  }, [])
   const allFamilies = useMemo(() => {
     const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))
     fams.delete('translucent')
     return Array.from(fams).sort()
-  }, [tokenVersion])
-  const [palettes, setPalettes] = useState<PaletteEntry[]>(() => {
-    const DEFAULTS: PaletteEntry[] = [
-      { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
-      { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
-      { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
-    ]
-    try {
-      const raw = localStorage.getItem('dynamic-palettes')
-      if (raw) return JSON.parse(raw)
-    } catch {}
-    return DEFAULTS
-  })
-  const writePalettes = (next: PaletteEntry[]) => {
-    setPalettes(next)
-    try { localStorage.setItem('dynamic-palettes', JSON.stringify(next)) } catch {}
-  }
+  }, [tokensJson])
+  const palettes = palettesState.dynamic
+  const writePalettes = (next: PaletteEntry[]) => setPalettes({ ...palettesState, dynamic: next })
   const getPersistedFamily = (key: string): string | undefined => {
     try {
       const raw = localStorage.getItem(`palette-grid-family:${key}`)
@@ -324,7 +304,7 @@ export function CodePenPage() {
       if (fam) set.add(fam)
     })
     return set
-  }, [palettes, tokenVersion])
+  }, [palettes])
   const unusedFamilies = useMemo(() => allFamilies.filter((f) => !usedFamilies.has(f)), [allFamilies, usedFamilies])
   const canAddPalette = unusedFamilies.length > 0
   const addPalette = () => {
@@ -342,30 +322,12 @@ export function CodePenPage() {
     try { localStorage.removeItem(`palette-grid-family:${key}`) } catch {}
     writePalettes(palettes.filter((p) => p.key !== key))
   }
-  const [paletteBindings, setPaletteBindings] = useState<Record<string, { token: string; hex: string }>>(() => {
-    try {
-      const raw = localStorage.getItem('palette-bindings')
-      if (raw) return JSON.parse(raw)
-    } catch {}
-    return {}
-  })
-  const writeBindings = (next: Record<string, { token: string; hex: string }>) => {
-    setPaletteBindings(next)
-    try { localStorage.setItem('palette-bindings', JSON.stringify(next)) } catch {}
-  }
+  const paletteBindings = palettesState.bindings
+  const writeBindings = (next: Record<string, { token: string; hex: string }>) => setPalettes({ ...palettesState, bindings: next })
 
   type OpacityBindingKey = 'disabled' | 'overlay'
-  const [opacityBindings, setOpacityBindings] = useState<Record<OpacityBindingKey, { token: string; value: number }>>(() => {
-    try {
-      const raw = localStorage.getItem('palette-opacity-bindings')
-      if (raw) return JSON.parse(raw)
-    } catch {}
-    return {} as any
-  })
-  const writeOpacityBindings = (next: Record<OpacityBindingKey, { token: string; value: number }>) => {
-    setOpacityBindings(next)
-    try { localStorage.setItem('palette-opacity-bindings', JSON.stringify(next)) } catch {}
-  }
+  const opacityBindings = palettesState.opacity as Record<OpacityBindingKey, { token: string; value: number }>
+  const writeOpacityBindings = (next: Record<OpacityBindingKey, { token: string; value: number }>) => setPalettes({ ...palettesState, opacity: next as any })
 
   const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
     let h = hex.trim()
@@ -524,66 +486,18 @@ export function CodePenPage() {
 
   useEffect(() => {
     applyTheme(LIGHT_MODE)
-    // set initial switch background for light mode
     const el = document.getElementById('darkModeSwitch') as HTMLDivElement | null
     if (el) el.style.backgroundColor = 'var(--color-neutral-300)'
-    // initialize palette swatches defaults from Tokens.json
-    try {
-      const colors: Record<string, string> = {}
-      const get = (name: string): string | undefined => {
-        const parts = (name || '').split('/')
-        if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.tokens?.color?.[parts[1]]?.[parts[2]]?.$value
-        return undefined
-      }
-      const defaults: Record<string, { token: string; hex: string }> = {
-        '--palette-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
-        '--palette-white': { token: 'color/gray/000', hex: get('color/gray/000') || '#ffffff' },
-        '--palette-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
-        '--palette-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
-        '--palette-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
-      }
-      const merged = { ...defaults, ...paletteBindings }
-      Object.entries(merged).forEach(([cssVar, info]) => { colors[cssVar] = info.hex })
-      writeBindings(merged)
-      applyCssVars(colors)
-      // Seed palette scale variables from Theme.json (Light mode)
-      applyThemePalettesFromJson('Light')
-      applyAliasOnTones()
-    } catch {}
+    try { applyAliasOnTones() } catch {}
   }, [])
 
   useEffect(() => {
     const base = isDarkMode ? DARK_MODE : LIGHT_MODE
     const merged = customVars ? { ...base, ...customVars } : base
     applyTheme(merged)
-    // Update palette scale variables for current mode
-    applyThemePalettesFromJson(isDarkMode ? 'Dark' : 'Light')
-  }, [isDarkMode, customVars, palettes])
+  }, [isDarkMode, customVars])
 
-  // Handle palette reset requests from shells (reset to defaults and clear primary selections)
-  useEffect(() => {
-    const DEFAULTS: PaletteEntry[] = [
-      { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
-      { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
-      { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
-    ]
-    const onReset = () => {
-      // Remove any custom primary selections
-      try {
-        const keys: string[] = []
-        for (let i = 0; i < localStorage.length; i += 1) {
-          const k = localStorage.key(i) || ''
-          if (k.startsWith('palette-primary-level:')) keys.push(k)
-        }
-        keys.forEach((k) => localStorage.removeItem(k))
-      } catch {}
-      // Reset palettes to defaults (removes any extras)
-      writePalettes(DEFAULTS)
-    }
-    window.addEventListener('paletteReset', onReset as any)
-    return () => window.removeEventListener('paletteReset', onReset as any)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Store.resetAll now handles palette primary level cleanup; no event listener needed
 
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--layer-layer-0-property-surface, #ffffff)', color: 'var(--layer-layer-0-property-element-text-color, #111111)' }}>
@@ -704,16 +618,7 @@ function SwatchPicker({ onSelect }: { onSelect: (cssVar: string, tokenName: stri
   const [targetVar, setTargetVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
-  const [tokenVersion, setTokenVersion] = useState(0)
-  useEffect(() => {
-    const handler = () => setTokenVersion((v) => v + 1)
-    window.addEventListener('tokenOverridesChanged', handler as any)
-    window.addEventListener('familyNamesChanged', handler as any)
-    return () => {
-      window.removeEventListener('tokenOverridesChanged', handler as any)
-      window.removeEventListener('familyNamesChanged', handler as any)
-    }
-  }, [])
+  // Re-rendering is coordinated by VarsContext; also listen for friendly name changes
   // hydrate and react to friendly name changes
   useEffect(() => {
     try {
@@ -766,7 +671,7 @@ function SwatchPicker({ onSelect }: { onSelect: (cssVar: string, tokenName: stri
       byFamily[fam].sort((a, b) => Number(b.level) - Number(a.level))
     })
     return byFamily
-  }, [tokensJson, tokenVersion])
+  }, [tokensJson])
 
   ;(window as any).openPicker = (el: HTMLElement, cssVar: string) => {
     setAnchor(el)

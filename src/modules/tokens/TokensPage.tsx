@@ -294,7 +294,7 @@ function ColorPickerOverlay({ tokenName, currentHex, swatchRect, onClose, onChan
 }
 import { useVars } from '../vars/VarsContext'
 // removed unused varsUtil import
-import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import { readOverrides, setOverride, writeOverrides } from '../theme/tokenOverrides'
 import OpacityTokens from './OpacityTokens'
 import SizeTokens from './SizeTokens'
 import FontFamiliesTokens from './FontFamiliesTokens'
@@ -377,6 +377,16 @@ export default function TokensPage() {
     }
   } | null>(null)
   const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>({})
+  // Persist deleted families so navigation doesn't restore them
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('deleted-color-families')
+      if (raw) setDeletedFamilies(JSON.parse(raw) || {})
+    } catch {}
+  }, [])
+  useEffect(() => {
+    try { localStorage.setItem('deleted-color-families', JSON.stringify(deletedFamilies)) } catch {}
+  }, [deletedFamilies])
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [namesHydrated, setNamesHydrated] = useState(false)
   // Effect scale state managed inside EffectTokens module
@@ -604,7 +614,9 @@ export default function TokensPage() {
                   padding: '8px 10px',
                   borderRadius: 8,
                   border: '1px solid var(--layer-layer-1-property-border-color)',
-                  background: selected === (item.key as any) ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent',
+                  background: selected === (item.key as any)
+                    ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color, var(--palette-interactive, #3b82f6))'
+                    : 'transparent',
                   color: selected === (item.key as any) ? '#fff' : 'inherit',
                   cursor: 'pointer'
                 }}
@@ -867,7 +879,19 @@ export default function TokensPage() {
                         <div style={{ height: 24 }} />
                       ) : (
                         <button
-                          onClick={() => { setDeletedFamilies((prev) => ({ ...prev, [family]: true })); setOpenPicker(null); setFamilyOrder((prev) => prev.filter((f) => f !== family)) }}
+                          onClick={() => {
+                            setDeletedFamilies((prev) => ({ ...prev, [family]: true }))
+                            setOpenPicker(null)
+                            setFamilyOrder((prev) => prev.filter((f) => f !== family))
+                            try {
+                              // Remove any overrides for this family's colors so it doesn't reappear
+                              const ov = readOverrides()
+                              const next: Record<string, any> = {}
+                              Object.keys(ov).forEach((k) => { if (!k.startsWith(`color/${family}/`)) next[k] = (ov as any)[k] })
+                              writeOverrides(next)
+                              try { window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: next } })) } catch {}
+                            } catch {}
+                          }}
                           title="Delete color column"
                           style={{ border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px', width: '100%' }}
                         >🗑️</button>

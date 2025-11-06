@@ -24,29 +24,8 @@ export default function OpacityTokens() {
     return list
   }, [])
 
-  const [values, setValues] = useState<Record<string, string | number>>(() => {
-    const init: Record<string, string | number> = {}
-    flattened.forEach((it) => { init[it.name] = it.value })
-    const overrides = readOverrides()
-    return { ...init, ...overrides }
-  })
-
-  useEffect(() => {
-    const handler = (ev: Event) => {
-      const detail: any = (ev as CustomEvent).detail
-      if (!detail) return
-      const { all, name, value } = detail
-      if (all && typeof all === 'object') {
-        setValues(all)
-        return
-      }
-      if (typeof name === 'string') {
-        setValues((prev) => ({ ...prev, [name]: value }))
-      }
-    }
-    window.addEventListener('tokenOverridesChanged', handler)
-    return () => window.removeEventListener('tokenOverridesChanged', handler)
-  }, [])
+  // Always reflect latest overrides; store emits cause useVars consumers to re-render
+  const overrides = useMemo(() => readOverrides(), [])
 
   const items = useMemo(() => {
     const out: Array<{ name: string; value: number | string }> = flattened
@@ -70,7 +49,7 @@ export default function OpacityTokens() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 50px auto', gap: 8, alignItems: 'center' }}>
         {items.map((it) => {
           const label = toTitleCase(it.name.replace('opacity/', ''))
-          const currentRaw = (values[it.name] as any) ?? it.value
+          const currentRaw = (overrides as any)[it.name] ?? it.value
           const current = toPctNumber(currentRaw)
           return (
             <>
@@ -82,11 +61,7 @@ export default function OpacityTokens() {
                 min={0}
                 max={100}
                 value={current}
-                onChange={(ev) => {
-                  const next = Number(ev.currentTarget.value)
-                  setValues((prev) => ({ ...prev, [it.name]: next }))
-                  setOverride(it.name, next)
-                }}
+                onChange={(ev) => { setOverride(it.name, Number(ev.currentTarget.value)) }}
                 style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
               />
               <input
@@ -94,13 +69,7 @@ export default function OpacityTokens() {
                 min={0}
                 max={100}
                 value={current}
-                onChange={(ev) => {
-                  const next = Number(ev.currentTarget.value)
-                  if (Number.isFinite(next)) {
-                    setValues((prev) => ({ ...prev, [it.name]: next }))
-                    setOverride(it.name, next)
-                  }
-                }}
+                onChange={(ev) => { const next = Number(ev.currentTarget.value); if (Number.isFinite(next)) setOverride(it.name, next) }}
                 style={{ width: 50 }}
               />
               <span style={{ fontSize: 12, opacity: 0.8 }}>%</span>

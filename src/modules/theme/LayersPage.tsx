@@ -8,117 +8,22 @@ import ElevationModule from '../elevation/ElevationModule'
 import ElevationStylePanel from '../elevation/ElevationStylePanel'
 
 export default function LayersPage() {
-  const { tokens: tokensJson, theme, setTheme } = useVars()
+  const { tokens: tokensJson, theme, setTheme, elevation, setElevation } = useVars()
   const [selectedLayerLevels, setSelectedLayerLevels] = useState<Set<number>>(() => new Set())
   const { theme: themeJson } = useVars()
   const [blurScaleByDefault] = useState<boolean>(() => { const v = localStorage.getItem('blur-scale-by-default'); return v === null ? true : v === 'true' })
   const [spreadScaleByDefault] = useState<boolean>(() => { const v = localStorage.getItem('spread-scale-by-default'); return v === null ? false : v === 'true' })
   const [offsetXScaleByDefault] = useState<boolean>(() => { const v = localStorage.getItem('offset-x-scale-by-default'); return v === null ? false : v === 'true' })
   const [offsetYScaleByDefault] = useState<boolean>(() => { const v = localStorage.getItem('offset-y-scale-by-default'); return v === null ? false : v === 'true' })
-  const [xDirection, setXDirection] = useState<'left' | 'right'>(() => {
-    try {
-      const saved = localStorage.getItem('offset-x-direction')
-      if (saved === 'left' || saved === 'right') return saved
-    } catch {}
-    try {
-      const brand: any = (themeJson as any)?.brand || (themeJson as any)
-      const node: any = brand?.light?.elevations?.['elevation-1']?.['$value'] || {}
-      const raw = Number((node?.['x-direction']?.['$value'] ?? node?.['x-direction']) as any)
-      return Number.isFinite(raw) ? (raw >= 0 ? 'right' : 'left') : 'right'
-    } catch { return 'right' }
-  })
-  const [yDirection, setYDirection] = useState<'up' | 'down'>(() => {
-    try {
-      const saved = localStorage.getItem('offset-y-direction')
-      if (saved === 'up' || saved === 'down') return saved
-    } catch {}
-    try {
-      const brand: any = (themeJson as any)?.brand || (themeJson as any)
-      const node: any = brand?.light?.elevations?.['elevation-1']?.['$value'] || {}
-      const raw = Number((node?.['y-direction']?.['$value'] ?? node?.['y-direction']) as any)
-      return Number.isFinite(raw) ? (raw >= 0 ? 'down' : 'up') : 'down'
-    } catch { return 'down' }
-  })
-  const [elevationDirections, setElevationDirections] = useState<Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>>(() => {
-    try { const saved = localStorage.getItem('elevation-directions'); if (saved) return JSON.parse(saved) } catch {}
-    const base: Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }> = {}
-    for (let i = 1; i <= 4; i += 1) base[`elevation-${i}`] = { x: 'right', y: 'down' }
-    return base
-  })
+  const [xDirection, setXDirection] = useState<'left' | 'right'>(() => (elevation?.baseXDirection || 'right'))
+  const [yDirection, setYDirection] = useState<'up' | 'down'>(() => (elevation?.baseYDirection || 'down'))
+  const [elevationDirections, setElevationDirections] = useState<Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>>(() => elevation?.directions || ({} as any))
   const [selectedLevels, setSelectedLevels] = useState<Set<number>>(() => new Set<number>())
-  const [shadowColorControl, setShadowColorControl] = useState<{ colorToken: string; alphaToken: string }>(() => {
-    try { const saved = localStorage.getItem('shadow-color-control'); if (saved) return JSON.parse(saved) } catch {}
-    const brand: any = (themeJson as any)?.brand || (themeJson as any)
-    const elev: any = brand?.light?.elevations?.['elevation-1']?.['$value'] || {}
-    const alphaRef = elev?.opacity?.['$value'] as string | undefined
-    const colorRef = elev?.color?.['$value'] as string | undefined
-    const parseOpacity = (s?: string) => {
-      if (!s) return 'opacity/veiled'
-      const inner = s.startsWith('{') ? s.slice(1, -1) : s
-      const parts = inner.split('.')
-      if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'opacity' && parts[2]) return `opacity/${parts[2]}`
-      return 'opacity/veiled'
-    }
-    const parseColorToken = (s?: string) => {
-      if (!s) return 'color/gray/900'
-      const inner = s.startsWith('{') ? s.slice(1, -1) : s
-      const parts = inner.split('.')
-      if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'color' && parts[2] && parts[3]) return `color/${parts[2]}/${parts[3]}`
-      const idx = parts.findIndex((p) => p === 'palettes')
-      if (idx >= 0) {
-        const paletteKey = parts[idx + 1]
-        const shade = parts[idx + 2]
-        const map: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
-        const family = map[paletteKey] || 'gray'
-        const defaultLevelMap: Record<string, string> = { neutral: '200', 'palette-1': '400', 'palette-2': '400' }
-        const level = shade === 'default' ? (defaultLevelMap[paletteKey] || '500') : shade
-        if (family && level) return `color/${family}/${level}`
-      }
-      return 'color/gray/900'
-    }
-    return { colorToken: parseColorToken(colorRef), alphaToken: parseOpacity(alphaRef) }
-  })
-  const [elevationColorTokens, setElevationColorTokens] = useState<Record<string, string>>(() => {
-    try { const saved = localStorage.getItem('elevation-color-tokens'); if (saved) return JSON.parse(saved) } catch {}
-    return {}
-  })
-  const [elevationPaletteSelections, setElevationPaletteSelections] = useState<Record<string, { paletteKey: string; level: string }>>(() => {
-    try { const saved = localStorage.getItem('elevation-palette-selections'); if (saved) return JSON.parse(saved) } catch {}
-    return {}
-  })
-  const [elevationAlphaTokens, setElevationAlphaTokens] = useState<Record<string, string>>(() => {
-    try { const saved = localStorage.getItem('elevation-alpha-tokens'); if (saved) return JSON.parse(saved) } catch {}
-    return {}
-  })
-  const [elevationControls, setElevationControls] = useState<Record<string, { blurToken: string; spreadToken: string; offsetXToken: string; offsetYToken: string }>>(() => {
-    const makeFromBrand = (): Record<string, { blurToken: string; spreadToken: string; offsetXToken: string; offsetYToken: string }> => {
-      const fromBrand: Record<string, { blurToken: string; spreadToken: string; offsetXToken: string; offsetYToken: string }> = {}
-      const brand: any = (themeJson as any)?.brand || (themeJson as any)
-      const light: any = brand?.light?.elevations || {}
-      const toSize = (ref?: any): string => {
-        const s: string | undefined = typeof ref === 'string' ? ref : (ref?.['$value'] as any)
-        if (!s) return 'size/none'
-        const inner = s.startsWith('{') ? s.slice(1, -1) : s
-        const parts = inner.split('.')
-        if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'size') {
-          const key = parts.slice(2).join('.')
-          return `size/${key}`
-        }
-        return 'size/none'
-      }
-      for (let i = 0; i <= 4; i++) {
-        const node: any = light[`elevation-${i}`]?.['$value'] || {}
-        fromBrand[`elevation-${i}`] = {
-          blurToken: toSize(node?.blur?.['$value'] ?? node?.blur),
-          spreadToken: toSize(node?.spread?.['$value'] ?? node?.spread),
-          offsetXToken: toSize(node?.x?.['$value'] ?? node?.x),
-          offsetYToken: toSize(node?.y?.['$value'] ?? node?.y),
-        }
-      }
-      return fromBrand
-    }
-    return makeFromBrand()
-  })
+  const [shadowColorControl, setShadowColorControl] = useState<{ colorToken: string; alphaToken: string }>(() => elevation?.shadowColorControl || { colorToken: 'color/gray/900', alphaToken: 'opacity/veiled' })
+  const [elevationColorTokens, setElevationColorTokens] = useState<Record<string, string>>(() => elevation?.colorTokens || {})
+  const [elevationPaletteSelections, setElevationPaletteSelections] = useState<Record<string, { paletteKey: string; level: string }>>(() => elevation?.paletteSelections || {})
+  const [elevationAlphaTokens, setElevationAlphaTokens] = useState<Record<string, string>>(() => elevation?.alphaTokens || {})
+  const [elevationControls, setElevationControls] = useState<Record<string, { blurToken: string; spreadToken: string; offsetXToken: string; offsetYToken: string }>>(() => elevation?.controls || {})
   const [sizeTokens, setSizeTokens] = useState<Record<string, number>>(() => {
     const tokens: Record<string, number> = {}
     try {
@@ -134,47 +39,28 @@ export default function LayersPage() {
     Object.entries(overrides).forEach(([key, value]) => { if (key.startsWith('size/') && typeof value === 'number') sizeOverrides[key] = value as number })
     return { ...tokens, ...sizeOverrides }
   })
+  // Sync to central store
+  useEffect(() => { setElevation({ ...elevation, controls: elevationControls }) }, [elevationControls])
+  useEffect(() => { setElevation({ ...elevation, shadowColorControl }) }, [shadowColorControl])
+  useEffect(() => { setElevation({ ...elevation, colorTokens: elevationColorTokens }) }, [elevationColorTokens])
+  useEffect(() => { setElevation({ ...elevation, paletteSelections: elevationPaletteSelections }) }, [elevationPaletteSelections])
+  useEffect(() => { setElevation({ ...elevation, alphaTokens: elevationAlphaTokens }) }, [elevationAlphaTokens])
+  useEffect(() => { setElevation({ ...elevation, baseXDirection: xDirection }) }, [xDirection])
+  useEffect(() => { setElevation({ ...elevation, baseYDirection: yDirection }) }, [yDirection])
+  useEffect(() => { setElevation({ ...elevation, directions: elevationDirections }) }, [elevationDirections])
+  // No event listeners: VarsContext triggers re-render after overrides; component reads LS/state
+  // Re-initialize LS-backed states after a full reset (when LS keys are missing)
   useEffect(() => {
-    try { const saved = localStorage.getItem('elevation-controls'); if (saved) setElevationControls(JSON.parse(saved)) } catch {}
-  }, [])
-  useEffect(() => {
-    try { localStorage.setItem('elevation-controls', JSON.stringify(elevationControls)) } catch {}
-  }, [elevationControls])
-  useEffect(() => { try { localStorage.setItem('shadow-color-control', JSON.stringify(shadowColorControl)) } catch {} }, [shadowColorControl])
-  useEffect(() => { try { localStorage.setItem('elevation-color-tokens', JSON.stringify(elevationColorTokens)) } catch {} }, [elevationColorTokens])
-  useEffect(() => { try { localStorage.setItem('elevation-palette-selections', JSON.stringify(elevationPaletteSelections)) } catch {} }, [elevationPaletteSelections])
-  useEffect(() => { try { localStorage.setItem('elevation-alpha-tokens', JSON.stringify(elevationAlphaTokens)) } catch {} }, [elevationAlphaTokens])
-  useEffect(() => { try { localStorage.setItem('offset-x-direction', xDirection) } catch {} }, [xDirection])
-  useEffect(() => { try { localStorage.setItem('offset-y-direction', yDirection) } catch {} }, [yDirection])
-  useEffect(() => { try { localStorage.setItem('elevation-directions', JSON.stringify(elevationDirections)) } catch {} }, [elevationDirections])
-  useEffect(() => {
-    const handler = (ev: Event) => {
-      const detail: any = (ev as CustomEvent).detail
-      if (!detail) return
-      const { all, name, value } = detail
-      if (all && typeof all === 'object') {
-        const newSizeTokens: Record<string, number> = {}
-        try {
-          const src: any = (tokensJson as any)?.tokens?.size || {}
-          Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
-            const raw = src[k]?.$value
-            const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
-            const num = typeof v === 'number' ? v : Number(v)
-            if (Number.isFinite(num)) newSizeTokens[`size/${k}`] = num
-          })
-        } catch {}
-        setSizeTokens({ ...newSizeTokens, ...all }); setShadowColorControl(prev => ({ ...prev })); return
-      }
-      if (typeof name === 'string' && (name.startsWith('size/') || name.startsWith('opacity/') || name.startsWith('color/'))) {
-        if (name.startsWith('size/')) setSizeTokens(prev => ({ ...prev, [name]: value }))
-        setShadowColorControl(prev => ({ ...prev }))
-      }
-    }
-    window.addEventListener('tokenOverridesChanged', handler)
-    return () => window.removeEventListener('tokenOverridesChanged', handler)
-  }, [])
-  useEffect(() => {
-    const onReset = () => {
+    try {
+      const lsHasAny = (
+        localStorage.getItem('elevation-controls') ||
+        localStorage.getItem('elevation-color-tokens') ||
+        localStorage.getItem('elevation-alpha-tokens') ||
+        localStorage.getItem('elevation-palette-selections')
+      )
+      if (lsHasAny) return
+    } catch {}
+    try {
       const brand: any = (themeJson as any)?.brand || (themeJson as any)
       const light: any = brand?.light?.elevations || {}
       const toSize = (ref?: any): string => {
@@ -243,9 +129,7 @@ export default function LayersPage() {
       const baseNode: any = light['elevation-1']?.['$value'] || {}
       setShadowColorControl({ colorToken: parseColorToken(baseNode?.color), alphaToken: parseOpacity(baseNode?.opacity) })
       setSelectedLevels(new Set<number>())
-    }
-    window.addEventListener('paletteReset', onReset)
-    return () => window.removeEventListener('paletteReset', onReset)
+    } catch {}
   }, [themeJson])
   const updateElevationControl = (elevation: string, property: 'blurToken' | 'spreadToken' | 'offsetXToken' | 'offsetYToken', value: string) => {
     setElevationControls(prev => ({ ...prev, [elevation]: { ...prev[elevation], [property]: value } }))
@@ -403,7 +287,7 @@ export default function LayersPage() {
     const n = typeof v === 'number' ? v : Number(v)
     return Number.isFinite(n) ? n : 0
   }
-  useEffect(() => { try { const root = document.documentElement; const apply = (level: number) => { const key = `elevation-${level}`; const blur = getBlurValue(key); const spread = getSpreadValue(key); const x = getOffsetXValue(key); const y = getOffsetYValue(key); const color = getColorHexForLevel(level); root.style.setProperty(`--elevation-elevation-${level}-shadow-color`, color); root.style.setProperty(`--elevation-elevation-${level}-blur`, `${blur}px`); root.style.setProperty(`--elevation-elevation-${level}-spread`, `${spread}px`); root.style.setProperty(`--elevation-elevation-${level}-x-axis`, `${x}px`); root.style.setProperty(`--elevation-elevation-${level}-y-axis`, `${y}px`) }; for (let i = 0; i <= 4; i += 1) apply(i) } catch {} }, [sizeTokens, elevationControls, elevationColorTokens, shadowColorControl.colorToken, blurScaleByDefault, spreadScaleByDefault, offsetXScaleByDefault, offsetYScaleByDefault])
+  // Elevation CSS vars are computed centrally by the store
   const getColorTokenForLevel = (elevationKey: string): string => elevationColorTokens[elevationKey] || shadowColorControl.colorToken
   const availableSizeTokens = useMemo(() => {
     const tokens: Array<{ name: string; value: number; label: string }> = []
@@ -647,11 +531,7 @@ export default function LayersPage() {
                 container[key] = updater(container[key] || {})
               })
               setTheme(nextTheme)
-              try {
-                // Nudge listeners to re-apply CSS vars immediately
-                window.dispatchEvent(new Event('tokenOverridesChanged'))
-                window.dispatchEvent(new Event('paletteReset'))
-              } catch {}
+              // VarsContext/store will recompute CSS vars; no events needed
             }}
           />
         )}
