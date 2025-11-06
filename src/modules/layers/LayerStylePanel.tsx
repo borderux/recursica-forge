@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import brandDefault from '../../vars/Brand.json'
@@ -19,6 +19,7 @@ export default function LayerStylePanel({
   onUpdate: (updater: (layerSpec: any) => any) => void
 }) {
   const { tokens: tokensJson, theme: themeJson } = useVars()
+  const [pickTarget, setPickTarget] = useState<'surface' | 'border-color' | null>(null)
   const layerKey = useMemo(() => (selectedLevels.length ? `layer-${selectedLevels[0]}` : ''), [selectedLevels])
   const spec = useMemo(() => {
     try {
@@ -137,6 +138,37 @@ export default function LayerStylePanel({
       </label>
     )
   }
+  // Parse a brand palette reference like {brand.light.palettes.palette-1.500.color.tone}
+  const getPaletteBindingFromValue = (raw: any): { paletteKey: string; level: string } | null => {
+    try {
+      const s: string | undefined = typeof raw === 'string' ? raw : (raw?.['$value'] as any)
+      if (!s) return null
+      const inner = s.startsWith('{') ? s.slice(1, -1) : s
+      const m = inner.match(/brand\.light\.palettes\.([a-z0-9-]+)\.([0-9]{3}|000|050|default)\.color\.tone/i)
+      if (m) return { paletteKey: m[1], level: m[2] }
+    } catch {}
+    return null
+  }
+  const renderPaletteButton = (target: 'surface' | 'border-color', title: string) => {
+    const current = getPaletteBindingFromValue((spec as any)?.property?.[target])
+    const label = current ? `${current.paletteKey}/${current.level}` : 'Not set'
+    const swatchVar = current ? (current.level === 'default'
+      ? `var(--palette-${current.paletteKey}-primary-tone)`
+      : `var(--palette-${current.paletteKey}-${current.level}-tone)`) : undefined
+    return (
+      <div className="control-group">
+        <label>{title}</label>
+        <button
+          type="button"
+          onClick={(e) => { setPickTarget(target); try { (window as any).openPalettePicker(e.currentTarget) } catch {} }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+        >
+          <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid rgba(0,0,0,0.15)', background: swatchVar || 'transparent' }} />
+          <span style={{ fontSize: 13 }}>{label}</span>
+        </button>
+      </div>
+    )
+  }
   const RenderGroup: React.FC<{ basePath: string[]; obj: any; title?: string }> = ({ basePath, obj, title }) => {
     if (!obj || typeof obj !== 'object') return null
     const entries = Object.entries(obj)
@@ -160,6 +192,9 @@ export default function LayerStylePanel({
         <button onClick={onClose} aria-label="Close" style={{ border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
+        {/* Palette color pickers: Surface (all layers, including 0) and Border Color (non-0 layers) */}
+        {renderPaletteButton('surface', 'Surface Color')}
+        {!isOnlyLayer0 && renderPaletteButton('border-color', 'Border Color')}
         {!isOnlyLayer0 && (
           <label style={{ display: 'grid', gap: 4 }}>
             <span style={{ fontSize: 12, opacity: 0.7 }}>Elevation</span>
@@ -308,7 +343,15 @@ export default function LayerStylePanel({
           </button>
         </div>
       </div>
-      <PaletteSwatchPicker onSelect={() => { /* no-op; we use global open */ }} />
+      <PaletteSwatchPicker
+        onSelect={(sel) => {
+          if (!pickTarget) return
+          const value = `{brand.light.palettes.${sel.paletteKey}.${sel.level}.color.tone}`
+          if (pickTarget === 'surface') updateValue(['property','surface'], value)
+          if (pickTarget === 'border-color') updateValue(['property','border-color'], value)
+          setPickTarget(null)
+        }}
+      />
     </div>
   )
 }
