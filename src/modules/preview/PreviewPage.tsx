@@ -144,7 +144,7 @@ export default function PreviewPage() {
         render: () => (
           <div style={{ display: 'flex', gap: 12 }}>
             <a href="#">Default link</a>
-            <a href="#" style={{ opacity: 0.6 }} aria-disabled>Disabled link</a>
+            <a href="#" style={{ opacity: 'var(--palette-opacity-disabled, 0.5)' }} aria-disabled>Disabled link</a>
           </div>
         ),
       },
@@ -168,7 +168,7 @@ export default function PreviewPage() {
           <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8 }}>
             <li style={{ padding: 8 }}>Profile</li>
             <li style={{ padding: 8 }}>Settings</li>
-            <li style={{ padding: 8, opacity: 0.6 }}>Disabled</li>
+            <li style={{ padding: 8, opacity: 'var(--palette-opacity-disabled, 0.5)' }}>Disabled</li>
           </ul>
         ),
       },
@@ -250,7 +250,7 @@ export default function PreviewPage() {
               <div>List item 2</div>
               <div style={{ fontSize: 12, opacity: 0.75 }}>Secondary text</div>
             </li>
-            <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, opacity: 0.5 }}>
+              <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, opacity: 'var(--palette-opacity-disabled, 0.5)' }}>
               Disabled item
             </li>
           </ul>
@@ -300,7 +300,7 @@ export default function PreviewPage() {
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <label><input type="radio" name="r1" defaultChecked /> First</label>
             <label><input type="radio" name="r1" /> Second</label>
-            <label style={{ opacity: 0.6 }}><input type="radio" name="r1" disabled /> Disabled</label>
+            <label style={{ opacity: 'var(--palette-opacity-disabled, 0.5)' }}><input type="radio" name="r1" disabled /> Disabled</label>
           </div>
         ),
       },
@@ -366,7 +366,7 @@ export default function PreviewPage() {
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <input type="checkbox" /> Off
             </label>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, opacity: 0.6 }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, opacity: 'var(--palette-opacity-disabled, 0.5)' }}>
               <input type="checkbox" disabled /> Disabled
             </label>
           </div>
@@ -379,7 +379,7 @@ export default function PreviewPage() {
           <div style={{ display: 'flex', gap: 6 }}>
             <button style={{ padding: '6px 10px', borderRadius: 999, background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 0 }}>Active</button>
             <button style={{ padding: '6px 10px', borderRadius: 999 }}>Default</button>
-            <button style={{ padding: '6px 10px', borderRadius: 999, opacity: 0.6 }}>Disabled</button>
+            <button style={{ padding: '6px 10px', borderRadius: 999, opacity: 'var(--palette-opacity-disabled, 0.5)' }}>Disabled</button>
           </div>
         ),
       },

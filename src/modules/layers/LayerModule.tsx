@@ -221,16 +221,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
           <p style={{
             ...(bodyStyle as any),
             color: (`var(${base}element-interactive-color)` as any),
-            opacity: (() => {
-              try {
-                const v: any = (palettes as any)?.opacity?.disabled?.value
-                const n = typeof v === 'number' ? v : (v != null ? Number(v) : NaN)
-                if (Number.isFinite(n)) return n <= 1 ? n : (n / 100)
-              } catch {}
-              const def: any = getTokenValue('opacity/faint')
-              const dn = typeof def === 'number' ? def : Number(def)
-              return Number.isFinite(dn) ? (dn <= 1 ? dn : dn / 100) : 0.5
-            })() as any
+            opacity: ('var(--palette-opacity-disabled)' as any)
           }}>Disabled Interactive</p>
           {!isAlternative && (
             <>

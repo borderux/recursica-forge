@@ -1,4 +1,5 @@
 import type { JsonLike } from './tokens'
+import { contrastRatio, pickAAOnTone } from '../../modules/theme/contrastUtil'
 import { buildTokenIndex } from './tokens'
 
 export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Record<string, any>): Record<string, string> {
@@ -6,36 +7,48 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
   const layersLight: any = troot?.light?.layer || {}
 
-  // --- Contrast helpers (duplicated locally to avoid cross-module imports) ---
-  const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const AA = 4.5
+  const mapBWHexToVar = (hex: string): string => {
+    const h = (hex || '').toLowerCase()
+    return h === '#ffffff' ? 'var(--palette-white)' : 'var(--palette-black)'
+  }
+  const buildPaletteVar = (paletteKey: string, level: string, type: 'tone' | 'on-tone' | 'high-emphasis' | 'low-emphasis'): string => {
+    const levelPart = level === 'primary' ? 'primary' : level
+    return `--palette-${paletteKey}-${levelPart}-${type}`
+  }
+  const parsePaletteToneRef = (input: any): { paletteKey: string; level: string } | null => {
     try {
-      let h = (hex || '').trim()
-      if (!h) return null
-      if (!h.startsWith('#')) h = `#${h}`
-      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
-      if (!m) return null
-      return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
-    } catch { return null }
+      const s = typeof input === 'string' ? input.trim() : ''
+      if (!s) return null
+      if (s.startsWith('{') && s.endsWith('}')) {
+        const inner = s.slice(1, -1).trim()
+        const m = /^brand\.light\.palettes\.([a-z0-9\-]+)\.([0-9]{3}|050|primary)\.color\.tone$/i.exec(inner)
+        if (m) return { paletteKey: m[1], level: m[2] }
+      }
+      if (/^var\(\s*--palette-[a-z0-9\-]+-(?:[0-9]{3}|050|primary)-tone\s*\)$/i.test(s)) {
+        const m = /^var\(\s*--palette-([a-z0-9\-]+)-([0-9]{3}|050|primary)-tone\s*\)$/i.exec(s)
+        if (m) return { paletteKey: m[1], level: m[2] }
+      }
+    } catch {}
+    return null
   }
-  const relativeLuminance = (hex?: string): number => {
-    const rgb = hex ? hexToRgb(hex) : null
-    if (!rgb) return 0
-    const srgb = [rgb.r, rgb.g, rgb.b].map((c) => c / 255)
-    const lin = srgb.map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4))) as number[]
-    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+  const readCssVar = (name: string): string | undefined => {
+    try {
+      const v = (getComputedStyle(document.documentElement).getPropertyValue(name) || '').trim()
+      return v || undefined
+    } catch {
+      return undefined
+    }
   }
-  const contrastRatio = (hex1?: string, hex2?: string): number => {
-    if (!hex1 || !hex2) return 0
-    const L1 = relativeLuminance(hex1)
-    const L2 = relativeLuminance(hex2)
-    const lighter = Math.max(L1, L2)
-    const darker = Math.min(L1, L2)
-    return (lighter + 0.05) / (darker + 0.05)
-  }
-  const ensureAAOrWhite = (surfaceHex?: string, colorHex?: string): string | undefined => {
+  const ensureAARefOrWhiteRef = (surfaceHex?: string, colorHex?: string): string | undefined => {
     if (!surfaceHex || !colorHex) return colorHex
-    const AA = 4.5
-    return contrastRatio(surfaceHex, colorHex) >= AA ? colorHex : '#ffffff'
+    return contrastRatio(surfaceHex, colorHex) >= AA ? undefined /* signal: keep original reference */ : 'var(--palette-white)'
+  }
+  const ensureAARefOrBWRef = (surfaceHex?: string, colorHex?: string): string | undefined => {
+    if (!surfaceHex || !colorHex) return colorHex
+    if (contrastRatio(surfaceHex, colorHex) >= AA) return undefined /* signal: keep original reference */
+    const fallback = pickAAOnTone(surfaceHex) // '#000000' or '#ffffff'
+    return mapBWHexToVar(fallback)
   }
 
   const getTokenValue = (path: string): any => tokenIndex.get(path)
@@ -102,14 +115,24 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   }
 
   const result: Record<string, string> = {}
+  const missingPaletteSurfaces: string[] = []
   const applyForLayer = (spec: any, prefix: string) => {
     const base = `--layer-layer-${prefix}-property-`
-    const surf = resolveRef(spec?.property?.surface)
+    const surfRaw = spec?.property?.surface
+    const surfPalette = parsePaletteToneRef(surfRaw)
+    const surf = resolveRef(surfRaw)
     const pad = resolveRef(spec?.property?.padding)
     const bcol = resolveRef(spec?.property?.['border-color'])
     const bth = resolveRef(spec?.property?.['border-thickness'])
     const brad = resolveRef(spec?.property?.['border-radius'])
-    if (surf != null) result[`${base}surface`] = String(surf)
+    if (surfPalette) {
+      const toneVar = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')
+      result[`${base}surface`] = `var(${toneVar})`
+    } else if (surf != null) {
+      result[`${base}surface`] = String(surf)
+      // Track layers whose surface does not reference a palette tone
+      missingPaletteSurfaces.push(String(prefix))
+    }
     if (pad != null) result[`${base}padding`] = toCssValue(pad, 'px')!
     if (bcol != null) result[`${base}border-color`] = String(bcol)
     if (bth != null) result[`${base}border-thickness`] = toCssValue(bth, 'px')!
@@ -122,41 +145,87 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     const talert = resolveRef(spec?.element?.text?.alert)
     const twarn = resolveRef(spec?.element?.text?.warning)
     const tsuccess = resolveRef(spec?.element?.text?.success)
-    // Base text color: ensure AA by flipping to white if black (or chosen) fails
+    // Base text color: choose surface palette on-tone where possible
     const surfaceHex = typeof surf === 'string' ? String(surf) : undefined
-    const baseTextHex = typeof tcolor === 'string' ? String(tcolor) : undefined
-    if (surfaceHex) {
-      const safeText = ensureAAOrWhite(surfaceHex, baseTextHex || '#000000')
-      if (safeText) result[`${textBase}color`] = safeText
+    if (surfPalette) {
+      const onToneVar = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone')
+      result[`${textBase}color`] = `var(${onToneVar})`
     } else if (tcolor != null) {
       result[`${textBase}color`] = String(tcolor)
+    } else if (surfaceHex) {
+      result[`${textBase}color`] = mapBWHexToVar(pickAAOnTone(surfaceHex))
     }
-    if (th != null) result[`${textBase}high-emphasis`] = String(th)
-    if (tl != null) result[`${textBase}low-emphasis`] = String(tl)
-    // Status colors: prefer spec, else core colors; if contrast fails vs surface, switch to white
+    // Emphasis opacities: derive from palette step when surface is a palette tone; otherwise keep provided
+    if (surfPalette) {
+      const hiVar = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'high-emphasis')
+      const loVar = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'low-emphasis')
+      result[`${textBase}high-emphasis`] = `var(${hiVar})`
+      result[`${textBase}low-emphasis`] = `var(${loVar})`
+    } else {
+      if (th != null) result[`${textBase}high-emphasis`] = String(th)
+      if (tl != null) result[`${textBase}low-emphasis`] = String(tl)
+    }
+    // Status colors: prefer core color reference; if fails AA vs surface, switch to surface on-tone (or BW if no palette surface)
     const coreAlert = resolveRef('{brand.light.palettes.core-colors.alert}')
     const coreWarn = resolveRef('{brand.light.palettes.core-colors.warning}')
     const coreSuccess = resolveRef('{brand.light.palettes.core-colors.success}')
     const alertHex = typeof (talert ?? coreAlert) === 'string' ? String(talert ?? coreAlert) : undefined
     const warnHex = typeof (twarn ?? coreWarn) === 'string' ? String(twarn ?? coreWarn) : undefined
     const successHex = typeof (tsuccess ?? coreSuccess) === 'string' ? String(tsuccess ?? coreSuccess) : undefined
-    const safeAlert = surfaceHex ? ensureAAOrWhite(surfaceHex, alertHex) : alertHex
-    const safeWarn = surfaceHex ? ensureAAOrWhite(surfaceHex, warnHex) : warnHex
-    const safeSuccess = surfaceHex ? ensureAAOrWhite(surfaceHex, successHex) : successHex
-    if (safeAlert) result[`${textBase}alert`] = safeAlert
-    if (safeWarn) result[`${textBase}warning`] = safeWarn
-    if (safeSuccess) result[`${textBase}success`] = safeSuccess
+    if (surfaceHex || surfPalette) {
+      const bgHex =
+        surfPalette
+          ? (readCssVar(buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')) || surfaceHex || '')
+          : (surfaceHex || '')
+      const onToneVar = surfPalette ? buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone') : undefined
+      const alertRef = bgHex && alertHex && contrastRatio(bgHex, alertHex) >= AA
+        ? 'var(--palette-alert)'
+        : (onToneVar ? `var(${onToneVar})` : mapBWHexToVar(pickAAOnTone(bgHex)))
+      const warnRef = bgHex && warnHex && contrastRatio(bgHex, warnHex) >= AA
+        ? 'var(--palette-warning)'
+        : (onToneVar ? `var(${onToneVar})` : mapBWHexToVar(pickAAOnTone(bgHex)))
+      const successRef = bgHex && successHex && contrastRatio(bgHex, successHex) >= AA
+        ? 'var(--palette-success)'
+        : (onToneVar ? `var(${onToneVar})` : mapBWHexToVar(pickAAOnTone(bgHex)))
+      result[`${textBase}alert`] = alertRef
+      result[`${textBase}warning`] = warnRef
+      result[`${textBase}success`] = successRef
+    } else {
+      if (alertHex) result[`${textBase}alert`] = String(talert ?? coreAlert)
+      if (warnHex) result[`${textBase}warning`] = String(twarn ?? coreWarn)
+      if (successHex) result[`${textBase}success`] = String(tsuccess ?? coreSuccess)
+    }
 
     const interBase = `--layer-layer-${prefix}-property-element-interactive-`
     const icolor = resolveRef(spec?.element?.interactive?.color)
     const ih = resolveRef(spec?.element?.interactive?.['high-emphasis'])
     const ihover = resolveRef(spec?.element?.interactive?.['hover-color'])
-    // Interactive color: use core interactive if not specified; ensure AA vs surface or switch to white
-    const coreInteractive = resolveRef('{brand.light.palettes.core-colors.interactive}')
-    const interactiveHex = typeof (icolor ?? coreInteractive) === 'string' ? String(icolor ?? coreInteractive) : undefined
-    const safeInteractive = surfaceHex ? ensureAAOrWhite(surfaceHex, interactiveHex) : interactiveHex
-    if (safeInteractive) result[`${interBase}color`] = safeInteractive
-    if (ih != null) result[`${interBase}high-emphasis`] = String(ih)
+    // Interactive color: always reference core interactive var if AA passes; otherwise reference black/white var based on AA outcome
+    // Prefer current palette var value for interactive hex so AA re-checks when palette changes
+    const interactiveHex = readCssVar('--palette-interactive') || ((): string | undefined => {
+      const coreInteractive = resolveRef('{brand.light.palettes.core-colors.interactive}')
+      return typeof coreInteractive === 'string' ? String(coreInteractive) : undefined
+    })()
+    if ((surfaceHex || surfPalette) && interactiveHex) {
+      const bgHex =
+        surfPalette
+          ? (readCssVar(buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')) || surfaceHex || '')
+          : (surfaceHex || '')
+      const onToneVar = surfPalette ? buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone') : undefined
+      const interRef = bgHex && contrastRatio(bgHex, interactiveHex) >= AA
+        ? 'var(--palette-interactive)'
+        : (onToneVar ? `var(${onToneVar})` : mapBWHexToVar(pickAAOnTone(bgHex)))
+      result[`${interBase}color`] = interRef
+    } else {
+      // Fallback: keep reference to core var so it updates when palette changes
+      result[`${interBase}color`] = 'var(--palette-interactive)'
+    }
+    // Default interactive high-emphasis to text high-emphasis if not provided
+    if (ih != null) {
+      result[`${interBase}high-emphasis`] = String(ih)
+    } else {
+      result[`${interBase}high-emphasis`] = `var(${textBase}high-emphasis)`
+    }
     if (ihover != null) result[`${interBase}hover-color`] = String(ihover)
   }
 
@@ -169,6 +238,15 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   Object.keys(alts).forEach((altKey) => {
     applyForLayer(alts[altKey], `alternative-${altKey}`)
   })
+
+  // Report layers missing palette surface references
+  if (missingPaletteSurfaces.length > 0) {
+    try {
+      // eslint-disable-next-line no-console
+      console.warn('[layers] Surfaces missing palette tone refs:', missingPaletteSurfaces)
+      window.dispatchEvent(new CustomEvent('missingLayerPaletteRefs', { detail: { layers: missingPaletteSurfaces.slice() } }))
+    } catch {}
+  }
 
   return result
 }

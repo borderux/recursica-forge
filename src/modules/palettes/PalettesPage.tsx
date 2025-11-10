@@ -182,7 +182,7 @@ export default function PalettesPage() {
         <div className="section" style={{ display: 'grid', gap: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ margin: 0 }}>Core</h3>
-            <button type="button" onClick={addPalette} disabled={!canAddPalette} style={{ padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: canAddPalette ? 'pointer' : 'not-allowed', opacity: canAddPalette ? 1 : 0.5 }}>Add Palette</button>
+            <button type="button" onClick={addPalette} disabled={!canAddPalette} style={{ padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: canAddPalette ? 'pointer' : 'not-allowed', opacity: canAddPalette ? 1 : 'var(--palette-opacity-disabled, 0.5)' }}>Add Palette</button>
           </div>
 
           <table className="color-swatches">

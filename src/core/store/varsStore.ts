@@ -297,6 +297,20 @@ class VarsStore {
       const merged = { ...defaults, ...(this.state.palettes?.bindings || {}) }
       const colors: Record<string, string> = {}
       Object.entries(merged).forEach(([cssVar, info]) => { colors[cssVar] = info.hex })
+      // Expose palette opacity bindings as CSS vars
+      try {
+        const normalizeOpacity = (v: any): string | undefined => {
+          const n = typeof v === 'number' ? v : Number(v)
+          if (!Number.isFinite(n)) return undefined
+          return n <= 1 ? String(Math.max(0, Math.min(1, n))) : String(Math.max(0, Math.min(1, n / 100)))
+        }
+        const disabled = this.state.palettes?.opacity?.disabled
+        const overlay = this.state.palettes?.opacity?.overlay
+        const d = normalizeOpacity(disabled?.value)
+        const o = normalizeOpacity(overlay?.value)
+        if (typeof d === 'string') colors['--palette-opacity-disabled'] = d
+        if (typeof o === 'string') colors['--palette-opacity-overlay'] = o
+      } catch {}
       applyCssVarsDelta(this.lastCorePalette, colors); this.lastCorePalette = colors
     } catch {}
     // Palettes (Light mode default for now; dark can be toggled by UI where needed)
