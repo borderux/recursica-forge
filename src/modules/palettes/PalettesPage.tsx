@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import PaletteGrid from './PaletteGrid'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
+import { pickAAOnTone } from '../theme/contrastUtil'
 
 type PaletteEntry = { key: string; title: string; defaultLevel: number; initialFamily?: string }
 
@@ -72,33 +73,6 @@ export default function PalettesPage() {
     return `rgba(${r}, ${g}, ${b}, ${a})`
   }
 
-  const relativeLuminance = (hex: string): number => {
-    const { r, g, b } = hexToRgb(hex)
-    const srgb = [r, g, b].map((v) => v / 255)
-    const lin = srgb.map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))) as [number, number, number]
-    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
-  }
-
-  const contrastRatio = (hex1: string, hex2: string): number => {
-    const L1 = relativeLuminance(hex1)
-    const L2 = relativeLuminance(hex2)
-    const lighter = Math.max(L1, L2)
-    const darker = Math.min(L1, L2)
-    return (lighter + 0.05) / (darker + 0.05)
-  }
-
-  const pickAATextColor = (toneHex: string): string => {
-    const black = '#000000'
-    const white = '#ffffff'
-    const cBlack = contrastRatio(toneHex, black)
-    const cWhite = contrastRatio(toneHex, white)
-    const AA = 4.5
-    if (cBlack >= AA && cWhite >= AA) return cBlack >= cWhite ? black : white
-    if (cBlack >= AA) return black
-    if (cWhite >= AA) return white
-    return cBlack >= cWhite ? black : white
-  }
-
   const applyAliasOnTones = () => {
     try {
       const style = getComputedStyle(document.documentElement)
@@ -108,10 +82,10 @@ export default function PalettesPage() {
       const warnHex = read('--palette-warning')
       const successHex = read('--palette-success')
       const blackHex = read('--palette-black')
-      if (alertHex) set('--palette-alert-on-tone', pickAATextColor(alertHex))
-      if (warnHex) set('--palette-warning-on-tone', pickAATextColor(warnHex))
-      if (successHex) set('--palette-success-on-tone', pickAATextColor(successHex))
-      if (blackHex) set('--palette-black-on-tone', pickAATextColor(blackHex))
+      if (alertHex) set('--palette-alert-on-tone', pickAAOnTone(alertHex))
+      if (warnHex) set('--palette-warning-on-tone', pickAAOnTone(warnHex))
+      if (successHex) set('--palette-success-on-tone', pickAAOnTone(successHex))
+      if (blackHex) set('--palette-black-on-tone', pickAAOnTone(blackHex))
       set('--palette-alert-high-emphasis', '1')
       set('--palette-alert-low-emphasis', '0.5')
       set('--palette-warning-high-emphasis', '1')

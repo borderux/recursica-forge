@@ -1,6 +1,7 @@
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { useEffect, useState } from 'react'
+ 
 
 type LayerModuleProps = {
   level?: number | string
@@ -13,7 +14,7 @@ type LayerModuleProps = {
 }
 
 export default function LayerModule({ level, alternativeKey, title, className, children, onSelect, isSelected }: LayerModuleProps) {
-  const { tokens, theme } = useVars()
+  const { tokens, theme, palettes } = useVars()
   const [, setVersion] = useState(0)
   useEffect(() => {
     const handler = () => setVersion((v) => v + 1)
@@ -99,6 +100,9 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     if (!Number.isNaN(Number(value))) return `${value}px`
     return value
   }
+  // --- Contrast helpers pulled from contrastUtil ---
+  // Parse selected surface binding from theme (e.g., {brand.light.palettes.palette-1.500.color.tone})
+  // Surface binding helpers no longer used; layer vars already carry accessible choices
   type ThemeRecord = { name: string; mode?: string; value?: any }
   const getThemeEntry = (prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'line-height'): ThemeRecord | undefined => {
     const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
@@ -199,23 +203,40 @@ export default function LayerModule({ level, alternativeKey, title, className, c
           ) : (
             title ? <h3 style={{ ...(headingStyle as any), fontWeight: 700 }}>{title}</h3> : null
           )}
-          <p style={{ ...(bodyStyle as any), color: `var(${base}element-text-color)`, opacity: `var(${base}element-text-high-emphasis)` }}>High Emphasis Text / Icon</p>
-          <p style={{ ...(bodyStyle as any), color: `var(${base}element-text-color)`, opacity: `var(${base}element-text-low-emphasis)` }}>Low Emphasis Text / Icon</p>
           <p style={{
             ...(bodyStyle as any),
-            color: `var(${base}element-interactive-color)` as any,
+            color: (`var(${base}element-text-color)` as any),
+            opacity: (`var(${base}element-text-high-emphasis)` as any)
+          }}>High Emphasis Text / Icon</p>
+          <p style={{
+            ...(bodyStyle as any),
+            color: (`var(${base}element-text-color)` as any),
+            opacity: (`var(${base}element-text-low-emphasis)` as any)
+          }}>Low Emphasis Text / Icon</p>
+          <p style={{
+            ...(bodyStyle as any),
+            color: (`var(${base}element-interactive-color)` as any),
             opacity: `var(${base}element-interactive-high-emphasis)` as any
           }}>Interactive (Link / Button)</p>
           <p style={{
             ...(bodyStyle as any),
-            color: `var(${base}element-interactive-color)` as any,
-            opacity: 'var(--palette-disabled)'
+            color: (`var(${base}element-interactive-color)` as any),
+            opacity: (() => {
+              try {
+                const v: any = (palettes as any)?.opacity?.disabled?.value
+                const n = typeof v === 'number' ? v : (v != null ? Number(v) : NaN)
+                if (Number.isFinite(n)) return n <= 1 ? n : (n / 100)
+              } catch {}
+              const def: any = getTokenValue('opacity/faint')
+              const dn = typeof def === 'number' ? def : Number(def)
+              return Number.isFinite(dn) ? (dn <= 1 ? dn : dn / 100) : 0.5
+            })() as any
           }}>Disabled Interactive</p>
           {!isAlternative && (
             <>
-              <p style={{ color: `var(${base}element-text-alert)`, opacity: `var(${base}element-interactive-high-emphasis)` }}>Alert</p>
-              <p style={{ color: `var(${base}element-text-warning)`, opacity: `var(${base}element-interactive-high-emphasis)` }}>Warning</p>
-              <p style={{ color: `var(${base}element-text-success)`, opacity: `var(${base}element-interactive-high-emphasis)` }}>Success</p>
+              <p style={{ color: (`var(${base}element-text-alert)` as any), opacity: (`var(${base}element-text-high-emphasis)` as any) }}>Alert</p>
+              <p style={{ color: (`var(${base}element-text-warning)` as any), opacity: (`var(${base}element-text-high-emphasis)` as any) }}>Warning</p>
+              <p style={{ color: (`var(${base}element-text-success)` as any), opacity: (`var(${base}element-text-high-emphasis)` as any) }}>Success</p>
             </>
           )}
         </div>

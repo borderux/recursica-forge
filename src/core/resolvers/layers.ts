@@ -6,6 +6,38 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
   const layersLight: any = troot?.light?.layer || {}
 
+  // --- Contrast helpers (duplicated locally to avoid cross-module imports) ---
+  const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+    try {
+      let h = (hex || '').trim()
+      if (!h) return null
+      if (!h.startsWith('#')) h = `#${h}`
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
+      if (!m) return null
+      return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
+    } catch { return null }
+  }
+  const relativeLuminance = (hex?: string): number => {
+    const rgb = hex ? hexToRgb(hex) : null
+    if (!rgb) return 0
+    const srgb = [rgb.r, rgb.g, rgb.b].map((c) => c / 255)
+    const lin = srgb.map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4))) as number[]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+  }
+  const contrastRatio = (hex1?: string, hex2?: string): number => {
+    if (!hex1 || !hex2) return 0
+    const L1 = relativeLuminance(hex1)
+    const L2 = relativeLuminance(hex2)
+    const lighter = Math.max(L1, L2)
+    const darker = Math.min(L1, L2)
+    return (lighter + 0.05) / (darker + 0.05)
+  }
+  const ensureAAOrWhite = (surfaceHex?: string, colorHex?: string): string | undefined => {
+    if (!surfaceHex || !colorHex) return colorHex
+    const AA = 4.5
+    return contrastRatio(surfaceHex, colorHex) >= AA ? colorHex : '#ffffff'
+  }
+
   const getTokenValue = (path: string): any => tokenIndex.get(path)
   const toCssValue = (v: any, unitIfNumber?: string): string | undefined => {
     if (v == null) return undefined
@@ -36,16 +68,32 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
         return resolveRef(ov ?? getTokenValue(path), depth + 1)
       }
       if (/^theme\./i.test(inner)) {
+        // Allow references like {theme.light.palettes.black} and handle nested $value objects
         const full = `brand.${inner.replace(/^theme\./i, '')}`
         const parts = full.split('.').filter(Boolean)
         let node: any = (theme as any)
-        for (const p of parts) { if (!node) break; node = node[p] }
+        for (const p of parts) {
+          if (!node) break
+          let next = (node as any)[p]
+          // If the property is inside a $value object (common for grouped tokens), traverse into $value
+          if (next == null && node && typeof node === 'object' && (node as any)['$value'] && typeof (node as any)['$value'] === 'object') {
+            next = (node as any)['$value'][p]
+          }
+          node = next
+        }
         return resolveRef(node, depth + 1)
       }
       if (/^brand\./i.test(inner)) {
         const parts = inner.split('.').filter(Boolean)
         let node: any = (theme as any)
-        for (const p of parts) { if (!node) break; node = node[p] }
+        for (const p of parts) {
+          if (!node) break
+          let next = (node as any)[p]
+          if (next == null && node && typeof node === 'object' && (node as any)['$value'] && typeof (node as any)['$value'] === 'object') {
+            next = (node as any)['$value'][p]
+          }
+          node = next
+        }
         return resolveRef(node, depth + 1)
       }
       return undefined
@@ -74,18 +122,40 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     const talert = resolveRef(spec?.element?.text?.alert)
     const twarn = resolveRef(spec?.element?.text?.warning)
     const tsuccess = resolveRef(spec?.element?.text?.success)
-    if (tcolor != null) result[`${textBase}color`] = String(tcolor)
+    // Base text color: ensure AA by flipping to white if black (or chosen) fails
+    const surfaceHex = typeof surf === 'string' ? String(surf) : undefined
+    const baseTextHex = typeof tcolor === 'string' ? String(tcolor) : undefined
+    if (surfaceHex) {
+      const safeText = ensureAAOrWhite(surfaceHex, baseTextHex || '#000000')
+      if (safeText) result[`${textBase}color`] = safeText
+    } else if (tcolor != null) {
+      result[`${textBase}color`] = String(tcolor)
+    }
     if (th != null) result[`${textBase}high-emphasis`] = String(th)
     if (tl != null) result[`${textBase}low-emphasis`] = String(tl)
-    if (talert != null) result[`${textBase}alert`] = String(talert)
-    if (twarn != null) result[`${textBase}warning`] = String(twarn)
-    if (tsuccess != null) result[`${textBase}success`] = String(tsuccess)
+    // Status colors: prefer spec, else core colors; if contrast fails vs surface, switch to white
+    const coreAlert = resolveRef('{brand.light.palettes.core-colors.alert}')
+    const coreWarn = resolveRef('{brand.light.palettes.core-colors.warning}')
+    const coreSuccess = resolveRef('{brand.light.palettes.core-colors.success}')
+    const alertHex = typeof (talert ?? coreAlert) === 'string' ? String(talert ?? coreAlert) : undefined
+    const warnHex = typeof (twarn ?? coreWarn) === 'string' ? String(twarn ?? coreWarn) : undefined
+    const successHex = typeof (tsuccess ?? coreSuccess) === 'string' ? String(tsuccess ?? coreSuccess) : undefined
+    const safeAlert = surfaceHex ? ensureAAOrWhite(surfaceHex, alertHex) : alertHex
+    const safeWarn = surfaceHex ? ensureAAOrWhite(surfaceHex, warnHex) : warnHex
+    const safeSuccess = surfaceHex ? ensureAAOrWhite(surfaceHex, successHex) : successHex
+    if (safeAlert) result[`${textBase}alert`] = safeAlert
+    if (safeWarn) result[`${textBase}warning`] = safeWarn
+    if (safeSuccess) result[`${textBase}success`] = safeSuccess
 
     const interBase = `--layer-layer-${prefix}-property-element-interactive-`
     const icolor = resolveRef(spec?.element?.interactive?.color)
     const ih = resolveRef(spec?.element?.interactive?.['high-emphasis'])
     const ihover = resolveRef(spec?.element?.interactive?.['hover-color'])
-    if (icolor != null) result[`${interBase}color`] = String(icolor)
+    // Interactive color: use core interactive if not specified; ensure AA vs surface or switch to white
+    const coreInteractive = resolveRef('{brand.light.palettes.core-colors.interactive}')
+    const interactiveHex = typeof (icolor ?? coreInteractive) === 'string' ? String(icolor ?? coreInteractive) : undefined
+    const safeInteractive = surfaceHex ? ensureAAOrWhite(surfaceHex, interactiveHex) : interactiveHex
+    if (safeInteractive) result[`${interBase}color`] = safeInteractive
     if (ih != null) result[`${interBase}high-emphasis`] = String(ih)
     if (ihover != null) result[`${interBase}hover-color`] = String(ihover)
   }

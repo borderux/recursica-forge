@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
+import { contrastRatio, pickAAOnTone } from '../theme/contrastUtil'
 
 type PaletteGridProps = {
   paletteKey: string
@@ -122,20 +123,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     if (!m) return null
     return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
   }
-  function relativeLuminance(hex: string): number {
-    const rgb = hexToRgb(hex)
-    if (!rgb) return 0
-    const srgb = [rgb.r, rgb.g, rgb.b].map((c) => c / 255)
-    const lin = srgb.map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4))) as number[]
-    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
-  }
-  function contrastRatio(hex1: string, hex2: string): number {
-    const L1 = relativeLuminance(hex1)
-    const L2 = relativeLuminance(hex2)
-    const lighter = Math.max(L1, L2)
-    const darker = Math.min(L1, L2)
-    return (lighter + 0.05) / (darker + 0.05)
-  }
   function rgbToHexSafe(r: number, g: number, b: number): string {
     const clamp = (n: number) => Math.max(0, Math.min(255, Math.round(n)))
     const toHex = (n: number) => clamp(n).toString(16).padStart(2, '0')
@@ -150,18 +137,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     const b = a * fg.b + (1 - a) * bg.b
     return rgbToHexSafe(r, g, b)
   }
-  // Choose black/white text that best satisfies WCAG AA (4.5:1). If neither meets, choose max contrast.
-  function pickAATextColor(toneHex: string): string {
-    const black = '#000000'
-    const white = '#ffffff'
-    const cBlack = contrastRatio(toneHex, black)
-    const cWhite = contrastRatio(toneHex, white)
-    const AA = 4.5
-    if (cBlack >= AA && cWhite >= AA) return cBlack >= cWhite ? black : white
-    if (cBlack >= AA) return black
-    if (cWhite >= AA) return white
-    return cBlack >= cWhite ? black : white
-  }
+  // Use shared AA util for on-tone selection
   const getTokenValueByName = (name: string): string | undefined => {
     try {
       const overrides = readOverrides() as Record<string, any>
@@ -309,7 +285,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       const hi = resolveThemeRef((themeIndex as any)[`${modeLabel}::${hiName}`]?.value ?? { collection: 'Theme', name: hiName }, modeLabel)
       const lo = resolveThemeRef((themeIndex as any)[`${modeLabel}::${loName}`]?.value ?? { collection: 'Theme', name: loName }, modeLabel)
       if (typeof hex === 'string') {
-        const aa = pickAATextColor(hex)
+        const aa = pickAAOnTone(hex)
         let finalOnTone: string | undefined = typeof onTone === 'string' ? onTone : aa
         if (typeof finalOnTone === 'string') {
           if (contrastRatio(hex, finalOnTone) < 4.5) finalOnTone = aa
