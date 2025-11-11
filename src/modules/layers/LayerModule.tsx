@@ -14,7 +14,7 @@ type LayerModuleProps = {
 }
 
 export default function LayerModule({ level, alternativeKey, title, className, children, onSelect, isSelected }: LayerModuleProps) {
-  const { tokens, theme, palettes } = useVars()
+  const { tokens, theme } = useVars()
   const [, setVersion] = useState(0)
   useEffect(() => {
     const handler = () => setVersion((v) => v + 1)
@@ -31,14 +31,15 @@ export default function LayerModule({ level, alternativeKey, title, className, c
   }, [])
   const isAlternative = typeof alternativeKey === 'string' && alternativeKey.length > 0
   const layerId = level != null ? String(level) : '0'
-  const base = isAlternative ? `--layer-layer-alternative-${alternativeKey}-property-` : `--layer-layer-${layerId}-property-`
+  const legacyBase = isAlternative ? `--layer-layer-alternative-${alternativeKey}-property-` : `--layer-layer-${layerId}-property-`
+  const brandBase = isAlternative ? `--recursica-brand-light-layer-layer-alternative-${alternativeKey}-property-` : `--recursica-brand-light-layer-layer-${layerId}-property-`
   const includeBorder = !isAlternative && !(layerId === '0')
   const paletteBackground = isAlternative
-    ? alternativeKey === 'alert' ? 'var(--palette-alert)'
-      : alternativeKey === 'warning' ? 'var(--palette-warning)'
-      : alternativeKey === 'success' ? 'var(--palette-success)'
-      : alternativeKey === 'high-contrast' ? 'var(--palette-black)'
-      : alternativeKey === 'primary-color' ? 'var(--palette-palette-1-primary-tone)'
+    ? alternativeKey === 'alert' ? 'var(--recursica-brand-light-palettes-core-alert, var(--palette-alert))'
+      : alternativeKey === 'warning' ? 'var(--recursica-brand-light-palettes-core-warning, var(--palette-warning))'
+      : alternativeKey === 'success' ? 'var(--recursica-brand-light-palettes-core-success, var(--palette-success))'
+      : alternativeKey === 'high-contrast' ? 'var(--recursica-brand-light-palettes-core-black)'
+      : alternativeKey === 'primary-color' ? 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
       : null
     : null
 
@@ -88,7 +89,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     return String(layerId)
   }
   const elevationLevel = getElevationLevelForLayer()
-  const cssVarBoxShadow = `var(--elevation-elevation-${elevationLevel}-x-axis, 0px) var(--elevation-elevation-${elevationLevel}-y-axis, 0px) var(--elevation-elevation-${elevationLevel}-blur, 0px) var(--elevation-elevation-${elevationLevel}-spread, 0px) var(--elevation-elevation-${elevationLevel}-shadow-color, rgba(0,0,0,0))`
+  const cssVarBoxShadow = `var(--recursica-brand-light-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-shadow-color, rgba(0,0,0,0))`
 
   type Style = React.CSSProperties
   const readCssVar = (name: string, fallback?: string): string | undefined => {
@@ -177,11 +178,11 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     <div
       className={className ? `layer-container ${className}` : 'layer-container'}
       style={{
-        backgroundColor: paletteBackground ?? `var(${base}surface)`,
-        color: `var(${base}element-text-color)`,
-        padding: `var(${base}padding)`,
-        border: includeBorder ? `var(${base}border-thickness) solid var(${base}border-color)` : undefined,
-        borderRadius: includeBorder ? `var(${base}border-radius)` : undefined,
+        backgroundColor: paletteBackground ?? `var(${brandBase}surface, var(${legacyBase}surface))`,
+        color: `var(${brandBase}element-text-color, var(${legacyBase}element-text-color))`,
+        padding: `var(${brandBase}padding, var(${legacyBase}padding))`,
+        border: includeBorder ? `var(${brandBase}border-thickness, var(${legacyBase}border-thickness)) solid var(${brandBase}border-color, var(${legacyBase}border-color))` : undefined,
+        borderRadius: includeBorder ? `var(${brandBase}border-radius, var(${legacyBase}border-radius))` : undefined,
         cursor: onSelect ? 'pointer' as const : undefined,
         boxShadow: cssVarBoxShadow,
       }}
@@ -205,29 +206,29 @@ export default function LayerModule({ level, alternativeKey, title, className, c
           )}
           <p style={{
             ...(bodyStyle as any),
-            color: (`var(${base}element-text-color)` as any),
-            opacity: (`var(${base}element-text-high-emphasis)` as any)
+            color: (`var(${brandBase}element-text-color, var(${legacyBase}element-text-color))` as any),
+            opacity: (`var(${brandBase}element-text-high-emphasis, var(${legacyBase}element-text-high-emphasis))` as any)
           }}>High Emphasis Text / Icon</p>
           <p style={{
             ...(bodyStyle as any),
-            color: (`var(${base}element-text-color)` as any),
-            opacity: (`var(${base}element-text-low-emphasis)` as any)
+            color: (`var(${brandBase}element-text-color, var(${legacyBase}element-text-color))` as any),
+            opacity: (`var(${brandBase}element-text-low-emphasis, var(${legacyBase}element-text-low-emphasis))` as any)
           }}>Low Emphasis Text / Icon</p>
           <p style={{
             ...(bodyStyle as any),
-            color: (`var(${base}element-interactive-color)` as any),
-            opacity: `var(${base}element-interactive-high-emphasis)` as any
+            color: (`var(${brandBase}element-interactive-color, var(${legacyBase}element-interactive-color))` as any),
+            opacity: `var(${brandBase}element-interactive-high-emphasis, var(${legacyBase}element-interactive-high-emphasis))` as any
           }}>Interactive (Link / Button)</p>
           <p style={{
             ...(bodyStyle as any),
-            color: (`var(${base}element-interactive-color)` as any),
-            opacity: ('var(--palette-opacity-disabled)' as any)
+            color: (`var(${brandBase}element-interactive-color, var(${legacyBase}element-interactive-color))` as any),
+            opacity: ('var(--recursica-brand-light-opacity-disabled)' as any)
           }}>Disabled Interactive</p>
           {!isAlternative && (
             <>
-              <p style={{ color: (`var(${base}element-text-alert)` as any), opacity: (`var(${base}element-text-high-emphasis)` as any) }}>Alert</p>
-              <p style={{ color: (`var(${base}element-text-warning)` as any), opacity: (`var(${base}element-text-high-emphasis)` as any) }}>Warning</p>
-              <p style={{ color: (`var(${base}element-text-success)` as any), opacity: (`var(${base}element-text-high-emphasis)` as any) }}>Success</p>
+              <p style={{ color: (`var(${brandBase}element-text-alert, var(${legacyBase}element-text-alert))` as any), opacity: (`var(${brandBase}element-text-high-emphasis, var(${legacyBase}element-text-high-emphasis))` as any) }}>Alert</p>
+              <p style={{ color: (`var(${brandBase}element-text-warning, var(${legacyBase}element-text-warning))` as any), opacity: (`var(${brandBase}element-text-high-emphasis, var(${legacyBase}element-text-high-emphasis))` as any) }}>Warning</p>
+              <p style={{ color: (`var(${brandBase}element-text-success, var(${legacyBase}element-text-success))` as any), opacity: (`var(${brandBase}element-text-high-emphasis, var(${legacyBase}element-text-high-emphasis))` as any) }}>Success</p>
             </>
           )}
         </div>

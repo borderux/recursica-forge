@@ -108,7 +108,7 @@ export default function FontLetterSpacingTokens() {
   }
 
   return (
-    <section style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+    <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>Letter Spacing</div>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -130,7 +130,7 @@ export default function FontLetterSpacingTokens() {
           const isWide = keyName === 'wide'
           const disabled = scaleByTW && !(isDefault || isTight || isWide)
           return (
-            <>
+            <div key={it.name} style={{ display: 'contents' }}>
               <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
               <input
                 type="range"
@@ -171,7 +171,7 @@ export default function FontLetterSpacingTokens() {
                 style={{ width: 80, paddingRight: 0, textAlign: 'right' }}
               />
               <span style={{ fontSize: 12, opacity: 0.8 }}>em</span>
-            </>
+            </div>
           )
         })}
       </div>

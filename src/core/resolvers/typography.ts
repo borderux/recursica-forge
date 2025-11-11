@@ -12,6 +12,38 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
   const vars: Record<string, string> = {}
   const readChoices = choices || {}
 
+  // Emit CSS variables for font tokens so Brand can reference them via var(--recursica-tokens-font-*)
+  try {
+    const src: any = (tokens as any)?.tokens?.font || {}
+    const emitCategory = (category: string, unitHint?: string) => {
+      const cat: any = src?.[category] || {}
+      Object.keys(cat).forEach((short) => {
+        if (short.startsWith('$')) return
+        const raw = cat[short]?.$value
+        let valueStr: string | undefined = undefined
+        if (typeof raw === 'string') {
+          valueStr = raw
+        } else if (typeof raw === 'number') {
+          valueStr = unitHint ? `${raw}${unitHint}` : String(raw)
+        } else if (raw && typeof raw === 'object') {
+          const val: any = (raw as any).value
+          const unit: any = (raw as any).unit
+          if (typeof val === 'number') valueStr = unit ? `${val}${unit}` : (unitHint ? `${val}${unitHint}` : String(val))
+          else if (typeof val === 'string') valueStr = unit ? `${val}${unit}` : String(val)
+        }
+        if (typeof valueStr === 'string' && valueStr) {
+          vars[`--tokens-font-${category}-${short}`] = valueStr
+        }
+      })
+    }
+    emitCategory('family')            // string font-family stack
+    emitCategory('typeface')          // specific font family name
+    emitCategory('size', 'px')        // numeric → px
+    emitCategory('weight')            // numeric or named
+    emitCategory('letter-spacing', 'em')
+    emitCategory('line-height')       // unitless or string
+  } catch {}
+
   const getFontToken = (path: string): any => {
     // Allow overrides of font tokens using the same flat key naming used elsewhere
     const parts = path.split('/')
@@ -53,6 +85,24 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const short = entry[0]
     const ov = overrides ? (overrides as any)[`font/family/${short}`] : undefined
     return typeof ov === 'string' && ov.trim() ? ov : undefined
+  }
+
+  const extractTokenRef = (ref: any): { category: 'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'; suffix: string } | null => {
+    try {
+      const s = typeof ref === 'string' ? ref.trim() : (ref && typeof ref === 'object') ? String(((ref as any).$value ?? (ref as any).value) || '').trim() : ''
+      if (!s) return null
+      const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
+      const cats: Array<'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'> = ['family','typeface','size','weight','letter-spacing','line-height']
+      for (const cat of cats) {
+        const re = new RegExp(`^(?:tokens|token)\\.font\\.${cat}\\.([a-z0-9\\-_]+)$`, 'i')
+        const m = inner.match(re)
+        if (m) return { category: cat, suffix: m[1] }
+        const varRe = new RegExp(`^var\\(\\s*--tokens-font-${cat}-([a-z0-9\\-_]+)\\s*\\)\\s*$`, 'i')
+        const mv = s.match(varRe)
+        if (mv) return { category: cat, suffix: mv[1] }
+      }
+    } catch {}
+    return null
   }
 
   const resolveTokenRef = (ref: any) => {
@@ -110,11 +160,35 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const spacing = (spacingChoice != null ? spacingChoice : (resolveTokenRef(spec?.letterSpacing) ?? spec?.letterSpacing ?? defaultSpacing))
     const lineHeightChoice = (ch as any).lineHeight ? getFontToken(`line-height/${(ch as any).lineHeight}`) : undefined
     const lineHeight = (lineHeightChoice != null ? lineHeightChoice : (resolveTokenRef(spec?.lineHeight) ?? spec?.lineHeight ?? defaultLineHeight))
-    if (family != null) vars[`--font-${p}-font-family`] = toCssValue(family)!
-    if (size != null) vars[`--font-${p}-font-size`] = toCssValue(size, 'px')!
-    if (weight != null) vars[`--font-${p}-font-weight`] = toCssValue(weight)!
-    if (spacing != null) vars[`--font-${p}-font-letter-spacing`] = toCssValue(spacing, 'em')!
-    if (lineHeight != null) vars[`--font-${p}-line-height`] = toCssValue(lineHeight)!
+    // Prefer token references where possible
+    const familyToken = extractTokenRef(spec?.fontFamily)
+    const sizeToken = extractTokenRef(spec?.fontSize)
+    const weightToken = extractTokenRef(spec?.fontWeight ?? spec?.weight)
+    const spacingToken = extractTokenRef(spec?.letterSpacing)
+    const lineHeightToken = extractTokenRef(spec?.lineHeight)
+    const brandPrefix = `--brand-light-typography-${p}-`
+    if (family != null) {
+      const brandVal = familyToken ? `var(--recursica-tokens-font-${familyToken.category}-${familyToken.suffix})` : toCssValue(family)!
+      vars[`${brandPrefix}font-family`] = brandVal
+      if (typeof brandVal === 'string' && !brandVal.startsWith('var(')) usedFamilies.add(String(family))
+      else if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
+    }
+    if (size != null) {
+      const brandVal = sizeToken ? `var(--recursica-tokens-font-${sizeToken.category}-${sizeToken.suffix})` : toCssValue(size, 'px')!
+      vars[`${brandPrefix}font-size`] = brandVal
+    }
+    if (weight != null) {
+      const brandVal = weightToken ? `var(--recursica-tokens-font-${weightToken.category}-${weightToken.suffix})` : toCssValue(weight)!
+      vars[`${brandPrefix}font-weight`] = brandVal
+    }
+    if (spacing != null) {
+      const brandVal = spacingToken ? `var(--recursica-tokens-font-${spacingToken.category}-${spacingToken.suffix})` : toCssValue(spacing, 'em')!
+      vars[`${brandPrefix}font-letter-spacing`] = brandVal
+    }
+    if (lineHeight != null) {
+      const brandVal = lineHeightToken ? `var(--recursica-tokens-font-${lineHeightToken.category}-${lineHeightToken.suffix})` : toCssValue(lineHeight)!
+      vars[`${brandPrefix}line-height`] = brandVal
+    }
     if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
   })
 

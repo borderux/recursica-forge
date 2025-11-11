@@ -51,7 +51,7 @@ export function TypePage() {
     return (
       <div
         onClick={() => onToggle(!isSelected)}
-        style={{ border: isSelected ? '3px solid var(--palette-alert)' : '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+        style={{ border: isSelected ? '3px solid var(--recursica-brand-light-palettes-core-alert)' : '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
       >
         <input type="checkbox" checked={isSelected} onClick={(e) => e.stopPropagation()} onChange={(e) => onToggle((e.target as HTMLInputElement).checked)} aria-label="Select type sample" />
         <Tag style={style}>{text}</Tag>

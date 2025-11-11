@@ -55,14 +55,14 @@ export default function FontWeightTokens() {
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
   return (
-    <section style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+    <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
       <div style={{ fontWeight: 600, marginBottom: 8 }}>Font Weight</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 80px', gap: 8, alignItems: 'center' }}>
         {items.map((it) => {
           const label = toTitle(it.name.replace('font/weight/', ''))
           const current = Number((values[it.name] as any) ?? it.value)
           return (
-            <>
+            <div key={it.name} style={{ display: 'contents' }}>
               <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
               <input
                 type="range"
@@ -91,7 +91,7 @@ export default function FontWeightTokens() {
                 style={{ width: 80 }}
               />
               
-            </>
+            </div>
           )
         })}
       </div>

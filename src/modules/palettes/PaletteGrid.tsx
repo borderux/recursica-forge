@@ -187,12 +187,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     }
     return undefined
   }
-  const normalizeOpacity = (v: any): string | undefined => {
-    if (v == null) return undefined
-    const n = typeof v === 'number' ? v : parseFloat(String(v))
-    if (!Number.isFinite(n)) return undefined
-    return n <= 1 ? String(n) : String(n / 100)
-  }
   const getOpacityToken = (name: string): number => {
     const v = getTokenValueByName(name)
     const n = v == null ? NaN : Number(v)
@@ -219,7 +213,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     }
     return 1
   }
-  const titleCase = (s: string): string => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
   const resolveDefaultLevelForPalette = useMemo(() => {
     const key = `palette/${paletteKey}/default/tone`
     const entry = (themeIndex as any)[`${mode}::${key}`]
@@ -245,10 +238,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     try { localStorage.setItem(`palette-primary-level:${paletteKey}`, JSON.stringify(primaryLevelStr)) } catch {}
   }, [paletteKey, primaryLevelStr])
   const [hoverLevelStr, setHoverLevelStr] = useState<string | null>(null)
-  const optionSwatchHex = (family: string): string | undefined => {
-    const lvl = primaryLevelStr
-    return getTokenValueByName(`color/${family}/${lvl}`)
-  }
   const getSelectedFamilyHexForLevel = (lvl: string): string | undefined => {
     if (!selectedFamily) return undefined
     return getTokenValueByName(`color/${selectedFamily}/${toTokenLevel(lvl)}`)
@@ -258,16 +247,17 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     const levels = headerLevels
     levels.forEach((lvl) => {
       const onToneName = `palette/${paletteKey}/${lvl}/on-tone`
-      const hiName = `palette/${paletteKey}/${lvl}/high-emphasis`
-      const loName = `palette/${paletteKey}/${lvl}/low-emphasis`
       const onTone = resolveThemeRef((themeIndex as any)[`${modeLabel}::${onToneName}`]?.value ?? { collection: 'Theme', name: onToneName }, modeLabel)
-      const hi = resolveThemeRef((themeIndex as any)[`${modeLabel}::${hiName}`]?.value ?? { collection: 'Theme', name: hiName }, modeLabel)
-      const lo = resolveThemeRef((themeIndex as any)[`${modeLabel}::${loName}`]?.value ?? { collection: 'Theme', name: loName }, modeLabel)
-      if (typeof onTone === 'string') root.style.setProperty(`--palette-${paletteKey}-${lvl}-on-tone`, onTone)
-      const hiNorm = normalizeOpacity(hi)
-      if (typeof hiNorm === 'string') root.style.setProperty(`--palette-${paletteKey}-${lvl}-high-emphasis`, hiNorm)
-      const loNorm = normalizeOpacity(lo)
-      if (typeof loNorm === 'string') root.style.setProperty(`--palette-${paletteKey}-${lvl}-low-emphasis`, loNorm)
+      // map on-tone to core brand vars (white/black) rather than raw hex
+      if (typeof onTone === 'string') {
+        const s = String(onTone).trim().toLowerCase()
+        const coreRef = (s === '#ffffff' || s === 'white')
+          ? `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-white)`
+          : (s === '#000000' || s === 'black')
+          ? `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-black)`
+          : undefined
+        if (coreRef) root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`, coreRef)
+      }
     })
   }
   const applyFamilyToCssVars = (family: string, modeLabel: 'Light' | 'Dark') => {
@@ -276,47 +266,38 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       const tokenName = `color/${family}/${toTokenLevel(lvl)}`
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
-        root.style.setProperty(`--palette-${paletteKey}-${lvl}-tone`, hex)
+        // set tone to a token color reference instead of hex
+        root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`, `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`)
       }
       const onToneName = `palette/${paletteKey}/${lvl}/on-tone`
-      const hiName = `palette/${paletteKey}/${lvl}/high-emphasis`
-      const loName = `palette/${paletteKey}/${lvl}/low-emphasis`
       const onTone = resolveThemeRef((themeIndex as any)[`${modeLabel}::${onToneName}`]?.value ?? { collection: 'Theme', name: onToneName }, modeLabel)
-      const hi = resolveThemeRef((themeIndex as any)[`${modeLabel}::${hiName}`]?.value ?? { collection: 'Theme', name: hiName }, modeLabel)
-      const lo = resolveThemeRef((themeIndex as any)[`${modeLabel}::${loName}`]?.value ?? { collection: 'Theme', name: loName }, modeLabel)
-      if (typeof hex === 'string') {
-        const aa = pickAAOnTone(hex)
-        let finalOnTone: string | undefined = typeof onTone === 'string' ? onTone : aa
-        if (typeof finalOnTone === 'string') {
-          if (contrastRatio(hex, finalOnTone) < 4.5) finalOnTone = aa
-          root.style.setProperty(`--palette-${paletteKey}-${lvl}-on-tone`, finalOnTone)
-        }
-      } else if (typeof onTone === 'string') {
-        root.style.setProperty(`--palette-${paletteKey}-${lvl}-on-tone`, onTone)
-      }
-      const hiNorm = normalizeOpacity(hi)
-      if (typeof hiNorm === 'string') root.style.setProperty(`--palette-${paletteKey}-${lvl}-high-emphasis`, hiNorm)
-      const loNorm = normalizeOpacity(lo)
-      if (typeof loNorm === 'string') root.style.setProperty(`--palette-${paletteKey}-${lvl}-low-emphasis`, loNorm)
+      // on-tone → core brand refs
+      const aa = typeof hex === 'string' ? pickAAOnTone(hex) : (typeof onTone === 'string' ? String(onTone) : '#000000')
+      const aaCore = aa.toLowerCase() === '#ffffff' ? 'white' : 'black'
+      root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`, `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-${aaCore})`)
     })
   }
   useEffect(() => {
     applyThemeMappingsFromJson(mode)
     if (selectedFamily) applyFamilyToCssVars(selectedFamily, mode)
+    // Notify dependents (e.g., layer resolver) that palette CSS vars have changed
+    try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}
   }, [selectedFamily, mode, overrideVersion])
   useEffect(() => {
     const lvl = primaryLevelStr
-    const hex = getSelectedFamilyHexForLevel(lvl) || '#ffffff'
     try {
       const root = document.documentElement
-      const computed = getComputedStyle(root)
-      root.style.setProperty(`--palette-${paletteKey}-primary-tone`, hex)
-      const onTone = (computed.getPropertyValue(`--palette-${paletteKey}-${lvl}-on-tone`) || '').trim()
-      if (onTone) root.style.setProperty(`--palette-${paletteKey}-primary-on-tone`, onTone)
-      const hi = (computed.getPropertyValue(`--palette-${paletteKey}-${lvl}-high-emphasis`) || '').trim()
-      if (hi) root.style.setProperty(`--palette-${paletteKey}-primary-high-emphasis`, hi)
-      const lo = (computed.getPropertyValue(`--palette-${paletteKey}-${lvl}-low-emphasis`) || '').trim()
-      if (lo) root.style.setProperty(`--palette-${paletteKey}-primary-low-emphasis`, lo)
+      // Reference the level-specific brand vars directly so primary is not hardcoded
+      root.style.setProperty(
+        `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-primary-tone`,
+        `var(--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone)`
+      )
+      root.style.setProperty(
+        `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-primary-on-tone`,
+        `var(--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone)`
+      )
+      // Notify dependents that primary-level derived vars changed
+      try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}
     } catch {}
   }, [primaryLevelStr, selectedFamily, overrideVersion, mode, paletteKey])
   return (
@@ -329,7 +310,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
               type="button"
               onClick={onDelete}
               title="Delete palette"
-              style={{ padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+              style={{ padding: '6px 10px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
             >Delete</button>
           )}
           <FamilyDropdown

@@ -7,10 +7,10 @@ type Section = {
 }
 
 const SectionCard = ({ title, url, children }: { title: string; url: string; children: React.ReactNode }) => (
-  <section style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+  <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
       <h3 style={{ margin: 0 }}>{title}</h3>
-      <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, textDecoration: 'none', color: 'var(--layer-layer-1-property-element-interactive-color)' }}>Docs →</a>
+      <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, textDecoration: 'none', color: 'var(--recursica-brand-light-layer-layer-1-property-element-interactive-color)' }}>Docs →</a>
     </div>
     <div style={{ display: 'grid', gap: 8 }}>{children}</div>
   </section>
@@ -51,9 +51,9 @@ export default function PreviewPage() {
         url: `${base}/badge`,
         render: () => (
           <div style={{ display: 'flex', gap: 8 }}>
-            <span style={{ background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
-            <span style={{ background: 'var(--layer-layer-alternative-warning-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
-            <span style={{ background: 'var(--layer-layer-alternative-success-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
+            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
+            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-warning-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
+            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-success-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
           </div>
         ),
       },
@@ -76,10 +76,10 @@ export default function PreviewPage() {
         render: () => (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button>Text</button>
-            <button style={{ background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 0, padding: '6px 10px', borderRadius: 6 }}>Contained</button>
-            <button style={{ border: '1px solid var(--layer-layer-1-property-border-color)', padding: '6px 10px', borderRadius: 6 }}>Outlined</button>
+            <button style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 0, padding: '6px 10px', borderRadius: 6 }}>Contained</button>
+            <button style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', padding: '6px 10px', borderRadius: 6 }}>Outlined</button>
             <button disabled style={{ padding: '6px 10px', borderRadius: 6 }}>Disabled</button>
-            <button style={{ background: 'var(--layer-layer-alternative-warning-property-element-interactive-color)', color: '#fff', border: 0, padding: '6px 10px', borderRadius: 6 }}>Secondary</button>
+            <button style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-warning-property-element-interactive-color)', color: '#fff', border: 0, padding: '6px 10px', borderRadius: 6 }}>Secondary</button>
           </div>
         ),
       },
@@ -144,7 +144,7 @@ export default function PreviewPage() {
         render: () => (
           <div style={{ display: 'flex', gap: 12 }}>
             <a href="#">Default link</a>
-            <a href="#" style={{ opacity: 'var(--palette-opacity-disabled, 0.5)' }} aria-disabled>Disabled link</a>
+            <a href="#" style={{ opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }} aria-disabled>Disabled link</a>
           </div>
         ),
       },
@@ -153,7 +153,7 @@ export default function PreviewPage() {
         url: `${base}/loader`,
         render: () => (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <div style={{ width: 16, height: 16, border: '2px solid var(--layer-layer-1-property-border-color)', borderTopColor: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <div style={{ width: 16, height: 16, border: '2px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderTopColor: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
             <style>
               {`@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }`}
             </style>
@@ -165,10 +165,10 @@ export default function PreviewPage() {
         name: 'Menu',
         url: `${base}/menu`,
         render: () => (
-          <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8 }}>
+          <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8 }}>
             <li style={{ padding: 8 }}>Profile</li>
             <li style={{ padding: 8 }}>Settings</li>
-            <li style={{ padding: 8, opacity: 'var(--palette-opacity-disabled, 0.5)' }}>Disabled</li>
+            <li style={{ padding: 8, opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}>Disabled</li>
           </ul>
         ),
       },
@@ -176,7 +176,7 @@ export default function PreviewPage() {
         name: 'Modal',
         url: `${base}/modal`,
         render: () => (
-          <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', padding: 12, borderRadius: 8, background: 'var(--layer-layer-0-property-surface)' }}>
+          <div style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', padding: 12, borderRadius: 8, background: 'var(--recursica-brand-light-layer-layer-0-property-surface)' }}>
             <strong>Modal</strong>
             <div style={{ fontSize: 12, opacity: 0.75 }}>Header, body, actions</div>
           </div>
@@ -187,12 +187,12 @@ export default function PreviewPage() {
         url: `${base}/card`,
         render: () => (
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ width: 240, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+            <div style={{ width: 240, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
               <strong>Card Title</strong>
               <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses elevation 1.</p>
               <a href="#" style={{ fontSize: 12 }}>Learn more</a>
             </div>
-            <div style={{ width: 240, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12, boxShadow: '0 8px 16px var(--elevation-elevation-2-shadow-color)' }}>
+            <div style={{ width: 240, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12, boxShadow: '0 8px 16px var(--recursica-brand-light-elevations-elevation-2-shadow-color)' }}>
               <strong>Higher Elevation</strong>
               <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses elevation 8.</p>
             </div>
@@ -218,11 +218,11 @@ export default function PreviewPage() {
         url: `${base}/chip`,
         render: () => (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
-            <span style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
-            <span style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
-            <span style={{ background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 10px' }}>Primary</span>
-            <span style={{ border: '1px solid var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
+            <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
+            <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
+            <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
+            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 10px' }}>Primary</span>
+            <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
           </div>
         ),
       },
@@ -250,7 +250,7 @@ export default function PreviewPage() {
               <div>List item 2</div>
               <div style={{ fontSize: 12, opacity: 0.75 }}>Secondary text</div>
             </li>
-              <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, opacity: 'var(--palette-opacity-disabled, 0.5)' }}>
+              <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}>
               Disabled item
             </li>
           </ul>
@@ -300,7 +300,7 @@ export default function PreviewPage() {
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <label><input type="radio" name="r1" defaultChecked /> First</label>
             <label><input type="radio" name="r1" /> Second</label>
-            <label style={{ opacity: 'var(--palette-opacity-disabled, 0.5)' }}><input type="radio" name="r1" disabled /> Disabled</label>
+            <label style={{ opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}><input type="radio" name="r1" disabled /> Disabled</label>
           </div>
         ),
       },
@@ -366,7 +366,7 @@ export default function PreviewPage() {
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <input type="checkbox" /> Off
             </label>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, opacity: 'var(--palette-opacity-disabled, 0.5)' }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}>
               <input type="checkbox" disabled /> Disabled
             </label>
           </div>
@@ -379,7 +379,7 @@ export default function PreviewPage() {
           <div style={{ display: 'flex', gap: 6 }}>
             <button style={{ padding: '6px 10px', borderRadius: 999, background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 0 }}>Active</button>
             <button style={{ padding: '6px 10px', borderRadius: 999 }}>Default</button>
-            <button style={{ padding: '6px 10px', borderRadius: 999, opacity: 'var(--palette-opacity-disabled, 0.5)' }}>Disabled</button>
+            <button style={{ padding: '6px 10px', borderRadius: 999, opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}>Disabled</button>
           </div>
         ),
       },

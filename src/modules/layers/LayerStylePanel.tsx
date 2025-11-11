@@ -50,9 +50,9 @@ export default function LayerStylePanel({
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       const light: any = root?.light?.palettes || {}
-      const core: any = light?.['core-colors']?.['$value'] || {}
+      const core: any = light?.['core']?.['$value'] || light?.['core'] || {}
       Object.keys(core || {}).forEach((name) => {
-        out.push({ label: `core-colors/${name}`, value: `{brand.light.palettes.core-colors.${name}}` })
+        out.push({ label: `core/${name}`, value: `{brand.light.palettes.core.${name}}` })
       })
       const neutral: any = light?.neutral || {}
       Object.keys(neutral || {}).forEach((lvl) => {

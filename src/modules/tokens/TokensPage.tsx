@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 // --- Color utilities ---
@@ -613,9 +613,9 @@ export default function TokensPage() {
                   textAlign: 'left',
                   padding: '8px 10px',
                   borderRadius: 8,
-                  border: '1px solid var(--layer-layer-1-property-border-color)',
+                  border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
                   background: selected === (item.key as any)
-                    ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color, var(--palette-interactive, #3b82f6))'
+                    ? 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color, var(--recursica-brand-light-palettes-core-interactive, #3b82f6))'
                     : 'transparent',
                   color: selected === (item.key as any) ? '#fff' : 'inherit',
                   cursor: 'pointer'
@@ -627,7 +627,7 @@ export default function TokensPage() {
         <div style={{ display: 'grid', gap: 12 }}>
       {Object.entries(groupedByMode).map(([mode, items]) => {
         const colorSection = (
-          <section key={mode + '-color'} style={{ background: 'var(--layer-layer-0-property-surface, #ffffff)', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, padding: 12 }}>
+          <section key={mode + '-color'} style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, padding: 12 }}>
             {colorFamiliesByMode[mode as ModeName] && (() => {
               let families = Object.entries(colorFamiliesByMode[mode as ModeName]).filter(([family]) => family !== 'translucent' && !deletedFamilies[family]).sort(([a], [b]) => {
                 if (a === 'gray' && b !== 'gray') return -1
@@ -717,13 +717,13 @@ export default function TokensPage() {
                             try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
                           } catch {}
                         }}
-                        style={{ fontSize: 13, padding: '4px 8px', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6, width: '100%' }}
+                        style={{ fontSize: 13, padding: '4px 8px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 6, width: '100%' }}
                       />
                     </div>
                   ))}
                   <div style={{ gridColumn: `1 / span ${families.length + 1}`, height: 20 }} />
                   {levelOrder.map((level) => (
-                    <>
+                    <React.Fragment key={'row-' + level}>
                       <div key={'label-' + level} style={{ textAlign: 'center', fontSize: 12, opacity: 0.8, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{level}</div>
                       {families.map(([family, lvls]) => {
                         const match = lvls.find((l) => l.level === level)
@@ -869,7 +869,7 @@ export default function TokensPage() {
                           </div>
                         )
                       })}
-                    </>
+                    </React.Fragment>
                   ))}
                   {/* bottom-row delete buttons, gray cannot be deleted */}
                   <div />
@@ -893,7 +893,7 @@ export default function TokensPage() {
                             } catch {}
                           }}
                           title="Delete color column"
-                          style={{ border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px', width: '100%' }}
+                          style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px', width: '100%' }}
                         >🗑️</button>
                       )}
                     </div>
@@ -932,7 +932,7 @@ export default function TokensPage() {
             )
           }
           return (
-            <section key={mode + '-measurements'} style={{ background: 'var(--layer-layer-0-property-surface, #ffffff)', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, padding: 12 }}>
+            <section key={mode + '-measurements'} style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, padding: 12 }}>
               {selected === 'opacity' ? (
                 <OpacityTokens />
               ) : selected === 'size' ? (

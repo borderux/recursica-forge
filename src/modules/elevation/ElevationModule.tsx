@@ -3,7 +3,7 @@ import React from 'react'
 export type ElevationExampleProps = {
   label: React.ReactNode
   // If level is provided (0..4), box-shadow will be read from centrally
-  // computed CSS variables: --elevation-elevation-{level}-{x|y|blur|spread|shadow-color}
+  // computed CSS variables: --brand-light-elevations-elevation-{level}-{x|y|blur|spread|shadow-color}
   level?: number
   // Legacy explicit props (used only when level is not provided)
   blurPx?: number
@@ -41,7 +41,7 @@ export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0
     if (typeof level === 'number' && level >= 0) {
       const k = String(level)
       // Use centrally computed CSS variables so preview matches layers exactly
-      return `var(--elevation-elevation-${k}-x-axis, 0px) var(--elevation-elevation-${k}-y-axis, 0px) var(--elevation-elevation-${k}-blur, 0px) var(--elevation-elevation-${k}-spread, 0px) var(--elevation-elevation-${k}-shadow-color, rgba(0,0,0,0))`
+      return `var(--recursica-brand-light-elevations-elevation-${k}-x-axis, 0px) var(--recursica-brand-light-elevations-elevation-${k}-y-axis, 0px) var(--recursica-brand-light-elevations-elevation-${k}-blur, 0px) var(--recursica-brand-light-elevations-elevation-${k}-spread, 0px) var(--recursica-brand-light-elevations-elevation-${k}-shadow-color, rgba(0,0,0,0))`
     }
     const shadowColor = toRgba(colorHex, alpha)
     return `${offsetXPx}px ${offsetYPx}px ${blurPx}px ${spreadPx}px ${shadowColor}`

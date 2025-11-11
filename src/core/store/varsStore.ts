@@ -11,7 +11,7 @@ import { readOverrides } from '../../modules/theme/tokenOverrides'
 
 type PaletteStore = {
   bindings: Record<string, { token: string; hex: string }>
-  opacity: Record<'disabled' | 'overlay', { token: string; value: number }>
+  opacity: Record<'disabled' | 'overlay' | 'text-high' | 'text-low', { token: string; value: number }>
   dynamic: Array<{ key: string; title: string; defaultLevel: number; initialFamily?: string }>
   primaryLevels?: Record<string, string>
 }
@@ -57,7 +57,27 @@ function toTitleCase(label: string): string { return (label || '').replace(/[-_/
 
 function migratePaletteLocalKeys(): PaletteStore {
   const bindings = readLSJson<Record<string, { token: string; hex: string }>>('palette-bindings', {})
-  const opacity = readLSJson<Record<'disabled' | 'overlay', { token: string; value: number }>>('palette-opacity-bindings', {} as any)
+  const opacityRaw = readLSJson<Record<string, { token: string; value: number }>>('palette-opacity-bindings', {} as any)
+  const normalizeOpacityBindings = (src?: Record<string, { token: string; value: number }>): PaletteStore['opacity'] => {
+    const def: PaletteStore['opacity'] = {
+      disabled: { token: 'opacity/faint', value: 0.5 },
+      overlay: { token: 'opacity/veiled', value: 0.5 },
+      'text-high': { token: 'opacity/solid', value: 1 },
+      'text-low': { token: 'opacity/veiled', value: 0.5 },
+    }
+    const out: PaletteStore['opacity'] = { ...def }
+    try {
+      Object.entries(src || {}).forEach(([k, v]) => {
+        if (!v || typeof v !== 'object') return
+        if ((k === 'disabled' || k === 'overlay' || k === 'text-high' || k === 'text-low') && typeof v.token === 'string') {
+          const num = typeof v.value === 'number' ? v.value : Number(v.value)
+          out[k] = { token: v.token, value: Number.isFinite(num) ? num : def[k].value }
+        }
+      })
+    } catch {}
+    return out
+  }
+  const opacity = normalizeOpacityBindings(opacityRaw)
   const dynamic = readLSJson<Array<{ key: string; title: string; defaultLevel: number; initialFamily?: string }>>('dynamic-palettes', [
     { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
     { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
@@ -86,6 +106,9 @@ class VarsStore {
   // Track last applied maps for delta application per domain
   private lastPalettes: CssVarMap | null = null
   private lastCorePalette: CssVarMap | null = null
+  private lastTokenColors: CssVarMap | null = null
+  private lastTokenSizes: CssVarMap | null = null
+  private lastTokenOpacity: CssVarMap | null = null
   private lastLayers: CssVarMap | null = null
   private lastTypography: CssVarMap | null = null
 
@@ -131,8 +154,13 @@ class VarsStore {
     // React to token override changes and type choice changes (centralized)
     const onOverrides = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     const onTypeChoices = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
+    const onPaletteVarsChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
+    const onPaletteFamilyChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     window.addEventListener('tokenOverridesChanged', onOverrides as any)
     window.addEventListener('typeChoicesChanged', onTypeChoices as any)
+    // Recompute layers and dependent CSS whenever palette CSS vars or families change
+    window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
+    window.addEventListener('paletteFamilyChanged', onPaletteFamilyChanged as any)
   }
 
   getState(): VarsState { return this.state }
@@ -278,6 +306,73 @@ class VarsStore {
 
   private recomputeAndApplyAll() {
     const overrides = readOverrides()
+    // Tokens: expose size tokens as CSS vars under --tokens-size-<key>
+    try {
+      const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+      const sizesRoot: any = tokensRoot?.size || {}
+      const vars: Record<string, string> = {}
+      const toPxString = (v: any): string | undefined => {
+        if (v == null) return undefined
+        if (typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) {
+          const val: any = (v as any).value
+          const unit: any = (v as any).unit
+          if (typeof val === 'number') return unit ? `${val}${unit}` : `${val}px`
+          return typeof val === 'string' ? val : undefined
+        }
+        if (typeof v === 'number') return `${v}px`
+        if (typeof v === 'string') {
+          // if numeric string, append px; else assume it already has a unit
+          return /^-?\d+(\.\d+)?$/.test(v.trim()) ? `${v.trim()}px` : v.trim()
+        }
+        return undefined
+      }
+      Object.keys(sizesRoot).forEach((short) => {
+        if (short.startsWith('$')) return
+        const val = sizesRoot[short]?.$value
+        const px = toPxString(val)
+        if (typeof px === 'string' && px) vars[`--tokens-size-${short}`] = px
+      })
+      applyCssVarsDelta(this.lastTokenSizes, vars); this.lastTokenSizes = vars
+    } catch {}
+    // Tokens: expose opacity tokens as CSS vars under --tokens-opacity-<key> (normalized 0..1)
+    try {
+      const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+      const opacityRoot: any = tokensRoot?.opacity || {}
+      const vars: Record<string, string> = {}
+      const normalize = (v: any): string | undefined => {
+        try {
+          const n = typeof v === 'number' ? v : (typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) ? Number((v as any).value) : Number(v)
+          if (!Number.isFinite(n)) return undefined
+          const val = n <= 1 ? n : n / 100
+          return String(Math.max(0, Math.min(1, val)))
+        } catch { return undefined }
+      }
+      Object.keys(opacityRoot).forEach((short) => {
+        if (short.startsWith('$')) return
+        const v = opacityRoot[short]?.$value
+        const norm = normalize(v)
+        if (typeof norm === 'string') vars[`--tokens-opacity-${short}`] = norm
+      })
+      applyCssVarsDelta(this.lastTokenOpacity, vars); this.lastTokenOpacity = vars
+    } catch {}
+    // Tokens: expose color tokens as CSS vars under --tokens-color-<family>-<level>
+    try {
+      const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+      const colorsRoot: any = tokensRoot?.color || {}
+      const vars: Record<string, string> = {}
+      Object.keys(colorsRoot).forEach((family) => {
+        if (!family || family === 'translucent') return
+        const levels = colorsRoot[family] || {}
+        Object.keys(levels).forEach((lvl) => {
+          if (!/^\d{2,4}|000|050$/.test(lvl)) return
+          const val = levels[lvl]?.$value
+          if (typeof val === 'string' && val) {
+            vars[`--tokens-color-${family}-${String(lvl).padStart(3, '0')}`] = String(val)
+          }
+        })
+      })
+      applyCssVarsDelta(this.lastTokenColors, vars); this.lastTokenColors = vars
+    } catch {}
     // Core palette bindings (black/white/alert/warning/success/interactive)
     try {
       const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
@@ -287,29 +382,57 @@ class VarsStore {
         return undefined
       }
       const defaults: Record<string, { token: string; hex: string }> = {
-        '--palette-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
-        '--palette-white': { token: 'color/gray/000', hex: get('color/gray/000') || '#ffffff' },
-        '--palette-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
-        '--palette-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
-        '--palette-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
-        '--palette-interactive': { token: 'color/salmon/400', hex: get('color/salmon/400') || '#ff6b6b' },
+        '--brand-light-palettes-core-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
+        '--brand-light-palettes-core-white': { token: 'color/gray/000', hex: get('color/gray/000') || '#ffffff' },
+        '--brand-light-palettes-core-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
+        '--brand-light-palettes-core-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
+        '--brand-light-palettes-core-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
+        '--brand-light-palettes-core-interactive': { token: 'color/salmon/400', hex: get('color/salmon/400') || '#ff6b6b' },
+      }
+      const normalizeLevel = (lvl?: string): string | undefined => {
+        if (!lvl) return undefined
+        const s = String(lvl).padStart(3, '0')
+        if (s === '000') return '050'
+        if (s === '1000') return '900'
+        const allowed = new Set(['900','800','700','600','500','400','300','200','100','050'])
+        return allowed.has(s) ? s : undefined
+      }
+      const tokenToTokensVar = (token?: string): string | null => {
+        try {
+          if (!token || typeof token !== 'string') return null
+          const parts = token.split('/')
+          if (parts[0] !== 'color' || !parts[1] || !parts[2]) return null
+          const family = parts[1]
+          const lvl = normalizeLevel(parts[2])
+          if (family && lvl) return `var(--recursica-tokens-color-${family}-${lvl})`
+        } catch {}
+        return null
       }
       const merged = { ...defaults, ...(this.state.palettes?.bindings || {}) }
       const colors: Record<string, string> = {}
-      Object.entries(merged).forEach(([cssVar, info]) => { colors[cssVar] = info.hex })
+      Object.entries(merged).forEach(([cssVar, info]) => {
+        const ref = tokenToTokensVar(info?.token)
+        colors[cssVar] = ref || info.hex
+      })
       // Expose palette opacity bindings as CSS vars
       try {
-        const normalizeOpacity = (v: any): string | undefined => {
-          const n = typeof v === 'number' ? v : Number(v)
-          if (!Number.isFinite(n)) return undefined
-          return n <= 1 ? String(Math.max(0, Math.min(1, n))) : String(Math.max(0, Math.min(1, n / 100)))
+        const toTokenVar = (token?: string, fallback?: number): string | undefined => {
+          if (typeof token === 'string' && token.startsWith('opacity/')) {
+            return `var(--recursica-tokens-${token.replace(/\//g, '-')})`
+          }
+          if (Number.isFinite(fallback as any)) {
+            const n = Number(fallback)
+            const norm = n <= 1 ? n : n / 100
+            return `var(--recursica-tokens-opacity-veiled, ${String(Math.max(0, Math.min(1, norm)))})`
+          }
+          return undefined
         }
         const disabled = this.state.palettes?.opacity?.disabled
         const overlay = this.state.palettes?.opacity?.overlay
-        const d = normalizeOpacity(disabled?.value)
-        const o = normalizeOpacity(overlay?.value)
-        if (typeof d === 'string') colors['--palette-opacity-disabled'] = d
-        if (typeof o === 'string') colors['--palette-opacity-overlay'] = o
+        const dRef = toTokenVar(disabled?.token, disabled?.value)
+        const oRef = toTokenVar(overlay?.token, overlay?.value)
+        if (typeof dRef === 'string') colors['--brand-light-opacity-disabled'] = dRef
+        if (typeof oRef === 'string') colors['--brand-light-opacity-overlay'] = oRef
       } catch {}
       applyCssVarsDelta(this.lastCorePalette, colors); this.lastCorePalette = colors
     } catch {}
@@ -355,11 +478,6 @@ class VarsStore {
         if (v && typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) return Number((v as any).value)
         return Number(v)
       }
-      const getSize = (token: string): number => {
-        const v = tokenIndex.get(token)
-        const n = toNumber(v)
-        return Number.isFinite(n) ? n : 0
-      }
       // Build ordered list of size tokens by numeric value for stepped progression
       const sizeTokenOrder: Array<{ name: string; value: number }> = (() => {
         try {
@@ -375,12 +493,11 @@ class VarsStore {
           return list
         } catch { return [] }
       })()
-      const nextSizeValue = (baseToken: string, steps: number): number => {
-        if (!steps || steps < 0) return getSize(baseToken)
+      const nextSizeTokenName = (baseToken: string, steps: number): string => {
         const idx = sizeTokenOrder.findIndex((t) => t.name === baseToken)
-        if (idx === -1) return getSize(baseToken)
-        const nextIdx = Math.min(sizeTokenOrder.length - 1, idx + steps)
-        return sizeTokenOrder[nextIdx]?.value ?? getSize(baseToken)
+        if (idx === -1) return baseToken
+        const nextIdx = Math.min(sizeTokenOrder.length - 1, Math.max(0, idx + Math.max(0, steps)))
+        return sizeTokenOrder[nextIdx]?.name ?? baseToken
       }
       // Read scaling preferences (defaults match prior UI)
       const readBool = (k: string, def: boolean) => {
@@ -412,22 +529,26 @@ class VarsStore {
           return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, a))})`
         } catch { return hex }
       }
+      const colorMixWithOpacityVar = (colorVarRef: string, alphaVarRef: string): string =>
+        // Use modern CSS color-mix so both color and opacity are driven by tokens.
+        // Convert 0..1 opacity token to percentage weight for color-mix.
+        `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
       const familyForPalette: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
       const shadowColorForLevel = (level: number): string => {
         const key = `elevation-${level}`
         const sel = this.state.elevation.paletteSelections[key]
         if (sel) {
           const family = familyForPalette[sel.paletteKey] || 'gray'
-          const hex = tokenIndex.get(`color/${family}/${sel.level}`)
           const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
-          const alphaVal = parseAlphaValue(tokenIndex.get(alphaTok))
-          return typeof hex === 'string' ? hexToRgba(hex, alphaVal) : `rgba(0,0,0,${alphaVal})`
+          const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
+          const colorVarRef = `var(--recursica-tokens-color-${family}-${sel.level})`
+          return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
         }
         const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
-        const hex = tokenIndex.get(tok)
         const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
-        const alphaVal = parseAlphaValue(tokenIndex.get(alphaTok))
-        return typeof hex === 'string' ? hexToRgba(hex, alphaVal) : `rgba(0,0,0,${alphaVal})`
+        const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
+        const colorVarRef = `var(--recursica-tokens-${tok.replace(/\//g, '-')})`
+        return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
       }
       const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
         const key = `elevation-${level}`
@@ -439,31 +560,32 @@ class VarsStore {
         const k = `elevation-${i}`
         const ctrl = this.state.elevation.controls[k]
         if (!ctrl) continue
-        const blur = (() => {
-          if (i > 0 && scaleBlur && ctrl.blurToken === baseCtrl?.blurToken) return nextSizeValue(ctrl.blurToken, i)
-          return getSize(ctrl.blurToken)
+        const blurTok = (() => {
+          if (i > 0 && scaleBlur && ctrl.blurToken === baseCtrl?.blurToken) return nextSizeTokenName(ctrl.blurToken, i)
+          return ctrl.blurToken
         })()
-        const spread = (() => {
-          if (i > 0 && scaleSpread && ctrl.spreadToken === baseCtrl?.spreadToken) return nextSizeValue(ctrl.spreadToken, i)
-          return getSize(ctrl.spreadToken)
+        const spreadTok = (() => {
+          if (i > 0 && scaleSpread && ctrl.spreadToken === baseCtrl?.spreadToken) return nextSizeTokenName(ctrl.spreadToken, i)
+          return ctrl.spreadToken
         })()
-        const x = (() => {
-          if (i > 0 && scaleX && ctrl.offsetXToken === baseCtrl?.offsetXToken) return nextSizeValue(ctrl.offsetXToken, i)
-          return getSize(ctrl.offsetXToken)
+        const xTok = (() => {
+          if (i > 0 && scaleX && ctrl.offsetXToken === baseCtrl?.offsetXToken) return nextSizeTokenName(ctrl.offsetXToken, i)
+          return ctrl.offsetXToken
         })()
-        const y = (() => {
-          if (i > 0 && scaleY && ctrl.offsetYToken === baseCtrl?.offsetYToken) return nextSizeValue(ctrl.offsetYToken, i)
-          return getSize(ctrl.offsetYToken)
+        const yTok = (() => {
+          if (i > 0 && scaleY && ctrl.offsetYToken === baseCtrl?.offsetYToken) return nextSizeTokenName(ctrl.offsetYToken, i)
+          return ctrl.offsetYToken
         })()
         const dir = dirForLevel(i)
-        const sx = dir.x === 'right' ? x : -x
-        const sy = dir.y === 'down' ? y : -y
+        const sxExpr = dir.x === 'right' ? `var(--recursica-tokens-${xTok.replace(/\//g, '-')})` : `calc(var(--recursica-tokens-${xTok.replace(/\//g, '-')}) * -1)`
+        const syExpr = dir.y === 'down' ? `var(--recursica-tokens-${yTok.replace(/\//g, '-')})` : `calc(var(--recursica-tokens-${yTok.replace(/\//g, '-')}) * -1)`
         const color = shadowColorForLevel(i)
-        vars[`--elevation-elevation-${i}-shadow-color`] = String(color)
-        vars[`--elevation-elevation-${i}-blur`] = `${blur}px`
-        vars[`--elevation-elevation-${i}-spread`] = `${spread}px`
-        vars[`--elevation-elevation-${i}-x-axis`] = `${sx}px`
-        vars[`--elevation-elevation-${i}-y-axis`] = `${sy}px`
+        const brandScope = `--brand-light-elevations-elevation-${i}`
+        vars[`${brandScope}-shadow-color`] = String(color)
+        vars[`${brandScope}-blur`] = `var(--recursica-tokens-${blurTok.replace(/\//g, '-')})`
+        vars[`${brandScope}-spread`] = `var(--recursica-tokens-${spreadTok.replace(/\//g, '-')})`
+        vars[`${brandScope}-x-axis`] = sxExpr
+        vars[`${brandScope}-y-axis`] = syExpr
       }
       if (Object.keys(vars).length) applyCssVarsDelta(null, vars)
     } catch {}

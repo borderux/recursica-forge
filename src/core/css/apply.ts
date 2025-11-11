@@ -10,14 +10,28 @@ export function applyCssVarsDelta(prev: CssVarMap | null, next: CssVarMap): { ap
   const root = document.documentElement
   let applied = 0
   const prevMap = prev || {}
+  const toPrefixed = (name: string): string => {
+    if (!name || !name.startsWith('--')) return name
+    return `--recursica-${name.slice(2)}`
+  }
   // Apply changed or added vars
   for (const [key, value] of Object.entries(next)) {
-    if (prevMap[key] !== value) {
-      root.style.setProperty(key, value)
-      applied += 1
+    const pref = toPrefixed(key)
+    // Write ONLY the prefixed variable
+    root.style.setProperty(pref, value)
+    // Ensure the old/unprefixed variable is removed
+    if (pref !== key) root.style.removeProperty(key)
+    applied += 1
+  }
+  // Remove any old/unprefixed variables that were previously applied but are no longer present
+  for (const key of Object.keys(prevMap)) {
+    if (!key.startsWith('--')) continue
+    const pref = toPrefixed(key)
+    if (pref !== key) {
+      // Remove legacy var
+      root.style.removeProperty(key)
     }
   }
-  // Optionally remove vars that disappeared. Skip removal for now to avoid stale flashes.
   return { applied }
 }
 
