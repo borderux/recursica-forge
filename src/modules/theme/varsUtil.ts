@@ -23,8 +23,18 @@ export function extractCssVarsFromObject(obj: unknown): ThemeVars {
 
 export function applyCssVars(theme: ThemeVars) {
   const root = document.documentElement
+  const toPrefixed = (name: string): string => {
+    if (!name || !name.startsWith('--')) return name
+    // If it already has --recursica- prefix, return as-is
+    if (name.startsWith('--recursica-')) return name
+    return `--recursica-${name.slice(2)}`
+  }
   for (const [key, value] of Object.entries(theme)) {
-    root.style.setProperty(key, value)
+    const pref = toPrefixed(key)
+    // Write ONLY the prefixed variable
+    root.style.setProperty(pref, value)
+    // Remove the legacy/unprefixed variable if present
+    if (pref !== key) root.style.removeProperty(key)
   }
 }
 

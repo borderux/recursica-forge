@@ -152,17 +152,11 @@ function findFontTokenNameByNumericValue(tokens: any, kind: 'size' | 'letter-spa
 export default function TypeSample({ tag, text, prefix }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }) {
   const Tag = tag as any
   const [livePreview, setLivePreview] = useState<Partial<Style> | null>(null)
-  const [version, setVersion] = useState(0)
+  // Rely on VarsContext subscription to re-render when overrides or choices change
   const { kit } = useUiKit()
   const { tokens, theme } = useVars()
   // removed choicesVersion state (not needed)
-  useEffect(() => {
-    const handler = () => setVersion((v) => v + 1)
-    window.addEventListener('tokenOverridesChanged', handler as any)
-    window.addEventListener('typeChoicesChanged', handler as any)
-    return () => { window.removeEventListener('tokenOverridesChanged', handler as any); window.removeEventListener('typeChoicesChanged', handler as any) }
-  }, [])
-  const overrides = useMemo(() => readOverrides(), [version])
+  const overrides = useMemo(() => readOverrides(), [])
 
   const hasLineHeightDefault = useMemo(() => {
     return !!Object.values(tokens as Record<string, any>).find((e: any) => e && e.name === 'font/line-height/default')
@@ -289,11 +283,15 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
       if (fromString != null) return fromString
       return (spec?.fontWeight ?? spec?.weight) ?? resolveThemeValue(weightRec?.value, overrides, tokens as any, themeIndex)
     })()
+    const cssVarName = (() => {
+      const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
+      return map[prefix] || prefix
+    })()
     const base: any = {
-      fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
-      fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--font-${prefix}-font-size`)),
-      fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)) as any,
-      letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--font-${prefix}-font-letter-spacing`))),
+      fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--recursica-brand-typography-${cssVarName}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
+      fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--recursica-brand-typography-${cssVarName}-font-size`)),
+      fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--recursica-brand-typography-${cssVarName}-font-weight`) || 400) as any,
+      letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--recursica-brand-typography-${cssVarName}-font-letter-spacing`))),
       lineHeight: ((): any => {
         const fromSpec = spec?.lineHeight
         if (typeof fromSpec === 'number') return fromSpec as any
@@ -304,7 +302,7 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
         }
         const rec = getThemeEntry(prefix, 'line-height', (theme as any)?.brand ? (theme as any).brand : (theme as any))
         const v = resolveThemeValue(rec?.value, overrides, tokens as any, themeIndex)
-        return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--font-${prefix}-line-height`) as any)
+        return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--recursica-brand-typography-${cssVarName}-line-height`) as any)
       })(),
       margin: '0',
     }
@@ -369,11 +367,11 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
   const kitLabel = kit === 'mantine' ? 'Mantine' : kit === 'material' ? 'Material UI' : 'Carbon'
 
   return (
-    <div style={{ border: '1px solid var(--temp-disabled)', borderRadius: 8, padding: 16 }}>
+    <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 16 }}>
       <Tag style={previewStyle}>{text}</Tag>
       {!fontAvailable && previewFamily && (
         <div style={{ marginTop: 6 }}>
-          <span style={{ display: 'inline-block', fontSize: 11, border: '1px solid var(--temp-disabled)', borderRadius: 999, padding: '2px 8px', color: 'var(--temp-disabled)' }}>
+          <span style={{ display: 'inline-block', fontSize: 11, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 8px', color: 'var(--layer-layer-1-property-element-text-color)', opacity: 'var(--layer-layer-1-property-element-text-low-emphasis)' }}>
             Font unavailable in Recursica Forge, displaying fallback from {kitLabel}
           </span>
         </div>

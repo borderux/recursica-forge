@@ -38,31 +38,28 @@ export function TypePage() {
   // stable samples array
   useMemo(() => undefined, [])
 
-  function SimpleTypeSample({ tag, text, prefix, isSelected, onToggle }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string; isSelected: boolean; onToggle: (checked: boolean) => void }) {
+  // Map prefix to CSS variable name (matches Brand.json naming)
+  function prefixToCssVarName(prefix: string): string {
+    const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
+    return map[prefix] || prefix
+  }
+
+  function SimpleTypeSample({ tag, text, prefix, isSelected, onToggle, updateKey }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string; isSelected: boolean; onToggle: (checked: boolean) => void; updateKey: number }) {
     const Tag = tag as any
-    const readCssVar = (name: string, fallback?: string): string | undefined => {
-      if (typeof document === 'undefined') return fallback
-      const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-      return value || fallback
-    }
-    const pxOrUndefined = (value?: string) => {
-      if (!value) return undefined
-      if (/px$|em$|rem$|%$/.test(value)) return value
-      if (!Number.isNaN(Number(value))) return `${value}px`
-      return value
-    }
-    const style: React.CSSProperties = {
-      fontFamily: readCssVar(`--font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
-      fontSize: pxOrUndefined(readCssVar(`--font-${prefix}-font-size`)),
-      fontWeight: (readCssVar(`--font-${prefix}-font-weight`) || readCssVar(`--font-${prefix}-font-weight-normal`)) as any,
-      letterSpacing: readCssVar(`--font-${prefix}-font-letter-spacing`),
-      lineHeight: readCssVar(`--font-${prefix}-line-height`) as any,
+    const cssVarName = prefixToCssVarName(prefix)
+    // CSS variables update automatically, but React needs to re-render to pick up changes
+    const style: React.CSSProperties = useMemo(() => ({
+      fontFamily: `var(--recursica-brand-typography-${cssVarName}-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`,
+      fontSize: `var(--recursica-brand-typography-${cssVarName}-font-size, 16px)`,
+      fontWeight: `var(--recursica-brand-typography-${cssVarName}-font-weight, 400)` as any,
+      letterSpacing: `var(--recursica-brand-typography-${cssVarName}-font-letter-spacing, 0)`,
+      lineHeight: `var(--recursica-brand-typography-${cssVarName}-line-height, normal)` as any,
       margin: '0',
-    }
+    }), [cssVarName, updateKey])
     return (
       <div
         onClick={() => onToggle(!isSelected)}
-        style={{ border: isSelected ? '3px solid var(--palette-alert)' : '1px solid var(--temp-disabled)', borderRadius: 8, padding: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+        style={{ border: isSelected ? '3px solid var(--recursica-brand-light-palettes-core-alert)' : '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
       >
         <input type="checkbox" checked={isSelected} onClick={(e) => e.stopPropagation()} onChange={(e) => onToggle((e.target as HTMLInputElement).checked)} aria-label="Select type sample" />
         <Tag style={style}>{text}</Tag>
@@ -71,20 +68,13 @@ export function TypePage() {
   }
 
   const [isPanelOpen, setIsPanelOpen] = useState(false)
-  const [version, setVersion] = useState(0)
+  const [updateKey, setUpdateKey] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
+  // Listen for type choices changes - CSS variables update automatically, but React needs to re-render
   useEffect(() => {
-    const handler = () => setVersion((v) => v + 1)
-    try {
-      window.addEventListener('tokenOverridesChanged', handler as any)
-      window.addEventListener('typeChoicesChanged', handler as any)
-    } catch {}
-    return () => {
-      try {
-        window.removeEventListener('tokenOverridesChanged', handler as any)
-        window.removeEventListener('typeChoicesChanged', handler as any)
-      } catch {}
-    }
+    const handler = () => setUpdateKey((k) => k + 1)
+    window.addEventListener('typeChoicesChanged', handler as any)
+    return () => window.removeEventListener('typeChoicesChanged', handler as any)
   }, [])
   // Open/close style panel automatically based on selection
   useEffect(() => {
@@ -98,12 +88,13 @@ export function TypePage() {
       </div>
       {samples.map((s) => (
         <SimpleTypeSample
-          key={`${s.label}-${version}`}
+          key={`${s.label}-${updateKey}`}
           label={s.label}
           tag={s.tag}
           text={s.text}
           prefix={s.prefix}
           isSelected={selected.includes(s.prefix)}
+          updateKey={updateKey}
           onToggle={(checked) => {
             setSelected((prev) => {
               const set = new Set(prev)

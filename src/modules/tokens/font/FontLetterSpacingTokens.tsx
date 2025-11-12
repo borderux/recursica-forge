@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useVars } from '../vars/VarsContext'
-import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import { useMemo, useState } from 'react'
+import { useVars } from '../../vars/VarsContext'
 
 export default function FontLetterSpacingTokens() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -16,30 +15,6 @@ export default function FontLetterSpacingTokens() {
     } catch {}
     return list
   }, [tokensJson])
-
-  const [values, setValues] = useState<Record<string, string | number>>(() => {
-    const init: Record<string, string | number> = {}
-    flattened.forEach((it) => { init[it.name] = it.value })
-    const overrides = readOverrides()
-    return { ...init, ...overrides }
-  })
-
-  useEffect(() => {
-    const handler = (ev: Event) => {
-      const detail: any = (ev as CustomEvent).detail
-      if (!detail) return
-      const { all, name, value } = detail
-      if (all && typeof all === 'object') {
-        setValues(all)
-        return
-      }
-      if (typeof name === 'string') {
-        setValues((prev) => ({ ...prev, [name]: value }))
-      }
-    }
-    window.addEventListener('tokenOverridesChanged', handler)
-    return () => window.removeEventListener('tokenOverridesChanged', handler)
-  }, [])
 
   const items = useMemo(() => {
     const out: Array<{ name: string; value: number | string }> = flattened
@@ -59,7 +34,7 @@ export default function FontLetterSpacingTokens() {
   const defaultIdx = 3
   const [scaleByTW, setScaleByTW] = useState<boolean>(() => {
     const v = localStorage.getItem('font-letter-scale-by-tight-wide')
-    return v === null ? false : v === 'true'
+    return v === null ? true : v === 'true'
   })
   const availableShorts = useMemo(() => new Set(flattened.map((f) => f.name.replace('font/letter-spacing/',''))), [flattened])
   const resolveShortToActual = (short: string): string => {
@@ -71,10 +46,14 @@ export default function FontLetterSpacingTokens() {
     // fullName is like 'font/letter-spacing/{short}'
     const short = fullName.replace('font/letter-spacing/','')
     const actual = resolveShortToActual(short)
-    const key = `font/letter-spacing/${actual}`
-    const v = (values[key] as any)
-    const n = typeof v === 'number' ? v : parseFloat(v)
-    return Number.isFinite(n) ? n : 0
+    // Read directly from tokensJson
+    try {
+      const v = (tokensJson as any)?.tokens?.font?.['letter-spacing']?.[actual]?.$value
+      const n = typeof v === 'number' ? v : parseFloat(v)
+      return Number.isFinite(n) ? n : 0
+    } catch {
+      return 0
+    }
   }
   const computeD = () => {
     const def = getVal('font/letter-spacing/default')
@@ -102,13 +81,12 @@ export default function FontLetterSpacingTokens() {
         updates[name] = def + offset * d
       }
     })
-    // write updates
-    setValues((prev) => ({ ...prev, ...updates }))
-    Object.entries(updates).forEach(([n, v]) => setOverride(n, v))
+    // write updates directly via updateToken - no local state needed
+    Object.entries(updates).forEach(([n, v]) => updateToken(n, v))
   }
 
   return (
-    <section style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+    <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>Letter Spacing</div>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -124,13 +102,13 @@ export default function FontLetterSpacingTokens() {
         {items.map((it) => {
           const keyName = it.name.replace('font/letter-spacing/','')
           const label = keyName === 'tighest' ? 'Tightest' : toTitle(keyName)
-          const current = Number((values[it.name] as any) ?? it.value)
+          const current = Number(it.value)
           const isDefault = keyName === 'default'
           const isTight = keyName === 'tight'
           const isWide = keyName === 'wide'
           const disabled = scaleByTW && !(isDefault || isTight || isWide)
           return (
-            <>
+            <div key={it.name} style={{ display: 'contents' }}>
               <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
               <input
                 type="range"
@@ -144,8 +122,7 @@ export default function FontLetterSpacingTokens() {
                   if (scaleByTW && (isDefault || isTight || isWide)) {
                     applyScaled(it.name, next)
                   } else {
-                    setValues((prev) => ({ ...prev, [it.name]: next }))
-                    setOverride(it.name, next)
+                    updateToken(it.name, next)
                   }
                 }}
                 style={{ width: '100%', maxWidth: 300, justifySelf: 'end', background: `linear-gradient(to right, transparent 0%, transparent 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15) 50%), linear-gradient(to right, transparent 50%, rgba(0,0,0,0.3) 50%)` }}
@@ -164,19 +141,17 @@ export default function FontLetterSpacingTokens() {
                   if (scaleByTW && (isDefault || isTight || isWide)) {
                     applyScaled(it.name, next)
                   } else {
-                    setValues((prev) => ({ ...prev, [it.name]: next }))
-                    setOverride(it.name, next)
+                    updateToken(it.name, next)
                   }
                 }}
                 style={{ width: 80, paddingRight: 0, textAlign: 'right' }}
               />
               <span style={{ fontSize: 12, opacity: 0.8 }}>em</span>
-            </>
+            </div>
           )
         })}
       </div>
     </section>
   )
 }
-
 

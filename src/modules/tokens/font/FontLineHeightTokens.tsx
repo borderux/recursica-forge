@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { useVars } from '../vars/VarsContext'
-import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import React, { useMemo, useState } from 'react'
+import { useVars } from '../../vars/VarsContext'
 
 export default function FontLineHeightTokens() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -16,29 +15,6 @@ export default function FontLineHeightTokens() {
     } catch {}
     return list
   }, [tokensJson])
-  const [values, setValues] = useState<Record<string, string | number>>(() => {
-    const init: Record<string, string | number> = {}
-    flattened.forEach((it) => { init[it.name] = it.value })
-    const overrides = readOverrides()
-    return { ...init, ...overrides }
-  })
-
-  useEffect(() => {
-    const handler = (ev: Event) => {
-      const detail: any = (ev as CustomEvent).detail
-      if (!detail) return
-      const { all, name, value } = detail
-      if (all && typeof all === 'object') {
-        setValues(all)
-        return
-      }
-      if (typeof name === 'string') {
-        setValues((prev) => ({ ...prev, [name]: value }))
-      }
-    }
-    window.addEventListener('tokenOverridesChanged', handler)
-    return () => window.removeEventListener('tokenOverridesChanged', handler)
-  }, [])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
@@ -46,11 +22,14 @@ export default function FontLineHeightTokens() {
   const defaultIdx = order.indexOf('default')
 
   const getVal = (name: string): number => {
-    const v = (values[name] as any)
-    const n = typeof v === 'number' ? v : parseFloat(v)
-    if (Number.isFinite(n)) return n
-    // sensible fallbacks if tokens are missing
+    // Read directly from tokensJson
     const key = name.replace('font/line-height/','')
+    try {
+      const v = (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
+      const n = typeof v === 'number' ? v : parseFloat(v)
+      if (Number.isFinite(n)) return n
+    } catch {}
+    // sensible fallbacks if tokens are missing
     const fallbackDef = 1
     const fallbackD = 0.1
     const idx = order.indexOf(key as any)
@@ -85,8 +64,8 @@ export default function FontLineHeightTokens() {
         updates[name] = def + offset * d
       }
     })
-    setValues((prev) => ({ ...prev, ...updates }))
-    Object.entries(updates).forEach(([n, v]) => setOverride(n, v))
+    // write updates directly via updateToken - no local state needed
+    Object.entries(updates).forEach(([n, v]) => updateToken(n, v))
   }
 
   const scaleKey = 'font-line-scale-by-short-tall'
@@ -132,8 +111,7 @@ export default function FontLineHeightTokens() {
                   if (scaleByST && (isDefault || isShort || isTall)) {
                     applyScaled(name, next)
                   } else {
-                    setValues((prev) => ({ ...prev, [name]: next }))
-                    setOverride(name, next)
+                    updateToken(name, next)
                   }
                 }}
                 style={{ width: '100%', justifySelf: 'end' }}
@@ -156,8 +134,7 @@ export default function FontLineHeightTokens() {
                   if (scaleByST && (isDefault || isShort || isTall)) {
                     applyScaled(name, next)
                   } else {
-                    setValues((prev) => ({ ...prev, [name]: next }))
-                    setOverride(name, next)
+                    updateToken(name, next)
                   }
                 }}
                 style={{ width: 80, paddingRight: 0, textAlign: 'right' }}
@@ -169,5 +146,4 @@ export default function FontLineHeightTokens() {
     </section>
   )
 }
-
 

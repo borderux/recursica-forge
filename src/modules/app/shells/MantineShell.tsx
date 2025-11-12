@@ -8,7 +8,6 @@ import { ReactNode, useEffect, useState } from 'react'
 import { AppShell, Group, Title, Button, Select, MantineProvider, Modal, Tabs, ActionIcon } from '@mantine/core'
 import '@mantine/core/styles.css'
 import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
-import { applyTheme, LIGHT_MODE } from '../../theme/index'
 import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
@@ -17,13 +16,10 @@ import type { UiKit } from '../../uikit/UiKitContext'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
-  useEffect(() => {
-    applyTheme(LIGHT_MODE)
-  }, [])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const currentTab = location.pathname.startsWith('/tokens') ? 'tokens' : location.pathname.startsWith('/type') ? 'type' : location.pathname.startsWith('/elevation') ? 'elevation' : location.pathname.startsWith('/layers') ? 'layers' : location.pathname.startsWith('/uikit') ? 'uikit' : 'palettes'
+  const currentTab = location.pathname.startsWith('/tokens') ? 'tokens' : location.pathname.startsWith('/type') ? 'type' : location.pathname.startsWith('/layers') ? 'layers' : location.pathname.startsWith('/uikit') ? 'uikit' : 'palettes'
   const onUpload = async (file?: File | null) => {
     if (!file) return
     const text = await file.text()
@@ -51,7 +47,6 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 <Tabs.Tab value="tokens">Tokens</Tabs.Tab>
                 <Tabs.Tab value="palettes">Palettes</Tabs.Tab>
                 <Tabs.Tab value="type">Type</Tabs.Tab>
-                <Tabs.Tab value="elevation">Elevation</Tabs.Tab>
                 <Tabs.Tab value="layers">Layers</Tabs.Tab>
                 <Tabs.Tab value="uikit">UI Kit</Tabs.Tab>
               </Tabs.List>

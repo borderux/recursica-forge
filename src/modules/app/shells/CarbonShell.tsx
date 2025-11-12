@@ -8,7 +8,6 @@ import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
-import { applyTheme, LIGHT_MODE } from '../../theme/index'
 import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
@@ -50,7 +49,6 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           <a href="/tokens" style={{ color: 'inherit', textDecoration: 'none' }}>Tokens</a>
           <a href="/palettes" style={{ color: 'inherit', textDecoration: 'none' }}>Palettes</a>
           <a href="/type" style={{ color: 'inherit', textDecoration: 'none' }}>Type</a>
-          <a href="/elevation" style={{ color: 'inherit', textDecoration: 'none' }}>Elevation</a>
           <a href="/layers" style={{ color: 'inherit', textDecoration: 'none' }}>Layers</a>
           <a href="/uikit" style={{ color: 'inherit', textDecoration: 'none' }}>UI Kit</a>
         </div>

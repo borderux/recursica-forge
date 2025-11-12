@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
-import { useVars } from '../vars/VarsContext'
-import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import React, { useMemo, useState } from 'react'
+import { useVars } from '../../vars/VarsContext'
+import { readOverrides, setOverride } from '../../theme/tokenOverrides'
 
 export default function SizeTokens() {
   const { tokens: tokensJson } = useVars()
@@ -80,8 +80,8 @@ export default function SizeTokens() {
           const current: any = isNone ? 0 : (scaleByDefault && !isDefault) ? computed : ((values[it.name] as any) ?? (it.value as any))
           const disabled = isNone || (scaleByDefault && !isDefault)
           return (
-            <>
-              <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
+            <React.Fragment key={it.name}>
+              <label htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
               <input
                 type="range"
                 min={0}
@@ -109,7 +109,7 @@ export default function SizeTokens() {
                 style={{ width: 50 }}
               />
               <span style={{ fontSize: 12, opacity: 0.8 }}>px</span>
-            </>
+            </React.Fragment>
           )
         })}
       </div>
