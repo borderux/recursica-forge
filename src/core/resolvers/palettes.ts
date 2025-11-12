@@ -49,15 +49,18 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
     const textEmphasis: any = (mode === 'Light' ? root?.light?.['text-emphasis'] : root?.dark?.['text-emphasis']) || {}
     const getOpacityVar = (v: any): string => {
-      const s = resolveBraceRef(v, tokenIndex)
-      // s might be {tokens.opacity.*} resolved; try to map to tokens var
+      // Extract $value if v is an object with $value property (e.g., { $type: "number", $value: "{tokens.opacity.smoky}" })
+      const rawValue = (v && typeof v === 'object' && '$value' in v) ? v.$value : v
+      // Try to extract token name from brace reference before resolving
       try {
-        if (typeof v === 'string') {
-          const inner = v.startsWith('{') && v.endsWith('}') ? v.slice(1, -1) : v
+        if (typeof rawValue === 'string') {
+          const inner = rawValue.startsWith('{') && rawValue.endsWith('}') ? rawValue.slice(1, -1) : rawValue
           const m = /^(?:tokens|token)\.opacity\.([a-z0-9\-_]+)$/i.exec(inner)
           if (m) return `var(--recursica-tokens-opacity-${m[1]})`
         }
       } catch {}
+      // If that didn't work, try resolving and checking the result
+      const s = resolveBraceRef(rawValue, tokenIndex)
       if (typeof s === 'string') {
         const m = /^(?:tokens|token)\/?opacity\/([a-z0-9\-_]+)$/i.exec(s)
         if (m) return `var(--recursica-tokens-opacity-${m[1]})`
@@ -70,8 +73,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       }
       return 'var(--recursica-tokens-opacity-solid)'
     }
-    const high = getOpacityVar(textEmphasis?.['$value']?.high ?? textEmphasis?.high)
-    const low = getOpacityVar(textEmphasis?.['$value']?.low ?? textEmphasis?.low)
+    const high = getOpacityVar(textEmphasis?.high)
+    const low = getOpacityVar(textEmphasis?.low)
     vars[`--brand-${modeLower}-text-emphasis-high`] = high
     vars[`--brand-${modeLower}-text-emphasis-low`] = low
   } catch {}

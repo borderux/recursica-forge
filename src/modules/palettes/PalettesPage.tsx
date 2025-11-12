@@ -173,75 +173,59 @@ export default function PalettesPage() {
                 <th>Warn</th>
                 <th>Success</th>
                 <th>Interactive</th>
-                <th>
-                  Disabled
-                  <br />(opacity)
-                </th>
-                <th>
-                  Overlay
-                  <br />(opacity)
-                </th>
-                <th>
-                  High Emphasis
-                  <br />(opacity)
-                </th>
-                <th>
-                  Low Emphasis
-                  <br />(opacity)
-                </th>
               </tr>
             </thead>
             <tbody>
               <tr>
-              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-black']?.hex || 'var(--recursica-brand-light-palettes-core-black)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-black')} />
-              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-white']?.hex || 'var(--recursica-brand-light-palettes-core-white)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-white')} />
-              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-alert']?.hex || 'var(--recursica-brand-light-palettes-core-alert)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-alert')} />
-              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-warning']?.hex || 'var(--recursica-brand-light-palettes-core-warning)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-warning')} />
-              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-success']?.hex || 'var(--recursica-brand-light-palettes-core-success)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-success')} />
-              <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-interactive']?.hex || 'var(--recursica-brand-light-palettes-core-interactive)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-interactive')} />
-              {(() => {
-                const blackHex = (paletteBindings['--recursica-brand-light-palettes-core-black']?.hex) || String(getTokenValue('color/gray/1000') || '#000000')
-                const faintDefault: any = getTokenValue('opacity/faint')
-                const veiledDefault: any = getTokenValue('opacity/veiled')
-                const toAlpha = (v: any) => {
-                  const n = typeof v === 'number' ? v : parseFloat(String(v))
-                  if (!Number.isFinite(n)) return 1
-                  return n <= 1 ? n : n / 100
-                }
-                const faint = toAlpha(opacityBindings.disabled?.value ?? faintDefault)
-                const veiled = toAlpha(opacityBindings.overlay?.value ?? veiledDefault)
-                const disabledColor = alphaColor(blackHex, faint)
-                const overlayColor = alphaColor(blackHex, veiled)
-                const modeVar = isDarkMode ? 'dark' : 'light'
-                const primaryTone = (() => {
-                  const mode = isDarkMode ? 'Dark' : 'Light'
-                  const computed = getComputedStyle(document.documentElement)
-                  const val = (computed.getPropertyValue(`--recursica-brand-${mode.toLowerCase()}-palettes-palette-1-primary-tone`) || '').trim()
-                  return val || (paletteBindings['--recursica-brand-light-palettes-core-interactive']?.hex || String(getTokenValue('color/salmon/400') || '#ff6b6b'))
-                })()
-                const onToneCore = (() => {
-                  const mode = isDarkMode ? 'Dark' : 'Light'
-                  const computed = getComputedStyle(document.documentElement)
-                  const v = (computed.getPropertyValue(`--recursica-brand-${mode.toLowerCase()}-palettes-palette-1-primary-on-tone`) || '').trim()
-                  return v || 'var(--recursica-brand-light-palettes-core-white)'
-                })()
-                return (
-                  <>
-                    <td className="swatch-box disabled" style={{ backgroundColor: disabledColor, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'disabled')} />
-                    <td className="swatch-box overlay" style={{ backgroundColor: overlayColor, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'overlay')} />
-                    <td className="swatch-box text-emphasis" style={{ position: 'relative', background: primaryTone, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'text-high')}>
-                      <span aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', width: 10, height: 10, transform: 'translate(-50%,-50%)', borderRadius: '50%', background: onToneCore as any, opacity: `var(--recursica-brand-${modeVar}-text-emphasis-high)` as any }} />
-                    </td>
-                    <td className="swatch-box text-emphasis" style={{ position: 'relative', background: primaryTone, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'text-low')}>
-                      <span aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', width: 10, height: 10, transform: 'translate(-50%,-50%)', borderRadius: '50%', background: onToneCore as any, opacity: `var(--recursica-brand-${modeVar}-text-emphasis-low)` as any }} />
-                    </td>
-                  </>
-                )
-              })()}
+                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-black']?.hex || 'var(--recursica-brand-light-palettes-core-black)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-black')} />
+                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-white']?.hex || 'var(--recursica-brand-light-palettes-core-white)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-white')} />
+                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-alert']?.hex || 'var(--recursica-brand-light-palettes-core-alert)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-alert')} />
+                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-warning']?.hex || 'var(--recursica-brand-light-palettes-core-warning)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-warning')} />
+                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-success']?.hex || 'var(--recursica-brand-light-palettes-core-success)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-success')} />
+                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-interactive']?.hex || 'var(--recursica-brand-light-palettes-core-interactive)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-interactive')} />
               </tr>
               {/* Removed hex values row under swatches per request */}
             </tbody>
           </table>
+
+          <div style={{ marginTop: 24 }}>
+            <h3 style={{ margin: '0 0 12px 0' }}>Opacity</h3>
+            <table className="color-swatches">
+              <thead>
+                <tr>
+                  <th>Overlay</th>
+                  <th>High Emphasis</th>
+                  <th>Low Emphasis</th>
+                  <th>Disabled</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {(() => {
+                    const modeVar = isDarkMode ? 'dark' : 'light'
+                    const layer0Surface = `var(--recursica-brand-${modeVar}-layer-layer-0-property-surface)`
+                    const layer0TextColor = `var(--recursica-brand-${modeVar}-layer-layer-0-property-element-text-color)`
+                    return (
+                      <>
+                        <td className="swatch-box overlay" style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', padding: 'var(--recursica-brand-light-layer-layer-0-property-padding)', cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'overlay')}>
+                          <div style={{ width: '100%', height: '100%', minHeight: '30px', background: 'var(--recursica-brand-light-palettes-core-black)', opacity: `var(--recursica-brand-${modeVar}-opacity-overlay)` }} />
+                        </td>
+                        <td className="swatch-box text-emphasis" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'text-high')}>
+                          <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-font-body-1-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-font-body-1-font-size, 16px)`, fontWeight: `var(--recursica-font-body-1-font-weight, 400)`, letterSpacing: `var(--recursica-font-body-1-font-letter-spacing, 0)`, lineHeight: `var(--recursica-font-body-1-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-text-emphasis-high)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
+                        </td>
+                        <td className="swatch-box text-emphasis" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'text-low')}>
+                          <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-font-body-1-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-font-body-1-font-size, 16px)`, fontWeight: `var(--recursica-font-body-1-font-weight, 400)`, letterSpacing: `var(--recursica-font-body-1-font-letter-spacing, 0)`, lineHeight: `var(--recursica-font-body-1-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-text-emphasis-low)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
+                        </td>
+                        <td className="swatch-box disabled" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'disabled')}>
+                          <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-font-body-1-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-font-body-1-font-size, 16px)`, fontWeight: `var(--recursica-font-body-1-font-weight, 400)`, letterSpacing: `var(--recursica-font-body-1-font-letter-spacing, 0)`, lineHeight: `var(--recursica-font-body-1-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-opacity-disabled)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
+                        </td>
+                      </>
+                    )
+                  })()}
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           {palettes.map((p) => (
             <PaletteGrid
@@ -394,10 +378,10 @@ function SwatchPicker({ onSelect }: { onSelect: (cssVar: string, tokenName: stri
   )
 }
 
-function OpacityPicker({ onSelect }: { onSelect: (slot: 'disabled' | 'overlay', tokenName: string, value: number) => void }) {
+function OpacityPicker({ onSelect }: { onSelect: (slot: 'disabled' | 'overlay' | 'text-high' | 'text-low', tokenName: string, value: number) => void }) {
   const { tokens: tokensJson } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
-  const [slot, setSlot] = useState<'disabled' | 'overlay' | null>(null)
+  const [slot, setSlot] = useState<'disabled' | 'overlay' | 'text-high' | 'text-low' | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const options = useMemo(() => {
     const src = (tokensJson as any)?.tokens?.opacity || {}
@@ -406,7 +390,7 @@ function OpacityPicker({ onSelect }: { onSelect: (slot: 'disabled' | 'overlay', 
     return list
   }, [])
 
-  ;(window as any).openOpacityPicker = (el: HTMLElement, s: 'disabled' | 'overlay') => {
+  ;(window as any).openOpacityPicker = (el: HTMLElement, s: 'disabled' | 'overlay' | 'text-high' | 'text-low') => {
     setAnchor(el)
     setSlot(s)
     const rect = el.getBoundingClientRect()
