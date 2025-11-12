@@ -126,6 +126,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const brandKey = mapKey[p] || p
     const spec: any = ttyp?.[brandKey]?.$value
     const ch = readChoices[p] || {}
+    // Use brandKey for CSS variable names to match Brand.json naming
+    const cssVarPrefix = brandKey
 
     const familyFromChoice = (() => {
       const v = (ch as any).family
@@ -195,8 +197,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       return null
     }
     
-    const brandPrefix = `--brand-light-typography-${p}-`
-    const shortPrefix = `--font-${p}-`
+    const brandPrefix = `--brand-typography-${cssVarPrefix}-`
+    const shortPrefix = `--brand-typography-${cssVarPrefix}-`
     if (family != null) {
       const brandVal = familyToken 
         ? `var(--recursica-tokens-font-${familyToken.category}-${familyToken.suffix})`

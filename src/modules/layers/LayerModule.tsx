@@ -138,11 +138,11 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     const spacingRec = getThemeEntry(prefix, 'letter-spacing')
     const weightRec = getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')
     const base: any = {
-      fontFamily: (() => { const v = resolveThemeValue(familyRec?.value, overrides); return typeof v === 'string' && v ? v : (readCssVar(`--recursica-font-${prefix}-font-family`) || undefined) })(),
-      fontSize: (() => { const v = resolveThemeValue(sizeRec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? pxOrUndefined(String(v)) : pxOrUndefined(readCssVar(`--recursica-font-${prefix}-font-size`)) })(),
-      fontWeight: (() => { const v = resolveThemeValue(weightRec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? (v as any) : (readCssVar(`--recursica-font-${prefix}-font-weight`) || 400) as any })(),
-      letterSpacing: (() => { const v = resolveThemeValue(spacingRec?.value, overrides); if (typeof v === 'number') return `${v}em`; if (typeof v === 'string') return v; return readCssVar(`--recursica-font-${prefix}-font-letter-spacing`) })(),
-      lineHeight: (() => { const rec = getThemeEntry(prefix, 'line-height'); const v = resolveThemeValue(rec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? (v as any) : (readCssVar(`--recursica-font-${prefix}-line-height`) as any) })(),
+      fontFamily: (() => { const v = resolveThemeValue(familyRec?.value, overrides); return typeof v === 'string' && v ? v : (readCssVar(`--recursica-brand-typography-${prefix}-font-family`) || undefined) })(),
+      fontSize: (() => { const v = resolveThemeValue(sizeRec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? pxOrUndefined(String(v)) : pxOrUndefined(readCssVar(`--recursica-brand-typography-${prefix}-font-size`)) })(),
+      fontWeight: (() => { const v = resolveThemeValue(weightRec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? (v as any) : (readCssVar(`--recursica-brand-typography-${prefix}-font-weight`) || 400) as any })(),
+      letterSpacing: (() => { const v = resolveThemeValue(spacingRec?.value, overrides); if (typeof v === 'number') return `${v}em`; if (typeof v === 'string') return v; return readCssVar(`--recursica-brand-typography-${prefix}-font-letter-spacing`) })(),
+      lineHeight: (() => { const rec = getThemeEntry(prefix, 'line-height'); const v = resolveThemeValue(rec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? (v as any) : (readCssVar(`--recursica-brand-typography-${prefix}-line-height`) as any) })(),
       margin: '0 0 12px 0',
     }
     try {

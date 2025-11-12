@@ -38,16 +38,24 @@ export function TypePage() {
   // stable samples array
   useMemo(() => undefined, [])
 
-  function SimpleTypeSample({ tag, text, prefix, isSelected, onToggle }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string; isSelected: boolean; onToggle: (checked: boolean) => void }) {
+  // Map prefix to CSS variable name (matches Brand.json naming)
+  function prefixToCssVarName(prefix: string): string {
+    const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
+    return map[prefix] || prefix
+  }
+
+  function SimpleTypeSample({ tag, text, prefix, isSelected, onToggle, updateKey }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string; isSelected: boolean; onToggle: (checked: boolean) => void; updateKey: number }) {
     const Tag = tag as any
-    const style: React.CSSProperties = {
-      fontFamily: `var(--recursica-font-${prefix}-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`,
-      fontSize: `var(--recursica-font-${prefix}-font-size, 16px)`,
-      fontWeight: `var(--recursica-font-${prefix}-font-weight, 400)` as any,
-      letterSpacing: `var(--recursica-font-${prefix}-font-letter-spacing, 0)`,
-      lineHeight: `var(--recursica-font-${prefix}-line-height, normal)` as any,
+    const cssVarName = prefixToCssVarName(prefix)
+    // CSS variables update automatically, but React needs to re-render to pick up changes
+    const style: React.CSSProperties = useMemo(() => ({
+      fontFamily: `var(--recursica-brand-typography-${cssVarName}-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`,
+      fontSize: `var(--recursica-brand-typography-${cssVarName}-font-size, 16px)`,
+      fontWeight: `var(--recursica-brand-typography-${cssVarName}-font-weight, 400)` as any,
+      letterSpacing: `var(--recursica-brand-typography-${cssVarName}-font-letter-spacing, 0)`,
+      lineHeight: `var(--recursica-brand-typography-${cssVarName}-line-height, normal)` as any,
       margin: '0',
-    }
+    }), [cssVarName, updateKey])
     return (
       <div
         onClick={() => onToggle(!isSelected)}
@@ -60,11 +68,11 @@ export function TypePage() {
   }
 
   const [isPanelOpen, setIsPanelOpen] = useState(false)
-  const [version, setVersion] = useState(0)
+  const [updateKey, setUpdateKey] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
-  // Listen for type choices changes to force re-render when CSS variables update
+  // Listen for type choices changes - CSS variables update automatically, but React needs to re-render
   useEffect(() => {
-    const handler = () => setVersion((v) => v + 1)
+    const handler = () => setUpdateKey((k) => k + 1)
     window.addEventListener('typeChoicesChanged', handler as any)
     return () => window.removeEventListener('typeChoicesChanged', handler as any)
   }, [])
@@ -80,12 +88,13 @@ export function TypePage() {
       </div>
       {samples.map((s) => (
         <SimpleTypeSample
-          key={`${s.label}-${version}`}
+          key={`${s.label}-${updateKey}`}
           label={s.label}
           tag={s.tag}
           text={s.text}
           prefix={s.prefix}
           isSelected={selected.includes(s.prefix)}
+          updateKey={updateKey}
           onToggle={(checked) => {
             setSelected((prev) => {
               const set = new Set(prev)

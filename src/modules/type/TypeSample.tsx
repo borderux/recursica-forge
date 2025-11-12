@@ -283,11 +283,15 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
       if (fromString != null) return fromString
       return (spec?.fontWeight ?? spec?.weight) ?? resolveThemeValue(weightRec?.value, overrides, tokens as any, themeIndex)
     })()
+    const cssVarName = (() => {
+      const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
+      return map[prefix] || prefix
+    })()
     const base: any = {
-      fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--recursica-font-${prefix}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
-      fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--recursica-font-${prefix}-font-size`)),
-      fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--recursica-font-${prefix}-font-weight`) || 400) as any,
-      letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--recursica-font-${prefix}-font-letter-spacing`))),
+      fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--recursica-brand-typography-${cssVarName}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
+      fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--recursica-brand-typography-${cssVarName}-font-size`)),
+      fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--recursica-brand-typography-${cssVarName}-font-weight`) || 400) as any,
+      letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--recursica-brand-typography-${cssVarName}-font-letter-spacing`))),
       lineHeight: ((): any => {
         const fromSpec = spec?.lineHeight
         if (typeof fromSpec === 'number') return fromSpec as any
@@ -298,7 +302,7 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
         }
         const rec = getThemeEntry(prefix, 'line-height', (theme as any)?.brand ? (theme as any).brand : (theme as any))
         const v = resolveThemeValue(rec?.value, overrides, tokens as any, themeIndex)
-        return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--recursica-font-${prefix}-line-height`) as any)
+        return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--recursica-brand-typography-${cssVarName}-line-height`) as any)
       })(),
       margin: '0',
     }

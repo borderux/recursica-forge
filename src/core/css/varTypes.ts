@@ -42,11 +42,19 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
 export function validateCssVarValue(cssVarName: string, value: string): { valid: boolean; error?: string } {
   if (isBrandVar(cssVarName)) {
     const trimmed = value.trim()
-    if (!trimmed.startsWith('var(')) {
-      return {
-        valid: false,
-        error: `Brand CSS variable ${cssVarName} must use a token reference (var(--recursica-tokens-...)), got: ${value}`
-      }
+    // Allow var() references (direct token references)
+    if (trimmed.startsWith('var(')) {
+      return { valid: true }
+    }
+    // Allow color-mix() and other CSS functions that contain token references
+    // Check if the value contains var(--recursica-tokens-...) anywhere in it
+    if (trimmed.includes('var(--recursica-tokens-') || trimmed.includes('var(--tokens-')) {
+      return { valid: true }
+    }
+    // Reject hardcoded values
+    return {
+      valid: false,
+      error: `Brand CSS variable ${cssVarName} must use a token reference (var(--recursica-tokens-...)), got: ${value}`
     }
   }
   return { valid: true }

@@ -1,16 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
-
-const CHOICES_KEY = 'type-token-choices'
-
-function readChoices(): Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }> {
-  try { const raw = localStorage.getItem(CHOICES_KEY); if (raw) return JSON.parse(raw) } catch {}
-  return {}
-}
-function writeChoices(next: Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>) {
-  try { localStorage.setItem(CHOICES_KEY, JSON.stringify(next)) } catch {}
-  try { window.dispatchEvent(new CustomEvent('typeChoicesChanged', { detail: next })) } catch {}
-}
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -21,21 +10,26 @@ function brandKeyFromPrefix(prefix: string): string {
   return map[prefix] || prefix
 }
 
-function parseTokenShortFromRef(ref: any, kind: 'size' | 'weight' | 'letter-spacing' | 'line-height' | 'family' | 'typeface'): string | undefined {
-  try {
-    if (typeof ref !== 'string') return undefined
-    const s = ref.trim()
-    const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
-    const re = new RegExp(`^(tokens|token)\.font\.${kind}\.(.+)$`, 'i')
-    const m = inner.match(re)
-    if (m) return m[2]
-  } catch {}
-  return undefined
+// Map prefix to CSS variable name (matches Brand.json naming)
+function prefixToCssVarName(prefix: string): string {
+  return brandKeyFromPrefix(prefix)
+}
+
+// Helper to extract token name from CSS variable value
+function extractTokenFromCssVar(cssValue: string): string | null {
+  if (!cssValue) return null
+  // Match patterns like: var(--recursica-tokens-font-size-md)
+  const match = cssValue.match(/var\(--recursica-tokens-font-(?:size|weight|letter-spacing|line-height)-([^)]+)\)/)
+  if (match) return match[1]
+  // Also match: var(--tokens-font-size-md) (without recursica prefix)
+  const match2 = cssValue.match(/var\(--tokens-font-(?:size|weight|letter-spacing|line-height)-([^)]+)\)/)
+  if (match2) return match2[1]
+  return null
 }
 
 export default function TypeStylePanel({ open, selectedPrefixes, title, onClose }: { open: boolean; selectedPrefixes: string[]; title: string; onClose: () => void }) {
-  const { tokens, theme } = useVars()
-  const [form, setForm] = useState<{ family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>({})
+  const { tokens } = useVars()
+  const [updateKey, setUpdateKey] = useState(0)
 
   // options
   const sizeOptions = useMemo(() => {
@@ -90,49 +84,124 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     return out
   }, [tokens])
 
-  // seed form: existing choice (from the first selected prefix) or brand JSON
-  useEffect(() => {
-    if (!open) return
-    const prefix = selectedPrefixes[0]
-    if (!prefix) return
-    const choices = readChoices()
-    const existing = choices[prefix] || {}
-    if (existing && (existing.size || existing.weight || existing.spacing || existing.lineHeight || existing.family)) {
-      setForm(existing)
-      return
-    }
+  // Helper to get current token index from CSS variable
+  const getCurrentTokenIndex = (cssVar: string, options: Array<{ short: string }>): number => {
+    if (options.length === 0 || !cssVar) return 0
     try {
-      const key = brandKeyFromPrefix(prefix)
-      const spec = ((theme as any)?.brand?.typography?.[key]?.$value) || {}
-      const next: any = {}
-      const famShort = parseTokenShortFromRef(spec.fontFamily, 'typeface') || parseTokenShortFromRef(spec.fontFamily, 'family')
-      if (famShort) {
-        const entry = familyOptions.find((o) => o.short === famShort)
-        if (entry) next.family = entry.value
+      // Read from inline style first (what we set), then fall back to computed style
+      const inlineValue = document.documentElement.style.getPropertyValue(cssVar).trim()
+      const computedValue = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim()
+      const cssValue = inlineValue || computedValue
+      if (cssValue) {
+        const tokenName = extractTokenFromCssVar(cssValue)
+        if (tokenName) {
+          const idx = options.findIndex((o) => o.short === tokenName)
+          if (idx >= 0) return idx
+        }
       }
-      const sizeShort = parseTokenShortFromRef(spec.fontSize, 'size'); if (sizeShort) next.size = sizeShort
-      const weightShort = parseTokenShortFromRef(spec.fontWeight ?? spec.weight, 'weight'); if (weightShort) next.weight = weightShort
-      const spacingShort = parseTokenShortFromRef(spec.letterSpacing, 'letter-spacing'); if (spacingShort) next.spacing = spacingShort
-      const lineShort = parseTokenShortFromRef(spec.lineHeight, 'line-height'); if (lineShort) next.lineHeight = lineShort
-      setForm(next)
-    } catch { setForm({}) }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, selectedPrefixes])
+    } catch (e) {
+      console.warn('Error reading CSS variable:', cssVar, e)
+    }
+    return 0
+  }
+  
+  // Helper to get current font family value from CSS variable
+  const getCurrentFamily = (cssVar: string): string => {
+    if (!cssVar) return ''
+    try {
+      // Read from inline style first (what we set), then fall back to computed style
+      const inlineValue = document.documentElement.style.getPropertyValue(cssVar).trim()
+      const cssValue = inlineValue || getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim()
+      if (cssValue) {
+        // Extract token reference
+        const tokenMatch = cssValue.match(/var\(--recursica-tokens-font-(?:family|typeface)-([^)]+)\)/)
+        if (tokenMatch) {
+          const tokenName = tokenMatch[1]
+          const option = familyOptions.find((o) => o.short === tokenName)
+          if (option) return option.value
+        }
+        // If it's a literal value, return it
+        if (!cssValue.startsWith('var(')) return cssValue
+      }
+    } catch {}
+    return ''
+  }
 
-  const applyPartial = (partial: Partial<{ family: string; size: string; weight: string; spacing: string; lineHeight: string }>) => {
-    const cur = readChoices()
-    const applyTo = selectedPrefixes && selectedPrefixes.length ? selectedPrefixes : []
-    applyTo.forEach((p) => { cur[p] = { ...cur[p], ...partial } as any })
-    writeChoices(cur)
+  // Directly update CSS variable for selected prefixes
+  const updateCssVar = (property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height', tokenValue: string) => {
+    selectedPrefixes.forEach((prefix) => {
+      const cssVarName = prefixToCssVarName(prefix)
+      const cssVar = `--recursica-brand-typography-${cssVarName}-${property}`
+      
+      if (property === 'font-family') {
+        // Find the token short name for the family value
+        const option = familyOptions.find((o) => o.value === tokenValue)
+        if (option) {
+          // Check if it's a typeface or family token by looking it up in tokens
+          const isTypeface = (tokens as any)?.tokens?.font?.typeface?.[option.short] !== undefined
+          const category = isTypeface ? 'typeface' : 'family'
+          document.documentElement.style.setProperty(cssVar, `var(--recursica-tokens-font-${category}-${option.short})`)
+        } else if (tokenValue) {
+          // Use literal value
+          document.documentElement.style.setProperty(cssVar, tokenValue)
+        }
+      } else {
+        // Map property to token category
+        const category = property === 'font-size' ? 'size' : property === 'font-weight' ? 'weight' : property === 'font-letter-spacing' ? 'letter-spacing' : 'line-height'
+        document.documentElement.style.setProperty(cssVar, `var(--recursica-tokens-font-${category}-${tokenValue})`)
+      }
+    })
+    // Use requestAnimationFrame to ensure CSS is applied before re-reading
+    requestAnimationFrame(() => {
+      setUpdateKey((k) => k + 1)
+    })
   }
 
   const revert = () => {
-    const cur = readChoices()
-    const applyTo = selectedPrefixes && selectedPrefixes.length ? selectedPrefixes : []
-    applyTo.forEach((p) => { delete (cur as any)[p] })
-    writeChoices(cur)
-    onClose()
+    // Remove CSS variable overrides - let them fall back to defaults from JSON
+    selectedPrefixes.forEach((prefix) => {
+      const cssVarName = prefixToCssVarName(prefix)
+      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-font-family`)
+      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-font-size`)
+      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-font-weight`)
+      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-font-letter-spacing`)
+      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-line-height`)
+    })
+    // Trigger recomputeAndApplyAll to rebuild CSS variables from JSON
+    // This ensures the original values from Brand.json are restored
+    requestAnimationFrame(() => {
+      try {
+        window.dispatchEvent(new CustomEvent('typeChoicesChanged', { detail: {} }))
+      } catch {}
+      // Force re-render to update slider positions
+      setUpdateKey((k) => k + 1)
+    })
   }
+
+  // Calculate current values at top level (hooks must be unconditional)
+  const prefix = selectedPrefixes.length > 0 ? selectedPrefixes[0] : null
+  const cssVarName = prefix ? prefixToCssVarName(prefix) : ''
+  
+  const sizeCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-size` : ''
+  const weightCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-weight` : ''
+  const spacingCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-letter-spacing` : ''
+  const lineHeightCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-line-height` : ''
+  const familyCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-family` : ''
+  
+  // Use useMemo to re-read CSS variables when updateKey changes
+  const sizeCurrentIdx = useMemo(() => prefix ? getCurrentTokenIndex(sizeCssVar, sizeOptions) : 0, [sizeCssVar, sizeOptions, updateKey, prefix])
+  const sizeCurrentToken = sizeOptions[sizeCurrentIdx] || sizeOptions[0]
+  
+  const weightCurrentIdx = useMemo(() => prefix ? getCurrentTokenIndex(weightCssVar, weightOptions) : 0, [weightCssVar, weightOptions, updateKey, prefix])
+  const weightCurrentToken = weightOptions[weightCurrentIdx] || weightOptions[0]
+  
+  const spacingCurrentIdx = useMemo(() => prefix ? getCurrentTokenIndex(spacingCssVar, spacingOptions) : 0, [spacingCssVar, spacingOptions, updateKey, prefix])
+  const spacingCurrentToken = spacingOptions[spacingCurrentIdx] || spacingOptions[0]
+  
+  const lineHeightCurrentIdx = useMemo(() => prefix ? getCurrentTokenIndex(lineHeightCssVar, lineHeightOptions) : 0, [lineHeightCssVar, lineHeightOptions, updateKey, prefix])
+  const lineHeightCurrentToken = lineHeightOptions[lineHeightCurrentIdx] || lineHeightOptions[0]
+  
+  const currentFamily = useMemo(() => prefix ? getCurrentFamily(familyCssVar) : '', [familyCssVar, familyOptions, updateKey, prefix])
 
   return (
     <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(240px, 36vw, 520px)', background: 'var(--layer-layer-0-property-surface, #ffffff)', borderLeft: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', boxShadow: '-8px 0 24px rgba(0,0,0,0.15)', transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 1200, padding: 12, overflowY: 'auto' }}>
@@ -141,41 +210,119 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>Font</span>
-          <select value={form.family || ''} onChange={(e) => { const v = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, family: v })); applyPartial({ family: v }) }}>
-            <option value=""></option>
-            {familyOptions.map((o) => (<option key={o.short} value={o.value}>{o.label}</option>))}
-          </select>
-        </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>Size</span>
-          <select value={form.size || ''} onChange={(e) => { const v = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, size: v })); applyPartial({ size: v }) }}>
-            <option value=""></option>
-            {sizeOptions.map((o) => (<option key={o.short} value={o.short}>{o.label}</option>))}
-          </select>
-        </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>Weight</span>
-          <select value={form.weight || ''} onChange={(e) => { const v = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, weight: v })); applyPartial({ weight: v }) }}>
-            <option value=""></option>
-            {weightOptions.map((o) => (<option key={o.short} value={o.short}>{o.label}</option>))}
-          </select>
-        </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>Letter Spacing</span>
-          <select value={form.spacing || ''} onChange={(e) => { const v = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, spacing: v })); applyPartial({ spacing: v }) }}>
-            <option value=""></option>
-            {spacingOptions.map((o) => (<option key={o.short} value={o.short}>{o.label}</option>))}
-          </select>
-        </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>Line Height</span>
-          <select value={form.lineHeight || ''} onChange={(e) => { const v = (e.target as HTMLSelectElement).value; setForm((f) => ({ ...f, lineHeight: v })); applyPartial({ lineHeight: v }) }}>
-            <option value=""></option>
-            {lineHeightOptions.map((o) => (<option key={o.short} value={o.short}>{o.label}</option>))}
-          </select>
-        </label>
+        {prefix && (
+          <>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, opacity: 0.7 }}>Font Family</span>
+                <select 
+                  value={currentFamily} 
+                  onChange={(e) => { 
+                    const v = (e.target as HTMLSelectElement).value
+                    updateCssVar('font-family', v)
+                  }}
+                >
+                  <option value=""></option>
+                  {familyOptions.map((o) => (<option key={o.short} value={o.value}>{o.label}</option>))}
+                </select>
+              </label>
+              
+              {sizeOptions.length > 0 && (
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>Font Size</span>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>{sizeCurrentToken?.label || ''}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={Math.max(0, sizeOptions.length - 1)}
+                    step={1}
+                    value={sizeCurrentIdx}
+                    onChange={(e) => {
+                      const idx = Number(e.target.value)
+                      const selectedToken = sizeOptions[idx]
+                      if (selectedToken) {
+                        updateCssVar('font-size', selectedToken.short)
+                      }
+                    }}
+                    style={{ width: '100%' }}
+                  />
+                </label>
+              )}
+              
+              {weightOptions.length > 0 && (
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>Font Weight</span>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>{weightCurrentToken?.label || ''}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={Math.max(0, weightOptions.length - 1)}
+                    step={1}
+                    value={weightCurrentIdx}
+                    onChange={(e) => {
+                      const idx = Number(e.target.value)
+                      const selectedToken = weightOptions[idx]
+                      if (selectedToken) {
+                        updateCssVar('font-weight', selectedToken.short)
+                      }
+                    }}
+                    style={{ width: '100%' }}
+                  />
+                </label>
+              )}
+              
+              {spacingOptions.length > 0 && (
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>Letter Spacing</span>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>{spacingCurrentToken?.label || ''}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={Math.max(0, spacingOptions.length - 1)}
+                    step={1}
+                    value={spacingCurrentIdx}
+                    onChange={(e) => {
+                      const idx = Number(e.target.value)
+                      const selectedToken = spacingOptions[idx]
+                      if (selectedToken) {
+                        updateCssVar('font-letter-spacing', selectedToken.short)
+                      }
+                    }}
+                    style={{ width: '100%' }}
+                  />
+                </label>
+              )}
+              
+              {lineHeightOptions.length > 0 && (
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>Line Height</span>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>{lineHeightCurrentToken?.label || ''}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={Math.max(0, lineHeightOptions.length - 1)}
+                    step={1}
+                    value={lineHeightCurrentIdx}
+                    onChange={(e) => {
+                      const idx = Number(e.target.value)
+                      const selectedToken = lineHeightOptions[idx]
+                      if (selectedToken) {
+                        updateCssVar('line-height', selectedToken.short)
+                      }
+                    }}
+                    style={{ width: '100%' }}
+                  />
+                </label>
+              )}
+          </>
+        )}
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
           <button onClick={revert}>Revert</button>
         </div>
