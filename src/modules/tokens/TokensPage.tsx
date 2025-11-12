@@ -30,12 +30,13 @@ export default function TokensPage() {
                   textAlign: 'left',
                   padding: '8px 10px',
                   borderRadius: 8,
-                  border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+                  border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
                   background: selected === (item.key as any)
-                    ? 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color, var(--recursica-brand-light-palettes-core-interactive, #3b82f6))'
+                    ? 'var(--recursica-brand-light-palettes-core-interactive, #3b82f6)'
                     : 'transparent',
                   color: selected === (item.key as any) ? '#fff' : 'inherit',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s, color 0.2s'
                 }}
               >{item.label}</button>
             ))}

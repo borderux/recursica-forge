@@ -260,8 +260,6 @@ export default function PalettesPage() {
             // The cssVar passed from openPicker is already --recursica-brand-light-palettes-core-*
             const root = document.documentElement
             root.style.setProperty(cssVar, `var(${tokenCssVar})`)
-            
-            console.log(`Set ${cssVar} = var(${tokenCssVar})`)
           }
           
           // Update the binding to reference the token instead of hardcoding hex
