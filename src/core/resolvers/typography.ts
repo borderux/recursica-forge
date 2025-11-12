@@ -160,34 +160,79 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const spacing = (spacingChoice != null ? spacingChoice : (resolveTokenRef(spec?.letterSpacing) ?? spec?.letterSpacing ?? defaultSpacing))
     const lineHeightChoice = (ch as any).lineHeight ? getFontToken(`line-height/${(ch as any).lineHeight}`) : undefined
     const lineHeight = (lineHeightChoice != null ? lineHeightChoice : (resolveTokenRef(spec?.lineHeight) ?? spec?.lineHeight ?? defaultLineHeight))
-    // Prefer token references where possible
-    const familyToken = extractTokenRef(spec?.fontFamily)
-    const sizeToken = extractTokenRef(spec?.fontSize)
-    const weightToken = extractTokenRef(spec?.fontWeight ?? spec?.weight)
-    const spacingToken = extractTokenRef(spec?.letterSpacing)
-    const lineHeightToken = extractTokenRef(spec?.lineHeight)
+    // Prefer token references where possible - always try to extract from spec first
+    const familyToken = extractTokenRef(spec?.fontFamily) || (familyFromChoice ? extractTokenRef(familyFromChoice) : null)
+    const sizeToken = extractTokenRef(spec?.fontSize) || (sizeChoice != null ? extractTokenRef(`{tokens.font.size.${ch.size}}`) : null)
+    const weightToken = extractTokenRef(spec?.fontWeight ?? spec?.weight) || (weightChoice != null ? extractTokenRef(`{tokens.font.weight.${ch.weight}}`) : null)
+    const spacingToken = extractTokenRef(spec?.letterSpacing) || (spacingChoice != null ? extractTokenRef(`{tokens.font.letter-spacing.${ch.spacing}}`) : null)
+    const lineHeightToken = extractTokenRef(spec?.lineHeight) || (lineHeightChoice != null ? extractTokenRef(`{tokens.font.line-height.${(ch as any).lineHeight}}`) : null)
+    
+    // Helper to find token by value for fallback
+    const findTokenByValue = (value: any, category: 'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'): string | null => {
+      if (value == null) return null
+      const valStr = String(value).trim()
+      if (!valStr) return null
+      try {
+        const src: any = (tokens as any)?.tokens?.font?.[category] || {}
+        for (const [key, token] of Object.entries(src)) {
+          if (key.startsWith('$')) continue
+          const tokenVal = (token as any)?.['$value']
+          if (tokenVal == null) continue
+          let tokenValStr: string | undefined
+          if (typeof tokenVal === 'string') tokenValStr = tokenVal
+          else if (typeof tokenVal === 'number') tokenValStr = String(tokenVal)
+          else if (tokenVal && typeof tokenVal === 'object') {
+            const v = (tokenVal as any).value
+            const u = (tokenVal as any).unit
+            if (typeof v === 'number') tokenValStr = u ? `${v}${u}` : String(v)
+            else if (typeof v === 'string') tokenValStr = u ? `${v}${u}` : String(v)
+          }
+          if (tokenValStr && tokenValStr.trim() === valStr) {
+            return `var(--recursica-tokens-font-${category}-${key})`
+          }
+        }
+      } catch {}
+      return null
+    }
+    
     const brandPrefix = `--brand-light-typography-${p}-`
+    const shortPrefix = `--font-${p}-`
     if (family != null) {
-      const brandVal = familyToken ? `var(--recursica-tokens-font-${familyToken.category}-${familyToken.suffix})` : toCssValue(family)!
+      const brandVal = familyToken 
+        ? `var(--recursica-tokens-font-${familyToken.category}-${familyToken.suffix})`
+        : (findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family') || toCssValue(family)!)
       vars[`${brandPrefix}font-family`] = brandVal
+      vars[`${shortPrefix}font-family`] = brandVal
       if (typeof brandVal === 'string' && !brandVal.startsWith('var(')) usedFamilies.add(String(family))
       else if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
     }
     if (size != null) {
-      const brandVal = sizeToken ? `var(--recursica-tokens-font-${sizeToken.category}-${sizeToken.suffix})` : toCssValue(size, 'px')!
+      const brandVal = sizeToken 
+        ? `var(--recursica-tokens-font-${sizeToken.category}-${sizeToken.suffix})`
+        : (findTokenByValue(size, 'size') || toCssValue(size, 'px')!)
       vars[`${brandPrefix}font-size`] = brandVal
+      vars[`${shortPrefix}font-size`] = brandVal
     }
     if (weight != null) {
-      const brandVal = weightToken ? `var(--recursica-tokens-font-${weightToken.category}-${weightToken.suffix})` : toCssValue(weight)!
+      const brandVal = weightToken 
+        ? `var(--recursica-tokens-font-${weightToken.category}-${weightToken.suffix})`
+        : (findTokenByValue(weight, 'weight') || toCssValue(weight)!)
       vars[`${brandPrefix}font-weight`] = brandVal
+      vars[`${shortPrefix}font-weight`] = brandVal
     }
     if (spacing != null) {
-      const brandVal = spacingToken ? `var(--recursica-tokens-font-${spacingToken.category}-${spacingToken.suffix})` : toCssValue(spacing, 'em')!
+      const brandVal = spacingToken 
+        ? `var(--recursica-tokens-font-${spacingToken.category}-${spacingToken.suffix})`
+        : (findTokenByValue(spacing, 'letter-spacing') || toCssValue(spacing, 'em')!)
       vars[`${brandPrefix}font-letter-spacing`] = brandVal
+      vars[`${shortPrefix}font-letter-spacing`] = brandVal
     }
     if (lineHeight != null) {
-      const brandVal = lineHeightToken ? `var(--recursica-tokens-font-${lineHeightToken.category}-${lineHeightToken.suffix})` : toCssValue(lineHeight)!
+      const brandVal = lineHeightToken 
+        ? `var(--recursica-tokens-font-${lineHeightToken.category}-${lineHeightToken.suffix})`
+        : (findTokenByValue(lineHeight, 'line-height') || toCssValue(lineHeight)!)
       vars[`${brandPrefix}line-height`] = brandVal
+      vars[`${shortPrefix}line-height`] = brandVal
     }
     if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
   })

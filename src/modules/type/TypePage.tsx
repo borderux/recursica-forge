@@ -41,11 +41,11 @@ export function TypePage() {
   function SimpleTypeSample({ tag, text, prefix, isSelected, onToggle }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string; isSelected: boolean; onToggle: (checked: boolean) => void }) {
     const Tag = tag as any
     const style: React.CSSProperties = {
-      fontFamily: `var(--font-${prefix}-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`,
-      fontSize: `var(--font-${prefix}-font-size, 16px)`,
-      fontWeight: `var(--font-${prefix}-font-weight, var(--font-${prefix}-font-weight-normal, 400))` as any,
-      letterSpacing: `var(--font-${prefix}-font-letter-spacing, 0)`,
-      lineHeight: `var(--font-${prefix}-line-height, normal)` as any,
+      fontFamily: `var(--recursica-font-${prefix}-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`,
+      fontSize: `var(--recursica-font-${prefix}-font-size, 16px)`,
+      fontWeight: `var(--recursica-font-${prefix}-font-weight, 400)` as any,
+      letterSpacing: `var(--recursica-font-${prefix}-font-letter-spacing, 0)`,
+      lineHeight: `var(--recursica-font-${prefix}-line-height, normal)` as any,
       margin: '0',
     }
     return (
@@ -62,6 +62,12 @@ export function TypePage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [version, setVersion] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
+  // Listen for type choices changes to force re-render when CSS variables update
+  useEffect(() => {
+    const handler = () => setVersion((v) => v + 1)
+    window.addEventListener('typeChoicesChanged', handler as any)
+    return () => window.removeEventListener('typeChoicesChanged', handler as any)
+  }, [])
   // Open/close style panel automatically based on selection
   useEffect(() => {
     if (selected.length > 0) setIsPanelOpen(false) // leave tokens panel closed when editing styles

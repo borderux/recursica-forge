@@ -23,13 +23,18 @@ export function applyCssVarsDelta(prev: CssVarMap | null, next: CssVarMap): { ap
     if (pref !== key) root.style.removeProperty(key)
     applied += 1
   }
-  // Remove any old/unprefixed variables that were previously applied but are no longer present
+  // Remove any old variables (both prefixed and unprefixed) that were previously applied but are no longer present
+  const nextKeys = new Set(Object.keys(next))
   for (const key of Object.keys(prevMap)) {
     if (!key.startsWith('--')) continue
     const pref = toPrefixed(key)
+    // Remove unprefixed legacy var if it exists
     if (pref !== key) {
-      // Remove legacy var
       root.style.removeProperty(key)
+    }
+    // Remove prefixed var if it's no longer in next map
+    if (!nextKeys.has(key)) {
+      root.style.removeProperty(pref)
     }
   }
   return { applied }

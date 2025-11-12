@@ -75,9 +75,9 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
         const m = /^var\(\s*--palette-([a-z0-9\-]+)-([0-9]{3}|000|050|primary)-tone\s*\)$/i.exec(s)
         if (m) return { paletteKey: m[1], level: m[2] }
       }
-      // Brand-scoped palette var format
-      if (/^var\(\s*--brand-(?:light|dark)-palettes-[a-z0-9\-]+-(?:[0-9]{3}|000|050|primary)-tone\s*\)$/i.test(s)) {
-        const m = /^var\(\s*--brand-(?:light|dark)-palettes-([a-z0-9\-]+)-([0-9]{3}|000|050|primary)-tone\s*\)$/i.exec(s)
+      // Brand-scoped palette var format (with or without recursica- prefix)
+      if (/^var\(\s*--(?:recursica-)?brand-(?:light|dark)-palettes-[a-z0-9\-]+-(?:[0-9]{3}|000|050|primary)-tone\s*\)$/i.test(s)) {
+        const m = /^var\(\s*--(?:recursica-)?brand-(?:light|dark)-palettes-([a-z0-9\-]+)-([0-9]{3}|000|050|primary)-tone\s*\)$/i.exec(s)
         if (m) return { paletteKey: m[1], level: m[2] }
       }
     } catch {}
@@ -102,6 +102,24 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   const getTokenHex = (family: string, level: string): string | undefined => {
     const hex = tokenIndex.get(`color/${family}/${level}`)
     return typeof hex === 'string' ? hex : undefined
+  }
+  const findTokenColorByHex = (hex: string): { family: string; level: string } | null => {
+    try {
+      const h = (hex || '').trim().toLowerCase()
+      if (!/^#?[0-9a-f]{6}$/.test(h)) return null
+      const normalized = h.startsWith('#') ? h : `#${h}`
+      const colorsRoot: any = (tokens as any)?.tokens?.color || {}
+      for (const family of Object.keys(colorsRoot)) {
+        if (family === 'translucent') continue
+        for (const level of Object.keys(colorsRoot[family] || {})) {
+          const val = colorsRoot[family]?.[level]?.$value
+          if (typeof val === 'string' && val.trim().toLowerCase() === normalized) {
+            return { family, level }
+          }
+        }
+      }
+    } catch {}
+    return null
   }
   const findPaletteKeyForFamilyLevel = (family: string, level: string): string | null => {
     // Prefer direct mapping based on known family → paletteKey
@@ -317,6 +335,11 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
               if (toneHex && toneHex.toLowerCase() === h) return `var(${buildPaletteVar(pk, lvl, 'tone')})`
             }
           }
+          // If no palette match, try to find matching token color
+          const tokenMatch = findTokenColorByHex(h)
+          if (tokenMatch) {
+            return `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
+          }
         }
       }
     } catch {}
@@ -397,11 +420,54 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       // Prefer dereferencing palette tone to a token var (avoids brand palette indirection)
       const toneVarName = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')
       const deref = readCssVar(toneVarName)
-      result[`${brandBase}surface`] = deref || `var(${toneVarName})`
+      // If deref is a hex value, try to convert it to a token var reference
+      if (deref && typeof deref === 'string') {
+        const hex = deref.trim()
+        if (/^#?[0-9a-f]{6}$/i.test(hex)) {
+          const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+          if (h === '#ffffff' || h === '#000000') {
+            result[`${brandBase}surface`] = mapBWHexToVar(h)
+          } else {
+            const tokenMatch = findTokenColorByHex(h)
+            if (tokenMatch) {
+              result[`${brandBase}surface`] = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
+            } else {
+              // Fall back to palette tone var if no token match
+              result[`${brandBase}surface`] = `var(${toneVarName})`
+            }
+          }
+        } else {
+          // Not a hex value, use as-is or fall back to palette tone var
+          result[`${brandBase}surface`] = deref || `var(${toneVarName})`
+        }
+      } else {
+        // No deref value, use palette tone var
+        result[`${brandBase}surface`] = `var(${toneVarName})`
+      }
     } else {
       const surfVarRef = coerceToVarRef(surfRaw)
       if (surfVarRef) {
         result[`${brandBase}surface`] = surfVarRef
+      } else if (surf != null && typeof surf === 'string') {
+        // Try to map hex value to token if it's a hex string
+        const hex = readIfCssVarOrHex(surf)
+        if (hex && /^#?[0-9a-f]{6}$/i.test(hex.trim())) {
+          const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+          if (h === '#ffffff' || h === '#000000') {
+            result[`${brandBase}surface`] = mapBWHexToVar(h)
+          } else {
+            const tokenMatch = findTokenColorByHex(h)
+            if (tokenMatch) {
+              result[`${brandBase}surface`] = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
+            } else if (!isAlt) {
+              // Do not emit hex/computed values; record missing palette surface for visibility
+              missingPaletteSurfaces.push(String(prefix))
+            }
+          }
+        } else if (!isAlt) {
+          // Do not emit hex/computed values; record missing palette surface for visibility
+          missingPaletteSurfaces.push(String(prefix))
+        }
       } else if (!isAlt && surf != null) {
         // Do not emit hex/computed values; record missing palette surface for visibility
         missingPaletteSurfaces.push(String(prefix))
@@ -481,7 +547,31 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       // Map on-tone to brand core black/white by dereferencing the palette on-tone var
       const onToneVarName = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone')
       const deref = readCssVar(onToneVarName)
-      result[`${brandTextBase}color`] = deref || `var(${onToneVarName})`
+      // If deref is a hex value, convert it to a token var reference if possible
+      if (deref && typeof deref === 'string') {
+        const hex = deref.trim()
+        if (/^#?[0-9a-f]{6}$/i.test(hex)) {
+          const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+          if (h === '#ffffff' || h === '#000000') {
+            result[`${brandTextBase}color`] = mapBWHexToVar(h)
+          } else {
+            // Try to find matching token for non-black/white hex values
+            const tokenMatch = findTokenColorByHex(h)
+            if (tokenMatch) {
+              result[`${brandTextBase}color`] = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
+            } else {
+              // Fall back to on-tone var if no token match
+              result[`${brandTextBase}color`] = `var(${onToneVarName})`
+            }
+          }
+        } else {
+          // Not a hex value, use as-is or fall back to on-tone var
+          result[`${brandTextBase}color`] = deref || `var(${onToneVarName})`
+        }
+      } else {
+        // No deref value, use on-tone var
+        result[`${brandTextBase}color`] = `var(${onToneVarName})`
+      }
     } else if (tcolorVarRef) {
       result[`${brandTextBase}color`] = tcolorVarRef
     } else if (surfaceHex) {
@@ -535,7 +625,31 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
           const onToneVar = surfPalette ? buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone') : undefined
           if (onToneVar) {
             const deref = readCssVar(onToneVar)
-            finalRef = deref || `var(${onToneVar})`
+            // If deref is a hex value, convert it to a token var reference if possible
+            if (deref && typeof deref === 'string') {
+              const hex = deref.trim()
+              if (/^#?[0-9a-f]{6}$/i.test(hex)) {
+                const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+                if (h === '#ffffff' || h === '#000000') {
+                  finalRef = mapBWHexToVar(h)
+                } else {
+                  // Try to find matching token for non-black/white hex values
+                  const tokenMatch = findTokenColorByHex(h)
+                  if (tokenMatch) {
+                    finalRef = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
+                  } else {
+                    // Fall back to on-tone var if no token match
+                    finalRef = `var(${onToneVar})`
+                  }
+                }
+              } else {
+                // Not a hex value, use as-is or fall back to on-tone var
+                finalRef = deref || `var(${onToneVar})`
+              }
+            } else {
+              // No deref value, use on-tone var
+              finalRef = `var(${onToneVar})`
+            }
           } else {
             finalRef = mapBWHexToVar(pickAAOnTone(bgHex)) // fallback
           }
@@ -613,7 +727,31 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
         const onToneVar = surfPalette ? buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone') : undefined
         if (onToneVar) {
           const deref = readCssVar(onToneVar)
-          finalRef = deref || `var(${onToneVar})`
+          // If deref is a hex value, convert it to a token var reference if possible
+          if (deref && typeof deref === 'string') {
+            const hex = deref.trim()
+            if (/^#?[0-9a-f]{6}$/i.test(hex)) {
+              const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+              if (h === '#ffffff' || h === '#000000') {
+                finalRef = mapBWHexToVar(h)
+              } else {
+                // Try to find matching token for non-black/white hex values
+                const tokenMatch = findTokenColorByHex(h)
+                if (tokenMatch) {
+                  finalRef = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
+                } else {
+                  // Fall back to on-tone var if no token match
+                  finalRef = `var(${onToneVar})`
+                }
+              }
+            } else {
+              // Not a hex value, use as-is or fall back to on-tone var
+              finalRef = deref || `var(${onToneVar})`
+            }
+          } else {
+            // No deref value, use on-tone var
+            finalRef = `var(${onToneVar})`
+          }
         } else {
           finalRef = mapBWHexToVar(pickAAOnTone(bgHex))
         }
