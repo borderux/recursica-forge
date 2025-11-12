@@ -1,4 +1,4 @@
-import { ColorPickerOverlay } from './ColorPickerOverlay'
+import { ColorPickerOverlay } from '../../pickers/ColorPickerOverlay'
 
 export type ColorCellProps = {
   tokenName: string | undefined

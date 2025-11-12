@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
-import { readOverrides, setOverride } from '../../theme/tokenOverrides'
+import { readOverrides } from '../../theme/tokenOverrides'
 
 export default function FontLineHeightTokens() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -86,7 +86,7 @@ export default function FontLineHeightTokens() {
       }
     })
     setValues((prev) => ({ ...prev, ...updates }))
-    Object.entries(updates).forEach(([n, v]) => setOverride(n, v))
+    Object.entries(updates).forEach(([n, v]) => updateToken(n, v))
   }
 
   const scaleKey = 'font-line-scale-by-short-tall'
@@ -133,7 +133,7 @@ export default function FontLineHeightTokens() {
                     applyScaled(name, next)
                   } else {
                     setValues((prev) => ({ ...prev, [name]: next }))
-                    setOverride(name, next)
+                    updateToken(name, next)
                   }
                 }}
                 style={{ width: '100%', justifySelf: 'end' }}
@@ -157,7 +157,7 @@ export default function FontLineHeightTokens() {
                     applyScaled(name, next)
                   } else {
                     setValues((prev) => ({ ...prev, [name]: next }))
-                    setOverride(name, next)
+                    updateToken(name, next)
                   }
                 }}
                 style={{ width: 80, paddingRight: 0, textAlign: 'right' }}

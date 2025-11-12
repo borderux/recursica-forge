@@ -3,6 +3,7 @@ import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
 import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
 import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
+import { findTokenByHex } from '../css/tokenRefs'
 import { computeBundleVersion } from './versioning'
 import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
@@ -157,7 +158,7 @@ class VarsStore {
   subscribe(listener: Listener) { this.listeners.add(listener); return () => { this.listeners.delete(listener) } }
   private emit() { this.listeners.forEach((l) => l()) }
 
-  private writeState(next: Partial<VarsState>) {
+  private writeState(next: Partial<VarsState>, skipRecompute = false) {
     this.state = { ...this.state, ...next }
     if (this.lsAvailable) {
       if (next.tokens) writeLSJson(STORAGE_KEYS.tokens, this.state.tokens)
@@ -167,7 +168,9 @@ class VarsStore {
       if (next.elevation) writeLSJson(STORAGE_KEYS.elevation, this.state.elevation)
     }
     this.emit()
-    this.recomputeAndApplyAll()
+    if (!skipRecompute) {
+      this.recomputeAndApplyAll()
+    }
   }
 
   private bumpVersion() { this.state = { ...this.state, version: (this.state.version || 0) + 1 }; this.emit() }
@@ -178,6 +181,103 @@ class VarsStore {
   setPalettes(next: PaletteStore) { this.writeState({ palettes: next }) }
   setElevation(next: ElevationState) { this.writeState({ elevation: next }) }
   updateElevation(mutator: (prev: ElevationState) => ElevationState) { this.writeState({ elevation: mutator(this.state.elevation) }) }
+
+  /**
+   * Update a single CSS variable for a specific token.
+   * Only updates the CSS var(s) affected by this token, not all CSS vars.
+   */
+  private updateSingleTokenCssVar(tokenName: string) {
+    const parts = tokenName.split('/').filter(Boolean)
+    if (parts.length === 0) return
+
+    const [category, ...rest] = parts
+    const varsToUpdate: Record<string, string> = {}
+    const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+
+    try {
+      if (category === 'font' && rest.length >= 2) {
+        const [kind, key] = rest
+        // Read the updated value from state
+        const tokenValue = tokensRoot?.font?.[kind]?.[key]?.$value
+        if (tokenValue == null) return
+
+        // Update the direct font token CSS var
+        const formatFontValue = (val: any, category: string): string | undefined => {
+          if (category === 'size') {
+            const num = typeof val === 'number' ? val : Number(val)
+            return Number.isFinite(num) ? `${num}px` : undefined
+          } else if (category === 'letter-spacing') {
+            const num = typeof val === 'number' ? val : Number(val)
+            return Number.isFinite(num) ? `${num}em` : undefined
+          } else if (category === 'weight' || category === 'line-height') {
+            return String(val)
+          } else if (category === 'family' || category === 'typeface') {
+            return String(val)
+          }
+          return undefined
+        }
+        
+        const formattedValue = formatFontValue(tokenValue, kind)
+        if (formattedValue) {
+          varsToUpdate[`--tokens-font-${kind}-${key}`] = formattedValue
+        }
+
+        // Rebuild typography vars that might reference this font token
+        const { vars: typeVars } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, this.readTypeChoices())
+        Object.assign(varsToUpdate, typeVars)
+      } else if (category === 'size' && rest.length >= 1) {
+        const [key] = rest
+        const tokenValue = tokensRoot?.size?.[key]?.$value
+        if (tokenValue == null) return
+        
+        const toPxString = (v: any): string | undefined => {
+          if (v == null) return undefined
+          if (typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) {
+            const val: any = (v as any).value
+            const unit: any = (v as any).unit
+            if (typeof val === 'number') return unit ? `${val}${unit}` : `${val}px`
+            return typeof val === 'string' ? val : undefined
+          }
+          if (typeof v === 'number') return `${v}px`
+          if (typeof v === 'string') {
+            return /^-?\d+(\.\d+)?$/.test(v.trim()) ? `${v.trim()}px` : v.trim()
+          }
+          return undefined
+        }
+        const px = toPxString(tokenValue)
+        if (px) varsToUpdate[`--tokens-size-${key}`] = px
+      } else if (category === 'opacity' && rest.length >= 1) {
+        const [key] = rest
+        const tokenValue = tokensRoot?.opacity?.[key]?.$value
+        if (tokenValue == null) return
+        
+        const normalize = (v: any): string | undefined => {
+          try {
+            const n = typeof v === 'number' ? v : Number(v)
+            if (!Number.isFinite(n)) return undefined
+            const val = n <= 1 ? n : n / 100
+            return String(Math.max(0, Math.min(1, val)))
+          } catch { return undefined }
+        }
+        const norm = normalize(tokenValue)
+        if (norm) varsToUpdate[`--tokens-opacity-${key}`] = norm
+      } else if (category === 'color' && rest.length >= 2) {
+        const [family, level] = rest
+        const tokenValue = tokensRoot?.color?.[family]?.[level]?.$value
+        if (tokenValue == null) return
+        
+        const cssVarKey = `--tokens-color-${family}-${String(level).padStart(3, '0')}`
+        varsToUpdate[cssVarKey] = String(tokenValue)
+      }
+
+      // Apply only the affected CSS variables (with validation)
+      if (Object.keys(varsToUpdate).length > 0) {
+        applyCssVars(varsToUpdate, this.state.tokens)
+      }
+    } catch (error) {
+      console.error('Failed to update single token CSS var:', tokenName, error)
+    }
+  }
 
   /**
    * Update a single token value directly in the tokens state.
@@ -238,7 +338,11 @@ class VarsStore {
         (nextTokens as any).tokens = tokensRoot
       }
       
-      this.setTokens(nextTokens)
+      // Update state without triggering full recompute
+      this.writeState({ tokens: nextTokens }, true)
+      
+      // Update only the affected CSS variable(s)
+      this.updateSingleTokenCssVar(tokenName)
     } catch (error) {
       console.error('Failed to update token:', tokenName, error)
     }
@@ -449,12 +553,12 @@ class VarsStore {
         return undefined
       }
       const defaults: Record<string, { token: string; hex: string }> = {
-        '--brand-light-palettes-core-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
-        '--brand-light-palettes-core-white': { token: 'color/gray/000', hex: get('color/gray/000') || '#ffffff' },
-        '--brand-light-palettes-core-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
-        '--brand-light-palettes-core-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
-        '--brand-light-palettes-core-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
-        '--brand-light-palettes-core-interactive': { token: 'color/salmon/400', hex: get('color/salmon/400') || '#ff6b6b' },
+        '--recursica-brand-light-palettes-core-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
+        '--recursica-brand-light-palettes-core-white': { token: 'color/gray/000', hex: get('color/gray/000') || '#ffffff' },
+        '--recursica-brand-light-palettes-core-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
+        '--recursica-brand-light-palettes-core-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
+        '--recursica-brand-light-palettes-core-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
+        '--recursica-brand-light-palettes-core-interactive': { token: 'color/salmon/400', hex: get('color/salmon/400') || '#ff6b6b' },
       }
       const normalizeLevel = (lvl?: string): string | undefined => {
         if (!lvl) return undefined
@@ -478,8 +582,41 @@ class VarsStore {
       const merged = { ...defaults, ...(this.state.palettes?.bindings || {}) }
       const colors: Record<string, string> = {}
       Object.entries(merged).forEach(([cssVar, info]) => {
-        const ref = tokenToTokensVar(info?.token)
-        colors[cssVar] = ref || info.hex
+        let ref = tokenToTokensVar(info?.token)
+        
+        // If token reference failed, try to find token by hex value
+        if (!ref && info?.hex) {
+          const tokenMatch = findTokenByHex(info.hex, this.state.tokens)
+          if (tokenMatch) {
+            ref = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
+          } else {
+            // Hex value doesn't match any token - log warning and use default
+            console.warn(`Core palette color ${cssVar} has hex value ${info.hex} that doesn't match any token. Using default token reference.`)
+          }
+        }
+        
+        // If still no reference, use default token reference (never hardcoded hex)
+        if (!ref) {
+          const defaultInfo = defaults[cssVar]
+          if (defaultInfo) {
+            ref = tokenToTokensVar(defaultInfo.token)
+          }
+          // Last resort: use gray-500 as fallback token reference
+          if (!ref) {
+            console.warn(`Could not resolve token reference for ${cssVar}, using gray-500 as fallback`)
+            ref = 'var(--recursica-tokens-color-gray-500)'
+          }
+        }
+        
+        // CRITICAL: Never set brand CSS vars to hardcoded hex values
+        // Validate that ref is a token reference, not a raw hex value
+        if (ref && !ref.startsWith('var(')) {
+          console.error(`CRITICAL: Attempted to set brand CSS variable ${cssVar} to non-reference value: ${ref}. Using default token reference instead.`)
+          const defaultInfo = defaults[cssVar]
+          ref = defaultInfo ? tokenToTokensVar(defaultInfo.token) : 'var(--recursica-tokens-color-gray-500)'
+        }
+        
+        colors[cssVar] = ref || 'var(--recursica-tokens-color-gray-500)'
       })
       // Expose palette opacity bindings as CSS vars
       try {
@@ -657,8 +794,8 @@ class VarsStore {
       Object.assign(allVars, vars)
     } catch {}
     
-    // Apply all CSS variables at once
-    applyCssVars(allVars)
+    // Apply all CSS variables at once (with validation)
+    applyCssVars(allVars, this.state.tokens)
   }
 }
 

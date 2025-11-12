@@ -3,7 +3,7 @@ import { useVars } from '../../vars/VarsContext'
 import { ColorScale } from './ColorScale'
 import { clamp, hsvToHex, toTitleCase, toKebabCase } from './colorUtils'
 import { cascadeColor, computeLevel500Hex, parseLevel, IDX_MAP, LEVELS_ASC } from './colorCascade'
-import { getFriendlyNamePreferNtc, getNtcName } from './colorNaming'
+import { getFriendlyNamePreferNtc, getNtcName } from '../../utils/colorNaming'
 
 type TokenEntry = {
   name: string

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
-import { readOverrides, setOverride } from '../../theme/tokenOverrides'
+import { readOverrides } from '../../theme/tokenOverrides'
 
 export default function FontWeightTokens() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -73,7 +73,7 @@ export default function FontWeightTokens() {
                 onChange={(ev) => {
                   const next = Number(ev.currentTarget.value)
                   setValues((prev) => ({ ...prev, [it.name]: next }))
-                  setOverride(it.name, next)
+                  updateToken(it.name, next)
                 }}
                 style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
               />
@@ -86,7 +86,7 @@ export default function FontWeightTokens() {
                 onChange={(ev) => {
                   const next = Number(ev.currentTarget.value)
                   setValues((prev) => ({ ...prev, [it.name]: next }))
-                  setOverride(it.name, next)
+                  updateToken(it.name, next)
                 }}
                 style={{ width: 80 }}
               />

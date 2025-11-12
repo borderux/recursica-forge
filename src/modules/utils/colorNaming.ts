@@ -1,6 +1,6 @@
 // Color naming utilities using NTC (Name That Color)
 
-import { fallbackHueNameFromHex, toTitleCase } from './colorUtils'
+import { fallbackHueNameFromHex, toTitleCase } from '../tokens/colors/colorUtils'
 
 let ntcReadyPromise: Promise<void> | null = null
 

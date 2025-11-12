@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { hexToHsv, hsvToHex, toKebabCase } from './colorUtils'
-import { getNtcName } from './colorNaming'
+import { hexToHsv, hsvToHex, toKebabCase } from '../tokens/colors/colorUtils'
 
 export type ColorPickerOverlayProps = {
   tokenName: string

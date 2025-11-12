@@ -153,14 +153,20 @@ export default function LayerStylePanel({
     const current = getPaletteBindingFromValue((spec as any)?.property?.[target])
     const label = current ? `${current.paletteKey}/${current.level}` : 'Not set'
     const swatchVar = current ? (current.level === 'default'
-      ? `var(--palette-${current.paletteKey}-primary-tone)`
-      : `var(--palette-${current.paletteKey}-${current.level}-tone)`) : undefined
+      ? `var(--recursica-brand-light-palettes-${current.paletteKey}-primary-tone)`
+      : `var(--recursica-brand-light-palettes-${current.paletteKey}-${current.level}-tone)`) : undefined
+    const targetCssVar = `--recursica-brand-light-layer-layer-${layerKey}-property-${target}`
     return (
       <div className="control-group">
         <label>{title}</label>
         <button
           type="button"
-          onClick={(e) => { setPickTarget(target); try { (window as any).openPalettePicker(e.currentTarget) } catch {} }}
+          onClick={(e) => { 
+            setPickTarget(target)
+            try { 
+              (window as any).openPalettePicker(e.currentTarget, targetCssVar) 
+            } catch {} 
+          }}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
         >
           <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid rgba(0,0,0,0.15)', background: swatchVar || 'transparent' }} />
@@ -344,11 +350,18 @@ export default function LayerStylePanel({
         </div>
       </div>
       <PaletteSwatchPicker
-        onSelect={(sel) => {
+        onSelect={(cssVarName) => {
           if (!pickTarget) return
-          const value = `{brand.light.palettes.${sel.paletteKey}.${sel.level}.color.tone}`
-          if (pickTarget === 'surface') updateValue(['property','surface'], value)
-          if (pickTarget === 'border-color') updateValue(['property','border-color'], value)
+          // CSS var has already been set by PaletteSwatchPicker
+          // Update the theme JSON to reflect the change
+          const match = cssVarName.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
+          if (match) {
+            const [, paletteKey, level] = match
+            const normalizedLevel = level === 'primary' ? 'default' : level
+            const value = `{brand.light.palettes.${paletteKey}.${normalizedLevel}.color.tone}`
+            if (pickTarget === 'surface') updateValue(['property','surface'], value)
+            if (pickTarget === 'border-color') updateValue(['property','border-color'], value)
+          }
           setPickTarget(null)
         }}
       />

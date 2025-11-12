@@ -3,11 +3,10 @@ import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 
-type Selection = { paletteKey: string; level: string }
-
-export default function PaletteSwatchPicker({ onSelect }: { onSelect: (sel: Selection) => void }) {
+export default function PaletteSwatchPicker({ onSelect }: { onSelect: (cssVarName: string) => void }) {
   const { tokens: tokensJson, palettes } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+  const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
 
   const getPersistedFamily = (key: string): string | undefined => {
@@ -47,15 +46,26 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect: (sel: Sele
     return out
   }, [tokensJson, paletteKeys])
 
-  ;(window as any).openPalettePicker = (el: HTMLElement) => {
+  ;(window as any).openPalettePicker = (el: HTMLElement, cssVar: string) => {
     setAnchor(el)
+    setTargetCssVar(cssVar || null)
     const rect = el.getBoundingClientRect()
     const top = rect.bottom + 8
     const left = Math.min(rect.left, window.innerWidth - 420)
     setPos({ top, left })
   }
 
-  if (!anchor) return null
+  if (!anchor || !targetCssVar) return null
+  
+  const buildPaletteCssVar = (paletteKey: string, level: string): string => {
+    // Normalize level (000 -> 050, 1000 -> 900)
+    let normalizedLevel = level
+    if (level === '000') normalizedLevel = '050'
+    else if (level === '1000') normalizedLevel = '900'
+    else if (level === 'default') normalizedLevel = 'primary'
+    
+    return `--recursica-brand-light-palettes-${paletteKey}-${normalizedLevel}-tone`
+  }
   const labelCol = 120
   const swatch = 18
   const gap = 1
@@ -73,13 +83,36 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect: (sel: Sele
           <div key={pk} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
             <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize' }}>{toTitle(pk)}</div>
             <div style={{ display: 'flex', flexWrap: 'nowrap', gap, overflow: 'auto' }}>
-              {(options[pk] || []).map((it) => (
-                <div key={`${pk}-${it.level}`} title={`${pk}/${it.level}`} onClick={() => {
-                  try { onSelect({ paletteKey: pk, level: it.level }) } catch {}
-                  try { (window as any).__onPalettePick && (window as any).__onPalettePick({ paletteKey: pk, level: it.level }) } catch {}
-                  setAnchor(null)
-                }} style={{ width: swatch, height: swatch, background: it.hex, cursor: 'pointer', border: '1px solid rgba(0,0,0,0.15)', flex: '0 0 auto' }} />
-              ))}
+              {(options[pk] || []).map((it) => {
+                const paletteCssVar = buildPaletteCssVar(pk, it.level)
+                return (
+                  <div 
+                    key={`${pk}-${it.level}`} 
+                    title={`${pk}/${it.level}`} 
+                    onClick={() => {
+                      try {
+                        // Ensure target CSS var has --recursica- prefix if it doesn't already
+                        const prefixedTarget = targetCssVar!.startsWith('--recursica-') 
+                          ? targetCssVar! 
+                          : targetCssVar!.startsWith('--') 
+                            ? `--recursica-${targetCssVar!.slice(2)}`
+                            : `--recursica-${targetCssVar!}`
+                        
+                        // Set the target CSS variable to reference the selected palette CSS variable
+                        const root = document.documentElement
+                        root.style.setProperty(prefixedTarget, `var(${paletteCssVar})`)
+                        // Return the CSS var name that was set (palette CSS var already has correct prefix)
+                        onSelect(paletteCssVar)
+                      } catch (err) {
+                        console.error('Failed to set palette CSS variable:', err)
+                      }
+                      setAnchor(null)
+                      setTargetCssVar(null)
+                    }} 
+                    style={{ width: swatch, height: swatch, background: it.hex, cursor: 'pointer', border: '1px solid rgba(0,0,0,0.15)', flex: '0 0 auto' }} 
+                  />
+                )
+              })}
             </div>
           </div>
         ))}

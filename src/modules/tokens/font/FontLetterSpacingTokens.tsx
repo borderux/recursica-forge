@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
-import { readOverrides, setOverride } from '../../theme/tokenOverrides'
+import { readOverrides } from '../../theme/tokenOverrides'
 
 export default function FontLetterSpacingTokens() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -104,7 +104,7 @@ export default function FontLetterSpacingTokens() {
     })
     // write updates
     setValues((prev) => ({ ...prev, ...updates }))
-    Object.entries(updates).forEach(([n, v]) => setOverride(n, v))
+    Object.entries(updates).forEach(([n, v]) => updateToken(n, v))
   }
 
   return (
@@ -145,7 +145,7 @@ export default function FontLetterSpacingTokens() {
                     applyScaled(it.name, next)
                   } else {
                     setValues((prev) => ({ ...prev, [it.name]: next }))
-                    setOverride(it.name, next)
+                    updateToken(it.name, next)
                   }
                 }}
                 style={{ width: '100%', maxWidth: 300, justifySelf: 'end', background: `linear-gradient(to right, transparent 0%, transparent 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15) 50%), linear-gradient(to right, transparent 50%, rgba(0,0,0,0.3) 50%)` }}
@@ -165,7 +165,7 @@ export default function FontLetterSpacingTokens() {
                     applyScaled(it.name, next)
                   } else {
                     setValues((prev) => ({ ...prev, [it.name]: next }))
-                    setOverride(it.name, next)
+                    updateToken(it.name, next)
                   }
                 }}
                 style={{ width: 80, paddingRight: 0, textAlign: 'right' }}

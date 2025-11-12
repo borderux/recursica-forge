@@ -275,7 +275,17 @@ export default function ElevationStylePanel({
           <button
             ref={colorBtnRef}
             type="button"
-            onClick={() => { const el = colorBtnRef.current; if (el) (window as any).openPalettePicker(el) }}
+            onClick={() => { 
+              const el = colorBtnRef.current
+              if (!el) return
+              // Determine target CSS var(s) based on selected levels
+              // For now, use the first selected level, or elevation-0 if none
+              const firstLevel = levelsArr.length ? levelsArr[0] : 0
+              const targetCssVar = `--recursica-brand-light-elevations-elevation-${firstLevel}-shadow-color`
+              try { 
+                (window as any).openPalettePicker(el, targetCssVar) 
+              } catch {} 
+            }}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
           >
             {(() => {
@@ -293,7 +303,16 @@ export default function ElevationStylePanel({
               return (<><span aria-hidden style={{ width: 16, height: 16, borderRadius: 4, border: '1px solid rgba(0,0,0,0.15)', background: getHexForToken(token) }} /><span style={{ textTransform: 'capitalize' }}>{(token || '').replace('color/','')}</span></>)
             })()}
           </button>
-          <PaletteSwatchPicker onSelect={({ paletteKey, level }) => { setPaletteForSelected(paletteKey, level) }} />
+          <PaletteSwatchPicker onSelect={(cssVarName) => { 
+            // CSS var has already been set by PaletteSwatchPicker
+            // Extract palette info from CSS var name and update state
+            const match = cssVarName.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
+            if (match) {
+              const [, paletteKey, level] = match
+              const normalizedLevel = level === 'primary' ? 'default' : level
+              setPaletteForSelected(paletteKey, normalizedLevel)
+            }
+          }} />
         </div>
         <div className="control-group">
           <button

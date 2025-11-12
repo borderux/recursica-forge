@@ -7,12 +7,12 @@
  */
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
-import { readOverrides, setOverride, writeOverrides } from '../../theme/tokenOverrides'
+import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
 
 type FamilyRow = { name: string; value: string; custom: boolean }
 
 export default function FontFamiliesTokens() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, updateToken } = useVars()
   // Local snapshot writer (we don't read it to avoid re-renders)
   const [, setValues] = useState<Record<string, string | number>>(() => {
     const init: Record<string, string | number> = {}
@@ -276,7 +276,7 @@ export default function FontFamiliesTokens() {
                   onChange={(ev) => {
                     const next = ev.currentTarget.value
                     setRows((prev) => prev.map((row) => row.name === r.name ? ({ ...row, value: next, custom: true }) : row))
-                    setOverride(r.name, next)
+                    updateToken(r.name, next)
                   }}
                   onBlur={(ev) => {
                     const next = ev.currentTarget.value
@@ -297,7 +297,7 @@ export default function FontFamiliesTokens() {
                     }
                     const newValue = chosen
                     setRows((prev) => prev.map((row) => row.name === r.name ? ({ ...row, value: newValue, custom: false }) : row))
-                    setOverride(r.name, newValue)
+                    updateToken(r.name, newValue)
                   }}
                   onBlur={(ev) => {
                     const chosen = ev.currentTarget.value

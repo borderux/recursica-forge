@@ -200,39 +200,94 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     if (family != null) {
       const brandVal = familyToken 
         ? `var(--recursica-tokens-font-${familyToken.category}-${familyToken.suffix})`
-        : (findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family') || toCssValue(family)!)
-      vars[`${brandPrefix}font-family`] = brandVal
-      vars[`${shortPrefix}font-family`] = brandVal
+        : (findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family'))
+      
+      // For brand vars, always use token reference, never raw values
+      if (brandVal) {
+        vars[`${brandPrefix}font-family`] = brandVal
+        vars[`${shortPrefix}font-family`] = brandVal
+      } else {
+        // Fallback to default token reference
+        const defaultFamily = getFontToken('typeface/primary') ?? getFontToken('family/primary')
+        if (defaultFamily) {
+          const defaultToken = findTokenByValue(defaultFamily, 'typeface') || findTokenByValue(defaultFamily, 'family')
+          if (defaultToken) {
+            vars[`${brandPrefix}font-family`] = defaultToken
+            vars[`${shortPrefix}font-family`] = defaultToken
+          }
+        }
+      }
       if (typeof brandVal === 'string' && !brandVal.startsWith('var(')) usedFamilies.add(String(family))
       else if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
     }
     if (size != null) {
       const brandVal = sizeToken 
         ? `var(--recursica-tokens-font-${sizeToken.category}-${sizeToken.suffix})`
-        : (findTokenByValue(size, 'size') || toCssValue(size, 'px')!)
-      vars[`${brandPrefix}font-size`] = brandVal
-      vars[`${shortPrefix}font-size`] = brandVal
+        : findTokenByValue(size, 'size')
+      
+      // For brand vars, always use token reference
+      if (brandVal) {
+        vars[`${brandPrefix}font-size`] = brandVal
+        vars[`${shortPrefix}font-size`] = brandVal
+      } else {
+        // Fallback to default token reference
+        const defaultSize = getFontToken('size/md')
+        if (defaultSize) {
+          const defaultToken = findTokenByValue(defaultSize, 'size')
+          if (defaultToken) {
+            vars[`${brandPrefix}font-size`] = defaultToken
+            vars[`${shortPrefix}font-size`] = defaultToken
+          } else {
+            vars[`${brandPrefix}font-size`] = 'var(--recursica-tokens-font-size-md)'
+            vars[`${shortPrefix}font-size`] = 'var(--recursica-tokens-font-size-md)'
+          }
+        }
+      }
     }
     if (weight != null) {
       const brandVal = weightToken 
         ? `var(--recursica-tokens-font-${weightToken.category}-${weightToken.suffix})`
-        : (findTokenByValue(weight, 'weight') || toCssValue(weight)!)
-      vars[`${brandPrefix}font-weight`] = brandVal
-      vars[`${shortPrefix}font-weight`] = brandVal
+        : findTokenByValue(weight, 'weight')
+      
+      // For brand vars, always use token reference
+      if (brandVal) {
+        vars[`${brandPrefix}font-weight`] = brandVal
+        vars[`${shortPrefix}font-weight`] = brandVal
+      } else {
+        // Fallback to default token reference
+        vars[`${brandPrefix}font-weight`] = 'var(--recursica-tokens-font-weight-regular)'
+        vars[`${shortPrefix}font-weight`] = 'var(--recursica-tokens-font-weight-regular)'
+      }
     }
     if (spacing != null) {
       const brandVal = spacingToken 
         ? `var(--recursica-tokens-font-${spacingToken.category}-${spacingToken.suffix})`
-        : (findTokenByValue(spacing, 'letter-spacing') || toCssValue(spacing, 'em')!)
-      vars[`${brandPrefix}font-letter-spacing`] = brandVal
-      vars[`${shortPrefix}font-letter-spacing`] = brandVal
+        : findTokenByValue(spacing, 'letter-spacing')
+      
+      // For brand vars, always use token reference
+      if (brandVal) {
+        vars[`${brandPrefix}font-letter-spacing`] = brandVal
+        vars[`${shortPrefix}font-letter-spacing`] = brandVal
+      } else {
+        // Fallback to default token reference
+        vars[`${brandPrefix}font-letter-spacing`] = 'var(--recursica-tokens-font-letter-spacing-default)'
+        vars[`${shortPrefix}font-letter-spacing`] = 'var(--recursica-tokens-font-letter-spacing-default)'
+      }
     }
     if (lineHeight != null) {
       const brandVal = lineHeightToken 
         ? `var(--recursica-tokens-font-${lineHeightToken.category}-${lineHeightToken.suffix})`
-        : (findTokenByValue(lineHeight, 'line-height') || toCssValue(lineHeight)!)
-      vars[`${brandPrefix}line-height`] = brandVal
-      vars[`${shortPrefix}line-height`] = brandVal
+        : findTokenByValue(lineHeight, 'line-height')
+      
+      // For brand vars, always use token reference
+      if (brandVal) {
+        vars[`${brandPrefix}line-height`] = brandVal
+        vars[`${shortPrefix}line-height`] = brandVal
+      } else {
+        // Fallback to default token reference
+        vars[`${brandPrefix}line-height`] = 'var(--recursica-tokens-font-line-height-default)'
+        vars[`${shortPrefix}line-height`] = 'var(--recursica-tokens-font-line-height-default)'
+      }
     }
     if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
   })

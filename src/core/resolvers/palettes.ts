@@ -154,7 +154,26 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         if (fromHex) {
           vars[`${scope}-tone`] = fromHex
         } else if (typeof tone === 'string') {
-          vars[`${scope}-tone`] = String(tone)
+          // Try one more time to find token by hex if tone is a hex string
+          const toneStr = String(tone).trim()
+          if (/^#?[0-9a-f]{6}$/i.test(toneStr)) {
+            const found = findTokenByHex(toneStr)
+            if (found) {
+              vars[`${scope}-tone`] = `var(--recursica-tokens-color-${found.family}-${found.level})`
+            } else {
+              // Last resort: use default token reference instead of raw hex
+              console.warn(`Could not find token for palette ${pk} level ${lvl} tone ${toneStr}, using default`)
+              vars[`${scope}-tone`] = tokenRefFromMap || `var(--recursica-tokens-color-gray-500)`
+            }
+          } else {
+            // If it's already a var() reference, use it
+            if (toneStr.startsWith('var(')) {
+              vars[`${scope}-tone`] = toneStr
+            } else {
+              // Otherwise, use default token reference
+              vars[`${scope}-tone`] = tokenRefFromMap || `var(--recursica-tokens-color-gray-500)`
+            }
+          }
         }
       }
       // Always map on-tone to core color reference (black/white), never hardcode hex

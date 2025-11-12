@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
-import { readOverrides, setOverride } from '../../theme/tokenOverrides'
+import { readOverrides } from '../../theme/tokenOverrides'
 
 export default function FontSizeTokens() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -42,14 +42,17 @@ export default function FontSizeTokens() {
   }, [])
 
   const items = useMemo(() => {
-    const out: Array<{ name: string; value: number | string }> = flattened
-    // Order by numeric px
+    const out: Array<{ name: string; value: number | string }> = flattened.map((it) => ({
+      name: it.name,
+      value: (values[it.name] as any) ?? it.value
+    }))
+    // Order by numeric px - smallest to largest
     const px = (v: any) => {
       const n = typeof v === 'number' ? v : parseFloat(v)
       return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY
     }
     return out.sort((a,b) => px(a.value) - px(b.value))
-  }, [flattened])
+  }, [flattened, values])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
@@ -72,7 +75,7 @@ export default function FontSizeTokens() {
                 onChange={(ev) => {
                   const next = Number(ev.currentTarget.value)
                   setValues((prev) => ({ ...prev, [it.name]: next }))
-                  setOverride(it.name, next)
+                  updateToken(it.name, next)
                 }}
                 style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
               />
@@ -83,7 +86,7 @@ export default function FontSizeTokens() {
                 onChange={(ev) => {
                   const next = Number(ev.currentTarget.value)
                   setValues((prev) => ({ ...prev, [it.name]: next }))
-                  setOverride(it.name, next)
+                  updateToken(it.name, next)
                 }}
                 style={{ width: 50 }}
               />

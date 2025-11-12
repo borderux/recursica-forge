@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import PaletteGrid from './PaletteGrid'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
+import { findTokenByHex } from '../../core/css/tokenRefs'
 
 type PaletteEntry = { key: string; title: string; defaultLevel: number; initialFamily?: string }
 
@@ -164,12 +165,12 @@ export default function PalettesPage() {
             </thead>
             <tbody>
               <tr>
-                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-black']?.hex || 'var(--recursica-brand-light-palettes-core-black)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-black')} />
-                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-white']?.hex || 'var(--recursica-brand-light-palettes-core-white)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-white')} />
-                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-alert']?.hex || 'var(--recursica-brand-light-palettes-core-alert)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-alert')} />
-                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-warning']?.hex || 'var(--recursica-brand-light-palettes-core-warning)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-warning')} />
-                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-success']?.hex || 'var(--recursica-brand-light-palettes-core-success)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-success')} />
-                <td className="swatch-box" style={{ backgroundColor: paletteBindings['--recursica-brand-light-palettes-core-interactive']?.hex || 'var(--recursica-brand-light-palettes-core-interactive)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-interactive')} />
+                <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-black)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-black')} />
+                <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-white)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-white')} />
+                <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-alert)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-alert')} />
+                <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-warning)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-warning')} />
+                <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-success)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-success')} />
+                <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-interactive')} />
               </tr>
               {/* Removed hex values row under swatches per request */}
             </tbody>
@@ -229,8 +230,43 @@ export default function PalettesPage() {
         </div>
 
         <SwatchPicker onSelect={(cssVar: string, tokenName: string, hex: string) => {
-          document.documentElement.style.setProperty(cssVar, hex)
-          writeBindings({ ...paletteBindings, [cssVar]: { token: tokenName, hex } })
+          // Ensure we have a valid token name - if not, try to find matching token by hex
+          let finalTokenName = tokenName
+          if (!finalTokenName || !finalTokenName.startsWith('color/')) {
+            // Try to find token by hex value
+            const tokenMatch = findTokenByHex(hex, tokensJson)
+            if (tokenMatch) {
+              finalTokenName = `color/${tokenMatch.family}/${tokenMatch.level}`
+              console.log(`Found matching token for hex ${hex}: ${finalTokenName}`)
+            } else {
+              console.warn(`No matching token found for hex ${hex} in core palette ${cssVar}. Using provided token name or default.`)
+            }
+          }
+          
+          // Build the token CSS variable reference with normalized level
+          const tokenParts = finalTokenName.split('/')
+          if (tokenParts.length === 3 && tokenParts[0] === 'color') {
+            const family = tokenParts[1]
+            let level = tokenParts[2]
+            // Normalize level (000 -> 050, 1000 -> 900)
+            const padded = level.padStart(3, '0')
+            if (padded === '000') level = '050'
+            else if (padded === '1000') level = '900'
+            else level = padded
+            
+            const tokenCssVar = `--recursica-tokens-color-${family}-${level}`
+            
+            // Use the CSS variable name as-is (it should already have the correct prefix)
+            // The cssVar passed from openPicker is already --recursica-brand-light-palettes-core-*
+            const root = document.documentElement
+            root.style.setProperty(cssVar, `var(${tokenCssVar})`)
+            
+            console.log(`Set ${cssVar} = var(${tokenCssVar})`)
+          }
+          
+          // Update the binding to reference the token instead of hardcoding hex
+          // setPalettes will trigger recomputeAndApplyAll() which will use token references
+          writeBindings({ ...paletteBindings, [cssVar]: { token: finalTokenName, hex } })
           applyAliasOnTones()
         }} />
 
