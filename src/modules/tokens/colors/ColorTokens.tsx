@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { ColorScale } from './ColorScale'
-import { clamp, hsvToHex, toTitleCase } from './colorUtils'
+import { clamp, hsvToHex, toTitleCase, toKebabCase } from './colorUtils'
 import { cascadeColor, computeLevel500Hex, parseLevel, IDX_MAP, LEVELS_ASC } from './colorCascade'
 import { getFriendlyNamePreferNtc, getNtcName } from './colorNaming'
 
@@ -14,7 +14,7 @@ type TokenEntry = {
 type ModeName = 'Mode 1' | 'Mode 2' | string
 
 export default function ColorTokens() {
-  const { tokens: tokensJson, updateToken } = useVars()
+  const { tokens: tokensJson, updateToken, setTokens } = useVars()
   const [values, setValues] = useState<Record<string, string | number>>({})
   const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
@@ -316,6 +316,87 @@ export default function ColorTokens() {
 
   const handleFamilyNameChange = (family: string, newName: string) => {
     const v = toTitleCase(newName)
+    const newFamilySlug = toKebabCase(newName)
+    
+    // If the slug differs from the current family key, rename all tokens
+    if (newFamilySlug && newFamilySlug !== family && newFamilySlug.length > 0) {
+      try {
+        // Deep clone tokens to avoid mutation
+        const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
+        const tokensRoot = nextTokens?.tokens || {}
+        const colorsRoot = tokensRoot?.color || {}
+        
+        // Get all levels for the old family
+        const oldFamilyData = colorsRoot[family]
+        if (oldFamilyData && typeof oldFamilyData === 'object') {
+          // Create new family with all levels
+          if (!tokensRoot.color) tokensRoot.color = {}
+          tokensRoot.color[newFamilySlug] = { ...oldFamilyData }
+          
+          // Delete old family
+          delete tokensRoot.color[family]
+          
+          // Update tokens structure
+          if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
+          setTokens(nextTokens)
+          
+          // Update local values state
+          const oldTokenNames = Object.keys(values).filter(name => name.startsWith(`color/${family}/`))
+          const newValues = { ...values }
+          oldTokenNames.forEach(oldTokenName => {
+            const parts = oldTokenName.split('/')
+            if (parts.length === 3) {
+              const level = parts[2]
+              const newTokenName = `color/${newFamilySlug}/${level}`
+              const value = values[oldTokenName]
+              delete newValues[oldTokenName]
+              newValues[newTokenName] = value
+            }
+          })
+          setValues(newValues)
+          
+          // Update family order
+          setFamilyOrder((prev) => prev.map(f => f === family ? newFamilySlug : f))
+          
+          // Update deleted families if needed
+          if (deletedFamilies[family]) {
+            setDeletedFamilies((prev) => {
+              const next = { ...prev }
+              delete next[family]
+              next[newFamilySlug] = true
+              return next
+            })
+          }
+          
+          // Update family names map
+          const updatedFamilyNames = { ...familyNames }
+          delete updatedFamilyNames[family]
+          updatedFamilyNames[newFamilySlug] = v
+          setFamilyNames(updatedFamilyNames)
+          
+          // Update localStorage
+          try {
+            const raw = localStorage.getItem('family-friendly-names')
+            const map = raw ? JSON.parse(raw) || {} : {}
+            delete map[family]
+            map[newFamilySlug] = v
+            localStorage.setItem('family-friendly-names', JSON.stringify(map))
+            try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+          } catch {}
+          
+          // Close picker if open for this family
+          if (openPicker && openPicker.tokenName.startsWith(`color/${family}/`)) {
+            setOpenPicker(null)
+          }
+          
+          return // Early return since we've handled the rename
+        }
+      } catch (error) {
+        console.error('Failed to rename color family:', error)
+      }
+    }
+    
+    // If slug matches or rename failed, just update the display name
     setFamilyNames((prev) => ({ ...prev, [family]: v }))
     try {
       const raw = localStorage.getItem('family-friendly-names')

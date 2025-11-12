@@ -21,7 +21,7 @@ export function ColorCell({
   tokenName,
   currentHex,
   level,
-  family,
+  family: _family,
   isHovered,
   isActive,
   onMouseEnter,
@@ -40,6 +40,9 @@ export function ColorCell({
   const activeShadow = isActive ? (isDark ? 'inset 0 0 0 2px rgba(255,255,255,0.8)' : isLight ? 'inset 0 0 0 2px rgba(0,0,0,0.8)' : undefined) : undefined
   const boxShadow = activeShadow || hoverShadow || undefined
 
+  // Convert token name (e.g., "color/gray/100") to CSS variable (e.g., "--recursica-tokens-color-gray-100")
+  const cssVar = tokenName ? `--recursica-tokens-${tokenName.replace(/\//g, '-')}` : null
+
   return (
     <div>
       <div
@@ -48,7 +51,12 @@ export function ColorCell({
         onClick={onClick}
         role="button"
         title={tokenName ? `${tokenName} ${currentHex}` : ''}
-        style={{ height: 40, background: tokenName ? currentHex : 'transparent', cursor: tokenName ? 'pointer' : 'default', boxShadow }}
+        style={{
+          height: 40,
+          background: cssVar ? `var(${cssVar})` : 'transparent',
+          cursor: tokenName ? 'pointer' : 'default',
+          boxShadow,
+        }}
       />
       {tokenName && openPicker && openPicker.tokenName === tokenName && (
         <ColorPickerOverlay
