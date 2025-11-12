@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { readOverrides, setOverride } from '../../theme/tokenOverrides'
+import OpacityPickerOverlay from '../../pickers/OpacityPickerOverlay'
 
 function toTitleCase(label: string): string {
   return (label || '')
@@ -22,7 +23,7 @@ export default function OpacityTokens() {
       })
     } catch {}
     return list
-  }, [])
+  }, [tokensJson])
 
   // Reflect latest overrides; listen to tokenOverridesChanged events
   const [version, setVersion] = useState(0)
@@ -50,39 +51,42 @@ export default function OpacityTokens() {
   }
 
   return (
-    <div style={{ display: 'grid', gap: 8 }}>
-      <div style={{ fontWeight: 600 }}>Opacity</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 50px auto', gap: 8, alignItems: 'center' }}>
-        {items.map((it) => {
-          const label = toTitleCase(it.name.replace('opacity/', ''))
-          const currentRaw = (overrides as any)[it.name] ?? it.value
-          const current = toPctNumber(currentRaw)
-          return (
-            <React.Fragment key={it.name}>
-              <label htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
-              <input
-                id={it.name}
-                type="range"
-                min={0}
-                max={100}
-                value={current}
-                onChange={(ev) => { setOverride(it.name, Number(ev.currentTarget.value)) }}
-                style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
-              />
-              <input
-                type="number"
-                min={0}
-                max={100}
-                value={current}
-                onChange={(ev) => { const next = Number(ev.currentTarget.value); if (Number.isFinite(next)) setOverride(it.name, next) }}
-                style={{ width: 50 }}
-              />
-              <span style={{ fontSize: 12, opacity: 0.8 }}>%</span>
-            </React.Fragment>
-          )
-        })}
+    <>
+      <OpacityPickerOverlay />
+      <div style={{ display: 'grid', gap: 8 }}>
+        <div style={{ fontWeight: 600 }}>Opacity</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 50px auto', gap: 8, alignItems: 'center' }}>
+          {items.map((it) => {
+            const label = toTitleCase(it.name.replace('opacity/', ''))
+            const currentRaw = (overrides as any)[it.name] ?? it.value
+            const current = toPctNumber(currentRaw)
+            return (
+              <React.Fragment key={it.name}>
+                <label htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
+                <input
+                  id={it.name}
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={current}
+                  onChange={(ev) => { setOverride(it.name, Number(ev.currentTarget.value)) }}
+                  style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={current}
+                  onChange={(ev) => { const next = Number(ev.currentTarget.value); if (Number.isFinite(next)) setOverride(it.name, next) }}
+                  style={{ width: 50 }}
+                />
+                <span style={{ fontSize: 12, opacity: 0.8 }}>%</span>
+              </React.Fragment>
+            )
+          })}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

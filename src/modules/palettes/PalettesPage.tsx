@@ -270,10 +270,41 @@ export default function PalettesPage() {
           applyAliasOnTones()
         }} />
 
-        <OpacityPicker onSelect={(slot: 'disabled' | 'overlay' | 'text-high' | 'text-low', tokenName: string, value: number) => {
-          const next = { ...opacityBindings, [slot]: { token: tokenName, value } } as any
-          writeOpacityBindings(next)
-        }} />
+        <OpacityPicker 
+          mode={isDarkMode ? 'dark' : 'light'}
+          onSelect={(slot: 'disabled' | 'overlay' | 'text-high' | 'text-low', tokenName: string, value: number) => {
+            // Create new state preserving all existing bindings
+            const next = { ...opacityBindings, [slot]: { token: tokenName, value } } as any
+            writeOpacityBindings(next)
+            
+            // Update CSS variables after state update to ensure they reflect the current state
+            // Use setTimeout to ensure state update completes before CSS variable updates
+            setTimeout(() => {
+              const modeVar = isDarkMode ? 'dark' : 'light'
+              const root = document.documentElement
+              
+              try {
+                // Update each opacity CSS variable based on the current bindings
+                // Only update if the binding exists to preserve other values
+                const updateCssVar = (slotKey: OpacityBindingKey, cssVarName: string) => {
+                  const binding = next[slotKey]
+                  if (binding?.token) {
+                    const tokenKey = binding.token.replace('opacity/', '')
+                    const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
+                    root.style.setProperty(cssVarName, `var(${opacityCssVar})`)
+                  }
+                }
+                
+                // Update all CSS variables to ensure they all reflect current state
+                updateCssVar('text-high', `--recursica-brand-${modeVar}-text-emphasis-high`)
+                updateCssVar('text-low', `--recursica-brand-${modeVar}-text-emphasis-low`)
+                updateCssVar('overlay', `--recursica-brand-${modeVar}-opacity-overlay`)
+                updateCssVar('disabled', `--recursica-brand-${modeVar}-opacity-disabled`)
+              } catch (err) {
+                console.error('Failed to set opacity CSS variables:', err)
+              }
+            }, 0)
+          }} />
       </div>
     </div>
   )
@@ -401,7 +432,7 @@ function SwatchPicker({ onSelect }: { onSelect: (cssVar: string, tokenName: stri
   )
 }
 
-function OpacityPicker({ onSelect }: { onSelect: (slot: 'disabled' | 'overlay' | 'text-high' | 'text-low', tokenName: string, value: number) => void }) {
+function OpacityPicker({ mode, onSelect }: { mode?: 'light' | 'dark', onSelect: (slot: 'disabled' | 'overlay' | 'text-high' | 'text-low', tokenName: string, value: number) => void }) {
   const { tokens: tokensJson } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [slot, setSlot] = useState<'disabled' | 'overlay' | 'text-high' | 'text-low' | null>(null)
@@ -411,7 +442,7 @@ function OpacityPicker({ onSelect }: { onSelect: (slot: 'disabled' | 'overlay' |
     const list: Array<{ name: string; value: number }> = Object.keys(src).map((k) => ({ name: `opacity/${k}`, value: Number(src[k]?.$value) }))
     list.sort((a, b) => a.value - b.value)
     return list
-  }, [])
+  }, [tokensJson])
 
   ;(window as any).openOpacityPicker = (el: HTMLElement, s: 'disabled' | 'overlay' | 'text-high' | 'text-low') => {
     setAnchor(el)
@@ -423,7 +454,7 @@ function OpacityPicker({ onSelect }: { onSelect: (slot: 'disabled' | 'overlay' |
   }
 
   if (!anchor || !slot) return null
-  return (
+  return createPortal(
     <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: 240, background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 1100 }}>
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
@@ -453,8 +484,8 @@ function OpacityPicker({ onSelect }: { onSelect: (slot: 'disabled' | 'overlay' |
           </button>
         ))}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
-
 

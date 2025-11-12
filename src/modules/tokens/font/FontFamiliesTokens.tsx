@@ -104,7 +104,14 @@ export default function FontFamiliesTokens() {
       if (!detail) return
       const { all, name, value, reset } = detail
       if (all && typeof all === 'object') {
-        setValues(all)
+        // Only update values for font/family tokens, not all tokens
+        const filtered: Record<string, string | number> = {}
+        Object.keys(all).forEach((key) => {
+          if (key.startsWith('font/family/') || key.startsWith('font/typeface/')) {
+            filtered[key] = all[key]
+          }
+        })
+        setValues((prev) => ({ ...prev, ...filtered }))
         setRows(buildRows())
         if (reset) {
           // clear any locally persisted deletions so all default families reappear
@@ -116,7 +123,7 @@ export default function FontFamiliesTokens() {
         }
         return
       }
-      if (typeof name === 'string') {
+      if (typeof name === 'string' && (name.startsWith('font/family/') || name.startsWith('font/typeface/'))) {
         setValues((prev) => ({ ...prev, [name]: value }))
         setRows(buildRows())
       }

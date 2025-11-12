@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
-import { readOverrides } from '../../theme/tokenOverrides'
 
 export default function FontWeightTokens() {
   const { tokens: tokensJson, updateToken } = useVars()
@@ -15,41 +14,19 @@ export default function FontWeightTokens() {
       })
     } catch {}
     return list
-  }, [])
-
-  const [values, setValues] = useState<Record<string, string | number>>(() => {
-    const init: Record<string, string | number> = {}
-    flattened.forEach((it) => { init[it.name] = it.value })
-    const overrides = readOverrides()
-    return { ...init, ...overrides }
-  })
-
-  useEffect(() => {
-    const handler = (ev: Event) => {
-      const detail: any = (ev as CustomEvent).detail
-      if (!detail) return
-      const { all, name, value } = detail
-      if (all && typeof all === 'object') {
-        setValues(all)
-        return
-      }
-      if (typeof name === 'string') {
-        setValues((prev) => ({ ...prev, [name]: value }))
-      }
-    }
-    window.addEventListener('tokenOverridesChanged', handler)
-    return () => window.removeEventListener('tokenOverridesChanged', handler)
-  }, [])
+  }, [tokensJson])
 
   const items = useMemo(() => {
-    const out: Array<{ name: string; value: number | string }> = flattened
+    // Read directly from tokensJson - no local state needed since updateToken updates tokens directly
+    // Sort once by a stable order (token name, not value) to prevent React from reordering inputs
     const order = ['thin','extra-light','light','regular','medium','semi-bold','bold','extra-bold','black']
     const weight = (n: string) => {
       const key = n.replace('font/weight/','')
       const idx = order.indexOf(key)
       return idx === -1 ? Number.POSITIVE_INFINITY : idx
     }
-    return out.sort((a,b) => weight(a.name) - weight(b.name))
+    // Create a sorted copy once - this order won't change when values update
+    return [...flattened].sort((a,b) => weight(a.name) - weight(b.name))
   }, [flattened])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
@@ -60,7 +37,7 @@ export default function FontWeightTokens() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 80px', gap: 8, alignItems: 'center' }}>
         {items.map((it) => {
           const label = toTitle(it.name.replace('font/weight/', ''))
-          const current = Number((values[it.name] as any) ?? it.value)
+          const current = Number(it.value)
           return (
             <div key={it.name} style={{ display: 'contents' }}>
               <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
@@ -72,7 +49,6 @@ export default function FontWeightTokens() {
                 value={current}
                 onChange={(ev) => {
                   const next = Number(ev.currentTarget.value)
-                  setValues((prev) => ({ ...prev, [it.name]: next }))
                   updateToken(it.name, next)
                 }}
                 style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
@@ -85,7 +61,6 @@ export default function FontWeightTokens() {
                 value={current}
                 onChange={(ev) => {
                   const next = Number(ev.currentTarget.value)
-                  setValues((prev) => ({ ...prev, [it.name]: next }))
                   updateToken(it.name, next)
                 }}
                 style={{ width: 80 }}

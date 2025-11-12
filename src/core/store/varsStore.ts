@@ -100,13 +100,97 @@ function migratePaletteLocalKeys(): PaletteStore {
 
 type Listener = () => void
 
+/**
+ * Sort font token objects by semantic order to maintain consistent order.
+ * JavaScript objects maintain insertion order, so we create new objects with sorted keys.
+ */
+function sortFontTokenObjects(tokens: JsonLike): JsonLike {
+  const sorted = JSON.parse(JSON.stringify(tokens)) as JsonLike
+  const tokensRoot: any = (sorted as any)?.tokens || {}
+  
+  if (tokensRoot.font) {
+    const font = tokensRoot.font
+    
+    // Define semantic ordering for each font category
+    // Note: 2xs is smaller than xs, so it comes first
+    const sizeOrder = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl']
+    const weightOrder = ['thin', 'extra-light', 'light', 'regular', 'medium', 'semi-bold', 'bold', 'extra-bold', 'black']
+    const letterSpacingOrder = ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest']
+    const lineHeightOrder = ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest']
+    
+    const sortCategory = (category: string, order: string[]) => {
+      if (font[category] && typeof font[category] === 'object') {
+        const categoryObj = font[category] as Record<string, any>
+        const keys = Object.keys(categoryObj)
+        
+        // Create a case-insensitive lookup map for the order array
+        const orderMap = new Map<string, number>()
+        order.forEach((orderedKey, idx) => {
+          orderMap.set(orderedKey.toLowerCase(), idx)
+        })
+        
+        // Sort keys: first by order array, then alphabetically for any not in order
+        const sortedKeys = keys.sort((a, b) => {
+          const aLower = a.toLowerCase()
+          const bLower = b.toLowerCase()
+          const aIdx = orderMap.get(aLower)
+          const bIdx = orderMap.get(bLower)
+          
+          // Both in order array - use their positions
+          if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx
+          // Only a in order - a comes first
+          if (aIdx !== undefined) return -1
+          // Only b in order - b comes first
+          if (bIdx !== undefined) return 1
+          // Neither in order - sort alphabetically (case-insensitive)
+          return aLower.localeCompare(bLower)
+        })
+        
+        const sortedObj: Record<string, any> = {}
+        sortedKeys.forEach((key) => {
+          sortedObj[key] = categoryObj[key]
+        })
+        font[category] = sortedObj
+      }
+    }
+    
+    sortCategory('size', sizeOrder)
+    sortCategory('weight', weightOrder)
+    sortCategory('letter-spacing', letterSpacingOrder)
+    sortCategory('line-height', lineHeightOrder)
+    // For family and typeface, use alphabetical sorting
+    if (font.family && typeof font.family === 'object') {
+      const categoryObj = font.family as Record<string, any>
+      const sortedKeys = Object.keys(categoryObj).sort()
+      const sortedObj: Record<string, any> = {}
+      sortedKeys.forEach((key) => {
+        sortedObj[key] = categoryObj[key]
+      })
+      font.family = sortedObj
+    }
+    if (font.typeface && typeof font.typeface === 'object') {
+      const categoryObj = font.typeface as Record<string, any>
+      const sortedKeys = Object.keys(categoryObj).sort()
+      const sortedObj: Record<string, any> = {}
+      sortedKeys.forEach((key) => {
+        sortedObj[key] = categoryObj[key]
+      })
+      font.typeface = sortedObj
+    }
+  }
+  
+  return sorted
+}
+
 class VarsStore {
   private state: VarsState
   private listeners: Set<Listener> = new Set()
   private lsAvailable = isLocalStorageAvailable()
 
   constructor() {
-    const tokens = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
+    const tokensRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
+    // Sort font token objects once during initialization to maintain consistent order
+    const tokens = sortFontTokenObjects(tokensRaw)
     const themeRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.theme, themeImport as any) : (themeImport as any)
     const theme = (themeRaw as any)?.brand ? themeRaw : ({ brand: themeRaw } as any)
     const uikit = this.lsAvailable ? readLSJson(STORAGE_KEYS.uikit, uikitImport as any) : (uikitImport as any)
@@ -131,7 +215,9 @@ class VarsStore {
           writeLSJson('family-friendly-names', names)
         } catch {}
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
-        this.state = { tokens: tokensImport as any, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any), version: (this.state?.version || 0) + 1 }
+        // Sort font token objects when resetting to maintain consistent order
+        const sortedTokens = sortFontTokenObjects(tokensImport as any)
+        this.state = { tokens: sortedTokens, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any), version: (this.state?.version || 0) + 1 }
       }
       // Ensure keys exist
       if (!localStorage.getItem(STORAGE_KEYS.tokens)) writeLSJson(STORAGE_KEYS.tokens, this.state.tokens)
@@ -201,7 +287,8 @@ class VarsStore {
         const tokenValue = tokensRoot?.font?.[kind]?.[key]?.$value
         if (tokenValue == null) return
 
-        // Update the direct font token CSS var
+        // Update ONLY the direct font token CSS var
+        // Do NOT rebuild all typography vars - they will be updated on next full recompute
         const formatFontValue = (val: any, category: string): string | undefined => {
           if (category === 'size') {
             const num = typeof val === 'number' ? val : Number(val)
@@ -221,10 +308,8 @@ class VarsStore {
         if (formattedValue) {
           varsToUpdate[`--tokens-font-${kind}-${key}`] = formattedValue
         }
-
-        // Rebuild typography vars that might reference this font token
-        const { vars: typeVars } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, this.readTypeChoices())
-        Object.assign(varsToUpdate, typeVars)
+        // Note: Typography vars that reference this token will update automatically
+        // via CSS var() references, so we don't need to rebuild them here
       } else if (category === 'size' && rest.length >= 1) {
         const [key] = rest
         const tokenValue = tokensRoot?.size?.[key]?.$value
@@ -271,7 +356,10 @@ class VarsStore {
       }
 
       // Apply only the affected CSS variables (with validation)
+      // Ensure we only update the specific CSS variable(s) for this token
       if (Object.keys(varsToUpdate).length > 0) {
+        // Only apply the CSS variables that were added for this specific token
+        // This prevents accidentally updating other CSS variables
         applyCssVars(varsToUpdate, this.state.tokens)
       }
     } catch (error) {
@@ -338,8 +426,11 @@ class VarsStore {
         (nextTokens as any).tokens = tokensRoot
       }
       
+      // Sort font token objects to maintain consistent order
+      const sortedTokens = sortFontTokenObjects(nextTokens)
+      
       // Update state without triggering full recompute
-      this.writeState({ tokens: nextTokens }, true)
+      this.writeState({ tokens: sortedTokens }, true)
       
       // Update only the affected CSS variable(s)
       this.updateSingleTokenCssVar(tokenName)
@@ -353,8 +444,10 @@ class VarsStore {
     clearAllCssVars()
     
     const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
+    // Sort font token objects when resetting to maintain consistent order
+    const sortedTokens = sortFontTokenObjects(tokensImport as any)
     if (this.lsAvailable) {
-      writeLSJson(STORAGE_KEYS.tokens, tokensImport)
+      writeLSJson(STORAGE_KEYS.tokens, sortedTokens)
       writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
       writeLSJson(STORAGE_KEYS.uikit, uikitImport)
       writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
@@ -382,7 +475,7 @@ class VarsStore {
       ['elevation-controls','shadow-color-control','elevation-color-tokens','elevation-alpha-tokens','elevation-palette-selections','elevation-directions','offset-x-direction','offset-y-direction']
         .forEach((k) => { try { localStorage.removeItem(k) } catch {} })
     } catch {}
-    this.state = { tokens: tokensImport as any, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any), version: (this.state.version || 0) + 1 }
+    this.state = { tokens: sortedTokens, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any), version: (this.state.version || 0) + 1 }
     // Persist freshly initialized elevation defaults so future reads are consistent
     if (this.lsAvailable) {
       try { writeLSJson(STORAGE_KEYS.elevation, this.state.elevation) } catch {}

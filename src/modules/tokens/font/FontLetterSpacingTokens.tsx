@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
-import { readOverrides } from '../../theme/tokenOverrides'
 
 export default function FontLetterSpacingTokens() {
   const { tokens: tokensJson, updateToken } = useVars()
@@ -16,30 +15,6 @@ export default function FontLetterSpacingTokens() {
     } catch {}
     return list
   }, [tokensJson])
-
-  const [values, setValues] = useState<Record<string, string | number>>(() => {
-    const init: Record<string, string | number> = {}
-    flattened.forEach((it) => { init[it.name] = it.value })
-    const overrides = readOverrides()
-    return { ...init, ...overrides }
-  })
-
-  useEffect(() => {
-    const handler = (ev: Event) => {
-      const detail: any = (ev as CustomEvent).detail
-      if (!detail) return
-      const { all, name, value } = detail
-      if (all && typeof all === 'object') {
-        setValues(all)
-        return
-      }
-      if (typeof name === 'string') {
-        setValues((prev) => ({ ...prev, [name]: value }))
-      }
-    }
-    window.addEventListener('tokenOverridesChanged', handler)
-    return () => window.removeEventListener('tokenOverridesChanged', handler)
-  }, [])
 
   const items = useMemo(() => {
     const out: Array<{ name: string; value: number | string }> = flattened
@@ -71,10 +46,14 @@ export default function FontLetterSpacingTokens() {
     // fullName is like 'font/letter-spacing/{short}'
     const short = fullName.replace('font/letter-spacing/','')
     const actual = resolveShortToActual(short)
-    const key = `font/letter-spacing/${actual}`
-    const v = (values[key] as any)
-    const n = typeof v === 'number' ? v : parseFloat(v)
-    return Number.isFinite(n) ? n : 0
+    // Read directly from tokensJson
+    try {
+      const v = (tokensJson as any)?.tokens?.font?.['letter-spacing']?.[actual]?.$value
+      const n = typeof v === 'number' ? v : parseFloat(v)
+      return Number.isFinite(n) ? n : 0
+    } catch {
+      return 0
+    }
   }
   const computeD = () => {
     const def = getVal('font/letter-spacing/default')
@@ -102,8 +81,7 @@ export default function FontLetterSpacingTokens() {
         updates[name] = def + offset * d
       }
     })
-    // write updates
-    setValues((prev) => ({ ...prev, ...updates }))
+    // write updates directly via updateToken - no local state needed
     Object.entries(updates).forEach(([n, v]) => updateToken(n, v))
   }
 
@@ -124,7 +102,7 @@ export default function FontLetterSpacingTokens() {
         {items.map((it) => {
           const keyName = it.name.replace('font/letter-spacing/','')
           const label = keyName === 'tighest' ? 'Tightest' : toTitle(keyName)
-          const current = Number((values[it.name] as any) ?? it.value)
+          const current = Number(it.value)
           const isDefault = keyName === 'default'
           const isTight = keyName === 'tight'
           const isWide = keyName === 'wide'
@@ -144,7 +122,6 @@ export default function FontLetterSpacingTokens() {
                   if (scaleByTW && (isDefault || isTight || isWide)) {
                     applyScaled(it.name, next)
                   } else {
-                    setValues((prev) => ({ ...prev, [it.name]: next }))
                     updateToken(it.name, next)
                   }
                 }}
@@ -164,7 +141,6 @@ export default function FontLetterSpacingTokens() {
                   if (scaleByTW && (isDefault || isTight || isWide)) {
                     applyScaled(it.name, next)
                   } else {
-                    setValues((prev) => ({ ...prev, [it.name]: next }))
                     updateToken(it.name, next)
                   }
                 }}
