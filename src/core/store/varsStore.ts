@@ -2,12 +2,12 @@ import type { JsonLike } from '../resolvers/tokens'
 import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
 import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
-import { applyCssVarsDelta, type CssVarMap } from '../css/apply'
+import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
 import { computeBundleVersion } from './versioning'
 import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
-import { readOverrides } from '../../modules/theme/tokenOverrides'
+// Note: Override system removed - tokens are now the single source of truth
 
 type PaletteStore = {
   bindings: Record<string, { token: string; hex: string }>
@@ -103,14 +103,6 @@ class VarsStore {
   private state: VarsState
   private listeners: Set<Listener> = new Set()
   private lsAvailable = isLocalStorageAvailable()
-  // Track last applied maps for delta application per domain
-  private lastPalettes: CssVarMap | null = null
-  private lastCorePalette: CssVarMap | null = null
-  private lastTokenColors: CssVarMap | null = null
-  private lastTokenSizes: CssVarMap | null = null
-  private lastTokenOpacity: CssVarMap | null = null
-  private lastLayers: CssVarMap | null = null
-  private lastTypography: CssVarMap | null = null
 
   constructor() {
     const tokens = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
@@ -151,12 +143,10 @@ class VarsStore {
     // Initial CSS apply (Light mode palettes + layers + typography)
     this.recomputeAndApplyAll()
 
-    // React to token override changes and type choice changes (centralized)
-    const onOverrides = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
+    // React to type choice changes and palette changes (centralized)
     const onTypeChoices = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     const onPaletteVarsChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     const onPaletteFamilyChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
-    window.addEventListener('tokenOverridesChanged', onOverrides as any)
     window.addEventListener('typeChoicesChanged', onTypeChoices as any)
     // Recompute layers and dependent CSS whenever palette CSS vars or families change
     window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
@@ -189,7 +179,75 @@ class VarsStore {
   setElevation(next: ElevationState) { this.writeState({ elevation: next }) }
   updateElevation(mutator: (prev: ElevationState) => ElevationState) { this.writeState({ elevation: mutator(this.state.elevation) }) }
 
+  /**
+   * Update a single token value directly in the tokens state.
+   * Token name format: "color/family/level", "size/key", "opacity/key", "font/size/key", etc.
+   */
+  updateToken(tokenName: string, value: string | number) {
+    const parts = tokenName.split('/').filter(Boolean)
+    if (parts.length === 0) return
+
+    // Deep clone tokens to avoid mutation
+    const nextTokens = JSON.parse(JSON.stringify(this.state.tokens)) as JsonLike
+    const tokensRoot: any = (nextTokens as any)?.tokens || {}
+    
+    try {
+      const [category, ...rest] = parts
+      
+      if (category === 'color' && rest.length >= 2) {
+        const [family, level] = rest
+        if (!tokensRoot.color) tokensRoot.color = {}
+        if (!tokensRoot.color[family]) tokensRoot.color[family] = {}
+        if (!tokensRoot.color[family][level]) tokensRoot.color[family][level] = {}
+        tokensRoot.color[family][level].$value = String(value)
+      } else if (category === 'size' && rest.length >= 1) {
+        const [key] = rest
+        if (!tokensRoot.size) tokensRoot.size = {}
+        if (!tokensRoot.size[key]) tokensRoot.size[key] = {}
+        tokensRoot.size[key].$value = typeof value === 'number' ? value : String(value)
+      } else if (category === 'opacity' && rest.length >= 1) {
+        const [key] = rest
+        if (!tokensRoot.opacity) tokensRoot.opacity = {}
+        if (!tokensRoot.opacity[key]) tokensRoot.opacity[key] = {}
+        tokensRoot.opacity[key].$value = typeof value === 'number' ? value : String(value)
+      } else if (category === 'font' && rest.length >= 2) {
+        const [kind, key] = rest
+        if (!tokensRoot.font) tokensRoot.font = {}
+        if (kind === 'size' || kind === 'weight' || kind === 'letter-spacing' || kind === 'line-height') {
+          if (!tokensRoot.font[kind]) tokensRoot.font[kind] = {}
+          if (!tokensRoot.font[kind][key]) tokensRoot.font[kind][key] = {}
+          tokensRoot.font[kind][key].$value = typeof value === 'number' ? value : String(value)
+        } else if (kind === 'family' || kind === 'typeface') {
+          if (!tokensRoot.font[kind]) tokensRoot.font[kind] = {}
+          tokensRoot.font[kind][key] = typeof value === 'object' ? value : { $value: String(value) }
+        }
+      } else if (category === 'shadow' && rest.length >= 1) {
+        const [key] = rest
+        if (!tokensRoot.shadow) tokensRoot.shadow = {}
+        if (!tokensRoot.shadow[key]) tokensRoot.shadow[key] = {}
+        tokensRoot.shadow[key].$value = String(value)
+      } else if (category === 'effect' && rest.length >= 1) {
+        const [key] = rest
+        if (!tokensRoot.effect) tokensRoot.effect = {}
+        if (!tokensRoot.effect[key]) tokensRoot.effect[key] = {}
+        tokensRoot.effect[key].$value = String(value)
+      }
+      
+      // Ensure tokens structure exists
+      if (!(nextTokens as any).tokens) {
+        (nextTokens as any).tokens = tokensRoot
+      }
+      
+      this.setTokens(nextTokens)
+    } catch (error) {
+      console.error('Failed to update token:', tokenName, error)
+    }
+  }
+
   resetAll() {
+    // Clear all CSS variables from DOM first
+    clearAllCssVars()
+    
     const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
     if (this.lsAvailable) {
       writeLSJson(STORAGE_KEYS.tokens, tokensImport)
@@ -305,7 +363,10 @@ class VarsStore {
   }
 
   private recomputeAndApplyAll() {
-    const overrides = readOverrides()
+    // Build complete CSS variable map from current state
+    // Note: Tokens are now the single source of truth - no overrides needed
+    const allVars: Record<string, string> = {}
+    
     // Tokens: expose size tokens as CSS vars under --tokens-size-<key>
     try {
       const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
@@ -332,7 +393,7 @@ class VarsStore {
         const px = toPxString(val)
         if (typeof px === 'string' && px) vars[`--tokens-size-${short}`] = px
       })
-      applyCssVarsDelta(this.lastTokenSizes, vars); this.lastTokenSizes = vars
+      Object.assign(allVars, vars)
     } catch {}
     // Tokens: expose opacity tokens as CSS vars under --tokens-opacity-<key> (normalized 0..1)
     try {
@@ -353,25 +414,31 @@ class VarsStore {
         const norm = normalize(v)
         if (typeof norm === 'string') vars[`--tokens-opacity-${short}`] = norm
       })
-      applyCssVarsDelta(this.lastTokenOpacity, vars); this.lastTokenOpacity = vars
+      Object.assign(allVars, vars)
     } catch {}
     // Tokens: expose color tokens as CSS vars under --tokens-color-<family>-<level>
     try {
       const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
       const colorsRoot: any = tokensRoot?.color || {}
       const vars: Record<string, string> = {}
+      const processedKeys = new Set<string>()
       Object.keys(colorsRoot).forEach((family) => {
         if (!family || family === 'translucent') return
         const levels = colorsRoot[family] || {}
         Object.keys(levels).forEach((lvl) => {
           if (!/^\d{2,4}|000|050$/.test(lvl)) return
+          const tokenName = `color/${family}/${lvl}`
+          const cssVarKey = `--tokens-color-${family}-${String(lvl).padStart(3, '0')}`
+          // Read directly from token value
           const val = levels[lvl]?.$value
           if (typeof val === 'string' && val) {
-            vars[`--tokens-color-${family}-${String(lvl).padStart(3, '0')}`] = String(val)
+            vars[cssVarKey] = String(val)
+            processedKeys.add(cssVarKey)
           }
         })
       })
-      applyCssVarsDelta(this.lastTokenColors, vars); this.lastTokenColors = vars
+      // Custom color scales are now stored directly in tokens, so they're already included above
+      Object.assign(allVars, vars)
     } catch {}
     // Core palette bindings (black/white/alert/warning/success/interactive)
     try {
@@ -434,17 +501,17 @@ class VarsStore {
         if (typeof dRef === 'string') colors['--brand-light-opacity-disabled'] = dRef
         if (typeof oRef === 'string') colors['--brand-light-opacity-overlay'] = oRef
       } catch {}
-      applyCssVarsDelta(this.lastCorePalette, colors); this.lastCorePalette = colors
+      Object.assign(allVars, colors)
     } catch {}
     // Palettes (Light mode default for now; dark can be toggled by UI where needed)
     const paletteVarsLight = buildPaletteVars(this.state.tokens, this.state.theme, 'Light')
-    applyCssVarsDelta(this.lastPalettes, paletteVarsLight); this.lastPalettes = paletteVarsLight
+    Object.assign(allVars, paletteVarsLight)
     // Layers (from Brand)
-    const layerVars = buildLayerVars(this.state.tokens, this.state.theme, overrides)
-    applyCssVarsDelta(this.lastLayers, layerVars); this.lastLayers = layerVars
+    const layerVars = buildLayerVars(this.state.tokens, this.state.theme)
+    Object.assign(allVars, layerVars)
     // Typography
-    const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, overrides, this.readTypeChoices())
-    applyCssVarsDelta(this.lastTypography, typeVars); this.lastTypography = typeVars
+    const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, this.readTypeChoices())
+    Object.assign(allVars, typeVars)
     // Ensure web fonts load lazily
     familiesToLoad.forEach((family) => {
       try {
@@ -467,7 +534,7 @@ class VarsStore {
         get: (path: string): any => {
           const parts = path.split('/')
           const root: any = (this.state.tokens as any)?.tokens || {}
-          if (overrides && Object.prototype.hasOwnProperty.call(overrides, path)) return (overrides as any)[path]
+          // Read directly from tokens - no overrides
           if (parts[0] === 'size' && parts[1]) return root?.size?.[parts[1]]?.$value
           if (parts[0] === 'opacity' && parts[1]) return root?.opacity?.[parts[1]]?.$value
           if (parts[0] === 'color' && parts[1] && parts[2]) return root?.color?.[parts[1]]?.[parts[2]]?.$value
@@ -587,8 +654,11 @@ class VarsStore {
         vars[`${brandScope}-x-axis`] = sxExpr
         vars[`${brandScope}-y-axis`] = syExpr
       }
-      if (Object.keys(vars).length) applyCssVarsDelta(null, vars)
+      Object.assign(allVars, vars)
     } catch {}
+    
+    // Apply all CSS variables at once
+    applyCssVars(allVars)
   }
 }
 

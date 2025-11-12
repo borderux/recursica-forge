@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useVars } from '../vars/VarsContext'
-import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import { useVars } from '../../vars/VarsContext'
+import { readOverrides, setOverride } from '../../theme/tokenOverrides'
 
 export default function FontLetterSpacingTokens() {
   const { tokens: tokensJson } = useVars()
@@ -178,5 +178,4 @@ export default function FontLetterSpacingTokens() {
     </section>
   )
 }
-
 

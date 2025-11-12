@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useVars } from '../vars/VarsContext'
-import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import { useVars } from '../../vars/VarsContext'
+import { readOverrides, setOverride } from '../../theme/tokenOverrides'
 
 export default function FontLineHeightTokens() {
   const { tokens: tokensJson } = useVars()
@@ -169,5 +169,4 @@ export default function FontLineHeightTokens() {
     </section>
   )
 }
-
 

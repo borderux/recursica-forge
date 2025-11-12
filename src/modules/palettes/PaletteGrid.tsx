@@ -6,6 +6,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { contrastRatio, pickAAOnTone } from '../theme/contrastUtil'
+import {
+  PaletteScaleHeader,
+  PaletteScaleHighEmphasis,
+  PaletteScaleLowEmphasis,
+  PaletteScalePrimaryIndicator,
+} from './PaletteScale'
 
 type PaletteGridProps = {
   paletteKey: string
@@ -334,104 +340,60 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           <tr>
             <th style={{ width: 80 }}>Emphasis</th>
             {headerLevels.map((lvl) => (
-              <th
-                key={lvl}
-                className={lvl === primaryLevelStr ? 'default' : undefined}
+              <PaletteScaleHeader
+                key={`header-${lvl}`}
+                level={lvl}
+                isPrimary={lvl === primaryLevelStr}
+                headerLevels={headerLevels}
                 onMouseEnter={() => setHoverLevelStr(lvl)}
                 onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
-                onClick={() => setPrimaryLevelStr(lvl)}
-                title={lvl === primaryLevelStr ? 'Primary' : 'Set as Primary'}
-                style={{ cursor: 'pointer', width: lvl === primaryLevelStr ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%' }}
-              >{lvl}</th>
+                onSetPrimary={() => setPrimaryLevelStr(lvl)}
+              />
             ))}
           </tr>
         </thead>
         <tbody>
           <tr className="high-emphasis">
             <td>High</td>
-            {headerLevels.map((lvl) => {
-              const toneHex = getSelectedFamilyHexForLevel(lvl) || '#ffffff'
-              const hiOpacity = getOpacityToken('opacity/solid')
-              const black = '#000000'
-              const white = '#ffffff'
-              const cBlack = contrastRatio(toneHex, black)
-              const cWhite = contrastRatio(toneHex, white)
-              const hiDot = (cBlack >= 4.5 || cBlack >= cWhite) ? black : white
-              return (
-                <td
-                  key={`high-${lvl}`}
-                  className={`palette-box${lvl === primaryLevelStr ? ' default' : ''}`}
-                  style={{ backgroundColor: toneHex, cursor: 'pointer', width: lvl === primaryLevelStr ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%' }}
-                  title={lvl === primaryLevelStr ? 'Primary' : 'Set as Primary'}
-                  onMouseEnter={() => setHoverLevelStr(lvl)}
-                  onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
-                  onClick={() => setPrimaryLevelStr(lvl)}
-                >
-                  <div className="palette-dot" style={{ backgroundColor: hiDot, opacity: hiOpacity }} />
-                </td>
-              )
-            })}
+            {headerLevels.map((lvl) => (
+              <PaletteScaleHighEmphasis
+                key={`high-${lvl}`}
+                toneHex={getSelectedFamilyHexForLevel(lvl) || '#ffffff'}
+                isPrimary={lvl === primaryLevelStr}
+                headerLevels={headerLevels}
+                onMouseEnter={() => setHoverLevelStr(lvl)}
+                onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
+                onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                getOpacityToken={getOpacityToken}
+                pickMinAlphaForAA={pickMinAlphaForAA}
+              />
+            ))}
           </tr>
           <tr className="low-emphasis">
             <td>Low</td>
-            {headerLevels.map((lvl) => {
-              const toneHex = getSelectedFamilyHexForLevel(lvl) || '#ffffff'
-              const black = '#000000'
-              const white = '#ffffff'
-              const cBlack = contrastRatio(toneHex, black)
-              const cWhite = contrastRatio(toneHex, white)
-              const hiDot = (cBlack >= 4.5 || cBlack >= cWhite) ? black : white
-              const chosenOpacity = pickMinAlphaForAA(toneHex, hiDot)
-              return (
-                <td
-                  key={`low-${lvl}`}
-                  className={`palette-box${lvl === primaryLevelStr ? ' default' : ''}`}
-                  style={{ backgroundColor: toneHex, cursor: 'pointer', width: lvl === primaryLevelStr ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%' }}
-                  title={lvl === primaryLevelStr ? 'Primary' : 'Set as Primary'}
-                  onMouseEnter={() => setHoverLevelStr(lvl)}
-                  onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
-                  onClick={() => setPrimaryLevelStr(lvl)}
-                >
-                  <div className="palette-dot" style={{ backgroundColor: hiDot, opacity: chosenOpacity }} />
-                </td>
-              )
-            })}
+            {headerLevels.map((lvl) => (
+              <PaletteScaleLowEmphasis
+                key={`low-${lvl}`}
+                toneHex={getSelectedFamilyHexForLevel(lvl) || '#ffffff'}
+                isPrimary={lvl === primaryLevelStr}
+                headerLevels={headerLevels}
+                onMouseEnter={() => setHoverLevelStr(lvl)}
+                onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
+                onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                getOpacityToken={getOpacityToken}
+                pickMinAlphaForAA={pickMinAlphaForAA}
+              />
+            ))}
           </tr>
           <tr>
             <td></td>
             {headerLevels.map((lvl) => (
-              <td key={`primary-${lvl}`} className={lvl === primaryLevelStr ? 'default' : undefined} style={{ textAlign: 'center', verticalAlign: 'top', height: 28 }}>
-                {lvl === primaryLevelStr ? (
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      fontSize: 11,
-                      lineHeight: '14px',
-                      padding: '2px 8px',
-                      border: '1px solid var(--layer-layer-1-property-border-color)',
-                      borderRadius: 999,
-                      background: 'transparent',
-                      textTransform: 'capitalize',
-                    }}
-                  >primary</span>
-                ) : hoverLevelStr === lvl ? (
-                  <button
-                    onClick={() => setPrimaryLevelStr(lvl)}
-                    style={{
-                      display: 'inline-block',
-                      fontSize: 11,
-                      lineHeight: '14px',
-                      padding: '2px 8px',
-                      border: '1px dashed var(--layer-layer-1-property-border-color)',
-                      borderRadius: 999,
-                      background: 'transparent',
-                      textTransform: 'capitalize',
-                      cursor: 'pointer',
-                    }}
-                    title="Set as Primary"
-                  >Set as Primary</button>
-                ) : null}
-              </td>
+              <PaletteScalePrimaryIndicator
+                key={`primary-${lvl}`}
+                isPrimary={lvl === primaryLevelStr}
+                isHovered={hoverLevelStr === lvl}
+                onSetPrimary={() => setPrimaryLevelStr(lvl)}
+              />
             ))}
           </tr>
         </tbody>

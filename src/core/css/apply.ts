@@ -6,6 +6,23 @@ export function applyCssVars(vars: CssVarMap) {
   applyDirect(vars)
 }
 
+export function clearAllCssVars() {
+  const root = document.documentElement
+  const style = root.style
+  const varsToRemove: string[] = []
+  
+  // Collect all --recursica-* CSS custom properties from inline styles
+  for (let i = 0; i < style.length; i++) {
+    const prop = style[i]
+    if (prop && prop.startsWith('--recursica-')) {
+      varsToRemove.push(prop)
+    }
+  }
+  
+  // Remove them
+  varsToRemove.forEach(prop => root.style.removeProperty(prop))
+}
+
 export function applyCssVarsDelta(prev: CssVarMap | null, next: CssVarMap): { applied: number } {
   const root = document.documentElement
   let applied = 0

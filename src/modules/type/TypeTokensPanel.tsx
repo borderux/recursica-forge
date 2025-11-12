@@ -1,8 +1,8 @@
-import FontFamiliesTokens from '../tokens/FontFamiliesTokens'
-import FontSizeTokens from '../tokens/FontSizeTokens'
-import FontWeightTokens from '../tokens/FontWeightTokens'
-import FontLetterSpacingTokens from '../tokens/FontLetterSpacingTokens'
-import FontLineHeightTokens from '../tokens/FontLineHeightTokens'
+import FontFamiliesTokens from '../tokens/font/FontFamiliesTokens'
+import FontSizeTokens from '../tokens/font/FontSizeTokens'
+import FontWeightTokens from '../tokens/font/FontWeightTokens'
+import FontLetterSpacingTokens from '../tokens/font/FontLetterSpacingTokens'
+import FontLineHeightTokens from '../tokens/font/FontLineHeightTokens'
 import { createPortal } from 'react-dom'
 
 export default function TypeTokensPanel({ open, onClose }: { open: boolean; onClose: () => void }) {

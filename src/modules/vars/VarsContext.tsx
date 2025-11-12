@@ -20,6 +20,7 @@ type ResolvedTheme = { light: Record<string, string>; dark: Record<string, strin
 type VarsContextValue = {
   tokens: JsonLike
   setTokens: (next: JsonLike) => void
+  updateToken: (tokenName: string, value: string | number) => void
   theme: JsonLike
   setTheme: (next: JsonLike) => void
   uikit: JsonLike
@@ -50,6 +51,7 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<VarsContextValue>(() => ({
     tokens: state.tokens,
     setTokens: (next) => store.setTokens(next),
+    updateToken: (tokenName: string, value: string | number) => store.updateToken(tokenName, value),
     theme: state.theme,
     setTheme: (next) => store.setTheme(next),
     uikit: state.uikit,

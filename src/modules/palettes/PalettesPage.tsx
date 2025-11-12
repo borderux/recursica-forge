@@ -59,19 +59,6 @@ export default function PalettesPage() {
   const opacityBindings = palettesState.opacity as Record<OpacityBindingKey, { token: string; value: number }>
   const writeOpacityBindings = (next: Record<OpacityBindingKey, { token: string; value: number }>) => setPalettes({ ...palettesState, opacity: next as any })
 
-  const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
-    let h = hex.trim()
-    if (!h.startsWith('#')) h = '#' + h
-    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
-    if (!m) return { r: 0, g: 0, b: 0 }
-    return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
-  }
-  const alphaColor = (hex: string, alpha: number): string => {
-    const { r, g, b } = hexToRgb(hex)
-    const a = Math.max(0, Math.min(1, alpha))
-    return `rgba(${r}, ${g}, ${b}, ${a})`
-  }
-
   const applyAliasOnTones = () => { /* no-op with new core var scheme */ }
 
   const themeIndex = useMemo(() => {

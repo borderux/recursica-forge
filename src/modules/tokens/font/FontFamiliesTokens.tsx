@@ -6,8 +6,8 @@
  * tokenOverrides. Maintains a helper list of deleted rows across reloads.
  */
 import { useEffect, useMemo, useState } from 'react'
-import { useVars } from '../vars/VarsContext'
-import { readOverrides, setOverride, writeOverrides } from '../theme/tokenOverrides'
+import { useVars } from '../../vars/VarsContext'
+import { readOverrides, setOverride, writeOverrides } from '../../theme/tokenOverrides'
 
 type FamilyRow = { name: string; value: string; custom: boolean }
 
@@ -332,5 +332,4 @@ export default function FontFamiliesTokens() {
     </section>
   )
 }
-
 

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useVars } from '../vars/VarsContext'
-import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useVars } from '../../vars/VarsContext'
+import { readOverrides, setOverride } from '../../theme/tokenOverrides'
 
 function toTitleCase(label: string): string {
   return (label || '')
@@ -58,10 +58,9 @@ export default function OpacityTokens() {
           const currentRaw = (overrides as any)[it.name] ?? it.value
           const current = toPctNumber(currentRaw)
           return (
-            <>
-              <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
+            <React.Fragment key={it.name}>
+              <label htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
               <input
-                key={it.name}
                 id={it.name}
                 type="range"
                 min={0}
@@ -79,7 +78,7 @@ export default function OpacityTokens() {
                 style={{ width: 50 }}
               />
               <span style={{ fontSize: 12, opacity: 0.8 }}>%</span>
-            </>
+            </React.Fragment>
           )
         })}
       </div>
