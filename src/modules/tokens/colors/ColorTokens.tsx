@@ -14,7 +14,7 @@ type TokenEntry = {
 type ModeName = 'Mode 1' | 'Mode 2' | string
 
 export default function ColorTokens() {
-  const { tokens: tokensJson, updateToken, setTokens } = useVars()
+  const { tokens: tokensJson, updateToken, setTokens, theme, palettes } = useVars()
   const [values, setValues] = useState<Record<string, string | number>>({})
   const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
@@ -308,10 +308,145 @@ export default function ColorTokens() {
     })
   }
 
+  // Check if a color scale is used in palettes
+  const isColorScaleUsedInPalettes = useMemo(() => {
+    const mapPaletteToTokenFamily: Record<string, string> = {
+      neutral: 'gray',
+      'palette-1': 'salmon',
+      'palette-2': 'mandarin',
+      'palette-3': 'cornflower',
+      'palette-4': 'greensheen',
+    }
+    
+    const usedFamilies = new Set<string>()
+    
+    // Helper function to get persisted family from localStorage
+    const getPersistedFamily = (key: string): string | undefined => {
+      try {
+        const raw = localStorage.getItem(`palette-grid-family:${key}`)
+        if (raw) return JSON.parse(raw)
+      } catch {}
+      if (key === 'neutral') return 'gray'
+      if (key === 'palette-1') return 'salmon'
+      if (key === 'palette-2') return 'mandarin'
+      return undefined
+    }
+    
+    // Check dynamic palettes from palettesState
+    try {
+      const dynamicPalettes = palettes?.dynamic || []
+      dynamicPalettes.forEach((p) => {
+        const fam = p.initialFamily || getPersistedFamily(p.key)
+        if (fam) {
+          usedFamilies.add(fam)
+        }
+      })
+    } catch {}
+    
+    // Check which palettes actually exist in theme and add their mapped families
+    try {
+      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const lightPalettes: any = root?.light?.palettes || {}
+      const paletteKeys = Object.keys(lightPalettes).filter((k) => k !== 'core')
+      
+      // Only add families for palettes that actually exist
+      paletteKeys.forEach((pk) => {
+        const mappedFamily = mapPaletteToTokenFamily[pk]
+        if (mappedFamily) {
+          usedFamilies.add(mappedFamily)
+        }
+      })
+      
+      // Also check for direct token references in non-core palettes
+      // Extract all family names referenced in specific palette sections (excluding core)
+      const extractReferencedFamilies = (obj: any): Set<string> => {
+        const families = new Set<string>()
+        if (!obj || typeof obj !== 'object') return families
+        
+        if (Array.isArray(obj)) {
+          obj.forEach((item) => {
+            extractReferencedFamilies(item).forEach((f) => families.add(f))
+          })
+          return families
+        }
+        
+        for (const [key, value] of Object.entries(obj)) {
+          if (typeof value === 'string') {
+            // Check for token references like {tokens.color.{family}.{level}}
+            const match = value.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
+            if (match && match[1]) {
+              families.add(match[1])
+            }
+          } else if (value && typeof value === 'object') {
+            extractReferencedFamilies(value).forEach((f) => families.add(f))
+          }
+        }
+        return families
+      }
+      
+      // Check each palette individually (excluding core)
+      paletteKeys.forEach((pk) => {
+        const paletteData = lightPalettes[pk]
+        if (paletteData) {
+          const referencedFamilies = extractReferencedFamilies(paletteData)
+          referencedFamilies.forEach((fam) => {
+            if (fam !== 'translucent') {
+              usedFamilies.add(fam)
+            }
+          })
+        }
+      })
+    } catch {}
+    
+    return (family: string) => usedFamilies.has(family)
+  }, [theme, tokensJson, palettes])
+
+  // Count total color scales (excluding deleted ones)
+  const totalColorScales = useMemo(() => {
+    try {
+      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+      const colorsRoot = tokensRoot?.color || {}
+      return Object.keys(colorsRoot).filter((fam) => fam !== 'translucent' && !deletedFamilies[fam]).length
+    } catch {
+      return 0
+    }
+  }, [tokensJson, deletedFamilies])
+
   const handleDeleteFamily = (family: string) => {
-    setDeletedFamilies((prev) => ({ ...prev, [family]: true }))
-    setOpenPicker(null)
-    setFamilyOrder((prev) => prev.filter((f) => f !== family))
+    try {
+      // Deep clone tokens to avoid mutation
+      const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
+      const tokensRoot = nextTokens?.tokens || {}
+      const colorsRoot = tokensRoot?.color || {}
+      
+      // Delete the color family from tokens
+      if (colorsRoot[family]) {
+        delete colorsRoot[family]
+        setTokens(nextTokens)
+      }
+      
+      // Update local values state - remove all tokens for this family
+      const newValues = { ...values }
+      Object.keys(newValues).forEach((tokenName) => {
+        if (tokenName.startsWith(`color/${family}/`)) {
+          delete newValues[tokenName]
+        }
+      })
+      setValues(newValues)
+      
+      // Mark as deleted and update order
+      setDeletedFamilies((prev) => ({ ...prev, [family]: true }))
+      setOpenPicker(null)
+      setFamilyOrder((prev) => prev.filter((f) => f !== family))
+      
+      // Update localStorage for deleted families
+      try {
+        const updatedDeleted = { ...deletedFamilies, [family]: true }
+        localStorage.setItem('deleted-color-families', JSON.stringify(updatedDeleted))
+      } catch {}
+    } catch (error) {
+      console.error('Failed to delete color family:', error)
+    }
   }
 
   const handleFamilyNameChange = (family: string, newName: string) => {
@@ -461,6 +596,8 @@ export default function ColorTokens() {
             onChange={handleColorChange}
             onFamilyNameChange={handleFamilyNameChange}
             onDeleteFamily={handleDeleteFamily}
+            isUsedInPalettes={isColorScaleUsedInPalettes(family)}
+            isLastColorScale={totalColorScales <= 1}
           />
         ))}
       </div>

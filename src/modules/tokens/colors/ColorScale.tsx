@@ -16,6 +16,8 @@ export type ColorScaleProps = {
   onChange: (tokenName: string, hex: string, cascadeDown: boolean, cascadeUp: boolean) => void
   onFamilyNameChange: (family: string, newName: string) => void
   onDeleteFamily: (family: string) => void
+  isUsedInPalettes: boolean
+  isLastColorScale: boolean
 }
 
 export function ColorScale({
@@ -33,10 +35,13 @@ export function ColorScale({
   onChange,
   onFamilyNameChange,
   onDeleteFamily,
+  isUsedInPalettes,
+  isLastColorScale,
 }: ColorScaleProps) {
   if (deletedFamilies[family]) return null
 
   const displayFamilyName = toTitleCase(familyNames[family] ?? family)
+  const isDeleteDisabled = isUsedInPalettes || isLastColorScale
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -90,17 +95,30 @@ export function ColorScale({
         )
       })}
       <div style={{ marginTop: 6 }}>
-        {family === 'gray' ? (
-          <div style={{ height: 24 }} />
-        ) : (
-          <button
-            onClick={() => {
+        <button
+          onClick={() => {
+            if (!isDeleteDisabled) {
               onDeleteFamily(family)
-            }}
-            title="Delete color column"
-            style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px', width: '100%' }}
-          >🗑️</button>
-        )}
+            }
+          }}
+          disabled={isDeleteDisabled}
+          title={
+            isDeleteDisabled
+              ? isUsedInPalettes
+                ? 'Cannot delete: color scale is used in a palette'
+                : 'Cannot delete: this is the last color scale'
+              : 'Delete color column'
+          }
+          style={{
+            border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+            background: 'transparent',
+            cursor: isDeleteDisabled ? 'not-allowed' : 'pointer',
+            borderRadius: 6,
+            padding: '6px 8px',
+            width: '100%',
+            opacity: isDeleteDisabled ? 0.5 : 1,
+          }}
+        >🗑️</button>
       </div>
     </div>
   )
