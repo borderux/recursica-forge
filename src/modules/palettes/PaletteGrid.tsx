@@ -36,7 +36,7 @@ function toTokenLevel(levelStr: string): string {
 }
 
 export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, initialFamily, mode, deletable, onDelete }: PaletteGridProps) {
-  const { tokens: tokensJson, theme: themeJson } = useVars()
+  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
   const defaultLevelStr = typeof defaultLevel === 'number' ? toLevelString(defaultLevel) : String(defaultLevel).padStart(3, '0')
   const headerLevels = LEVELS.map(toLevelString)
   const [overrideVersion, forceOverrideVersion] = useState(0)
@@ -66,17 +66,73 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     })
     return list
   }, [tokensJson, overrideVersion])
+  const themeIndex = useMemo(() => {
+    const out: Record<string, { value: any }> = {}
+    const visit = (node: any, prefix: string, mode: 'Light' | 'Dark') => {
+      if (!node || typeof node !== 'object') return
+      if (Object.prototype.hasOwnProperty.call(node, '$value')) {
+        out[`${mode}::${prefix}`] = { value: (node as any)['$value'] }
+        return
+      }
+      Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
+    }
+    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+    // Check both 'palette' (singular) and 'palettes' (plural) to handle different JSON structures
+    if (root?.light?.palettes) visit(root.light.palettes, 'palettes', 'Light')
+    else if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
+    if (root?.dark?.palettes) visit(root.dark.palettes, 'palettes', 'Dark')
+    else if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
+    return out
+  }, [themeJson])
+  const detectFamilyFromTheme = useMemo(() => {
+    // Try to detect the actual family from theme JSON by checking a few levels
+    const checkLevels = ['200', '500', '400', '300']
+    for (const lvl of checkLevels) {
+      // The themeIndex uses 'palette' prefix even though JSON has 'palettes'
+      const toneName = `palette/${paletteKey}/${lvl}/color/tone`
+      const toneRaw = (themeIndex as any)[`${mode}::${toneName}`]?.value
+      if (typeof toneRaw === 'string') {
+        // Check for token reference format: {tokens.color.{family}.{level}}
+        const match = toneRaw.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
+        if (match && match[1]) {
+          const detectedFamily = match[1]
+          if (families.includes(detectedFamily)) {
+            return detectedFamily
+          }
+        }
+      }
+    }
+    return null
+  }, [themeIndex, mode, paletteKey, families])
+
   const [selectedFamily, setSelectedFamily] = useState<string>(() => {
     if (typeof initialFamily === 'string' && initialFamily) return initialFamily
+    // Try to detect from theme first (but themeIndex isn't available in initializer, so we'll update via useEffect)
+    // Fall back to localStorage
     try {
       const raw = localStorage.getItem(`palette-grid-family:${paletteKey}`)
       if (raw) return JSON.parse(raw)
     } catch {}
+    // Fall back to defaults
     if (paletteKey === 'neutral') return 'gray'
-    if (paletteKey === 'palette-1') return 'salmon'
-    if (paletteKey === 'palette-2') return 'mandarin'
     return families[0] || ''
   })
+  
+  // Track if this is the initial mount to only sync on first load
+  const isInitialMount = useRef(true)
+  const userChangedFamily = useRef(false)
+  
+  // Update selectedFamily when theme changes to reflect actual family being used
+  // Only sync on initial mount (not when user changes dropdown)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      const detected = detectFamilyFromTheme
+      if (detected) {
+        setSelectedFamily(detected)
+      }
+      isInitialMount.current = false
+    }
+  }, [detectFamilyFromTheme])
   useEffect(() => {
     try { localStorage.setItem(`palette-grid-family:${paletteKey}`, JSON.stringify(selectedFamily)) } catch {}
     try { window.dispatchEvent(new CustomEvent('paletteFamilyChanged', { detail: { key: paletteKey, family: selectedFamily } })) } catch {}
@@ -106,21 +162,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   const selections = readAllSelections()
   const usedByOthers = new Set(Object.entries(selections).filter(([k]) => k !== paletteKey).map(([, v]) => v))
   const availableFamilies = families.filter((f) => f === selectedFamily || !usedByOthers.has(f))
-  const themeIndex = useMemo(() => {
-    const out: Record<string, { value: any }> = {}
-    const visit = (node: any, prefix: string, mode: 'Light' | 'Dark') => {
-      if (!node || typeof node !== 'object') return
-      if (Object.prototype.hasOwnProperty.call(node, '$value')) {
-        out[`${mode}::${prefix}`] = { value: (node as any)['$value'] }
-        return
-      }
-      Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
-    }
-    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
-    if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
-    return out
-  }, [])
 
   // Use shared AA util for on-tone selection
   const getTokenValueByName = (name: string): string | undefined => {
@@ -232,6 +273,31 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`, `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-${aaCore})`)
     })
   }
+  
+  const updateThemeForFamily = (family: string, modeLabel: 'Light' | 'Dark') => {
+    if (!setTheme) return
+    try {
+      const themeCopy = JSON.parse(JSON.stringify(themeJson))
+      const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+      const modeKey = modeLabel.toLowerCase()
+      if (!root[modeKey]) root[modeKey] = {}
+      if (!root[modeKey].palettes) root[modeKey].palettes = {}
+      if (!root[modeKey].palettes[paletteKey]) root[modeKey].palettes[paletteKey] = {}
+      
+      headerLevels.forEach((lvl) => {
+        if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
+        if (!root[modeKey].palettes[paletteKey][lvl].color) root[modeKey].palettes[paletteKey][lvl].color = {}
+        // Update tone to reference the new family token
+        root[modeKey].palettes[paletteKey][lvl].color.tone = {
+          $value: `{tokens.color.${family}.${toTokenLevel(lvl)}}`
+        }
+      })
+      
+      setTheme(themeCopy)
+    } catch (err) {
+      console.error('Failed to update theme for family:', err)
+    }
+  }
   useEffect(() => {
     applyThemeMappingsFromJson(mode)
     if (selectedFamily) applyFamilyToCssVars(selectedFamily, mode)
@@ -274,7 +340,10 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
             selectedFamily={selectedFamily}
             onSelect={(fam) => {
               if (fam !== selectedFamily && usedByOthers.has(fam)) return
+              userChangedFamily.current = true
               setSelectedFamily(fam)
+              // Update theme JSON to use the new family
+              updateThemeForFamily(fam, mode)
             }}
             titleCase={(s) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()}
             getSwatchHex={(fam) => {
