@@ -740,6 +740,7 @@ class VarsStore {
     const layerVars = buildLayerVars(this.state.tokens, this.state.theme)
     
     // Preserve existing palette CSS variables for layer colors (surface and border-color)
+    // Also preserve AA compliance updates for text and interactive colors
     // Check all layers (0-4) and alternative layers
     try {
       for (let i = 0; i <= 4; i++) {
@@ -758,6 +759,32 @@ class VarsStore {
             layerVars[`--brand-light-layer-layer-${i}-property-border-color`] = existingBorderColor
           }
         }
+        
+        // Preserve AA compliance updates for text and interactive colors
+        // These are set by updateLayerAaCompliance and should not be overwritten
+        const textColorBase = `${prefixedBase}element-text-`
+        const interColorBase = `${prefixedBase}element-interactive-`
+        
+        // Text color
+        const existingTextColor = document.documentElement.style.getPropertyValue(`${textColorBase}color`).trim()
+        if (existingTextColor && existingTextColor.startsWith('var(')) {
+          layerVars[`--brand-light-layer-layer-${i}-property-element-text-color`] = existingTextColor
+        }
+        
+        // Interactive color
+        const existingInterColor = document.documentElement.style.getPropertyValue(`${interColorBase}color`).trim()
+        if (existingInterColor && existingInterColor.startsWith('var(')) {
+          layerVars[`--brand-light-layer-layer-${i}-property-element-interactive-color`] = existingInterColor
+        }
+        
+        // Status colors (alert, warning, success)
+        const statusColors = ['alert', 'warning', 'success']
+        statusColors.forEach((status) => {
+          const existingStatusColor = document.documentElement.style.getPropertyValue(`${textColorBase}${status}`).trim()
+          if (existingStatusColor && existingStatusColor.startsWith('var(')) {
+            layerVars[`--brand-light-layer-layer-${i}-property-element-text-${status}`] = existingStatusColor
+          }
+        })
       }
       
       // Also check alternative layers

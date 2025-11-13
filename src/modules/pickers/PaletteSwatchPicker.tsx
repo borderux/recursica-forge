@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
+import { updateLayerAaCompliance } from '../../core/resolvers/updateLayerAaCompliance'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
-  const { palettes, theme: themeJson } = useVars()
+  const { palettes, theme: themeJson, tokens: tokensJson } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [targetCssVars, setTargetCssVars] = useState<string[]>([])
@@ -133,6 +134,18 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
                           // Set the target CSS variable to reference the selected palette CSS variable
                           document.documentElement.style.setProperty(prefixedTarget, `var(${paletteCssVar})`)
+                          
+                          // If this is a layer surface color, update AA compliance
+                          const surfaceMatch = prefixedTarget.match(/--recursica-brand-light-layer-layer-(\d+)-property-surface/)
+                          if (surfaceMatch && tokensJson && themeJson) {
+                            const layerNumber = parseInt(surfaceMatch[1], 10)
+                            // Use requestAnimationFrame to ensure CSS var is set
+                            requestAnimationFrame(() => {
+                              setTimeout(() => {
+                                updateLayerAaCompliance(layerNumber, tokensJson, themeJson)
+                              }, 10)
+                            })
+                          }
                         })
                         
                         onSelect?.(paletteCssVar)
