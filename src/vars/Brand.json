@@ -922,7 +922,7 @@
               "unit": "px"
             },
             "color": {
-              "$value": "{brand.light.palettes.neutral.default.color.tone}",
+              "$value": "{brand.light.palettes.neutral.600.color.tone}",
               "$type": "color"
             },
             "opacity": {
@@ -959,7 +959,7 @@
               "unit": "px"
             },
             "color": {
-              "$value": "{brand.light.palettes.neutral.default.color.tone}",
+              "$value": "{brand.light.palettes.neutral.600.color.tone}",
               "$type": "color"
             },
             "opacity": {
@@ -996,7 +996,7 @@
               "unit": "px"
             },
             "color": {
-              "$value": "{brand.light.palettes.neutral.default.color.tone}",
+              "$value": "{brand.light.palettes.neutral.600.color.tone}",
               "$type": "color"
             },
             "opacity": {
@@ -1033,7 +1033,7 @@
               "unit": "px"
             },
             "color": {
-              "$value": "{brand.light.palettes.neutral.default.color.tone}",
+              "$value": "{brand.light.palettes.neutral.600.color.tone}",
               "$type": "color"
             },
             "opacity": {
@@ -1070,7 +1070,7 @@
               "unit": "px"
             },
             "color": {
-              "$value": "{brand.light.palettes.neutral.default.color.tone}",
+              "$value": "{brand.light.palettes.neutral.600.color.tone}",
               "$type": "color"
             },
             "opacity": {
