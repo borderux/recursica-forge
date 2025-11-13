@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
-import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
+import { updateCssVar as updateCssVarUtil, removeCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
+import TokenSlider from '../forms/TokenSlider'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -86,22 +87,22 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     return out
   }, [tokens])
 
-  // Helper to get current token index from CSS variable
-  const getCurrentTokenIndex = (cssVar: string, options: Array<{ short: string }>): number => {
-    if (options.length === 0 || !cssVar) return 0
+  // Helper to get current token name from CSS variable
+  const getCurrentTokenName = (cssVar: string, options: Array<{ short: string }>): string | undefined => {
+    if (options.length === 0 || !cssVar) return undefined
     try {
       const cssValue = readCssVar(cssVar)
       if (cssValue) {
         const tokenName = extractTokenFromCssVar(cssValue)
         if (tokenName) {
-          const idx = options.findIndex((o) => o.short === tokenName)
-          if (idx >= 0) return idx
+          const option = options.find((o) => o.short === tokenName)
+          if (option) return option.short
         }
       }
     } catch (e) {
       console.warn('Error reading CSS variable:', cssVar, e)
     }
-    return 0
+    return undefined
   }
   
   // Helper to get current font family value from CSS variable
@@ -125,7 +126,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }
 
   // Directly update CSS variable for selected prefixes
-  const updateCssVar = (property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height', tokenValue: string) => {
+  const updateCssVarValue = (property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height', tokenValue: string) => {
     selectedPrefixes.forEach((prefix) => {
       const cssVarName = prefixToCssVarName(prefix)
       const cssVar = `--recursica-brand-typography-${cssVarName}-${property}`
@@ -137,15 +138,15 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           // Check if it's a typeface or family token by looking it up in tokens
           const isTypeface = (tokens as any)?.tokens?.font?.typeface?.[option.short] !== undefined
           const category = isTypeface ? 'typeface' : 'family'
-          updateCssVar(cssVar, `var(--recursica-tokens-font-${category}-${option.short})`)
+          updateCssVarUtil(cssVar, `var(--recursica-tokens-font-${category}-${option.short})`)
         } else if (tokenValue) {
           // Use literal value
-          updateCssVar(cssVar, tokenValue)
+          updateCssVarUtil(cssVar, tokenValue)
         }
       } else {
         // Map property to token category
         const category = property === 'font-size' ? 'size' : property === 'font-weight' ? 'weight' : property === 'font-letter-spacing' ? 'letter-spacing' : 'line-height'
-        updateCssVar(cssVar, `var(--recursica-tokens-font-${category}-${tokenValue})`)
+        updateCssVarUtil(cssVar, `var(--recursica-tokens-font-${category}-${tokenValue})`)
       }
     })
     // Trigger re-render to update UI (CSS vars are already updated)
@@ -182,18 +183,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const familyCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-family` : ''
   
   // Use useMemo to re-read CSS variables when updateKey changes
-  const sizeCurrentIdx = useMemo(() => prefix ? getCurrentTokenIndex(sizeCssVar, sizeOptions) : 0, [sizeCssVar, sizeOptions, updateKey, prefix])
-  const sizeCurrentToken = sizeOptions[sizeCurrentIdx] || sizeOptions[0]
-  
-  const weightCurrentIdx = useMemo(() => prefix ? getCurrentTokenIndex(weightCssVar, weightOptions) : 0, [weightCssVar, weightOptions, updateKey, prefix])
-  const weightCurrentToken = weightOptions[weightCurrentIdx] || weightOptions[0]
-  
-  const spacingCurrentIdx = useMemo(() => prefix ? getCurrentTokenIndex(spacingCssVar, spacingOptions) : 0, [spacingCssVar, spacingOptions, updateKey, prefix])
-  const spacingCurrentToken = spacingOptions[spacingCurrentIdx] || spacingOptions[0]
-  
-  const lineHeightCurrentIdx = useMemo(() => prefix ? getCurrentTokenIndex(lineHeightCssVar, lineHeightOptions) : 0, [lineHeightCssVar, lineHeightOptions, updateKey, prefix])
-  const lineHeightCurrentToken = lineHeightOptions[lineHeightCurrentIdx] || lineHeightOptions[0]
-  
+  const sizeCurrentToken = useMemo(() => prefix ? getCurrentTokenName(sizeCssVar, sizeOptions) : undefined, [sizeCssVar, sizeOptions, updateKey, prefix])
+  const weightCurrentToken = useMemo(() => prefix ? getCurrentTokenName(weightCssVar, weightOptions) : undefined, [weightCssVar, weightOptions, updateKey, prefix])
+  const spacingCurrentToken = useMemo(() => prefix ? getCurrentTokenName(spacingCssVar, spacingOptions) : undefined, [spacingCssVar, spacingOptions, updateKey, prefix])
+  const lineHeightCurrentToken = useMemo(() => prefix ? getCurrentTokenName(lineHeightCssVar, lineHeightOptions) : undefined, [lineHeightCssVar, lineHeightOptions, updateKey, prefix])
   const currentFamily = useMemo(() => prefix ? getCurrentFamily(familyCssVar) : '', [familyCssVar, familyOptions, updateKey, prefix])
 
   return (
@@ -211,8 +204,9 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                   value={currentFamily} 
                   onChange={(e) => { 
                     const v = (e.target as HTMLSelectElement).value
-                    updateCssVar('font-family', v)
+                    updateCssVarValue('font-family', v)
                   }}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))' }}
                 >
                   <option value=""></option>
                   {familyOptions.map((o) => (<option key={o.short} value={o.value}>{o.label}</option>))}
@@ -220,99 +214,47 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
               </label>
               
               {sizeOptions.length > 0 && (
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>Font Size</span>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>{sizeCurrentToken?.label || ''}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={Math.max(0, sizeOptions.length - 1)}
-                    step={1}
-                    value={sizeCurrentIdx}
-                    onChange={(e) => {
-                      const idx = Number(e.target.value)
-                      const selectedToken = sizeOptions[idx]
-                      if (selectedToken) {
-                        updateCssVar('font-size', selectedToken.short)
-                      }
-                    }}
-                    style={{ width: '100%' }}
-                  />
-                </label>
+                <TokenSlider
+                  label="Font Size"
+                  tokens={sizeOptions.map((o) => ({ name: o.short, label: o.label }))}
+                  currentToken={sizeCurrentToken}
+                  onChange={(tokenName) => {
+                    updateCssVarValue('font-size', tokenName)
+                  }}
+                />
               )}
               
               {weightOptions.length > 0 && (
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>Font Weight</span>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>{weightCurrentToken?.label || ''}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={Math.max(0, weightOptions.length - 1)}
-                    step={1}
-                    value={weightCurrentIdx}
-                    onChange={(e) => {
-                      const idx = Number(e.target.value)
-                      const selectedToken = weightOptions[idx]
-                      if (selectedToken) {
-                        updateCssVar('font-weight', selectedToken.short)
-                      }
-                    }}
-                    style={{ width: '100%' }}
-                  />
-                </label>
+                <TokenSlider
+                  label="Font Weight"
+                  tokens={weightOptions.map((o) => ({ name: o.short, label: o.label }))}
+                  currentToken={weightCurrentToken}
+                  onChange={(tokenName) => {
+                    updateCssVarValue('font-weight', tokenName)
+                  }}
+                />
               )}
               
               {spacingOptions.length > 0 && (
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>Letter Spacing</span>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>{spacingCurrentToken?.label || ''}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={Math.max(0, spacingOptions.length - 1)}
-                    step={1}
-                    value={spacingCurrentIdx}
-                    onChange={(e) => {
-                      const idx = Number(e.target.value)
-                      const selectedToken = spacingOptions[idx]
-                      if (selectedToken) {
-                        updateCssVar('font-letter-spacing', selectedToken.short)
-                      }
-                    }}
-                    style={{ width: '100%' }}
-                  />
-                </label>
+                <TokenSlider
+                  label="Letter Spacing"
+                  tokens={spacingOptions.map((o) => ({ name: o.short, label: o.label }))}
+                  currentToken={spacingCurrentToken}
+                  onChange={(tokenName) => {
+                    updateCssVarValue('font-letter-spacing', tokenName)
+                  }}
+                />
               )}
               
               {lineHeightOptions.length > 0 && (
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>Line Height</span>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>{lineHeightCurrentToken?.label || ''}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={Math.max(0, lineHeightOptions.length - 1)}
-                    step={1}
-                    value={lineHeightCurrentIdx}
-                    onChange={(e) => {
-                      const idx = Number(e.target.value)
-                      const selectedToken = lineHeightOptions[idx]
-                      if (selectedToken) {
-                        updateCssVar('line-height', selectedToken.short)
-                      }
-                    }}
-                    style={{ width: '100%' }}
-                  />
-                </label>
+                <TokenSlider
+                  label="Line Height"
+                  tokens={lineHeightOptions.map((o) => ({ name: o.short, label: o.label }))}
+                  currentToken={lineHeightCurrentToken}
+                  onChange={(tokenName) => {
+                    updateCssVarValue('line-height', tokenName)
+                  }}
+                />
               )}
           </>
         )}
