@@ -21,12 +21,13 @@ export function readCssVar(cssVarName: string, fallback?: string): string | unde
   
   try {
     // Check inline style first (what we set via updateCssVar)
-    const inlineValue = document.documentElement.style.getPropertyValue(cssVarName).trim()
-    if (inlineValue) return inlineValue
+    const inlineValue = document.documentElement.style.getPropertyValue(cssVarName)
+    if (inlineValue !== '') return inlineValue.trim()
     
     // Fall back to computed style
-    const computedValue = getComputedStyle(document.documentElement).getPropertyValue(cssVarName).trim()
-    return computedValue || fallback
+    const computedValue = getComputedStyle(document.documentElement).getPropertyValue(cssVarName)
+    if (computedValue !== '') return computedValue.trim()
+    return fallback
   } catch {
     return fallback
   }
@@ -68,9 +69,9 @@ export function readCssVarResolved(
   if (!value) return fallback
   
   // If it's a var() reference, resolve it
-  const varMatch = value.match(/var\s*\(\s*(--[^)]+)\s*\)/)
+  const varMatch = value.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
   if (varMatch) {
-    const innerVarName = varMatch[1]
+    const innerVarName = varMatch[1].trim()
     return readCssVarResolved(innerVarName, maxDepth - 1, fallback)
   }
   
