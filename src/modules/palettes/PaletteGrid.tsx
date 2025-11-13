@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
-import { pickAAOnTone } from '../theme/contrastUtil'
+import { pickAAOnTone, contrastRatio, hexToRgb } from '../theme/contrastUtil'
 import {
   PaletteScaleHeader,
   PaletteScaleHighEmphasis,
@@ -256,6 +256,102 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       }
     })
   }
+  // Blend a foreground color over a background color with opacity
+  const blendHexOver = (fgHex: string, bgHex: string, opacity: number): string => {
+    const fg = hexToRgb(fgHex)
+    const bg = hexToRgb(bgHex)
+    if (!fg || !bg) return fgHex
+    const a = Math.max(0, Math.min(1, opacity))
+    const r = Math.round(a * fg.r + (1 - a) * bg.r)
+    const g = Math.round(a * fg.g + (1 - a) * bg.g)
+    const b = Math.round(a * fg.b + (1 - a) * bg.b)
+    return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
+  }
+
+  // Read a CSS variable value and convert to number (for opacity)
+  // Handles both direct values and var() references (which are resolved by getComputedStyle)
+  const readCssVarNumber = (cssVar: string): number => {
+    try {
+      const value = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim()
+      if (!value) return 1
+      // getComputedStyle resolves var() references automatically, so we can parse directly
+      const num = parseFloat(value)
+      if (!isNaN(num)) {
+        // If number is > 1, assume it's a percentage (e.g., 87 = 0.87)
+        return num <= 1 ? num : num / 100
+      }
+    } catch {}
+    return 1
+  }
+
+  // Determine the correct on-tone color (white or black) considering opacity for AA compliance
+  // Prioritizes ensuring LOW emphasis meets AA (since it's harder with lower opacity)
+  const pickOnToneWithOpacity = (toneHex: string, modeLabel: 'Light' | 'Dark'): 'white' | 'black' => {
+    const AA = 4.5
+    const black = '#000000'
+    const white = '#ffffff'
+    const modeLower = modeLabel.toLowerCase()
+    
+    // First, check contrast without opacity (baseline)
+    const whiteBaseContrast = contrastRatio(toneHex, white)
+    const blackBaseContrast = contrastRatio(toneHex, black)
+    
+    // Get emphasis opacity values from CSS variables
+    const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-high`)
+    const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-low`)
+    
+    // Blend white and black with tone using both opacity values
+    const whiteHighBlended = blendHexOver(white, toneHex, highEmphasisOpacity)
+    const whiteLowBlended = blendHexOver(white, toneHex, lowEmphasisOpacity)
+    const blackHighBlended = blendHexOver(black, toneHex, highEmphasisOpacity)
+    const blackLowBlended = blendHexOver(black, toneHex, lowEmphasisOpacity)
+    
+    // Calculate contrast ratios with opacity applied
+    const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
+    const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
+    const blackHighContrast = contrastRatio(toneHex, blackHighBlended)
+    const blackLowContrast = contrastRatio(toneHex, blackLowBlended)
+    
+    // Check which option meets AA for both emphasis levels
+    const whiteMeetsHighAA = whiteHighContrast >= AA
+    const whiteMeetsLowAA = whiteLowContrast >= AA
+    const whiteMeetsBothAA = whiteMeetsHighAA && whiteMeetsLowAA
+    
+    const blackMeetsHighAA = blackHighContrast >= AA
+    const blackMeetsLowAA = blackLowContrast >= AA
+    const blackMeetsBothAA = blackMeetsHighAA && blackMeetsLowAA
+    
+    // Priority 1: Both meet AA - choose based on baseline contrast first (more reliable),
+    // then low emphasis contrast as tiebreaker
+    if (whiteMeetsBothAA && blackMeetsBothAA) {
+      // If baseline contrasts are significantly different, prefer the better one
+      if (Math.abs(whiteBaseContrast - blackBaseContrast) > 1.0) {
+        return whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+      }
+      // Otherwise, prefer based on low emphasis contrast (harder case)
+      return whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+    }
+    
+    // Priority 2: Only one meets both AA levels
+    if (whiteMeetsBothAA) return 'white'
+    if (blackMeetsBothAA) return 'black'
+    
+    // Priority 3: Check low emphasis (harder case) - prioritize this
+    if (whiteMeetsLowAA && !blackMeetsLowAA) return 'white'
+    if (blackMeetsLowAA && !whiteMeetsLowAA) return 'black'
+    
+    // Priority 4: Check high emphasis
+    if (whiteMeetsHighAA && !blackMeetsHighAA) return 'white'
+    if (blackMeetsHighAA && !whiteMeetsHighAA) return 'black'
+    
+    // Priority 5: Neither meets AA - choose based on baseline contrast first,
+    // then low emphasis contrast as tiebreaker
+    if (Math.abs(whiteBaseContrast - blackBaseContrast) > 0.5) {
+      return whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+    }
+    return whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+  }
+
   const applyFamilyToCssVars = (family: string, modeLabel: 'Light' | 'Dark') => {
     const root = document.documentElement
     headerLevels.forEach((lvl) => {
@@ -264,13 +360,11 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       if (typeof hex === 'string') {
         // set tone to a token color reference instead of hex
         root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`, `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`)
+        
+        // Determine on-tone color considering opacity for AA compliance
+        const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
+        root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`, `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-${onToneCore})`)
       }
-      const onToneName = `palette/${paletteKey}/${lvl}/on-tone`
-      const onTone = resolveThemeRef((themeIndex as any)[`${modeLabel}::${onToneName}`]?.value ?? { collection: 'Theme', name: onToneName }, modeLabel)
-      // on-tone → core brand refs
-      const aa = typeof hex === 'string' ? pickAAOnTone(hex) : (typeof onTone === 'string' ? String(onTone) : '#000000')
-      const aaCore = aa.toLowerCase() === '#ffffff' ? 'white' : 'black'
-      root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`, `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-${aaCore})`)
     })
   }
   
@@ -287,9 +381,21 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       headerLevels.forEach((lvl) => {
         if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
         if (!root[modeKey].palettes[paletteKey][lvl].color) root[modeKey].palettes[paletteKey][lvl].color = {}
+        
         // Update tone to reference the new family token
         root[modeKey].palettes[paletteKey][lvl].color.tone = {
           $value: `{tokens.color.${family}.${toTokenLevel(lvl)}}`
+        }
+        
+        // Determine on-tone color considering opacity for AA compliance
+        const tokenName = `color/${family}/${toTokenLevel(lvl)}`
+        const hex = getTokenValueByName(tokenName)
+        if (typeof hex === 'string') {
+          const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
+          // Update on-tone to reference the correct core color (white or black)
+          root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
+            $value: `{brand.${modeKey}.palettes.core.${onToneCore}}`
+          }
         }
       })
       
