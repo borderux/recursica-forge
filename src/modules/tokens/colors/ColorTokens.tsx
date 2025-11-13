@@ -414,6 +414,15 @@ export default function ColorTokens() {
           })
         }
       })
+      
+      // Check core colors - extract all families used in core palette
+      const corePalette: any = lightPalettes?.core || {}
+      const coreReferencedFamilies = extractReferencedFamilies(corePalette)
+      coreReferencedFamilies.forEach((fam) => {
+        if (fam !== 'translucent') {
+          usedFamilies.add(fam)
+        }
+      })
     } catch {}
     
     return (family: string) => usedFamilies.has(family)
