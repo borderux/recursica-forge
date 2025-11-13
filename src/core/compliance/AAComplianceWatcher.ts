@@ -92,7 +92,7 @@ function parseCoreTokenRef(name: 'interactive' | 'alert' | 'warning' | 'success'
     const root: any = theme?.brand ? theme.brand : theme
     const core: any =
       root?.light?.palettes?.['core']?.['$value'] || root?.light?.palettes?.['core'] ||
-      root?.light?.palettes?.['core-colors']?.['$value'] || root?.light?.palettes?.['core-colors'] || {}
+      root?.light?.palettes?.['core-colors']?.['$value'] || root?.light?.palettes?.['core-colors'] || root?.light?.palettes?.core?.['$value'] || root?.light?.palettes?.core || {}
     const v: any = core?.[name]
     const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
     if (!s) return null

@@ -255,7 +255,7 @@ export default function PaletteColorSelector({
               const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
               if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
               root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
-                $value: `{brand.${modeKey}.palettes.core.${onToneCore}}`
+                $value: `{brand.${modeKey}.palettes.core-colors.${onToneCore}}`
               }
             }
           })

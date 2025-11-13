@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
+import { getVarsStore } from '../../../core/store/varsStore'
 import { ColorScale } from './ColorScale'
 import { clamp, hsvToHex, hexToHsv, toTitleCase, toKebabCase } from './colorUtils'
 import { cascadeColor, computeLevel500Hex, parseLevel, IDX_MAP, LEVELS_ASC } from './colorCascade'
@@ -284,21 +285,15 @@ export default function ColorTokens() {
     const seedHsv = hexToHsv(seedHex)
 
     const newHue = seedHsv.h
-    const newFamily = `custom-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`
+    const tempFamily = `custom-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`
     const write = (name: string, hex: string) => { handleChange(name, hex) }
-    write(`color/${newFamily}/500`, seedHex)
+    write(`color/${tempFamily}/500`, seedHex)
 
-    const name = await getFriendlyNamePreferNtc(seedHex)
-    setFamilyNames((prev) => ({ ...prev, [newFamily]: name }))
-    try {
-      const raw = localStorage.getItem('family-friendly-names')
-      const map = raw ? JSON.parse(raw) || {} : {}
-      map[newFamily] = name
-      localStorage.setItem('family-friendly-names', JSON.stringify(map))
-      try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
-    } catch {}
-    setFamilyOrder((prev) => (prev.includes(newFamily) ? prev : [...prev, newFamily]))
-
+    // Get friendly name and convert to slug
+    const friendlyName = await getFriendlyNamePreferNtc(seedHex)
+    const newFamilySlug = toKebabCase(friendlyName)
+    
+    // Generate all color levels with temporary family name first
     const seedS = seedHsv.s
     const seedV = seedHsv.v
     const endS000 = 0.02
@@ -306,24 +301,112 @@ export default function ColorTokens() {
     const endS1000 = clamp(seedS * 1.2, 0, 1)
     const endV1000 = clamp(Math.max(0.03, seedV * 0.08), 0, 1)
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+    
+    // Store all the hex values we're creating
+    const tempTokenValues: Record<string, string> = {}
     LEVELS_ASC.forEach((lvl) => {
       const idx = IDX_MAP[lvl]
+      let hex: string
       if (idx === 6) {
-        write(`color/${newFamily}/500`, seedHex)
-        return
-      }
-      if (idx < 6) {
+        hex = seedHex
+      } else if (idx < 6) {
         const t = idx / 6
         const s = clamp(lerp(endS000, seedS, t), 0, 1)
         const v = clamp(lerp(endV000, seedV, t), 0, 1)
-        write(`color/${newFamily}/${String(lvl).padStart(3, '0')}`, hsvToHex(newHue, s, v))
-        return
+        hex = hsvToHex(newHue, s, v)
+      } else {
+        const t = (idx - 6) / (11 - 6)
+        const s = clamp(lerp(seedS, endS1000, t), 0, 1)
+        const v = clamp(lerp(seedV, endV1000, t), 0, 1)
+        hex = hsvToHex(newHue, s, v)
       }
-      const t = (idx - 6) / (11 - 6)
-      const s = clamp(lerp(seedS, endS1000, t), 0, 1)
-      const v = clamp(lerp(seedV, endV1000, t), 0, 1)
-      write(`color/${newFamily}/${String(lvl).padStart(3, '0')}`, hsvToHex(newHue, s, v))
+      const levelStr = String(lvl).padStart(3, '0')
+      const tempTokenName = `color/${tempFamily}/${levelStr}`
+      tempTokenValues[tempTokenName] = hex
+      write(tempTokenName, hex)
     })
+
+    // Now rename all tokens from tempFamily to newFamilySlug
+    if (newFamilySlug && newFamilySlug !== tempFamily && newFamilySlug.length > 0) {
+      // Wait for next tick to ensure all updateToken() calls have completed
+      await new Promise(resolve => setTimeout(resolve, 0))
+      
+      try {
+        // Read fresh tokens directly from the store (tokensJson prop might be stale due to React async updates)
+        const store = getVarsStore()
+        const currentState = store.getState()
+        const currentTokens = currentState.tokens
+        const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
+        const tokensRoot = nextTokens?.tokens || {}
+        const colorsRoot = tokensRoot?.color || {}
+        
+        // Get all levels for the temp family
+        const tempFamilyData = colorsRoot[tempFamily]
+        if (tempFamilyData && typeof tempFamilyData === 'object') {
+          // Create new family with all levels
+          if (!tokensRoot.color) tokensRoot.color = {}
+          tokensRoot.color[newFamilySlug] = { ...tempFamilyData }
+          
+          // Delete temp family
+          delete tokensRoot.color[tempFamily]
+          
+          // Update tokens structure
+          if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
+          setTokens(nextTokens)
+          
+          // Update local values state - rename all tokens
+          // The tokens JSON structure is already updated above with setTokens(), which triggers recomputeAndApplyAll()
+          // So we just need to update the local values state to match the new token names
+          const newValues = { ...values }
+          Object.keys(tempTokenValues).forEach((tempTokenName) => {
+            const parts = tempTokenName.split('/')
+            if (parts.length === 3) {
+              const level = parts[2]
+              const newTokenName = `color/${newFamilySlug}/${level}`
+              // Use the value we stored when creating the token
+              const value = tempTokenValues[tempTokenName]
+              // Remove old temp token name
+              delete newValues[tempTokenName]
+              // Add new token name with the same value
+              newValues[newTokenName] = value
+            }
+          })
+          setValues(newValues)
+          
+          // Update family order
+          setFamilyOrder((prev) => prev.map(f => f === tempFamily ? newFamilySlug : f).filter(f => f !== tempFamily))
+          
+          // Update family names map
+          const updatedFamilyNames = { ...familyNames }
+          delete updatedFamilyNames[tempFamily]
+          updatedFamilyNames[newFamilySlug] = toTitleCase(friendlyName)
+          setFamilyNames(updatedFamilyNames)
+          
+          // Update localStorage
+          try {
+            const raw = localStorage.getItem('family-friendly-names')
+            const map = raw ? JSON.parse(raw) || {} : {}
+            delete map[tempFamily]
+            map[newFamilySlug] = toTitleCase(friendlyName)
+            localStorage.setItem('family-friendly-names', JSON.stringify(map))
+            try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+          } catch {}
+        } else {
+          // Fallback: if rename failed, just update the display name
+          setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
+          setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
+        }
+      } catch (error) {
+        console.error('Failed to rename color family after creation:', error)
+        // Fallback: just update the display name
+        setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
+        setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
+      }
+    } else {
+      // If slug generation failed, just use temp name with friendly display name
+      setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
+      setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
+    }
   }
 
   // Check if a color scale is used in palettes

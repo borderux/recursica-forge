@@ -120,7 +120,7 @@ export default function ColorTokenPicker() {
           
           // Update light mode
           if (root?.light?.palettes?.core) {
-            const core = root.light.palettes.core
+            const core = root.light.palettes['core-colors'] || root.light.palettes.core
             if (core.$value) {
               core.$value[coreColorName] = tokenRef
             } else {

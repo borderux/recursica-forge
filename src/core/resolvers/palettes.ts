@@ -32,7 +32,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const lightPal: any = root?.light?.palettes || {}
-      return Object.keys(lightPal).filter((k) => k !== 'core')
+        return Object.keys(lightPal).filter((k) => k !== 'core' && k !== 'core-colors')
     } catch {
       return []
     }
@@ -91,7 +91,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         const palette: any = root?.[mode.toLowerCase()]?.palettes?.[pk]
         if (!palette) return []
         // Get all level keys (excluding $type, $value, etc.)
-        return Object.keys(palette).filter((k) => /^\d+$/.test(k) || k === 'primary')
+        // Include both 'primary' and 'default' - 'default' will be mapped to 'primary' for CSS vars
+        return Object.keys(palette).filter((k) => /^\d+$/.test(k) || k === 'primary' || k === 'default')
       } catch {
         return []
       }
@@ -101,14 +102,31 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const levelsToProcess = paletteLevels.length > 0 ? paletteLevels : levels
     
     levelsToProcess.forEach((lvl) => {
+      // Map 'default' to 'primary' for CSS variable names (Brand.json uses 'default', CSS uses 'primary')
+      const cssLevel = lvl === 'default' ? 'primary' : lvl
       const toneName = `palette/${pk}/${lvl}/color/tone`
       const onToneName = `palette/${pk}/${lvl}/on-tone`
-      const toneRaw = themeIndex[`${mode}::${toneName}`]?.value
+      let toneRaw = themeIndex[`${mode}::${toneName}`]?.value
+      
+      // If 'default' level and no direct color.tone, check if default references another level
+      if (lvl === 'default' && !toneRaw) {
+        const defaultRef = themeIndex[`${mode}::palette/${pk}/default`]?.value
+        if (defaultRef && typeof defaultRef === 'string' && defaultRef.startsWith('{') && defaultRef.endsWith('}')) {
+          // Parse reference like {theme.light.palettes.palette-1.400}
+          const inner = defaultRef.slice(1, -1).trim()
+          const match = /^(?:theme|brand)\.(?:light|dark)\.palettes\.([a-z0-9\-]+)\.(\d+)$/i.exec(inner)
+          if (match && match[1] === pk) {
+            // default references another level in the same palette, use that level's color.tone
+            const referencedLevel = match[2]
+            toneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/tone`]?.value
+          }
+        }
+      }
       
       // Skip if no tone value is defined in theme
       if (!toneRaw) return
       
-      const scope = `--brand-${mode.toLowerCase()}-palettes-${pk}-${lvl}`
+      const scope = `--brand-${mode.toLowerCase()}-palettes-${pk}-${cssLevel}`
       
       // Parse tone from JSON - simple brace reference parsing
       let toneVar: string | null = null
@@ -137,14 +155,26 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         // Map on-tone to core color reference (black/white)
         // If theme JSON specifies on-tone, use it; otherwise default to black
         // AA compliance will be handled reactively in Phase 3
-        const onToneRaw = themeIndex[`${mode}::${onToneName}`]?.value
+        // For 'default' level, check if we need to use the referenced level's on-tone
+        let onToneRaw = themeIndex[`${mode}::${onToneName}`]?.value
+        if (lvl === 'default' && !onToneRaw) {
+          const defaultRef = themeIndex[`${mode}::palette/${pk}/default`]?.value
+          if (defaultRef && typeof defaultRef === 'string' && defaultRef.startsWith('{') && defaultRef.endsWith('}')) {
+            const inner = defaultRef.slice(1, -1).trim()
+            const match = /^(?:theme|brand)\.(?:light|dark)\.palettes\.([a-z0-9\-]+)\.(\d+)$/i.exec(inner)
+            if (match && match[1] === pk) {
+              const referencedLevel = match[2]
+              onToneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/on-tone`]?.value
+            }
+          }
+        }
         let onToneVar: string
         
         if (typeof onToneRaw === 'string') {
           const s = onToneRaw.trim().toLowerCase()
-          if (s === '#ffffff' || s === 'white' || s === '{brand.light.palettes.core.white}' || s === '{brand.dark.palettes.core.white}') {
+          if (s === '#ffffff' || s === 'white' || s === '{brand.light.palettes.core-colors.white}' || s === '{brand.dark.palettes.core-colors.white}' || s === '{brand.light.palettes.core.white}' || s === '{brand.dark.palettes.core.white}') {
             onToneVar = `var(--recursica-brand-${modeLower}-palettes-core-white)`
-          } else if (s === '#000000' || s === 'black' || s === '{brand.light.palettes.core.black}' || s === '{brand.dark.palettes.core.black}') {
+          } else if (s === '#000000' || s === 'black' || s === '{brand.light.palettes.core-colors.black}' || s === '{brand.dark.palettes.core-colors.black}' || s === '{brand.light.palettes.core.black}' || s === '{brand.dark.palettes.core.black}') {
             onToneVar = `var(--recursica-brand-${modeLower}-palettes-core-black)`
           } else {
             // Try to resolve as theme reference

@@ -169,8 +169,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                                     // Update theme JSON
                                     const nextTheme = JSON.parse(JSON.stringify(themeJson))
                                     const themeRoot: any = nextTheme?.brand ? nextTheme.brand : nextTheme
-                                    if (themeRoot?.light?.palettes?.core) {
-                                      const core = themeRoot.light.palettes.core
+                                    const corePalette = themeRoot?.light?.palettes?.['core-colors'] || themeRoot?.light?.palettes?.core
+                                    if (corePalette) {
+                                      const core = corePalette
                                       if (core.$value) {
                                         core.$value[coreColorName] = tokenRef
                                       } else {
@@ -195,8 +196,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                                   try {
                                     const nextTheme = JSON.parse(JSON.stringify(themeJson))
                                     const themeRoot: any = nextTheme?.brand ? nextTheme.brand : nextTheme
-                                    if (themeRoot?.light?.palettes?.core) {
-                                      const core = themeRoot.light.palettes.core
+                                    const corePalette = themeRoot?.light?.palettes?.['core-colors'] || themeRoot?.light?.palettes?.core
+                                    if (corePalette) {
+                                      const core = corePalette
                                       if (core.$value) {
                                         core.$value[coreColorName] = tokenRef
                                       } else {

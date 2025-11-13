@@ -680,7 +680,7 @@ class VarsStore {
     // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
     try {
       const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
-      const core: any = root?.light?.palettes?.core?.$value || root?.light?.palettes?.core || {}
+      const core: any = root?.light?.palettes?.['core-colors']?.$value || root?.light?.palettes?.['core-colors'] || root?.light?.palettes?.core?.$value || root?.light?.palettes?.core || {}
       
       const normalizeLevel = (lvl?: string): string | undefined => {
         if (!lvl) return undefined

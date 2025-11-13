@@ -66,7 +66,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const core: any =
         root?.light?.palettes?.['core']?.['$value'] || root?.light?.palettes?.['core'] ||
-        root?.light?.palettes?.['core-colors']?.['$value'] || root?.light?.palettes?.['core-colors'] || {}
+        root?.light?.palettes?.['core-colors']?.['$value'] || root?.light?.palettes?.['core-colors'] || root?.light?.palettes?.core?.['$value'] || root?.light?.palettes?.core || {}
       const v: any = core?.[name]
       const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
       if (!s) return null
@@ -268,7 +268,21 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       else if (key === 'warning') surfRaw = 'var(--recursica-brand-light-palettes-core-warning, var(--palette-warning))'
       else if (key === 'success') surfRaw = 'var(--recursica-brand-light-palettes-core-success, var(--palette-success))'
       else if (key === 'high-contrast') surfRaw = 'var(--recursica-brand-light-palettes-core-black)'
-      else if (key === 'primary-color') surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+      else if (key === 'primary-color') {
+        // Resolve from Brand.json - check for default first, then fall back to primary
+        const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+        const palette1Default = root?.light?.palettes?.['palette-1']?.['default']?.$value
+        const palette1Primary = root?.light?.palettes?.['palette-1']?.['primary']
+        if (palette1Default) {
+          // Resolve the default reference
+          const resolved = resolveRef(palette1Default)
+          surfRaw = typeof resolved === 'string' ? resolved : 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+        } else if (palette1Primary) {
+          surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+        } else {
+          surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+        }
+      }
     }
     const surfPalette = parsePaletteToneRef(surfRaw)
     const surf = resolveRef(surfRaw)
