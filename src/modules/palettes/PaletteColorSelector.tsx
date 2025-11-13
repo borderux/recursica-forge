@@ -108,12 +108,6 @@ export default function PaletteColorSelector({
 }: PaletteColorSelectorProps) {
   const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
   const [overrideVersion, setOverrideVersion] = useState(0)
-  
-  useEffect(() => {
-    const handler = () => setOverrideVersion((v) => v + 1)
-    window.addEventListener('tokenOverridesChanged', handler as any)
-    return () => window.removeEventListener('tokenOverridesChanged', handler as any)
-  }, [])
 
   // Detect which families are used by which palettes from theme JSON
   const familiesUsedByPalettes = useMemo(() => {
@@ -232,6 +226,83 @@ export default function PaletteColorSelector({
       setSelectedFamily(detected)
     }
   }, [detectFamilyFromTheme])
+
+  // Re-check AA compliance for a palette when token values change
+  const recheckAACompliance = useCallback((family: string) => {
+    if (family !== selectedFamily) return
+    
+    const rootEl = document.documentElement
+    const modeLower = mode.toLowerCase()
+    
+    headerLevels.forEach((lvl) => {
+      const tokenName = `color/${family}/${lvl}`
+      const hex = getTokenValueByName(tokenName)
+      if (typeof hex === 'string') {
+        // Re-check AA compliance and update on-tone if needed
+        const onToneCore = pickOnToneWithOpacity(hex, mode)
+        rootEl.style.setProperty(
+          `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
+          `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
+        )
+      }
+    })
+    
+    // Also update theme JSON for both modes to persist the new on-tone values
+    if (setTheme && themeJson) {
+      try {
+        const themeCopy = JSON.parse(JSON.stringify(themeJson))
+        const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+        
+        for (const modeKey of ['light', 'dark']) {
+          const modeLabel = modeKey === 'light' ? 'Light' : 'Dark'
+          if (!root[modeKey]?.palettes?.[paletteKey]) continue
+          
+          headerLevels.forEach((lvl) => {
+            const tokenName = `color/${family}/${lvl}`
+            const hex = getTokenValueByName(tokenName)
+            if (typeof hex === 'string') {
+              const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
+              if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
+              root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
+                $value: `{brand.${modeKey}.palettes.core.${onToneCore}}`
+              }
+            }
+          })
+        }
+        
+        setTheme(themeCopy)
+      } catch (err) {
+        console.error('Failed to update theme for AA compliance:', err)
+      }
+    }
+  }, [selectedFamily, mode, paletteKey, headerLevels, getTokenValueByName, setTheme, themeJson])
+
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      const detail: any = (ev as CustomEvent).detail
+      if (!detail) {
+        setOverrideVersion((v) => v + 1)
+        return
+      }
+      
+      // Check if a color token was changed
+      const tokenName = detail.name
+      if (tokenName && typeof tokenName === 'string' && tokenName.startsWith('color/')) {
+        const parts = tokenName.split('/')
+        if (parts.length >= 3) {
+          const changedFamily = parts[1]
+          // If this palette uses the changed family, re-check AA compliance
+          if (selectedFamily === changedFamily) {
+            recheckAACompliance(changedFamily)
+          }
+        }
+      }
+      
+      setOverrideVersion((v) => v + 1)
+    }
+    window.addEventListener('tokenOverridesChanged', handler as any)
+    return () => window.removeEventListener('tokenOverridesChanged', handler as any)
+  }, [selectedFamily, recheckAACompliance])
 
   // Set CSS vars only on mount and when mode changes (not when selectedFamily changes from theme)
   // Use a ref to track if we've initialized to avoid unnecessary updates
