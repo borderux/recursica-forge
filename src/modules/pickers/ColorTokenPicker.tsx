@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
-import { findTokenByHex } from '../../core/css/tokenRefs'
 import { updateCssVar } from '../../core/css/updateCssVar'
+import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 
 export default function ColorTokenPicker() {
-  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
+  const { tokens: tokensJson } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetVar, setTargetVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
@@ -53,15 +53,21 @@ export default function ColorTokenPicker() {
       const overrideLevels = Object.keys(overrideMap)
         .filter((k) => k.startsWith(`color/${fam}/`))
         .map((k) => k.split('/')[2])
-        .filter((lvl) => /^(\d{2,4})$/.test(lvl))
+        .filter((lvl) => /^(\d{2,4}|000)$/.test(lvl))
       const levelSet = new Set<string>([...jsonLevels, ...overrideLevels])
-      const levels = Array.from(levelSet)
-      byFamily[fam] = levels.map((lvl) => {
+      const allLevels = Array.from(levelSet)
+      
+      // Show all levels including 000 and 1000 - no deduplication
+      byFamily[fam] = allLevels.map((lvl) => {
         const name = `color/${fam}/${lvl}`
         const val = (overrideMap as any)[name] ?? (jsonColors?.[fam]?.[lvl]?.$value)
         return { level: lvl, name, value: String(val ?? '') }
       }).filter((it) => it.value && /^#?[0-9a-fA-F]{6}$/.test(String(it.value).trim()))
-      byFamily[fam].sort((a, b) => Number(b.level) - Number(a.level))
+      byFamily[fam].sort((a, b) => {
+        const aNum = a.level === '000' ? 0 : a.level === '050' ? 50 : a.level === '1000' ? 1000 : Number(a.level)
+        const bNum = b.level === '000' ? 0 : b.level === '050' ? 50 : b.level === '1000' ? 1000 : Number(b.level)
+        return bNum - aNum
+      })
     })
     return byFamily
   }, [tokensJson])
@@ -75,77 +81,93 @@ export default function ColorTokenPicker() {
     setPos({ top, left })
   }
 
-  const handleSelect = (tokenName: string, hex: string) => {
-    if (!targetVar) return
+  // Helper: Build CSS variable name for a color token (matches varsStore format)
+  const buildTokenCssVar = (family: string, level: string): string => {
+    // padStart(3) keeps 1000 as "1000" (4 digits), pads others to 3 digits
+    const paddedLevel = String(level).padStart(3, '0')
+    return `--recursica-tokens-color-${family}-${paddedLevel}`
+  }
+
+  // Get the resolved value of the target CSS var to compare with color tokens
+  // This hook must be called before any early returns to follow Rules of Hooks
+  const targetResolvedValue = useMemo(() => {
+    if (!targetVar) return null
+    const resolved = readCssVarResolved(targetVar)
+    const directValue = readCssVar(targetVar)
+    return { resolved, direct: directValue }
+  }, [targetVar])
+
+  // Check if a color token swatch is currently selected
+  const isTokenSelected = (tokenName: string, tokenHex: string): boolean => {
+    if (!targetResolvedValue || !targetVar) return false
     
-    // Ensure we have a valid token name - if not, try to find matching token by hex
-    let finalTokenName = tokenName
-    if (!finalTokenName || !finalTokenName.startsWith('color/')) {
-      // Try to find token by hex value
-      const tokenMatch = findTokenByHex(hex, tokensJson)
-      if (tokenMatch) {
-        finalTokenName = `color/${tokenMatch.family}/${tokenMatch.level}`
-        console.log(`Found matching token for hex ${hex}: ${finalTokenName}`)
-      } else {
-        console.warn(`No matching token found for hex ${hex} in core palette ${targetVar}. Using provided token name or default.`)
+    // Parse token name: color/{family}/{level}
+    const tokenParts = tokenName.split('/')
+    if (tokenParts.length !== 3 || tokenParts[0] !== 'color') return false
+    
+    const family = tokenParts[1]
+    const level = tokenParts[2]
+    const tokenCssVar = buildTokenCssVar(family, level)
+    const expectedValue = `var(${tokenCssVar})`
+    
+    // Check if target CSS var directly references this token var
+    const directValue = readCssVar(targetVar)
+    if (directValue) {
+      const trimmed = directValue.trim()
+      if (trimmed === expectedValue) {
+        return true
+      }
+      // If target is a CSS var reference (not hex), only match exact references
+      if (trimmed.startsWith('var(')) {
+        return false
       }
     }
     
-    // Build the token CSS variable reference with normalized level
-    const tokenParts = finalTokenName.split('/')
-    if (tokenParts.length === 3 && tokenParts[0] === 'color') {
-      const family = tokenParts[1]
-      let level = tokenParts[2]
-      // Normalize level (000 -> 050, 1000 -> 900)
-      const padded = level.padStart(3, '0')
-      if (padded === '000') level = '050'
-      else if (padded === '1000') level = '900'
-      else level = padded
-      
-      const tokenCssVar = `--recursica-tokens-color-${family}-${level}`
-      
-      // Set the CSS variable to reference the token using centralized function
-      updateCssVar(targetVar, `var(${tokenCssVar})`, tokensJson)
-      
-      // If this is a core color, update the theme JSON to persist the change
-      const coreColorMatch = targetVar.match(/--recursica-brand-light-palettes-core-(black|white|alert|warning|success|interactive)/)
-      if (coreColorMatch && setTheme && themeJson) {
-        const coreColorName = coreColorMatch[1] as 'black' | 'white' | 'alert' | 'warning' | 'success' | 'interactive'
-        const tokenRef = `{tokens.color.${family}.${level}}`
-        
-        // Update theme JSON to persist the change
-        try {
-          const nextTheme = JSON.parse(JSON.stringify(themeJson)) // Deep clone
-          const root: any = nextTheme?.brand ? nextTheme.brand : nextTheme
-          
-          // Update light mode
-          if (root?.light?.palettes?.core) {
-            const core = root.light.palettes['core-colors'] || root.light.palettes.core
-            if (core.$value) {
-              core.$value[coreColorName] = tokenRef
-            } else {
-              core[coreColorName] = tokenRef
-            }
-          }
-          
-          // Also update dark mode to keep them in sync
-          if (root?.dark?.palettes?.core) {
-            const core = root.dark.palettes.core
-            if (core.$value) {
-              core.$value[coreColorName] = tokenRef
-            } else {
-              core[coreColorName] = tokenRef
-            }
-          }
-          
-          setTheme(nextTheme)
-        } catch (err) {
-          console.error('Failed to update theme state for core color:', err)
-        }
+    // Fallback: compare resolved hex values (only if target is a direct hex, not a var reference)
+    if (targetResolvedValue.direct && !targetResolvedValue.direct.trim().startsWith('var(')) {
+      const normalizedHex = tokenHex.startsWith('#') ? tokenHex.toLowerCase().trim() : `#${tokenHex.toLowerCase().trim()}`
+      if (targetResolvedValue.resolved && /^#[0-9a-f]{6}$/.test(normalizedHex)) {
+        const targetHex = targetResolvedValue.resolved.startsWith('#') 
+          ? targetResolvedValue.resolved.toLowerCase().trim() 
+          : `#${targetResolvedValue.resolved.toLowerCase().trim()}`
+        return targetHex === normalizedHex
       }
-      
-      // AA compliance is now handled reactively by AAComplianceWatcher
-      // No manual calls needed - the watcher will detect CSS var changes automatically
+    }
+    
+    return false
+  }
+
+  const handleSelect = (tokenName: string) => {
+    if (!targetVar) return
+    
+    // Parse token name: color/{family}/{level}
+    const tokenParts = tokenName.split('/')
+    if (tokenParts.length !== 3 || tokenParts[0] !== 'color') {
+      console.warn('Invalid token name format:', tokenName)
+      return
+    }
+    
+    const family = tokenParts[1]
+    const level = tokenParts[2] // Use actual level (000, 050, 900, 1000, etc.)
+    const tokenCssVar = buildTokenCssVar(family, level)
+    
+    // Verify the CSS variable exists before trying to use it
+    // Check both the prefixed and unprefixed versions
+    const tokenVarValue = readCssVar(tokenCssVar) || readCssVar(tokenCssVar.replace('--recursica-', '--'))
+    if (!tokenVarValue) {
+      console.error(`CSS variable ${tokenCssVar} does not exist. Cannot select level ${level} for ${family}.`)
+      console.error(`This may indicate that varsStore is not generating CSS variables for level ${level}.`)
+      // Still try to set it - the variable might be created dynamically
+    } else {
+      console.log(`Selecting ${tokenCssVar} (value: ${tokenVarValue})`)
+    }
+    
+    // Set the CSS variable to reference the token (using exact level, no normalization)
+    // Only update CSS variables - never update JSON. JSON is read once on init.
+    const success = updateCssVar(targetVar, `var(${tokenCssVar})`, tokensJson)
+    if (!success) {
+      console.error(`Failed to update ${targetVar} to var(${tokenCssVar})`)
+      return
     }
     
     setAnchor(null)
@@ -193,14 +215,69 @@ export default function ColorTokenPicker() {
           <div key={family} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
             <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize' }}>{getFriendly(family)}</div>
             <div style={{ display: 'flex', flexWrap: 'nowrap', gap, overflow: 'auto' }}>
-              {items.map((it) => (
-                <div 
-                  key={it.name} 
-                  title={it.name} 
-                  onClick={() => handleSelect(it.name, it.value)} 
-                  style={{ width: swatch, height: swatch, background: it.value, cursor: 'pointer', border: '1px solid rgba(0,0,0,0.15)', flex: '0 0 auto' }} 
-                />
-              ))}
+              {items.map((it) => {
+                const isSelected = isTokenSelected(it.name, it.value)
+                
+                // Parse token name and build CSS variable for swatch background
+                const tokenParts = it.name.split('/')
+                let tokenCssVar: string | null = null
+                if (tokenParts.length === 3 && tokenParts[0] === 'color') {
+                  const family = tokenParts[1]
+                  const level = tokenParts[2]
+                  tokenCssVar = buildTokenCssVar(family, level)
+                }
+                
+                return (
+                  <div 
+                    key={it.name} 
+                    title={it.name} 
+                    onClick={() => handleSelect(it.name)} 
+                    style={{ 
+                      position: 'relative',
+                      width: swatch, 
+                      height: swatch, 
+                      background: tokenCssVar ? `var(${tokenCssVar})` : it.value, 
+                      cursor: 'pointer', 
+                      border: '1px solid rgba(0,0,0,0.15)', 
+                      flex: '0 0 auto' 
+                    }}
+                  >
+                    {isSelected && (
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        {/* White checkmark with dark shadow for visibility on any background */}
+                        <path
+                          d="M2 6L5 9L10 2"
+                          stroke="#000"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          opacity="0.4"
+                        />
+                        <path
+                          d="M2 6L5 9L10 2"
+                          stroke="#fff"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))}

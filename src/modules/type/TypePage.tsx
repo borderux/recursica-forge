@@ -56,10 +56,27 @@ export function TypePage() {
       lineHeight: `var(--recursica-brand-typography-${cssVarName}-line-height, normal)` as any,
       margin: '0',
     }), [cssVarName, updateKey])
+    
+    // Elevation level 1 box-shadow CSS variables for selected state
+    const selectedElevation = isSelected 
+      ? `var(--recursica-brand-light-elevations-elevation-1-x-axis) var(--recursica-brand-light-elevations-elevation-1-y-axis) var(--recursica-brand-light-elevations-elevation-1-blur) var(--recursica-brand-light-elevations-elevation-1-spread) var(--recursica-brand-light-elevations-elevation-1-shadow-color)`
+      : undefined
+    
     return (
       <div
         onClick={() => onToggle(!isSelected)}
-        style={{ border: isSelected ? '3px solid var(--recursica-brand-light-palettes-core-alert)' : '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+        style={{ 
+          backgroundColor: 'var(--recursica-brand-light-layer-layer-1-property-surface)',
+          color: 'var(--recursica-brand-light-layer-layer-1-element-text-color)',
+          border: 'var(--recursica-brand-light-layer-layer-1-property-border-thickness) solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
+          borderRadius: 'var(--recursica-brand-light-layer-layer-1-property-border-radius)', 
+          padding: 'var(--recursica-brand-light-layer-layer-1-property-padding)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 12, 
+          cursor: 'pointer',
+          boxShadow: selectedElevation || 'var(--recursica-brand-light-layer-layer-1-property-elevation)',
+        }}
       >
         <input type="checkbox" checked={isSelected} onClick={(e) => e.stopPropagation()} onChange={(e) => onToggle((e.target as HTMLInputElement).checked)} aria-label="Select type sample" />
         <Tag style={style}>{text}</Tag>

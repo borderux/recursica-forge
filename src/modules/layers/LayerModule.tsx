@@ -186,8 +186,8 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       }}
       onClick={(e) => { if (onSelect) { e.stopPropagation(); onSelect() } }}
     >
-      <div className="layer-content">
-        <div className="layer-text-samples">
+      <div className="layer-content" style={isAlternative ? { height: '100%' } : undefined}>
+        <div className="layer-text-samples" style={isAlternative ? { display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } : undefined}>
           {onSelect ? (
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }} onClick={(e) => e.stopPropagation()}>
               <input
@@ -202,28 +202,51 @@ export default function LayerModule({ level, alternativeKey, title, className, c
           ) : (
             title ? <h3 style={{ ...(headingStyle as any), fontWeight: 700 }}>{title}</h3> : null
           )}
-          <p style={{
-            ...(bodyStyle as any),
-            color: (`var(${brandBase}element-text-color)` as any),
-            opacity: (`var(${brandBase}element-text-high-emphasis)` as any)
-          }}>High Emphasis Text / Icon</p>
-          <p style={{
-            ...(bodyStyle as any),
-            color: (`var(${brandBase}element-text-color)` as any),
-            opacity: (`var(${brandBase}element-text-low-emphasis)` as any)
-          }}>Low Emphasis Text / Icon</p>
-          <p style={{
-            ...(bodyStyle as any),
-            color: (`var(${brandBase}element-interactive-color)` as any),
-            opacity: `var(${brandBase}element-interactive-high-emphasis)` as any
-          }}>Interactive (Link / Button)</p>
-          <p style={{
-            ...(bodyStyle as any),
-            color: (`var(${brandBase}element-interactive-color)` as any),
-            opacity: ('var(--recursica-brand-light-opacity-disabled)' as any)
-          }}>Disabled Interactive</p>
-          {!isAlternative && (
+          {isAlternative ? (
+            <div>
+              <p style={{
+                ...(bodyStyle as any),
+                color: (`var(${brandBase}element-text-color)` as any),
+                opacity: (`var(${brandBase}element-text-high-emphasis)` as any)
+              }}>High Emphasis Text / Icon</p>
+              <p style={{
+                ...(bodyStyle as any),
+                color: (`var(${brandBase}element-text-color)` as any),
+                opacity: (`var(${brandBase}element-text-low-emphasis)` as any)
+              }}>Low Emphasis Text / Icon</p>
+              <p style={{
+                ...(bodyStyle as any),
+                color: (`var(${brandBase}element-interactive-color)` as any),
+                opacity: `var(${brandBase}element-interactive-high-emphasis)` as any
+              }}>Interactive (Link / Button)</p>
+              <p style={{
+                ...(bodyStyle as any),
+                color: (`var(${brandBase}element-interactive-color)` as any),
+                opacity: ('var(--recursica-brand-light-opacity-disabled)' as any)
+              }}>Disabled Interactive</p>
+            </div>
+          ) : (
             <>
+              <p style={{
+                ...(bodyStyle as any),
+                color: (`var(${brandBase}element-text-color)` as any),
+                opacity: (`var(${brandBase}element-text-high-emphasis)` as any)
+              }}>High Emphasis Text / Icon</p>
+              <p style={{
+                ...(bodyStyle as any),
+                color: (`var(${brandBase}element-text-color)` as any),
+                opacity: (`var(${brandBase}element-text-low-emphasis)` as any)
+              }}>Low Emphasis Text / Icon</p>
+              <p style={{
+                ...(bodyStyle as any),
+                color: (`var(${brandBase}element-interactive-color)` as any),
+                opacity: `var(${brandBase}element-interactive-high-emphasis)` as any
+              }}>Interactive (Link / Button)</p>
+              <p style={{
+                ...(bodyStyle as any),
+                color: (`var(${brandBase}element-interactive-color)` as any),
+                opacity: ('var(--recursica-brand-light-opacity-disabled)' as any)
+              }}>Disabled Interactive</p>
               <p style={{ color: (`var(${brandBase}element-text-alert)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Alert</p>
               <p style={{ color: (`var(${brandBase}element-text-warning)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Warning</p>
               <p style={{ color: (`var(${brandBase}element-text-success)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Success</p>

@@ -104,6 +104,14 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
         const label = (mVar[2] || '').toLowerCase()
         return `--recursica-brand-light-palettes-core-${label}`
       }
+      // Handle {theme.dark.palettes.black} and {theme.dark.palettes.white} → map to core colors
+      const themeDarkPalette = /^(?:brand|theme)\.dark\.palettes\.(black|white)$/i.exec(
+        s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1) : s
+      )
+      if (themeDarkPalette) {
+        const label = themeDarkPalette[1].toLowerCase()
+        return `--recursica-brand-light-palettes-core-${label}`
+      }
       // {brand|theme}.{light|dark}.palettes.core.<key> (also accept legacy core-colors)
       const m = /^(?:brand|theme)\.(?:light|dark)\.palettes\.(?:core|core-colors)\.(black|white|interactive|alert|warning|success)$/i.exec(
         s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1) : s

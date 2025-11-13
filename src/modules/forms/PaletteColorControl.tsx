@@ -33,9 +33,61 @@ export default function PaletteColorControl({
   fontSize = 13,
 }: PaletteColorControlProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
-  const [displayLabel, setDisplayLabel] = useState<string>(fallbackLabel)
-
   const displayCssVar = currentValueCssVar || targetCssVar
+  
+  // Initialize display label by reading CSS variable value immediately
+  const getInitialLabel = (): string => {
+    const cssValue = readCssVar(displayCssVar)
+    if (!cssValue) return fallbackLabel
+    
+    // Extract palette name and level from var() reference
+    // Match: var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone)
+    let match = cssValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+    
+    // Also check for color-mix() functions that contain palette references
+    // Match: color-mix(in srgb, var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
+    // The palette var can appear anywhere in the color-mix function
+    if (!match) {
+      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)[^)]*\)/)
+    }
+    
+    // Also check for token references: var(--recursica-tokens-color-{family}-{level})
+    // Match: var(--recursica-tokens-color-{family}-{level})
+    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/)
+    
+    // Also check for color-mix() functions that contain token references
+    if (!tokenMatch) {
+      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/)
+    }
+    
+    if (match) {
+      const [, paletteKey, level] = match
+      const formattedPalette = paletteKey
+        .replace(/[-_/]+/g, ' ')
+        .replace(/\b\w/g, (m) => m.toUpperCase())
+        .trim()
+      const displayLevel = level === 'primary' ? 'primary' : level
+      return `${formattedPalette} / ${displayLevel}`
+    }
+    
+    if (tokenMatch) {
+      const [, family, level] = tokenMatch
+      const formattedFamily = family
+        .replace(/[-_/]+/g, ' ')
+        .replace(/\b\w/g, (m) => m.toUpperCase())
+        .trim()
+      return `${formattedFamily} / ${level}`
+    }
+    
+    if (cssValue.startsWith('#') || cssValue.startsWith('rgb')) {
+      return 'Custom color'
+    }
+    
+    return fallbackLabel
+  }
+  
+  const [displayLabel, setDisplayLabel] = useState<string>(getInitialLabel)
+  const [refreshKey, setRefreshKey] = useState(0) // Force re-read when picker closes
 
   // Helper function to format palette name (e.g., "palette-1" -> "Palette 1", "neutral" -> "Neutral")
   const formatPaletteName = (paletteKey: string): string => {
@@ -45,9 +97,9 @@ export default function PaletteColorControl({
       .trim()
   }
 
-  // Update display label based on CSS variable value
-  useEffect(() => {
-    // Get the CSS variable value
+  // Helper function to update display label from CSS variable
+  const updateDisplayLabel = () => {
+    // Get the CSS variable value - readCssVar checks both inline and computed styles
     const cssValue = readCssVar(displayCssVar)
 
     if (!cssValue) {
@@ -57,12 +109,37 @@ export default function PaletteColorControl({
 
     // Extract palette name and level from var() reference
     // Match: var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone)
-    const match = cssValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone\s*\)/)
+    // Updated regex to handle 000 and 1000 levels
+    let match = cssValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+    
+    // Also check for color-mix() functions that contain palette references
+    // Match: color-mix(in srgb, var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
+    // The palette var can appear anywhere in the color-mix function
+    if (!match) {
+      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)[^)]*\)/)
+    }
+    
+    // Also check for token references: var(--recursica-tokens-color-{family}-{level})
+    // Match: var(--recursica-tokens-color-{family}-{level})
+    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/)
+    
+    // Also check for color-mix() functions that contain token references
+    if (!tokenMatch) {
+      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/)
+    }
+    
     if (match) {
       const [, paletteKey, level] = match
       const formattedPalette = formatPaletteName(paletteKey)
       const displayLevel = level === 'primary' ? 'primary' : level
       setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+      return
+    }
+    
+    if (tokenMatch) {
+      const [, family, level] = tokenMatch
+      const formattedFamily = formatPaletteName(family)
+      setDisplayLabel(`${formattedFamily} / ${level}`)
       return
     }
 
@@ -73,7 +150,29 @@ export default function PaletteColorControl({
     }
 
     setDisplayLabel(fallbackLabel)
-  }, [displayCssVar, fallbackLabel])
+  }
+
+  // Update display label based on CSS variable value
+  useEffect(() => {
+    // Read immediately
+    updateDisplayLabel()
+    
+    // Also read after a short delay to catch CSS variables that might be set via computed styles
+    // This ensures we read the value even if it's set by varsStore after component mount
+    const timeoutId = setTimeout(() => {
+      updateDisplayLabel()
+    }, 10)
+    
+    // Also read after a longer delay to catch any async CSS variable updates
+    const timeoutId2 = setTimeout(() => {
+      updateDisplayLabel()
+    }, 100)
+    
+    return () => {
+      clearTimeout(timeoutId)
+      clearTimeout(timeoutId2)
+    }
+  }, [displayCssVar, fallbackLabel, refreshKey]) // Include refreshKey to force re-read
 
   const handleClick = () => {
     const el = buttonRef.current
@@ -120,7 +219,12 @@ export default function PaletteColorControl({
           {displayLabel}
         </span>
       </button>
-      <PaletteSwatchPicker />
+      <PaletteSwatchPicker 
+        onSelect={() => {
+          // Force re-read of CSS variable when a selection is made
+          setRefreshKey(prev => prev + 1)
+        }}
+      />
     </>
   )
 }
