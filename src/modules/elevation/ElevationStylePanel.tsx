@@ -172,7 +172,7 @@ export default function ElevationStylePanel({
             label="Shadow Color"
             targetCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(0)}
             targetCssVars={levelsArr.length > 0 ? levelsArr.map(lvl => getShadowColorCssVar(lvl)) : undefined}
-            currentValueCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : undefined}
+            currentValueCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(0)}
             swatchSize={14}
             fontSize={13}
           />
