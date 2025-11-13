@@ -34,6 +34,7 @@ export default function PaletteColorControl({
 }: PaletteColorControlProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [displayLabel, setDisplayLabel] = useState<string>(fallbackLabel)
+  const [refreshKey, setRefreshKey] = useState(0) // Force re-read when picker closes
 
   const displayCssVar = currentValueCssVar || targetCssVar
 
@@ -57,7 +58,8 @@ export default function PaletteColorControl({
 
     // Extract palette name and level from var() reference
     // Match: var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone)
-    const match = cssValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone\s*\)/)
+    // Updated regex to handle 000 and 1000 levels
+    const match = cssValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
     if (match) {
       const [, paletteKey, level] = match
       const formattedPalette = formatPaletteName(paletteKey)
@@ -73,7 +75,7 @@ export default function PaletteColorControl({
     }
 
     setDisplayLabel(fallbackLabel)
-  }, [displayCssVar, fallbackLabel])
+  }, [displayCssVar, fallbackLabel, refreshKey]) // Include refreshKey to force re-read
 
   const handleClick = () => {
     const el = buttonRef.current
@@ -120,7 +122,12 @@ export default function PaletteColorControl({
           {displayLabel}
         </span>
       </button>
-      <PaletteSwatchPicker />
+      <PaletteSwatchPicker 
+        onSelect={() => {
+          // Force re-read of CSS variable when a selection is made
+          setRefreshKey(prev => prev + 1)
+        }}
+      />
     </>
   )
 }
