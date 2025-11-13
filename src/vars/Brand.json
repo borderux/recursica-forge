@@ -221,7 +221,7 @@
               },
               "interactive": {
                 "$type": "color",
-                "$value": "{brand.light.palettes.core-colors.interactive}"
+                "$value": "{brand.light.palettes.core-colors.white}"
               }
             },
             "property": {
@@ -288,12 +288,12 @@
               "text": {
                 "color": {
                   "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.black}"
+                  "$value": "{brand.light.palettes.core-colors.white}"
                 }
               },
               "interactive": {
                 "$type": "color",
-                "$value": "{brand.light.palettes.core-colors.black}"
+                "$value": "{brand.light.palettes.core-colors.white}"
               }
             },
             "property": {
