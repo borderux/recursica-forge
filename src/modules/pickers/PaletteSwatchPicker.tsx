@@ -6,6 +6,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const { palettes, theme: themeJson } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
+  const [targetCssVars, setTargetCssVars] = useState<string[]>([])
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
 
   const paletteKeys = useMemo(() => {
@@ -80,9 +81,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return `--recursica-brand-light-palettes-${paletteKey}-${normalizedLevel}-tone`
   }
 
-  ;(window as any).openPalettePicker = (el: HTMLElement, cssVar: string) => {
+  ;(window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[]) => {
     setAnchor(el)
     setTargetCssVar(cssVar || null)
+    setTargetCssVars(cssVarsArray && cssVarsArray.length > 0 ? cssVarsArray : [])
     const rect = el.getBoundingClientRect()
     const top = rect.bottom + 8
     const left = Math.min(rect.left, window.innerWidth - 420)
@@ -117,21 +119,29 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                     title={`${pk}/${level}`}
                     onClick={() => {
                       try {
-                        // Ensure target CSS var has --recursica- prefix if it doesn't already
-                        const prefixedTarget = targetCssVar!.startsWith('--recursica-')
-                          ? targetCssVar!
-                          : targetCssVar!.startsWith('--')
-                            ? `--recursica-${targetCssVar!.slice(2)}`
-                            : `--recursica-${targetCssVar!}`
+                        // Get all CSS vars to update (use array if provided, otherwise just the single target)
+                        const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
+                        
+                        // Update all CSS variables
+                        cssVarsToUpdate.forEach((cssVar) => {
+                          // Ensure target CSS var has --recursica- prefix if it doesn't already
+                          const prefixedTarget = cssVar.startsWith('--recursica-')
+                            ? cssVar
+                            : cssVar.startsWith('--')
+                              ? `--recursica-${cssVar.slice(2)}`
+                              : `--recursica-${cssVar}`
 
-                        // Set the target CSS variable to reference the selected palette CSS variable
-                        document.documentElement.style.setProperty(prefixedTarget, `var(${paletteCssVar})`)
+                          // Set the target CSS variable to reference the selected palette CSS variable
+                          document.documentElement.style.setProperty(prefixedTarget, `var(${paletteCssVar})`)
+                        })
+                        
                         onSelect?.(paletteCssVar)
                       } catch (err) {
                         console.error('Failed to set palette CSS variable:', err)
                       }
                       setAnchor(null)
                       setTargetCssVar(null)
+                      setTargetCssVars([])
                     }}
                     style={{
                       width: swatch,

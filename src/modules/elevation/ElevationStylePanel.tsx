@@ -171,6 +171,7 @@ export default function ElevationStylePanel({
           <PaletteColorControl
             label="Color (Palette)"
             targetCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(0)}
+            targetCssVars={levelsArr.length > 0 ? levelsArr.map(lvl => getShadowColorCssVar(lvl)) : undefined}
             currentValueCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : undefined}
           />
         </div>

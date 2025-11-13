@@ -1,9 +1,11 @@
-import React, { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 
 type PaletteColorControlProps = {
   /** The CSS variable name to set when a color is selected */
   targetCssVar: string
+  /** Optional array of CSS variable names to set when a color is selected (for multiple selections) */
+  targetCssVars?: string[]
   /** Optional label for the control */
   label?: string
   /** Optional current value CSS variable to display (if different from target) */
@@ -22,6 +24,7 @@ type PaletteColorControlProps = {
  */
 export default function PaletteColorControl({
   targetCssVar,
+  targetCssVars,
   label,
   currentValueCssVar,
   fallbackLabel = 'Not set',
@@ -33,63 +36,51 @@ export default function PaletteColorControl({
 
   const displayCssVar = currentValueCssVar || targetCssVar
 
-  // Update display label when CSS variable changes
+  // Helper function to format palette name (e.g., "palette-1" -> "Palette 1", "neutral" -> "Neutral")
+  const formatPaletteName = (paletteKey: string): string => {
+    return paletteKey
+      .replace(/[-_/]+/g, ' ')
+      .replace(/\b\w/g, (m) => m.toUpperCase())
+      .trim()
+  }
+
+  // Update display label based on CSS variable value
   useEffect(() => {
-    const updateLabel = () => {
-      try {
-        const computedValue = getComputedStyle(document.documentElement)
-          .getPropertyValue(displayCssVar)
-          .trim()
-        
-        if (!computedValue) {
-          setDisplayLabel(fallbackLabel)
-          return
-        }
+    // Get the CSS variable value from inline styles
+    const cssValue = document.documentElement.style.getPropertyValue(displayCssVar).trim()
 
-        // Check if it's a var() reference to a palette
-        const varMatch = computedValue.match(/var\((--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-tone)\)/)
-        if (varMatch) {
-          const [, , paletteKey, level] = varMatch
-          const normalizedLevel = level === 'primary' ? 'default' : level
-          setDisplayLabel(`${paletteKey}/${normalizedLevel}`)
-          return
-        }
-
-        // If it's a direct color value, return a generic label
-        if (computedValue.startsWith('#') || computedValue.startsWith('rgb')) {
-          setDisplayLabel('Custom color')
-          return
-        }
-
-        setDisplayLabel(fallbackLabel)
-      } catch {
-        setDisplayLabel(fallbackLabel)
-      }
+    if (!cssValue) {
+      setDisplayLabel(fallbackLabel)
+      return
     }
 
-    updateLabel()
-
-    // Listen for CSS variable changes (via custom events or polling)
-    const interval = setInterval(updateLabel, 100)
-    const handlePaletteChange = () => updateLabel()
-    
-    try {
-      window.addEventListener('paletteVarsChanged', handlePaletteChange)
-    } catch {}
-
-    return () => {
-      clearInterval(interval)
-      try {
-        window.removeEventListener('paletteVarsChanged', handlePaletteChange)
-      } catch {}
+    // Extract palette name and level from var() reference
+    // Match: var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone)
+    const match = cssValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone\s*\)/)
+    if (match) {
+      const [, paletteKey, level] = match
+      const formattedPalette = formatPaletteName(paletteKey)
+      const displayLevel = level === 'primary' ? 'primary' : level
+      setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+      return
     }
+
+    // If it's a direct color value
+    if (cssValue.startsWith('#') || cssValue.startsWith('rgb')) {
+      setDisplayLabel('Custom color')
+      return
+    }
+
+    setDisplayLabel(fallbackLabel)
   }, [displayCssVar, fallbackLabel])
 
   const handleClick = () => {
     const el = buttonRef.current
     if (!el) return
     try {
-      (window as any).openPalettePicker(el, targetCssVar)
+      // If multiple CSS vars are provided, pass them all to the picker
+      const cssVarsToUpdate = targetCssVars && targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      ;(window as any).openPalettePicker(el, targetCssVar, cssVarsToUpdate)
     } catch (err) {
       console.error('Failed to open palette picker:', err)
     }
