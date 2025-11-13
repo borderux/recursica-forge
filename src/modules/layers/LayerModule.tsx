@@ -1,6 +1,7 @@
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { useEffect, useState } from 'react'
+import { readCssVar } from '../../core/css/readCssVar'
  
 
 type LayerModuleProps = {
@@ -92,9 +93,6 @@ export default function LayerModule({ level, alternativeKey, title, className, c
   const cssVarBoxShadow = `var(--recursica-brand-light-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-shadow-color, rgba(0,0,0,0))`
 
   type Style = React.CSSProperties
-  const readCssVar = (name: string, fallback?: string): string | undefined => {
-    try { return (getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback) } catch { return fallback }
-  }
   const pxOrUndefined = (value?: string) => {
     if (!value) return undefined
     if (/px$|em$|rem$|%$/.test(value)) return value

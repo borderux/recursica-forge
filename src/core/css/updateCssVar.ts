@@ -96,9 +96,17 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
 
 /**
  * Removes a CSS variable
+ * 
+ * @param cssVarName - The CSS variable name to remove
  */
 export function removeCssVar(cssVarName: string): void {
   const root = document.documentElement
   root.style.removeProperty(cssVarName)
+  
+  // Also remove unprefixed version if it exists
+  if (cssVarName.startsWith('--recursica-')) {
+    const unprefixed = cssVarName.replace('--recursica-', '--')
+    root.style.removeProperty(unprefixed)
+  }
 }
 

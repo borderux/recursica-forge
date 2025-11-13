@@ -4,6 +4,7 @@ import { useVars } from '../vars/VarsContext'
 // AA compliance is now handled reactively by AAComplianceWatcher
 import { findTokenByHex } from '../../core/css/tokenRefs'
 import { updateCssVar } from '../../core/css/updateCssVar'
+import { readCssVar } from '../../core/css/readCssVar'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
   const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
@@ -145,7 +146,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                             
                             // Resolve the palette CSS var to get its underlying token
                             // First, get the resolved hex value
-                            const resolvedValue = getComputedStyle(document.documentElement).getPropertyValue(paletteCssVar).trim()
+                            const resolvedValue = readCssVar(paletteCssVar)
                             
                             // Try to extract token from palette CSS var name (e.g., --recursica-brand-light-palettes-palette-1-500-tone)
                             const paletteMatch = paletteCssVar.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)

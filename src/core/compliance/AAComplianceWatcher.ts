@@ -3,6 +3,7 @@ import type { JsonLike } from '../resolvers/tokens'
 import { findAaCompliantColor } from '../resolvers/colorSteppingForAa'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
 import { updateCssVar } from '../css/updateCssVar'
+import { readCssVar } from '../css/readCssVar'
 
 // Helper to resolve CSS var to hex (recursively)
 function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth = 0): string | null {
@@ -17,10 +18,7 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth 
     const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
     if (varMatch) {
       const varName = varMatch[1]
-      let value = document.documentElement.style.getPropertyValue(varName).trim()
-      if (!value) {
-        value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
-      }
+      const value = readCssVar(varName)
       if (value) {
         return resolveCssVarToHex(value, tokenIndex, depth + 1)
       }
@@ -41,10 +39,7 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth 
     if (paletteMatch) {
       const [, paletteKey, level, type] = paletteMatch
       const paletteVarName = `--recursica-brand-light-palettes-${paletteKey}-${level}-${type}`
-      let paletteValue = document.documentElement.style.getPropertyValue(paletteVarName).trim()
-      if (!paletteValue) {
-        paletteValue = getComputedStyle(document.documentElement).getPropertyValue(paletteVarName).trim()
-      }
+      const paletteValue = readCssVar(paletteVarName)
       if (paletteValue) {
         return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)
       }
@@ -195,8 +190,7 @@ export class AAComplianceWatcher {
         const match = varName.match(/--recursica-brand-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
         if (match) {
           const [, mode, paletteKey, level] = match
-          const currentValue = document.documentElement.style.getPropertyValue(varName).trim() ||
-            getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+          const currentValue = readCssVar(varName)
           const lastValue = this.lastValues.get(varName)
           
           if (currentValue !== lastValue) {
@@ -212,8 +206,7 @@ export class AAComplianceWatcher {
     const toneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
     const onToneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-on-tone`
     
-    const toneValue = document.documentElement.style.getPropertyValue(toneVar).trim() ||
-      getComputedStyle(document.documentElement).getPropertyValue(toneVar).trim()
+    const toneValue = readCssVar(toneVar)
     
     if (!toneValue) return
     
@@ -271,8 +264,7 @@ export class AAComplianceWatcher {
     // Check all watched layer surface vars
     for (const varName of this.watchedVars) {
       if (varName.includes('-property-surface')) {
-        const currentValue = document.documentElement.style.getPropertyValue(varName).trim() ||
-          getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+        const currentValue = readCssVar(varName)
         const lastValue = this.lastValues.get(varName)
         
         if (currentValue !== lastValue) {
@@ -296,8 +288,7 @@ export class AAComplianceWatcher {
 
   private updateLayerElementColors(layerNumber: number) {
     const surfaceCssVar = `--recursica-brand-light-layer-layer-${layerNumber}-property-surface`
-    const surfaceValue = document.documentElement.style.getPropertyValue(surfaceCssVar).trim() ||
-      getComputedStyle(document.documentElement).getPropertyValue(surfaceCssVar).trim()
+    const surfaceValue = readCssVar(surfaceCssVar)
     
     if (!surfaceValue) return
     
@@ -347,8 +338,7 @@ export class AAComplianceWatcher {
 
   private updateAlternativeLayerElementColors(alternativeKey: 'alert' | 'warning' | 'success') {
     const surfaceCssVar = `--recursica-brand-light-layer-layer-alternative-${alternativeKey}-property-surface`
-    const surfaceValue = document.documentElement.style.getPropertyValue(surfaceCssVar).trim() ||
-      getComputedStyle(document.documentElement).getPropertyValue(surfaceCssVar).trim()
+    const surfaceValue = readCssVar(surfaceCssVar)
     
     if (!surfaceValue) return
     
@@ -360,8 +350,7 @@ export class AAComplianceWatcher {
     // Update text color (uses black/white)
     const textColorCssVar = `${brandBase}element-text-color`
     const textOpacityCssVar = `${brandBase}element-text-high-emphasis`
-    const textOpacityValue = document.documentElement.style.getPropertyValue(textOpacityCssVar).trim() ||
-      getComputedStyle(document.documentElement).getPropertyValue(textOpacityCssVar).trim()
+    const textOpacityValue = readCssVar(textOpacityCssVar)
     const textOpacity = getOpacityValue(textOpacityValue, this.tokenIndex)
     
     const textAaColor = findAaCompliantColor(surfaceHex, null, textOpacity, this.tokens)
@@ -372,8 +361,7 @@ export class AAComplianceWatcher {
     // Update interactive color
     const interactiveColorCssVar = `${brandBase}element-interactive-color`
     const interactiveOpacityCssVar = `${brandBase}element-interactive-high-emphasis`
-    const interactiveOpacityValue = document.documentElement.style.getPropertyValue(interactiveOpacityCssVar).trim() ||
-      getComputedStyle(document.documentElement).getPropertyValue(interactiveOpacityCssVar).trim()
+    const interactiveOpacityValue = readCssVar(interactiveOpacityCssVar)
     const interactiveOpacity = getOpacityValue(interactiveOpacityValue, this.tokenIndex)
     
     // Check if core interactive meets AA compliance
@@ -402,8 +390,7 @@ export class AAComplianceWatcher {
     opacityCssVar: string,
     coreToken: { family: string; level: string } | null
   ): void {
-    const opacityValue = document.documentElement.style.getPropertyValue(opacityCssVar).trim() ||
-      getComputedStyle(document.documentElement).getPropertyValue(opacityCssVar).trim()
+    const opacityValue = readCssVar(opacityCssVar)
     const opacity = getOpacityValue(opacityValue, this.tokenIndex)
     
     if (elementName === 'text-color') {

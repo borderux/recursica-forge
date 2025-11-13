@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
-import { updateCssVar } from '../../core/css/updateCssVar'
+import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
+import { readCssVar } from '../../core/css/readCssVar'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -89,10 +90,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const getCurrentTokenIndex = (cssVar: string, options: Array<{ short: string }>): number => {
     if (options.length === 0 || !cssVar) return 0
     try {
-      // Read from inline style first (what we set), then fall back to computed style
-      const inlineValue = document.documentElement.style.getPropertyValue(cssVar).trim()
-      const computedValue = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim()
-      const cssValue = inlineValue || computedValue
+      const cssValue = readCssVar(cssVar)
       if (cssValue) {
         const tokenName = extractTokenFromCssVar(cssValue)
         if (tokenName) {
@@ -110,9 +108,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const getCurrentFamily = (cssVar: string): string => {
     if (!cssVar) return ''
     try {
-      // Read from inline style first (what we set), then fall back to computed style
-      const inlineValue = document.documentElement.style.getPropertyValue(cssVar).trim()
-      const cssValue = inlineValue || getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim()
+      const cssValue = readCssVar(cssVar)
       if (cssValue) {
         // Extract token reference
         const tokenMatch = cssValue.match(/var\(--recursica-tokens-font-(?:family|typeface)-([^)]+)\)/)
@@ -152,31 +148,27 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         updateCssVar(cssVar, `var(--recursica-tokens-font-${category}-${tokenValue})`)
       }
     })
-    // Use requestAnimationFrame to ensure CSS is applied before re-reading
-    requestAnimationFrame(() => {
-      setUpdateKey((k) => k + 1)
-    })
+    // Trigger re-render to update UI (CSS vars are already updated)
+    setUpdateKey((k) => k + 1)
   }
 
   const revert = () => {
     // Remove CSS variable overrides - let them fall back to defaults from JSON
     selectedPrefixes.forEach((prefix) => {
       const cssVarName = prefixToCssVarName(prefix)
-      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-font-family`)
-      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-font-size`)
-      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-font-weight`)
-      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-font-letter-spacing`)
-      document.documentElement.style.removeProperty(`--recursica-brand-typography-${cssVarName}-line-height`)
+      removeCssVar(`--recursica-brand-typography-${cssVarName}-font-family`)
+      removeCssVar(`--recursica-brand-typography-${cssVarName}-font-size`)
+      removeCssVar(`--recursica-brand-typography-${cssVarName}-font-weight`)
+      removeCssVar(`--recursica-brand-typography-${cssVarName}-font-letter-spacing`)
+      removeCssVar(`--recursica-brand-typography-${cssVarName}-line-height`)
     })
     // Trigger recomputeAndApplyAll to rebuild CSS variables from JSON
     // This ensures the original values from Brand.json are restored
-    requestAnimationFrame(() => {
-      try {
-        window.dispatchEvent(new CustomEvent('typeChoicesChanged', { detail: {} }))
-      } catch {}
-      // Force re-render to update slider positions
-      setUpdateKey((k) => k + 1)
-    })
+    try {
+      window.dispatchEvent(new CustomEvent('typeChoicesChanged', { detail: {} }))
+    } catch {}
+    // Force re-render to update slider positions
+    setUpdateKey((k) => k + 1)
   }
 
   // Calculate current values at top level (hooks must be unconditional)

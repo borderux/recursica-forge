@@ -14,11 +14,7 @@ import TypeControls, { readChoices, writeChoices } from './TypeControls'
 
 type Style = React.CSSProperties
 
-function readCssVar(name: string, fallback?: string): string | undefined {
-  if (typeof document === 'undefined') return fallback
-  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-  return value || fallback
-}
+import { readCssVar } from '../../core/css/readCssVar'
 
 function pxOrUndefined(value?: string) {
   if (!value) return undefined

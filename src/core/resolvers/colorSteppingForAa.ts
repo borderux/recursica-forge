@@ -1,6 +1,7 @@
 import { contrastRatio } from '../../modules/theme/contrastUtil'
 import type { JsonLike } from './tokens'
 import { buildTokenIndex } from './tokens'
+import { readCssVar } from '../css/readCssVar'
 
 // Helper to blend foreground over background with opacity
 function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): string | undefined {
@@ -40,11 +41,7 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth 
     const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
     if (varMatch) {
       const varName = varMatch[1]
-      // Try inline style first
-      let value = document.documentElement.style.getPropertyValue(varName).trim()
-      if (!value) {
-        value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
-      }
+      const value = readCssVar(varName)
       if (value) {
         return resolveCssVarToHex(value, tokenIndex, depth + 1)
       }
@@ -67,10 +64,7 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth 
     if (paletteMatch) {
       const [, paletteKey, level, type] = paletteMatch
       const paletteVarName = `--recursica-brand-light-palettes-${paletteKey}-${level}-${type}`
-      let paletteValue = document.documentElement.style.getPropertyValue(paletteVarName).trim()
-      if (!paletteValue) {
-        paletteValue = getComputedStyle(document.documentElement).getPropertyValue(paletteVarName).trim()
-      }
+      const paletteValue = readCssVar(paletteVarName)
       if (paletteValue) {
         return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)
       }

@@ -1,5 +1,6 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex } from './tokens'
+import { readCssVar } from '../css/readCssVar'
 
 export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Record<string, any>): Record<string, string> {
   const tokenIndex = buildTokenIndex(tokens)
@@ -112,14 +113,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     return null
   }
   // AA compliance calculations removed - will be handled reactively in Phase 3
-  const readCssVar = (name: string): string | undefined => {
-    try {
-      const v = (getComputedStyle(document.documentElement).getPropertyValue(name) || '').trim()
-      return v || undefined
-    } catch {
-      return undefined
-    }
-  }
+  // readCssVar is now imported from centralized utility
   const readIfCssVarOrHex = (s?: string): string | undefined => {
     if (!s) return undefined
     const m = /^\s*var\(\s*(--[a-z0-9\-_]+)\s*\)\s*$/i.exec(s)
