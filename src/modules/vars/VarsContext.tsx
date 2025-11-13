@@ -30,6 +30,7 @@ type VarsContextValue = {
   setPalettes: (next: PaletteStore) => void
   elevation: import('../../core/store/varsStore').ElevationState
   setElevation: (next: import('../../core/store/varsStore').ElevationState) => void
+  updateElevation: (mutator: (prev: import('../../core/store/varsStore').ElevationState) => import('../../core/store/varsStore').ElevationState) => void
   resetAll: () => void
 }
 
@@ -61,6 +62,7 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     setPalettes: (next) => store.setPalettes(next),
     elevation: state.elevation,
     setElevation: (next) => store.setElevation(next),
+    updateElevation: (mutator) => store.updateElevation(mutator),
     resetAll: () => store.resetAll(),
   }), [state, store, resolvedTheme])
 

@@ -82,6 +82,10 @@ export default function ElevationStylePanel({
     }
   }, [tokensJson])
 
+  const getShadowColorCssVar = React.useCallback((level: number): string => {
+    return `var(--recursica-brand-light-elevations-elevation-${level}-shadow-color)`
+  }, [])
+
   const colorBtnRef = React.useRef<HTMLButtonElement | null>(null)
 
   const valueOrMultiple = (getter: (c: ElevationControl) => string | undefined): string => {
@@ -89,6 +93,11 @@ export default function ElevationStylePanel({
     const first = getter(elevationControls[`elevation-${levelsArr[0]}`]!) || ''
     const allSame = levelsArr.every((lvl) => getter(elevationControls[`elevation-${lvl}`]!) === first)
     return allSame ? first : ''
+  }
+
+  const getTokenLabel = (tokenName: string, tokens: Array<{ name: string; label: string }>): string => {
+    const token = tokens.find((t) => t.name === tokenName)
+    return token?.label || tokenName.split('/').pop() || tokenName
   }
 
   return (
@@ -116,25 +125,28 @@ export default function ElevationStylePanel({
           // Blur slider (0..max)
           const first = levelsArr.length ? elevationControls[`elevation-${levelsArr[0]}`] : undefined
           const blurIdx = findIdx(first?.blurToken)
+          const blurToken = stops[blurIdx]?.name || stops[0]?.name || ''
+          const blurLabel = getTokenLabel(blurToken, availableSizeTokens)
           return (
             <div className="control-group">
-              <label>Blur</label>
-              <input
-                type="range"
-                min={0}
-                max={stops.length - 1}
-                step={1}
-                value={blurIdx}
-                list="blur-ticks"
-                onChange={(e) => {
-                  const idx = Number(e.currentTarget.value)
-                  const token = stops[idx]?.name || stops[0].name
-                  levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blurToken', token))
-                }}
-              />
-              <datalist id="blur-ticks">
-                {stops.map((_, i) => (<option key={i} value={i} />))}
-              </datalist>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>Blur</span>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>{blurLabel}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={stops.length - 1}
+                  step={1}
+                  value={blurIdx}
+                  onChange={(e) => {
+                    const idx = Number(e.currentTarget.value)
+                    const token = stops[idx]?.name || stops[0].name
+                    levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blurToken', token))
+                  }}
+                />
+              </label>
             </div>
           )
         })()}
@@ -149,25 +161,28 @@ export default function ElevationStylePanel({
           // Spread slider (0..max)
           const first = levelsArr.length ? elevationControls[`elevation-${levelsArr[0]}`] : undefined
           const spreadIdx = findIdx(first?.spreadToken)
+          const spreadToken = stops[spreadIdx]?.name || stops[0]?.name || ''
+          const spreadLabel = getTokenLabel(spreadToken, availableSizeTokens)
           return (
             <div className="control-group">
-              <label>Spread</label>
-              <input
-                type="range"
-                min={0}
-                max={stops.length - 1}
-                step={1}
-                value={spreadIdx}
-                list="spread-ticks"
-                onChange={(e) => {
-                  const idx = Number(e.currentTarget.value)
-                  const token = stops[idx]?.name || stops[0].name
-                  levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spreadToken', token))
-                }}
-              />
-              <datalist id="spread-ticks">
-                {stops.map((_, i) => (<option key={i} value={i} />))}
-              </datalist>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>Spread</span>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>{spreadLabel}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={stops.length - 1}
+                  step={1}
+                  value={spreadIdx}
+                  onChange={(e) => {
+                    const idx = Number(e.currentTarget.value)
+                    const token = stops[idx]?.name || stops[0].name
+                    levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spreadToken', token))
+                  }}
+                />
+              </label>
             </div>
           )
         })()}
@@ -187,31 +202,32 @@ export default function ElevationStylePanel({
           const signed = (magIdx - zeroIdx) * (dir === 'left' ? -1 : 1)
           const min = -(stops.length - 1 - zeroIdx)
           const max = (stops.length - 1 - zeroIdx)
+          const offsetXToken = stops[magIdx]?.name || stops[zeroIdx]?.name || ''
+          const offsetXLabel = getTokenLabel(offsetXToken, availableSizeTokens)
+          const displayOffsetXLabel = signed < 0 ? `-${offsetXLabel}` : offsetXLabel
           return (
             <div className="control-group">
-              <label>Offset X</label>
-              <input
-                type="range"
-                min={min}
-                max={max}
-                step={1}
-                value={signed}
-                list="offsetx-ticks"
-                onChange={(e) => {
-                  const v = Number(e.currentTarget.value)
-                  const nextDir = v < 0 ? 'left' : 'right'
-                  const idx = zeroIdx + Math.abs(v)
-                  const token = stops[idx]?.name || stops[zeroIdx].name
-                  setXDirectionForSelected(nextDir)
-                  levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetXToken', token))
-                }}
-              />
-              <datalist id="offsetx-ticks">
-                {Array.from({ length: max - min + 1 }, (_, j) => min + j).map((val) => (
-                  <option key={val} value={val} label={val === 0 ? '0' : undefined as any} />
-                ))}
-              </datalist>
-              <div style={{ textAlign: 'center', fontSize: 12, opacity: 0.7 }}>0</div>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>Offset X</span>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>{displayOffsetXLabel}</span>
+                </div>
+                <input
+                  type="range"
+                  min={min}
+                  max={max}
+                  step={1}
+                  value={signed}
+                  onChange={(e) => {
+                    const v = Number(e.currentTarget.value)
+                    const nextDir = v < 0 ? 'left' : 'right'
+                    const idx = zeroIdx + Math.abs(v)
+                    const token = stops[idx]?.name || stops[zeroIdx].name
+                    setXDirectionForSelected(nextDir)
+                    levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetXToken', token))
+                  }}
+                />
+              </label>
             </div>
           )
         })()}
@@ -231,45 +247,70 @@ export default function ElevationStylePanel({
           const signed = (magIdx - zeroIdx) * (dir === 'up' ? -1 : 1)
           const min = -(stops.length - 1 - zeroIdx)
           const max = (stops.length - 1 - zeroIdx)
+          const offsetYToken = stops[magIdx]?.name || stops[zeroIdx]?.name || ''
+          const offsetYLabel = getTokenLabel(offsetYToken, availableSizeTokens)
+          const displayOffsetYLabel = signed < 0 ? `-${offsetYLabel}` : offsetYLabel
           return (
             <div className="control-group">
-              <label>Offset Y</label>
-              <input
-                type="range"
-                min={min}
-                max={max}
-                step={1}
-                value={signed}
-                list="offsety-ticks"
-                onChange={(e) => {
-                  const v = Number(e.currentTarget.value)
-                  const nextDir = v < 0 ? 'up' : 'down'
-                  const idx = zeroIdx + Math.abs(v)
-                  const token = stops[idx]?.name || stops[zeroIdx].name
-                  setYDirectionForSelected(nextDir)
-                  levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetYToken', token))
-                }}
-              />
-              <datalist id="offsety-ticks">
-                {Array.from({ length: max - min + 1 }, (_, j) => min + j).map((val) => (
-                  <option key={val} value={val} label={val === 0 ? '0' : undefined as any} />
-                ))}
-              </datalist>
-              <div style={{ textAlign: 'center', fontSize: 12, opacity: 0.7 }}>0</div>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>Offset Y</span>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>{displayOffsetYLabel}</span>
+                </div>
+                <input
+                  type="range"
+                  min={min}
+                  max={max}
+                  step={1}
+                  value={signed}
+                  onChange={(e) => {
+                    const v = Number(e.currentTarget.value)
+                    const nextDir = v < 0 ? 'up' : 'down'
+                    const idx = zeroIdx + Math.abs(v)
+                    const token = stops[idx]?.name || stops[zeroIdx].name
+                    setYDirectionForSelected(nextDir)
+                    levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetYToken', token))
+                  }}
+                />
+              </label>
             </div>
           )
         })()}
-        <div className="control-group">
-          <label>Opacity</label>
-          <select value={(levelsArr.length ? getAlphaTokenForLevel(`elevation-${levelsArr[0]}`) : shadowColorControl.alphaToken)} onChange={(e) => {
-            const token = e.currentTarget.value
-            levelsArr.forEach((lvl) => setElevationAlphaToken(`elevation-${lvl}`, token))
-          }}>
-            {availableOpacityTokens.map((opt) => (
-              <option key={opt.name} value={opt.name}>{opt.label} ({Math.round((opt.value <= 1 ? opt.value * 100 : opt.value))}%)</option>
-            ))}
-          </select>
-        </div>
+        {(() => {
+          const stops = [...availableOpacityTokens].sort((a, b) => a.value - b.value)
+          const findIdx = (name?: string): number => {
+            if (!name) return 0
+            const i = stops.findIndex((s) => s.name === name)
+            return i >= 0 ? i : 0
+          }
+          const currentToken = levelsArr.length ? getAlphaTokenForLevel(`elevation-${levelsArr[0]}`) : shadowColorControl.alphaToken
+          const opacityIdx = findIdx(currentToken)
+          const opacityToken = stops[opacityIdx]?.name || stops[0]?.name || ''
+          const opacityLabel = getTokenLabel(opacityToken, availableOpacityTokens)
+          
+          return (
+            <div className="control-group">
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>Opacity</span>
+                  <span style={{ fontSize: 12, opacity: 0.7 }}>{opacityLabel}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={stops.length - 1}
+                  step={1}
+                  value={opacityIdx}
+                  onChange={(e) => {
+                    const idx = Number(e.currentTarget.value)
+                    const token = stops[idx]?.name || stops[0].name
+                    levelsArr.forEach((lvl) => setElevationAlphaToken(`elevation-${lvl}`, token))
+                  }}
+                />
+              </label>
+            </div>
+          )
+        })()}
         <div className="control-group">
           <label>Color (Palette)</label>
           <button
@@ -290,17 +331,22 @@ export default function ElevationStylePanel({
           >
             {(() => {
               const key = levelsArr.length ? `elevation-${levelsArr[0]}` : ''
+              const level = levelsArr.length ? levelsArr[0] : 0
               const pal = key ? getPaletteForLevel(key) : undefined
+              const shadowColorCssVar = getShadowColorCssVar(level)
               if (pal) {
                 return (
                   <>
-                    <span aria-hidden style={{ width: 16, height: 16, borderRadius: 4, border: '1px solid rgba(0,0,0,0.15)' }} />
+                    <span aria-hidden style={{ width: 16, height: 16, borderRadius: 4, border: '1px solid rgba(0,0,0,0.15)', background: shadowColorCssVar }} />
                     <span style={{ textTransform: 'capitalize' }}>{`${pal.paletteKey} / ${pal.level}`}</span>
                   </>
                 )
               }
               const token = levelsArr.length ? getColorTokenForLevel(`elevation-${levelsArr[0]}`) : shadowColorControl.colorToken
-              return (<><span aria-hidden style={{ width: 16, height: 16, borderRadius: 4, border: '1px solid rgba(0,0,0,0.15)', background: getHexForToken(token) }} /><span style={{ textTransform: 'capitalize' }}>{(token || '').replace('color/','')}</span></>)
+              const colorHex = getHexForToken(token)
+              // Use CSS variable if we have a token but no hex (might be a complex color expression)
+              const backgroundColor = colorHex || shadowColorCssVar
+              return (<><span aria-hidden style={{ width: 16, height: 16, borderRadius: 4, border: '1px solid rgba(0,0,0,0.15)', background: backgroundColor }} /><span style={{ textTransform: 'capitalize' }}>{(token || '').replace('color/','')}</span></>)
             })()}
           </button>
           <PaletteSwatchPicker onSelect={(cssVarName) => { 

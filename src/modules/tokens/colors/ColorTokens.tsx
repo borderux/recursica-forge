@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { ColorScale } from './ColorScale'
-import { clamp, hsvToHex, toTitleCase, toKebabCase } from './colorUtils'
+import { clamp, hsvToHex, hexToHsv, toTitleCase, toKebabCase } from './colorUtils'
 import { cascadeColor, computeLevel500Hex, parseLevel, IDX_MAP, LEVELS_ASC } from './colorCascade'
 import { getFriendlyNamePreferNtc, getNtcName } from '../../utils/colorNaming'
+import { ColorPickerModal } from '../../pickers/ColorPickerModal'
 
 type TokenEntry = {
   name: string
@@ -22,6 +23,8 @@ export default function ColorTokens() {
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
+  const [showAddColorModal, setShowAddColorModal] = useState(false)
+  const [pendingColorHex, setPendingColorHex] = useState<string>('#000000')
 
   // Initialize deleted families from localStorage
   useEffect(() => {
@@ -258,16 +261,31 @@ export default function ColorTokens() {
     })()
   }
 
-  const handleAddColor = async () => {
+  const handleAddColor = () => {
     setOpenPicker(null)
     const families = Object.entries(colorFamiliesByMode['Mode 1'] || {}).filter(([family]) => family !== 'translucent' && !deletedFamilies[family])
     if (!families.length) return
 
+    // Generate a random default color
     const baseHSV = { h: Math.random() * 360, s: 0.6 + Math.random() * 0.35, v: 0.6 + Math.random() * 0.35 }
-    const newHue = baseHSV.h
+    const seedHex = hsvToHex(baseHSV.h, Math.max(0.6, baseHSV.s), Math.max(0.6, baseHSV.v))
+    
+    // Show modal with default color
+    setPendingColorHex(seedHex)
+    setShowAddColorModal(true)
+  }
+
+  const createColorScale = async (seedHex: string) => {
+    setOpenPicker(null)
+    const families = Object.entries(colorFamiliesByMode['Mode 1'] || {}).filter(([family]) => family !== 'translucent' && !deletedFamilies[family])
+    if (!families.length) return
+
+    // Parse the seed hex to get HSV values for generating the scale
+    const seedHsv = hexToHsv(seedHex)
+
+    const newHue = seedHsv.h
     const newFamily = `custom-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`
     const write = (name: string, hex: string) => { handleChange(name, hex) }
-    const seedHex = hsvToHex(newHue, Math.max(0.6, baseHSV.s), Math.max(0.6, baseHSV.v))
     write(`color/${newFamily}/500`, seedHex)
 
     const name = await getFriendlyNamePreferNtc(seedHex)
@@ -281,8 +299,8 @@ export default function ColorTokens() {
     } catch {}
     setFamilyOrder((prev) => (prev.includes(newFamily) ? prev : [...prev, newFamily]))
 
-    const seedS = baseHSV.s
-    const seedV = baseHSV.v
+    const seedS = seedHsv.s
+    const seedV = seedHsv.v
     const endS000 = 0.02
     const endV000 = 0.98
     const endS1000 = clamp(seedS * 1.2, 0, 1)
@@ -394,6 +412,15 @@ export default function ColorTokens() {
               usedFamilies.add(fam)
             }
           })
+        }
+      })
+      
+      // Check core colors - extract all families used in core palette
+      const corePalette: any = lightPalettes?.core || {}
+      const coreReferencedFamilies = extractReferencedFamilies(corePalette)
+      coreReferencedFamilies.forEach((fam) => {
+        if (fam !== 'translucent') {
+          usedFamilies.add(fam)
         }
       })
     } catch {}
@@ -601,6 +628,15 @@ export default function ColorTokens() {
           />
         ))}
       </div>
+      <ColorPickerModal
+        open={showAddColorModal}
+        defaultHex={pendingColorHex}
+        onClose={() => setShowAddColorModal(false)}
+        onAccept={(hex) => {
+          setShowAddColorModal(false)
+          createColorScale(hex)
+        }}
+      />
     </section>
   )
 }

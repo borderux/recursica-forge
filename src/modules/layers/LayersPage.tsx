@@ -8,7 +8,7 @@ import ElevationModule from '../elevation/ElevationModule'
 import ElevationStylePanel from '../elevation/ElevationStylePanel'
 
 export default function LayersPage() {
-  const { tokens: tokensJson, theme, setTheme, elevation, setElevation } = useVars()
+  const { tokens: tokensJson, theme, setTheme, elevation, setElevation, updateElevation } = useVars()
   const [selectedLayerLevels, setSelectedLayerLevels] = useState<Set<number>>(() => new Set())
   const { theme: themeJson } = useVars()
   const [blurScaleByDefault] = useState<boolean>(() => { const v = localStorage.getItem('blur-scale-by-default'); return v === null ? true : v === 'true' })
@@ -39,14 +39,30 @@ export default function LayersPage() {
     Object.entries(overrides).forEach(([key, value]) => { if (key.startsWith('size/') && typeof value === 'number') sizeOverrides[key] = value as number })
     return { ...tokens, ...sizeOverrides }
   })
-  useEffect(() => { setElevation({ ...elevation, controls: elevationControls }) }, [elevationControls])
-  useEffect(() => { setElevation({ ...elevation, shadowColorControl }) }, [shadowColorControl])
-  useEffect(() => { setElevation({ ...elevation, colorTokens: elevationColorTokens }) }, [elevationColorTokens])
-  useEffect(() => { setElevation({ ...elevation, paletteSelections: elevationPaletteSelections }) }, [elevationPaletteSelections])
-  useEffect(() => { setElevation({ ...elevation, alphaTokens: elevationAlphaTokens }) }, [elevationAlphaTokens])
-  useEffect(() => { setElevation({ ...elevation, baseXDirection: xDirection }) }, [xDirection])
-  useEffect(() => { setElevation({ ...elevation, baseYDirection: yDirection }) }, [yDirection])
-  useEffect(() => { setElevation({ ...elevation, directions: elevationDirections }) }, [elevationDirections])
+  useEffect(() => { 
+    updateElevation((prev) => ({ ...prev, controls: elevationControls }))
+  }, [elevationControls, updateElevation])
+  useEffect(() => { 
+    updateElevation((prev) => ({ ...prev, shadowColorControl }))
+  }, [shadowColorControl, updateElevation])
+  useEffect(() => { 
+    updateElevation((prev) => ({ ...prev, colorTokens: elevationColorTokens }))
+  }, [elevationColorTokens, updateElevation])
+  useEffect(() => { 
+    updateElevation((prev) => ({ ...prev, paletteSelections: elevationPaletteSelections }))
+  }, [elevationPaletteSelections, updateElevation])
+  useEffect(() => { 
+    updateElevation((prev) => ({ ...prev, alphaTokens: elevationAlphaTokens }))
+  }, [elevationAlphaTokens, updateElevation])
+  useEffect(() => { 
+    updateElevation((prev) => ({ ...prev, baseXDirection: xDirection }))
+  }, [xDirection, updateElevation])
+  useEffect(() => { 
+    updateElevation((prev) => ({ ...prev, baseYDirection: yDirection }))
+  }, [yDirection, updateElevation])
+  useEffect(() => { 
+    updateElevation((prev) => ({ ...prev, directions: elevationDirections }))
+  }, [elevationDirections, updateElevation])
   useEffect(() => {
     try {
       const lsHasAny = (

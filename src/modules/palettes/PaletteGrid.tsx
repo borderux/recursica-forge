@@ -4,14 +4,13 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
-import { readOverrides } from '../theme/tokenOverrides'
-import { contrastRatio, pickAAOnTone } from '../theme/contrastUtil'
 import {
   PaletteScaleHeader,
   PaletteScaleHighEmphasis,
   PaletteScaleLowEmphasis,
   PaletteScalePrimaryIndicator,
 } from './PaletteScale'
+import PaletteColorSelector from './PaletteColorSelector'
 
 type PaletteGridProps = {
   paletteKey: string
@@ -36,7 +35,7 @@ function toTokenLevel(levelStr: string): string {
 }
 
 export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, initialFamily, mode, deletable, onDelete }: PaletteGridProps) {
-  const { tokens: tokensJson, theme: themeJson } = useVars()
+  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
   const defaultLevelStr = typeof defaultLevel === 'number' ? toLevelString(defaultLevel) : String(defaultLevel).padStart(3, '0')
   const headerLevels = LEVELS.map(toLevelString)
   const [overrideVersion, forceOverrideVersion] = useState(0)
@@ -66,17 +65,73 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     })
     return list
   }, [tokensJson, overrideVersion])
+  const themeIndex = useMemo(() => {
+    const out: Record<string, { value: any }> = {}
+    const visit = (node: any, prefix: string, mode: 'Light' | 'Dark') => {
+      if (!node || typeof node !== 'object') return
+      if (Object.prototype.hasOwnProperty.call(node, '$value')) {
+        out[`${mode}::${prefix}`] = { value: (node as any)['$value'] }
+        return
+      }
+      Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
+    }
+    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+    // Check both 'palette' (singular) and 'palettes' (plural) to handle different JSON structures
+    if (root?.light?.palettes) visit(root.light.palettes, 'palettes', 'Light')
+    else if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
+    if (root?.dark?.palettes) visit(root.dark.palettes, 'palettes', 'Dark')
+    else if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
+    return out
+  }, [themeJson])
+  const detectFamilyFromTheme = useMemo(() => {
+    // Try to detect the actual family from theme JSON by checking a few levels
+    const checkLevels = ['200', '500', '400', '300']
+    for (const lvl of checkLevels) {
+      // The themeIndex uses 'palette' prefix even though JSON has 'palettes'
+      const toneName = `palette/${paletteKey}/${lvl}/color/tone`
+      const toneRaw = (themeIndex as any)[`${mode}::${toneName}`]?.value
+      if (typeof toneRaw === 'string') {
+        // Check for token reference format: {tokens.color.{family}.{level}}
+        const match = toneRaw.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
+        if (match && match[1]) {
+          const detectedFamily = match[1]
+          if (families.includes(detectedFamily)) {
+            return detectedFamily
+          }
+        }
+      }
+    }
+    return null
+  }, [themeIndex, mode, paletteKey, families])
+
   const [selectedFamily, setSelectedFamily] = useState<string>(() => {
     if (typeof initialFamily === 'string' && initialFamily) return initialFamily
+    // Try to detect from theme first (but themeIndex isn't available in initializer, so we'll update via useEffect)
+    // Fall back to localStorage
     try {
       const raw = localStorage.getItem(`palette-grid-family:${paletteKey}`)
       if (raw) return JSON.parse(raw)
     } catch {}
+    // Fall back to defaults
     if (paletteKey === 'neutral') return 'gray'
-    if (paletteKey === 'palette-1') return 'salmon'
-    if (paletteKey === 'palette-2') return 'mandarin'
     return families[0] || ''
   })
+  
+  // Track if this is the initial mount to only sync on first load
+  const isInitialMount = useRef(true)
+  const userChangedFamily = useRef(false)
+  
+  // Update selectedFamily when theme changes to reflect actual family being used
+  // Only sync on initial mount (not when user changes dropdown)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      const detected = detectFamilyFromTheme
+      if (detected) {
+        setSelectedFamily(detected)
+      }
+      isInitialMount.current = false
+    }
+  }, [detectFamilyFromTheme])
   useEffect(() => {
     try { localStorage.setItem(`palette-grid-family:${paletteKey}`, JSON.stringify(selectedFamily)) } catch {}
     try { window.dispatchEvent(new CustomEvent('paletteFamilyChanged', { detail: { key: paletteKey, family: selectedFamily } })) } catch {}
@@ -106,43 +161,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   const selections = readAllSelections()
   const usedByOthers = new Set(Object.entries(selections).filter(([k]) => k !== paletteKey).map(([, v]) => v))
   const availableFamilies = families.filter((f) => f === selectedFamily || !usedByOthers.has(f))
-  const themeIndex = useMemo(() => {
-    const out: Record<string, { value: any }> = {}
-    const visit = (node: any, prefix: string, mode: 'Light' | 'Dark') => {
-      if (!node || typeof node !== 'object') return
-      if (Object.prototype.hasOwnProperty.call(node, '$value')) {
-        out[`${mode}::${prefix}`] = { value: (node as any)['$value'] }
-        return
-      }
-      Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
-    }
-    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
-    if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
-    return out
-  }, [])
-  function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-    let h = (hex || '').trim()
-    if (!h) return null
-    if (!h.startsWith('#')) h = '#' + h
-    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
-    if (!m) return null
-    return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
-  }
-  function rgbToHexSafe(r: number, g: number, b: number): string {
-    const clamp = (n: number) => Math.max(0, Math.min(255, Math.round(n)))
-    const toHex = (n: number) => clamp(n).toString(16).padStart(2, '0')
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`
-  }
-  function blendHexOver(hexFg: string, hexBg: string, alpha: number): string {
-    const fg = hexToRgb(hexFg) || { r: 0, g: 0, b: 0 }
-    const bg = hexToRgb(hexBg) || { r: 255, g: 255, b: 255 }
-    const a = Math.max(0, Math.min(1, alpha))
-    const r = a * fg.r + (1 - a) * bg.r
-    const g = a * fg.g + (1 - a) * bg.g
-    const b = a * fg.b + (1 - a) * bg.b
-    return rgbToHexSafe(r, g, b)
-  }
+
   // Use shared AA util for on-tone selection
   const getTokenValueByName = (name: string): string | undefined => {
     try {
@@ -193,32 +212,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     }
     return undefined
   }
-  const getOpacityToken = (name: string): number => {
-    const v = getTokenValueByName(name)
-    const n = v == null ? NaN : Number(v)
-    if (!Number.isFinite(n)) return 1
-    return n <= 1 ? n : n / 100
-  }
-  const opacityTokenValuesAsc = useMemo(() => {
-    const vals: number[] = []
-    const src = (tokensJson as any)?.tokens?.opacity || {}
-    Object.values(src).forEach((entry: any) => {
-      const raw = Number(entry?.$value)
-      if (!Number.isFinite(raw)) return
-      const v = raw <= 1 ? raw : raw / 100
-      if (v > 0 && v <= 1) vals.push(v)
-    })
-    if (!vals.some((v) => Math.abs(v - 1) < 1e-6)) vals.push(1)
-    return Array.from(new Set(vals)).sort((a, b) => a - b)
-  }, [tokensJson])
-  function pickMinAlphaForAA(toneHex: string, dotHex: string): number {
-    const AA = 4.5
-    for (const a of opacityTokenValuesAsc) {
-      const blended = blendHexOver(dotHex, toneHex, a)
-      if (contrastRatio(blended, toneHex) >= AA) return a
-    }
-    return 1
-  }
   const resolveDefaultLevelForPalette = useMemo(() => {
     const key = `palette/${paletteKey}/default/tone`
     const entry = (themeIndex as any)[`${mode}::${key}`]
@@ -244,10 +237,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     try { localStorage.setItem(`palette-primary-level:${paletteKey}`, JSON.stringify(primaryLevelStr)) } catch {}
   }, [paletteKey, primaryLevelStr])
   const [hoverLevelStr, setHoverLevelStr] = useState<string | null>(null)
-  const getSelectedFamilyHexForLevel = (lvl: string): string | undefined => {
-    if (!selectedFamily) return undefined
-    return getTokenValueByName(`color/${selectedFamily}/${toTokenLevel(lvl)}`)
-  }
   const applyThemeMappingsFromJson = (modeLabel: 'Light' | 'Dark') => {
     const root = document.documentElement
     const levels = headerLevels
@@ -266,29 +255,11 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       }
     })
   }
-  const applyFamilyToCssVars = (family: string, modeLabel: 'Light' | 'Dark') => {
-    const root = document.documentElement
-    headerLevels.forEach((lvl) => {
-      const tokenName = `color/${family}/${toTokenLevel(lvl)}`
-      const hex = getTokenValueByName(tokenName)
-      if (typeof hex === 'string') {
-        // set tone to a token color reference instead of hex
-        root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`, `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`)
-      }
-      const onToneName = `palette/${paletteKey}/${lvl}/on-tone`
-      const onTone = resolveThemeRef((themeIndex as any)[`${modeLabel}::${onToneName}`]?.value ?? { collection: 'Theme', name: onToneName }, modeLabel)
-      // on-tone → core brand refs
-      const aa = typeof hex === 'string' ? pickAAOnTone(hex) : (typeof onTone === 'string' ? String(onTone) : '#000000')
-      const aaCore = aa.toLowerCase() === '#ffffff' ? 'white' : 'black'
-      root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`, `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-${aaCore})`)
-    })
-  }
   useEffect(() => {
     applyThemeMappingsFromJson(mode)
-    if (selectedFamily) applyFamilyToCssVars(selectedFamily, mode)
-    // Notify dependents (e.g., layer resolver) that palette CSS vars have changed
-    try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}
-  }, [selectedFamily, mode, overrideVersion])
+    // Don't dispatch paletteVarsChanged here - CSS vars are managed by PaletteColorSelector
+    // This prevents unnecessary re-renders of other palettes
+  }, [mode, overrideVersion])
   useEffect(() => {
     const lvl = primaryLevelStr
     try {
@@ -319,18 +290,14 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
               style={{ padding: '6px 10px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
             >Delete</button>
           )}
-          <FamilyDropdown
+          <PaletteColorSelector
             paletteKey={paletteKey}
-            families={availableFamilies}
-            selectedFamily={selectedFamily}
-            onSelect={(fam) => {
-              if (fam !== selectedFamily && usedByOthers.has(fam)) return
-              setSelectedFamily(fam)
-            }}
-            titleCase={(s) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()}
-            getSwatchHex={(fam) => {
-              const lvl = primaryLevelStr
-              return getTokenValueByName(`color/${fam}/${lvl}`)
+            mode={mode}
+            primaryLevel={primaryLevelStr}
+            headerLevels={headerLevels}
+            onFamilyChange={(family) => {
+              userChangedFamily.current = true
+              setSelectedFamily(family)
             }}
           />
         </div>
@@ -355,35 +322,45 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         <tbody>
           <tr className="high-emphasis">
             <td>High</td>
-            {headerLevels.map((lvl) => (
-              <PaletteScaleHighEmphasis
-                key={`high-${lvl}`}
-                toneHex={getSelectedFamilyHexForLevel(lvl) || '#ffffff'}
-                isPrimary={lvl === primaryLevelStr}
-                headerLevels={headerLevels}
-                onMouseEnter={() => setHoverLevelStr(lvl)}
-                onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
-                onSetPrimary={() => setPrimaryLevelStr(lvl)}
-                getOpacityToken={getOpacityToken}
-                pickMinAlphaForAA={pickMinAlphaForAA}
-              />
-            ))}
+            {headerLevels.map((lvl) => {
+              const toneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
+              const onToneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
+              const emphasisCssVar = `--recursica-brand-${mode.toLowerCase()}-text-emphasis-high`
+              return (
+                <PaletteScaleHighEmphasis
+                  key={`high-${lvl}`}
+                  toneCssVar={toneCssVar}
+                  onToneCssVar={onToneCssVar}
+                  emphasisCssVar={emphasisCssVar}
+                  isPrimary={lvl === primaryLevelStr}
+                  headerLevels={headerLevels}
+                  onMouseEnter={() => setHoverLevelStr(lvl)}
+                  onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
+                  onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                />
+              )
+            })}
           </tr>
           <tr className="low-emphasis">
             <td>Low</td>
-            {headerLevels.map((lvl) => (
-              <PaletteScaleLowEmphasis
-                key={`low-${lvl}`}
-                toneHex={getSelectedFamilyHexForLevel(lvl) || '#ffffff'}
-                isPrimary={lvl === primaryLevelStr}
-                headerLevels={headerLevels}
-                onMouseEnter={() => setHoverLevelStr(lvl)}
-                onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
-                onSetPrimary={() => setPrimaryLevelStr(lvl)}
-                getOpacityToken={getOpacityToken}
-                pickMinAlphaForAA={pickMinAlphaForAA}
-              />
-            ))}
+            {headerLevels.map((lvl) => {
+              const toneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
+              const onToneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
+              const emphasisCssVar = `--recursica-brand-${mode.toLowerCase()}-text-emphasis-low`
+              return (
+                <PaletteScaleLowEmphasis
+                  key={`low-${lvl}`}
+                  toneCssVar={toneCssVar}
+                  onToneCssVar={onToneCssVar}
+                  emphasisCssVar={emphasisCssVar}
+                  isPrimary={lvl === primaryLevelStr}
+                  headerLevels={headerLevels}
+                  onMouseEnter={() => setHoverLevelStr(lvl)}
+                  onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
+                  onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                />
+              )
+            })}
           </tr>
           <tr>
             <td></td>

@@ -5,6 +5,12 @@ import brandDefault from '../../vars/Brand.json'
 
 type Json = any
 
+function toTitleCase(str: string): string {
+  return str.replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (txt) => 
+    txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+  )
+}
+
 export default function LayerStylePanel({
   open,
   selectedLevels,
@@ -202,127 +208,145 @@ export default function LayerStylePanel({
         {renderPaletteButton('surface', 'Surface Color')}
         {!isOnlyLayer0 && renderPaletteButton('border-color', 'Border Color')}
         {!isOnlyLayer0 && (
-          <label style={{ display: 'grid', gap: 4 }}>
-            <span style={{ fontSize: 12, opacity: 0.7 }}>Elevation</span>
-            <select
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, opacity: 0.7 }}>Elevation</span>
+              <span style={{ fontSize: 12, opacity: 0.7 }}>
+                {(() => {
+                  const v = (spec as any)?.property?.elevation?.$value
+                  const s = typeof v === 'string' ? v : ''
+                  const m = s.match(/elevations\.(elevation-\d+)/)
+                  if (m) {
+                    const idx = Number(m[1].split('-')[1])
+                    return idx === 0 ? 'Elevation 0' : `Elevation ${idx}`
+                  }
+                  return 'None'
+                })()}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={Math.max(0, elevationOptions.length - 1)}
+              step={1}
               value={(() => {
                 const v = (spec as any)?.property?.elevation?.$value
                 const s = typeof v === 'string' ? v : ''
                 const m = s.match(/elevations\.(elevation-\d+)/)
-                return m ? m[1] : ''
+                if (m) {
+                  const name = m[1]
+                  const idx = elevationOptions.findIndex((o) => o.name === name)
+                  return idx >= 0 ? idx : 0
+                }
+                return 0
               })()}
               onChange={(e) => {
-                const name = e.currentTarget.value
-                if (!name) return
-                updateValue(['property','elevation'], `{brand.light.elevations.${name}}`)
+                const idx = Number(e.currentTarget.value)
+                const sel = elevationOptions[idx]
+                if (sel) {
+                  updateValue(['property','elevation'], `{brand.light.elevations.${sel.name}}`)
+                }
               }}
-              style={{ padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 6 }}
-            >
-              <option value="">-- select elevation --</option>
-              {elevationOptions.map((o) => (<option key={o.name} value={o.name}>{o.label}</option>))}
-            </select>
+            />
           </label>
         )}
         <div className="control-group">
-          <label>Padding</label>
-          {(() => {
-            const stops = sizeOptions
-            const curShort = (() => {
-              const v = (spec as any)?.property?.padding?.$value
-              const s = typeof v === 'string' ? v : ''
-              const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-              return m ? m[1] : ''
-            })()
-            const curIdx = Math.max(0, stops.findIndex((o) => o.label === curShort))
-            return (
-              <>
-                <input
-                  type="range"
-                  min={0}
-                  max={Math.max(0, stops.length - 1)}
-                  step={1}
-                  value={curIdx < 0 ? 0 : curIdx}
-                  list="padding-ticks"
-                  onChange={(e) => {
-                    const idx = Number(e.currentTarget.value)
-                    const sel = stops[idx]
-                    if (sel) updateValue(['property','padding'], sel.value)
-                  }}
-                />
-                <datalist id="padding-ticks">
-                  {stops.map((o, i) => (<option key={o.label} value={i} label={o.label} />))}
-                </datalist>
-              </>
-            )
-          })()}
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, opacity: 0.7 }}>Padding</span>
+              <span style={{ fontSize: 12, opacity: 0.7 }}>
+                {(() => {
+                  const v = (spec as any)?.property?.padding?.$value
+                  const s = typeof v === 'string' ? v : ''
+                  const m = s.match(/\{tokens\.size\.([^}]+)\}/)
+                  return m ? toTitleCase(m[1]) : 'None'
+                })()}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={Math.max(0, sizeOptions.length - 1)}
+              step={1}
+              value={(() => {
+                const v = (spec as any)?.property?.padding?.$value
+                const s = typeof v === 'string' ? v : ''
+                const m = s.match(/\{tokens\.size\.([^}]+)\}/)
+                const curShort = m ? m[1] : ''
+                const curIdx = sizeOptions.findIndex((o) => o.label === curShort)
+                return curIdx >= 0 ? curIdx : 0
+              })()}
+              onChange={(e) => {
+                const idx = Number(e.currentTarget.value)
+                const sel = sizeOptions[idx]
+                if (sel) updateValue(['property','padding'], sel.value)
+              }}
+            />
+          </label>
         </div>
         {!isOnlyLayer0 && (
           <div className="control-group">
-            <label>Border Radius</label>
-            {(() => {
-              const stops = sizeOptions
-              const curShort = (() => {
-                const v = (spec as any)?.property?.['border-radius']?.$value
-                const s = typeof v === 'string' ? v : ''
-                const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-                return m ? m[1] : ''
-              })()
-              const curIdx = Math.max(0, stops.findIndex((o) => o.label === curShort))
-              return (
-                <>
-                  <input
-                    type="range"
-                    min={0}
-                    max={Math.max(0, stops.length - 1)}
-                    step={1}
-                    value={curIdx < 0 ? 0 : curIdx}
-                    list="radius-ticks"
-                    onChange={(e) => {
-                      const idx = Number(e.currentTarget.value)
-                      const sel = stops[idx]
-                      if (sel) updateValue(['property','border-radius'], sel.value)
-                    }}
-                  />
-                  <datalist id="radius-ticks">
-                    {stops.map((o, i) => (<option key={o.label} value={i} label={o.label} />))}
-                  </datalist>
-                </>
-              )
-            })()}
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, opacity: 0.7 }}>Border Radius</span>
+                <span style={{ fontSize: 12, opacity: 0.7 }}>
+                  {(() => {
+                    const v = (spec as any)?.property?.['border-radius']?.$value
+                    const s = typeof v === 'string' ? v : ''
+                    const m = s.match(/\{tokens\.size\.([^}]+)\}/)
+                    return m ? toTitleCase(m[1]) : 'None'
+                  })()}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={Math.max(0, sizeOptions.length - 1)}
+                step={1}
+                value={(() => {
+                  const v = (spec as any)?.property?.['border-radius']?.$value
+                  const s = typeof v === 'string' ? v : ''
+                  const m = s.match(/\{tokens\.size\.([^}]+)\}/)
+                  const curShort = m ? m[1] : ''
+                  const curIdx = sizeOptions.findIndex((o) => o.label === curShort)
+                  return curIdx >= 0 ? curIdx : 0
+                })()}
+                onChange={(e) => {
+                  const idx = Number(e.currentTarget.value)
+                  const sel = sizeOptions[idx]
+                  if (sel) updateValue(['property','border-radius'], sel.value)
+                }}
+              />
+            </label>
           </div>
         )}
         {!isOnlyLayer0 && (
           <div className="control-group">
-            <label>Border Thickness</label>
-            {(() => {
-              const current = (() => {
-                const v = (spec as any)?.property?.['border-thickness']?.$value
-                return typeof v === 'number' ? v : 0
-              })()
-              const min = 0
-              const max = 16
-              return (
-                <>
-                  <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    step={1}
-                    value={current}
-                    list="border-thickness-ticks"
-                    onChange={(e) => {
-                      const n = parseInt(e.currentTarget.value || '0', 10)
-                      updateValue(['property','border-thickness'], String(Number.isFinite(n) ? n : 0))
-                    }}
-                  />
-                  <datalist id="border-thickness-ticks">
-                    {Array.from({ length: (max - min) + 1 }, (_, i) => min + i).map((v) => (
-                      <option key={v} value={v} label={v % 2 === 0 ? String(v) : undefined as any} />
-                    ))}
-                  </datalist>
-                </>
-              )
-            })()}
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, opacity: 0.7 }}>Border Thickness</span>
+                <span style={{ fontSize: 12, opacity: 0.7 }}>
+                  {(() => {
+                    const v = (spec as any)?.property?.['border-thickness']?.$value
+                    return typeof v === 'number' ? `${v}px` : '0px'
+                  })()}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={16}
+                step={1}
+                value={(() => {
+                  const v = (spec as any)?.property?.['border-thickness']?.$value
+                  return typeof v === 'number' ? v : 0
+                })()}
+                onChange={(e) => {
+                  const n = parseInt(e.currentTarget.value || '0', 10)
+                  updateValue(['property','border-thickness'], String(Number.isFinite(n) ? n : 0))
+                }}
+              />
+            </label>
           </div>
         )}
         <div>
