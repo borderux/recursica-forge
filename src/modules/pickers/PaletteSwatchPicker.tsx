@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 
-export default function PaletteSwatchPicker({ onSelect }: { onSelect: (cssVarName: string) => void }) {
+export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
   const { palettes, theme: themeJson } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
@@ -126,7 +126,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect: (cssVarNam
 
                         // Set the target CSS variable to reference the selected palette CSS variable
                         document.documentElement.style.setProperty(prefixedTarget, `var(${paletteCssVar})`)
-                        onSelect(paletteCssVar)
+                        onSelect?.(paletteCssVar)
                       } catch (err) {
                         console.error('Failed to set palette CSS variable:', err)
                       }
