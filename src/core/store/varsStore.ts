@@ -738,6 +738,40 @@ class VarsStore {
     Object.assign(allVars, paletteVarsLight)
     // Layers (from Brand)
     const layerVars = buildLayerVars(this.state.tokens, this.state.theme)
+    
+    // Preserve existing palette CSS variables for layer colors (surface and border-color)
+    // Check all layers (0-4) and alternative layers
+    try {
+      for (let i = 0; i <= 4; i++) {
+        const prefixedBase = `--recursica-brand-light-layer-layer-${i}-property-`
+        
+        // Check surface color
+        const existingSurface = document.documentElement.style.getPropertyValue(`${prefixedBase}surface`).trim()
+        if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
+          layerVars[`--brand-light-layer-layer-${i}-property-surface`] = existingSurface
+        }
+        
+        // Check border color (only for non-zero layers)
+        if (i > 0) {
+          const existingBorderColor = document.documentElement.style.getPropertyValue(`${prefixedBase}border-color`).trim()
+          if (existingBorderColor && existingBorderColor.startsWith('var(') && existingBorderColor.includes('palettes')) {
+            layerVars[`--brand-light-layer-layer-${i}-property-border-color`] = existingBorderColor
+          }
+        }
+      }
+      
+      // Also check alternative layers
+      const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+      for (const altKey of altKeys) {
+        const prefixedBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property-`
+        
+        const existingSurface = document.documentElement.style.getPropertyValue(`${prefixedBase}surface`).trim()
+        if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
+          layerVars[`--brand-light-layer-layer-alternative-${altKey}-property-surface`] = existingSurface
+        }
+      }
+    } catch {}
+    
     Object.assign(allVars, layerVars)
     // Typography
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, this.readTypeChoices())

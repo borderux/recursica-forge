@@ -145,11 +145,18 @@ export default function LayerStylePanel({
     )
   }
   const renderPaletteButton = (target: 'surface' | 'border-color', title: string) => {
-    const targetCssVar = `--recursica-brand-light-layer-layer-${layerKey}-property-${target}`
+    // Build CSS variables for all selected layers
+    const targetCssVars = selectedLevels.map(level => 
+      `--recursica-brand-light-layer-layer-${level}-property-${target}`
+    )
+    const targetCssVar = targetCssVars[0] || `--recursica-brand-light-layer-layer-${layerKey}-property-${target}`
+    
     return (
       <PaletteColorControl
         label={title}
         targetCssVar={targetCssVar}
+        targetCssVars={targetCssVars.length > 1 ? targetCssVars : undefined}
+        currentValueCssVar={targetCssVar}
         swatchSize={14}
         fontSize={13}
       />
