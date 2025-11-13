@@ -1,48 +1,34 @@
-import { contrastRatio } from '../theme/contrastUtil'
-
 export type PaletteEmphasisCellProps = {
-  toneHex: string
-  emphasis: 'high' | 'low'
+  toneCssVar: string
+  onToneCssVar: string
+  emphasisCssVar: string
   isPrimary: boolean
   headerLevels: string[]
   onMouseEnter: () => void
   onMouseLeave: () => void
   onClick: () => void
-  getOpacityToken: (name: string) => number
-  pickMinAlphaForAA: (toneHex: string, dotHex: string) => number
 }
 
 export function PaletteEmphasisCell({
-  toneHex,
-  emphasis,
+  toneCssVar,
+  onToneCssVar,
+  emphasisCssVar,
   isPrimary,
   headerLevels,
   onMouseEnter,
   onMouseLeave,
   onClick,
-  getOpacityToken,
-  pickMinAlphaForAA,
 }: PaletteEmphasisCellProps) {
-  const black = '#000000'
-  const white = '#ffffff'
-  const cBlack = contrastRatio(toneHex, black)
-  const cWhite = contrastRatio(toneHex, white)
-  const dotColor = (cBlack >= 4.5 || cBlack >= cWhite) ? black : white
-  
-  const opacity = emphasis === 'high'
-    ? getOpacityToken('opacity/solid')
-    : pickMinAlphaForAA(toneHex, dotColor)
-
   return (
     <td
       className={`palette-box${isPrimary ? ' default' : ''}`}
-      style={{ backgroundColor: toneHex, cursor: 'pointer', width: isPrimary ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%' }}
+      style={{ backgroundColor: `var(${toneCssVar})`, cursor: 'pointer', width: isPrimary ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%' }}
       title={isPrimary ? 'Primary' : 'Set as Primary'}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onClick={onClick}
     >
-      <div className="palette-dot" style={{ backgroundColor: dotColor, opacity }} />
+      <div className="palette-dot" style={{ backgroundColor: `var(${onToneCssVar})`, opacity: `var(${emphasisCssVar})` }} />
     </td>
   )
 }

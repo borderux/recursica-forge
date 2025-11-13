@@ -2,15 +2,15 @@ import { PaletteEmphasisCell, PalettePrimaryIndicatorCell } from './PaletteGridC
 
 export type PaletteScaleProps = {
   level: string
-  toneHex: string
+  toneCssVar: string
+  onToneCssVar: string
+  emphasisCssVar: string
   isPrimary: boolean
   isHovered: boolean
   headerLevels: string[]
   onMouseEnter: () => void
   onMouseLeave: () => void
   onSetPrimary: () => void
-  getOpacityToken: (name: string) => number
-  pickMinAlphaForAA: (toneHex: string, dotHex: string) => number
 }
 
 export function PaletteScaleHeader({
@@ -38,51 +38,49 @@ export function PaletteScaleHeader({
 }
 
 export function PaletteScaleHighEmphasis({
-  toneHex,
+  toneCssVar,
+  onToneCssVar,
+  emphasisCssVar,
   isPrimary,
   headerLevels,
   onMouseEnter,
   onMouseLeave,
   onSetPrimary,
-  getOpacityToken,
-  pickMinAlphaForAA,
-}: Pick<PaletteScaleProps, 'toneHex' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary' | 'getOpacityToken' | 'pickMinAlphaForAA'>) {
+}: Pick<PaletteScaleProps, 'toneCssVar' | 'onToneCssVar' | 'emphasisCssVar' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary'>) {
   return (
     <PaletteEmphasisCell
-      toneHex={toneHex}
-      emphasis="high"
+      toneCssVar={toneCssVar}
+      onToneCssVar={onToneCssVar}
+      emphasisCssVar={emphasisCssVar}
       isPrimary={isPrimary}
       headerLevels={headerLevels}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onClick={onSetPrimary}
-      getOpacityToken={getOpacityToken}
-      pickMinAlphaForAA={pickMinAlphaForAA}
     />
   )
 }
 
 export function PaletteScaleLowEmphasis({
-  toneHex,
+  toneCssVar,
+  onToneCssVar,
+  emphasisCssVar,
   isPrimary,
   headerLevels,
   onMouseEnter,
   onMouseLeave,
   onSetPrimary,
-  getOpacityToken,
-  pickMinAlphaForAA,
-}: Pick<PaletteScaleProps, 'toneHex' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary' | 'getOpacityToken' | 'pickMinAlphaForAA'>) {
+}: Pick<PaletteScaleProps, 'toneCssVar' | 'onToneCssVar' | 'emphasisCssVar' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary'>) {
   return (
     <PaletteEmphasisCell
-      toneHex={toneHex}
-      emphasis="low"
+      toneCssVar={toneCssVar}
+      onToneCssVar={onToneCssVar}
+      emphasisCssVar={emphasisCssVar}
       isPrimary={isPrimary}
       headerLevels={headerLevels}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onClick={onSetPrimary}
-      getOpacityToken={getOpacityToken}
-      pickMinAlphaForAA={pickMinAlphaForAA}
     />
   )
 }
