@@ -118,23 +118,27 @@ export default function ColorTokenPicker() {
           const nextTheme = JSON.parse(JSON.stringify(themeJson)) // Deep clone
           const root: any = nextTheme?.brand ? nextTheme.brand : nextTheme
           
-          // Update light mode
-          if (root?.light?.palettes?.core) {
-            const core = root.light.palettes['core-colors'] || root.light.palettes.core
-            if (core.$value) {
-              core.$value[coreColorName] = tokenRef
+          // Update light mode - check for core-colors first (new structure)
+          const lightCorePalette = root?.light?.palettes?.['core-colors'] || root?.light?.palettes?.core
+          if (lightCorePalette) {
+            // New structure: core-colors has $value object
+            if (lightCorePalette.$value && typeof lightCorePalette.$value === 'object') {
+              lightCorePalette.$value[coreColorName] = tokenRef
             } else {
-              core[coreColorName] = tokenRef
+              // Fallback for old structure
+              lightCorePalette[coreColorName] = tokenRef
             }
           }
           
           // Also update dark mode to keep them in sync
-          if (root?.dark?.palettes?.core) {
-            const core = root.dark.palettes.core
-            if (core.$value) {
-              core.$value[coreColorName] = tokenRef
+          const darkCorePalette = root?.dark?.palettes?.['core-colors'] || root?.dark?.palettes?.core
+          if (darkCorePalette) {
+            // New structure: core-colors has $value object
+            if (darkCorePalette.$value && typeof darkCorePalette.$value === 'object') {
+              darkCorePalette.$value[coreColorName] = tokenRef
             } else {
-              core[coreColorName] = tokenRef
+              // Fallback for old structure
+              darkCorePalette[coreColorName] = tokenRef
             }
           }
           
