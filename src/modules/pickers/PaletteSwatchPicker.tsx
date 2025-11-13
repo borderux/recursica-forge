@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { updateLayerAaCompliance } from '../../core/resolvers/updateLayerAaCompliance'
+import { updateAlternativeLayerAaCompliance } from '../../core/resolvers/updateAlternativeLayerAaCompliance'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
   const { palettes, theme: themeJson, tokens: tokensJson } = useVars()
@@ -143,6 +144,17 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                             requestAnimationFrame(() => {
                               setTimeout(() => {
                                 updateLayerAaCompliance(layerNumber, tokensJson, themeJson)
+                              }, 10)
+                            })
+                          }
+                          
+                          // If this is a core color (alert, warning, success), update alternative layer AA compliance
+                          const coreColorMatch = prefixedTarget.match(/--recursica-brand-light-palettes-core-(alert|warning|success)/)
+                          if (coreColorMatch && tokensJson && themeJson) {
+                            const coreColorName = coreColorMatch[1] as 'alert' | 'warning' | 'success'
+                            requestAnimationFrame(() => {
+                              setTimeout(() => {
+                                updateAlternativeLayerAaCompliance(coreColorName, tokensJson, themeJson)
                               }, 10)
                             })
                           }

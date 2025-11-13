@@ -1,5 +1,6 @@
 import { buildTokenIndex } from './tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
+import { findAaCompliantColor } from './colorSteppingForAa'
 
 // Helper to blend foreground over background with opacity
 function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): string | undefined {
@@ -148,11 +149,9 @@ function updateElementColor(
   currentColorCssVar: string,
   opacityCssVar: string,
   tokenIndex: Map<string, any>,
-  theme: any
+  theme: any,
+  tokens: any
 ): void {
-  const AA = 4.5
-  const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900']
-  
   // Get opacity
   const opacityValue = document.documentElement.style.getPropertyValue(opacityCssVar).trim() ||
     getComputedStyle(document.documentElement).getPropertyValue(opacityCssVar).trim()
@@ -160,35 +159,28 @@ function updateElementColor(
   
   // Get core color token reference for this element type
   let coreToken: { family: string; level: string } | null = null
-  let startFamily: string | null = null
-  let startLevel: string | null = null
   
   if (elementName === 'text-color') {
-    // Text color uses black/white - try both
-    const whiteHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-white)', tokenIndex) || '#ffffff'
-    const blackHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-black)', tokenIndex) || '#000000'
-    
-    const whiteFinal = blendHexOverBg(whiteHex, surfaceHex, opacity) || whiteHex
-    const blackFinal = blendHexOverBg(blackHex, surfaceHex, opacity) || blackHex
-    
-    const whiteContrast = contrastRatio(surfaceHex, whiteFinal)
-    const blackContrast = contrastRatio(surfaceHex, blackFinal)
-    
-    if (whiteContrast >= AA) {
-      document.documentElement.style.setProperty(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-white)')
-      return
+    // Text color uses black/white (no core token)
+    const aaCompliantColor = findAaCompliantColor(surfaceHex, null, opacity, tokens)
+    if (aaCompliantColor) {
+      document.documentElement.style.setProperty(currentColorCssVar, aaCompliantColor)
     }
-    if (blackContrast >= AA) {
-      document.documentElement.style.setProperty(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-black)')
-      return
-    }
-    // Use the one with higher contrast
-    const finalVar = whiteContrast >= blackContrast
-      ? 'var(--recursica-brand-light-palettes-core-white)'
-      : 'var(--recursica-brand-light-palettes-core-black)'
-    document.documentElement.style.setProperty(currentColorCssVar, finalVar)
     return
   } else if (elementName === 'interactive-color') {
+    // Interactive color should use core interactive CSS var directly
+    // Check if it meets AA compliance first
+    const coreInteractiveHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive)', tokenIndex)
+    if (coreInteractiveHex) {
+      const finalColorHex = blendHexOverBg(coreInteractiveHex, surfaceHex, opacity) || coreInteractiveHex
+      const contrast = contrastRatio(surfaceHex, finalColorHex)
+      if (contrast >= 4.5) {
+        // Core interactive meets AA, use it directly
+        document.documentElement.style.setProperty(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-interactive)')
+        return
+      }
+    }
+    // If core interactive doesn't meet AA, step through the scale
     coreToken = parseCoreTokenRef('interactive', theme)
   } else if (elementName === 'alert') {
     coreToken = parseCoreTokenRef('alert', theme)
@@ -198,99 +190,11 @@ function updateElementColor(
     coreToken = parseCoreTokenRef('success', theme)
   }
   
-  if (!coreToken) {
-    // Fallback: try white/black
-    const whiteHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-white)', tokenIndex) || '#ffffff'
-    const blackHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-black)', tokenIndex) || '#000000'
-    
-    const whiteFinal = blendHexOverBg(whiteHex, surfaceHex, opacity) || whiteHex
-    const blackFinal = blendHexOverBg(blackHex, surfaceHex, opacity) || blackHex
-    
-    const whiteContrast = contrastRatio(surfaceHex, whiteFinal)
-    const blackContrast = contrastRatio(surfaceHex, blackFinal)
-    
-    if (whiteContrast >= AA) {
-      document.documentElement.style.setProperty(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-white)')
-      return
-    }
-    if (blackContrast >= AA) {
-      document.documentElement.style.setProperty(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-black)')
-      return
-    }
-    const finalVar = whiteContrast >= blackContrast
-      ? 'var(--recursica-brand-light-palettes-core-white)'
-      : 'var(--recursica-brand-light-palettes-core-black)'
-    document.documentElement.style.setProperty(currentColorCssVar, finalVar)
-    return
+  // Use the utility function to find AA-compliant color
+  const aaCompliantColor = findAaCompliantColor(surfaceHex, coreToken, opacity, tokens)
+  if (aaCompliantColor) {
+    document.documentElement.style.setProperty(currentColorCssVar, aaCompliantColor)
   }
-  
-  startFamily = coreToken.family
-  startLevel = coreToken.level
-  const normalizedStartLevel = startLevel === '000' ? '050' : startLevel
-  const startIdx = LEVELS.indexOf(normalizedStartLevel)
-  if (startIdx === -1) return
-  
-  // First, try stepping lighter (lower index = lighter)
-  for (let i = startIdx - 1; i >= 0; i--) {
-    const level = LEVELS[i]
-    const normalizedLevel = level === '000' ? '050' : level
-    const hex = tokenIndex.get(`color/${startFamily}/${normalizedLevel}`)
-    if (typeof hex === 'string') {
-      const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-      const final = blendHexOverBg(h, surfaceHex, opacity) || h
-      const c = contrastRatio(surfaceHex, final)
-      if (c >= AA) {
-        document.documentElement.style.setProperty(
-          currentColorCssVar,
-          `var(--recursica-tokens-color-${startFamily}-${normalizedLevel})`
-        )
-        return
-      }
-    }
-  }
-  
-  // If lighter didn't work, try darker (higher index = darker)
-  for (let i = startIdx + 1; i < LEVELS.length; i++) {
-    const level = LEVELS[i]
-    const normalizedLevel = level === '000' ? '050' : level
-    const hex = tokenIndex.get(`color/${startFamily}/${normalizedLevel}`)
-    if (typeof hex === 'string') {
-      const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-      const final = blendHexOverBg(h, surfaceHex, opacity) || h
-      const c = contrastRatio(surfaceHex, final)
-      if (c >= AA) {
-        document.documentElement.style.setProperty(
-          currentColorCssVar,
-          `var(--recursica-tokens-color-${startFamily}-${normalizedLevel})`
-        )
-        return
-      }
-    }
-  }
-  
-  // If no token level works, try white/black
-  const whiteHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-white)', tokenIndex) || '#ffffff'
-  const blackHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-black)', tokenIndex) || '#000000'
-  
-  const whiteFinal = blendHexOverBg(whiteHex, surfaceHex, opacity) || whiteHex
-  const blackFinal = blendHexOverBg(blackHex, surfaceHex, opacity) || blackHex
-  
-  const whiteContrast = contrastRatio(surfaceHex, whiteFinal)
-  const blackContrast = contrastRatio(surfaceHex, blackFinal)
-  
-  if (whiteContrast >= AA) {
-    document.documentElement.style.setProperty(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-white)')
-    return
-  }
-  if (blackContrast >= AA) {
-    document.documentElement.style.setProperty(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-black)')
-    return
-  }
-  // Use the one with higher contrast
-  const finalVar = whiteContrast >= blackContrast
-    ? 'var(--recursica-brand-light-palettes-core-white)'
-    : 'var(--recursica-brand-light-palettes-core-black)'
-  document.documentElement.style.setProperty(currentColorCssVar, finalVar)
 }
 
 /**
@@ -354,7 +258,8 @@ export function updateLayerAaCompliance(
         element.colorVar,
         element.opacityVar,
         tokenIndex,
-        theme
+        theme,
+        tokens
       )
     })
   } catch (err) {

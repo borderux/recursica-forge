@@ -5,7 +5,7 @@ import { readOverrides } from '../theme/tokenOverrides'
 import { findTokenByHex } from '../../core/css/tokenRefs'
 
 export default function ColorTokenPicker() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, theme: themeJson } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetVar, setTargetVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
@@ -106,6 +106,20 @@ export default function ColorTokenPicker() {
       // Set the CSS variable to reference the token
       const root = document.documentElement
       root.style.setProperty(targetVar, `var(${tokenCssVar})`)
+      
+      // If this is a core color (alert, warning, success), update alternative layer AA compliance
+      const coreColorMatch = targetVar.match(/--recursica-brand-light-palettes-core-(alert|warning|success)/)
+      if (coreColorMatch && tokensJson && themeJson) {
+        const coreColorName = coreColorMatch[1] as 'alert' | 'warning' | 'success'
+        // Import dynamically to avoid circular dependencies
+        import('../../core/resolvers/updateAlternativeLayerAaCompliance').then(({ updateAlternativeLayerAaCompliance }) => {
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              updateAlternativeLayerAaCompliance(coreColorName, tokensJson, themeJson)
+            }, 10)
+          })
+        })
+      }
     }
     
     setAnchor(null)
