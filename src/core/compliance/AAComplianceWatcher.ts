@@ -252,7 +252,7 @@ export class AAComplianceWatcher {
   /**
    * Watch an alternative layer's surface color
    */
-  watchAlternativeLayerSurface(alternativeKey: 'alert' | 'warning' | 'success') {
+  watchAlternativeLayerSurface(alternativeKey: string) {
     const surfaceVar = `--recursica-brand-light-layer-layer-alternative-${alternativeKey}-property-surface`
     this.watchedVars.add(surfaceVar)
     
@@ -278,7 +278,7 @@ export class AAComplianceWatcher {
             const layerNumber = parseInt(layerMatch[1], 10)
             this.updateLayerElementColors(layerNumber)
           } else if (altMatch) {
-            const alternativeKey = altMatch[1] as 'alert' | 'warning' | 'success'
+            const alternativeKey = altMatch[1]
             this.updateAlternativeLayerElementColors(alternativeKey)
           }
         }
@@ -336,7 +336,7 @@ export class AAComplianceWatcher {
     })
   }
 
-  private updateAlternativeLayerElementColors(alternativeKey: 'alert' | 'warning' | 'success') {
+  private updateAlternativeLayerElementColors(alternativeKey: string) {
     const surfaceCssVar = `--recursica-brand-light-layer-layer-alternative-${alternativeKey}-property-surface`
     const surfaceValue = readCssVar(surfaceCssVar)
     
@@ -347,40 +347,35 @@ export class AAComplianceWatcher {
     
     const brandBase = `--recursica-brand-light-layer-layer-alternative-${alternativeKey}-property-`
     
-    // Update text color (uses black/white)
-    const textColorCssVar = `${brandBase}element-text-color`
-    const textOpacityCssVar = `${brandBase}element-text-high-emphasis`
-    const textOpacityValue = readCssVar(textOpacityCssVar)
-    const textOpacity = getOpacityValue(textOpacityValue, this.tokenIndex)
-    
-    const textAaColor = findAaCompliantColor(surfaceHex, null, textOpacity, this.tokens)
-    if (textAaColor) {
-      updateCssVar(textColorCssVar, textAaColor, this.tokens)
-    }
-    
-    // Update interactive color
-    const interactiveColorCssVar = `${brandBase}element-interactive-color`
-    const interactiveOpacityCssVar = `${brandBase}element-interactive-high-emphasis`
-    const interactiveOpacityValue = readCssVar(interactiveOpacityCssVar)
-    const interactiveOpacity = getOpacityValue(interactiveOpacityValue, this.tokenIndex)
-    
-    // Check if core interactive meets AA compliance
-    const coreInteractiveHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive)', this.tokenIndex)
-    if (coreInteractiveHex) {
-      const finalColorHex = blendHexOverBg(coreInteractiveHex, surfaceHex, interactiveOpacity) || coreInteractiveHex
-      const contrast = contrastRatio(surfaceHex, finalColorHex)
-      if (contrast >= 4.5) {
-        updateCssVar(interactiveColorCssVar, 'var(--recursica-brand-light-palettes-core-interactive)')
-        return
+    // Update each element type (same as regular layers)
+    const elements = [
+      {
+        name: 'text-color',
+        colorVar: `${brandBase}element-text-color`,
+        opacityVar: `${brandBase}element-text-high-emphasis`,
+        coreToken: null
+      },
+      {
+        name: 'interactive-color',
+        colorVar: `${brandBase}element-interactive-color`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
       }
+    ]
+    
+    // Only add status colors for status alternative layers (alert, warning, success)
+    if (alternativeKey === 'alert' || alternativeKey === 'warning' || alternativeKey === 'success') {
+      elements.push({
+        name: alternativeKey,
+        colorVar: `${brandBase}element-text-${alternativeKey}`,
+        opacityVar: `${brandBase}element-text-high-emphasis`,
+        coreToken: parseCoreTokenRef(alternativeKey, this.theme)
+      })
     }
     
-    // If core interactive doesn't meet AA, step through the scale
-    const interactiveCoreToken = parseCoreTokenRef('interactive', this.theme)
-    const interactiveAaColor = findAaCompliantColor(surfaceHex, interactiveCoreToken, interactiveOpacity, this.tokens)
-    if (interactiveAaColor) {
-      updateCssVar(interactiveColorCssVar, interactiveAaColor, this.tokens)
-    }
+    elements.forEach((element) => {
+      this.updateElementColor(element.name, surfaceHex, element.colorVar, element.opacityVar, element.coreToken)
+    })
   }
 
   private updateElementColor(

@@ -266,8 +266,8 @@ class VarsStore {
         this.aaWatcher?.watchLayerSurface(i)
       }
       
-      // Watch alternative layer surfaces
-      const altKeys: Array<'alert' | 'warning' | 'success'> = ['alert', 'warning', 'success']
+      // Watch alternative layer surfaces (all alternative layers from Brand.json)
+      const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
       altKeys.forEach((key) => {
         this.aaWatcher?.watchAlternativeLayerSurface(key)
       })
