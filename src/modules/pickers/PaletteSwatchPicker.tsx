@@ -4,6 +4,7 @@ import { useVars } from '../vars/VarsContext'
 import { updateLayerAaCompliance } from '../../core/resolvers/updateLayerAaCompliance'
 import { updateAlternativeLayerAaCompliance } from '../../core/resolvers/updateAlternativeLayerAaCompliance'
 import { findTokenByHex } from '../../core/css/tokenRefs'
+import { updateCssVar } from '../../core/css/updateCssVar'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
   const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
@@ -135,7 +136,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                               : `--recursica-${cssVar}`
 
                           // Set the target CSS variable to reference the selected palette CSS variable
-                          document.documentElement.style.setProperty(prefixedTarget, `var(${paletteCssVar})`)
+                          updateCssVar(prefixedTarget, `var(${paletteCssVar})`, tokensJson)
                           
                           // If this is a core color, update the theme state to persist the change
                           // Need to resolve the palette to its underlying token

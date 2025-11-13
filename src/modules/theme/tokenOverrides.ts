@@ -53,7 +53,6 @@ export function clearOverrides(initialAll?: any) {
       k === 'font-families-deleted' ||
       k === 'effects-scale-by-default' ||
       k === 'font-letter-scale-by-tight-wide' ||
-      k === 'palette-bindings' ||
       k === 'palette-opacity-bindings' ||
       k === 'dynamic-palettes' ||
       k === 'type-token-choices' ||

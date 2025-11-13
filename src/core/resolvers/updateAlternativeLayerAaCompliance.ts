@@ -2,6 +2,7 @@ import { findAaCompliantColor } from './colorSteppingForAa'
 import { buildTokenIndex } from './tokens'
 import type { JsonLike } from './tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
+import { updateCssVar } from '../../core/css/updateCssVar'
 
 // Helper to resolve CSS var to hex (recursively)
 function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth = 0): string | null {
@@ -119,7 +120,7 @@ export function updateAlternativeLayerAaCompliance(
     const textCoreToken = null // Text uses black/white, not a color scale
     const textAaColor = findAaCompliantColor(surfaceHex, textCoreToken, opacity, tokens)
     if (textAaColor) {
-      document.documentElement.style.setProperty(textColorCssVar, textAaColor)
+      updateCssVar(textColorCssVar, textAaColor, tokens)
     }
     
     // Update interactive color (uses core interactive CSS var directly)
@@ -158,7 +159,7 @@ export function updateAlternativeLayerAaCompliance(
       const contrast = contrastRatio(surfaceHex, finalColorHex)
       if (contrast >= 4.5) {
         // Core interactive meets AA, use it directly
-        document.documentElement.style.setProperty(interactiveColorCssVar, 'var(--recursica-brand-light-palettes-core-interactive)')
+        updateCssVar(interactiveColorCssVar, 'var(--recursica-brand-light-palettes-core-interactive)')
         return
       }
     }
@@ -166,7 +167,7 @@ export function updateAlternativeLayerAaCompliance(
     const interactiveCoreToken = parseCoreTokenRef('interactive', theme)
     const interactiveAaColor = findAaCompliantColor(surfaceHex, interactiveCoreToken, interactiveOpacity, tokens)
     if (interactiveAaColor) {
-      document.documentElement.style.setProperty(interactiveColorCssVar, interactiveAaColor)
+      updateCssVar(interactiveColorCssVar, interactiveAaColor, tokens)
     }
   } catch (err) {
     console.error('Error updating alternative layer AA compliance:', err)

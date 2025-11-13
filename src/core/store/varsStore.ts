@@ -11,7 +11,6 @@ import uikitImport from '../../vars/UIKit.json'
 // Note: Override system removed - tokens are now the single source of truth
 
 type PaletteStore = {
-  bindings: Record<string, { token: string; hex: string }>
   opacity: Record<'disabled' | 'overlay' | 'text-high' | 'text-low', { token: string; value: number }>
   dynamic: Array<{ key: string; title: string; defaultLevel: number; initialFamily?: string }>
   primaryLevels?: Record<string, string>
@@ -57,7 +56,6 @@ function writeLSJson<T>(key: string, value: T) { try { localStorage.setItem(key,
 function toTitleCase(label: string): string { return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim() }
 
 function migratePaletteLocalKeys(): PaletteStore {
-  const bindings = readLSJson<Record<string, { token: string; hex: string }>>('palette-bindings', {})
   const opacityRaw = readLSJson<Record<string, { token: string; value: number }>>('palette-opacity-bindings', {} as any)
   const normalizeOpacityBindings = (src?: Record<string, { token: string; value: number }>): PaletteStore['opacity'] => {
     const def: PaletteStore['opacity'] = {
@@ -95,7 +93,7 @@ function migratePaletteLocalKeys(): PaletteStore {
       }
     }
   } catch {}
-  return { bindings, opacity, dynamic, primaryLevels }
+  return { opacity, dynamic, primaryLevels }
 }
 
 type Listener = () => void
@@ -637,22 +635,11 @@ class VarsStore {
       // Custom color scales are now stored directly in tokens, so they're already included above
       Object.assign(allVars, vars)
     } catch {}
-    // Core palette bindings (black/white/alert/warning/success/interactive)
+    // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
     try {
-      const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
-      const get = (name: string): string | undefined => {
-        const parts = (name || '').split('/')
-        if (parts[0] === 'color' && parts.length >= 3) return tokensRoot?.color?.[parts[1]]?.[parts[2]]?.$value
-        return undefined
-      }
-      const defaults: Record<string, { token: string; hex: string }> = {
-        '--recursica-brand-light-palettes-core-black': { token: 'color/gray/1000', hex: get('color/gray/1000') || '#000000' },
-        '--recursica-brand-light-palettes-core-white': { token: 'color/gray/000', hex: get('color/gray/000') || '#ffffff' },
-        '--recursica-brand-light-palettes-core-alert': { token: 'color/mandy/500', hex: get('color/mandy/500') || get('color/mandy/600') || '#d40d0d' },
-        '--recursica-brand-light-palettes-core-warning': { token: 'color/mandarin/500', hex: get('color/mandarin/500') || '#fc7527' },
-        '--recursica-brand-light-palettes-core-success': { token: 'color/greensheen/500', hex: get('color/greensheen/500') || '#008b38' },
-        '--recursica-brand-light-palettes-core-interactive': { token: 'color/salmon/400', hex: get('color/salmon/400') || '#ff6b6b' },
-      }
+      const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
+      const core: any = root?.light?.palettes?.core?.$value || root?.light?.palettes?.core || {}
+      
       const normalizeLevel = (lvl?: string): string | undefined => {
         if (!lvl) return undefined
         const s = String(lvl).padStart(3, '0')
@@ -661,55 +648,74 @@ class VarsStore {
         const allowed = new Set(['900','800','700','600','500','400','300','200','100','050'])
         return allowed.has(s) ? s : undefined
       }
-      const tokenToTokensVar = (token?: string): string | null => {
-        try {
-          if (!token || typeof token !== 'string') return null
-          const parts = token.split('/')
-          if (parts[0] !== 'color' || !parts[1] || !parts[2]) return null
-          const family = parts[1]
-          const lvl = normalizeLevel(parts[2])
-          if (family && lvl) return `var(--recursica-tokens-color-${family}-${lvl})`
-        } catch {}
-        return null
+      
+      // Map core color names to CSS variable names
+      const coreColorMap: Record<string, string> = {
+        black: '--recursica-brand-light-palettes-core-black',
+        white: '--recursica-brand-light-palettes-core-white',
+        alert: '--recursica-brand-light-palettes-core-alert',
+        warning: '--recursica-brand-light-palettes-core-warning',
+        success: '--recursica-brand-light-palettes-core-success',
+        interactive: '--recursica-brand-light-palettes-core-interactive',
       }
-      const merged = { ...defaults, ...(this.state.palettes?.bindings || {}) }
+      
+      // Default fallbacks if theme JSON doesn't have the value
+      const defaults: Record<string, string> = {
+        black: 'color/gray/1000',
+        white: 'color/gray/000',
+        alert: 'color/mandy/500',
+        warning: 'color/mandarin/500',
+        success: 'color/greensheen/500',
+        interactive: 'color/salmon/400',
+      }
+      
       const colors: Record<string, string> = {}
-      Object.entries(merged).forEach(([cssVar, info]) => {
-        let ref = tokenToTokensVar(info?.token)
+      
+      // Process each core color
+      Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
+        // Get the value from theme JSON
+        const coreValue: any = core[colorName]
+        let tokenRef: string | null = null
         
-        // If token reference failed, try to find token by hex value
-        if (!ref && info?.hex) {
-          const tokenMatch = findTokenByHex(info.hex, this.state.tokens)
-          if (tokenMatch) {
-            ref = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
-          } else {
-            // Hex value doesn't match any token - log warning and use default
-            console.warn(`Core palette color ${cssVar} has hex value ${info.hex} that doesn't match any token. Using default token reference.`)
+        // Parse brace reference like {tokens.color.gray.1000}
+        if (typeof coreValue === 'string') {
+          const trimmed = coreValue.trim()
+          if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            const inner = trimmed.slice(1, -1).trim()
+            // Match pattern: tokens.color.<family>.<level>
+            const match = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|000|050)$/i.exec(inner)
+            if (match) {
+              const family = match[1]
+              const level = normalizeLevel(match[2])
+              if (family && level) {
+                tokenRef = `var(--recursica-tokens-color-${family}-${level})`
+              }
+            }
           }
         }
         
-        // If still no reference, use default token reference (never hardcoded hex)
-        if (!ref) {
-          const defaultInfo = defaults[cssVar]
-          if (defaultInfo) {
-            ref = tokenToTokensVar(defaultInfo.token)
-          }
-          // Last resort: use gray-500 as fallback token reference
-          if (!ref) {
-            console.warn(`Could not resolve token reference for ${cssVar}, using gray-500 as fallback`)
-            ref = 'var(--recursica-tokens-color-gray-500)'
+        // Fallback to default if parsing failed
+        if (!tokenRef) {
+          const defaultToken = defaults[colorName]
+          if (defaultToken) {
+            const parts = defaultToken.split('/')
+            if (parts.length === 3 && parts[0] === 'color') {
+              const family = parts[1]
+              const level = normalizeLevel(parts[2])
+              if (family && level) {
+                tokenRef = `var(--recursica-tokens-color-${family}-${level})`
+              }
+            }
           }
         }
         
-        // CRITICAL: Never set brand CSS vars to hardcoded hex values
-        // Validate that ref is a token reference, not a raw hex value
-        if (ref && !ref.startsWith('var(')) {
-          console.error(`CRITICAL: Attempted to set brand CSS variable ${cssVar} to non-reference value: ${ref}. Using default token reference instead.`)
-          const defaultInfo = defaults[cssVar]
-          ref = defaultInfo ? tokenToTokensVar(defaultInfo.token) : 'var(--recursica-tokens-color-gray-500)'
+        // Last resort fallback
+        if (!tokenRef) {
+          console.warn(`Could not resolve token reference for ${cssVar}, using gray-500 as fallback`)
+          tokenRef = 'var(--recursica-tokens-color-gray-500)'
         }
         
-        colors[cssVar] = ref || 'var(--recursica-tokens-color-gray-500)'
+        colors[cssVar] = tokenRef
       })
       // Expose palette opacity bindings as CSS vars
       try {

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
+import { updateCssVar } from '../../core/css/updateCssVar'
 
 function toTitleCase(label: string): string {
   return (label || '')
@@ -108,7 +109,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
             : `--recursica-${targetCssVar}`
         
         // Set the target CSS variable to reference the opacity token CSS variable
-        root.style.setProperty(prefixedTarget, `var(${opacityCssVar})`)
+        updateCssVar(prefixedTarget, `var(${opacityCssVar})`)
         
         // Call onSelect with the opacity token CSS var name
         onSelect?.(tokenName, value, opacityCssVar)

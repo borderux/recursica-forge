@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
+import { updateCssVar } from '../../core/css/updateCssVar'
 
 export default function OpacityPicker() {
   const { tokens: tokensJson } = useVars()
@@ -51,8 +52,7 @@ export default function OpacityPicker() {
     const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
     
     // Update the target CSS variable to reference the opacity token
-    const root = document.documentElement
-    root.style.setProperty(targetCssVar, `var(${opacityCssVar})`)
+    updateCssVar(targetCssVar, `var(${opacityCssVar})`)
     
     setAnchor(null)
     setTargetCssVar(null)

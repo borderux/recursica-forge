@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
+import { updateCssVar } from '../../core/css/updateCssVar'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -140,15 +141,15 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           // Check if it's a typeface or family token by looking it up in tokens
           const isTypeface = (tokens as any)?.tokens?.font?.typeface?.[option.short] !== undefined
           const category = isTypeface ? 'typeface' : 'family'
-          document.documentElement.style.setProperty(cssVar, `var(--recursica-tokens-font-${category}-${option.short})`)
+          updateCssVar(cssVar, `var(--recursica-tokens-font-${category}-${option.short})`)
         } else if (tokenValue) {
           // Use literal value
-          document.documentElement.style.setProperty(cssVar, tokenValue)
+          updateCssVar(cssVar, tokenValue)
         }
       } else {
         // Map property to token category
         const category = property === 'font-size' ? 'size' : property === 'font-weight' ? 'weight' : property === 'font-letter-spacing' ? 'letter-spacing' : 'line-height'
-        document.documentElement.style.setProperty(cssVar, `var(--recursica-tokens-font-${category}-${tokenValue})`)
+        updateCssVar(cssVar, `var(--recursica-tokens-font-${category}-${tokenValue})`)
       }
     })
     // Use requestAnimationFrame to ensure CSS is applied before re-reading

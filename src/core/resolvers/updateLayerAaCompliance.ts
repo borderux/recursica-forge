@@ -1,6 +1,7 @@
 import { buildTokenIndex } from './tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
 import { findAaCompliantColor } from './colorSteppingForAa'
+import { updateCssVar } from '../../core/css/updateCssVar'
 
 // Helper to blend foreground over background with opacity
 function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): string | undefined {
@@ -164,7 +165,7 @@ function updateElementColor(
     // Text color uses black/white (no core token)
     const aaCompliantColor = findAaCompliantColor(surfaceHex, null, opacity, tokens)
     if (aaCompliantColor) {
-      document.documentElement.style.setProperty(currentColorCssVar, aaCompliantColor)
+      updateCssVar(currentColorCssVar, aaCompliantColor, tokens)
     }
     return
   } else if (elementName === 'interactive-color') {
@@ -176,7 +177,7 @@ function updateElementColor(
       const contrast = contrastRatio(surfaceHex, finalColorHex)
       if (contrast >= 4.5) {
         // Core interactive meets AA, use it directly
-        document.documentElement.style.setProperty(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-interactive)')
+        updateCssVar(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-interactive)')
         return
       }
     }
@@ -193,7 +194,7 @@ function updateElementColor(
   // Use the utility function to find AA-compliant color
   const aaCompliantColor = findAaCompliantColor(surfaceHex, coreToken, opacity, tokens)
   if (aaCompliantColor) {
-    document.documentElement.style.setProperty(currentColorCssVar, aaCompliantColor)
+    updateCssVar(currentColorCssVar, aaCompliantColor, tokens)
   }
 }
 

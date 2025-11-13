@@ -11,6 +11,8 @@ import {
   PaletteScalePrimaryIndicator,
 } from './PaletteScale'
 import PaletteColorSelector from './PaletteColorSelector'
+import { updateCssVar } from '../../core/css/updateCssVar'
+import { readOverrides } from '../theme/tokenOverrides'
 
 type PaletteGridProps = {
   paletteKey: string
@@ -30,12 +32,8 @@ function toLevelString(level: number): string {
   return String(level)
 }
 
-function toTokenLevel(levelStr: string): string {
-  return levelStr
-}
-
 export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, initialFamily, mode, deletable, onDelete }: PaletteGridProps) {
-  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
+  const { tokens: tokensJson, theme: themeJson } = useVars()
   const defaultLevelStr = typeof defaultLevel === 'number' ? toLevelString(defaultLevel) : String(defaultLevel).padStart(3, '0')
   const headerLevels = LEVELS.map(toLevelString)
   const [overrideVersion, forceOverrideVersion] = useState(0)
@@ -142,26 +140,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     window.addEventListener('paletteFamilyChanged', handler as any)
     return () => window.removeEventListener('paletteFamilyChanged', handler as any)
   }, [])
-  const readAllSelections = (): Record<string, string> => {
-    const out: Record<string, string> = {}
-    try {
-      for (let i = 0; i < localStorage.length; i += 1) {
-        const k = localStorage.key(i) || ''
-        if (k.startsWith('palette-grid-family:')) {
-          const key = k.slice('palette-grid-family:'.length)
-          try {
-            const v = JSON.parse(localStorage.getItem(k) || '""')
-            if (typeof v === 'string' && v) out[key] = v
-          } catch {}
-        }
-      }
-    } catch {}
-    return out
-  }
-  const selections = readAllSelections()
-  const usedByOthers = new Set(Object.entries(selections).filter(([k]) => k !== paletteKey).map(([, v]) => v))
-  const availableFamilies = families.filter((f) => f === selectedFamily || !usedByOthers.has(f))
-
   // Use shared AA util for on-tone selection
   const getTokenValueByName = (name: string): string | undefined => {
     try {
@@ -238,7 +216,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   }, [paletteKey, primaryLevelStr])
   const [hoverLevelStr, setHoverLevelStr] = useState<string | null>(null)
   const applyThemeMappingsFromJson = (modeLabel: 'Light' | 'Dark') => {
-    const root = document.documentElement
     const levels = headerLevels
     levels.forEach((lvl) => {
       const onToneName = `palette/${paletteKey}/${lvl}/on-tone`
@@ -251,7 +228,9 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           : (s === '#000000' || s === 'black')
           ? `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-black)`
           : undefined
-        if (coreRef) root.style.setProperty(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`, coreRef)
+        if (coreRef) {
+          updateCssVar(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`, coreRef)
+        }
       }
     })
   }
@@ -263,13 +242,12 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   useEffect(() => {
     const lvl = primaryLevelStr
     try {
-      const root = document.documentElement
       // Reference the level-specific brand vars directly so primary is not hardcoded
-      root.style.setProperty(
+      updateCssVar(
         `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-primary-tone`,
         `var(--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone)`
       )
-      root.style.setProperty(
+      updateCssVar(
         `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-primary-on-tone`,
         `var(--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone)`
       )
@@ -375,142 +353,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           </tr>
         </tbody>
       </table>
-    </div>
-  )
-}
-
-function FamilyDropdown({
-  paletteKey,
-  families,
-  selectedFamily,
-  onSelect,
-  titleCase,
-  getSwatchHex,
-}: {
-  paletteKey: string
-  families: string[]
-  selectedFamily: string
-  onSelect: (fam: string) => void
-  titleCase: (s: string) => string
-  getSwatchHex: (fam: string) => string | undefined
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement | null>(null)
-  const [tokenVersion, setTokenVersion] = useState(0)
-  let ntcReadyPromise: Promise<void> | null = null
-  function ensureNtcLoaded(): Promise<void> {
-    if ((window as any).ntc) return Promise.resolve()
-    if (ntcReadyPromise) return ntcReadyPromise
-    ntcReadyPromise = new Promise<void>((resolve, reject) => {
-      const s = document.createElement('script')
-      s.src = 'https://chir.ag/projects/ntc/ntc.js'
-      s.async = true
-      s.onload = () => resolve()
-      s.onerror = () => reject(new Error('Failed to load ntc.js'))
-      document.head.appendChild(s)
-    })
-    return ntcReadyPromise
-  }
-  async function getNtcName(hex: string): Promise<string | null> {
-    try {
-      await ensureNtcLoaded()
-      const res = (window as any).ntc?.name?.(hex)
-      if (Array.isArray(res) && typeof res[1] === 'string' && res[1]) return res[1]
-    } catch {}
-    return null
-  }
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (!ref.current) return
-      if (!ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onDocClick)
-    return () => document.removeEventListener('mousedown', onDocClick)
-  }, [])
-  useEffect(() => {
-    const handler = () => setTokenVersion((v) => v + 1)
-    window.addEventListener('tokenOverridesChanged', handler as any)
-    window.addEventListener('familyNamesChanged', handler as any)
-    return () => {
-      window.removeEventListener('tokenOverridesChanged', handler as any)
-      window.removeEventListener('familyNamesChanged', handler as any)
-    }
-  }, [])
-  useEffect(() => {
-    (async () => {
-      try {
-        const raw = localStorage.getItem('family-friendly-names')
-        const map = raw ? JSON.parse(raw || '{}') || {} : {}
-        let changed = false
-        for (const fam of families) {
-          if (map[fam]) continue
-          const hex = getSwatchHex(fam)
-          if (typeof hex === 'string' && /^#?[0-9a-fA-F]{6}$/.test(hex.trim())) {
-            const normalized = hex.startsWith('#') ? hex : `#${hex}`
-            const label = await getNtcName(normalized)
-            if (label && label.trim()) {
-              map[fam] = label.trim()
-              changed = true
-            }
-          }
-        }
-        if (changed) {
-          try { localStorage.setItem('family-friendly-names', JSON.stringify(map)) } catch {}
-          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
-          setTokenVersion((v) => v + 1)
-        }
-      } catch {}
-    })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [families])
-  const getFriendlyName = (family: string): string => {
-    try {
-      const raw = localStorage.getItem('family-friendly-names')
-      if (raw) {
-        const map = JSON.parse(raw)
-        const v = map?.[family]
-        if (typeof v === 'string' && v.trim()) return v
-      }
-    } catch {}
-    return titleCase(family)
-  }
-  const currentHex = getSwatchHex(selectedFamily)
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-token-version={tokenVersion}>
-      <label htmlFor={`family-${paletteKey}`} style={{ fontSize: 12, opacity: 0.8 }}>Color Token</label>
-      <div ref={ref} style={{ position: 'relative' }}>
-        <button
-          id={`family-${paletteKey}`}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer', minWidth: 160, justifyContent: 'space-between' }}
-        >
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid rgba(0,0,0,0.15)', background: currentHex || 'transparent' }} />
-            <span>{getFriendlyName(selectedFamily)}</span>
-          </span>
-          <span aria-hidden style={{ opacity: 0.6 }}>▾</span>
-        </button>
-        {open && (
-          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1200, background: 'var(--layer-layer-0-property-surface, #ffffff)', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 6, minWidth: 200 }}>
-            <div style={{ maxHeight: 280, overflow: 'auto', display: 'grid' }}>
-              {families.map((fam) => {
-                const hex = getSwatchHex(fam)
-                return (
-                  <button
-                    key={fam}
-                    onClick={() => { onSelect(fam); setOpen(false) }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}
-                  >
-                    <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid rgba(0,0,0,0.15)', background: hex || 'transparent' }} />
-                    <span>{getFriendlyName(fam)}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   )
 }

@@ -10,7 +10,6 @@ import { buildPaletteVars } from '../../core/resolvers/palettes'
 
 // Import PaletteStore type from varsStore to ensure consistency
 type PaletteStore = {
-  bindings: Record<string, { token: string; hex: string }>
   opacity: Record<'disabled' | 'overlay' | 'text-high' | 'text-low', { token: string; value: number }>
   dynamic: Array<{ key: string; title: string; defaultLevel: number; initialFamily?: string }>
   primaryLevels?: Record<string, string>
