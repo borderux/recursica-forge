@@ -572,8 +572,81 @@ class VarsStore {
       if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'color' && parts[2] && parts[3]) return `color/${parts[2]}/${parts[3]}`
       return 'color/gray/900'
     }
+    const parsePaletteSelection = (s?: string): { paletteKey: string; level: string } | null => {
+      if (!s) return null
+      const inner = s.startsWith('{') ? s.slice(1, -1) : s
+      // Match: brand.light.palettes.{paletteKey}.{level}.color.tone
+      // or: brand.light.palettes.{paletteKey}.default.color.tone (where default might reference another level)
+      const match = /^(?:brand|theme)\.(?:light|dark)\.palettes\.([a-z0-9-]+)\.(?:(\d+|default|primary))/.exec(inner)
+      if (match) {
+        const paletteKey = match[1]
+        let level = match[2]
+        // If level is 'default', try to resolve it from the theme
+        if (level === 'default') {
+          try {
+            const defaultRef = (theme as any)?.brand?.light?.palettes?.[paletteKey]?.default
+            if (defaultRef) {
+              let defaultValue: any
+              if (typeof defaultRef === 'object' && defaultRef.$value) {
+                defaultValue = defaultRef.$value
+              } else if (typeof defaultRef === 'string') {
+                defaultValue = defaultRef
+              }
+              
+              if (defaultValue && typeof defaultValue === 'string' && defaultValue.startsWith('{')) {
+                const defaultInner = defaultValue.slice(1, -1)
+                // Match: theme.light.palettes.{paletteKey}.{level}
+                const defaultMatch = /^(?:brand|theme)\.(?:light|dark)\.palettes\.([a-z0-9-]+)\.(\d+)/.exec(defaultInner)
+                if (defaultMatch && defaultMatch[1] === paletteKey) {
+                  level = defaultMatch[2]
+                } else {
+                  // Try to extract level number from end of path
+                  const directLevelMatch = /\.(\d+)$/.exec(defaultInner)
+                  if (directLevelMatch) {
+                    level = directLevelMatch[1]
+                  }
+                }
+              }
+            }
+            // If we couldn't resolve default, use 'primary' as fallback
+            if (level === 'default') {
+              level = 'primary'
+            }
+          } catch {
+            level = 'primary'
+          }
+        }
+        if (level === 'primary') {
+          // Try to get primary level from palette
+          try {
+            const primaryLevel = (theme as any)?.brand?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
+            if (typeof primaryLevel === 'string') {
+              level = primaryLevel
+            } else {
+              // Default to 500 if no primary level specified
+              level = '500'
+            }
+          } catch {
+            level = '500'
+          }
+        }
+        return { paletteKey, level }
+      }
+      return null
+    }
     const elev1: any = light?.['elevation-1']?.['$value'] || {}
     const shadowColorControl = { colorToken: parseColorToken(elev1?.color?.['$value'] ?? elev1?.color), alphaToken: parseOpacity(elev1?.opacity?.['$value'] ?? elev1?.opacity) }
+    
+    // Initialize palette selections from brand.json for each elevation
+    const initialPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+    for (let i = 0; i <= 4; i++) {
+      const elev: any = light?.[`elevation-${i}`]?.['$value'] || {}
+      const colorRef = elev?.color?.['$value'] ?? elev?.color
+      const paletteSel = parsePaletteSelection(colorRef)
+      if (paletteSel) {
+        initialPaletteSelections[`elevation-${i}`] = paletteSel
+      }
+    }
     const baseX = Number((elev1?.['x-direction']?.['$value'] ?? 1))
     const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
     const baseXDirection: 'left' | 'right' = baseX >= 0 ? 'right' : 'left'
@@ -583,11 +656,18 @@ class VarsStore {
     // Migrate legacy keys
     let colorTokens: Record<string, string> = {}
     let alphaTokens: Record<string, string> = {}
-    let paletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+    let paletteSelections: Record<string, { paletteKey: string; level: string }> = { ...initialPaletteSelections }
     if (this.lsAvailable) {
       try { const raw = localStorage.getItem('elevation-color-tokens'); if (raw) colorTokens = JSON.parse(raw) } catch {}
       try { const raw = localStorage.getItem('elevation-alpha-tokens'); if (raw) alphaTokens = JSON.parse(raw) } catch {}
-      try { const raw = localStorage.getItem('elevation-palette-selections'); if (raw) paletteSelections = JSON.parse(raw) } catch {}
+      try { 
+        const raw = localStorage.getItem('elevation-palette-selections')
+        if (raw) {
+          // Merge localStorage selections with initial selections (localStorage takes precedence)
+          const savedSelections = JSON.parse(raw)
+          paletteSelections = { ...initialPaletteSelections, ...savedSelections }
+        }
+      } catch {}
       try { const raw = localStorage.getItem('elevation-directions'); if (raw) Object.assign(directions, JSON.parse(raw)) } catch {}
       try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') (baseXDirection as any) = raw } catch {}
       try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') (baseYDirection as any) = raw } catch {}
@@ -944,11 +1024,11 @@ class VarsStore {
         const key = `elevation-${level}`
         const sel = this.state.elevation.paletteSelections[key]
         if (sel) {
-          const family = familyForPalette[sel.paletteKey] || 'gray'
+          // Use palette CSS variable instead of token CSS variable
+          const paletteVarRef = `var(--recursica-brand-light-palettes-${sel.paletteKey}-${sel.level}-tone)`
           const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
           const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
-          const colorVarRef = `var(--recursica-tokens-color-${family}-${sel.level})`
-          return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
+          return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
         }
         const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
         const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken

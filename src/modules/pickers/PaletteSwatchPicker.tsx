@@ -79,19 +79,32 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       if (trimmed === expectedValue) {
         return true
       }
-      // If target is a CSS var reference (not hex), only match exact references
-      if (trimmed.startsWith('var(')) {
+      
+      // Check if target is a color-mix() that contains this palette var
+      if (trimmed.includes('color-mix') && trimmed.includes(paletteCssVar)) {
+        return true
+      }
+      
+      // If target is a CSS var reference or color-mix (not hex), only match exact palette references
+      // Don't fall back to hex comparison for var()/color-mix() references, as multiple tokens/palettes might resolve to the same color
+      if (trimmed.startsWith('var(') || trimmed.includes('color-mix')) {
         return false
       }
     }
     
-    // Fallback: compare resolved hex values (only if target is a direct hex, not a var reference)
-    if (targetResolvedValue.direct && !targetResolvedValue.direct.trim().startsWith('var(')) {
-      const paletteResolved = readCssVarResolved(paletteCssVar)
-      if (targetResolvedValue.resolved && paletteResolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
-        const targetHex = targetResolvedValue.resolved.toLowerCase().trim()
-        const paletteHex = paletteResolved.toLowerCase().trim()
-        return targetHex === paletteHex
+    // Fallback: compare resolved hex values (only if target is a direct hex, not a var/color-mix reference)
+    // This prevents multiple swatches from being selected when they resolve to the same color
+    const direct = targetResolvedValue.direct
+    if (direct) {
+      const directTrimmed = direct.trim()
+      // Only do hex comparison if target is a direct hex value, not a var() or color-mix()
+      if (!directTrimmed.startsWith('var(') && !directTrimmed.includes('color-mix')) {
+        const paletteResolved = readCssVarResolved(paletteCssVar)
+        if (targetResolvedValue.resolved && paletteResolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
+          const targetHex = targetResolvedValue.resolved.toLowerCase().trim()
+          const paletteHex = paletteResolved.toLowerCase().trim()
+          return targetHex === paletteHex
+        }
       }
     }
     
