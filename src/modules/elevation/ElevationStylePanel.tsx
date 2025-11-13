@@ -169,10 +169,12 @@ export default function ElevationStylePanel({
         />
         <div className="control-group">
           <PaletteColorControl
-            label="Color (Palette)"
+            label="Shadow Color"
             targetCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(0)}
             targetCssVars={levelsArr.length > 0 ? levelsArr.map(lvl => getShadowColorCssVar(lvl)) : undefined}
             currentValueCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : undefined}
+            swatchSize={14}
+            fontSize={13}
           />
         </div>
         <div className="control-group">
