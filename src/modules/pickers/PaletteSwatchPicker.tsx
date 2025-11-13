@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
-// AA compliance is now handled reactively by AAComplianceWatcher
-import { findTokenByHex } from '../../core/css/tokenRefs'
 import { updateCssVar } from '../../core/css/updateCssVar'
-import { readCssVar } from '../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
-  const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
+  const { palettes, theme: themeJson, tokens: tokensJson } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [targetCssVars, setTargetCssVars] = useState<string[]>([])
@@ -20,7 +18,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       const lightPal: any = root?.light?.palettes || {}
       Object.keys(lightPal).forEach((k) => {
-        if (k !== 'core' && !dynamic.includes(k)) {
+        // Only show palettes, exclude core and core-colors
+        if (k !== 'core' && k !== 'core-colors' && !dynamic.includes(k)) {
           staticPalettes.push(k)
         }
       })
@@ -35,54 +34,68 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
         const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
         const paletteData: any = root?.light?.palettes?.[pk]
         if (paletteData) {
-          // Get all numeric levels (excluding 'default' and other non-level keys)
-          const levels = Object.keys(paletteData).filter((k) => /^\d{2,4}|000$/.test(k))
-          // Normalize and deduplicate: 000 -> 050, 1000 -> 900
-          // Prefer canonical levels (050 over 000, 900 over 1000)
-          const normalizeLevel = (lvl: string) => {
-            if (lvl === '000') return '050'
-            if (lvl === '1000') return '900'
-            return lvl
-          }
-          // Map to normalized levels and deduplicate, preferring canonical levels
-          const normalizedMap = new Map<string, string>() // normalized -> original
-          levels.forEach((lvl) => {
-            const normalized = normalizeLevel(lvl)
-            // Prefer canonical levels: if we already have 050, don't replace with 000
-            // If we already have 900, don't replace with 1000
-            if (!normalizedMap.has(normalized)) {
-              normalizedMap.set(normalized, lvl)
-            } else {
-              // Prefer canonical: 050 over 000, 900 over 1000
-              if ((normalized === '050' && lvl === '050') || (normalized === '900' && lvl === '900')) {
-                normalizedMap.set(normalized, lvl)
-              }
-            }
-          })
-          const uniqueLevels = Array.from(normalizedMap.values())
+          // Get all numeric levels including 000 and 1000 - no normalization or deduplication
+          const levels = Object.keys(paletteData).filter((k) => /^(\d{2,4}|000|1000)$/.test(k))
           // Sort: 1000, 900, 800, ..., 100, 050, 000
-          uniqueLevels.sort((a, b) => {
+          levels.sort((a, b) => {
             const aNum = a === '000' ? 0 : a === '050' ? 50 : a === '1000' ? 1000 : Number(a)
             const bNum = b === '000' ? 0 : b === '050' ? 50 : b === '1000' ? 1000 : Number(b)
             return bNum - aNum
           })
-          levelsByPalette[pk] = uniqueLevels
+          levelsByPalette[pk] = levels
         }
       } catch {}
-      // Fallback to standard levels if not found (already deduplicated)
+      // Fallback to standard levels if not found (including 000 and 1000)
       if (!levelsByPalette[pk]) {
-        levelsByPalette[pk] = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050']
+        levelsByPalette[pk] = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
       }
     })
     return levelsByPalette
   }, [paletteKeys, themeJson])
 
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
-    // Normalize level (000 -> 050, 1000 -> 900)
-    let normalizedLevel = level
-    if (level === '000') normalizedLevel = '050'
-    else if (level === '1000') normalizedLevel = '900'
-    return `--recursica-brand-light-palettes-${paletteKey}-${normalizedLevel}-tone`
+    // Use actual level - no normalization (000 stays 000, 1000 stays 1000)
+    return `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
+  }
+
+  // Get the resolved value of the target CSS var to compare with palette swatches
+  // This hook must be called before any early returns to follow Rules of Hooks
+  const targetResolvedValue = useMemo(() => {
+    if (!targetCssVar) return null
+    const resolved = readCssVarResolved(targetCssVar)
+    const directValue = readCssVar(targetCssVar)
+    return { resolved, direct: directValue }
+  }, [targetCssVar])
+
+  // Check if a palette swatch is currently selected
+  const isSwatchSelected = (paletteCssVar: string): boolean => {
+    if (!targetResolvedValue || !targetCssVar) return false
+    
+    // Check if target CSS var directly references this palette var
+    const directValue = readCssVar(targetCssVar)
+    if (directValue) {
+      const trimmed = directValue.trim()
+      const expectedValue = `var(${paletteCssVar})`
+      if (trimmed === expectedValue) {
+        return true
+      }
+      // If target is a CSS var reference (not hex), only match exact references
+      if (trimmed.startsWith('var(')) {
+        return false
+      }
+    }
+    
+    // Fallback: compare resolved hex values (only if target is a direct hex, not a var reference)
+    if (targetResolvedValue.direct && !targetResolvedValue.direct.trim().startsWith('var(')) {
+      const paletteResolved = readCssVarResolved(paletteCssVar)
+      if (targetResolvedValue.resolved && paletteResolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
+        const targetHex = targetResolvedValue.resolved.toLowerCase().trim()
+        const paletteHex = paletteResolved.toLowerCase().trim()
+        return targetHex === paletteHex
+      }
+    }
+    
+    return false
   }
 
   ;(window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[]) => {
@@ -117,16 +130,18 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
             <div style={{ display: 'flex', flexWrap: 'nowrap', gap, overflow: 'auto' }}>
               {(paletteLevels[pk] || []).map((level) => {
                 const paletteCssVar = buildPaletteCssVar(pk, level)
+                const isSelected = isSwatchSelected(paletteCssVar)
                 return (
                   <div
                     key={`${pk}-${level}`}
                     title={`${pk}/${level}`}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
                       try {
                         // Get all CSS vars to update (use array if provided, otherwise just the single target)
                         const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                         
-                        // Update all CSS variables
+                        // Update all CSS variables - only update CSS vars, never JSON
                         cssVarsToUpdate.forEach((cssVar) => {
                           // Ensure target CSS var has --recursica- prefix if it doesn't already
                           const prefixedTarget = cssVar.startsWith('--recursica-')
@@ -137,85 +152,6 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
                           // Set the target CSS variable to reference the selected palette CSS variable
                           updateCssVar(prefixedTarget, `var(${paletteCssVar})`, tokensJson)
-                          
-                          // If this is a core color, update the theme state to persist the change
-                          // Need to resolve the palette to its underlying token
-                          const coreColorMatch = prefixedTarget.match(/--recursica-brand-light-palettes-core-(black|white|alert|warning|success|interactive)/)
-                          if (coreColorMatch && setTheme && themeJson && tokensJson) {
-                            const coreColorName = coreColorMatch[1] as 'black' | 'white' | 'alert' | 'warning' | 'success' | 'interactive'
-                            
-                            // Resolve the palette CSS var to get its underlying token
-                            // First, get the resolved hex value
-                            const resolvedValue = readCssVar(paletteCssVar)
-                            
-                            // Try to extract token from palette CSS var name (e.g., --recursica-brand-light-palettes-palette-1-500-tone)
-                            const paletteMatch = paletteCssVar.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
-                            if (paletteMatch) {
-                              const [, paletteKey, level] = paletteMatch
-                              // Look up the palette in theme to find its token reference
-                              try {
-                                const root: any = themeJson?.brand ? themeJson.brand : themeJson
-                                const palettePath = `light.palettes.${paletteKey}.${level}.color.tone`
-                                const paletteValue = palettePath.split('.').reduce((obj: any, key: string) => obj?.[key], root)
-                                const paletteRef = typeof paletteValue === 'string' ? paletteValue : paletteValue?.$value
-                                
-                                if (paletteRef && typeof paletteRef === 'string' && paletteRef.startsWith('{') && paletteRef.endsWith('}')) {
-                                  const inner = paletteRef.slice(1, -1)
-                                  const tokenMatch = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|050)$/i.exec(inner)
-                                  if (tokenMatch) {
-                                    const [, family, level] = tokenMatch
-                                    const tokenRef = `{tokens.color.${family}.${level}}`
-                                    
-                                    // Update theme JSON
-                                    const nextTheme = JSON.parse(JSON.stringify(themeJson))
-                                    const themeRoot: any = nextTheme?.brand ? nextTheme.brand : nextTheme
-                                    const corePalette = themeRoot?.light?.palettes?.['core-colors'] || themeRoot?.light?.palettes?.core
-                                    if (corePalette) {
-                                      const core = corePalette
-                                      if (core.$value) {
-                                        core.$value[coreColorName] = tokenRef
-                                      } else {
-                                        core[coreColorName] = tokenRef
-                                      }
-                                      setTheme(nextTheme)
-                                    }
-                                  }
-                                }
-                              } catch (err) {
-                                console.error('Failed to update theme state for core color from palette:', err)
-                              }
-                            } else {
-                              // If we can't extract from palette name, try to find token by resolved hex
-                              if (resolvedValue && /^#?[0-9a-f]{6}$/i.test(resolvedValue)) {
-                                const hex = resolvedValue.startsWith('#') ? resolvedValue : `#${resolvedValue}`
-                                const tokenMatch = findTokenByHex(hex, tokensJson)
-                                if (tokenMatch) {
-                                  const tokenRef = `{tokens.color.${tokenMatch.family}.${tokenMatch.level}}`
-                                  
-                                  // Update theme JSON
-                                  try {
-                                    const nextTheme = JSON.parse(JSON.stringify(themeJson))
-                                    const themeRoot: any = nextTheme?.brand ? nextTheme.brand : nextTheme
-                                    const corePalette = themeRoot?.light?.palettes?.['core-colors'] || themeRoot?.light?.palettes?.core
-                                    if (corePalette) {
-                                      const core = corePalette
-                                      if (core.$value) {
-                                        core.$value[coreColorName] = tokenRef
-                                      } else {
-                                        core[coreColorName] = tokenRef
-                                      }
-                                      setTheme(nextTheme)
-                                    }
-                                  } catch (err) {
-                                    console.error('Failed to update theme state for core color from hex:', err)
-                                  }
-                                }
-                              }
-                            }
-                          }
-                          
-                          // AA compliance is now handled reactively by AAComplianceWatcher
-                          // No manual calls needed - the watcher will detect CSS var changes automatically
                         })
                         
                         onSelect?.(paletteCssVar)
@@ -227,6 +163,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       setTargetCssVars([])
                     }}
                     style={{
+                      position: 'relative',
                       width: swatch,
                       height: swatch,
                       background: `var(${paletteCssVar})`,
@@ -234,7 +171,41 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       border: '1px solid rgba(0,0,0,0.15)',
                       flex: '0 0 auto',
                     }}
-                  />
+                  >
+                    {isSelected && (
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        {/* White checkmark with dark shadow for visibility on any background */}
+                        <path
+                          d="M2 6L5 9L10 2"
+                          stroke="#000"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          opacity="0.4"
+                        />
+                        <path
+                          d="M2 6L5 9L10 2"
+                          stroke="#fff"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </div>
                 )
               })}
             </div>
