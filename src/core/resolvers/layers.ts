@@ -1,5 +1,4 @@
 import type { JsonLike } from './tokens'
-import { contrastRatio, pickAAOnTone } from '../../modules/theme/contrastUtil'
 import { buildTokenIndex } from './tokens'
 
 export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Record<string, any>): Record<string, string> {
@@ -7,7 +6,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
   const layersLight: any = troot?.light?.layer || {}
 
-  const AA = 4.5
   const mapBWHexToVar = (hex: string): string => {
     const h = (hex || '').toLowerCase()
     return h === '#ffffff' ? 'var(--recursica-brand-light-palettes-core-white)' : 'var(--recursica-brand-light-palettes-core-black)'
@@ -18,34 +16,13 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     const levelPart = level === 'primary' ? 'primary' : level
     return `--recursica-brand-light-palettes-${paletteKey}-${levelPart}-${type}`
   }
-  const pickExistingPaletteVar = (
+  // Simplified: just return the requested var name (no CSS var reading during resolution)
+  const buildPaletteVarRef = (
     paletteKey: string,
-    startLevel: string,
+    level: string,
     type: 'tone' | 'on-tone' | 'high-emphasis' | 'low-emphasis'
   ): string => {
-    const startIdx = LEVELS.indexOf(startLevel)
-    const order: number[] = []
-    if (startIdx >= 0) {
-      order.push(0)
-      for (let step = 1; step < LEVELS.length; step += 1) {
-        order.push(step, -step)
-      }
-    } else {
-      for (let i = 0; i < LEVELS.length; i += 1) order.push(i)
-    }
-    for (const delta of order) {
-      const pos = startIdx >= 0 ? startIdx + delta : LEVELS.indexOf(startLevel)
-      if (pos < 0 || pos >= LEVELS.length) continue
-      const lvl = LEVELS[pos]
-      const name = buildPaletteVar(paletteKey, lvl, type)
-      const val = readCssVar(name)
-      if (val) return `var(${name})`
-    }
-    // Fallback to primary if defined
-    const primaryName = buildPaletteVar(paletteKey, 'primary', type)
-    if (readCssVar(primaryName)) return `var(${primaryName})`
-    // As last resort, return the requested var name
-    return `var(${buildPaletteVar(paletteKey, startLevel, type)})`
+    return `var(${buildPaletteVar(paletteKey, level, type)})`
   }
   const parsePaletteToneRef = (input: any): { paletteKey: string; level: string } | null => {
     try {
@@ -103,46 +80,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     const hex = tokenIndex.get(`color/${family}/${level}`)
     return typeof hex === 'string' ? hex : undefined
   }
-  const findTokenColorByHex = (hex: string): { family: string; level: string } | null => {
-    try {
-      const h = (hex || '').trim().toLowerCase()
-      if (!/^#?[0-9a-f]{6}$/.test(h)) return null
-      const normalized = h.startsWith('#') ? h : `#${h}`
-      const colorsRoot: any = (tokens as any)?.tokens?.color || {}
-      for (const family of Object.keys(colorsRoot)) {
-        if (family === 'translucent') continue
-        for (const level of Object.keys(colorsRoot[family] || {})) {
-          const val = colorsRoot[family]?.[level]?.$value
-          if (typeof val === 'string' && val.trim().toLowerCase() === normalized) {
-            return { family, level }
-          }
-        }
-      }
-    } catch {}
-    return null
-  }
+  // Simplified: just use direct mapping (no CSS var reading during resolution)
   const findPaletteKeyForFamilyLevel = (family: string, level: string): string | null => {
-    // Prefer direct mapping based on known family → paletteKey
     const map: Record<string, string> = { gray: 'neutral', salmon: 'palette-1', mandarin: 'palette-2', cornflower: 'palette-3', greensheen: 'palette-4' }
-    if (Object.prototype.hasOwnProperty.call(map, family)) return map[family]
-    // Fallback: attempt to match via CSS var, though values may be var() refs
-    const tokenHex = (getTokenHex(family, level) || '').toLowerCase()
-    if (!tokenHex) return null
-    for (const pk of PALETTE_KEYS) {
-      const varName = buildPaletteVar(pk, level, 'tone')
-      const val = (readCssVar(varName) || '').trim().toLowerCase()
-      if (!val) continue
-      // If palette tone var is a token var ref, compare the underlying token
-      const mm = /^var\(\s*--tokens-color-([a-z0-9_-]+)-([0-9]{2,4}|000|050)\s*\)\s*$/i.exec(val)
-      if (mm) {
-        const fam2 = mm[1]; const lvl2 = mm[2]
-        const hex2 = (getTokenHex(fam2, lvl2) || '').toLowerCase()
-        if (hex2 && hex2 === tokenHex) return pk
-      } else if (/^#([0-9a-f]{6})$/i.test(val)) {
-        if (val === tokenHex) return pk
-      }
-    }
-    return null
+    return map[family] || null
   }
   const parseCoreVarName = (input: any): string | null => {
     try {
@@ -170,64 +111,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     } catch {}
     return null
   }
-  const blendHexOverBg = (fgHex?: string, bgHex?: string, opacity?: number): string | undefined => {
-    if (!fgHex || !bgHex) return undefined
-    try {
-      const toRgb = (h: string): [number, number, number] => {
-        const s = h.startsWith('#') ? h.slice(1) : h
-        const r = parseInt(s.slice(0, 2), 16)
-        const g = parseInt(s.slice(2, 4), 16)
-        const b = parseInt(s.slice(4, 6), 16)
-        return [r, g, b]
-      }
-      const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
-      const a = clamp01(typeof opacity === 'number' ? opacity : 1)
-      const [fr, fg, fb] = toRgb(fgHex.replace('#',''))
-      const [br, bgc, bb] = toRgb(bgHex.replace('#',''))
-      const rr = Math.round(a * fr + (1 - a) * br)
-      const rg = Math.round(a * fg + (1 - a) * bgc)
-      const rb = Math.round(a * fb + (1 - a) * bb)
-      const toHex = (n: number) => n.toString(16).padStart(2, '0')
-      return `#${toHex(rr)}${toHex(rg)}${toHex(rb)}`
-    } catch { return fgHex }
-  }
-  const contrastWithOpacity = (bgHex?: string, fgHex?: string, opacity?: number): number => {
-    const comp = blendHexOverBg(fgHex, bgHex, opacity)
-    return contrastRatio(bgHex, comp)
-  }
-  const pickSteppedTokenColorRef = (
-    bgHex: string,
-    family: string,
-    startLevel: string,
-    opacity: number | undefined,
-    preferDarkerFirst = false
-  ): { varRef: string; level: string } | null => {
-    if (!bgHex) return null
-    const idx = LEVELS.indexOf(startLevel)
-    const order: number[] = []
-    if (idx >= 0) {
-      order.push(0)
-      for (let step = 1; step < LEVELS.length; step += 1) {
-        const a = preferDarkerFirst ? [-step, step] : [step, -step]
-        a.forEach((d) => order.push(d))
-      }
-    } else {
-      for (let i = 0; i < LEVELS.length; i += 1) order.push(i - 0)
-    }
-    let bestLevel = LEVELS[0]
-    let bestContrast = -1
-    for (const delta of order) {
-      const pos = idx >= 0 ? idx + delta : LEVELS.indexOf(startLevel)
-      if (pos < 0 || pos >= LEVELS.length) continue
-      const lvl = LEVELS[pos]
-      const hex = getTokenHex(family, lvl)
-      if (!hex) continue
-      const c = contrastWithOpacity(bgHex, hex, opacity)
-      if (c >= AA) return { varRef: `var(--recursica-tokens-color-${family}-${lvl})`, level: lvl }
-      if (c > bestContrast) { bestContrast = c; bestLevel = lvl }
-    }
-    return { varRef: `var(--recursica-tokens-color-${family}-${bestLevel})`, level: bestLevel }
-  }
+  // AA compliance calculations removed - will be handled reactively in Phase 3
   const readCssVar = (name: string): string | undefined => {
     try {
       const v = (getComputedStyle(document.documentElement).getPropertyValue(name) || '').trim()
@@ -319,27 +203,17 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       if (coreVar) return `var(${coreVar})`
       // Already a CSS var
       if (typeof rawInput === 'string' && /^\s*var\(--/.test(rawInput)) return String(rawInput).trim()
-      // Resolve to get potential hex to map back to a var
+      // Resolve to get potential var reference
       const resolved = resolveRef(rawInput)
       if (typeof resolved === 'string') {
         const asVar = /^\s*var\(--/.test(resolved) ? resolved.trim() : null
         if (asVar) return asVar
-        const hex = readIfCssVarOrHex(resolved)
-        if (typeof hex === 'string') {
+        // If resolved to hex, map black/white to core vars
+        const hex = resolved.trim()
+        if (/^#?[0-9a-f]{6}$/i.test(hex)) {
           const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
           if (h === '#ffffff' || h === '#000000') return mapBWHexToVar(h)
-          // Try to find exact palette tone match by scanning palette vars
-          for (const pk of PALETTE_KEYS) {
-            for (const lvl of LEVELS) {
-              const toneHex = readCssVar(buildPaletteVar(pk, lvl, 'tone'))
-              if (toneHex && toneHex.toLowerCase() === h) return `var(${buildPaletteVar(pk, lvl, 'tone')})`
-            }
-          }
-          // If no palette match, try to find matching token color
-          const tokenMatch = findTokenColorByHex(h)
-          if (tokenMatch) {
-            return `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
-          }
+          // Other hex values should be in JSON as token references
         }
       }
     } catch {}
@@ -417,59 +291,20 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     const brad = resolveRef(bradRaw)
     const isAlt = typeof prefix === 'string' && /^alternative-/.test(prefix)
     if (surfPalette) {
-      // Prefer dereferencing palette tone to a token var (avoids brand palette indirection)
+      // Use palette tone var directly (no CSS var reading during resolution)
       const toneVarName = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')
-      const deref = readCssVar(toneVarName)
-      // If deref is a hex value, try to convert it to a token var reference
-      if (deref && typeof deref === 'string') {
-        const hex = deref.trim()
-        if (/^#?[0-9a-f]{6}$/i.test(hex)) {
-          const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-          if (h === '#ffffff' || h === '#000000') {
-            result[`${brandBase}surface`] = mapBWHexToVar(h)
-          } else {
-            const tokenMatch = findTokenColorByHex(h)
-            if (tokenMatch) {
-              result[`${brandBase}surface`] = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
-            } else {
-              // Fall back to palette tone var if no token match
-              result[`${brandBase}surface`] = `var(${toneVarName})`
-            }
-          }
-        } else {
-          // Not a hex value, use as-is or fall back to palette tone var
-          result[`${brandBase}surface`] = deref || `var(${toneVarName})`
-        }
-      } else {
-        // No deref value, use palette tone var
-        result[`${brandBase}surface`] = `var(${toneVarName})`
-      }
+      result[`${brandBase}surface`] = `var(${toneVarName})`
     } else {
       const surfVarRef = coerceToVarRef(surfRaw)
       if (surfVarRef) {
         result[`${brandBase}surface`] = surfVarRef
-      } else if (surf != null && typeof surf === 'string') {
-        // Try to map hex value to token if it's a hex string
-        const hex = readIfCssVarOrHex(surf)
-        if (hex && /^#?[0-9a-f]{6}$/i.test(hex.trim())) {
-          const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-          if (h === '#ffffff' || h === '#000000') {
-            result[`${brandBase}surface`] = mapBWHexToVar(h)
-          } else {
-            const tokenMatch = findTokenColorByHex(h)
-            if (tokenMatch) {
-              result[`${brandBase}surface`] = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
-            } else if (!isAlt) {
-              // Do not emit hex/computed values; record missing palette surface for visibility
-              missingPaletteSurfaces.push(String(prefix))
-            }
-          }
-        } else if (!isAlt) {
-          // Do not emit hex/computed values; record missing palette surface for visibility
+      } else if (surf != null && typeof surf === 'string' && !isAlt) {
+        // If surface is a hex string, record as missing palette (should be in JSON)
+        if (/^#?[0-9a-f]{6}$/i.test(surf.trim())) {
           missingPaletteSurfaces.push(String(prefix))
         }
       } else if (!isAlt && surf != null) {
-        // Do not emit hex/computed values; record missing palette surface for visibility
+        // Record missing palette surface for visibility
         missingPaletteSurfaces.push(String(prefix))
       }
     }
@@ -555,14 +390,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
           if (h === '#ffffff' || h === '#000000') {
             result[`${brandTextBase}color`] = mapBWHexToVar(h)
           } else {
-            // Try to find matching token for non-black/white hex values
-            const tokenMatch = findTokenColorByHex(h)
-            if (tokenMatch) {
-              result[`${brandTextBase}color`] = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
-            } else {
-              // Fall back to on-tone var if no token match
-              result[`${brandTextBase}color`] = `var(${onToneVarName})`
-            }
+            // Fall back to on-tone var (token-by-hex lookup removed - should be in JSON)
+            result[`${brandTextBase}color`] = `var(${onToneVarName})`
           }
         } else {
           // Not a hex value, use as-is or fall back to on-tone var
@@ -575,8 +404,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     } else if (tcolorVarRef) {
       result[`${brandTextBase}color`] = tcolorVarRef
     } else if (surfaceHex) {
-      const v = mapBWHexToVar(pickAAOnTone(surfaceHex))
-      result[`${brandTextBase}color`] = v
+      // Default to black - AA compliance will be handled reactively in Phase 3
+      result[`${brandTextBase}color`] = 'var(--recursica-brand-light-palettes-core-black)'
     }
     // Emphasis opacities: always reference brand-level text emphasis (theme opacity)
     result[`${brandTextBase}high-emphasis`] = 'var(--recursica-brand-light-text-emphasis-high)'
@@ -610,16 +439,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
         const brandKey = `${brandTextBase}${r.name}`
         let finalRef: string | undefined
         if (r.coreToken) {
-          // First try the Brand core color (as a brand var) if it meets AA
-          const coreHex = getTokenHex(r.coreToken.family, r.coreToken.level)
-          if (coreHex && contrastWithOpacity(bgHex, coreHex, textHighOpacity) >= AA) {
-            finalRef = `var(--recursica-brand-light-palettes-core-${r.name})`
-          } else {
-            // Otherwise step within the token family to find AA
-            const startLevel = r.coreToken.level
-            const pick = pickSteppedTokenColorRef(bgHex, r.coreToken.family, startLevel, textHighOpacity, true)
-            finalRef = pick?.varRef
-          }
+          // Use core token directly - AA compliance will be handled reactively in Phase 3
+          finalRef = `var(--recursica-brand-light-palettes-core-${r.name})`
         }
         if (!finalRef) {
           const onToneVar = surfPalette ? buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone') : undefined
@@ -633,14 +454,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
                 if (h === '#ffffff' || h === '#000000') {
                   finalRef = mapBWHexToVar(h)
                 } else {
-                  // Try to find matching token for non-black/white hex values
-                  const tokenMatch = findTokenColorByHex(h)
-                  if (tokenMatch) {
-                    finalRef = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
-                  } else {
-                    // Fall back to on-tone var if no token match
-                    finalRef = `var(${onToneVar})`
-                  }
+                  // Fall back to on-tone var (token-by-hex lookup removed - should be in JSON)
+                  finalRef = `var(${onToneVar})`
                 }
               } else {
                 // Not a hex value, use as-is or fall back to on-tone var
@@ -651,7 +466,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
               finalRef = `var(${onToneVar})`
             }
           } else {
-            finalRef = mapBWHexToVar(pickAAOnTone(bgHex)) // fallback
+            // Default to black - AA compliance will be handled reactively in Phase 3
+            finalRef = 'var(--recursica-brand-light-palettes-core-black)'
           }
         }
         result[brandKey] = finalRef
@@ -705,22 +521,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       let finalRef: string | undefined
       let chosenLevel: string | undefined
       if (interToken) {
-        // Try Brand core interactive color first
-        const coreHex = getTokenHex(interToken.family, interToken.level)
-        if (coreHex && contrastWithOpacity(bgHex, coreHex, interHighOpacity) >= AA) {
-          finalRef = 'var(--recursica-brand-light-palettes-core-interactive)'
-          chosenLevel = interToken.level
-        } else {
-          // Prefer token color ref stepping for AA
-          const startLevel = interToken.level
-          const pick = pickSteppedTokenColorRef(bgHex, interToken.family, startLevel, interHighOpacity, true)
-          finalRef = pick?.varRef
-          chosenLevel = pick?.level
-        }
-        // Hover: prefer darker stepping from chosen level in token family
+        // Use core token directly - AA compliance will be handled reactively in Phase 3
+        finalRef = 'var(--recursica-brand-light-palettes-core-interactive)'
+        chosenLevel = interToken.level
+        // Hover: use same token (AA compliance will be handled reactively in Phase 3)
         if (chosenLevel) {
-          const hoverPick = pickSteppedTokenColorRef(bgHex, interToken.family, chosenLevel, interHighOpacity, true)
-          if (hoverPick?.varRef) { result[`${brandInterBase}hover-color`] = hoverPick.varRef }
+          result[`${brandInterBase}hover-color`] = `var(--recursica-tokens-color-${interToken.family}-${chosenLevel})`
         }
       }
       if (!finalRef) {
@@ -734,16 +540,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
               const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
               if (h === '#ffffff' || h === '#000000') {
                 finalRef = mapBWHexToVar(h)
-              } else {
-                // Try to find matching token for non-black/white hex values
-                const tokenMatch = findTokenColorByHex(h)
-                if (tokenMatch) {
-                  finalRef = `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
                 } else {
-                  // Fall back to on-tone var if no token match
+                  // Fall back to on-tone var (token-by-hex lookup removed - should be in JSON)
                   finalRef = `var(${onToneVar})`
                 }
-              }
             } else {
               // Not a hex value, use as-is or fall back to on-tone var
               finalRef = deref || `var(${onToneVar})`
@@ -753,7 +553,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
             finalRef = `var(${onToneVar})`
           }
         } else {
-          finalRef = mapBWHexToVar(pickAAOnTone(bgHex))
+          // Default to black - AA compliance will be handled reactively in Phase 3
+          finalRef = 'var(--recursica-brand-light-palettes-core-black)'
         }
       }
       result[`${brandInterBase}color`] = finalRef

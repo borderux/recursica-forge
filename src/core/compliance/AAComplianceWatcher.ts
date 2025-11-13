@@ -1,0 +1,462 @@
+import { buildTokenIndex } from '../resolvers/tokens'
+import type { JsonLike } from '../resolvers/tokens'
+import { findAaCompliantColor } from '../resolvers/colorSteppingForAa'
+import { contrastRatio } from '../../modules/theme/contrastUtil'
+import { updateCssVar } from '../css/updateCssVar'
+
+// Helper to resolve CSS var to hex (recursively)
+function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth = 0): string | null {
+  if (depth > 10) return null
+  try {
+    const trimmed = cssVar.trim()
+    if (/^#?[0-9a-f]{6}$/i.test(trimmed)) {
+      const h = trimmed.toLowerCase()
+      return h.startsWith('#') ? h : `#${h}`
+    }
+    
+    const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
+    if (varMatch) {
+      const varName = varMatch[1]
+      let value = document.documentElement.style.getPropertyValue(varName).trim()
+      if (!value) {
+        value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+      }
+      if (value) {
+        return resolveCssVarToHex(value, tokenIndex, depth + 1)
+      }
+    }
+    
+    const tokenMatch = trimmed.match(/--recursica-tokens-color-([a-z0-9-]+)-(\d+|050|000)/)
+    if (tokenMatch) {
+      const [, family, level] = tokenMatch
+      const normalizedLevel = level === '000' ? '050' : level
+      const hex = tokenIndex.get(`color/${family}/${normalizedLevel}`)
+      if (typeof hex === 'string') {
+        const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+        return h
+      }
+    }
+    
+    const paletteMatch = trimmed.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
+    if (paletteMatch) {
+      const [, paletteKey, level, type] = paletteMatch
+      const paletteVarName = `--recursica-brand-light-palettes-${paletteKey}-${level}-${type}`
+      let paletteValue = document.documentElement.style.getPropertyValue(paletteVarName).trim()
+      if (!paletteValue) {
+        paletteValue = getComputedStyle(document.documentElement).getPropertyValue(paletteVarName).trim()
+      }
+      if (paletteValue) {
+        return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)
+      }
+    }
+  } catch {}
+  return null
+}
+
+// Helper to blend foreground over background with opacity
+function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): string | undefined {
+  if (!fgHex || !bgHex) return undefined
+  try {
+    const toRgb = (h: string): [number, number, number] => {
+      const s = h.startsWith('#') ? h.slice(1) : h
+      return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)]
+    }
+    const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
+    const a = clamp01(typeof opacity === 'number' ? opacity : 1)
+    const [fr, fg, fb] = toRgb(fgHex.replace('#',''))
+    const [br, bgc, bb] = toRgb(bgHex.replace('#',''))
+    const rr = Math.round(a * fr + (1 - a) * br)
+    const rg = Math.round(a * fg + (1 - a) * bgc)
+    const rb = Math.round(a * fb + (1 - a) * bb)
+    const toHex = (n: number) => n.toString(16).padStart(2, '0')
+    return `#${toHex(rr)}${toHex(rg)}${toHex(rb)}`
+  } catch { return fgHex }
+}
+
+// Helper to get opacity value from CSS var
+function getOpacityValue(opacityVar: string, tokenIndex: Map<string, any>): number {
+  if (!opacityVar) return 1
+  const num = Number(opacityVar)
+  if (Number.isFinite(num)) {
+    return num <= 1 ? num : num / 100
+  }
+  const tokenMatch = opacityVar.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
+  if (tokenMatch) {
+    const [, tokenName] = tokenMatch
+    const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
+    if (typeof tokenValue === 'number') {
+      return tokenValue <= 1 ? tokenValue : tokenValue / 100
+    }
+  }
+  return 1
+}
+
+// Helper to parse core token reference from theme
+function parseCoreTokenRef(name: 'interactive' | 'alert' | 'warning' | 'success', theme: any): { family: string; level: string } | null {
+  try {
+    const root: any = theme?.brand ? theme.brand : theme
+    const core: any =
+      root?.light?.palettes?.['core']?.['$value'] || root?.light?.palettes?.['core'] ||
+      root?.light?.palettes?.['core-colors']?.['$value'] || root?.light?.palettes?.['core-colors'] || {}
+    const v: any = core?.[name]
+    const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
+    if (!s) return null
+    const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1) : s
+    const m = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|050)$/i.exec(inner)
+    if (m) return { family: m[1], level: m[2] }
+  } catch {}
+  return null
+}
+
+/**
+ * Reactive AA Compliance Watcher
+ * 
+ * Watches CSS variables for changes and automatically updates dependent colors
+ * to maintain AA compliance. This replaces manual AA compliance calls.
+ */
+export class AAComplianceWatcher {
+  private tokenIndex: Map<string, any>
+  private tokens: JsonLike
+  private theme: JsonLike
+  private watchedVars: Set<string> = new Set()
+  private observer: MutationObserver | null = null
+  private checkTimeout: number | null = null
+  private lastValues: Map<string, string> = new Map()
+
+  constructor(tokens: JsonLike, theme: JsonLike) {
+    this.tokens = tokens
+    this.theme = theme
+    this.tokenIndex = buildTokenIndex(tokens)
+    this.setupWatcher()
+  }
+
+  private setupWatcher() {
+    // Watch for CSS variable changes using MutationObserver
+    this.observer = new MutationObserver(() => {
+      this.checkForChanges()
+    })
+
+    // Observe changes to document.documentElement.style
+    this.observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+      subtree: false
+    })
+
+    // Also poll computed styles periodically (for changes not caught by MutationObserver)
+    this.startPolling()
+  }
+
+  private startPolling() {
+    // Poll every 100ms to catch changes
+    const poll = () => {
+      this.checkForChanges()
+      this.checkTimeout = window.setTimeout(poll, 100)
+    }
+    poll()
+  }
+
+  private checkForChanges() {
+    // Debounce rapid changes
+    if (this.checkTimeout !== null) {
+      clearTimeout(this.checkTimeout)
+    }
+    this.checkTimeout = window.setTimeout(() => {
+      this.performChecks()
+    }, 50)
+  }
+
+  private performChecks() {
+    // Check palette on-tone vars
+    this.checkPaletteOnToneVars()
+    
+    // Check layer element colors
+    this.checkLayerElementColors()
+  }
+
+  /**
+   * Watch a palette tone variable and update its on-tone when it changes
+   */
+  watchPaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark' = 'light') {
+    const toneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
+    const onToneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-on-tone`
+    
+    this.watchedVars.add(toneVar)
+    this.watchedVars.add(onToneVar)
+    
+    // Initial check
+    this.updatePaletteOnTone(paletteKey, level, mode)
+  }
+
+  private checkPaletteOnToneVars() {
+    // Check all watched palette tone vars
+    for (const varName of this.watchedVars) {
+      if (varName.includes('-tone') && !varName.includes('-on-tone')) {
+        const match = varName.match(/--recursica-brand-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
+        if (match) {
+          const [, mode, paletteKey, level] = match
+          const currentValue = document.documentElement.style.getPropertyValue(varName).trim() ||
+            getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+          const lastValue = this.lastValues.get(varName)
+          
+          if (currentValue !== lastValue) {
+            this.lastValues.set(varName, currentValue)
+            this.updatePaletteOnTone(paletteKey, level, mode as 'light' | 'dark')
+          }
+        }
+      }
+    }
+  }
+
+  private updatePaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark') {
+    const toneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
+    const onToneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-on-tone`
+    
+    const toneValue = document.documentElement.style.getPropertyValue(toneVar).trim() ||
+      getComputedStyle(document.documentElement).getPropertyValue(toneVar).trim()
+    
+    if (!toneValue) return
+    
+    const toneHex = resolveCssVarToHex(toneValue, this.tokenIndex)
+    if (!toneHex) return
+    
+    // Use pickAAOnTone logic
+    const black = '#000000'
+    const white = '#ffffff'
+    const cBlack = contrastRatio(toneHex, black)
+    const cWhite = contrastRatio(toneHex, white)
+    const AA = 4.5
+    
+    let chosen: 'black' | 'white'
+    if (cBlack >= AA && cWhite >= AA) {
+      chosen = cBlack >= cWhite ? 'black' : 'white'
+    } else if (cBlack >= AA) {
+      chosen = 'black'
+    } else if (cWhite >= AA) {
+      chosen = 'white'
+    } else {
+      chosen = cBlack >= cWhite ? 'black' : 'white'
+    }
+    
+    const onToneValue = chosen === 'white'
+      ? `var(--recursica-brand-${mode}-palettes-core-white)`
+      : `var(--recursica-brand-${mode}-palettes-core-black)`
+    
+    updateCssVar(onToneVar, onToneValue)
+  }
+
+  /**
+   * Watch a layer's surface color and update its element colors when it changes
+   */
+  watchLayerSurface(layerNumber: number) {
+    const surfaceVar = `--recursica-brand-light-layer-layer-${layerNumber}-property-surface`
+    this.watchedVars.add(surfaceVar)
+    
+    // Initial check
+    this.updateLayerElementColors(layerNumber)
+  }
+
+  /**
+   * Watch an alternative layer's surface color
+   */
+  watchAlternativeLayerSurface(alternativeKey: 'alert' | 'warning' | 'success') {
+    const surfaceVar = `--recursica-brand-light-layer-layer-alternative-${alternativeKey}-property-surface`
+    this.watchedVars.add(surfaceVar)
+    
+    // Initial check
+    this.updateAlternativeLayerElementColors(alternativeKey)
+  }
+
+  private checkLayerElementColors() {
+    // Check all watched layer surface vars
+    for (const varName of this.watchedVars) {
+      if (varName.includes('-property-surface')) {
+        const currentValue = document.documentElement.style.getPropertyValue(varName).trim() ||
+          getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+        const lastValue = this.lastValues.get(varName)
+        
+        if (currentValue !== lastValue) {
+          this.lastValues.set(varName, currentValue)
+          
+          // Determine if it's a regular layer or alternative layer
+          const layerMatch = varName.match(/--recursica-brand-light-layer-layer-(\d+)-property-surface/)
+          const altMatch = varName.match(/--recursica-brand-light-layer-layer-alternative-([a-z-]+)-property-surface/)
+          
+          if (layerMatch) {
+            const layerNumber = parseInt(layerMatch[1], 10)
+            this.updateLayerElementColors(layerNumber)
+          } else if (altMatch) {
+            const alternativeKey = altMatch[1] as 'alert' | 'warning' | 'success'
+            this.updateAlternativeLayerElementColors(alternativeKey)
+          }
+        }
+      }
+    }
+  }
+
+  private updateLayerElementColors(layerNumber: number) {
+    const surfaceCssVar = `--recursica-brand-light-layer-layer-${layerNumber}-property-surface`
+    const surfaceValue = document.documentElement.style.getPropertyValue(surfaceCssVar).trim() ||
+      getComputedStyle(document.documentElement).getPropertyValue(surfaceCssVar).trim()
+    
+    if (!surfaceValue) return
+    
+    const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
+    if (!surfaceHex) return
+    
+    const brandBase = `--recursica-brand-light-layer-layer-${layerNumber}-property-`
+    
+    // Update each element type
+    const elements = [
+      {
+        name: 'text-color',
+        colorVar: `${brandBase}element-text-color`,
+        opacityVar: `${brandBase}element-text-high-emphasis`,
+        coreToken: null
+      },
+      {
+        name: 'interactive-color',
+        colorVar: `${brandBase}element-interactive-color`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
+      },
+      {
+        name: 'alert',
+        colorVar: `${brandBase}element-text-alert`,
+        opacityVar: `${brandBase}element-text-high-emphasis`,
+        coreToken: parseCoreTokenRef('alert', this.theme)
+      },
+      {
+        name: 'warning',
+        colorVar: `${brandBase}element-text-warning`,
+        opacityVar: `${brandBase}element-text-high-emphasis`,
+        coreToken: parseCoreTokenRef('warning', this.theme)
+      },
+      {
+        name: 'success',
+        colorVar: `${brandBase}element-text-success`,
+        opacityVar: `${brandBase}element-text-high-emphasis`,
+        coreToken: parseCoreTokenRef('success', this.theme)
+      }
+    ]
+    
+    elements.forEach((element) => {
+      this.updateElementColor(element.name, surfaceHex, element.colorVar, element.opacityVar, element.coreToken)
+    })
+  }
+
+  private updateAlternativeLayerElementColors(alternativeKey: 'alert' | 'warning' | 'success') {
+    const surfaceCssVar = `--recursica-brand-light-layer-layer-alternative-${alternativeKey}-property-surface`
+    const surfaceValue = document.documentElement.style.getPropertyValue(surfaceCssVar).trim() ||
+      getComputedStyle(document.documentElement).getPropertyValue(surfaceCssVar).trim()
+    
+    if (!surfaceValue) return
+    
+    const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
+    if (!surfaceHex) return
+    
+    const brandBase = `--recursica-brand-light-layer-layer-alternative-${alternativeKey}-property-`
+    
+    // Update text color (uses black/white)
+    const textColorCssVar = `${brandBase}element-text-color`
+    const textOpacityCssVar = `${brandBase}element-text-high-emphasis`
+    const textOpacityValue = document.documentElement.style.getPropertyValue(textOpacityCssVar).trim() ||
+      getComputedStyle(document.documentElement).getPropertyValue(textOpacityCssVar).trim()
+    const textOpacity = getOpacityValue(textOpacityValue, this.tokenIndex)
+    
+    const textAaColor = findAaCompliantColor(surfaceHex, null, textOpacity, this.tokens)
+    if (textAaColor) {
+      updateCssVar(textColorCssVar, textAaColor, this.tokens)
+    }
+    
+    // Update interactive color
+    const interactiveColorCssVar = `${brandBase}element-interactive-color`
+    const interactiveOpacityCssVar = `${brandBase}element-interactive-high-emphasis`
+    const interactiveOpacityValue = document.documentElement.style.getPropertyValue(interactiveOpacityCssVar).trim() ||
+      getComputedStyle(document.documentElement).getPropertyValue(interactiveOpacityCssVar).trim()
+    const interactiveOpacity = getOpacityValue(interactiveOpacityValue, this.tokenIndex)
+    
+    // Check if core interactive meets AA compliance
+    const coreInteractiveHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive)', this.tokenIndex)
+    if (coreInteractiveHex) {
+      const finalColorHex = blendHexOverBg(coreInteractiveHex, surfaceHex, interactiveOpacity) || coreInteractiveHex
+      const contrast = contrastRatio(surfaceHex, finalColorHex)
+      if (contrast >= 4.5) {
+        updateCssVar(interactiveColorCssVar, 'var(--recursica-brand-light-palettes-core-interactive)')
+        return
+      }
+    }
+    
+    // If core interactive doesn't meet AA, step through the scale
+    const interactiveCoreToken = parseCoreTokenRef('interactive', this.theme)
+    const interactiveAaColor = findAaCompliantColor(surfaceHex, interactiveCoreToken, interactiveOpacity, this.tokens)
+    if (interactiveAaColor) {
+      updateCssVar(interactiveColorCssVar, interactiveAaColor, this.tokens)
+    }
+  }
+
+  private updateElementColor(
+    elementName: string,
+    surfaceHex: string,
+    currentColorCssVar: string,
+    opacityCssVar: string,
+    coreToken: { family: string; level: string } | null
+  ): void {
+    const opacityValue = document.documentElement.style.getPropertyValue(opacityCssVar).trim() ||
+      getComputedStyle(document.documentElement).getPropertyValue(opacityCssVar).trim()
+    const opacity = getOpacityValue(opacityValue, this.tokenIndex)
+    
+    if (elementName === 'text-color') {
+      const aaCompliantColor = findAaCompliantColor(surfaceHex, null, opacity, this.tokens)
+      if (aaCompliantColor) {
+        updateCssVar(currentColorCssVar, aaCompliantColor, this.tokens)
+      }
+      return
+    } else if (elementName === 'interactive-color') {
+      const coreInteractiveHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive)', this.tokenIndex)
+      if (coreInteractiveHex) {
+        const finalColorHex = blendHexOverBg(coreInteractiveHex, surfaceHex, opacity) || coreInteractiveHex
+        const contrast = contrastRatio(surfaceHex, finalColorHex)
+        if (contrast >= 4.5) {
+          updateCssVar(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-interactive)')
+          return
+        }
+      }
+    }
+    
+    if (coreToken) {
+      const aaCompliantColor = findAaCompliantColor(surfaceHex, coreToken, opacity, this.tokens)
+      if (aaCompliantColor) {
+        updateCssVar(currentColorCssVar, aaCompliantColor, this.tokens)
+      }
+    }
+  }
+
+  /**
+   * Update tokens and theme (call when they change)
+   */
+  updateTokensAndTheme(tokens: JsonLike, theme: JsonLike) {
+    this.tokens = tokens
+    this.theme = theme
+    this.tokenIndex = buildTokenIndex(tokens)
+    // Re-check all watched vars
+    this.performChecks()
+  }
+
+  /**
+   * Cleanup watcher
+   */
+  destroy() {
+    if (this.observer) {
+      this.observer.disconnect()
+      this.observer = null
+    }
+    if (this.checkTimeout !== null) {
+      clearTimeout(this.checkTimeout)
+      this.checkTimeout = null
+    }
+    this.watchedVars.clear()
+    this.lastValues.clear()
+  }
+}
+

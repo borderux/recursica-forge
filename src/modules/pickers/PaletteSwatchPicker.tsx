@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
-import { updateLayerAaCompliance } from '../../core/resolvers/updateLayerAaCompliance'
-import { updateAlternativeLayerAaCompliance } from '../../core/resolvers/updateAlternativeLayerAaCompliance'
+// AA compliance is now handled reactively by AAComplianceWatcher
 import { findTokenByHex } from '../../core/css/tokenRefs'
 import { updateCssVar } from '../../core/css/updateCssVar'
 
@@ -212,28 +211,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                             }
                           }
                           
-                          // If this is a layer surface color, update AA compliance
-                          const surfaceMatch = prefixedTarget.match(/--recursica-brand-light-layer-layer-(\d+)-property-surface/)
-                          if (surfaceMatch && tokensJson && themeJson) {
-                            const layerNumber = parseInt(surfaceMatch[1], 10)
-                            // Use requestAnimationFrame to ensure CSS var is set
-                            requestAnimationFrame(() => {
-                              setTimeout(() => {
-                                updateLayerAaCompliance(layerNumber, tokensJson, themeJson)
-                              }, 10)
-                            })
-                          }
-                          
-                          // If this is a core color (alert, warning, success), update alternative layer AA compliance
-                          const altLayerColorMatch = prefixedTarget.match(/--recursica-brand-light-palettes-core-(alert|warning|success)/)
-                          if (altLayerColorMatch && tokensJson && themeJson) {
-                            const coreColorName = altLayerColorMatch[1] as 'alert' | 'warning' | 'success'
-                            requestAnimationFrame(() => {
-                              setTimeout(() => {
-                                updateAlternativeLayerAaCompliance(coreColorName, tokensJson, themeJson)
-                              }, 10)
-                            })
-                          }
+                          // AA compliance is now handled reactively by AAComplianceWatcher
+                          // No manual calls needed - the watcher will detect CSS var changes automatically
                         })
                         
                         onSelect?.(paletteCssVar)

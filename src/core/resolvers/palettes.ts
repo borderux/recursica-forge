@@ -1,6 +1,5 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex, resolveBraceRef } from './tokens'
-import { pickAAOnTone } from '../../modules/theme/contrastUtil'
 
 export type ModeLabel = 'Light' | 'Dark'
 
@@ -84,127 +83,85 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     if (s === '1000') return '900'
     return s
   }
-  const mapPaletteToTokenFamily: Record<string, string> = {
-    neutral: 'gray',
-    'palette-1': 'salmon',
-    'palette-2': 'mandarin',
-    'palette-3': 'cornflower',
-    'palette-4': 'greensheen',
-  }
-  const findTokenByHex = (hex?: string): { family: string; level: string } | null => {
-    try {
-      const h = (hex || '').trim().toLowerCase()
-      if (!/^#?[0-9a-f]{6}$/.test(h)) return null
-      const normalized = h.startsWith('#') ? h : `#${h}`
-      const families = Object.keys((tokens as any)?.tokens?.color || {})
-      for (const fam of families) {
-        if (fam === 'translucent') continue
-        for (const lvl of levels) {
-          const v = tokenIndex.get(`color/${fam}/${lvl}`)
-          if (typeof v === 'string' && v.trim().toLowerCase() === normalized) {
-            return { family: fam, level: lvl }
-          }
-        }
-      }
-    } catch {}
-    return null
-  }
   palettes.forEach((pk) => {
-    levels.forEach((lvl) => {
+    // Get actual levels defined for this palette in the theme
+    const paletteLevels = (() => {
+      try {
+        const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+        const palette: any = root?.[mode.toLowerCase()]?.palettes?.[pk]
+        if (!palette) return []
+        // Get all level keys (excluding $type, $value, etc.)
+        return Object.keys(palette).filter((k) => /^\d+$/.test(k) || k === 'primary')
+      } catch {
+        return []
+      }
+    })()
+    
+    // Use defined levels if available, otherwise fall back to standard levels
+    const levelsToProcess = paletteLevels.length > 0 ? paletteLevels : levels
+    
+    levelsToProcess.forEach((lvl) => {
       const toneName = `palette/${pk}/${lvl}/color/tone`
       const onToneName = `palette/${pk}/${lvl}/on-tone`
       const toneRaw = themeIndex[`${mode}::${toneName}`]?.value
-      const tone = resolveThemeRef({ collection: 'Theme', name: toneName })
-      const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
-      // Prefer referencing token CSS vars when palette tone maps to tokens
+      
+      // Skip if no tone value is defined in theme
+      if (!toneRaw) return
+      
       const scope = `--brand-${mode.toLowerCase()}-palettes-${pk}-${lvl}`
-      const tokenFamily = mapPaletteToTokenFamily[pk]
-      const tokenLevel = toLevelString(String(lvl))
-      const tokenHexFromFamily = (() => {
-        try {
-          if (!tokenFamily) return undefined
-          const val = tokenIndex.get(`color/${tokenFamily}/${tokenLevel}`)
-          return typeof val === 'string' ? val : undefined
-        } catch { return undefined }
-      })()
-      const tokenRefFromRaw = (() => {
-        try {
-          const s = typeof toneRaw === 'string' ? toneRaw : ''
-          if (!s || s[0] !== '{' || s[s.length - 1] !== '}') return null
-          const inner = s.slice(1, -1)
-          const m = /^tokens\.color\.([a-z0-9_-]+)\.([0-9]{2,4}|000|050)$/i.exec(inner)
-          if (!m) return null
-          const fam = m[1]
-          const lvl2 = toLevelString(m[2])
-          return `var(--recursica-tokens-color-${fam}-${lvl2})`
-        } catch { return null }
-      })()
-      const tokenRefFromMap = tokenFamily ? `var(--recursica-tokens-color-${tokenFamily}-${tokenLevel})` : null
-      // Always define tone: prefer token-based refs; avoid hex when possible
-      if (tokenRefFromRaw != null) {
-        vars[`${scope}-tone`] = tokenRefFromRaw
-      } else if (tokenRefFromMap != null) {
-        vars[`${scope}-tone`] = tokenRefFromMap
-      } else {
-        const fromHex = (() => {
-          const h = typeof tone === 'string' ? String(tone).trim() : undefined
-          const found = findTokenByHex(h)
-          return found ? `var(--recursica-tokens-color-${found.family}-${found.level})` : undefined
-        })()
-        if (fromHex) {
-          vars[`${scope}-tone`] = fromHex
-        } else if (typeof tone === 'string') {
-          // Try one more time to find token by hex if tone is a hex string
-          const toneStr = String(tone).trim()
-          if (/^#?[0-9a-f]{6}$/i.test(toneStr)) {
-            const found = findTokenByHex(toneStr)
-            if (found) {
-              vars[`${scope}-tone`] = `var(--recursica-tokens-color-${found.family}-${found.level})`
-            } else {
-              // Last resort: use default token reference instead of raw hex
-              console.warn(`Could not find token for palette ${pk} level ${lvl} tone ${toneStr}, using default`)
-              vars[`${scope}-tone`] = tokenRefFromMap || `var(--recursica-tokens-color-gray-500)`
-            }
-          } else {
-            // If it's already a var() reference, use it
-            if (toneStr.startsWith('var(')) {
-              vars[`${scope}-tone`] = toneStr
-            } else {
-              // Otherwise, use default token reference
-              vars[`${scope}-tone`] = tokenRefFromMap || `var(--recursica-tokens-color-gray-500)`
-            }
-          }
+      
+      // Parse tone from JSON - simple brace reference parsing
+      let toneVar: string | null = null
+      if (typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
+        const inner = toneRaw.slice(1, -1).trim()
+        const match = /^tokens\.color\.([a-z0-9_-]+)\.([0-9]{2,4}|000|050)$/i.exec(inner)
+        if (match) {
+          const family = match[1]
+          const level = toLevelString(match[2])
+          toneVar = `var(--recursica-tokens-color-${family}-${level})`
         }
       }
-      // Always map on-tone to core color reference (black/white), never hardcode hex
-      {
-        const toneHex = (() => {
-          // Prefer tone hex from tokens mapping or theme tone
-          if (tokenHexFromFamily && typeof tokenHexFromFamily === 'string') return tokenHexFromFamily
-          if (typeof tone === 'string' && /^#?[0-9a-fA-F]{6}$/.test(String(tone).trim())) {
-            const s = String(tone).trim()
-            return s.startsWith('#') ? s : `#${s}`
+      
+      // If parsing failed, try resolving the theme reference
+      if (!toneVar) {
+        const tone = resolveThemeRef({ collection: 'Theme', name: toneName })
+        if (typeof tone === 'string' && tone.startsWith('var(')) {
+          toneVar = tone
+        }
+      }
+      
+      // Only emit if we successfully resolved a tone
+      if (toneVar) {
+        vars[`${scope}-tone`] = toneVar
+        
+        // Map on-tone to core color reference (black/white)
+        // If theme JSON specifies on-tone, use it; otherwise default to black
+        // AA compliance will be handled reactively in Phase 3
+        const onToneRaw = themeIndex[`${mode}::${onToneName}`]?.value
+        let onToneVar: string
+        
+        if (typeof onToneRaw === 'string') {
+          const s = onToneRaw.trim().toLowerCase()
+          if (s === '#ffffff' || s === 'white' || s === '{brand.light.palettes.core.white}' || s === '{brand.dark.palettes.core.white}') {
+            onToneVar = `var(--recursica-brand-${modeLower}-palettes-core-white)`
+          } else if (s === '#000000' || s === 'black' || s === '{brand.light.palettes.core.black}' || s === '{brand.dark.palettes.core.black}') {
+            onToneVar = `var(--recursica-brand-${modeLower}-palettes-core-black)`
+          } else {
+            // Try to resolve as theme reference
+            const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
+            if (typeof onTone === 'string' && onTone.startsWith('var(')) {
+              onToneVar = onTone
+            } else {
+              // Default to black if unknown
+              onToneVar = `var(--recursica-brand-${modeLower}-palettes-core-black)`
+            }
           }
-          return undefined
-        })()
-        const chosen = (() => {
-          // If theme provided onTone explicitly as string, normalize to core var when it equals black/white
-          if (typeof onTone === 'string') {
-            const s = String(onTone).trim().toLowerCase()
-            if (s === '#ffffff' || s === 'white') return 'white'
-            if (s === '#000000' || s === 'black') return 'black'
-          }
-          // Else compute AA against toneHex
-          if (typeof toneHex === 'string') {
-        const aa = pickAAOnTone(toneHex).toLowerCase()
-            return aa === '#ffffff' ? 'white' : 'black'
-          }
-          // Default to black if unknown
-          return 'black'
-        })()
-        vars[`${scope}-on-tone`] = chosen === 'white'
-          ? `var(--recursica-brand-${modeLower}-palettes-core-white)`
-          : `var(--recursica-brand-${modeLower}-palettes-core-black)`
+        } else {
+          // Default to black - AA compliance will update this reactively in Phase 3
+          onToneVar = `var(--recursica-brand-${modeLower}-palettes-core-black)`
+        }
+        
+        vars[`${scope}-on-tone`] = onToneVar
       }
       // Do not emit per-level palette emphasis vars; consumers should reference brand-level text emphasis tokens directly
     })

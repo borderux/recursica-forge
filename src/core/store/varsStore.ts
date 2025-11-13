@@ -184,6 +184,7 @@ class VarsStore {
   private state: VarsState
   private listeners: Set<Listener> = new Set()
   private lsAvailable = isLocalStorageAvailable()
+  private aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
 
   constructor() {
     const tokensRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
@@ -228,6 +229,9 @@ class VarsStore {
     // Initial CSS apply (Light mode palettes + layers + typography)
     this.recomputeAndApplyAll()
 
+    // Initialize AA compliance watcher
+    this.initAAWatcher()
+
     // React to type choice changes and palette changes (centralized)
     const onTypeChoices = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     const onPaletteVarsChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
@@ -236,6 +240,37 @@ class VarsStore {
     // Recompute layers and dependent CSS whenever palette CSS vars or families change
     window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
     window.addEventListener('paletteFamilyChanged', onPaletteFamilyChanged as any)
+  }
+
+  private initAAWatcher() {
+    // Import and initialize AA compliance watcher
+    import('../compliance/AAComplianceWatcher').then(({ AAComplianceWatcher }) => {
+      this.aaWatcher = new AAComplianceWatcher(this.state.tokens, this.state.theme)
+      
+      // Watch all palette on-tone vars
+      try {
+        const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
+        const lightPal: any = root?.light?.palettes || {}
+        const levels = ['900','800','700','600','500','400','300','200','100','050']
+        Object.keys(lightPal).forEach((paletteKey) => {
+          if (paletteKey === 'core') return
+          levels.forEach((level) => {
+            this.aaWatcher?.watchPaletteOnTone(paletteKey, level, 'light')
+          })
+        })
+      } catch {}
+      
+      // Watch all layer surfaces
+      for (let i = 0; i <= 4; i++) {
+        this.aaWatcher?.watchLayerSurface(i)
+      }
+      
+      // Watch alternative layer surfaces
+      const altKeys: Array<'alert' | 'warning' | 'success'> = ['alert', 'warning', 'success']
+      altKeys.forEach((key) => {
+        this.aaWatcher?.watchAlternativeLayerSurface(key)
+      })
+    })
   }
 
   getState(): VarsState { return this.state }
@@ -251,6 +286,12 @@ class VarsStore {
       if (next.palettes) writeLSJson(STORAGE_KEYS.palettes, this.state.palettes)
       if (next.elevation) writeLSJson(STORAGE_KEYS.elevation, this.state.elevation)
     }
+    
+    // Update AA watcher if tokens or theme changed
+    if (this.aaWatcher && (next.tokens || next.theme)) {
+      this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
+    }
+    
     this.emit()
     if (!skipRecompute) {
       this.recomputeAndApplyAll()
@@ -767,7 +808,7 @@ class VarsStore {
         }
         
         // Preserve AA compliance updates for text and interactive colors
-        // These are set by updateLayerAaCompliance and should not be overwritten
+        // These are set by AAComplianceWatcher and should not be overwritten
         const textColorBase = `${prefixedBase}element-text-`
         const interColorBase = `${prefixedBase}element-interactive-`
         

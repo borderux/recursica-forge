@@ -144,19 +144,8 @@ export default function ColorTokenPicker() {
         }
       }
       
-      // If this is a core color (alert, warning, success), update alternative layer AA compliance
-      const altLayerColorMatch = targetVar.match(/--recursica-brand-light-palettes-core-(alert|warning|success)/)
-      if (altLayerColorMatch && tokensJson && themeJson) {
-        const coreColorName = altLayerColorMatch[1] as 'alert' | 'warning' | 'success'
-        // Import dynamically to avoid circular dependencies
-        import('../../core/resolvers/updateAlternativeLayerAaCompliance').then(({ updateAlternativeLayerAaCompliance }) => {
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              updateAlternativeLayerAaCompliance(coreColorName, tokensJson, themeJson)
-            }, 10)
-          })
-        })
-      }
+      // AA compliance is now handled reactively by AAComplianceWatcher
+      // No manual calls needed - the watcher will detect CSS var changes automatically
     }
     
     setAnchor(null)
