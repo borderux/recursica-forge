@@ -5,7 +5,7 @@ import { readOverrides } from '../theme/tokenOverrides'
 import { findTokenByHex } from '../../core/css/tokenRefs'
 
 export default function ColorTokenPicker() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetVar, setTargetVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
@@ -106,6 +106,44 @@ export default function ColorTokenPicker() {
       // Set the CSS variable to reference the token
       const root = document.documentElement
       root.style.setProperty(targetVar, `var(${tokenCssVar})`)
+      
+      // If this is a core color, update the theme state to persist the change
+      const coreColorMatch = targetVar.match(/--recursica-brand-light-palettes-core-(black|white|alert|warning|success|interactive)/)
+      if (coreColorMatch && setTheme && themeJson) {
+        const coreColorName = coreColorMatch[1] as 'black' | 'white' | 'alert' | 'warning' | 'success' | 'interactive'
+        const tokenRef = `{tokens.color.${family}.${level}}`
+        
+        // Update theme JSON to persist the change
+        try {
+          const nextTheme = JSON.parse(JSON.stringify(themeJson)) // Deep clone
+          const root: any = nextTheme?.brand ? nextTheme.brand : nextTheme
+          if (root?.light?.palettes?.core) {
+            const core = root.light.palettes.core
+            if (core.$value) {
+              core.$value[coreColorName] = tokenRef
+            } else {
+              core[coreColorName] = tokenRef
+            }
+            setTheme(nextTheme)
+          }
+        } catch (err) {
+          console.error('Failed to update theme state for core color:', err)
+        }
+      }
+      
+      // If this is a core color (alert, warning, success), update alternative layer AA compliance
+      const altLayerColorMatch = targetVar.match(/--recursica-brand-light-palettes-core-(alert|warning|success)/)
+      if (altLayerColorMatch && tokensJson && themeJson) {
+        const coreColorName = altLayerColorMatch[1] as 'alert' | 'warning' | 'success'
+        // Import dynamically to avoid circular dependencies
+        import('../../core/resolvers/updateAlternativeLayerAaCompliance').then(({ updateAlternativeLayerAaCompliance }) => {
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              updateAlternativeLayerAaCompliance(coreColorName, tokensJson, themeJson)
+            }, 10)
+          })
+        })
+      }
     }
     
     setAnchor(null)

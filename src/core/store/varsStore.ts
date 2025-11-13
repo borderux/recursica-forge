@@ -738,6 +738,67 @@ class VarsStore {
     Object.assign(allVars, paletteVarsLight)
     // Layers (from Brand)
     const layerVars = buildLayerVars(this.state.tokens, this.state.theme)
+    
+    // Preserve existing palette CSS variables for layer colors (surface and border-color)
+    // Also preserve AA compliance updates for text and interactive colors
+    // Check all layers (0-4) and alternative layers
+    try {
+      for (let i = 0; i <= 4; i++) {
+        const prefixedBase = `--recursica-brand-light-layer-layer-${i}-property-`
+        
+        // Check surface color
+        const existingSurface = document.documentElement.style.getPropertyValue(`${prefixedBase}surface`).trim()
+        if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
+          layerVars[`--brand-light-layer-layer-${i}-property-surface`] = existingSurface
+        }
+        
+        // Check border color (only for non-zero layers)
+        if (i > 0) {
+          const existingBorderColor = document.documentElement.style.getPropertyValue(`${prefixedBase}border-color`).trim()
+          if (existingBorderColor && existingBorderColor.startsWith('var(') && existingBorderColor.includes('palettes')) {
+            layerVars[`--brand-light-layer-layer-${i}-property-border-color`] = existingBorderColor
+          }
+        }
+        
+        // Preserve AA compliance updates for text and interactive colors
+        // These are set by updateLayerAaCompliance and should not be overwritten
+        const textColorBase = `${prefixedBase}element-text-`
+        const interColorBase = `${prefixedBase}element-interactive-`
+        
+        // Text color
+        const existingTextColor = document.documentElement.style.getPropertyValue(`${textColorBase}color`).trim()
+        if (existingTextColor && existingTextColor.startsWith('var(')) {
+          layerVars[`--brand-light-layer-layer-${i}-property-element-text-color`] = existingTextColor
+        }
+        
+        // Interactive color
+        const existingInterColor = document.documentElement.style.getPropertyValue(`${interColorBase}color`).trim()
+        if (existingInterColor && existingInterColor.startsWith('var(')) {
+          layerVars[`--brand-light-layer-layer-${i}-property-element-interactive-color`] = existingInterColor
+        }
+        
+        // Status colors (alert, warning, success)
+        const statusColors = ['alert', 'warning', 'success']
+        statusColors.forEach((status) => {
+          const existingStatusColor = document.documentElement.style.getPropertyValue(`${textColorBase}${status}`).trim()
+          if (existingStatusColor && existingStatusColor.startsWith('var(')) {
+            layerVars[`--brand-light-layer-layer-${i}-property-element-text-${status}`] = existingStatusColor
+          }
+        })
+      }
+      
+      // Also check alternative layers
+      const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+      for (const altKey of altKeys) {
+        const prefixedBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property-`
+        
+        const existingSurface = document.documentElement.style.getPropertyValue(`${prefixedBase}surface`).trim()
+        if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
+          layerVars[`--brand-light-layer-layer-alternative-${altKey}-property-surface`] = existingSurface
+        }
+      }
+    } catch {}
+    
     Object.assign(allVars, layerVars)
     // Typography
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, this.readTypeChoices())
@@ -876,9 +937,48 @@ class VarsStore {
         const dir = dirForLevel(i)
         const sxExpr = dir.x === 'right' ? `var(--recursica-tokens-${xTok.replace(/\//g, '-')})` : `calc(var(--recursica-tokens-${xTok.replace(/\//g, '-')}) * -1)`
         const syExpr = dir.y === 'down' ? `var(--recursica-tokens-${yTok.replace(/\//g, '-')})` : `calc(var(--recursica-tokens-${yTok.replace(/\//g, '-')}) * -1)`
-        const color = shadowColorForLevel(i)
         const brandScope = `--brand-light-elevations-elevation-${i}`
-        vars[`${brandScope}-shadow-color`] = String(color)
+        const prefixedScope = `--recursica-${brandScope.slice(2)}`
+        
+        // Check if there's already a palette CSS variable set (preserve user selections)
+        const existingColor = document.documentElement.style.getPropertyValue(`${prefixedScope}-shadow-color`).trim()
+        const alphaTok = this.state.elevation.alphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
+        const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
+        
+        // Check if existing color contains a palette reference (could be var() or color-mix())
+        const hasPaletteRef = existingColor && (
+          (existingColor.startsWith('var(') && existingColor.includes('palettes')) ||
+          (existingColor.includes('color-mix') && existingColor.includes('palettes'))
+        )
+        
+        if (hasPaletteRef) {
+          // Extract the palette var reference from existingColor
+          let paletteVarRef: string | null = null
+          
+          // If it's a direct var() reference to a palette
+          const varMatch = existingColor.match(/var\((--recursica-brand-(?:light|dark)-palettes-[^)]+)\)/)
+          if (varMatch) {
+            paletteVarRef = `var(${varMatch[1]})`
+          } else {
+            // If it's a color-mix, extract the palette var from it
+            const colorMixMatch = existingColor.match(/color-mix\([^,]+,\s*(var\(--recursica-brand-(?:light|dark)-palettes-[^)]+\))/)
+            if (colorMixMatch) {
+              paletteVarRef = colorMixMatch[1]
+            }
+          }
+          
+          if (paletteVarRef) {
+            // Preserve palette CSS variable and apply current opacity
+            vars[`${brandScope}-shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+          } else {
+            // Fallback: use existing color as-is (shouldn't happen, but just in case)
+            vars[`${brandScope}-shadow-color`] = existingColor
+          }
+        } else {
+          // Calculate color from state
+          const color = shadowColorForLevel(i)
+          vars[`${brandScope}-shadow-color`] = String(color)
+        }
         vars[`${brandScope}-blur`] = `var(--recursica-tokens-${blurTok.replace(/\//g, '-')})`
         vars[`${brandScope}-spread`] = `var(--recursica-tokens-${spreadTok.replace(/\//g, '-')})`
         vars[`${brandScope}-x-axis`] = sxExpr

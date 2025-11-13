@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
-import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
+import PaletteColorControl from '../forms/PaletteColorControl'
+import TokenSlider from '../forms/TokenSlider'
 import brandDefault from '../../vars/Brand.json'
 
 type Json = any
@@ -25,7 +26,6 @@ export default function LayerStylePanel({
   onUpdate: (updater: (layerSpec: any) => any) => void
 }) {
   const { tokens: tokensJson, theme: themeJson } = useVars()
-  const [pickTarget, setPickTarget] = useState<'surface' | 'border-color' | null>(null)
   const layerKey = useMemo(() => (selectedLevels.length ? `layer-${selectedLevels[0]}` : ''), [selectedLevels])
   const spec = useMemo(() => {
     try {
@@ -144,41 +144,22 @@ export default function LayerStylePanel({
       </label>
     )
   }
-  // Parse a brand palette reference like {brand.light.palettes.palette-1.500.color.tone}
-  const getPaletteBindingFromValue = (raw: any): { paletteKey: string; level: string } | null => {
-    try {
-      const s: string | undefined = typeof raw === 'string' ? raw : (raw?.['$value'] as any)
-      if (!s) return null
-      const inner = s.startsWith('{') ? s.slice(1, -1) : s
-      const m = inner.match(/brand\.light\.palettes\.([a-z0-9-]+)\.([0-9]{3}|000|050|default)\.color\.tone/i)
-      if (m) return { paletteKey: m[1], level: m[2] }
-    } catch {}
-    return null
-  }
   const renderPaletteButton = (target: 'surface' | 'border-color', title: string) => {
-    const current = getPaletteBindingFromValue((spec as any)?.property?.[target])
-    const label = current ? `${current.paletteKey}/${current.level}` : 'Not set'
-    const swatchVar = current ? (current.level === 'default'
-      ? `var(--recursica-brand-light-palettes-${current.paletteKey}-primary-tone)`
-      : `var(--recursica-brand-light-palettes-${current.paletteKey}-${current.level}-tone)`) : undefined
-    const targetCssVar = `--recursica-brand-light-layer-layer-${layerKey}-property-${target}`
+    // Build CSS variables for all selected layers
+    const targetCssVars = selectedLevels.map(level => 
+      `--recursica-brand-light-layer-layer-${level}-property-${target}`
+    )
+    const targetCssVar = targetCssVars[0] || `--recursica-brand-light-layer-layer-${layerKey}-property-${target}`
+    
     return (
-      <div className="control-group">
-        <label>{title}</label>
-        <button
-          type="button"
-          onClick={(e) => { 
-            setPickTarget(target)
-            try { 
-              (window as any).openPalettePicker(e.currentTarget, targetCssVar) 
-            } catch {} 
-          }}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
-        >
-          <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid rgba(0,0,0,0.15)', background: swatchVar || 'transparent' }} />
-          <span style={{ fontSize: 13 }}>{label}</span>
-        </button>
-      </div>
+      <PaletteColorControl
+        label={title}
+        targetCssVar={targetCssVar}
+        targetCssVars={targetCssVars.length > 1 ? targetCssVars : undefined}
+        currentValueCssVar={targetCssVar}
+        swatchSize={14}
+        fontSize={13}
+      />
     )
   }
   const RenderGroup: React.FC<{ basePath: string[]; obj: any; title?: string }> = ({ basePath, obj, title }) => {
@@ -208,117 +189,55 @@ export default function LayerStylePanel({
         {renderPaletteButton('surface', 'Surface Color')}
         {!isOnlyLayer0 && renderPaletteButton('border-color', 'Border Color')}
         {!isOnlyLayer0 && (
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 12, opacity: 0.7 }}>Elevation</span>
-              <span style={{ fontSize: 12, opacity: 0.7 }}>
-                {(() => {
-                  const v = (spec as any)?.property?.elevation?.$value
-                  const s = typeof v === 'string' ? v : ''
-                  const m = s.match(/elevations\.(elevation-\d+)/)
-                  if (m) {
-                    const idx = Number(m[1].split('-')[1])
-                    return idx === 0 ? 'Elevation 0' : `Elevation ${idx}`
-                  }
-                  return 'None'
-                })()}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={Math.max(0, elevationOptions.length - 1)}
-              step={1}
-              value={(() => {
-                const v = (spec as any)?.property?.elevation?.$value
-                const s = typeof v === 'string' ? v : ''
-                const m = s.match(/elevations\.(elevation-\d+)/)
-                if (m) {
-                  const name = m[1]
-                  const idx = elevationOptions.findIndex((o) => o.name === name)
-                  return idx >= 0 ? idx : 0
-                }
-                return 0
-              })()}
-              onChange={(e) => {
-                const idx = Number(e.currentTarget.value)
-                const sel = elevationOptions[idx]
-                if (sel) {
-                  updateValue(['property','elevation'], `{brand.light.elevations.${sel.name}}`)
-                }
-              }}
-            />
-          </label>
+          <TokenSlider
+            label="Elevation"
+            tokens={elevationOptions.map((o) => ({ name: o.name, label: o.label }))}
+            currentToken={(() => {
+              const v = (spec as any)?.property?.elevation?.$value
+              const s = typeof v === 'string' ? v : ''
+              const m = s.match(/elevations\.(elevation-\d+)/)
+              return m ? m[1] : undefined
+            })()}
+            onChange={(tokenName) => {
+              updateValue(['property','elevation'], `{brand.light.elevations.${tokenName}}`)
+            }}
+            getTokenLabel={(token) => {
+              const opt = elevationOptions.find((o) => o.name === token.name)
+              return opt?.label || token.label || token.name
+            }}
+          />
         )}
-        <div className="control-group">
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 12, opacity: 0.7 }}>Padding</span>
-              <span style={{ fontSize: 12, opacity: 0.7 }}>
-                {(() => {
-                  const v = (spec as any)?.property?.padding?.$value
-                  const s = typeof v === 'string' ? v : ''
-                  const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-                  return m ? toTitleCase(m[1]) : 'None'
-                })()}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={Math.max(0, sizeOptions.length - 1)}
-              step={1}
-              value={(() => {
-                const v = (spec as any)?.property?.padding?.$value
-                const s = typeof v === 'string' ? v : ''
-                const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-                const curShort = m ? m[1] : ''
-                const curIdx = sizeOptions.findIndex((o) => o.label === curShort)
-                return curIdx >= 0 ? curIdx : 0
-              })()}
-              onChange={(e) => {
-                const idx = Number(e.currentTarget.value)
-                const sel = sizeOptions[idx]
-                if (sel) updateValue(['property','padding'], sel.value)
-              }}
-            />
-          </label>
-        </div>
+        <TokenSlider
+          label="Padding"
+          tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
+          currentToken={(() => {
+            const v = (spec as any)?.property?.padding?.$value
+            const s = typeof v === 'string' ? v : ''
+            const m = s.match(/\{tokens\.size\.([^}]+)\}/)
+            return m ? m[1] : undefined
+          })()}
+          onChange={(tokenName) => {
+            const sel = sizeOptions.find((o) => o.label === tokenName)
+            if (sel) updateValue(['property','padding'], sel.value)
+          }}
+          getTokenLabel={(token) => toTitleCase(token.name)}
+        />
         {!isOnlyLayer0 && (
-          <div className="control-group">
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, opacity: 0.7 }}>Border Radius</span>
-                <span style={{ fontSize: 12, opacity: 0.7 }}>
-                  {(() => {
-                    const v = (spec as any)?.property?.['border-radius']?.$value
-                    const s = typeof v === 'string' ? v : ''
-                    const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-                    return m ? toTitleCase(m[1]) : 'None'
-                  })()}
-                </span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={Math.max(0, sizeOptions.length - 1)}
-                step={1}
-                value={(() => {
-                  const v = (spec as any)?.property?.['border-radius']?.$value
-                  const s = typeof v === 'string' ? v : ''
-                  const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-                  const curShort = m ? m[1] : ''
-                  const curIdx = sizeOptions.findIndex((o) => o.label === curShort)
-                  return curIdx >= 0 ? curIdx : 0
-                })()}
-                onChange={(e) => {
-                  const idx = Number(e.currentTarget.value)
-                  const sel = sizeOptions[idx]
-                  if (sel) updateValue(['property','border-radius'], sel.value)
-                }}
-              />
-            </label>
-          </div>
+          <TokenSlider
+            label="Border Radius"
+            tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
+            currentToken={(() => {
+              const v = (spec as any)?.property?.['border-radius']?.$value
+              const s = typeof v === 'string' ? v : ''
+              const m = s.match(/\{tokens\.size\.([^}]+)\}/)
+              return m ? m[1] : undefined
+            })()}
+            onChange={(tokenName) => {
+              const sel = sizeOptions.find((o) => o.label === tokenName)
+              if (sel) updateValue(['property','border-radius'], sel.value)
+            }}
+            getTokenLabel={(token) => toTitleCase(token.name)}
+          />
         )}
         {!isOnlyLayer0 && (
           <div className="control-group">
@@ -373,22 +292,6 @@ export default function LayerStylePanel({
           </button>
         </div>
       </div>
-      <PaletteSwatchPicker
-        onSelect={(cssVarName) => {
-          if (!pickTarget) return
-          // CSS var has already been set by PaletteSwatchPicker
-          // Update the theme JSON to reflect the change
-          const match = cssVarName.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
-          if (match) {
-            const [, paletteKey, level] = match
-            const normalizedLevel = level === 'primary' ? 'default' : level
-            const value = `{brand.light.palettes.${paletteKey}.${normalizedLevel}.color.tone}`
-            if (pickTarget === 'surface') updateValue(['property','surface'], value)
-            if (pickTarget === 'border-color') updateValue(['property','border-color'], value)
-          }
-          setPickTarget(null)
-        }}
-      />
     </div>
   )
 }

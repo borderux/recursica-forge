@@ -178,11 +178,11 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     <div
       className={className ? `layer-container ${className}` : 'layer-container'}
       style={{
-        backgroundColor: paletteBackground ?? `var(${brandBase}surface, var(${legacyBase}surface))`,
-        color: `var(${brandBase}element-text-color, var(${legacyBase}element-text-color))`,
-        padding: `var(${brandBase}padding, var(${legacyBase}padding))`,
-        border: includeBorder ? `var(${brandBase}border-thickness, var(${legacyBase}border-thickness)) solid var(${brandBase}border-color, var(${legacyBase}border-color))` : undefined,
-        borderRadius: includeBorder ? `var(${brandBase}border-radius, var(${legacyBase}border-radius))` : undefined,
+        backgroundColor: paletteBackground ?? `var(${brandBase}surface)`,
+        color: `var(${brandBase}element-text-color)`,
+        padding: `var(${brandBase}padding)`,
+        border: includeBorder ? `var(${brandBase}border-thickness) solid var(${brandBase}border-color)` : undefined,
+        borderRadius: includeBorder ? `var(${brandBase}border-radius)` : undefined,
         cursor: onSelect ? 'pointer' as const : undefined,
         boxShadow: cssVarBoxShadow,
       }}
@@ -206,29 +206,29 @@ export default function LayerModule({ level, alternativeKey, title, className, c
           )}
           <p style={{
             ...(bodyStyle as any),
-            color: (`var(${brandBase}element-text-color, var(${legacyBase}element-text-color))` as any),
-            opacity: (`var(${brandBase}element-text-high-emphasis, var(${legacyBase}element-text-high-emphasis))` as any)
+            color: (`var(${brandBase}element-text-color)` as any),
+            opacity: (`var(${brandBase}element-text-high-emphasis)` as any)
           }}>High Emphasis Text / Icon</p>
           <p style={{
             ...(bodyStyle as any),
-            color: (`var(${brandBase}element-text-color, var(${legacyBase}element-text-color))` as any),
-            opacity: (`var(${brandBase}element-text-low-emphasis, var(${legacyBase}element-text-low-emphasis))` as any)
+            color: (`var(${brandBase}element-text-color)` as any),
+            opacity: (`var(${brandBase}element-text-low-emphasis)` as any)
           }}>Low Emphasis Text / Icon</p>
           <p style={{
             ...(bodyStyle as any),
-            color: (`var(${brandBase}element-interactive-color, var(${legacyBase}element-interactive-color))` as any),
-            opacity: `var(${brandBase}element-interactive-high-emphasis, var(${legacyBase}element-interactive-high-emphasis))` as any
+            color: (`var(${brandBase}element-interactive-color)` as any),
+            opacity: `var(${brandBase}element-interactive-high-emphasis)` as any
           }}>Interactive (Link / Button)</p>
           <p style={{
             ...(bodyStyle as any),
-            color: (`var(${brandBase}element-interactive-color, var(${legacyBase}element-interactive-color))` as any),
+            color: (`var(${brandBase}element-interactive-color)` as any),
             opacity: ('var(--recursica-brand-light-opacity-disabled)' as any)
           }}>Disabled Interactive</p>
           {!isAlternative && (
             <>
-              <p style={{ color: (`var(${brandBase}element-text-alert, var(${legacyBase}element-text-alert))` as any), opacity: (`var(${brandBase}element-text-high-emphasis, var(${legacyBase}element-text-high-emphasis))` as any) }}>Alert</p>
-              <p style={{ color: (`var(${brandBase}element-text-warning, var(${legacyBase}element-text-warning))` as any), opacity: (`var(${brandBase}element-text-high-emphasis, var(${legacyBase}element-text-high-emphasis))` as any) }}>Warning</p>
-              <p style={{ color: (`var(${brandBase}element-text-success, var(${legacyBase}element-text-success))` as any), opacity: (`var(${brandBase}element-text-high-emphasis, var(${legacyBase}element-text-high-emphasis))` as any) }}>Success</p>
+              <p style={{ color: (`var(${brandBase}element-text-alert)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Alert</p>
+              <p style={{ color: (`var(${brandBase}element-text-warning)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Warning</p>
+              <p style={{ color: (`var(${brandBase}element-text-success)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Success</p>
             </>
           )}
         </div>

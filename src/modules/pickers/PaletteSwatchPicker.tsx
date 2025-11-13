@@ -1,11 +1,15 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
+import { updateLayerAaCompliance } from '../../core/resolvers/updateLayerAaCompliance'
+import { updateAlternativeLayerAaCompliance } from '../../core/resolvers/updateAlternativeLayerAaCompliance'
+import { findTokenByHex } from '../../core/css/tokenRefs'
 
-export default function PaletteSwatchPicker({ onSelect }: { onSelect: (cssVarName: string) => void }) {
-  const { palettes, theme: themeJson } = useVars()
+export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
+  const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
+  const [targetCssVars, setTargetCssVars] = useState<string[]>([])
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
 
   const paletteKeys = useMemo(() => {
@@ -80,9 +84,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect: (cssVarNam
     return `--recursica-brand-light-palettes-${paletteKey}-${normalizedLevel}-tone`
   }
 
-  ;(window as any).openPalettePicker = (el: HTMLElement, cssVar: string) => {
+  ;(window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[]) => {
     setAnchor(el)
     setTargetCssVar(cssVar || null)
+    setTargetCssVars(cssVarsArray && cssVarsArray.length > 0 ? cssVarsArray : [])
     const rect = el.getBoundingClientRect()
     const top = rect.bottom + 8
     const left = Math.min(rect.left, window.innerWidth - 420)
@@ -117,21 +122,126 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect: (cssVarNam
                     title={`${pk}/${level}`}
                     onClick={() => {
                       try {
-                        // Ensure target CSS var has --recursica- prefix if it doesn't already
-                        const prefixedTarget = targetCssVar!.startsWith('--recursica-')
-                          ? targetCssVar!
-                          : targetCssVar!.startsWith('--')
-                            ? `--recursica-${targetCssVar!.slice(2)}`
-                            : `--recursica-${targetCssVar!}`
+                        // Get all CSS vars to update (use array if provided, otherwise just the single target)
+                        const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
+                        
+                        // Update all CSS variables
+                        cssVarsToUpdate.forEach((cssVar) => {
+                          // Ensure target CSS var has --recursica- prefix if it doesn't already
+                          const prefixedTarget = cssVar.startsWith('--recursica-')
+                            ? cssVar
+                            : cssVar.startsWith('--')
+                              ? `--recursica-${cssVar.slice(2)}`
+                              : `--recursica-${cssVar}`
 
-                        // Set the target CSS variable to reference the selected palette CSS variable
-                        document.documentElement.style.setProperty(prefixedTarget, `var(${paletteCssVar})`)
-                        onSelect(paletteCssVar)
+                          // Set the target CSS variable to reference the selected palette CSS variable
+                          document.documentElement.style.setProperty(prefixedTarget, `var(${paletteCssVar})`)
+                          
+                          // If this is a core color, update the theme state to persist the change
+                          // Need to resolve the palette to its underlying token
+                          const coreColorMatch = prefixedTarget.match(/--recursica-brand-light-palettes-core-(black|white|alert|warning|success|interactive)/)
+                          if (coreColorMatch && setTheme && themeJson && tokensJson) {
+                            const coreColorName = coreColorMatch[1] as 'black' | 'white' | 'alert' | 'warning' | 'success' | 'interactive'
+                            
+                            // Resolve the palette CSS var to get its underlying token
+                            // First, get the resolved hex value
+                            const resolvedValue = getComputedStyle(document.documentElement).getPropertyValue(paletteCssVar).trim()
+                            
+                            // Try to extract token from palette CSS var name (e.g., --recursica-brand-light-palettes-palette-1-500-tone)
+                            const paletteMatch = paletteCssVar.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
+                            if (paletteMatch) {
+                              const [, paletteKey, level] = paletteMatch
+                              // Look up the palette in theme to find its token reference
+                              try {
+                                const root: any = themeJson?.brand ? themeJson.brand : themeJson
+                                const palettePath = `light.palettes.${paletteKey}.${level}.color.tone`
+                                const paletteValue = palettePath.split('.').reduce((obj: any, key: string) => obj?.[key], root)
+                                const paletteRef = typeof paletteValue === 'string' ? paletteValue : paletteValue?.$value
+                                
+                                if (paletteRef && typeof paletteRef === 'string' && paletteRef.startsWith('{') && paletteRef.endsWith('}')) {
+                                  const inner = paletteRef.slice(1, -1)
+                                  const tokenMatch = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|050)$/i.exec(inner)
+                                  if (tokenMatch) {
+                                    const [, family, level] = tokenMatch
+                                    const tokenRef = `{tokens.color.${family}.${level}}`
+                                    
+                                    // Update theme JSON
+                                    const nextTheme = JSON.parse(JSON.stringify(themeJson))
+                                    const themeRoot: any = nextTheme?.brand ? nextTheme.brand : nextTheme
+                                    if (themeRoot?.light?.palettes?.core) {
+                                      const core = themeRoot.light.palettes.core
+                                      if (core.$value) {
+                                        core.$value[coreColorName] = tokenRef
+                                      } else {
+                                        core[coreColorName] = tokenRef
+                                      }
+                                      setTheme(nextTheme)
+                                    }
+                                  }
+                                }
+                              } catch (err) {
+                                console.error('Failed to update theme state for core color from palette:', err)
+                              }
+                            } else {
+                              // If we can't extract from palette name, try to find token by resolved hex
+                              if (resolvedValue && /^#?[0-9a-f]{6}$/i.test(resolvedValue)) {
+                                const hex = resolvedValue.startsWith('#') ? resolvedValue : `#${resolvedValue}`
+                                const tokenMatch = findTokenByHex(hex, tokensJson)
+                                if (tokenMatch) {
+                                  const tokenRef = `{tokens.color.${tokenMatch.family}.${tokenMatch.level}}`
+                                  
+                                  // Update theme JSON
+                                  try {
+                                    const nextTheme = JSON.parse(JSON.stringify(themeJson))
+                                    const themeRoot: any = nextTheme?.brand ? nextTheme.brand : nextTheme
+                                    if (themeRoot?.light?.palettes?.core) {
+                                      const core = themeRoot.light.palettes.core
+                                      if (core.$value) {
+                                        core.$value[coreColorName] = tokenRef
+                                      } else {
+                                        core[coreColorName] = tokenRef
+                                      }
+                                      setTheme(nextTheme)
+                                    }
+                                  } catch (err) {
+                                    console.error('Failed to update theme state for core color from hex:', err)
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          
+                          // If this is a layer surface color, update AA compliance
+                          const surfaceMatch = prefixedTarget.match(/--recursica-brand-light-layer-layer-(\d+)-property-surface/)
+                          if (surfaceMatch && tokensJson && themeJson) {
+                            const layerNumber = parseInt(surfaceMatch[1], 10)
+                            // Use requestAnimationFrame to ensure CSS var is set
+                            requestAnimationFrame(() => {
+                              setTimeout(() => {
+                                updateLayerAaCompliance(layerNumber, tokensJson, themeJson)
+                              }, 10)
+                            })
+                          }
+                          
+                          // If this is a core color (alert, warning, success), update alternative layer AA compliance
+                          const altLayerColorMatch = prefixedTarget.match(/--recursica-brand-light-palettes-core-(alert|warning|success)/)
+                          if (altLayerColorMatch && tokensJson && themeJson) {
+                            const coreColorName = altLayerColorMatch[1] as 'alert' | 'warning' | 'success'
+                            requestAnimationFrame(() => {
+                              setTimeout(() => {
+                                updateAlternativeLayerAaCompliance(coreColorName, tokensJson, themeJson)
+                              }, 10)
+                            })
+                          }
+                        })
+                        
+                        onSelect?.(paletteCssVar)
                       } catch (err) {
                         console.error('Failed to set palette CSS variable:', err)
                       }
                       setAnchor(null)
                       setTargetCssVar(null)
+                      setTargetCssVars([])
                     }}
                     style={{
                       width: swatch,
