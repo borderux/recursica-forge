@@ -1,43 +1,78 @@
 import '../theme/index.css'
-import { useEffect, useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { useMemo, useState } from 'react'
 import PaletteGrid from './PaletteGrid'
 import { useVars } from '../vars/VarsContext'
-import { readOverrides } from '../theme/tokenOverrides'
-import { findTokenByHex } from '../../core/css/tokenRefs'
+import ColorTokenPicker from '../pickers/ColorTokenPicker'
+import OpacityPicker from '../pickers/OpacityPicker'
 
 type PaletteEntry = { key: string; title: string; defaultLevel: number; initialFamily?: string }
 
 export default function PalettesPage() {
-  const { tokens: tokensJson, theme: themeJson, palettes: palettesState, setPalettes } = useVars()
+  const { tokens: tokensJson, theme: themeJson, palettes: palettesState, setPalettes, setTheme } = useVars()
   const [isDarkMode, setIsDarkMode] = useState(false)
+  
   const allFamilies = useMemo(() => {
     const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))
     fams.delete('translucent')
     return Array.from(fams).sort()
   }, [tokensJson])
+  
   const palettes = palettesState.dynamic
   const writePalettes = (next: PaletteEntry[]) => setPalettes({ ...palettesState, dynamic: next })
-  const getPersistedFamily = (key: string): string | undefined => {
-    try {
-      const raw = localStorage.getItem(`palette-grid-family:${key}`)
-      if (raw) return JSON.parse(raw)
-    } catch {}
-    if (key === 'neutral') return 'gray'
-    if (key === 'palette-1') return 'salmon'
-    if (key === 'palette-2') return 'mandarin'
-    return undefined
-  }
+  
+  // Track which families are already used by palettes
   const usedFamilies = useMemo(() => {
     const set = new Set<string>()
     palettes.forEach((p) => {
-      const fam = p.initialFamily || getPersistedFamily(p.key)
-      if (fam) set.add(fam)
+      if (p.initialFamily) set.add(p.initialFamily)
     })
     return set
   }, [palettes])
-  const unusedFamilies = useMemo(() => allFamilies.filter((f) => !usedFamilies.has(f)), [allFamilies, usedFamilies])
+  
+  const unusedFamilies = useMemo(() => 
+    allFamilies.filter((f) => !usedFamilies.has(f)), 
+    [allFamilies, usedFamilies]
+  )
+  
   const canAddPalette = unusedFamilies.length > 0
+  
+  // Initialize theme JSON for a new palette with CSS var references
+  const initializePaletteTheme = (paletteKey: string, family: string) => {
+    if (!setTheme || !themeJson) return
+    
+    try {
+      const themeCopy = JSON.parse(JSON.stringify(themeJson))
+      const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+      const headerLevels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200']
+      
+      // Initialize for both light and dark modes
+      for (const modeKey of ['light', 'dark']) {
+        if (!root[modeKey]) root[modeKey] = {}
+        if (!root[modeKey].palettes) root[modeKey].palettes = {}
+        if (!root[modeKey].palettes[paletteKey]) root[modeKey].palettes[paletteKey] = {}
+        
+        headerLevels.forEach((lvl) => {
+          if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
+          if (!root[modeKey].palettes[paletteKey][lvl].color) root[modeKey].palettes[paletteKey][lvl].color = {}
+          
+          // Set tone to reference the family token
+          root[modeKey].palettes[paletteKey][lvl].color.tone = {
+            $value: `{tokens.color.${family}.${lvl}}`
+          }
+          
+          // Set on-tone to reference white (will be updated by PaletteGrid based on contrast)
+          root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
+            $value: `{brand.${modeKey}.palettes.core.white}`
+          }
+        })
+      }
+      
+      setTheme(themeCopy)
+    } catch (err) {
+      console.error('Failed to initialize palette theme:', err)
+    }
+  }
+  
   const addPalette = () => {
     if (!canAddPalette) return
     const family = unusedFamilies[0]
@@ -45,89 +80,18 @@ export default function PalettesPage() {
     let i = 1
     while (existing.has(`palette-${i}`)) i += 1
     const nextKey = `palette-${i}`
-    try { localStorage.setItem(`palette-grid-family:${nextKey}`, JSON.stringify(family)) } catch {}
+    
+    // Initialize theme JSON for this palette
+    initializePaletteTheme(nextKey, family)
+    
+    // Add palette entry
     writePalettes([...palettes, { key: nextKey, title: `Palette ${i}`, defaultLevel: 500, initialFamily: family }])
   }
+  
   const deletePalette = (key: string) => {
     if (key === 'neutral' || key === 'palette-1') return
-    try { localStorage.removeItem(`palette-grid-family:${key}`) } catch {}
     writePalettes(palettes.filter((p) => p.key !== key))
   }
-  const paletteBindings = palettesState.bindings
-  const writeBindings = (next: Record<string, { token: string; hex: string }>) => setPalettes({ ...palettesState, bindings: next })
-
-  type OpacityBindingKey = 'disabled' | 'overlay' | 'text-high' | 'text-low'
-  const opacityBindings = palettesState.opacity as Record<OpacityBindingKey, { token: string; value: number }>
-  const writeOpacityBindings = (next: Record<OpacityBindingKey, { token: string; value: number }>) => setPalettes({ ...palettesState, opacity: next as any })
-
-  const applyAliasOnTones = () => { /* no-op with new core var scheme */ }
-
-  const themeIndex = useMemo(() => {
-    const out: Record<string, { value: any }> = {}
-    const visit = (node: any, prefix: string, mode: 'Light' | 'Dark') => {
-      if (!node || typeof node !== 'object') return
-      if (Object.prototype.hasOwnProperty.call(node, '$value')) {
-        out[`${mode}::${prefix}`] = { value: (node as any)['$value'] }
-        return
-      }
-      Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
-    }
-    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
-    if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
-    return out
-  }, [])
-
-  const getTokenValue = (name: string): string | number | undefined => {
-    const normalized = (name || '').replace(/^token\./, '').replace(/\./g, '/')
-    const parts = normalized.split('/')
-    if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.tokens?.color?.[parts[1]]?.[parts[2]]?.$value
-    if (parts[0] === 'opacity' && parts[1]) return (tokensJson as any)?.tokens?.opacity?.[parts[1]]?.$value
-    if (parts[0] === 'font' && parts[1] === 'weight' && parts[2]) return (tokensJson as any)?.tokens?.font?.weight?.[parts[2]]?.$value
-    if (parts[0] === 'font' && parts[1] === 'size' && parts[2]) return (tokensJson as any)?.tokens?.font?.size?.[parts[2]]?.$value
-    return undefined
-  }
-
-  const resolveThemeRef = (ref: any, modeLabel: 'Light' | 'Dark'): string | number | undefined => {
-    if (ref == null) return undefined
-    if (typeof ref === 'number') return ref
-    if (typeof ref === 'string') {
-      const s = ref.trim()
-      if (!s.startsWith('{')) return s
-      const inner = s.slice(1, -1)
-      if (inner.startsWith('token.')) return getTokenValue(inner)
-      if (inner.startsWith('theme.')) {
-        const parts = inner.split('.')
-        const mode = (parts[1] || '').toLowerCase() === 'dark' ? 'Dark' : 'Light'
-        const path = parts.slice(2).join('/')
-        let entry = themeIndex[`${mode}::${path}`]
-        if (!entry && /\/high-emphasis$/.test(path)) {
-          const alt = path.replace(/\/high-emphasis$/, '/text/high-emphasis')
-          entry = themeIndex[`${mode}::${alt}`]
-        }
-        if (!entry && /\/low-emphasis$/.test(path)) {
-          const alt = path.replace(/\/low-emphasis$/, '/text/low-emphasis')
-          entry = themeIndex[`${mode}::${alt}`]
-        }
-        return resolveThemeRef(entry?.value, mode)
-      }
-      return s
-    }
-    if (typeof ref === 'object') {
-      const coll = (ref as any).collection
-      const name = (ref as any).name
-      if (coll === 'Tokens' && typeof name === 'string') return getTokenValue(name)
-      if (coll === 'Theme' && typeof name === 'string') {
-        const entry = themeIndex[`${modeLabel}::${name}`]
-        return resolveThemeRef(entry?.value, modeLabel)
-      }
-    }
-    return undefined
-  }
-
-  useEffect(() => {
-    try { applyAliasOnTones() } catch {}
-  }, [])
 
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)', color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color, #111111)' }}>
@@ -195,16 +159,16 @@ export default function PalettesPage() {
                     const layer0TextColor = `var(--recursica-brand-${modeVar}-layer-layer-0-property-element-text-color)`
                     return (
                       <>
-                        <td className="swatch-box overlay" style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', padding: 'var(--recursica-brand-light-layer-layer-0-property-padding)', cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'overlay')}>
+                        <td className="swatch-box overlay" style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', padding: 'var(--recursica-brand-light-layer-layer-0-property-padding)', cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-opacity-overlay`)}>
                           <div style={{ width: '100%', height: '100%', minHeight: '30px', background: 'var(--recursica-brand-light-palettes-core-black)', opacity: `var(--recursica-brand-${modeVar}-opacity-overlay)` }} />
                         </td>
-                        <td className="swatch-box text-emphasis" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'text-high')}>
+                        <td className="swatch-box text-emphasis" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-text-emphasis-high`)}>
                           <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-text-emphasis-high)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
                         </td>
-                        <td className="swatch-box text-emphasis" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'text-low')}>
+                        <td className="swatch-box text-emphasis" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-text-emphasis-low`)}>
                           <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-text-emphasis-low)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
                         </td>
-                        <td className="swatch-box disabled" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, 'disabled')}>
+                        <td className="swatch-box disabled" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-opacity-disabled`)}>
                           <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-opacity-disabled)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
                         </td>
                       </>
@@ -229,261 +193,12 @@ export default function PalettesPage() {
           ))}
         </div>
 
-        <SwatchPicker onSelect={(cssVar: string, tokenName: string, hex: string) => {
-          // Ensure we have a valid token name - if not, try to find matching token by hex
-          let finalTokenName = tokenName
-          if (!finalTokenName || !finalTokenName.startsWith('color/')) {
-            // Try to find token by hex value
-            const tokenMatch = findTokenByHex(hex, tokensJson)
-            if (tokenMatch) {
-              finalTokenName = `color/${tokenMatch.family}/${tokenMatch.level}`
-              console.log(`Found matching token for hex ${hex}: ${finalTokenName}`)
-            } else {
-              console.warn(`No matching token found for hex ${hex} in core palette ${cssVar}. Using provided token name or default.`)
-            }
-          }
-          
-          // Build the token CSS variable reference with normalized level
-          const tokenParts = finalTokenName.split('/')
-          if (tokenParts.length === 3 && tokenParts[0] === 'color') {
-            const family = tokenParts[1]
-            let level = tokenParts[2]
-            // Normalize level (000 -> 050, 1000 -> 900)
-            const padded = level.padStart(3, '0')
-            if (padded === '000') level = '050'
-            else if (padded === '1000') level = '900'
-            else level = padded
-            
-            const tokenCssVar = `--recursica-tokens-color-${family}-${level}`
-            
-            // Use the CSS variable name as-is (it should already have the correct prefix)
-            // The cssVar passed from openPicker is already --recursica-brand-light-palettes-core-*
-            const root = document.documentElement
-            root.style.setProperty(cssVar, `var(${tokenCssVar})`)
-          }
-          
-          // Update the binding to reference the token instead of hardcoding hex
-          // setPalettes will trigger recomputeAndApplyAll() which will use token references
-          writeBindings({ ...paletteBindings, [cssVar]: { token: finalTokenName, hex } })
-          applyAliasOnTones()
-        }} />
+        <ColorTokenPicker />
 
-        <OpacityPicker 
-          mode={isDarkMode ? 'dark' : 'light'}
-          onSelect={(slot: 'disabled' | 'overlay' | 'text-high' | 'text-low', tokenName: string, value: number) => {
-            // Create new state preserving all existing bindings
-            const next = { ...opacityBindings, [slot]: { token: tokenName, value } } as any
-            writeOpacityBindings(next)
-            
-            // Update CSS variables after state update to ensure they reflect the current state
-            // Use setTimeout to ensure state update completes before CSS variable updates
-            setTimeout(() => {
-              const modeVar = isDarkMode ? 'dark' : 'light'
-              const root = document.documentElement
-              
-              try {
-                // Update each opacity CSS variable based on the current bindings
-                // Only update if the binding exists to preserve other values
-                const updateCssVar = (slotKey: OpacityBindingKey, cssVarName: string) => {
-                  const binding = next[slotKey]
-                  if (binding?.token) {
-                    const tokenKey = binding.token.replace('opacity/', '')
-                    const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
-                    root.style.setProperty(cssVarName, `var(${opacityCssVar})`)
-                  }
-                }
-                
-                // Update all CSS variables to ensure they all reflect current state
-                updateCssVar('text-high', `--recursica-brand-${modeVar}-text-emphasis-high`)
-                updateCssVar('text-low', `--recursica-brand-${modeVar}-text-emphasis-low`)
-                updateCssVar('overlay', `--recursica-brand-${modeVar}-opacity-overlay`)
-                updateCssVar('disabled', `--recursica-brand-${modeVar}-opacity-disabled`)
-              } catch (err) {
-                console.error('Failed to set opacity CSS variables:', err)
-              }
-            }, 0)
-          }} />
+        <OpacityPicker />
       </div>
     </div>
   )
 }
 
-function SwatchPicker({ onSelect }: { onSelect: (cssVar: string, tokenName: string, hex: string) => void }) {
-  const { tokens: tokensJson } = useVars()
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null)
-  const [targetVar, setTargetVar] = useState<string | null>(null)
-  const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
-  const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('family-friendly-names')
-      if (raw) setFamilyNames(JSON.parse(raw))
-    } catch {}
-    const onNames = (ev: Event) => {
-      try {
-        const detail: any = (ev as CustomEvent).detail
-        if (detail && typeof detail === 'object') {
-          setFamilyNames(detail)
-          return
-        }
-        const raw = localStorage.getItem('family-friendly-names')
-        setFamilyNames(raw ? JSON.parse(raw) : {})
-      } catch {
-        setFamilyNames({})
-      }
-    }
-    window.addEventListener('familyNamesChanged', onNames as any)
-    return () => window.removeEventListener('familyNamesChanged', onNames as any)
-  }, [])
-  const options = useMemo(() => {
-    const byFamily: Record<string, Array<{ level: string; name: string; value: string }>> = {}
-    const jsonColors: any = (tokensJson as any)?.tokens?.color || {}
-    const overrideMap = readOverrides()
-    const jsonFamilies = Object.keys(jsonColors).filter((f) => f !== 'translucent')
-    const overrideFamilies = Array.from(new Set(Object.keys(overrideMap)
-      .filter((k) => k.startsWith('color/'))
-      .map((k) => k.split('/')[1])
-      .filter((f) => f && f !== 'translucent')))
-    const families = Array.from(new Set([...jsonFamilies, ...overrideFamilies])).sort((a, b) => {
-      if (a === 'gray' && b !== 'gray') return -1
-      if (b === 'gray' && a !== 'gray') return 1
-      return a.localeCompare(b)
-    })
-    families.forEach((fam) => {
-      const jsonLevels = Object.keys(jsonColors?.[fam] || {})
-      const overrideLevels = Object.keys(overrideMap)
-        .filter((k) => k.startsWith(`color/${fam}/`))
-        .map((k) => k.split('/')[2])
-        .filter((lvl) => /^(\d{2,4})$/.test(lvl))
-      const levelSet = new Set<string>([...jsonLevels, ...overrideLevels])
-      const levels = Array.from(levelSet)
-      byFamily[fam] = levels.map((lvl) => {
-        const name = `color/${fam}/${lvl}`
-        const val = (overrideMap as any)[name] ?? (jsonColors?.[fam]?.[lvl]?.$value)
-        return { level: lvl, name, value: String(val ?? '') }
-      }).filter((it) => it.value && /^#?[0-9a-fA-F]{6}$/.test(String(it.value).trim()))
-      byFamily[fam].sort((a, b) => Number(b.level) - Number(a.level))
-    })
-    return byFamily
-  }, [tokensJson])
-
-  ;(window as any).openPicker = (el: HTMLElement, cssVar: string) => {
-    setAnchor(el)
-    setTargetVar(cssVar)
-    const rect = el.getBoundingClientRect()
-    const top = rect.bottom + 8
-    const left = Math.min(rect.left, window.innerWidth - 420)
-    setPos({ top, left })
-  }
-
-  if (!anchor || !targetVar) return null
-  const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
-  const getFriendly = (family: string) => {
-    const fromMap = (familyNames || {})[family]
-    if (typeof fromMap === 'string' && fromMap.trim()) return fromMap
-    return toTitle(family)
-  }
-  const maxCount = Math.max(...Object.values(options).map((arr) => arr.length || 0))
-  const labelCol = 110
-  const swatch = 18
-  const gap = 1
-  const overlayWidth = labelCol + maxCount * (swatch + gap) + 32
-  return createPortal(
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 9999 }}>
-      <div
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
-        onMouseDown={(e) => {
-          const startX = e.clientX
-          const startY = e.clientY
-          const start = { ...pos }
-          const move = (ev: MouseEvent) => {
-            const dx = ev.clientX - startX
-            const dy = ev.clientY - startY
-            const next = { left: Math.max(0, Math.min(window.innerWidth - overlayWidth, start.left + dx)), top: Math.max(0, Math.min(window.innerHeight - 120, start.top + dy)) }
-            setPos(next)
-          }
-          const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
-          window.addEventListener('mousemove', move)
-          window.addEventListener('mouseup', up)
-        }}
-      >
-        <div style={{ fontWeight: 600 }}>Pick color</div>
-        <button onClick={() => { setAnchor(null); setTargetVar(null) }} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
-      </div>
-      <div style={{ display: 'grid', gap: 6 }}>
-        {Object.entries(options).map(([family, items]) => (
-          <div key={family} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
-            <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize' }}>{getFriendly(family)}</div>
-            <div style={{ display: 'flex', flexWrap: 'nowrap', gap, overflow: 'auto' }}>
-              {items.map((it) => (
-                <div key={it.name} title={it.name} onClick={() => {
-                  onSelect(targetVar!, it.name, it.value)
-                  setAnchor(null); setTargetVar(null)
-                }} style={{ width: swatch, height: swatch, background: it.value, cursor: 'pointer', border: '1px solid rgba(0,0,0,0.15)', flex: '0 0 auto' }} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>,
-    document.body
-  )
-}
-
-function OpacityPicker({ mode, onSelect }: { mode?: 'light' | 'dark', onSelect: (slot: 'disabled' | 'overlay' | 'text-high' | 'text-low', tokenName: string, value: number) => void }) {
-  const { tokens: tokensJson } = useVars()
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null)
-  const [slot, setSlot] = useState<'disabled' | 'overlay' | 'text-high' | 'text-low' | null>(null)
-  const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
-  const options = useMemo(() => {
-    const src = (tokensJson as any)?.tokens?.opacity || {}
-    const list: Array<{ name: string; value: number }> = Object.keys(src).map((k) => ({ name: `opacity/${k}`, value: Number(src[k]?.$value) }))
-    list.sort((a, b) => a.value - b.value)
-    return list
-  }, [tokensJson])
-
-  ;(window as any).openOpacityPicker = (el: HTMLElement, s: 'disabled' | 'overlay' | 'text-high' | 'text-low') => {
-    setAnchor(el)
-    setSlot(s)
-    const rect = el.getBoundingClientRect()
-    const top = rect.bottom + 8
-    const left = Math.min(rect.left, window.innerWidth - 260)
-    setPos({ top, left })
-  }
-
-  if (!anchor || !slot) return null
-  return createPortal(
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: 240, background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 1100 }}>
-      <div
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
-        onMouseDown={(e) => {
-          const startX = e.clientX
-          const startY = e.clientY
-          const start = { ...pos }
-          const move = (ev: MouseEvent) => {
-            const dx = ev.clientX - startX
-            const dy = ev.clientY - startY
-            const next = { left: Math.max(0, Math.min(window.innerWidth - 240, start.left + dx)), top: Math.max(0, Math.min(window.innerHeight - 120, start.top + dy)) }
-            setPos(next)
-          }
-          const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
-          window.addEventListener('mousemove', move)
-          window.addEventListener('mouseup', up)
-        }}
-      >
-        <div style={{ fontWeight: 600 }}>Pick opacity</div>
-        <button onClick={() => { setAnchor(null); setSlot(null) }} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
-      </div>
-      <div style={{ display: 'grid', gap: 6 }}>
-        {options.map((opt) => (
-          <button key={opt.name} onClick={() => { onSelect(slot, opt.name, opt.value); setAnchor(null); setSlot(null) }} style={{ display: 'flex', justifyContent: 'space-between', width: '100%', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, padding: '6px 8px', cursor: 'pointer' }}>
-            <span style={{ textTransform: 'capitalize' }}>{opt.name.replace('opacity/','')}</span>
-            <span>{`${Math.round(opt.value <= 1 ? opt.value * 100 : opt.value)}%`}</span>
-          </button>
-        ))}
-      </div>
-    </div>,
-    document.body
-  )
-}
 
