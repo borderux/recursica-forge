@@ -572,7 +572,11 @@ export default function ColorTokens() {
   const handleNameFromHex = async (family: string, hex: string) => {
     if (!family) return
     const label = await getNtcName(hex)
-    setFamilyNames((prev) => ({ ...prev, [family]: toTitleCase(label) }))
+    const newName = toTitleCase(label)
+    // Update the display name
+    setFamilyNames((prev) => ({ ...prev, [family]: newName }))
+    // Immediately trigger the rename logic (like on blur) to handle slug changes
+    handleFamilyNameChange(family, newName)
   }
 
   const mode: ModeName = 'Mode 1'
