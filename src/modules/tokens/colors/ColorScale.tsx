@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
 
@@ -43,15 +44,70 @@ export function ColorScale({
   const displayFamilyName = toTitleCase(familyNames[family] ?? family)
   const isDeleteDisabled = isUsedInPalettes || isLastColorScale
 
+  // Local state for input value (for immediate UI feedback)
+  const [localName, setLocalName] = useState(displayFamilyName)
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Sync local state when displayFamilyName changes externally
+  useEffect(() => {
+    setLocalName(displayFamilyName)
+    // Clear any pending debounce timer when name changes externally (e.g., from "name this color" button)
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = null
+    }
+  }, [displayFamilyName])
+
+  // Debounced handler for name changes
+  const handleNameChange = (newValue: string) => {
+    const v = toTitleCase(newValue)
+    setLocalName(v)
+    
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    
+    // Set new timer to debounce the actual change
+    debounceTimerRef.current = setTimeout(() => {
+      onFamilyNameChange(family, v)
+    }, 1000) // 1000ms debounce
+  }
+
+  // Handle blur - apply immediately
+  const handleBlur = () => {
+    // Clear any pending debounced call
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = null
+    }
+    // Apply the change immediately on blur
+    const v = toTitleCase(localName)
+    onFamilyNameChange(family, v)
+  }
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       <div style={{ marginBottom: 4 }}>
         <input
           required
-          value={displayFamilyName}
-          onChange={(e) => {
-            const v = toTitleCase(e.currentTarget.value)
-            onFamilyNameChange(family, v)
+          value={localName}
+          onChange={(e) => handleNameChange(e.currentTarget.value)}
+          onBlur={handleBlur}
+          onKeyDown={(e) => {
+            // Apply immediately on Enter
+            if (e.key === 'Enter') {
+              e.currentTarget.blur()
+            }
           }}
           style={{ fontSize: 13, padding: '4px 8px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 6, width: '100%' }}
         />

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
+import { updateCssVar } from '../../core/css/updateCssVar'
+import { readCssVar, readCssVarNumber } from '../../core/css/readCssVar'
 
 type PaletteColorSelectorProps = {
   paletteKey: string
@@ -23,18 +25,7 @@ function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
   return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
 }
 
-// Read a CSS variable value and convert to number (for opacity)
-function readCssVarNumber(cssVar: string): number {
-  try {
-    const value = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim()
-    if (!value) return 1
-    const num = parseFloat(value)
-    if (!isNaN(num)) {
-      return num <= 1 ? num : num / 100
-    }
-  } catch {}
-  return 1
-}
+// readCssVarNumber is now imported from centralized utility
 
 // Determine the correct on-tone color (white or black) considering opacity for AA compliance
 function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'white' | 'black' {
@@ -240,7 +231,7 @@ export default function PaletteColorSelector({
       if (typeof hex === 'string') {
         // Re-check AA compliance and update on-tone if needed
         const onToneCore = pickOnToneWithOpacity(hex, mode)
-        rootEl.style.setProperty(
+        updateCssVar(
           `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
           `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
         )
@@ -264,7 +255,7 @@ export default function PaletteColorSelector({
               const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
               if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
               root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
-                $value: `{brand.${modeKey}.palettes.core.${onToneCore}}`
+                $value: `{brand.${modeKey}.palettes.core-colors.${onToneCore}}`
               }
             }
           })
@@ -317,14 +308,14 @@ export default function PaletteColorSelector({
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
         // Set tone CSS variable - only for this specific palette
-        rootEl.style.setProperty(
+        updateCssVar(
           `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
           `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`
         )
         
         // Determine on-tone color considering opacity for AA compliance - only for this palette
         const onToneCore = pickOnToneWithOpacity(hex, mode)
-        rootEl.style.setProperty(
+        updateCssVar(
           `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
           `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
         )
@@ -373,21 +364,20 @@ export default function PaletteColorSelector({
       
       // Update CSS variables FIRST (before setTheme) to avoid flicker
       // This ensures CSS vars are set before theme update triggers re-renders
-      const rootEl = document.documentElement
       const modeLower = mode.toLowerCase()
       headerLevels.forEach((lvl) => {
         const tokenName = `color/${family}/${lvl}`
         const hex = getTokenValueByName(tokenName)
         if (typeof hex === 'string') {
           // Set tone CSS variable - only for this specific palette
-          rootEl.style.setProperty(
+          updateCssVar(
             `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
             `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`
           )
           
           // Determine on-tone color considering opacity for AA compliance - only for this palette
           const onToneCore = pickOnToneWithOpacity(hex, mode)
-          rootEl.style.setProperty(
+          updateCssVar(
             `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
             `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
           )

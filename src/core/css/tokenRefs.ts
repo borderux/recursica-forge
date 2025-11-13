@@ -70,7 +70,7 @@ export function findTokenByHex(
     
     const tokensRoot: any = tokens?.tokens || {}
     const colorsRoot: any = tokensRoot?.color || {}
-    const levels = ['900','800','700','600','500','400','300','200','100','050']
+    const levels = ['900','800','700','600','500','400','300','200','100','050','000']
     
     for (const family of Object.keys(colorsRoot)) {
       if (family === 'translucent') continue

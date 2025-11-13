@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
+import { readCssVar } from '../../core/css/readCssVar'
 
 type PaletteColorControlProps = {
   /** The CSS variable name to set when a color is selected */
@@ -46,8 +47,8 @@ export default function PaletteColorControl({
 
   // Update display label based on CSS variable value
   useEffect(() => {
-    // Get the CSS variable value from inline styles
-    const cssValue = document.documentElement.style.getPropertyValue(displayCssVar).trim()
+    // Get the CSS variable value
+    const cssValue = readCssVar(displayCssVar)
 
     if (!cssValue) {
       setDisplayLabel(fallbackLabel)
