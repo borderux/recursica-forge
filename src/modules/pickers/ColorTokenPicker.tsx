@@ -5,7 +5,7 @@ import { readOverrides } from '../theme/tokenOverrides'
 import { findTokenByHex } from '../../core/css/tokenRefs'
 
 export default function ColorTokenPicker() {
-  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
+  const { tokens: tokensJson, theme: themeJson, setTheme, palettes, setPalettes } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetVar, setTargetVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
@@ -107,16 +107,39 @@ export default function ColorTokenPicker() {
       const root = document.documentElement
       root.style.setProperty(targetVar, `var(${tokenCssVar})`)
       
-      // If this is a core color, update the theme state to persist the change
+      // If this is a core color, update the theme state and palettes bindings to persist the change
       const coreColorMatch = targetVar.match(/--recursica-brand-light-palettes-core-(black|white|alert|warning|success|interactive)/)
       if (coreColorMatch && setTheme && themeJson) {
         const coreColorName = coreColorMatch[1] as 'black' | 'white' | 'alert' | 'warning' | 'success' | 'interactive'
         const tokenRef = `{tokens.color.${family}.${level}}`
         
+        // Normalize hex value (ensure it starts with #)
+        const normalizedHex = hex.startsWith('#') ? hex : `#${hex}`
+        
+        // Build normalized token name for bindings (using normalized level)
+        const normalizedTokenName = `color/${family}/${level}`
+        
+        // Update palettes bindings - this is what actually controls the CSS variable
+        if (setPalettes && palettes) {
+          const updatedBindings = {
+            ...(palettes.bindings || {}),
+            [targetVar]: {
+              token: normalizedTokenName,
+              hex: normalizedHex
+            }
+          }
+          setPalettes({
+            ...palettes,
+            bindings: updatedBindings
+          })
+        }
+        
         // Update theme JSON to persist the change
         try {
           const nextTheme = JSON.parse(JSON.stringify(themeJson)) // Deep clone
           const root: any = nextTheme?.brand ? nextTheme.brand : nextTheme
+          
+          // Update light mode
           if (root?.light?.palettes?.core) {
             const core = root.light.palettes.core
             if (core.$value) {
@@ -124,8 +147,19 @@ export default function ColorTokenPicker() {
             } else {
               core[coreColorName] = tokenRef
             }
-            setTheme(nextTheme)
           }
+          
+          // Also update dark mode to keep them in sync
+          if (root?.dark?.palettes?.core) {
+            const core = root.dark.palettes.core
+            if (core.$value) {
+              core.$value[coreColorName] = tokenRef
+            } else {
+              core[coreColorName] = tokenRef
+            }
+          }
+          
+          setTheme(nextTheme)
         } catch (err) {
           console.error('Failed to update theme state for core color:', err)
         }
