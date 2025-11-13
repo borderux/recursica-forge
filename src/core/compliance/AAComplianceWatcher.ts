@@ -167,6 +167,9 @@ export class AAComplianceWatcher {
     
     // Check layer element colors
     this.checkLayerElementColors()
+    
+    // Check core colors and update alternative layers
+    this.checkCoreColors()
   }
 
   /**
@@ -258,6 +261,51 @@ export class AAComplianceWatcher {
     
     // Initial check
     this.updateAlternativeLayerElementColors(alternativeKey)
+  }
+
+  /**
+   * Watch core colors (alert, warning, success, interactive) and update alternative layers when they change
+   */
+  watchCoreColors() {
+    const coreColors = ['alert', 'warning', 'success', 'interactive']
+    coreColors.forEach((colorName) => {
+      const coreColorVar = `--recursica-brand-light-palettes-core-${colorName}`
+      this.watchedVars.add(coreColorVar)
+    })
+  }
+
+  private checkCoreColors() {
+    const coreColors = ['alert', 'warning', 'success', 'interactive']
+    const alternativeLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+    
+    coreColors.forEach((colorName) => {
+      const coreColorVar = `--recursica-brand-light-palettes-core-${colorName}`
+      const currentValue = readCssVar(coreColorVar)
+      const lastValue = this.lastValues.get(coreColorVar)
+      
+      if (currentValue !== lastValue) {
+        this.lastValues.set(coreColorVar, currentValue)
+        
+        // Determine which alternative layers need to be updated
+        const layersToUpdate = new Set<string>()
+        
+        if (colorName === 'alert' || colorName === 'warning' || colorName === 'success') {
+          // Status colors affect their corresponding alternative layer
+          // (surface color changes, and status text elements may need re-evaluation)
+          layersToUpdate.add(colorName)
+        }
+        
+        if (colorName === 'interactive') {
+          // Interactive color affects all alternative layers (for interactive elements)
+          alternativeLayers.forEach((layer) => layersToUpdate.add(layer))
+        }
+        
+        // Update all affected alternative layers
+        layersToUpdate.forEach((layerKey) => {
+          this.updateAlternativeLayerElementColors(layerKey)
+        })
+      }
+    })
   }
 
   private checkLayerElementColors() {
@@ -423,6 +471,16 @@ export class AAComplianceWatcher {
     this.tokenIndex = buildTokenIndex(tokens)
     // Re-check all watched vars
     this.performChecks()
+  }
+
+  /**
+   * Force AA compliance check for all alternative layers (call after reset)
+   */
+  checkAllAlternativeLayers() {
+    const alternativeLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+    alternativeLayers.forEach((layerKey) => {
+      this.updateAlternativeLayerElementColors(layerKey)
+    })
   }
 
   /**

@@ -271,12 +271,24 @@ class VarsStore {
       altKeys.forEach((key) => {
         this.aaWatcher?.watchAlternativeLayerSurface(key)
       })
+      
+      // Watch core colors (alert, warning, success, interactive) to update alternative layers
+      this.aaWatcher?.watchCoreColors()
     })
   }
 
   getState(): VarsState { return this.state }
   subscribe(listener: Listener) { this.listeners.add(listener); return () => { this.listeners.delete(listener) } }
   private emit() { this.listeners.forEach((l) => l()) }
+  
+  /**
+   * Trigger AA compliance checks for all alternative layers (call when navigating to layers page)
+   */
+  checkAlternativeLayersAA() {
+    if (this.aaWatcher) {
+      this.aaWatcher.checkAllAlternativeLayers()
+    }
+  }
 
   private writeState(next: Partial<VarsState>, skipRecompute = false) {
     this.state = { ...this.state, ...next }
@@ -522,6 +534,12 @@ class VarsStore {
     }
     this.emit()
     this.recomputeAndApplyAll()
+    // Update AA watcher with new tokens/theme and check alternative layers
+    if (this.aaWatcher) {
+      this.aaWatcher.updateTokensAndTheme(sortedTokens, normalizedTheme as any)
+      // Force check all alternative layers after reset
+      this.aaWatcher.checkAllAlternativeLayers()
+    }
     // Notify legacy listeners so UI components can force refresh where needed
     try { window.dispatchEvent(new CustomEvent('paletteReset')) } catch {}
   }

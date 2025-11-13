@@ -1,15 +1,24 @@
 import '../theme/index.css'
 import LayerModule from './LayerModule'
 import LayerStylePanel from './LayerStylePanel'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useVars } from '../vars/VarsContext'
 import ElevationModule from '../elevation/ElevationModule'
 import ElevationStylePanel from '../elevation/ElevationStylePanel'
 
 export default function LayersPage() {
-  const { tokens: tokensJson, theme, setTheme, elevation, updateElevation } = useVars()
+  const { tokens: tokensJson, theme, setTheme, elevation, updateElevation, checkAlternativeLayersAA } = useVars()
   const [selectedLayerLevels, setSelectedLayerLevels] = useState<Set<number>>(() => new Set())
   const [selectedLevels, setSelectedLevels] = useState<Set<number>>(() => new Set<number>())
+
+  // Trigger AA compliance checks for alternative layers when page loads/navigates to
+  useEffect(() => {
+    // Use a small delay to ensure CSS variables are set
+    const timeout = setTimeout(() => {
+      checkAlternativeLayersAA()
+    }, 100)
+    return () => clearTimeout(timeout)
+  }, [checkAlternativeLayersAA])
 
   // Extract token lists for UI (values are resolved via CSS vars)
   const availableSizeTokens = useMemo(() => {
