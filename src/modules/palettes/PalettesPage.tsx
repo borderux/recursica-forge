@@ -21,13 +21,50 @@ export default function PalettesPage() {
   const writePalettes = (next: PaletteEntry[]) => setPalettes({ ...palettesState, dynamic: next })
   
   // Track which families are already used by palettes
+  // Check both initialFamily and the actual family from theme JSON
   const usedFamilies = useMemo(() => {
     const set = new Set<string>()
+    
+    // First, add families from initialFamily
     palettes.forEach((p) => {
       if (p.initialFamily) set.add(p.initialFamily)
     })
+    
+    // Then, detect actual families from theme JSON (in case user changed the family)
+    try {
+      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+      palettes.forEach((p) => {
+        const paletteKey = p.key
+        let foundFamily = false
+        // Check both light and dark modes (but a palette should use same family in both)
+        for (const modeKey of ['light', 'dark']) {
+          if (foundFamily) break
+          const palette = root?.[modeKey]?.palettes?.[paletteKey]
+          if (palette) {
+            // Check a few levels to detect the family
+            const checkLevels = ['200', '500', '400', '300']
+            for (const lvl of checkLevels) {
+              const tone = palette?.[lvl]?.color?.tone?.$value
+              if (typeof tone === 'string') {
+                // Check for token reference format: {tokens.color.{family}.{level}}
+                const match = tone.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
+                if (match && match[1]) {
+                  const detectedFamily = match[1]
+                  set.add(detectedFamily)
+                  foundFamily = true
+                  break // Found a family for this palette, move to next palette
+                }
+              }
+            }
+          }
+        }
+      })
+    } catch (err) {
+      console.error('Failed to detect used families from theme:', err)
+    }
+    
     return set
-  }, [palettes])
+  }, [palettes, themeJson])
   
   const unusedFamilies = useMemo(() => 
     allFamilies.filter((f) => !usedFamilies.has(f)), 
