@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
+import { removeCssVar } from '../../../core/css/updateCssVar'
 import { ColorScale } from './ColorScale'
 import { clamp, hsvToHex, hexToHsv, toTitleCase, toKebabCase } from './colorUtils'
 import { cascadeColor, computeLevel500Hex, parseLevel, IDX_MAP, LEVELS_ASC } from './colorCascade'
@@ -353,6 +354,17 @@ export default function ColorTokens() {
           // Update tokens structure
           if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
           setTokens(nextTokens)
+          
+          // Remove old CSS variables for the temp family
+          Object.keys(tempTokenValues).forEach((tempTokenName) => {
+            const parts = tempTokenName.split('/')
+            if (parts.length === 3) {
+              const level = parts[2]
+              const levelStr = String(level).padStart(3, '0')
+              const oldCssVar = `--recursica-tokens-color-${tempFamily}-${levelStr}`
+              removeCssVar(oldCssVar)
+            }
+          })
           
           // Update local values state - rename all tokens
           // The tokens JSON structure is already updated above with setTokens(), which triggers recomputeAndApplyAll()
