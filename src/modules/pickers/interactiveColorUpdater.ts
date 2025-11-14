@@ -1,6 +1,6 @@
 import { readCssVar } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
-import { pickAAOnTone } from '../theme/contrastUtil'
+import { pickAAOnTone, contrastRatio } from '../theme/contrastUtil'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import type { JsonLike } from '../../core/resolvers/tokens'
 import {

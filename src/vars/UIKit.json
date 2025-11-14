@@ -298,19 +298,19 @@
             "solid": {
               "background": {
                 "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone}"
               },
               "background-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone-hover}"
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-0.element.interactive.on-tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-0.element.interactive.on-tone-hover}"
               }
             },
             "text": {
@@ -324,11 +324,11 @@
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone-hover}"
               }
             },
             "outline": {
@@ -342,11 +342,11 @@
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone-hover}"
               }
             }
           },
@@ -354,19 +354,19 @@
             "solid": {
               "background": {
                 "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone}"
               },
               "background-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-1.element.interactive.on-tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-1.element.interactive.on-tone-hover}"
               }
             },
             "text": {
@@ -380,11 +380,11 @@
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
               }
             },
             "outline": {
@@ -398,11 +398,11 @@
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
               }
             }
           },
@@ -410,19 +410,19 @@
             "solid": {
               "background": {
                 "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
               },
               "background-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-2.element.interactive.on-tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-2.element.interactive.on-tone-hover}"
               }
             },
             "text": {
@@ -436,11 +436,11 @@
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
               }
             },
             "outline": {
@@ -454,11 +454,11 @@
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
               }
             }
           },
@@ -466,19 +466,19 @@
             "solid": {
               "background": {
                 "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
               },
               "background-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-3.element.interactive.on-tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-3.element.interactive.on-tone-hover}"
               }
             },
             "text": {
@@ -492,11 +492,11 @@
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
               }
             },
             "outline": {
@@ -510,11 +510,11 @@
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.default.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
               },
               "text-hover": {
                 "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.hover.on-tone}"
+                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
               }
             }
           }

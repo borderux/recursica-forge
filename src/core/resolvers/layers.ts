@@ -525,99 +525,95 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     }
 
     const brandInterBase = `--recursica-brand-light-layer-layer-${prefix}-property-element-interactive-`
-    // Extract interactive color value - handle both direct values and $value wrapper
-    let icolorRaw = spec?.element?.interactive?.color
-    if (icolorRaw && typeof icolorRaw === 'object' && typeof (icolorRaw as any)['$value'] === 'string') {
-      icolorRaw = (icolorRaw as any)['$value']
+    
+    // Helper to extract value from $value wrapper or direct value
+    const extractValue = (val: any): any => {
+      if (val && typeof val === 'object' && typeof (val as any)['$value'] === 'string') {
+        return (val as any)['$value']
+      }
+      return val
     }
+    
+    // Extract all interactive color values - handle both direct values and $value wrapper
+    // New structure: tone, tone-hover, on-tone, on-tone-hover
+    const itoneRaw = extractValue(spec?.element?.interactive?.tone)
+    const itoneHoverRaw = extractValue(spec?.element?.interactive?.['tone-hover'])
+    const ionToneRaw = extractValue(spec?.element?.interactive?.['on-tone'])
+    const ionToneHoverRaw = extractValue(spec?.element?.interactive?.['on-tone-hover'])
+    
+    // Legacy support: check for old property names
+    const ibgRaw = extractValue(spec?.element?.interactive?.background)
+    const ibgHoverRaw = extractValue(spec?.element?.interactive?.['background-hover'])
+    const itextRaw = extractValue(spec?.element?.interactive?.text)
+    const itextHoverRaw = extractValue(spec?.element?.interactive?.['text-hover'])
+    
+    // Legacy support: check for old 'color' property
+    let icolorRaw = extractValue(spec?.element?.interactive?.color)
     const icolorVar = coerceToVarRef(icolorRaw)
+    
     const ihRaw = spec?.element?.interactive?.['high-emphasis']
     const ih = resolveRef(ihRaw)
     const ihoverRaw = spec?.element?.interactive?.['hover-color']
     const ihover = resolveRef(ihoverRaw)
-    // Interactive color: core token palette tone → step within its palette → fallback to surface on-tone (AA considers opacity)
-    const interactiveHex = readCssVar('--recursica-brand-light-palettes-core-interactive') || readCssVar('--palette-interactive') || ((): string | undefined => {
-      // Support both old format (brand.light.*) and new format (brand.themes.light.*)
-      const coreInteractive = resolveRef('{brand.themes.light.palettes.core-colors.interactive}') ?? resolveRef('{brand.light.palettes.core-colors.interactive}') ?? resolveRef('{brand.light.palettes.core.interactive}')
-      return typeof coreInteractive === 'string' ? String(coreInteractive) : undefined
-    })()
-    if (icolorVar) {
-      // Explicit override from spec takes precedence
-      result[`${brandInterBase}color`] = icolorVar
-    } else if ((surfaceHex || surfPalette) && interactiveHex) {
-      const bgHex = surfPalette
-        ? (readCssVar(buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')) || surfaceHex || '')
-        : (readIfCssVarOrHex(surfaceHex) || '')
-      const interToken = parseCoreTokenRef('interactive')
-      const interHighOpacity = (() => {
-        const fromSpec = (() => {
-          const v = ih
-          const n = typeof v === 'number' ? v : (typeof v === 'string' ? Number(v) : NaN)
-          return Number.isFinite(n) ? (n <= 1 ? n : n / 100) : undefined
-        })()
-        if (fromSpec != null) return fromSpec
-        if (surfPalette) {
-          const hi = readCssVar(buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'high-emphasis'))
-          const n = typeof hi === 'string' ? Number(hi) : NaN
-          return Number.isFinite(n) ? (n <= 1 ? n : n / 100) : 1
-        }
-        return 1
-      })()
-      let finalRef: string | undefined
-      let chosenLevel: string | undefined
-      if (interToken) {
-        // Use core token directly - AA compliance will be handled reactively in Phase 3
-        finalRef = 'var(--recursica-brand-light-palettes-core-interactive)'
-        chosenLevel = interToken.level
-        // Hover: use same token (AA compliance will be handled reactively in Phase 3)
-        if (chosenLevel) {
-          result[`${brandInterBase}hover-color`] = `var(--recursica-tokens-color-${interToken.family}-${chosenLevel})`
-        }
+    
+    // Resolve all interactive properties - prefer new names, fall back to old names
+    // Note: text-hover is also used in some alternative layers (e.g., high-contrast) as an alias for on-tone-hover
+    const itoneVar = coerceToVarRef(itoneRaw) || coerceToVarRef(ibgRaw)
+    const itoneHoverVar = coerceToVarRef(itoneHoverRaw) || coerceToVarRef(ibgHoverRaw)
+    const ionToneVar = coerceToVarRef(ionToneRaw) || coerceToVarRef(itextRaw)
+    const ionToneHoverVar = coerceToVarRef(ionToneHoverRaw) || coerceToVarRef(itextHoverRaw)
+    
+    // Helper to get default reference for interactive properties
+    const getDefaultInteractiveRef = (property: 'tone' | 'tone-hover' | 'on-tone' | 'on-tone-hover'): string => {
+      if (property === 'tone') {
+        return 'var(--recursica-brand-light-palettes-core-interactive-default-tone)'
+      } else if (property === 'tone-hover') {
+        return 'var(--recursica-brand-light-palettes-core-interactive-hover-tone)'
+      } else if (property === 'on-tone') {
+        return 'var(--recursica-brand-light-palettes-core-interactive-default-on-tone)'
+      } else if (property === 'on-tone-hover') {
+        return 'var(--recursica-brand-light-palettes-core-interactive-hover-on-tone)'
       }
-      if (!finalRef) {
-        const onToneVar = surfPalette ? buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone') : undefined
-        if (onToneVar) {
-          const deref = readCssVar(onToneVar)
-          // If deref is a hex value, convert it to a token var reference if possible
-          if (deref && typeof deref === 'string') {
-            const hex = deref.trim()
-            if (/^#?[0-9a-f]{6}$/i.test(hex)) {
-              const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-              if (h === '#ffffff' || h === '#000000') {
-                finalRef = mapBWHexToVar(h)
-                } else {
-                  // Fall back to on-tone var (token-by-hex lookup removed - should be in JSON)
-                  finalRef = `var(${onToneVar})`
-                }
-            } else {
-              // Not a hex value, use as-is or fall back to on-tone var
-              finalRef = deref || `var(${onToneVar})`
-            }
-          } else {
-            // No deref value, use on-tone var
-            finalRef = `var(${onToneVar})`
-          }
-        } else {
-          // Default to black - AA compliance will be handled reactively in Phase 3
-          finalRef = 'var(--recursica-brand-light-palettes-core-black)'
-        }
-      }
-      result[`${brandInterBase}color`] = finalRef
+      return 'var(--recursica-brand-light-palettes-core-interactive-default-tone)'
+    }
+    
+    // Set tone colors (background)
+    if (itoneVar) {
+      result[`${brandInterBase}tone`] = itoneVar
     } else {
-      // Fallback: keep reference to core var so it updates when palette changes
-      const interToken = parseCoreTokenRef('interactive')
-      if (interToken) {
-        const pk = findPaletteKeyForFamilyLevel(interToken.family, interToken.level)
-        if (pk) {
-          const v = `var(${buildPaletteVar(pk, interToken.level, 'tone')})`
-          result[`${brandInterBase}color`] = v
-        } else {
-          const v = 'var(--recursica-brand-light-palettes-core-interactive, var(--palette-interactive))'
-          result[`${brandInterBase}color`] = v
-        }
-      } else {
-        const v = 'var(--recursica-brand-light-palettes-core-interactive, var(--palette-interactive))'
-        result[`${brandInterBase}color`] = v
+      // Use default from core palette - AA compliance will be handled reactively
+      result[`${brandInterBase}tone`] = getDefaultInteractiveRef('tone')
+    }
+    
+    if (itoneHoverVar) {
+      result[`${brandInterBase}tone-hover`] = itoneHoverVar
+    } else {
+      // Use default from core palette - AA compliance will be handled reactively
+      result[`${brandInterBase}tone-hover`] = getDefaultInteractiveRef('tone-hover')
+    }
+    
+    // Set on-tone colors (text)
+    if (ionToneVar) {
+      result[`${brandInterBase}on-tone`] = ionToneVar
+    } else {
+      // Use default from core palette - AA compliance will be handled reactively
+      result[`${brandInterBase}on-tone`] = getDefaultInteractiveRef('on-tone')
+    }
+    
+    if (ionToneHoverVar) {
+      result[`${brandInterBase}on-tone-hover`] = ionToneHoverVar
+    } else {
+      // Use default from core palette - AA compliance will be handled reactively
+      result[`${brandInterBase}on-tone-hover`] = getDefaultInteractiveRef('on-tone-hover')
+    }
+    
+    // Legacy support: if old 'color' property exists, use it for backward compatibility
+    if (icolorVar) {
+      // Map old 'color' to tone for backward compatibility
+      result[`${brandInterBase}color`] = icolorVar
+      // Also set as tone if not already set
+      if (!itoneVar) {
+        result[`${brandInterBase}tone`] = icolorVar
       }
     }
     // Default interactive high-emphasis to text high-emphasis if not provided; prefer opacity tokens

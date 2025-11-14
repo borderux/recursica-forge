@@ -396,6 +396,31 @@ export class AAComplianceWatcher {
         coreToken: null
       },
       {
+        name: 'interactive-tone',
+        colorVar: `${brandBase}element-interactive-tone`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
+      },
+      {
+        name: 'interactive-tone-hover',
+        colorVar: `${brandBase}element-interactive-tone-hover`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
+      },
+      {
+        name: 'interactive-on-tone',
+        colorVar: `${brandBase}element-interactive-on-tone`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
+      },
+      {
+        name: 'interactive-on-tone-hover',
+        colorVar: `${brandBase}element-interactive-on-tone-hover`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
+      },
+      // Legacy support: keep old 'interactive-color' for backward compatibility
+      {
         name: 'interactive-color',
         colorVar: `${brandBase}element-interactive-color`,
         opacityVar: `${brandBase}element-interactive-high-emphasis`,
@@ -446,6 +471,31 @@ export class AAComplianceWatcher {
         coreToken: null
       },
       {
+        name: 'interactive-tone',
+        colorVar: `${brandBase}element-interactive-tone`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
+      },
+      {
+        name: 'interactive-tone-hover',
+        colorVar: `${brandBase}element-interactive-tone-hover`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
+      },
+      {
+        name: 'interactive-on-tone',
+        colorVar: `${brandBase}element-interactive-on-tone`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
+      },
+      {
+        name: 'interactive-on-tone-hover',
+        colorVar: `${brandBase}element-interactive-on-tone-hover`,
+        opacityVar: `${brandBase}element-interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme)
+      },
+      // Legacy support: keep old 'interactive-color' for backward compatibility
+      {
         name: 'interactive-color',
         colorVar: `${brandBase}element-interactive-color`,
         opacityVar: `${brandBase}element-interactive-high-emphasis`,
@@ -484,8 +534,79 @@ export class AAComplianceWatcher {
         updateCssVar(currentColorCssVar, aaCompliantColor, this.tokens)
       }
       return
+    } else if (elementName === 'interactive-tone') {
+      // Use stepping logic for interactive tone colors (background)
+      const coreInteractiveVar = 'var(--recursica-brand-light-palettes-core-interactive-default-tone)'
+      const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex) || 
+                                  resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive)', this.tokenIndex)
+      
+      if (coreInteractiveHex) {
+        // Step until AA compliant
+        const steppedHex = stepUntilAACompliant(coreInteractiveHex, surfaceHex, 'darker', this.tokens)
+        const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+      }
+      return
+    } else if (elementName === 'interactive-tone-hover') {
+      // Use stepping logic for interactive tone hover colors (background hover)
+      const coreInteractiveVar = 'var(--recursica-brand-light-palettes-core-interactive-hover-tone)'
+      const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex)
+      
+      if (coreInteractiveHex) {
+        // Step until AA compliant
+        const steppedHex = stepUntilAACompliant(coreInteractiveHex, surfaceHex, 'darker', this.tokens)
+        const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+      }
+      return
+    } else if (elementName === 'interactive-on-tone') {
+      // Use stepping logic for interactive on-tone colors (text)
+      // For text on interactive background, we need to check contrast against the interactive tone
+      // Get the corresponding tone CSS variable
+      const interactiveToneVar = currentColorCssVar.replace('element-interactive-on-tone', 'element-interactive-tone')
+      const interactiveToneValue = readCssVar(interactiveToneVar)
+      const interactiveToneHex = interactiveToneValue 
+        ? resolveCssVarToHex(interactiveToneValue, this.tokenIndex)
+        : resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive-default-tone)', this.tokenIndex)
+      
+      if (interactiveToneHex) {
+        // Text should contrast with the interactive tone, not the surface
+        const coreOnToneVar = 'var(--recursica-brand-light-palettes-core-interactive-default-on-tone)'
+        const coreOnToneHex = resolveCssVarToHex(coreOnToneVar, this.tokenIndex)
+        
+        if (coreOnToneHex) {
+          // Step until AA compliant against the interactive tone
+          const steppedHex = stepUntilAACompliant(coreOnToneHex, interactiveToneHex, 'darker', this.tokens)
+          const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+          updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+        }
+      }
+      return
+    } else if (elementName === 'interactive-on-tone-hover') {
+      // Use stepping logic for interactive on-tone hover colors (text hover)
+      // For text on interactive hover background, we need to check contrast against the interactive hover tone
+      // Get the corresponding tone hover CSS variable
+      const interactiveToneHoverVar = currentColorCssVar.replace('element-interactive-on-tone-hover', 'element-interactive-tone-hover')
+      const interactiveToneHoverValue = readCssVar(interactiveToneHoverVar)
+      const interactiveToneHoverHex = interactiveToneHoverValue
+        ? resolveCssVarToHex(interactiveToneHoverValue, this.tokenIndex)
+        : resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive-hover-tone)', this.tokenIndex)
+      
+      if (interactiveToneHoverHex) {
+        // Text should contrast with the interactive hover tone, not the surface
+        const coreOnToneVar = 'var(--recursica-brand-light-palettes-core-interactive-hover-on-tone)'
+        const coreOnToneHex = resolveCssVarToHex(coreOnToneVar, this.tokenIndex)
+        
+        if (coreOnToneHex) {
+          // Step until AA compliant against the interactive hover tone
+          const steppedHex = stepUntilAACompliant(coreOnToneHex, interactiveToneHoverHex, 'darker', this.tokens)
+          const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+          updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+        }
+      }
+      return
     } else if (elementName === 'interactive-color') {
-      // Use stepping logic for interactive colors
+      // Legacy support: Use stepping logic for old interactive-color property
       const coreInteractiveVar = 'var(--recursica-brand-light-palettes-core-interactive-default-tone)'
       const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex) || 
                                   resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive)', this.tokenIndex)

@@ -6,8 +6,22 @@
           "layer-0": {
             "element": {
               "interactive": {
-                "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive}"
+                "tone": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                },
+                "tone-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                },
+                "on-tone": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
+                },
+                "on-tone-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.on-tone}"
+                }
               },
               "text": {
                 "warning": {
@@ -102,8 +116,22 @@
                 }
               },
               "interactive": {
-                "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive}"
+                "tone": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                },
+                "tone-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                },
+                "on-tone": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
+                },
+                "on-tone-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.on-tone}"
+                }
               }
             }
           },
@@ -154,8 +182,22 @@
                 }
               },
               "interactive": {
-                "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive}"
+                "tone": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                },
+                "tone-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                },
+                "on-tone": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
+                },
+                "on-tone-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.on-tone}"
+                }
               }
             }
           },
@@ -180,8 +222,22 @@
                 }
               },
               "interactive": {
-                "$type": "color",
-                "$value": "{brand.themes.light.palettes.core-colors.interactive}"
+                "tone": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                },
+                "tone-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                },
+                "on-tone": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
+                },
+                "on-tone-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.on-tone}"
+                }
               }
             },
             "property": {
@@ -221,8 +277,22 @@
                   }
                 },
                 "interactive": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.palettes.core-colors.white}"
+                  "tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                  },
+                  "tone-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                  },
+                  "on-tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
+                  },
+                  "text-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.on-tone}"
+                  }
                 }
               },
               "property": {
@@ -245,8 +315,22 @@
                   }
                 },
                 "interactive": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.palettes.core-colors.white}"
+                  "tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                  },
+                  "tone-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                  },
+                  "on-tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
+                  },
+                  "on-tone-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.on-tone}"
+                  }
                 }
               },
               "property": {
@@ -269,8 +353,22 @@
                   }
                 },
                 "interactive": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.palettes.palette-1.default.color.on-tone}"
+                  "tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                  },
+                  "tone-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                  },
+                  "on-tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
+                  },
+                  "on-tone-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.on-tone}"
+                  }
                 }
               },
               "property": {
@@ -293,8 +391,22 @@
                   }
                 },
                 "interactive": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.palettes.core-colors.white}"
+                  "tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                  },
+                  "tone-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                  },
+                  "on-tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
+                  },
+                  "on-tone-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.on-tone}"
+                  }
                 }
               },
               "property": {
@@ -317,8 +429,22 @@
                   }
                 },
                 "interactive": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.palettes.core-colors.white}"
+                  "tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                  },
+                  "tone-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.tone}"
+                  },
+                  "on-tone": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
+                  },
+                  "on-tone-hover": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.interactive.hover.on-tone}"
+                  }
                 }
               },
               "property": {

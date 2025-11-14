@@ -8,7 +8,6 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar } from '../utils/cssVarNames'
-import { readCssVar } from '../hooks/useCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type ButtonProps = {
@@ -21,6 +20,7 @@ export type ButtonProps = {
   type?: 'button' | 'submit' | 'reset'
   className?: string
   style?: React.CSSProperties
+  icon?: React.ReactNode
 } & LibrarySpecificProps
 
 export function Button({
@@ -33,6 +33,7 @@ export function Button({
   type = 'button',
   className,
   style,
+  icon,
   mantine,
   material,
   carbon,
@@ -41,6 +42,10 @@ export function Button({
   
   if (!Component) {
     // Fallback to native button if component not available
+    const sizePrefix = size === 'small' ? 'small' : 'default'
+    const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
+    const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+    
     return (
       <button
         type={type}
@@ -49,9 +54,24 @@ export function Button({
         className={className}
         style={{
           ...getButtonStyles(variant, size, layer, disabled),
+          display: 'flex',
+          alignItems: 'center',
+          gap: icon ? `var(${iconGapVar})` : 0,
           ...style,
         }}
       >
+        {icon && (
+          <span style={{
+            display: 'inline-flex',
+            width: `var(${iconSizeVar})`,
+            height: `var(${iconSizeVar})`,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            {icon}
+          </span>
+        )}
         {children}
       </button>
     )
@@ -67,6 +87,7 @@ export function Button({
     type,
     className,
     style,
+    icon,
     mantine,
     material,
     carbon,
@@ -87,10 +108,33 @@ function getButtonStyles(
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
   
-  // New UIKit.json structure: color.layer-X.{variant}.{property}
-  // Get CSS variables for button using variant in the path
-  const bgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
-  const textVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
+  const isAlternativeLayer = layer.startsWith('layer-alternative-')
+  
+  // For alternative layers, use the layer's own colors directly since UIKit.json only defines layer-0 through layer-3
+  // For standard layers, use UIKit.json button colors
+  let bgVar: string
+  let textVar: string
+  
+  if (isAlternativeLayer) {
+    // Extract alternative key (e.g., "high-contrast" from "layer-alternative-high-contrast")
+    const altKey = layer.replace('layer-alternative-', '')
+    const layerBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property`
+    
+    // Use alternative layer's interactive color and surface
+    // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
+    if (variant === 'solid') {
+      bgVar = `${layerBase}-element-interactive-tone`
+      textVar = `${layerBase}-element-interactive-on-tone`
+    } else {
+      // outline and text variants use interactive-tone for text color
+      bgVar = `${layerBase}-surface`
+      textVar = `${layerBase}-element-interactive-tone`
+    }
+  } else {
+    // Use UIKit.json button colors for standard layers
+    bgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
+    textVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
+  }
   
   const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
@@ -110,25 +154,21 @@ function getButtonStyles(
   const minWidthVarName = sizeMinWidthVar || minWidthVar
   const paddingVarName = sizePaddingVar || paddingVar
   
-  // Read CSS variables for colors (these may need fallbacks)
-  const backgroundColor = readCssVar(bgVar)
-  const textColor = readCssVar(textVar)
-  
-  // Apply variant styles
+  // Apply variant styles - always use CSS variable references directly
   if (variant === 'solid') {
-    styles.backgroundColor = backgroundColor ? `var(${bgVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-solid-background)`
-    styles.color = textColor ? `var(${textVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-solid-text)`
+    styles.backgroundColor = `var(${bgVar})`
+    styles.color = `var(${textVar})`
     styles.border = 'none'
   } else if (variant === 'outline') {
-    styles.backgroundColor = backgroundColor ? `var(${bgVar})` : 'transparent'
-    styles.color = textColor ? `var(${textVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-outline-text)`
-    // For outline, use text color as border color
-    const borderColor = textColor ? `var(${textVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-outline-text)`
-    styles.border = `1px solid ${borderColor}`
+    // For outline, use outline-specific CSS variables
+    styles.backgroundColor = `var(${bgVar})`
+    styles.color = `var(${textVar})`
+    // For outline, use text color as border color (which is the outline-text CSS var)
+    styles.border = `1px solid var(${textVar})`
   } else {
     // text variant
-    styles.backgroundColor = backgroundColor ? `var(${bgVar})` : 'transparent'
-    styles.color = textColor ? `var(${textVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-text-text)`
+    styles.backgroundColor = `var(${bgVar})`
+    styles.color = `var(${textVar})`
     styles.border = 'none'
   }
   
@@ -139,10 +179,11 @@ function getButtonStyles(
   styles.paddingRight = paddingVarName ? `var(${paddingVarName})` : '12px'
   styles.borderRadius = borderRadiusVar ? `var(${borderRadiusVar})` : '8px'
   styles.fontSize = fontSizeVar ? `var(${fontSizeVar})` : undefined
+  styles.fontWeight = 'var(--recursica-brand-typography-button-font-weight)'
   
-  // Apply disabled styles
+  // Apply disabled styles - use brand disabled opacity, don't change colors
   if (disabled) {
-    styles.opacity = '0.5'
+    styles.opacity = 'var(--recursica-brand-light-state-disabled)'
     styles.cursor = 'not-allowed'
   } else {
     styles.cursor = 'pointer'
@@ -152,9 +193,10 @@ function getButtonStyles(
 }
 
 function mapButtonProps(props: ButtonProps): any {
-  const { variant, size, layer, mantine, material, carbon, ...rest } = props
+  const { mantine, material, carbon, ...rest } = props
   
   // Base props that work across libraries
+  // Include variant, size, and layer so library adapters can use them
   const baseProps: any = {
     ...rest,
     disabled: props.disabled,

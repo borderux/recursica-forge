@@ -47,41 +47,56 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     return entry?.value
   })
   const modeLower = mode.toLowerCase()
+  
+  // Helper function to convert opacity values to CSS variable references
+  const getOpacityVar = (v: any): string => {
+    // Extract $value if v is an object with $value property (e.g., { $type: "number", $value: "{tokens.opacity.smoky}" })
+    const rawValue = (v && typeof v === 'object' && '$value' in v) ? v.$value : v
+    // Try to extract token name from brace reference before resolving
+    try {
+      if (typeof rawValue === 'string') {
+        const inner = rawValue.startsWith('{') && rawValue.endsWith('}') ? rawValue.slice(1, -1) : rawValue
+        const m = /^(?:tokens|token)\.opacity\.([a-z0-9\-_]+)$/i.exec(inner)
+        if (m) return `var(--recursica-tokens-opacity-${m[1]})`
+      }
+    } catch {}
+    // If that didn't work, try resolving and checking the result
+    const s = resolveBraceRef(rawValue, tokenIndex)
+    if (typeof s === 'string') {
+      const m = /^(?:tokens|token)\/?opacity\/([a-z0-9\-_]+)$/i.exec(s)
+      if (m) return `var(--recursica-tokens-opacity-${m[1]})`
+      // numeric fallback wraps solid as default
+      const n = Number(s)
+      if (Number.isFinite(n)) {
+        const norm = n <= 1 ? n : n / 100
+        return `var(--recursica-tokens-opacity-solid, ${String(Math.max(0, Math.min(1, norm)))})`
+      }
+    }
+    return 'var(--recursica-tokens-opacity-solid)'
+  }
+  
   // Read brand-level text emphasis from Brand JSON and emit brand vars
   try {
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
     // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
     const themes = root?.themes || root
     const textEmphasis: any = (mode === 'Light' ? themes?.light?.['text-emphasis'] : themes?.dark?.['text-emphasis']) || {}
-    const getOpacityVar = (v: any): string => {
-      // Extract $value if v is an object with $value property (e.g., { $type: "number", $value: "{tokens.opacity.smoky}" })
-      const rawValue = (v && typeof v === 'object' && '$value' in v) ? v.$value : v
-      // Try to extract token name from brace reference before resolving
-      try {
-        if (typeof rawValue === 'string') {
-          const inner = rawValue.startsWith('{') && rawValue.endsWith('}') ? rawValue.slice(1, -1) : rawValue
-          const m = /^(?:tokens|token)\.opacity\.([a-z0-9\-_]+)$/i.exec(inner)
-          if (m) return `var(--recursica-tokens-opacity-${m[1]})`
-        }
-      } catch {}
-      // If that didn't work, try resolving and checking the result
-      const s = resolveBraceRef(rawValue, tokenIndex)
-      if (typeof s === 'string') {
-        const m = /^(?:tokens|token)\/?opacity\/([a-z0-9\-_]+)$/i.exec(s)
-        if (m) return `var(--recursica-tokens-opacity-${m[1]})`
-        // numeric fallback wraps solid as default
-        const n = Number(s)
-        if (Number.isFinite(n)) {
-          const norm = n <= 1 ? n : n / 100
-          return `var(--recursica-tokens-opacity-solid, ${String(Math.max(0, Math.min(1, norm)))})`
-        }
-      }
-      return 'var(--recursica-tokens-opacity-solid)'
-    }
     const high = getOpacityVar(textEmphasis?.high)
     const low = getOpacityVar(textEmphasis?.low)
     vars[`--recursica-brand-${modeLower}-text-emphasis-high`] = high
     vars[`--recursica-brand-${modeLower}-text-emphasis-low`] = low
+  } catch {}
+  
+  // Read brand-level state from Brand JSON and emit brand vars
+  try {
+    const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+    const themes = root?.themes || root
+    const state: any = (mode === 'Light' ? themes?.light?.state : themes?.dark?.state) || {}
+    const disabled = getOpacityVar(state?.disabled)
+    const overlay = getOpacityVar(state?.overlay)
+    vars[`--recursica-brand-${modeLower}-state-disabled`] = disabled
+    vars[`--recursica-brand-${modeLower}-state-overlay`] = overlay
   } catch {}
   const toLevelString = (lvl: string): string => {
     const s = String(lvl).padStart(3, '0')
