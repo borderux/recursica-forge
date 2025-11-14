@@ -248,6 +248,12 @@ export class AAComplianceWatcher {
     const surfaceVar = `--recursica-brand-light-layer-layer-${layerNumber}-property-surface`
     this.watchedVars.add(surfaceVar)
     
+    // Initialize last value to track changes
+    const currentValue = readCssVar(surfaceVar)
+    if (currentValue) {
+      this.lastValues.set(surfaceVar, currentValue)
+    }
+    
     // Initial check
     this.updateLayerElementColors(layerNumber)
   }
@@ -258,6 +264,12 @@ export class AAComplianceWatcher {
   watchAlternativeLayerSurface(alternativeKey: string) {
     const surfaceVar = `--recursica-brand-light-layer-layer-alternative-${alternativeKey}-property-surface`
     this.watchedVars.add(surfaceVar)
+    
+    // Initialize last value to track changes
+    const currentValue = readCssVar(surfaceVar)
+    if (currentValue) {
+      this.lastValues.set(surfaceVar, currentValue)
+    }
     
     // Initial check
     this.updateAlternativeLayerElementColors(alternativeKey)
@@ -315,8 +327,12 @@ export class AAComplianceWatcher {
         const currentValue = readCssVar(varName)
         const lastValue = this.lastValues.get(varName)
         
-        if (currentValue !== lastValue) {
-          this.lastValues.set(varName, currentValue)
+        // If no last value, initialize it and run update (for initial setup)
+        // If value changed, update
+        if (lastValue === undefined || currentValue !== lastValue) {
+          if (currentValue) {
+            this.lastValues.set(varName, currentValue)
+          }
           
           // Determine if it's a regular layer or alternative layer
           const layerMatch = varName.match(/--recursica-brand-light-layer-layer-(\d+)-property-surface/)

@@ -115,25 +115,33 @@ export default function PaletteColorSelector({
     }
     
     const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    if (root?.light?.palettes) visit(root.light.palettes, 'palettes', 'Light')
-    if (root?.dark?.palettes) visit(root.dark.palettes, 'palettes', 'Dark')
+    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+    const themes = root?.themes || root
+    // Use 'palette' prefix (singular) to match resolver's buildThemeIndex
+    if (themes?.light?.palettes) visit(themes.light.palettes, 'palette', 'Light')
+    if (themes?.dark?.palettes) visit(themes.dark.palettes, 'palette', 'Dark')
+    // Also support old structure for backward compatibility
+    if (root?.light?.palettes) visit(root.light.palettes, 'palette', 'Light')
+    if (root?.dark?.palettes) visit(root.dark.palettes, 'palette', 'Dark')
     
     // Check all palettes in theme to see which families they use
     const checkLevels = ['200', '500', '400', '300']
     const paletteKeys = new Set<string>()
     
     // First, find all palette keys
+    // Note: theme index uses 'palette' prefix (singular) to match resolver
     Object.keys(themeIndex).forEach((key) => {
-      const match = key.match(/^(?:Light|Dark)::palettes\/([^/]+)\//)
+      const match = key.match(/^(?:Light|Dark)::palette\/([^/]+)\//)
       if (match && match[1]) {
         paletteKeys.add(match[1])
       }
     })
     
     // Then detect family for each palette
+    // Note: theme index uses 'palette' prefix (singular) to match resolver
     for (const pk of paletteKeys) {
       for (const lvl of checkLevels) {
-        const toneName = `palettes/${pk}/${lvl}/color/tone`
+        const toneName = `palette/${pk}/${lvl}/color/tone`
         const toneRaw = themeIndex[`Light::${toneName}`]?.value || themeIndex[`Dark::${toneName}`]?.value
         if (typeof toneRaw === 'string') {
           const match = toneRaw.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
@@ -332,20 +340,24 @@ export default function PaletteColorSelector({
     try {
       const themeCopy = JSON.parse(JSON.stringify(themeJson))
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
       
       // Update for both light and dark modes
       for (const modeKey of ['light', 'dark']) {
         const modeLabel = modeKey === 'light' ? 'Light' : 'Dark'
-        if (!root[modeKey]) root[modeKey] = {}
-        if (!root[modeKey].palettes) root[modeKey].palettes = {}
-        if (!root[modeKey].palettes[paletteKey]) root[modeKey].palettes[paletteKey] = {}
+        // Use themes structure if available, otherwise fall back to root structure
+        const targetRoot = themes !== root ? themes : root
+        if (!targetRoot[modeKey]) targetRoot[modeKey] = {}
+        if (!targetRoot[modeKey].palettes) targetRoot[modeKey].palettes = {}
+        if (!targetRoot[modeKey].palettes[paletteKey]) targetRoot[modeKey].palettes[paletteKey] = {}
         
         headerLevels.forEach((lvl) => {
-          if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
-          if (!root[modeKey].palettes[paletteKey][lvl].color) root[modeKey].palettes[paletteKey][lvl].color = {}
+          if (!targetRoot[modeKey].palettes[paletteKey][lvl]) targetRoot[modeKey].palettes[paletteKey][lvl] = {}
+          if (!targetRoot[modeKey].palettes[paletteKey][lvl].color) targetRoot[modeKey].palettes[paletteKey][lvl].color = {}
           
           // Update tone to reference the new family token
-          root[modeKey].palettes[paletteKey][lvl].color.tone = {
+          targetRoot[modeKey].palettes[paletteKey][lvl].color.tone = {
             $value: `{tokens.color.${family}.${lvl}}`
           }
           
@@ -355,8 +367,10 @@ export default function PaletteColorSelector({
           if (typeof hex === 'string') {
             const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
             // Update on-tone to reference the correct core color (white or black)
-            root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
-              $value: `{brand.${modeKey}.palettes.core.${onToneCore}}`
+            // Use themes structure in reference if available
+            const refPrefix = themes !== root ? 'brand.themes' : 'brand'
+            targetRoot[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
+              $value: `{${refPrefix}.${modeKey}.palettes.core-colors.${onToneCore}}`
             }
           }
         })

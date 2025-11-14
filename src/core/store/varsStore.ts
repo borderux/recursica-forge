@@ -253,7 +253,9 @@ class VarsStore {
       // Watch all palette on-tone vars
       try {
         const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
-        const lightPal: any = root?.light?.palettes || {}
+        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+        const themes = root?.themes || root
+        const lightPal: any = themes?.light?.palettes || {}
         const levels = ['900','800','700','600','500','400','300','200','100','050']
         Object.keys(lightPal).forEach((paletteKey) => {
           if (paletteKey === 'core') return
@@ -556,7 +558,9 @@ class VarsStore {
     }
     // Build defaults from theme
     const brand: any = (theme as any)?.brand || (theme as any)
-    const light: any = brand?.light?.elevations || {}
+    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+    const themes = brand?.themes || brand
+    const light: any = themes?.light?.elevations || {}
     const toSize = (ref?: any): string => {
       const s: string | undefined = typeof ref === 'string' ? ref : (ref?.['$value'] as any)
       if (!s) return 'size/none'
@@ -604,7 +608,10 @@ class VarsStore {
         // If level is 'default', try to resolve it from the theme
         if (level === 'default') {
           try {
-            const defaultRef = (theme as any)?.brand?.light?.palettes?.[paletteKey]?.default
+            // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+            const brandRoot = (theme as any)?.brand || theme
+            const themes = brandRoot?.themes || brandRoot
+            const defaultRef = themes?.light?.palettes?.[paletteKey]?.default
             if (defaultRef) {
               let defaultValue: any
               if (typeof defaultRef === 'object' && defaultRef.$value) {
@@ -639,7 +646,10 @@ class VarsStore {
         if (level === 'primary') {
           // Try to get primary level from palette
           try {
-            const primaryLevel = (theme as any)?.brand?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
+            // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+            const brandRoot = (theme as any)?.brand || theme
+            const themes = brandRoot?.themes || brandRoot
+            const primaryLevel = themes?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
             if (typeof primaryLevel === 'string') {
               level = primaryLevel
             } else {
@@ -780,7 +790,12 @@ class VarsStore {
     // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
     try {
       const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
-      const core: any = root?.light?.palettes?.['core-colors']?.$value || root?.light?.palettes?.['core-colors'] || root?.light?.palettes?.core?.$value || root?.light?.palettes?.core || {}
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      // Get core-colors object - it may have $value wrapper or be direct
+      const coreColorsObj: any = themes?.light?.palettes?.['core-colors'] || themes?.light?.palettes?.core
+      // Extract the actual colors object (handle both $value wrapper and direct structure)
+      const core: any = coreColorsObj?.$value || coreColorsObj || {}
       
       const normalizeLevel = (lvl?: string): string | undefined => {
         if (!lvl) return undefined
@@ -815,7 +830,7 @@ class VarsStore {
       
       // Process each core color
       Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
-        // Get the value from theme JSON
+        // Get the value from theme JSON - core should now be the direct colors object
         const coreValue: any = core[colorName]
         let tokenRef: string | null = null
         

@@ -5,7 +5,7 @@
  */
 
 import type { JsonLike } from './tokens'
-import { buildTokenIndex, resolveBraceRef } from './tokens'
+import { buildTokenIndex } from './tokens'
 
 /**
  * Recursively traverses dimension object and generates CSS variables
@@ -30,7 +30,8 @@ function traverseDimensions(
     if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
       const val = (value as any).$value
       const type = (value as any).$type
-      const cssVarName = `--recursica-brand-${mode}-dimension-${currentPath.join('-')}`
+      // Dimensions are now at brand level, so CSS vars don't include mode
+      const cssVarName = `--recursica-brand-dimensions-${currentPath.join('-')}`
 
       // Check if value is a token reference (e.g., {tokens.size.2x})
       if (typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')) {
@@ -43,13 +44,23 @@ function traverseDimensions(
           return // Skip to next iteration
         }
         
-        // Handle theme references: {theme.light.dimension.*} → var(--recursica-brand-light-dimension-*)
-        if (/^theme\.(light|dark)\./i.test(inner)) {
+        // Handle brand dimension references: {brand.dimensions.*} → var(--recursica-brand-dimensions-*)
+        if (/^brand\.dimensions?\./i.test(inner)) {
           const parts = inner.split('.').filter(Boolean)
-          if (parts.length >= 2) {
-            const themeMode = parts[1].toLowerCase()
-            const themePath = parts.slice(2).join('-')
-            vars[cssVarName] = `var(--recursica-brand-${themeMode}-dimension-${themePath})`
+          if (parts.length >= 2 && parts[1].toLowerCase() === 'dimensions') {
+            const dimPath = parts.slice(2).join('-')
+            vars[cssVarName] = `var(--recursica-brand-dimensions-${dimPath})`
+            return // Skip to next iteration
+          }
+        }
+        
+        // Handle legacy theme references: {theme.light.dimension.*} → var(--recursica-brand-dimensions-*)
+        // (dimensions are now mode-agnostic, so map both light and dark to the same dimensions)
+        if (/^theme\.(light|dark)\.dimension/i.test(inner)) {
+          const parts = inner.split('.').filter(Boolean)
+          if (parts.length >= 3) {
+            const dimPath = parts.slice(3).join('-')
+            vars[cssVarName] = `var(--recursica-brand-dimensions-${dimPath})`
             return // Skip to next iteration
           }
         }
@@ -97,10 +108,12 @@ export function buildDimensionVars(
   const tokenIndex = buildTokenIndex(tokens)
   
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
-  const modeRoot = troot?.[mode]
-  const dimensions = modeRoot?.dimension
+  // Dimensions are now at brand level, not mode level
+  const dimensions = troot?.dimensions
 
   if (dimensions) {
+    // Dimensions are mode-agnostic, but we still need mode for CSS var naming
+    // Generate CSS vars without mode prefix since dimensions are shared
     traverseDimensions(dimensions, [], vars, tokenIndex, theme, mode)
   }
 

@@ -6,8 +6,7 @@
  */
 
 import type { JsonLike } from './tokens'
-import { buildTokenIndex, resolveBraceRef } from './tokens'
-import { readCssVar } from '../css/readCssVar'
+import { buildTokenIndex } from './tokens'
 
 /**
  * Converts a UIKit.json path to a CSS variable name
@@ -44,9 +43,9 @@ function toCssVarName(path: string): string {
  */
 function resolveTokenRef(
   value: any,
-  tokenIndex: ReturnType<typeof buildTokenIndex>,
-  theme: JsonLike,
-  uikit: JsonLike,
+  _tokenIndex: ReturnType<typeof buildTokenIndex>,
+  _theme: JsonLike,
+  _uikit: JsonLike,
   depth = 0,
   vars?: Record<string, string> // Optional vars map to check if UIKit self-references exist
 ): string | null {
@@ -61,57 +60,120 @@ function resolveTokenRef(
     return null
   }
   
-  const inner = trimmed.slice(1, -1).trim()
+  let inner = trimmed.slice(1, -1).trim()
   
-  // Handle theme references: {theme.light.*} or {theme.dark.*}
-  if (/^theme\.(light|dark)\./i.test(inner)) {
+  // Normalize spaces to dots and clean up the reference
+  // Handle cases like "{brand themes light palettes neutral.100. color tone}" 
+  // → "{brand.themes.light.palettes.neutral.100.color.tone}"
+  // Also handle spaces around dots: "{ui-kit .0 . global}" → "{ui-kit.0.global}"
+  // First, remove spaces around dots, then replace remaining spaces with dots
+  inner = inner
+    .replace(/\s*\.\s*/g, '.')  // Remove spaces around dots first
+    .replace(/\s+/g, '.')        // Replace remaining spaces with dots
+    .replace(/\.+/g, '.')         // Collapse multiple dots to single dot
+    .replace(/^\.|\.$/g, '')      // Remove leading/trailing dots
+  
+  // Handle brand-level references: {brand.dimensions.*} (no mode needed)
+  if (/^brand\.dimensions?\./i.test(inner)) {
     const parts = inner.split('.').filter(Boolean)
-    if (parts.length < 2) return null
+    if (parts.length >= 2 && parts[1].toLowerCase() === 'dimensions') {
+      const dimPath = parts.slice(2).join('-')
+      return `var(--recursica-brand-dimensions-${dimPath})`
+    }
+  }
+  
+  // Handle brand/theme references: {brand.themes.light.*} or {brand.light.*} or {theme.light.*} or {brand.dark.*} or {theme.dark.*}
+  // Support both old format (brand.light.*) and new format (brand.themes.light.*) for backwards compatibility
+  // Also support "theme" prefix for backwards compatibility
+  const brandThemeMatch = /^(brand|theme)\.(themes\.)?(light|dark)\./i.exec(inner)
+  if (brandThemeMatch) {
+    const parts = inner.split('.').filter(Boolean)
+    let mode: string
+    let path: string
     
-    const mode = parts[1].toLowerCase() // 'light' or 'dark'
-    const path = parts.slice(2).join('.')
+    // Handle new format: brand.themes.light.*
+    if (parts.length >= 3 && parts[1].toLowerCase() === 'themes') {
+      mode = parts[2].toLowerCase() // 'light' or 'dark'
+      path = parts.slice(3).join('.') // Skip "brand", "themes", and mode
+    } else {
+      // Handle old format: brand.light.* or theme.light.*
+      mode = parts[1].toLowerCase() // 'light' or 'dark'
+      path = parts.slice(2).join('.') // Skip "brand"/"theme" and mode
+    }
     
     // Directly map path patterns to CSS variable references
     // Don't resolve actual values - we want CSS var references
     
-    // Layer references: layer.layer-0.property.surface
-    const layerMatch = /^layer\.layer-(\d+)\.property\.(.+)$/i.exec(path)
+    // Layer references: layers.layer-0.property.surface (note: "layers" is now plural)
+    const layerMatch = /^layers?\.layer-(\d+)\.property\.(.+)$/i.exec(path)
     if (layerMatch) {
       const layerNum = layerMatch[1]
       const prop = layerMatch[2].replace(/\./g, '-')
       return `var(--recursica-brand-${mode}-layer-layer-${layerNum}-property-${prop})`
     }
     
-    // Layer element references: layer.layer-0.element.text.color
+    // Layer element references: layers.layer-0.element.text.color (note: "layers" is now plural)
     // Note: Actual CSS var pattern is: --recursica-brand-light-layer-layer-0-property-element-text-*
     // The "property" part is included in the actual variable name
-    const layerElementMatch = /^layer\.layer-(\d+)\.element\.(.+)$/i.exec(path)
+    const layerElementMatch = /^layers?\.layer-(\d+)\.element\.(.+)$/i.exec(path)
     if (layerElementMatch) {
       const layerNum = layerElementMatch[1]
-      const elementPath = layerElementMatch[2].replace(/\./g, '-')
+      let elementPath = layerElementMatch[2].replace(/\./g, '-')
+      
+      // Special handling: element.interactive should map to element.interactive-color
+      // (the layers resolver generates --recursica-brand-light-layer-layer-0-property-element-interactive-color)
+      if (elementPath === 'interactive') {
+        elementPath = 'interactive-color'
+      }
+      
       return `var(--recursica-brand-${mode}-layer-layer-${layerNum}-property-element-${elementPath})`
     }
     
-    // Palette references: palette.neutral.900.tone
-    const paletteMatch = /^palette\.([a-z0-9-]+)\.(\d+|default|primary)\.(tone|on-tone)$/i.exec(path)
+    // Palette core-colors references: palettes.core-colors.alert (check this FIRST, before other palette patterns)
+    const paletteCoreColorsMatch = /^palettes?\.core-colors?\.(alert|warning|success|interactive|black|white)$/i.exec(path)
+    if (paletteCoreColorsMatch) {
+      const [, coreColor] = paletteCoreColorsMatch
+      return `var(--recursica-brand-${mode}-palettes-core-${coreColor})`
+    }
+    
+    // Palette references with full path: palettes.neutral.100.color.tone, palettes.neutral.default.color.tone, etc.
+    // Also handle: palettes.palette-1.default.color.tone
+    // This pattern handles the full path structure with .color.tone or .color.on-tone
+    const paletteFlexMatch = /^palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)\.color\.(tone|on-tone)$/i.exec(path)
+    if (paletteFlexMatch) {
+      const [, paletteKey, level, type] = paletteFlexMatch
+      const cssLevel = level === 'default' ? 'primary' : level
+      return `var(--recursica-brand-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
+    }
+    
+    // Palette references: palette.neutral.900.tone (legacy format without .color.)
+    const paletteMatch = /^palettes?\.([a-z0-9-]+)\.(\d+|default|primary)\.(tone|on-tone)$/i.exec(path)
     if (paletteMatch) {
       const [, paletteKey, level, type] = paletteMatch
       const cssLevel = level === 'default' ? 'primary' : level
       return `var(--recursica-brand-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
     }
     
-    // Palette alert/warning/success: palette.alert
-    const paletteCoreMatch = /^palette\.(alert|warning|success)$/i.exec(path)
+    // Palette alert/warning/success: palette.alert (legacy format)
+    const paletteCoreMatch = /^palettes?\.(alert|warning|success)$/i.exec(path)
     if (paletteCoreMatch) {
       const [, coreColor] = paletteCoreMatch
       return `var(--recursica-brand-${mode}-palettes-core-${coreColor})`
     }
     
-    // Dimension references: dimension.gutter.horizontal
-    const dimensionMatch = /^dimension\.(.+)$/i.exec(path)
+    // Palette black/white shortcuts: palette.black or palette.white
+    // These are shortcuts for palette.core-colors.black/white
+    const paletteBWMatch = /^palettes?\.(black|white)$/i.exec(path)
+    if (paletteBWMatch) {
+      const [, color] = paletteBWMatch
+      return `var(--recursica-brand-${mode}-palettes-core-${color})`
+    }
+    
+    // Dimension references: dimensions.gutter.horizontal (now at brand level, no mode)
+    const dimensionMatch = /^dimensions?\.(.+)$/i.exec(path)
     if (dimensionMatch) {
       const dimPath = dimensionMatch[1].replace(/\./g, '-')
-      return `var(--recursica-brand-${mode}-dimension-${dimPath})`
+      return `var(--recursica-brand-dimensions-${dimPath})`
     }
     
     // State references: state.disabled
@@ -119,6 +181,13 @@ function resolveTokenRef(
     if (stateMatch) {
       const statePath = stateMatch[1].replace(/\./g, '-')
       return `var(--recursica-brand-${mode}-state-${statePath})`
+    }
+    
+    // Text-emphasis references: text-emphasis.low or text-emphasis.high
+    const textEmphasisMatch = /^text-emphasis\.(low|high)$/i.exec(path)
+    if (textEmphasisMatch) {
+      const [, emphasis] = textEmphasisMatch
+      return `var(--recursica-brand-${mode}-text-emphasis-${emphasis})`
     }
     
     // Token references: tokens.color.gray.500
@@ -133,31 +202,41 @@ function resolveTokenRef(
   }
   
   // Handle UIKit self-references: {ui-kit.0.global.form.*} or {ui-kit.0.form.*}
-  if (/^ui-kit\.\d+\./i.test(inner)) {
-    const parts = inner.split('.').filter(Boolean)
+  // Also handle variations with spaces: {ui-kit.0 global form indicator color required-asterisk}
+  // Also handle missing dots: {ui-kit0 global form...} → {ui-kit.0.global.form...}
+  // Also handle spaces around dots: {ui-kit .0 . global . form ...} → {ui-kit.0.global.form...}
+  // Note: inner has already been normalized (spaces → dots) at the top of the function
+  // But we need to handle cases where spaces were around dots, creating patterns like "ui-kit.0.global"
+  if (/^ui-kit/i.test(inner)) {
+    // inner is already normalized, but we may need to fix "ui-kit0" → "ui-kit.0"
+    // and ensure proper dot separation
+    let normalized = inner
+      .replace(/^ui-kit(\d+)/i, 'ui-kit.$1') // Fix "ui-kit0" → "ui-kit.0"
+      .replace(/\.+/g, '.')  // Collapse multiple dots
+      .replace(/^\.|\.$/g, '') // Remove leading/trailing dots
+    
+    // Check if it matches the UIKit pattern after normalization
+    if (!/^ui-kit\.\d+\./i.test(normalized)) {
+      return null
+    }
+    
+    const parts = normalized.split('.').filter(Boolean)
     if (parts.length < 3) return null
     
     // Skip "ui-kit" and mode number (0 or 3), use the rest of the path
     // {ui-kit.0.global.form.indicator.color.required-asterisk} 
-    // → parts: ['ui-kit', '0', 'global', 'form', ...]
+    // → parts: ['ui-kit', '0', 'global', 'form', 'indicator', 'color', 'required-asterisk']
     // → uikitPath: 'global.form.indicator.color.required-asterisk'
-    // But in UIKit.json, "form" is a sibling of "global", not under it
-    // So we need to handle: if path starts with "global.form", remove "global"
-    let uikitPath = parts.slice(2).join('.')
+    // In UIKit.json structure: ui-kit.global.form.indicator.color.required-asterisk
+    // So we keep the full path including "global"
+    const uikitPath = parts.slice(2).join('.')
     
-    // Fix: If path is "global.form.*", it should actually be "form.*"
-    // because "form" is a sibling of "global" in the structure
-    if (uikitPath.startsWith('global.form.')) {
-      uikitPath = uikitPath.replace(/^global\./, '')
-    }
-    
-    // Generate CSS var name without adding "ui-kit" prefix (toCssVarName already adds it)
+    // Generate CSS var name - toCssVarName will handle the path correctly
     const uikitVar = toCssVarName(uikitPath)
-    const referencedVarName = `--recursica-ui-kit-${uikitPath.split('.').map(p => p.replace(/\s+/g, '-').toLowerCase()).filter(p => p !== 'ui-kit').join('-')}`
     
     // If vars map is provided, check if the referenced variable exists
     // If it doesn't exist yet, we'll resolve it in the second pass
-    if (vars && !vars.hasOwnProperty(referencedVarName)) {
+    if (vars && !vars.hasOwnProperty(uikitVar)) {
       // Variable doesn't exist yet - return null to defer resolution
       // The second pass will handle this
       return null
@@ -266,7 +345,7 @@ export function buildUIKitVars(
   
   // Handle two possible structures:
   // 1. { "0": { "global": {...}, "button": {...} }, "3": {...} } - mode-based
-  // 2. { "ui-kit": { "global": {...} }, "components": { "button": {...} } } - flat structure
+  // 2. { "ui-kit": { "global": {...}, "components": {...} } } - flat structure with components inside ui-kit
   
   // First pass: Generate all variables (with placeholders for UIKit self-references)
   if (uikitRoot?.['0']) {
@@ -274,16 +353,11 @@ export function buildUIKitVars(
     // Process mode "0" (light mode) as the default
     const lightMode = uikitRoot['0']
     traverseUIKit(lightMode, [], vars, tokenIndex, theme, uikit)
-  } else if (uikitRoot?.['ui-kit'] || uikitRoot?.['components']) {
-    // Structure 2: Flat structure with "ui-kit" and "components" at top level
+  } else if (uikitRoot?.['ui-kit']) {
+    // Structure 2: Flat structure with "ui-kit" containing both "global" and "components"
     // Process "ui-kit" section (skip the "ui-kit" key in path)
-    if (uikitRoot['ui-kit']) {
-      traverseUIKit(uikitRoot['ui-kit'], [], vars, tokenIndex, theme, uikit)
-    }
-    // Process "components" section
-    if (uikitRoot['components']) {
-      traverseUIKit(uikitRoot['components'], ['components'], vars, tokenIndex, theme, uikit)
-    }
+    // This will traverse both "global" and "components" as siblings
+    traverseUIKit(uikitRoot['ui-kit'], [], vars, tokenIndex, theme, uikit)
   } else {
     // Fallback: treat entire object as UIKit structure
     traverseUIKit(uikitRoot, [], vars, tokenIndex, theme, uikit)
@@ -302,27 +376,26 @@ export function buildUIKitVars(
     
     for (const [key, value] of Object.entries(vars)) {
       if (typeof value === 'string') {
-        // Check for unresolved UIKit references (still in brace format)
-        if (value.includes('{ui-kit.')) {
+        // Check for unresolved references (still in brace format)
+        // This includes UIKit self-references and brand/theme references that weren't resolved
+        const trimmed = value.trim()
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
           const resolved = resolveTokenRef(value, tokenIndex, theme, uikit, 0, vars)
-          if (resolved) {
+          // Update if we got a resolution and it's different from the original
+          // (resolved will be a CSS var reference like "var(--recursica-...)" or null)
+          if (resolved && typeof resolved === 'string' && !resolved.startsWith('{')) {
             vars[key] = resolved
             changed = true
           }
         }
         
         // Check for var() references to UIKit vars that might not exist
+        // (This is just for validation - broken references will be caught by the audit)
         const varMatches = value.match(/var\s*\(\s*(--recursica-ui-kit-[^)]+)\s*\)/g)
         if (varMatches) {
-          for (const varMatch of varMatches) {
-            const varNameMatch = varMatch.match(/var\s*\(\s*(--recursica-ui-kit-[^)]+)\s*\)/)
-            if (varNameMatch) {
-              const referencedVarName = varNameMatch[1]
-              // If the referenced variable doesn't exist in vars, it's broken
-              // But we can't fix it here - it means the variable wasn't generated
-              // This will be caught by the audit
-            }
-          }
+          // If the referenced variable doesn't exist in vars, it's broken
+          // But we can't fix it here - it means the variable wasn't generated
+          // This will be caught by the audit
         }
       }
     }

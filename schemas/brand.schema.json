@@ -7,13 +7,29 @@
   "properties": {
     "brand": {
       "type": "object",
-      "required": ["light"],
+      "required": ["themes"],
       "properties": {
-        "light": {
-          "$ref": "#/definitions/mode"
+        "themes": {
+          "type": "object",
+          "required": ["light"],
+          "properties": {
+            "light": {
+              "$ref": "#/definitions/mode"
+            },
+            "dark": {
+              "$ref": "#/definitions/mode"
+            }
+          },
+          "additionalProperties": false
         },
-        "dark": {
-          "$ref": "#/definitions/mode"
+        "dimensions": {
+          "$ref": "#/definitions/dimensions"
+        },
+        "layout-grid": {
+          "type": "object"
+        },
+        "typography": {
+          "type": "object"
         }
       },
       "additionalProperties": true
@@ -23,7 +39,7 @@
     "mode": {
       "type": "object",
       "properties": {
-        "layer": {
+        "layers": {
           "type": "object",
           "patternProperties": {
             "^layer-\\d+$|^layer-alternative$": {
@@ -102,61 +118,7 @@
             }
           }
         },
-        "dimension": {
-          "type": "object",
-          "properties": {
-            "lg": { "$ref": "#/definitions/dimensionValue" },
-            "md": { "$ref": "#/definitions/dimensionValue" },
-            "sm": { "$ref": "#/definitions/dimensionValue" },
-            "default": { "$ref": "#/definitions/dimensionValue" },
-            "xl": { "$ref": "#/definitions/dimensionValue" },
-            "icon": {
-              "type": "object",
-              "properties": {
-                "sm": { "$ref": "#/definitions/dimensionValue" },
-                "lg": { "$ref": "#/definitions/dimensionValue" },
-                "default": { "$ref": "#/definitions/dimensionValue" },
-                "xs": { "$ref": "#/definitions/dimensionValue" }
-              },
-              "additionalProperties": false
-            },
-            "gutter": {
-              "type": "object",
-              "properties": {
-                "horizontal": { "$ref": "#/definitions/dimensionValue" },
-                "vertical": { "$ref": "#/definitions/dimensionValue" }
-              },
-              "additionalProperties": false
-            },
-            "border-radius": {
-              "type": "object",
-              "properties": {
-                "xl": { "$ref": "#/definitions/dimensionValue" },
-                "none": { "$ref": "#/definitions/dimensionValue" },
-                "sm": { "$ref": "#/definitions/dimensionValue" },
-                "default": { "$ref": "#/definitions/dimensionValue" },
-                "lg": { "$ref": "#/definitions/dimensionValue" }
-              },
-              "additionalProperties": false
-            },
-            "spacer": {
-              "type": "object",
-              "properties": {
-                "lg": { "$ref": "#/definitions/dimensionValue" },
-                "xl": { "$ref": "#/definitions/dimensionValue" },
-                "sm": { "$ref": "#/definitions/dimensionValue" },
-                "default": { "$ref": "#/definitions/dimensionValue" },
-                "md": { "$ref": "#/definitions/dimensionValue" }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": true
-        },
         "typography": {
-          "type": "object"
-        },
-        "grid": {
           "type": "object"
         }
       },
@@ -247,6 +209,57 @@
         }
       },
       "additionalProperties": false
+    },
+    "dimensions": {
+      "type": "object",
+      "properties": {
+        "lg": { "$ref": "#/definitions/dimensionValue" },
+        "md": { "$ref": "#/definitions/dimensionValue" },
+        "sm": { "$ref": "#/definitions/dimensionValue" },
+        "default": { "$ref": "#/definitions/dimensionValue" },
+        "xl": { "$ref": "#/definitions/dimensionValue" },
+        "icon": {
+          "type": "object",
+          "properties": {
+            "sm": { "$ref": "#/definitions/dimensionValue" },
+            "lg": { "$ref": "#/definitions/dimensionValue" },
+            "default": { "$ref": "#/definitions/dimensionValue" },
+            "xs": { "$ref": "#/definitions/dimensionValue" }
+          },
+          "additionalProperties": false
+        },
+        "gutter": {
+          "type": "object",
+          "properties": {
+            "horizontal": { "$ref": "#/definitions/dimensionValue" },
+            "vertical": { "$ref": "#/definitions/dimensionValue" }
+          },
+          "additionalProperties": false
+        },
+        "border-radius": {
+          "type": "object",
+          "properties": {
+            "xl": { "$ref": "#/definitions/dimensionValue" },
+            "none": { "$ref": "#/definitions/dimensionValue" },
+            "sm": { "$ref": "#/definitions/dimensionValue" },
+            "default": { "$ref": "#/definitions/dimensionValue" },
+            "lg": { "$ref": "#/definitions/dimensionValue" }
+          },
+          "additionalProperties": false
+        },
+        "spacer": {
+          "type": "object",
+          "properties": {
+            "lg": { "$ref": "#/definitions/dimensionValue" },
+            "xl": { "$ref": "#/definitions/dimensionValue" },
+            "sm": { "$ref": "#/definitions/dimensionValue" },
+            "default": { "$ref": "#/definitions/dimensionValue" },
+            "md": { "$ref": "#/definitions/dimensionValue" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
     },
     "elevation": {
       "type": "object",

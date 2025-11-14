@@ -14,12 +14,14 @@ function buildThemeIndex(theme: JsonLike) {
     Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
   }
   const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+  // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+  const themes = root?.themes || root
   // Support both singular "palette" and plural "palettes" in theme JSON.
   // Always index under "palette/*" to match resolver lookups.
-  if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
-  if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
-  if (root?.light?.palettes) visit(root.light.palettes, 'palette', 'Light')
-  if (root?.dark?.palettes) visit(root.dark.palettes, 'palette', 'Dark')
+  if (themes?.light?.palette) visit(themes.light.palette, 'palette', 'Light')
+  if (themes?.dark?.palette) visit(themes.dark.palette, 'palette', 'Dark')
+  if (themes?.light?.palettes) visit(themes.light.palettes, 'palette', 'Light')
+  if (themes?.dark?.palettes) visit(themes.dark.palettes, 'palette', 'Dark')
   return out
 }
 
@@ -31,7 +33,9 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
   const palettes = (() => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      const lightPal: any = root?.light?.palettes || {}
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      const lightPal: any = themes?.light?.palettes || {}
         return Object.keys(lightPal).filter((k) => k !== 'core' && k !== 'core-colors')
     } catch {
       return []
@@ -46,7 +50,9 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
   // Read brand-level text emphasis from Brand JSON and emit brand vars
   try {
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-    const textEmphasis: any = (mode === 'Light' ? root?.light?.['text-emphasis'] : root?.dark?.['text-emphasis']) || {}
+    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+    const themes = root?.themes || root
+    const textEmphasis: any = (mode === 'Light' ? themes?.light?.['text-emphasis'] : themes?.dark?.['text-emphasis']) || {}
     const getOpacityVar = (v: any): string => {
       // Extract $value if v is an object with $value property (e.g., { $type: "number", $value: "{tokens.opacity.smoky}" })
       const rawValue = (v && typeof v === 'object' && '$value' in v) ? v.$value : v
@@ -74,8 +80,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     }
     const high = getOpacityVar(textEmphasis?.high)
     const low = getOpacityVar(textEmphasis?.low)
-    vars[`--brand-${modeLower}-text-emphasis-high`] = high
-    vars[`--brand-${modeLower}-text-emphasis-low`] = low
+    vars[`--recursica-brand-${modeLower}-text-emphasis-high`] = high
+    vars[`--recursica-brand-${modeLower}-text-emphasis-low`] = low
   } catch {}
   const toLevelString = (lvl: string): string => {
     const s = String(lvl).padStart(3, '0')
@@ -88,7 +94,9 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const paletteLevels = (() => {
       try {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-        const palette: any = root?.[mode.toLowerCase()]?.palettes?.[pk]
+        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+        const themes = root?.themes || root
+        const palette: any = themes?.[mode.toLowerCase()]?.palettes?.[pk]
         if (!palette) return []
         // Get all level keys (excluding $type, $value, etc.)
         // Include both 'primary' and 'default' - 'default' will be mapped to 'primary' for CSS vars
@@ -126,7 +134,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       // Skip if no tone value is defined in theme
       if (!toneRaw) return
       
-      const scope = `--brand-${mode.toLowerCase()}-palettes-${pk}-${cssLevel}`
+      const scope = `--recursica-brand-${mode.toLowerCase()}-palettes-${pk}-${cssLevel}`
       
       // Parse tone from JSON - simple brace reference parsing
       let toneVar: string | null = null
@@ -172,9 +180,19 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         
         if (typeof onToneRaw === 'string') {
           const s = onToneRaw.trim().toLowerCase()
-          if (s === '#ffffff' || s === 'white' || s === '{brand.light.palettes.core-colors.white}' || s === '{brand.dark.palettes.core-colors.white}' || s === '{brand.light.palettes.core.white}' || s === '{brand.dark.palettes.core.white}') {
+          // Support both old format (brand.light.*) and new format (brand.themes.light.*)
+          // Also support shortcuts like {brand.themes.light.palettes.black} → core-colors.black
+          if (s === '#ffffff' || s === 'white' || 
+              s === '{brand.light.palettes.core-colors.white}' || s === '{brand.dark.palettes.core-colors.white}' ||
+              s === '{brand.themes.light.palettes.core-colors.white}' || s === '{brand.themes.dark.palettes.core-colors.white}' ||
+              s === '{brand.light.palettes.core.white}' || s === '{brand.dark.palettes.core.white}' ||
+              s === '{brand.themes.light.palettes.white}' || s === '{brand.themes.dark.palettes.white}') {
             onToneVar = `var(--recursica-brand-${modeLower}-palettes-core-white)`
-          } else if (s === '#000000' || s === 'black' || s === '{brand.light.palettes.core-colors.black}' || s === '{brand.dark.palettes.core-colors.black}' || s === '{brand.light.palettes.core.black}' || s === '{brand.dark.palettes.core.black}') {
+          } else if (s === '#000000' || s === 'black' || 
+                     s === '{brand.light.palettes.core-colors.black}' || s === '{brand.dark.palettes.core-colors.black}' ||
+                     s === '{brand.themes.light.palettes.core-colors.black}' || s === '{brand.themes.dark.palettes.core-colors.black}' ||
+                     s === '{brand.light.palettes.core.black}' || s === '{brand.dark.palettes.core.black}' ||
+                     s === '{brand.themes.light.palettes.black}' || s === '{brand.themes.dark.palettes.black}') {
             onToneVar = `var(--recursica-brand-${modeLower}-palettes-core-black)`
           } else {
             // Try to resolve as theme reference
