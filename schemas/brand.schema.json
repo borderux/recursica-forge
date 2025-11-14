@@ -103,7 +103,55 @@
           }
         },
         "dimension": {
-          "type": "object"
+          "type": "object",
+          "properties": {
+            "lg": { "$ref": "#/definitions/dimensionValue" },
+            "md": { "$ref": "#/definitions/dimensionValue" },
+            "sm": { "$ref": "#/definitions/dimensionValue" },
+            "default": { "$ref": "#/definitions/dimensionValue" },
+            "xl": { "$ref": "#/definitions/dimensionValue" },
+            "icon": {
+              "type": "object",
+              "properties": {
+                "sm": { "$ref": "#/definitions/dimensionValue" },
+                "lg": { "$ref": "#/definitions/dimensionValue" },
+                "default": { "$ref": "#/definitions/dimensionValue" },
+                "xs": { "$ref": "#/definitions/dimensionValue" }
+              },
+              "additionalProperties": false
+            },
+            "gutter": {
+              "type": "object",
+              "properties": {
+                "horizontal": { "$ref": "#/definitions/dimensionValue" },
+                "vertical": { "$ref": "#/definitions/dimensionValue" }
+              },
+              "additionalProperties": false
+            },
+            "border-radius": {
+              "type": "object",
+              "properties": {
+                "xl": { "$ref": "#/definitions/dimensionValue" },
+                "none": { "$ref": "#/definitions/dimensionValue" },
+                "sm": { "$ref": "#/definitions/dimensionValue" },
+                "default": { "$ref": "#/definitions/dimensionValue" },
+                "lg": { "$ref": "#/definitions/dimensionValue" }
+              },
+              "additionalProperties": false
+            },
+            "spacer": {
+              "type": "object",
+              "properties": {
+                "lg": { "$ref": "#/definitions/dimensionValue" },
+                "xl": { "$ref": "#/definitions/dimensionValue" },
+                "sm": { "$ref": "#/definitions/dimensionValue" },
+                "default": { "$ref": "#/definitions/dimensionValue" },
+                "md": { "$ref": "#/definitions/dimensionValue" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": true
         },
         "typography": {
           "type": "object"
@@ -177,6 +225,28 @@
         }
       },
       "additionalProperties": true
+    },
+    "dimensionValue": {
+      "type": "object",
+      "required": ["$type", "$value"],
+      "properties": {
+        "$type": {
+          "type": "string",
+          "enum": ["number"]
+        },
+        "$value": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^\\{tokens\\.size\\.[a-z0-9_-]+\\}$"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "elevation": {
       "type": "object",

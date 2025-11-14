@@ -1,9 +1,12 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { Button } from '../../components/adapters/Button'
+import uikitJson from '../../vars/UIKit.json'
 
 type Section = {
   name: string
   url: string
   render: () => JSX.Element
+  isMapped?: boolean
 }
 
 const SectionCard = ({ title, url, children }: { title: string; url: string; children: React.ReactNode }) => (
@@ -17,6 +20,20 @@ const SectionCard = ({ title, url, children }: { title: string; url: string; chi
 )
 
 export default function PreviewPage() {
+  const [showUnmapped, setShowUnmapped] = useState(false)
+  
+  // Get list of mapped components from UIKit.json
+  const mappedComponents = useMemo(() => {
+    const components = (uikitJson as any)?.components || {}
+    return new Set(Object.keys(components).map(name => {
+      // Convert "button" -> "Button", "text-field" -> "Text field", etc.
+      return name
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    }))
+  }, [])
+  
   const sections: Section[] = useMemo(() => {
     const base = 'https://www.recursica.com/docs/components'
     return [
@@ -75,11 +92,11 @@ export default function PreviewPage() {
         url: `${base}/button`,
         render: () => (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button>Text</button>
-            <button style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 0, padding: '6px 10px', borderRadius: 6 }}>Contained</button>
-            <button style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', padding: '6px 10px', borderRadius: 6 }}>Outlined</button>
-            <button disabled style={{ padding: '6px 10px', borderRadius: 6 }}>Disabled</button>
-            <button style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-warning-property-element-interactive-color)', color: '#fff', border: 0, padding: '6px 10px', borderRadius: 6 }}>Secondary</button>
+            <Button variant="text">Text</Button>
+            <Button variant="solid">Contained</Button>
+            <Button variant="outline">Outlined</Button>
+            <Button disabled>Disabled</Button>
+            <Button variant="solid" layer="layer-1">Secondary</Button>
           </div>
         ),
       },
@@ -456,16 +473,55 @@ export default function PreviewPage() {
       },
     ]
       .sort((a, b) => a.name.localeCompare(b.name))
-  }, [])
+      .map(section => ({
+        ...section,
+        isMapped: mappedComponents.has(section.name)
+      }))
+  }, [mappedComponents])
+  
+  // Filter sections based on toggle
+  const visibleSections = useMemo(() => {
+    return sections.filter(section => {
+      if (section.isMapped) return true
+      return showUnmapped
+    })
+  }, [sections, showUnmapped])
+  
+  const mappedCount = sections.filter(s => s.isMapped).length
+  const unmappedCount = sections.filter(s => !s.isMapped).length
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto' }}>
-      <h2 style={{ marginTop: 0 }}>UI Kit</h2>
-      {sections.map((s) => (
-        <SectionCard key={s.name} title={s.name} url={s.url}>
-          {s.render()}
-        </SectionCard>
-      ))}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <h2 style={{ margin: 0 }}>UI Kit</h2>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={showUnmapped}
+            onChange={(e) => setShowUnmapped(e.target.checked)}
+            style={{ cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: 14 }}>
+            Show unmapped components ({unmappedCount})
+          </span>
+        </label>
+      </div>
+      {mappedCount > 0 && (
+        <div style={{ fontSize: 14, color: 'var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis, rgba(0,0,0,0.6))' }}>
+          Showing {visibleSections.length} of {sections.length} components ({mappedCount} mapped)
+        </div>
+      )}
+      {visibleSections.length === 0 ? (
+        <div style={{ padding: 24, textAlign: 'center', color: 'var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis, rgba(0,0,0,0.6))' }}>
+          No components to display. {showUnmapped ? 'All components are mapped.' : 'Enable "Show unmapped components" to see all components.'}
+        </div>
+      ) : (
+        visibleSections.map((s) => (
+          <SectionCard key={s.name} title={s.name} url={s.url}>
+            {s.render()}
+          </SectionCard>
+        ))
+      )}
     </div>
   )
 }

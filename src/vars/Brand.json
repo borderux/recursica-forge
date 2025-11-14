@@ -334,9 +334,27 @@
         }
       },
       "dimension": {
-        "lg": {
-          "$type": "number",
-          "$value": "{tokens.size.2x}"
+        "spacer": {
+          "lg": {
+            "$type": "number",
+            "$value": "{tokens.size.2x}"
+          },
+          "xl": {
+            "$type": "number",
+            "$value": "{tokens.size.3x}"
+          },
+          "sm": {
+            "$type": "number",
+            "$value": "{tokens.size.0-5x}"
+          },
+          "default": {
+            "$type": "number",
+            "$value": "{tokens.size.default}"
+          },
+          "md": {
+            "$type": "number",
+            "$value": "{tokens.size.1-5x}"
+          }
         },
         "icon": {
           "sm": {
@@ -387,22 +405,6 @@
             "$type": "number",
             "$value": "{tokens.size.2x}"
           }
-        },
-        "xl": {
-          "$type": "number",
-          "$value": "{tokens.size.3x}"
-        },
-        "sm": {
-          "$type": "number",
-          "$value": "{tokens.size.0-5x}"
-        },
-        "default": {
-          "$type": "number",
-          "$value": "{tokens.size.default}"
-        },
-        "md": {
-          "$type": "number",
-          "$value": "{tokens.size.1-5x}"
         }
       },
       "state": {

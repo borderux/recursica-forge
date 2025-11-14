@@ -2,6 +2,8 @@ import type { JsonLike } from '../resolvers/tokens'
 import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
 import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
+import { buildUIKitVars } from '../resolvers/uikit'
+import { buildDimensionVars } from '../resolvers/dimensions'
 import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
 import { findTokenByHex } from '../css/tokenRefs'
 import { computeBundleVersion } from './versioning'
@@ -946,6 +948,16 @@ class VarsStore {
     } catch {}
     
     Object.assign(allVars, layerVars)
+    // Dimensions (Light mode default for now; dark can be toggled by UI where needed)
+    try {
+      const dimensionVarsLight = buildDimensionVars(this.state.tokens, this.state.theme, 'light')
+      Object.assign(allVars, dimensionVarsLight)
+    } catch {}
+    // UIKit components
+    try {
+      const uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit)
+      Object.assign(allVars, uikitVars)
+    } catch {}
     // Typography
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, this.readTypeChoices())
     Object.assign(allVars, typeVars)

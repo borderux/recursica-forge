@@ -1,0 +1,505 @@
+# Missing Props Documentation
+# 
+# This file tracks props that don't exist across all UI libraries.
+# Organized by component, listing missing props for each library.
+#
+# Format:
+# Component: ComponentName
+#   Library: LibraryName
+#     - prop1: description
+#     - prop2: description
+
+# ============================================================================
+# Button
+# ============================================================================
+Component: Button
+  Library: Mantine
+    - (All standard props supported)
+  
+  Library: Material UI
+    - (All standard props supported)
+  
+  Library: Carbon
+    - (All standard props supported)
+
+# ============================================================================
+# Card
+# ============================================================================
+Component: Card
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# TextField
+# ============================================================================
+Component: TextField
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Checkbox
+# ============================================================================
+Component: Checkbox
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Radio
+# ============================================================================
+Component: Radio
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Select
+# ============================================================================
+Component: Select
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Textarea
+# ============================================================================
+Component: Textarea
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Switch
+# ============================================================================
+Component: Switch
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Chip
+# ============================================================================
+Component: Chip
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Badge
+# ============================================================================
+Component: Badge
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Avatar
+# ============================================================================
+Component: Avatar
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Accordion
+# ============================================================================
+Component: Accordion
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Breadcrumb
+# ============================================================================
+Component: Breadcrumb
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# DatePicker
+# ============================================================================
+Component: DatePicker
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# FileInput
+# ============================================================================
+Component: FileInput
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# FileUpload
+# ============================================================================
+Component: FileUpload
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Link
+# ============================================================================
+Component: Link
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Loader
+# ============================================================================
+Component: Loader
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Menu
+# ============================================================================
+Component: Menu
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Modal
+# ============================================================================
+Component: Modal
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# NumberInput
+# ============================================================================
+Component: NumberInput
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Pagination
+# ============================================================================
+Component: Pagination
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Panel
+# ============================================================================
+Component: Panel
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Popover
+# ============================================================================
+Component: Popover
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# ReadOnlyField
+# ============================================================================
+Component: ReadOnlyField
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Search
+# ============================================================================
+Component: Search
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# SegmentedControl
+# ============================================================================
+Component: SegmentedControl
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Slider
+# ============================================================================
+Component: Slider
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Stepper
+# ============================================================================
+Component: Stepper
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Tabs
+# ============================================================================
+Component: Tabs
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# TimePicker
+# ============================================================================
+Component: TimePicker
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Timeline
+# ============================================================================
+Component: Timeline
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Toast
+# ============================================================================
+Component: Toast
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Tooltip
+# ============================================================================
+Component: Tooltip
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# TransferList
+# ============================================================================
+Component: TransferList
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# Divider
+# ============================================================================
+Component: Divider
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# List
+# ============================================================================
+Component: List
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
+# ============================================================================
+# HoverCard
+# ============================================================================
+Component: HoverCard
+  Library: Mantine
+    - (Not yet implemented)
+  
+  Library: Material UI
+    - (Not yet implemented)
+  
+  Library: Carbon
+    - (Not yet implemented)
+
