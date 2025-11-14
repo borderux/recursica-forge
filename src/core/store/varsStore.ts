@@ -954,6 +954,35 @@ class VarsStore {
     // Layers (from Brand)
     const layerVars = buildLayerVars(this.state.tokens, this.state.theme)
     
+    // Ensure primary-color alternative layer surface is always set (fixes refresh/reset issue)
+    // Check what palette-1 vars were actually generated and use the best available one
+    const primaryColorSurfaceKey = '--recursica-brand-light-layer-layer-alternative-primary-color-property-surface'
+    if (!layerVars[primaryColorSurfaceKey]) {
+      // Check palette vars that were just generated (they're in allVars now)
+      // Try primary-tone first, then common levels (500, 400, 600)
+      const candidates = [
+        '--recursica-brand-light-palettes-palette-1-primary-tone',
+        '--recursica-brand-light-palettes-palette-1-500-tone',
+        '--recursica-brand-light-palettes-palette-1-400-tone',
+        '--recursica-brand-light-palettes-palette-1-600-tone'
+      ]
+      
+      let foundVar: string | null = null
+      for (const candidate of candidates) {
+        if (allVars[candidate] || readCssVar(candidate)) {
+          foundVar = candidate
+          break
+        }
+      }
+      
+      if (foundVar) {
+        layerVars[primaryColorSurfaceKey] = `var(${foundVar})`
+      } else {
+        // Last resort: use primary-tone reference (will resolve when palette vars are generated)
+        layerVars[primaryColorSurfaceKey] = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+      }
+    }
+    
     // Preserve existing palette CSS variables for layer colors (surface and border-color)
     // Also preserve AA compliance updates for text and interactive colors
     // Check all layers (0-4) and alternative layers
@@ -964,14 +993,14 @@ class VarsStore {
         // Check surface color
         const existingSurface = readCssVar(`${prefixedBase}surface`)
         if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
-          layerVars[`--brand-light-layer-layer-${i}-property-surface`] = existingSurface
+          layerVars[`--recursica-brand-light-layer-layer-${i}-property-surface`] = existingSurface
         }
         
         // Check border color (only for non-zero layers)
         if (i > 0) {
           const existingBorderColor = readCssVar(`${prefixedBase}border-color`)
           if (existingBorderColor && existingBorderColor.startsWith('var(') && existingBorderColor.includes('palettes')) {
-            layerVars[`--brand-light-layer-layer-${i}-property-border-color`] = existingBorderColor
+            layerVars[`--recursica-brand-light-layer-layer-${i}-property-border-color`] = existingBorderColor
           }
         }
         
@@ -983,13 +1012,13 @@ class VarsStore {
         // Text color
         const existingTextColor = readCssVar(`${textColorBase}color`)
         if (existingTextColor && existingTextColor.startsWith('var(')) {
-          layerVars[`--brand-light-layer-layer-${i}-property-element-text-color`] = existingTextColor
+          layerVars[`--recursica-brand-light-layer-layer-${i}-property-element-text-color`] = existingTextColor
         }
         
         // Interactive color
         const existingInterColor = readCssVar(`${interColorBase}color`)
         if (existingInterColor && existingInterColor.startsWith('var(')) {
-          layerVars[`--brand-light-layer-layer-${i}-property-element-interactive-color`] = existingInterColor
+          layerVars[`--recursica-brand-light-layer-layer-${i}-property-element-interactive-color`] = existingInterColor
         }
         
         // Status colors (alert, warning, success)
@@ -997,7 +1026,7 @@ class VarsStore {
         statusColors.forEach((status) => {
           const existingStatusColor = readCssVar(`${textColorBase}${status}`)
           if (existingStatusColor && existingStatusColor.startsWith('var(')) {
-            layerVars[`--brand-light-layer-layer-${i}-property-element-text-${status}`] = existingStatusColor
+            layerVars[`--recursica-brand-light-layer-layer-${i}-property-element-text-${status}`] = existingStatusColor
           }
         })
       }
@@ -1008,8 +1037,11 @@ class VarsStore {
         const prefixedBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property-`
         
         const existingSurface = readCssVar(`${prefixedBase}surface`)
-        if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
-          layerVars[`--brand-light-layer-layer-alternative-${altKey}-property-surface`] = existingSurface
+        // For primary-color, always ensure it's set even if not existing (fixes refresh/reset issue)
+        if (altKey === 'primary-color' && !existingSurface) {
+          layerVars[`--recursica-brand-light-layer-layer-alternative-${altKey}-property-surface`] = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+        } else if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
+          layerVars[`--recursica-brand-light-layer-layer-alternative-${altKey}-property-surface`] = existingSurface
         }
       }
     } catch {}

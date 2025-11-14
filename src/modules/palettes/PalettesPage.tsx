@@ -128,6 +128,10 @@ export default function PalettesPage() {
   const deletePalette = (key: string) => {
     if (key === 'neutral' || key === 'palette-1') return
     writePalettes(palettes.filter((p) => p.key !== key))
+    // Dispatch event for AA compliance watcher
+    try {
+      window.dispatchEvent(new CustomEvent('paletteDeleted', { detail: { key } }))
+    } catch {}
   }
 
   return (

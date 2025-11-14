@@ -272,13 +272,26 @@ export default function LayersPage() {
               const root: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
               const nextTheme = JSON.parse(JSON.stringify(root))
               const target = nextTheme.brand || nextTheme
-              const container = target?.light?.layer
-              if (!container) return
-              Array.from(selectedLayerLevels).forEach((lvl) => {
-                const key = `layer-${lvl}`
-                if (!container[key]) container[key] = {}
-                container[key] = updater(container[key] || {})
-              })
+              // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
+              const themes = target?.themes || target
+              const container = themes?.light?.layers || themes?.light?.layer || target?.light?.layers || target?.light?.layer
+              if (!container) {
+                // Create the structure if it doesn't exist
+                if (!themes.light) themes.light = {}
+                if (!themes.light.layers) themes.light.layers = {}
+                const newContainer = themes.light.layers
+                Array.from(selectedLayerLevels).forEach((lvl) => {
+                  const key = `layer-${lvl}`
+                  if (!newContainer[key]) newContainer[key] = {}
+                  newContainer[key] = updater(newContainer[key] || {})
+                })
+              } else {
+                Array.from(selectedLayerLevels).forEach((lvl) => {
+                  const key = `layer-${lvl}`
+                  if (!container[key]) container[key] = {}
+                  container[key] = updater(container[key] || {})
+                })
+              }
               setTheme(nextTheme)
             }}
           />

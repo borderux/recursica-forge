@@ -301,21 +301,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       else if (key === 'success') surfRaw = 'var(--recursica-brand-light-palettes-core-success, var(--palette-success))'
       else if (key === 'high-contrast') surfRaw = 'var(--recursica-brand-light-palettes-core-black)'
       else if (key === 'primary-color') {
-        // Resolve from Brand.json - check for default first, then fall back to primary
-        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-        const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-        const themes = root?.themes || root
-        const palette1Default = themes?.light?.palettes?.['palette-1']?.['default']?.$value
-        const palette1Primary = themes?.light?.palettes?.['palette-1']?.['primary']
-        if (palette1Default) {
-          // Resolve the default reference
-          const resolved = resolveRef(palette1Default)
-          surfRaw = typeof resolved === 'string' ? resolved : 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
-        } else if (palette1Primary) {
-          surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
-        } else {
-          surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
-        }
+        // Use palette-1 primary tone directly - this will be parsed by parsePaletteToneRef
+        surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
       }
     }
     const surfPalette = parsePaletteToneRef(surfRaw)

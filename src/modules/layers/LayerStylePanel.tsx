@@ -30,7 +30,9 @@ export default function LayerStylePanel({
   const spec = useMemo(() => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      return root?.light?.layer?.[layerKey] || {}
+      // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
+      const themes = root?.themes || root
+      return themes?.light?.layers?.[layerKey] || themes?.light?.layer?.[layerKey] || root?.light?.layers?.[layerKey] || root?.light?.layer?.[layerKey] || {}
     } catch {
       return {}
     }
@@ -55,21 +57,25 @@ export default function LayerStylePanel({
     const out: Array<{ label: string; value: string }> = []
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const light: any = root?.light?.palettes || {}
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      const light: any = themes?.light?.palettes || root?.light?.palettes || {}
       const core: any = light?.['core-colors']?.['$value'] || light?.['core-colors'] || light?.['core']?.['$value'] || light?.['core'] || {}
       Object.keys(core || {}).forEach((name) => {
-        out.push({ label: `core/${name}`, value: `{brand.light.palettes.core-colors.${name}}` })
+        // Skip interactive since it has nested structure
+        if (name === 'interactive' && typeof core[name] === 'object' && !core[name].$value) return
+        out.push({ label: `core/${name}`, value: `{brand.themes.light.palettes.core-colors.${name}}` })
       })
       const neutral: any = light?.neutral || {}
       Object.keys(neutral || {}).forEach((lvl) => {
-        if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `neutral/${lvl}`, value: `{brand.light.palettes.neutral.${lvl}.color.tone}` })
+        if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `neutral/${lvl}`, value: `{brand.themes.light.palettes.neutral.${lvl}.color.tone}` })
       })
       ;['palette-1','palette-2'].forEach((pk) => {
         const group: any = light?.[pk] || {}
         Object.keys(group || {}).forEach((lvl) => {
-          if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `${pk}/${lvl}`, value: `{brand.light.palettes.${pk}.${lvl}.color.tone}` })
+          if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `${pk}/${lvl}`, value: `{brand.themes.light.palettes.${pk}.${lvl}.color.tone}` })
         })
-        if (group?.default?.['$value']) out.push({ label: `${pk}/default`, value: `{brand.light.palettes.${pk}.default.color.tone}` })
+        if (group?.default?.['$value']) out.push({ label: `${pk}/default`, value: `{brand.themes.light.palettes.${pk}.default.color.tone}` })
       })
     } catch {}
     return out
@@ -77,7 +83,9 @@ export default function LayerStylePanel({
   const elevationOptions = useMemo(() => {
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const elev: any = root?.light?.elevations || {}
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      const elev: any = themes?.light?.elevations || root?.light?.elevations || {}
       const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a,b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
       return names.map((n) => {
         const idx = Number(n.split('-')[1])
@@ -195,11 +203,12 @@ export default function LayerStylePanel({
             currentToken={(() => {
               const v = (spec as any)?.property?.elevation?.$value
               const s = typeof v === 'string' ? v : ''
+              // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
               const m = s.match(/elevations\.(elevation-\d+)/)
               return m ? m[1] : undefined
             })()}
             onChange={(tokenName) => {
-              updateValue(['property','elevation'], `{brand.light.elevations.${tokenName}}`)
+              updateValue(['property','elevation'], `{brand.themes.light.elevations.${tokenName}}`)
             }}
             getTokenLabel={(token) => {
               const opt = elevationOptions.find((o) => o.name === token.name)
@@ -272,17 +281,30 @@ export default function LayerStylePanel({
           <button
             type="button"
             onClick={() => {
-              const defaults: any = (brandDefault as any)?.brand?.light?.layer || {}
-              onUpdate((layerSpec: any) => {
-                return layerSpec
-              })
+              const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
+              // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
+              const themes = root?.themes || root
+              const defaults: any = themes?.light?.layers || themes?.light?.layer || root?.light?.layers || root?.light?.layer || {}
               const levels = selectedLevels.slice()
-              const apply = (updater: (ls: any) => any) => onUpdate(updater)
+              
+              // Clear CSS variables for surface and border-color so they regenerate from theme defaults
+              // This is necessary because varsStore preserves existing CSS variables
+              const rootEl = document.documentElement
+              levels.forEach((lvl) => {
+                const surfaceVar = `--recursica-brand-light-layer-layer-${lvl}-property-surface`
+                const borderVar = `--recursica-brand-light-layer-layer-${lvl}-property-border-color`
+                rootEl.style.removeProperty(surfaceVar)
+                if (lvl > 0) {
+                  rootEl.style.removeProperty(borderVar)
+                }
+              })
+              
+              // Update theme JSON with defaults
               levels.forEach((lvl) => {
                 const key = `layer-${lvl}`
                 const def = defaults[key]
                 if (def) {
-                  apply(() => JSON.parse(JSON.stringify(def)))
+                  onUpdate(() => JSON.parse(JSON.stringify(def)))
                 }
               })
             }}

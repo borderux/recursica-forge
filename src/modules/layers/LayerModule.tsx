@@ -1,6 +1,6 @@
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { readCssVar } from '../../core/css/readCssVar'
  
 
@@ -77,19 +77,21 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     }
     return s
   }
-  const getElevationLevelForLayer = (): string => {
+  const elevationLevel = useMemo(() => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      const layerSpec: any = root?.light?.layer?.[`layer-${layerId}`] || {}
+      // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
+      const themes = root?.themes || root
+      const layerSpec: any = themes?.light?.layers?.[`layer-${layerId}`] || themes?.light?.layer?.[`layer-${layerId}`] || root?.light?.layers?.[`layer-${layerId}`] || root?.light?.layer?.[`layer-${layerId}`] || {}
       const v: any = layerSpec?.property?.elevation?.$value
       if (typeof v === 'string') {
+        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
         const m = v.match(/elevations\.(elevation-(\d+))/i)
         if (m) return m[2]
       }
     } catch {}
     return String(layerId)
-  }
-  const elevationLevel = getElevationLevelForLayer()
+  }, [theme, layerId])
   const cssVarBoxShadow = `var(--recursica-brand-light-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-shadow-color, rgba(0,0,0,0))`
 
   type Style = React.CSSProperties

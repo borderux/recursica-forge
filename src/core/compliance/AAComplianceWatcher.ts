@@ -1,52 +1,14 @@
 import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { findAaCompliantColor } from '../resolvers/colorSteppingForAa'
-import { contrastRatio } from '../../modules/theme/contrastUtil'
 import { updateCssVar } from '../css/updateCssVar'
 import { readCssVar } from '../css/readCssVar'
-
-// Helper to resolve CSS var to hex (recursively)
-function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth = 0): string | null {
-  if (depth > 10) return null
-  try {
-    const trimmed = cssVar.trim()
-    if (/^#?[0-9a-f]{6}$/i.test(trimmed)) {
-      const h = trimmed.toLowerCase()
-      return h.startsWith('#') ? h : `#${h}`
-    }
-    
-    const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
-    if (varMatch) {
-      const varName = varMatch[1]
-      const value = readCssVar(varName)
-      if (value) {
-        return resolveCssVarToHex(value, tokenIndex, depth + 1)
-      }
-    }
-    
-    const tokenMatch = trimmed.match(/--recursica-tokens-color-([a-z0-9-]+)-(\d+|050|000)/)
-    if (tokenMatch) {
-      const [, family, level] = tokenMatch
-      const normalizedLevel = level === '000' ? '050' : level
-      const hex = tokenIndex.get(`color/${family}/${normalizedLevel}`)
-      if (typeof hex === 'string') {
-        const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-        return h
-      }
-    }
-    
-    const paletteMatch = trimmed.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
-    if (paletteMatch) {
-      const [, paletteKey, level, type] = paletteMatch
-      const paletteVarName = `--recursica-brand-light-palettes-${paletteKey}-${level}-${type}`
-      const paletteValue = readCssVar(paletteVarName)
-      if (paletteValue) {
-        return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)
-      }
-    }
-  } catch {}
-  return null
-}
+import { contrastRatio } from '../../modules/theme/contrastUtil'
+import {
+  resolveCssVarToHex,
+  stepUntilAACompliant,
+  hexToCssVarRef
+} from './layerColorStepping'
 
 // Helper to blend foreground over background with opacity
 function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): string | undefined {
@@ -90,9 +52,14 @@ function getOpacityValue(opacityVar: string, tokenIndex: Map<string, any>): numb
 function parseCoreTokenRef(name: 'interactive' | 'alert' | 'warning' | 'success', theme: any): { family: string; level: string } | null {
   try {
     const root: any = theme?.brand ? theme.brand : theme
+    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+    const themes = root?.themes || root
     const core: any =
+      themes?.light?.palettes?.['core']?.['$value'] || themes?.light?.palettes?.['core'] ||
+      themes?.light?.palettes?.['core-colors']?.['$value'] || themes?.light?.palettes?.['core-colors'] || 
       root?.light?.palettes?.['core']?.['$value'] || root?.light?.palettes?.['core'] ||
-      root?.light?.palettes?.['core-colors']?.['$value'] || root?.light?.palettes?.['core-colors'] || root?.light?.palettes?.core?.['$value'] || root?.light?.palettes?.core || {}
+      root?.light?.palettes?.['core-colors']?.['$value'] || root?.light?.palettes?.['core-colors'] || 
+      root?.light?.palettes?.core?.['$value'] || root?.light?.palettes?.core || {}
     const v: any = core?.[name]
     const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
     if (!s) return null
@@ -117,6 +84,8 @@ export class AAComplianceWatcher {
   private observer: MutationObserver | null = null
   private checkTimeout: number | null = null
   private lastValues: Map<string, string> = new Map()
+  private paletteFamilyChangedHandler: ((ev: CustomEvent) => void) | null = null
+  private paletteDeletedHandler: ((ev: CustomEvent) => void) | null = null
 
   constructor(tokens: JsonLike, theme: JsonLike) {
     this.tokens = tokens
@@ -140,6 +109,80 @@ export class AAComplianceWatcher {
 
     // Also poll computed styles periodically (for changes not caught by MutationObserver)
     this.startPolling()
+    
+    // Listen for palette family changes and deletions
+    this.paletteFamilyChangedHandler = this.handlePaletteFamilyChanged.bind(this) as any
+    this.paletteDeletedHandler = this.handlePaletteDeleted.bind(this) as any
+    window.addEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler)
+    window.addEventListener('paletteDeleted', this.paletteDeletedHandler)
+  }
+  
+  private handlePaletteDeleted(ev: CustomEvent) {
+    const detail = ev.detail
+    if (!detail || !detail.key) return
+    
+    const paletteKey = detail.key
+    // Find layers that reference this palette
+    const affectedLayers = this.findLayersUsingPalette(paletteKey)
+    
+    // Only update if the deleted palette was being used
+    if (affectedLayers.length > 0) {
+      affectedLayers.forEach(({ type, key }) => {
+        if (type === 'regular') {
+          this.updateLayerElementColors(key)
+        } else {
+          this.updateAlternativeLayerElementColors(key)
+        }
+      })
+    }
+  }
+  
+  private handlePaletteFamilyChanged(ev: CustomEvent) {
+    const detail = ev.detail
+    if (!detail || !detail.key) return
+    
+    const paletteKey = detail.key
+    // Find layers that reference this palette
+    const affectedLayers = this.findLayersUsingPalette(paletteKey)
+    
+    // Update only affected layers
+    affectedLayers.forEach(({ type, key }) => {
+      if (type === 'regular') {
+        this.updateLayerElementColors(key)
+      } else {
+        this.updateAlternativeLayerElementColors(key)
+      }
+    })
+  }
+  
+  /**
+   * Finds which layers (0-3 and alt) reference a given palette key
+   */
+  private findLayersUsingPalette(paletteKey: string): Array<{ type: 'regular' | 'alt'; key: number | string }> {
+    const affected: Array<{ type: 'regular' | 'alt'; key: number | string }> = []
+    
+    // Check regular layers 0-3
+    for (let layer = 0; layer <= 3; layer++) {
+      const surfaceVar = `--recursica-brand-light-layer-layer-${layer}-property-surface`
+      const surfaceValue = readCssVar(surfaceVar)
+      
+      if (surfaceValue && surfaceValue.includes(`palettes-${paletteKey}`)) {
+        affected.push({ type: 'regular', key: layer })
+      }
+    }
+    
+    // Check alternative layers
+    const altLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+    for (const altKey of altLayers) {
+      const surfaceVar = `--recursica-brand-light-layer-layer-alternative-${altKey}-property-surface`
+      const surfaceValue = readCssVar(surfaceVar)
+      
+      if (surfaceValue && surfaceValue.includes(`palettes-${paletteKey}`)) {
+        affected.push({ type: 'alt', key: altKey })
+      }
+    }
+    
+    return affected
   }
 
   private startPolling() {
@@ -288,7 +331,6 @@ export class AAComplianceWatcher {
 
   private checkCoreColors() {
     const coreColors = ['alert', 'warning', 'success', 'interactive']
-    const alternativeLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
     
     coreColors.forEach((colorName) => {
       const coreColorVar = `--recursica-brand-light-palettes-core-${colorName}`
@@ -298,24 +340,8 @@ export class AAComplianceWatcher {
       if (currentValue !== lastValue) {
         this.lastValues.set(coreColorVar, currentValue)
         
-        // Determine which alternative layers need to be updated
-        const layersToUpdate = new Set<string>()
-        
-        if (colorName === 'alert' || colorName === 'warning' || colorName === 'success') {
-          // Status colors affect their corresponding alternative layer
-          // (surface color changes, and status text elements may need re-evaluation)
-          layersToUpdate.add(colorName)
-        }
-        
-        if (colorName === 'interactive') {
-          // Interactive color affects all alternative layers (for interactive elements)
-          alternativeLayers.forEach((layer) => layersToUpdate.add(layer))
-        }
-        
-        // Update all affected alternative layers
-        layersToUpdate.forEach((layerKey) => {
-          this.updateAlternativeLayerElementColors(layerKey)
-        })
+        // Core color changes affect ALL layers (0-3 and alt)
+        this.updateAllLayers()
       }
     })
   }
@@ -459,21 +485,38 @@ export class AAComplianceWatcher {
       }
       return
     } else if (elementName === 'interactive-color') {
-      const coreInteractiveHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive)', this.tokenIndex)
+      // Use stepping logic for interactive colors
+      const coreInteractiveVar = 'var(--recursica-brand-light-palettes-core-interactive-default-tone)'
+      const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex) || 
+                                  resolveCssVarToHex('var(--recursica-brand-light-palettes-core-interactive)', this.tokenIndex)
+      
       if (coreInteractiveHex) {
-        const finalColorHex = blendHexOverBg(coreInteractiveHex, surfaceHex, opacity) || coreInteractiveHex
-        const contrast = contrastRatio(surfaceHex, finalColorHex)
-        if (contrast >= 4.5) {
-          updateCssVar(currentColorCssVar, 'var(--recursica-brand-light-palettes-core-interactive)')
-          return
-        }
+        // Step until AA compliant
+        const steppedHex = stepUntilAACompliant(coreInteractiveHex, surfaceHex, 'darker', this.tokens)
+        const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
       }
+      return
     }
     
+    // For status colors (alert, warning, success), use stepping logic like interactive colors
     if (coreToken) {
-      const aaCompliantColor = findAaCompliantColor(surfaceHex, coreToken, opacity, this.tokens)
-      if (aaCompliantColor) {
-        updateCssVar(currentColorCssVar, aaCompliantColor, this.tokens)
+      // Get the core color hex from the token index
+      const normalizedLevel = coreToken.level === '000' ? '050' : coreToken.level
+      const coreColorHex = this.tokenIndex.get(`color/${coreToken.family}/${normalizedLevel}`)
+      
+      if (typeof coreColorHex === 'string') {
+        const hex = coreColorHex.startsWith('#') ? coreColorHex.toLowerCase() : `#${coreColorHex.toLowerCase()}`
+        // Step until AA compliant
+        const steppedHex = stepUntilAACompliant(hex, surfaceHex, 'darker', this.tokens)
+        const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+      } else {
+        // Fallback to findAaCompliantColor if token not found
+        const aaCompliantColor = findAaCompliantColor(surfaceHex, coreToken, opacity, this.tokens)
+        if (aaCompliantColor) {
+          updateCssVar(currentColorCssVar, aaCompliantColor, this.tokens)
+        }
       }
     }
   }
@@ -490,13 +533,26 @@ export class AAComplianceWatcher {
   }
 
   /**
-   * Force AA compliance check for all alternative layers (call after reset)
+   * Update all layers (0-3 and alt) - used when core colors change
    */
-  checkAllAlternativeLayers() {
+  updateAllLayers() {
+    // Update regular layers 0-3
+    for (let layer = 0; layer <= 3; layer++) {
+      this.updateLayerElementColors(layer)
+    }
+    
+    // Update alternative layers
     const alternativeLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
     alternativeLayers.forEach((layerKey) => {
       this.updateAlternativeLayerElementColors(layerKey)
     })
+  }
+
+  /**
+   * Force AA compliance check for all alternative layers (call after reset)
+   */
+  checkAllAlternativeLayers() {
+    this.updateAllLayers()
   }
 
   /**
@@ -510,6 +566,12 @@ export class AAComplianceWatcher {
     if (this.checkTimeout !== null) {
       clearTimeout(this.checkTimeout)
       this.checkTimeout = null
+    }
+    if (this.paletteFamilyChangedHandler) {
+      window.removeEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler)
+    }
+    if (this.paletteDeletedHandler) {
+      window.removeEventListener('paletteDeleted', this.paletteDeletedHandler)
     }
     this.watchedVars.clear()
     this.lastValues.clear()
