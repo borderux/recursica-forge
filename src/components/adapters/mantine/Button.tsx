@@ -37,9 +37,9 @@ export default function Button({
     type,
     className,
     style: {
-      // Use CSS variables for theming
-      '--button-bg': 'var(--recursica-ui-kit-components-button-color-layer-0-background-solid)',
-      '--button-color': 'var(--recursica-ui-kit-components-button-color-layer-0-text-solid)',
+      // Use CSS variables for theming - new structure: color.layer-0.{variant}.{property}
+      '--button-bg': `var(--recursica-ui-kit-components-button-color-layer-0-${variant === 'solid' ? 'solid' : variant === 'outline' ? 'outline' : 'text'}-background)`,
+      '--button-color': `var(--recursica-ui-kit-components-button-color-layer-0-${variant === 'solid' ? 'solid' : variant === 'outline' ? 'outline' : 'text'}-text)`,
       '--button-height': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-height)`,
       '--button-padding': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
       ...style,

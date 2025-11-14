@@ -280,41 +280,79 @@ function traverseUIKit(
       const val = (value as any).$value
       const type = (value as any).$type
       
-      // Try to resolve token references
-      // Pass vars map so UIKit self-references can check if the referenced var exists
-      const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars)
-      
       const cssVarName = toCssVarName(currentPath.join('.'))
       
-      if (resolved) {
-        vars[cssVarName] = resolved
-      } else if (val != null) {
-        // Check if val is a brace reference that couldn't be resolved yet
-        // (e.g., UIKit self-reference that doesn't exist yet)
-        if (typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')) {
-          // Preserve the brace reference for second pass resolution
-          vars[cssVarName] = val.trim()
-        } else {
-          // Use raw value if it's not a reference
-          // For numbers, add px if no unit (unless it's already a string with unit)
-          if (type === 'number') {
-            if (typeof val === 'number') {
-              vars[cssVarName] = `${val}px`
-            } else if (typeof val === 'string') {
+      // Handle dimension type: { value: number | string, unit: string }
+      if (type === 'dimension' && val && typeof val === 'object' && 'value' in val && 'unit' in val) {
+        const dimValue = val.value
+        const unit = val.unit || 'px'
+        
+        // Try to resolve token references in the value
+        const resolved = resolveTokenRef(dimValue, tokenIndex, theme, uikit, 0, vars)
+        
+        if (resolved) {
+          // If resolved to a CSS var, use it directly (it should already have units)
+          vars[cssVarName] = resolved
+        } else if (dimValue != null) {
+          // Check if dimValue is a brace reference that couldn't be resolved yet
+          if (typeof dimValue === 'string' && dimValue.trim().startsWith('{') && dimValue.trim().endsWith('}')) {
+            // Preserve the brace reference for second pass resolution
+            vars[cssVarName] = dimValue.trim()
+          } else {
+            // Use the value with the unit
+            if (typeof dimValue === 'number') {
+              vars[cssVarName] = `${dimValue}${unit}`
+            } else if (typeof dimValue === 'string') {
+              const trimmed = dimValue.trim()
               // Check if string already has a unit
-              const trimmed = val.trim()
-              if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
-                vars[cssVarName] = `${trimmed}px`
+              if (/^-?\d+(\.\d+)?(px|em|rem|%|vh|vw|pt|pc|in|cm|mm|ex|ch|vmin|vmax|deg|rad|grad|ms|s|Hz|kHz|dpi|dpcm|dppx)$/i.test(trimmed)) {
+                vars[cssVarName] = trimmed
+              } else if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+                vars[cssVarName] = `${trimmed}${unit}`
               } else {
                 vars[cssVarName] = trimmed
               }
             } else {
+              vars[cssVarName] = String(dimValue)
+            }
+          }
+        }
+      } else {
+        // Handle other types (number, string, color, etc.)
+        // Try to resolve token references
+        // Pass vars map so UIKit self-references can check if the referenced var exists
+        const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars)
+        
+        if (resolved) {
+          vars[cssVarName] = resolved
+        } else if (val != null) {
+          // Check if val is a brace reference that couldn't be resolved yet
+          // (e.g., UIKit self-reference that doesn't exist yet)
+          if (typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')) {
+            // Preserve the brace reference for second pass resolution
+            vars[cssVarName] = val.trim()
+          } else {
+            // Use raw value if it's not a reference
+            // For numbers, add px if no unit (unless it's already a string with unit)
+            if (type === 'number') {
+              if (typeof val === 'number') {
+                vars[cssVarName] = `${val}px`
+              } else if (typeof val === 'string') {
+                // Check if string already has a unit
+                const trimmed = val.trim()
+                if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+                  vars[cssVarName] = `${trimmed}px`
+                } else {
+                  vars[cssVarName] = trimmed
+                }
+              } else {
+                vars[cssVarName] = String(val)
+              }
+            } else if (type === 'string') {
+              vars[cssVarName] = String(val)
+            } else {
               vars[cssVarName] = String(val)
             }
-          } else if (type === 'string') {
-            vars[cssVarName] = String(val)
-          } else {
-            vars[cssVarName] = String(val)
           }
         }
       }

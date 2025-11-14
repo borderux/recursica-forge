@@ -34,15 +34,19 @@ export default function Button({
     type,
     className,
     sx: {
-      // Use CSS variables for theming
-      backgroundColor: variant === 'solid' 
-        ? 'var(--recursica-ui-kit-components-button-color-layer-0-background-solid)'
-        : 'transparent',
+      // Use CSS variables for theming - new structure: color.layer-0.{variant}.{property}
+      backgroundColor: variant === 'solid'
+        ? 'var(--recursica-ui-kit-components-button-color-layer-0-solid-background)'
+        : variant === 'outline'
+        ? 'var(--recursica-ui-kit-components-button-color-layer-0-outline-background)'
+        : 'var(--recursica-ui-kit-components-button-color-layer-0-text-background)',
       color: variant === 'solid'
-        ? 'var(--recursica-ui-kit-components-button-color-layer-0-text-solid)'
-        : 'var(--recursica-ui-kit-components-button-color-layer-0-outline)',
+        ? 'var(--recursica-ui-kit-components-button-color-layer-0-solid-text)'
+        : variant === 'outline'
+        ? 'var(--recursica-ui-kit-components-button-color-layer-0-outline-text)'
+        : 'var(--recursica-ui-kit-components-button-color-layer-0-text-text)',
       borderColor: variant === 'outline'
-        ? 'var(--recursica-ui-kit-components-button-color-layer-0-outline)'
+        ? 'var(--recursica-ui-kit-components-button-color-layer-0-outline-text)'
         : undefined,
       ...style,
       ...material?.sx,

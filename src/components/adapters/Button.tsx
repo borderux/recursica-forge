@@ -87,11 +87,10 @@ function getButtonStyles(
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
   
-  // Get CSS variables for button
-  const bgVar = getComponentCssVar('Button', 'color', 'background-solid', layer)
-  const textVar = getComponentCssVar('Button', 'color', 'text-solid', layer)
-  const outlineVar = getComponentCssVar('Button', 'color', 'outline', layer)
-  const disabledVar = getComponentCssVar('Button', 'color', 'disabled', layer)
+  // New UIKit.json structure: color.layer-X.{variant}.{property}
+  // Get CSS variables for button using variant in the path
+  const bgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
+  const textVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
   
   const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
@@ -113,21 +112,22 @@ function getButtonStyles(
   // Read CSS variables for colors (these may need fallbacks)
   const backgroundColor = readCssVar(bgVar)
   const textColor = readCssVar(textVar)
-  const borderColor = readCssVar(outlineVar)
-  const disabledOpacity = readCssVar(disabledVar, '0.5')
   
   // Apply variant styles
   if (variant === 'solid') {
-    styles.backgroundColor = backgroundColor || 'var(--recursica-ui-kit-components-button-color-layer-0-background-solid)'
-    styles.color = textColor || 'var(--recursica-ui-kit-components-button-color-layer-0-text-solid)'
+    styles.backgroundColor = backgroundColor ? `var(${bgVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-solid-background)`
+    styles.color = textColor ? `var(${textVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-solid-text)`
     styles.border = 'none'
   } else if (variant === 'outline') {
-    styles.backgroundColor = 'transparent'
-    styles.color = borderColor || 'var(--recursica-ui-kit-components-button-color-layer-0-outline)'
-    styles.border = `1px solid ${borderColor || 'var(--recursica-ui-kit-components-button-color-layer-0-outline)'}`
+    styles.backgroundColor = backgroundColor ? `var(${bgVar})` : 'transparent'
+    styles.color = textColor ? `var(${textVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-outline-text)`
+    // For outline, use text color as border color
+    const borderColor = textColor ? `var(${textVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-outline-text)`
+    styles.border = `1px solid ${borderColor}`
   } else {
-    styles.backgroundColor = 'transparent'
-    styles.color = borderColor || 'var(--recursica-ui-kit-components-button-color-layer-0-outline)'
+    // text variant
+    styles.backgroundColor = backgroundColor ? `var(${bgVar})` : 'transparent'
+    styles.color = textColor ? `var(${textVar})` : `var(--recursica-ui-kit-components-button-color-${layer}-text-text)`
     styles.border = 'none'
   }
   
@@ -140,7 +140,7 @@ function getButtonStyles(
   
   // Apply disabled styles
   if (disabled) {
-    styles.opacity = disabledOpacity
+    styles.opacity = '0.5'
     styles.cursor = 'not-allowed'
   } else {
     styles.cursor = 'pointer'

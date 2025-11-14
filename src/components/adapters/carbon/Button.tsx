@@ -34,9 +34,9 @@ export default function Button({
     type,
     className,
     style: {
-      // Use CSS variables for theming
-      '--cds-button-primary': 'var(--recursica-ui-kit-components-button-color-layer-0-background-solid)',
-      '--cds-button-text-primary': 'var(--recursica-ui-kit-components-button-color-layer-0-text-solid)',
+      // Use CSS variables for theming - new structure: color.layer-0.{variant}.{property}
+      '--cds-button-primary': `var(--recursica-ui-kit-components-button-color-layer-0-${variant === 'solid' ? 'solid' : variant === 'outline' ? 'outline' : 'text'}-background)`,
+      '--cds-button-text-primary': `var(--recursica-ui-kit-components-button-color-layer-0-${variant === 'solid' ? 'solid' : variant === 'outline' ? 'outline' : 'text'}-text)`,
       ...style,
     },
     ...carbon,

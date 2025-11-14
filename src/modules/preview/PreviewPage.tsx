@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Button } from '../../components/adapters/Button'
 import uikitJson from '../../vars/UIKit.json'
+import ComponentCssVarsPanel from './ComponentCssVarsPanel'
 
 type Section = {
   name: string
@@ -9,10 +10,32 @@ type Section = {
   isMapped?: boolean
 }
 
-const SectionCard = ({ title, url, children }: { title: string; url: string; children: React.ReactNode }) => (
+const SectionCard = ({ title, url, children, onEditCssVars }: { title: string; url: string; children: React.ReactNode; onEditCssVars: () => void }) => (
   <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-      <h3 style={{ margin: 0 }}>{title}</h3>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h3 style={{ margin: 0 }}>{title}</h3>
+        <button
+          onClick={onEditCssVars}
+          aria-label="Edit CSS Variables"
+          style={{
+            fontSize: 14,
+            color: 'var(--recursica-brand-light-layer-layer-1-property-element-interactive-color)',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            lineHeight: 1
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+        </button>
+      </div>
       <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, textDecoration: 'none', color: 'var(--recursica-brand-light-layer-layer-1-property-element-interactive-color)' }}>Docs →</a>
     </div>
     <div style={{ display: 'grid', gap: 8 }}>{children}</div>
@@ -21,6 +44,7 @@ const SectionCard = ({ title, url, children }: { title: string; url: string; chi
 
 export default function PreviewPage() {
   const [showUnmapped, setShowUnmapped] = useState(false)
+  const [editingComponent, setEditingComponent] = useState<string | null>(null)
   
   // Get list of mapped components from UIKit.json
   const mappedComponents = useMemo(() => {
@@ -517,11 +541,21 @@ export default function PreviewPage() {
         </div>
       ) : (
         visibleSections.map((s) => (
-          <SectionCard key={s.name} title={s.name} url={s.url}>
+          <SectionCard 
+            key={s.name} 
+            title={s.name} 
+            url={s.url}
+            onEditCssVars={() => setEditingComponent(s.name)}
+          >
             {s.render()}
           </SectionCard>
         ))
       )}
+      <ComponentCssVarsPanel
+        open={editingComponent !== null}
+        componentName={editingComponent || ''}
+        onClose={() => setEditingComponent(null)}
+      />
     </div>
   )
 }
