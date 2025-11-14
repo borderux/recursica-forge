@@ -24,7 +24,7 @@ export default function PreviewPage() {
   
   // Get list of mapped components from UIKit.json
   const mappedComponents = useMemo(() => {
-    const components = (uikitJson as any)?.components || {}
+    const components = (uikitJson as any)?.['ui-kit']?.components || {}
     return new Set(Object.keys(components).map(name => {
       // Convert "button" -> "Button", "text-field" -> "Text field", etc.
       return name

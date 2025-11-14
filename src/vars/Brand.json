@@ -774,7 +774,24 @@
               "alert": "{tokens.color.mandy.600}",
               "success": "{tokens.color.greensheen.600}",
               "warning": "{tokens.color.mandarin.600}",
-              "interactive": "{tokens.color.mandy.500}"
+              "interactive": {
+                "default": {
+                  "tone": {
+                    "$value": "{tokens.color.mandy.500}"
+                  },
+                  "on-tone": {
+                    "$value": "{brand.themes.light.palettes.white}"
+                  }
+                },
+                "hover": {
+                  "tone": {
+                    "$value": "{tokens.color.mandy.600}"
+                  },
+                  "on-tone": {
+                    "$value": "{brand.themes.light.palettes.white}"
+                  }
+                }
+              }
             }
           }
         },
@@ -1801,7 +1818,24 @@
               "alert": "{tokens.color.mandy.600}",
               "success": "{tokens.color.greensheen.600}",
               "warning": "{tokens.color.mandarin.600}",
-              "interactive": "{tokens.color.mandy.500}"
+              "interactive": {
+                "default": {
+                  "tone": {
+                    "$value": "{tokens.color.mandy.500}"
+                  },
+                  "on-tone": {
+                    "$value": "{brand.themes.light.palettes.white}"
+                  }
+                },
+                "hover": {
+                  "tone": {
+                    "$value": "{tokens.color.mandy.600}"
+                  },
+                  "on-tone": {
+                    "$value": "{brand.themes.light.palettes.white}"
+                  }
+                }
+              }
             }
           }
         },

@@ -11,9 +11,6 @@ import { getComponentCssVar } from '../utils/cssVarNames'
 import { readCssVar } from '../hooks/useCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
-// Import registry types
-import type { ComponentName } from '../registry/types'
-
 export type ButtonProps = {
   children?: React.ReactNode
   variant?: 'solid' | 'outline' | 'text'
@@ -51,7 +48,7 @@ export function Button({
         onClick={onClick}
         className={className}
         style={{
-          ...getButtonStyles(variant, size, layer),
+          ...getButtonStyles(variant, size, layer, disabled),
           ...style,
         }}
       >
@@ -85,16 +82,15 @@ export function Button({
 function getButtonStyles(
   variant: 'solid' | 'outline' | 'text',
   size: 'default' | 'small',
-  layer: ComponentLayer
+  layer: ComponentLayer,
+  disabled: boolean
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
   
   // Get CSS variables for button
   const bgVar = getComponentCssVar('Button', 'color', 'background-solid', layer)
-  const bgHoverVar = getComponentCssVar('Button', 'color', 'background-solid-hover', layer)
   const textVar = getComponentCssVar('Button', 'color', 'text-solid', layer)
   const outlineVar = getComponentCssVar('Button', 'color', 'outline', layer)
-  const outlineHoverVar = getComponentCssVar('Button', 'color', 'outline-hover', layer)
   const disabledVar = getComponentCssVar('Button', 'color', 'disabled', layer)
   
   const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
@@ -108,14 +104,16 @@ function getButtonStyles(
   const sizeMinWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const sizePaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
   
-  // Read CSS variables
+  // Use CSS variable references directly instead of reading values
+  // This allows dynamic updates and proper CSS variable resolution
+  const heightVarName = sizeHeightVar || heightVar
+  const minWidthVarName = sizeMinWidthVar || minWidthVar
+  const paddingVarName = sizePaddingVar || paddingVar
+  
+  // Read CSS variables for colors (these may need fallbacks)
   const backgroundColor = readCssVar(bgVar)
   const textColor = readCssVar(textVar)
   const borderColor = readCssVar(outlineVar)
-  const height = readCssVar(sizeHeightVar || heightVar, size === 'small' ? '32px' : '48px')
-  const minWidth = readCssVar(sizeMinWidthVar || minWidthVar, size === 'small' ? '32px' : '48px')
-  const padding = readCssVar(sizePaddingVar || paddingVar, '12px')
-  const borderRadius = readCssVar(borderRadiusVar, '8px')
   const disabledOpacity = readCssVar(disabledVar, '0.5')
   
   // Apply variant styles
@@ -133,12 +131,12 @@ function getButtonStyles(
     styles.border = 'none'
   }
   
-  // Apply size styles
-  styles.height = height
-  styles.minWidth = minWidth
-  styles.paddingLeft = padding
-  styles.paddingRight = padding
-  styles.borderRadius = borderRadius
+  // Apply size styles using CSS variable references directly
+  styles.height = heightVarName ? `var(${heightVarName})` : (size === 'small' ? '32px' : '48px')
+  styles.minWidth = minWidthVarName ? `var(${minWidthVarName})` : (size === 'small' ? '32px' : '48px')
+  styles.paddingLeft = paddingVarName ? `var(${paddingVarName})` : '12px'
+  styles.paddingRight = paddingVarName ? `var(${paddingVarName})` : '12px'
+  styles.borderRadius = borderRadiusVar ? `var(${borderRadiusVar})` : '8px'
   
   // Apply disabled styles
   if (disabled) {

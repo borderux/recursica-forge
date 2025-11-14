@@ -25,6 +25,9 @@ export default function Button({
   // Map unified size to Mantine size
   const mantineSize = size === 'small' ? 'xs' : size === 'default' ? 'md' : 'lg'
   
+  // Determine size prefix for CSS variables
+  const sizePrefix = size === 'small' ? 'small' : 'default'
+  
   // Merge library-specific props
   const mantineProps = {
     variant: mantineVariant,
@@ -37,6 +40,8 @@ export default function Button({
       // Use CSS variables for theming
       '--button-bg': 'var(--recursica-ui-kit-components-button-color-layer-0-background-solid)',
       '--button-color': 'var(--recursica-ui-kit-components-button-color-layer-0-text-solid)',
+      '--button-height': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-height)`,
+      '--button-padding': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
       ...style,
     },
     ...mantine,

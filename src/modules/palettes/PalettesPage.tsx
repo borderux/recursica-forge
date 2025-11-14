@@ -162,6 +162,7 @@ export default function PalettesPage() {
                 <th>Warn</th>
                 <th>Success</th>
                 <th>Interactive</th>
+                <th>Interactive (hover)</th>
               </tr>
             </thead>
             <tbody>
@@ -171,7 +172,52 @@ export default function PalettesPage() {
                 <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-alert)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-alert')} />
                 <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-warning)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-warning')} />
                 <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-success)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-success')} />
-                <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-interactive')} />
+                <td 
+                  className="swatch-box" 
+                  style={{ 
+                    position: 'relative',
+                    backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive-default-tone, var(--recursica-brand-light-palettes-core-interactive))', 
+                    cursor: 'pointer' 
+                  }} 
+                  onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-interactive-default-tone')}
+                >
+                  <div 
+                    style={{ 
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive-default-on-tone, #ffffff)',
+                      border: '1px solid rgba(0, 0, 0, 0.1)'
+                    }} 
+                  />
+                </td>
+                <td 
+                  className="swatch-box" 
+                  style={{ 
+                    position: 'relative',
+                    backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive-hover-tone)', 
+                    cursor: 'pointer' 
+                  }} 
+                  onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-interactive-hover-tone')}
+                >
+                  <div 
+                    style={{ 
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive-hover-on-tone, #ffffff)',
+                      border: '1px solid rgba(0, 0, 0, 0.1)'
+                    }} 
+                  />
+                </td>
               </tr>
               {/* Removed hex values row under swatches per request */}
             </tbody>

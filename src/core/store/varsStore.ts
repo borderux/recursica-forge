@@ -828,15 +828,10 @@ class VarsStore {
       
       const colors: Record<string, string> = {}
       
-      // Process each core color
-      Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
-        // Get the value from theme JSON - core should now be the direct colors object
-        const coreValue: any = core[colorName]
-        let tokenRef: string | null = null
-        
-        // Parse brace reference like {tokens.color.gray.1000}
-        if (typeof coreValue === 'string') {
-          const trimmed = coreValue.trim()
+      // Helper function to resolve a token reference
+      const resolveTokenRef = (value: any): string | null => {
+        if (typeof value === 'string') {
+          const trimmed = value.trim()
           if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
             const inner = trimmed.slice(1, -1).trim()
             // Match pattern: tokens.color.<family>.<level>
@@ -845,10 +840,67 @@ class VarsStore {
               const family = match[1]
               const level = normalizeLevel(match[2])
               if (family && level) {
-                tokenRef = `var(--recursica-tokens-color-${family}-${level})`
+                return `var(--recursica-tokens-color-${family}-${level})`
               }
             }
+            // Match pattern: brand.themes.light.palettes.white or brand.themes.light.palettes.black
+            const brandMatch = /^brand\.themes\.light\.palettes\.(white|black)$/i.exec(inner)
+            if (brandMatch) {
+              const color = brandMatch[1].toLowerCase()
+              return `var(--recursica-brand-light-palettes-core-${color})`
+            }
           }
+        }
+        return null
+      }
+      
+      // Process each core color
+      Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
+        // Get the value from theme JSON - core should now be the direct colors object
+        const coreValue: any = core[colorName]
+        let tokenRef: string | null = null
+        
+        // Special handling for interactive (nested structure)
+        if (colorName === 'interactive' && coreValue && typeof coreValue === 'object' && !coreValue.$value) {
+          // Handle nested structure: interactive.default.tone, interactive.default.on-tone, etc.
+          const defaultTone = coreValue.default?.tone?.$value || coreValue.default?.tone
+          const defaultOnTone = coreValue.default?.['on-tone']?.$value || coreValue.default?.['on-tone']
+          const hoverTone = coreValue.hover?.tone?.$value || coreValue.hover?.tone
+          const hoverOnTone = coreValue.hover?.['on-tone']?.$value || coreValue.hover?.['on-tone']
+          
+          // Main interactive var (backward compatibility) maps to default tone
+          if (defaultTone) {
+            tokenRef = resolveTokenRef(defaultTone)
+          }
+          
+          // Generate additional CSS vars for nested structure
+          if (defaultTone) {
+            const defaultToneRef = resolveTokenRef(defaultTone)
+            if (defaultToneRef) {
+              colors['--recursica-brand-light-palettes-core-interactive-default-tone'] = defaultToneRef
+            }
+          }
+          if (defaultOnTone) {
+            const defaultOnToneRef = resolveTokenRef(defaultOnTone)
+            if (defaultOnToneRef) {
+              colors['--recursica-brand-light-palettes-core-interactive-default-on-tone'] = defaultOnToneRef
+            }
+          }
+          if (hoverTone) {
+            const hoverToneRef = resolveTokenRef(hoverTone)
+            if (hoverToneRef) {
+              colors['--recursica-brand-light-palettes-core-interactive-hover-tone'] = hoverToneRef
+            }
+          }
+          if (hoverOnTone) {
+            const hoverOnToneRef = resolveTokenRef(hoverOnTone)
+            if (hoverOnToneRef) {
+              colors['--recursica-brand-light-palettes-core-interactive-hover-on-tone'] = hoverOnToneRef
+            }
+          }
+        } else {
+          // Handle simple string values for other core colors
+          tokenRef = resolveTokenRef(coreValue)
         }
         
         // Fallback to default if parsing failed
