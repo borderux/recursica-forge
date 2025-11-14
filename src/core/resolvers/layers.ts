@@ -643,6 +643,11 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       const vref = coerceToVarRef(ihoverRaw) || String(ihover ?? '')
       if (vref) result[`${brandInterBase}hover-color`] = vref
     }
+    
+    // Generate layer-specific interactive on-tone variables for UIKit references
+    // These reference the core palette on-tone variables
+    result[`${brandInterBase}default-on-tone`] = 'var(--recursica-brand-light-palettes-core-interactive-default-on-tone)'
+    result[`${brandInterBase}hover-on-tone`] = 'var(--recursica-brand-light-palettes-core-interactive-hover-on-tone)'
   }
 
   ;['0','1','2','3','4'].forEach((lvl) => {

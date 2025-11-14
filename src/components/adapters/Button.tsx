@@ -96,6 +96,7 @@ function getButtonStyles(
   const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
   const paddingVar = getComponentCssVar('Button', 'size', 'horizontal-padding', undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+  const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
   
   // Size-specific vars - UIKit.json structure: size.default.height, size.small.height
   const sizePrefix = size === 'small' ? 'small' : 'default'
@@ -137,6 +138,7 @@ function getButtonStyles(
   styles.paddingLeft = paddingVarName ? `var(${paddingVarName})` : '12px'
   styles.paddingRight = paddingVarName ? `var(${paddingVarName})` : '12px'
   styles.borderRadius = borderRadiusVar ? `var(${borderRadiusVar})` : '8px'
+  styles.fontSize = fontSizeVar ? `var(${fontSizeVar})` : undefined
   
   // Apply disabled styles
   if (disabled) {

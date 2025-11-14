@@ -82,6 +82,17 @@ function resolveTokenRef(
     }
   }
   
+  // Handle brand-level typography references: {brand.typography.button.font-size} (no mode needed)
+  if (/^brand\.typography\./i.test(inner)) {
+    const parts = inner.split('.').filter(Boolean)
+    if (parts.length >= 2 && parts[1].toLowerCase() === 'typography') {
+      // parts: ['brand', 'typography', 'button', 'font-size']
+      // We want: --recursica-brand-typography-button-font-size
+      const typoPath = parts.slice(2).join('-') // Skip 'brand' and 'typography'
+      return `var(--recursica-brand-typography-${typoPath})`
+    }
+  }
+  
   // Handle brand/theme references: {brand.themes.light.*} or {brand.light.*} or {theme.light.*} or {brand.dark.*} or {theme.dark.*}
   // Support both old format (brand.light.*) and new format (brand.themes.light.*) for backwards compatibility
   // Also support "theme" prefix for backwards compatibility
@@ -125,11 +136,24 @@ function resolveTokenRef(
       if (elementPath === 'interactive') {
         elementPath = 'interactive-color'
       }
+      // Handle element.interactive.default.on-tone -> element-interactive-default-on-tone
+      // Handle element.interactive.hover.on-tone -> element-interactive-hover-on-tone
+      // These are already handled by the replace(/\./g, '-') above, so no special case needed
       
       return `var(--recursica-brand-${mode}-layer-layer-${layerNum}-property-element-${elementPath})`
     }
     
-    // Palette core-colors references: palettes.core-colors.alert (check this FIRST, before other palette patterns)
+    // Palette core-colors references with state: palettes.core-colors.interactive.default.tone
+    // Handle: palettes.core-colors.{color}.{state}.{tone|on-tone}
+    // Note: For core-colors, "default" stays as "default" (not mapped to "primary" like regular palettes)
+    const paletteCoreColorsStateMatch = /^palettes?\.core-colors?\.([a-z0-9-]+)\.([a-z0-9-]+)\.(tone|on-tone)$/i.exec(path)
+    if (paletteCoreColorsStateMatch) {
+      const [, coreColor, state, type] = paletteCoreColorsStateMatch
+      // Keep state as-is for core-colors (default stays default, hover stays hover)
+      return `var(--recursica-brand-${mode}-palettes-core-${coreColor}-${state}-${type})`
+    }
+    
+    // Palette core-colors references: palettes.core-colors.alert (check this AFTER state pattern)
     const paletteCoreColorsMatch = /^palettes?\.core-colors?\.(alert|warning|success|interactive|black|white)$/i.exec(path)
     if (paletteCoreColorsMatch) {
       const [, coreColor] = paletteCoreColorsMatch
@@ -152,6 +176,15 @@ function resolveTokenRef(
       const [, paletteKey, level, type] = paletteMatch
       const cssLevel = level === 'default' ? 'primary' : level
       return `var(--recursica-brand-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
+    }
+    
+    // Palette references without tone/on-tone: palettes.neutral.default or palettes.palette-1.default
+    // These should map to the primary tone (default -> primary)
+    const paletteDefaultMatch = /^palettes?\.([a-z0-9-]+)\.(default|primary)$/i.exec(path)
+    if (paletteDefaultMatch) {
+      const [, paletteKey] = paletteDefaultMatch
+      // Default to 'tone' when not specified
+      return `var(--recursica-brand-${mode}-palettes-${paletteKey}-primary-tone)`
     }
     
     // Palette alert/warning/success: palette.alert (legacy format)
@@ -424,6 +457,10 @@ export function buildUIKitVars(
           if (resolved && typeof resolved === 'string' && !resolved.startsWith('{')) {
             vars[key] = resolved
             changed = true
+          } else if (!resolved) {
+            // Log unresolved references for debugging (but don't break the build)
+            // These will be caught by the CSS var audit
+            console.warn(`[UIKit] Could not resolve reference: ${trimmed} for CSS var: ${key}`)
           }
         }
         

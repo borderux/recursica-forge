@@ -81,15 +81,15 @@
           },
           "border": {
             "$type": "color",
-            "$value": "{brand.themes.light.palettes.neutral.default}"
+            "$value": "{brand.themes.light.palettes.neutral.default.color.tone}"
           },
           "border-focus": {
             "$type": "color",
-            "$value": "{brand.themes.light.palettes.palette-1.default}"
+            "$value": "{brand.themes.light.palettes.palette-1.default.color.tone}"
           },
           "border-selected": {
             "$type": "color",
-            "$value": "{brand.themes.light.palettes.palette-1.default}"
+            "$value": "{brand.themes.light.palettes.palette-1.default.color.tone}"
           },
           "border-error": {
             "$type": "color",
@@ -606,6 +606,13 @@
                 "value": "{brand.dimensions.sm}",
                 "unit": "px"
               }
+            }
+          },
+          "font-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.typography.button.font-size}",
+              "unit": "px"
             }
           },
           "border-radius": {

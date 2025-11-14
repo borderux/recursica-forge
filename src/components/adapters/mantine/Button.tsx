@@ -42,6 +42,8 @@ export default function Button({
       '--button-color': `var(--recursica-ui-kit-components-button-color-layer-0-${variant === 'solid' ? 'solid' : variant === 'outline' ? 'outline' : 'text'}-text)`,
       '--button-height': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-height)`,
       '--button-padding': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
+      '--button-padding-x': `var(--recursica-ui-kit-components-button-size-default-horizontal-padding)`,
+      '--button-font-size': `var(--recursica-ui-kit-components-button-size-font-size)`,
       ...style,
     },
     ...mantine,

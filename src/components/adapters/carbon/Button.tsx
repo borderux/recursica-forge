@@ -37,6 +37,7 @@ export default function Button({
       // Use CSS variables for theming - new structure: color.layer-0.{variant}.{property}
       '--cds-button-primary': `var(--recursica-ui-kit-components-button-color-layer-0-${variant === 'solid' ? 'solid' : variant === 'outline' ? 'outline' : 'text'}-background)`,
       '--cds-button-text-primary': `var(--recursica-ui-kit-components-button-color-layer-0-${variant === 'solid' ? 'solid' : variant === 'outline' ? 'outline' : 'text'}-text)`,
+      fontSize: 'var(--recursica-ui-kit-components-button-size-font-size)',
       ...style,
     },
     ...carbon,

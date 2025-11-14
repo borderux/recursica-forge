@@ -48,6 +48,7 @@ export default function Button({
       borderColor: variant === 'outline'
         ? 'var(--recursica-ui-kit-components-button-color-layer-0-outline-text)'
         : undefined,
+      fontSize: 'var(--recursica-ui-kit-components-button-size-font-size)',
       ...style,
       ...material?.sx,
     },
