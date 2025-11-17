@@ -809,9 +809,10 @@ class VarsStore {
       const normalizeLevel = (lvl?: string): string | undefined => {
         if (!lvl) return undefined
         const s = String(lvl).padStart(3, '0')
-        if (s === '000') return '050'
-        if (s === '1000') return '900'
-        const allowed = new Set(['900','800','700','600','500','400','300','200','100','050'])
+        // Preserve 000 and 1000 as-is - don't normalize them
+        if (s === '000') return '000'
+        if (s === '1000') return '1000'
+        const allowed = new Set(['900','800','700','600','500','400','300','200','100','050','000','1000'])
         return allowed.has(s) ? s : undefined
       }
       
@@ -844,7 +845,7 @@ class VarsStore {
           if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
             const inner = trimmed.slice(1, -1).trim()
             // Match pattern: tokens.color.<family>.<level>
-            const match = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|000|050)$/i.exec(inner)
+            const match = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|000|050|1000)$/i.exec(inner)
             if (match) {
               const family = match[1]
               const level = normalizeLevel(match[2])
