@@ -67,9 +67,90 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return { resolved, direct: directValue }
   }, [targetCssVar])
 
+  // Track which palette swatch we've already selected to avoid multiple selections
+  const selectedPaletteSwatch = useMemo(() => {
+    if (!targetResolvedValue || !targetCssVar) return null
+    
+    const directValue = readCssVar(targetCssVar)
+    if (!directValue) return null
+    
+    const trimmed = directValue.trim()
+    
+    // Check if target directly references a palette var
+    const directPaletteMatch = trimmed.match(/var\(--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone\)/)
+    if (directPaletteMatch) {
+      const [, paletteKey, level] = directPaletteMatch
+      return `${paletteKey}-${level}`
+    }
+    
+    // Check if target is a color-mix() that contains a palette var
+    if (trimmed.includes('color-mix')) {
+      const colorMixPaletteMatch = trimmed.match(/--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone/)
+      if (colorMixPaletteMatch) {
+        const [, paletteKey, level] = colorMixPaletteMatch
+        return `${paletteKey}-${level}`
+      }
+      
+      // Check if color-mix() contains a token reference - extract and resolve the token directly (not the color-mix result)
+      const tokenMatch = trimmed.match(/var\(--recursica-tokens-color-([a-z0-9-]+)-(\d+|050|000)\)/)
+      if (tokenMatch) {
+        const [, family, level] = tokenMatch
+        // Resolve the token directly (not the color-mix result which includes opacity)
+        const tokenCssVar = `--recursica-tokens-color-${family}-${level}`
+        const tokenHex = readCssVarResolved(tokenCssVar)
+        if (tokenHex && /^#[0-9a-f]{6}$/i.test(tokenHex)) {
+          const targetHex = tokenHex.toLowerCase().trim()
+          // Find the first palette swatch that matches this hex
+          for (const pk of paletteKeys) {
+            const levels = paletteLevels[pk] || []
+            for (const level of levels) {
+              const paletteCssVar = buildPaletteCssVar(pk, level)
+              const paletteResolved = readCssVarResolved(paletteCssVar)
+              if (paletteResolved && /^#[0-9a-f]{6}$/i.test(paletteResolved)) {
+                const paletteHex = paletteResolved.toLowerCase().trim()
+                if (targetHex === paletteHex) {
+                  return `${pk}-${level}`
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // If target is a direct token reference (not in color-mix), find the first matching palette swatch
+    const isTokenReference = trimmed.startsWith('var(--recursica-tokens-color-')
+    if (isTokenReference && targetResolvedValue.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
+      const targetHex = targetResolvedValue.resolved.toLowerCase().trim()
+      // Find the first palette swatch that matches this hex
+      for (const pk of paletteKeys) {
+        const levels = paletteLevels[pk] || []
+        for (const level of levels) {
+          const paletteCssVar = buildPaletteCssVar(pk, level)
+          const paletteResolved = readCssVarResolved(paletteCssVar)
+          if (paletteResolved && /^#[0-9a-f]{6}$/i.test(paletteResolved)) {
+            const paletteHex = paletteResolved.toLowerCase().trim()
+            if (targetHex === paletteHex) {
+              return `${pk}-${level}`
+            }
+          }
+        }
+      }
+    }
+    
+    return null
+  }, [targetResolvedValue, targetCssVar, paletteKeys, paletteLevels, buildPaletteCssVar])
+
   // Check if a palette swatch is currently selected
   const isSwatchSelected = (paletteCssVar: string): boolean => {
     if (!targetResolvedValue || !targetCssVar) return false
+    
+    // Extract palette key and level from the palette CSS var
+    const paletteMatch = paletteCssVar.match(/--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone/)
+    if (!paletteMatch) return false
+    
+    const [, paletteKey, level] = paletteMatch
+    const paletteId = `${paletteKey}-${level}`
     
     // Check if target CSS var directly references this palette var
     const directValue = readCssVar(targetCssVar)
@@ -81,31 +162,16 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       }
       
       // Check if target is a color-mix() that contains this palette var
-      if (trimmed.includes('color-mix') && trimmed.includes(paletteCssVar)) {
+      // Extract the palette var name (without var()) to check if it's in the color-mix
+      const paletteVarName = paletteCssVar.replace(/^var\(/, '').replace(/\)$/, '')
+      if (trimmed.includes('color-mix') && trimmed.includes(paletteVarName)) {
         return true
-      }
-      
-      // If target is a CSS var reference or color-mix (not hex), only match exact palette references
-      // Don't fall back to hex comparison for var()/color-mix() references, as multiple tokens/palettes might resolve to the same color
-      if (trimmed.startsWith('var(') || trimmed.includes('color-mix')) {
-        return false
       }
     }
     
-    // Fallback: compare resolved hex values (only if target is a direct hex, not a var/color-mix reference)
-    // This prevents multiple swatches from being selected when they resolve to the same color
-    const direct = targetResolvedValue.direct
-    if (direct) {
-      const directTrimmed = direct.trim()
-      // Only do hex comparison if target is a direct hex value, not a var() or color-mix()
-      if (!directTrimmed.startsWith('var(') && !directTrimmed.includes('color-mix')) {
-        const paletteResolved = readCssVarResolved(paletteCssVar)
-        if (targetResolvedValue.resolved && paletteResolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
-          const targetHex = targetResolvedValue.resolved.toLowerCase().trim()
-          const paletteHex = paletteResolved.toLowerCase().trim()
-          return targetHex === paletteHex
-        }
-      }
+    // Use the tracked selected swatch to avoid multiple selections
+    if (selectedPaletteSwatch) {
+      return selectedPaletteSwatch === paletteId
     }
     
     return false
@@ -131,7 +197,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
   return createPortal(
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', padding: 10, zIndex: 9999 }}>
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--recursica-brand-light-layer-layer-2-property-surface)', color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)', border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)', borderRadius: 8, boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)', padding: 10, zIndex: 20000 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>Pick palette color</div>
         <button onClick={() => setAnchor(null)} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
@@ -181,7 +247,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       height: swatch,
                       background: `var(${paletteCssVar})`,
                       cursor: 'pointer',
-                      border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+                      border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
                       flex: '0 0 auto',
                     }}
                   >

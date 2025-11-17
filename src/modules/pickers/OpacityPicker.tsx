@@ -68,12 +68,12 @@ export default function OpacityPicker() {
       top: pos.top, 
       left: pos.left, 
       width: 240, 
-      background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', 
-      border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
+      background: 'var(--recursica-brand-light-layer-layer-2-property-surface)', 
+      border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)', 
       borderRadius: 8, 
-      boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', 
+      boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)', 
       padding: 10, 
-      zIndex: 1100 
+      zIndex: 20000 
     }}>
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
@@ -119,8 +119,8 @@ export default function OpacityPicker() {
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 width: '100%', 
-                border: `1px solid ${isSelected ? 'var(--recursica-brand-light-layer-layer-1-property-border-color)' : 'var(--recursica-brand-light-layer-layer-1-property-border-color)'}`, 
-                background: isSelected ? 'var(--recursica-brand-light-layer-layer-1-property-surface)' : 'transparent', 
+                border: `1px solid ${isSelected ? 'var(--recursica-brand-light-layer-layer-2-property-border-color)' : 'var(--recursica-brand-light-layer-layer-2-property-border-color)'}`, 
+                background: isSelected ? 'var(--recursica-brand-light-layer-layer-2-property-surface)' : 'transparent', 
                 borderRadius: 6, 
                 padding: '6px 8px', 
                 cursor: 'pointer' 

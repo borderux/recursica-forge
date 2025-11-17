@@ -71,17 +71,17 @@ export function ColorPickerModal({
         background: 'rgba(0, 0, 0, 0.5)',
         display: 'grid',
         placeItems: 'center',
-        zIndex: 10000,
+        zIndex: 20000,
       }}
       onClick={onClose}
     >
       <div
         style={{
-          background: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)',
-          color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color, #111111)',
-          border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
+          background: 'var(--recursica-brand-light-layer-layer-2-property-surface, #ffffff)',
+          color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color, #111111)',
+          border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))',
           borderRadius: 12,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+          boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)',
           padding: 20,
           display: 'grid',
           gap: 16,
@@ -175,7 +175,7 @@ export function ColorPickerModal({
               height: 60,
               borderRadius: 8,
               background: currentHex,
-              border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
+              border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))',
               flexShrink: 0,
             }}
           />
@@ -195,7 +195,7 @@ export function ColorPickerModal({
               flex: 1,
               fontSize: 14,
               padding: '8px 12px',
-              border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
+              border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))',
               borderRadius: 6,
             }}
             placeholder="#000000"
@@ -208,7 +208,7 @@ export function ColorPickerModal({
             style={{
               padding: '8px 16px',
               borderRadius: 6,
-              border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
+              border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))',
               background: 'transparent',
               cursor: 'pointer',
               fontSize: 14,

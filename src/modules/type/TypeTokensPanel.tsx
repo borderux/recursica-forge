@@ -9,7 +9,7 @@ export default function TypeTokensPanel({ open, onClose }: { open: boolean; onCl
   return createPortal(
     <div
       aria-hidden={!open}
-      style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(200px, 30vw, 500px)', background: 'var(--layer-layer-0-property-surface)', borderLeft: '1px solid var(--layer-layer-1-property-border-color)', boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 9999, padding: 12, overflowY: 'auto' }}
+      style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(200px, 30vw, 500px)', background: 'var(--recursica-brand-light-layer-layer-1-property-surface)', borderLeft: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>Font Tokens</div>

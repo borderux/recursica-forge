@@ -1,6 +1,7 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useMemo } from 'react'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
-import { readCssVar } from '../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
+import { useVars } from '../vars/VarsContext'
 
 type PaletteColorControlProps = {
   /** The CSS variable name to set when a color is selected */
@@ -32,8 +33,77 @@ export default function PaletteColorControl({
   swatchSize = 16,
   fontSize = 13,
 }: PaletteColorControlProps) {
+  const { palettes, theme: themeJson } = useVars()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const displayCssVar = currentValueCssVar || targetCssVar
+  
+  // Get available palette keys and levels for token-to-palette mapping
+  const paletteKeys = useMemo(() => {
+    const dynamic = palettes?.dynamic?.map((p) => p.key) || []
+    const staticPalettes: string[] = []
+    try {
+      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+      const lightPal: any = root?.light?.palettes || {}
+      Object.keys(lightPal).forEach((k) => {
+        if (k !== 'core' && k !== 'core-colors' && !dynamic.includes(k)) {
+          staticPalettes.push(k)
+        }
+      })
+    } catch {}
+    return Array.from(new Set([...dynamic, ...staticPalettes]))
+  }, [palettes, themeJson])
+  
+  const paletteLevels = useMemo(() => {
+    const levelsByPalette: Record<string, string[]> = {}
+    paletteKeys.forEach((pk) => {
+      try {
+        const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+        const paletteData: any = root?.light?.palettes?.[pk]
+        if (paletteData) {
+          const levels = Object.keys(paletteData).filter((k) => /^(\d{2,4}|000|1000)$/.test(k))
+          levels.sort((a, b) => {
+            const aNum = a === '000' ? 0 : a === '050' ? 50 : a === '1000' ? 1000 : Number(a)
+            const bNum = b === '000' ? 0 : b === '050' ? 50 : b === '1000' ? 1000 : Number(b)
+            return bNum - aNum
+          })
+          levelsByPalette[pk] = levels
+        }
+      } catch {}
+      if (!levelsByPalette[pk]) {
+        levelsByPalette[pk] = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
+      }
+    })
+    return levelsByPalette
+  }, [paletteKeys, themeJson])
+  
+  const buildPaletteCssVar = (paletteKey: string, level: string): string => {
+    return `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
+  }
+  
+  // Helper to find palette swatch that matches a token hex
+  const findPaletteForToken = (tokenFamily: string, tokenLevel: string): { paletteKey: string; level: string } | null => {
+    const tokenCssVar = `--recursica-tokens-color-${tokenFamily}-${tokenLevel}`
+    const tokenHex = readCssVarResolved(tokenCssVar)
+    if (!tokenHex || !/^#[0-9a-f]{6}$/i.test(tokenHex)) return null
+    
+    const normalizedTokenHex = tokenHex.toLowerCase().trim()
+    
+    // Find the first palette swatch that matches this hex
+    for (const pk of paletteKeys) {
+      const levels = paletteLevels[pk] || []
+      for (const level of levels) {
+        const paletteCssVar = buildPaletteCssVar(pk, level)
+        const paletteHex = readCssVarResolved(paletteCssVar)
+        if (paletteHex && /^#[0-9a-f]{6}$/i.test(paletteHex)) {
+          if (paletteHex.toLowerCase().trim() === normalizedTokenHex) {
+            return { paletteKey: pk, level }
+          }
+        }
+      }
+    }
+    
+    return null
+  }
   
   // Initialize display label by reading CSS variable value immediately
   const getInitialLabel = (): string => {
@@ -72,10 +142,15 @@ export default function PaletteColorControl({
     
     if (tokenMatch) {
       const [, family, level] = tokenMatch
-      const formattedFamily = family
-        .replace(/[-_/]+/g, ' ')
-        .replace(/\b\w/g, (m) => m.toUpperCase())
-        .trim()
+      // Try to find matching palette swatch for this token
+      const paletteMatch = findPaletteForToken(family, level)
+      if (paletteMatch) {
+        const formattedPalette = formatPaletteName(paletteMatch.paletteKey)
+        const displayLevel = paletteMatch.level === 'primary' ? 'primary' : paletteMatch.level
+        return `${formattedPalette} / ${displayLevel}`
+      }
+      // Fallback to token name if no palette match found
+      const formattedFamily = formatPaletteName(family)
       return `${formattedFamily} / ${level}`
     }
     
@@ -138,6 +213,15 @@ export default function PaletteColorControl({
     
     if (tokenMatch) {
       const [, family, level] = tokenMatch
+      // Try to find matching palette swatch for this token
+      const paletteMatch = findPaletteForToken(family, level)
+      if (paletteMatch) {
+        const formattedPalette = formatPaletteName(paletteMatch.paletteKey)
+        const displayLevel = paletteMatch.level === 'primary' ? 'primary' : paletteMatch.level
+        setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+        return
+      }
+      // Fallback to token name if no palette match found
       const formattedFamily = formatPaletteName(family)
       setDisplayLabel(`${formattedFamily} / ${level}`)
       return

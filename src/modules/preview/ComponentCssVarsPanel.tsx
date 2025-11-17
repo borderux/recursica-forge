@@ -191,12 +191,12 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
         right: 0, 
         height: '100vh', 
         width: 'clamp(260px, 34vw, 560px)', 
-        background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', 
+        background: 'var(--recursica-brand-light-layer-layer-1-property-surface)', 
         borderLeft: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
         boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', 
         transform: open ? 'translateX(0)' : 'translateX(100%)', 
         transition: 'transform 200ms ease', 
-        zIndex: 1200, 
+        zIndex: 10000, 
         padding: 12, 
         overflowY: 'auto' 
       }}
