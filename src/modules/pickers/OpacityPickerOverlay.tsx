@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 import { updateCssVar } from '../../core/css/updateCssVar'
+import { readCssVar } from '../../core/css/readCssVar'
 
 function toTitleCase(label: string): string {
   return (label || '')
@@ -29,6 +30,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [selectedTokenName, setSelectedTokenName] = useState<string | undefined>(propTokenName)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
+  const [currentToken, setCurrentToken] = useState<string | null>(null)
 
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
@@ -69,16 +71,39 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
     return items.filter((item) => item.name === tokenToFilter)
   }, [items, selectedTokenName, propTokenName])
 
+  // Extract token name from CSS variable value
+  const extractTokenFromCssVar = (cssVar: string): string | null => {
+    try {
+      // Ensure CSS var has --recursica- prefix if it doesn't already
+      const prefixedTarget = cssVar.startsWith('--recursica-') 
+        ? cssVar 
+        : cssVar.startsWith('--') 
+          ? `--recursica-${cssVar.slice(2)}`
+          : `--recursica-${cssVar}`
+      
+      const value = readCssVar(prefixedTarget)
+      if (!value) return null
+      // Match patterns like: var(--recursica-tokens-opacity-solid) or var(--tokens-opacity-solid)
+      const match = value.match(/var\(--(?:recursica-)?tokens-opacity-([^)]+)\)/)
+      if (match) return `opacity/${match[1]}`
+    } catch {}
+    return null
+  }
+
   ;(window as any).openOpacityPicker = (el: HTMLElement, targetTokenNameOrCssVar?: string) => {
     setAnchor(el)
     // If it looks like a CSS variable (starts with --), treat it as targetCssVar
     if (targetTokenNameOrCssVar?.startsWith('--')) {
       setTargetCssVar(targetTokenNameOrCssVar)
       setSelectedTokenName(undefined)
+      // Extract current token from CSS var value
+      const current = extractTokenFromCssVar(targetTokenNameOrCssVar)
+      setCurrentToken(current)
     } else {
       // Otherwise, treat it as a token name filter
       setTargetCssVar(null)
       setSelectedTokenName(targetTokenNameOrCssVar)
+      setCurrentToken(null)
     }
     const rect = el.getBoundingClientRect()
     const top = rect.bottom + 8
@@ -89,6 +114,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   const handleClose = () => {
     setAnchor(null)
     setTargetCssVar(null)
+    setCurrentToken(null)
     onClose?.()
   }
 
@@ -160,6 +186,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
           const tokenKey = it.name.replace('opacity/', '')
           const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
           const isClickable = targetCssVar !== null || onSelect !== undefined
+          const isSelected = currentToken === it.name
           
           return (
             <div
@@ -187,13 +214,22 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
                     cursor: 'pointer',
                     padding: 0,
                     color: 'inherit',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
                   }}
                   title={targetCssVar ? `Set ${targetCssVar} to ${opacityCssVar}` : `Select ${it.name}`}
                 >
+                  {isSelected && (
+                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone, #3b82f6)' }}>✓</span>
+                  )}
                   {label}
                 </button>
               ) : (
-                <label htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>
+                <label htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {isSelected && (
+                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone, #3b82f6)' }}>✓</span>
+                  )}
                   {label}
                 </label>
               )}

@@ -2,6 +2,8 @@ import type { JsonLike } from '../resolvers/tokens'
 import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
 import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
+import { buildUIKitVars } from '../resolvers/uikit'
+import { buildDimensionVars } from '../resolvers/dimensions'
 import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
 import { findTokenByHex } from '../css/tokenRefs'
 import { computeBundleVersion } from './versioning'
@@ -251,7 +253,9 @@ class VarsStore {
       // Watch all palette on-tone vars
       try {
         const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
-        const lightPal: any = root?.light?.palettes || {}
+        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+        const themes = root?.themes || root
+        const lightPal: any = themes?.light?.palettes || {}
         const levels = ['900','800','700','600','500','400','300','200','100','050']
         Object.keys(lightPal).forEach((paletteKey) => {
           if (paletteKey === 'core') return
@@ -554,7 +558,9 @@ class VarsStore {
     }
     // Build defaults from theme
     const brand: any = (theme as any)?.brand || (theme as any)
-    const light: any = brand?.light?.elevations || {}
+    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+    const themes = brand?.themes || brand
+    const light: any = themes?.light?.elevations || {}
     const toSize = (ref?: any): string => {
       const s: string | undefined = typeof ref === 'string' ? ref : (ref?.['$value'] as any)
       if (!s) return 'size/none'
@@ -602,7 +608,10 @@ class VarsStore {
         // If level is 'default', try to resolve it from the theme
         if (level === 'default') {
           try {
-            const defaultRef = (theme as any)?.brand?.light?.palettes?.[paletteKey]?.default
+            // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+            const brandRoot = (theme as any)?.brand || theme
+            const themes = brandRoot?.themes || brandRoot
+            const defaultRef = themes?.light?.palettes?.[paletteKey]?.default
             if (defaultRef) {
               let defaultValue: any
               if (typeof defaultRef === 'object' && defaultRef.$value) {
@@ -637,7 +646,10 @@ class VarsStore {
         if (level === 'primary') {
           // Try to get primary level from palette
           try {
-            const primaryLevel = (theme as any)?.brand?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
+            // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+            const brandRoot = (theme as any)?.brand || theme
+            const themes = brandRoot?.themes || brandRoot
+            const primaryLevel = themes?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
             if (typeof primaryLevel === 'string') {
               level = primaryLevel
             } else {
@@ -778,7 +790,12 @@ class VarsStore {
     // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
     try {
       const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
-      const core: any = root?.light?.palettes?.['core-colors']?.$value || root?.light?.palettes?.['core-colors'] || root?.light?.palettes?.core?.$value || root?.light?.palettes?.core || {}
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      // Get core-colors object - it may have $value wrapper or be direct
+      const coreColorsObj: any = themes?.light?.palettes?.['core-colors'] || themes?.light?.palettes?.core
+      // Extract the actual colors object (handle both $value wrapper and direct structure)
+      const core: any = coreColorsObj?.$value || coreColorsObj || {}
       
       const normalizeLevel = (lvl?: string): string | undefined => {
         if (!lvl) return undefined
@@ -811,15 +828,10 @@ class VarsStore {
       
       const colors: Record<string, string> = {}
       
-      // Process each core color
-      Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
-        // Get the value from theme JSON
-        const coreValue: any = core[colorName]
-        let tokenRef: string | null = null
-        
-        // Parse brace reference like {tokens.color.gray.1000}
-        if (typeof coreValue === 'string') {
-          const trimmed = coreValue.trim()
+      // Helper function to resolve a token reference
+      const resolveTokenRef = (value: any): string | null => {
+        if (typeof value === 'string') {
+          const trimmed = value.trim()
           if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
             const inner = trimmed.slice(1, -1).trim()
             // Match pattern: tokens.color.<family>.<level>
@@ -828,10 +840,67 @@ class VarsStore {
               const family = match[1]
               const level = normalizeLevel(match[2])
               if (family && level) {
-                tokenRef = `var(--recursica-tokens-color-${family}-${level})`
+                return `var(--recursica-tokens-color-${family}-${level})`
               }
             }
+            // Match pattern: brand.themes.light.palettes.white or brand.themes.light.palettes.black
+            const brandMatch = /^brand\.themes\.light\.palettes\.(white|black)$/i.exec(inner)
+            if (brandMatch) {
+              const color = brandMatch[1].toLowerCase()
+              return `var(--recursica-brand-light-palettes-core-${color})`
+            }
           }
+        }
+        return null
+      }
+      
+      // Process each core color
+      Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
+        // Get the value from theme JSON - core should now be the direct colors object
+        const coreValue: any = core[colorName]
+        let tokenRef: string | null = null
+        
+        // Special handling for interactive (nested structure)
+        if (colorName === 'interactive' && coreValue && typeof coreValue === 'object' && !coreValue.$value) {
+          // Handle nested structure: interactive.default.tone, interactive.default.on-tone, etc.
+          const defaultTone = coreValue.default?.tone?.$value || coreValue.default?.tone
+          const defaultOnTone = coreValue.default?.['on-tone']?.$value || coreValue.default?.['on-tone']
+          const hoverTone = coreValue.hover?.tone?.$value || coreValue.hover?.tone
+          const hoverOnTone = coreValue.hover?.['on-tone']?.$value || coreValue.hover?.['on-tone']
+          
+          // Main interactive var (backward compatibility) maps to default tone
+          if (defaultTone) {
+            tokenRef = resolveTokenRef(defaultTone)
+          }
+          
+          // Generate additional CSS vars for nested structure
+          if (defaultTone) {
+            const defaultToneRef = resolveTokenRef(defaultTone)
+            if (defaultToneRef) {
+              colors['--recursica-brand-light-palettes-core-interactive-default-tone'] = defaultToneRef
+            }
+          }
+          if (defaultOnTone) {
+            const defaultOnToneRef = resolveTokenRef(defaultOnTone)
+            if (defaultOnToneRef) {
+              colors['--recursica-brand-light-palettes-core-interactive-default-on-tone'] = defaultOnToneRef
+            }
+          }
+          if (hoverTone) {
+            const hoverToneRef = resolveTokenRef(hoverTone)
+            if (hoverToneRef) {
+              colors['--recursica-brand-light-palettes-core-interactive-hover-tone'] = hoverToneRef
+            }
+          }
+          if (hoverOnTone) {
+            const hoverOnToneRef = resolveTokenRef(hoverOnTone)
+            if (hoverOnToneRef) {
+              colors['--recursica-brand-light-palettes-core-interactive-hover-on-tone'] = hoverOnToneRef
+            }
+          }
+        } else {
+          // Handle simple string values for other core colors
+          tokenRef = resolveTokenRef(coreValue)
         }
         
         // Fallback to default if parsing failed
@@ -885,6 +954,35 @@ class VarsStore {
     // Layers (from Brand)
     const layerVars = buildLayerVars(this.state.tokens, this.state.theme)
     
+    // Ensure primary-color alternative layer surface is always set (fixes refresh/reset issue)
+    // Check what palette-1 vars were actually generated and use the best available one
+    const primaryColorSurfaceKey = '--recursica-brand-light-layer-layer-alternative-primary-color-property-surface'
+    if (!layerVars[primaryColorSurfaceKey]) {
+      // Check palette vars that were just generated (they're in allVars now)
+      // Try primary-tone first, then common levels (500, 400, 600)
+      const candidates = [
+        '--recursica-brand-light-palettes-palette-1-primary-tone',
+        '--recursica-brand-light-palettes-palette-1-500-tone',
+        '--recursica-brand-light-palettes-palette-1-400-tone',
+        '--recursica-brand-light-palettes-palette-1-600-tone'
+      ]
+      
+      let foundVar: string | null = null
+      for (const candidate of candidates) {
+        if (allVars[candidate] || readCssVar(candidate)) {
+          foundVar = candidate
+          break
+        }
+      }
+      
+      if (foundVar) {
+        layerVars[primaryColorSurfaceKey] = `var(${foundVar})`
+      } else {
+        // Last resort: use primary-tone reference (will resolve when palette vars are generated)
+        layerVars[primaryColorSurfaceKey] = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+      }
+    }
+    
     // Preserve existing palette CSS variables for layer colors (surface and border-color)
     // Also preserve AA compliance updates for text and interactive colors
     // Check all layers (0-4) and alternative layers
@@ -895,14 +993,14 @@ class VarsStore {
         // Check surface color
         const existingSurface = readCssVar(`${prefixedBase}surface`)
         if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
-          layerVars[`--brand-light-layer-layer-${i}-property-surface`] = existingSurface
+          layerVars[`--recursica-brand-light-layer-layer-${i}-property-surface`] = existingSurface
         }
         
         // Check border color (only for non-zero layers)
         if (i > 0) {
           const existingBorderColor = readCssVar(`${prefixedBase}border-color`)
           if (existingBorderColor && existingBorderColor.startsWith('var(') && existingBorderColor.includes('palettes')) {
-            layerVars[`--brand-light-layer-layer-${i}-property-border-color`] = existingBorderColor
+            layerVars[`--recursica-brand-light-layer-layer-${i}-property-border-color`] = existingBorderColor
           }
         }
         
@@ -914,13 +1012,13 @@ class VarsStore {
         // Text color
         const existingTextColor = readCssVar(`${textColorBase}color`)
         if (existingTextColor && existingTextColor.startsWith('var(')) {
-          layerVars[`--brand-light-layer-layer-${i}-property-element-text-color`] = existingTextColor
+          layerVars[`--recursica-brand-light-layer-layer-${i}-property-element-text-color`] = existingTextColor
         }
         
         // Interactive color
         const existingInterColor = readCssVar(`${interColorBase}color`)
         if (existingInterColor && existingInterColor.startsWith('var(')) {
-          layerVars[`--brand-light-layer-layer-${i}-property-element-interactive-color`] = existingInterColor
+          layerVars[`--recursica-brand-light-layer-layer-${i}-property-element-interactive-color`] = existingInterColor
         }
         
         // Status colors (alert, warning, success)
@@ -928,7 +1026,7 @@ class VarsStore {
         statusColors.forEach((status) => {
           const existingStatusColor = readCssVar(`${textColorBase}${status}`)
           if (existingStatusColor && existingStatusColor.startsWith('var(')) {
-            layerVars[`--brand-light-layer-layer-${i}-property-element-text-${status}`] = existingStatusColor
+            layerVars[`--recursica-brand-light-layer-layer-${i}-property-element-text-${status}`] = existingStatusColor
           }
         })
       }
@@ -939,13 +1037,26 @@ class VarsStore {
         const prefixedBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property-`
         
         const existingSurface = readCssVar(`${prefixedBase}surface`)
-        if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
-          layerVars[`--brand-light-layer-layer-alternative-${altKey}-property-surface`] = existingSurface
+        // For primary-color, always ensure it's set even if not existing (fixes refresh/reset issue)
+        if (altKey === 'primary-color' && !existingSurface) {
+          layerVars[`--recursica-brand-light-layer-layer-alternative-${altKey}-property-surface`] = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+        } else if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
+          layerVars[`--recursica-brand-light-layer-layer-alternative-${altKey}-property-surface`] = existingSurface
         }
       }
     } catch {}
     
     Object.assign(allVars, layerVars)
+    // Dimensions (Light mode default for now; dark can be toggled by UI where needed)
+    try {
+      const dimensionVarsLight = buildDimensionVars(this.state.tokens, this.state.theme, 'light')
+      Object.assign(allVars, dimensionVarsLight)
+    } catch {}
+    // UIKit components
+    try {
+      const uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit)
+      Object.assign(allVars, uikitVars)
+    } catch {}
     // Typography
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, this.readTypeChoices())
     Object.assign(allVars, typeVars)

@@ -5,7 +5,9 @@ import { readCssVar } from '../css/readCssVar'
 export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Record<string, any>): Record<string, string> {
   const tokenIndex = buildTokenIndex(tokens)
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
-  const layersLight: any = troot?.light?.layer || {}
+  // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
+  const themes = troot?.themes || troot
+  const layersLight: any = themes?.light?.layers || themes?.light?.layer || {}
 
   const mapBWHexToVar = (hex: string): string => {
     const h = (hex || '').toLowerCase()
@@ -25,7 +27,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   ): string => {
     return `var(${buildPaletteVar(paletteKey, level, type)})`
   }
-  const parsePaletteToneRef = (input: any): { paletteKey: string; level: string } | null => {
+  const parsePaletteToneRef = (input: any): { paletteKey: string; level: string; type?: 'tone' | 'on-tone' } | null => {
     try {
       const raw = ((): any => {
         if (typeof input === 'string') return input
@@ -39,13 +41,16 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       if (!s) return null
       if (s.startsWith('{') && s.endsWith('}')) {
         const inner = s.slice(1, -1).trim()
-        const m = /^(?:brand|theme)\.light\.palettes\.([a-z0-9\-]+)\.([0-9]{3}|000|050|primary|default)\.color\.tone$/i.exec(inner)
+        // Support both old format (brand.light.*) and new format (brand.themes.light.*)
+        // Handle both .color.tone and .color.on-tone
+        const m = /^(?:brand|theme)(?:\.themes)?\.light\.palettes\.([a-z0-9\-]+)\.([0-9]{3}|000|050|primary|default)\.color\.(tone|on-tone)$/i.exec(inner)
         if (m) {
           const paletteKey = m[1]
           const lvl = m[2].toLowerCase()
+          const type = (m[3] || 'tone').toLowerCase() as 'tone' | 'on-tone'
           // Normalize 'default' to 'primary' so downstream CSS var names are valid
           const level = (lvl === 'default') ? 'primary' : lvl
-          return { paletteKey, level }
+          return { paletteKey, level, type }
         }
       }
       // Legacy palette var format
@@ -64,9 +69,11 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   const parseCoreTokenRef = (name: 'interactive' | 'alert' | 'warning' | 'success'): { family: string; level: string } | null => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
       const core: any =
-        root?.light?.palettes?.['core']?.['$value'] || root?.light?.palettes?.['core'] ||
-        root?.light?.palettes?.['core-colors']?.['$value'] || root?.light?.palettes?.['core-colors'] || root?.light?.palettes?.core?.['$value'] || root?.light?.palettes?.core || {}
+        themes?.light?.palettes?.['core']?.['$value'] || themes?.light?.palettes?.['core'] ||
+        themes?.light?.palettes?.['core-colors']?.['$value'] || themes?.light?.palettes?.['core-colors'] || themes?.light?.palettes?.core?.['$value'] || themes?.light?.palettes?.core || {}
       const v: any = core?.[name]
       const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
       if (!s) return null
@@ -112,10 +119,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
         const label = themeDarkPalette[1].toLowerCase()
         return `--recursica-brand-light-palettes-core-${label}`
       }
-      // {brand|theme}.{light|dark}.palettes.core.<key> (also accept legacy core-colors)
-      const m = /^(?:brand|theme)\.(?:light|dark)\.palettes\.(?:core|core-colors)\.(black|white|interactive|alert|warning|success)$/i.exec(
-        s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1) : s
-      )
+      // {brand|theme}.{themes.}?{light|dark}.palettes.core.<key> (also accept legacy core-colors)
+      // Support both old format (brand.light.*) and new format (brand.themes.light.*)
+      const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1) : s
+      const m = /^(?:brand|theme)(?:\.themes)?\.(?:light|dark)\.palettes\.(?:core|core-colors)\.(black|white|interactive|alert|warning|success)$/i.exec(inner)
       if (m) return `--recursica-brand-light-palettes-core-${m[1].toLowerCase()}`
     } catch {}
     return null
@@ -160,7 +167,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       }
       if (/^theme\./i.test(inner)) {
         // Allow references like {theme.light.palettes.black} and handle nested $value objects
-        const full = `brand.${inner.replace(/^theme\./i, '')}`
+        // Support both old format (theme.light.*) and new format (theme.themes.light.*)
+        let full = `brand.${inner.replace(/^theme\./i, '')}`
+        // If it doesn't already have "themes", add it
+        if (!/^brand\.themes\./i.test(full)) {
+          full = full.replace(/^brand\.(light|dark)\./, 'brand.themes.$1.')
+        }
         const parts = full.split('.').filter(Boolean)
         let node: any = (theme as any)
         for (const p of parts) {
@@ -175,7 +187,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
         return resolveRef(node, depth + 1)
       }
       if (/^brand\./i.test(inner)) {
-        const parts = inner.split('.').filter(Boolean)
+        // Support both old format (brand.light.*) and new format (brand.themes.light.*)
+        let parts = inner.split('.').filter(Boolean)
+        // If it doesn't already have "themes", add it after "brand"
+        if (parts.length >= 2 && parts[1] !== 'themes' && (parts[1] === 'light' || parts[1] === 'dark')) {
+          parts = [parts[0], 'themes', ...parts.slice(1)]
+        }
         let node: any = (theme as any)
         for (const p of parts) {
           if (!node) break
@@ -197,9 +214,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   // Coerce any input (brace ref/var/hex) into a palette/core var reference if possible; otherwise null
   const coerceToVarRef = (rawInput: any): string | null => {
     try {
-      // Palette tone reference e.g. {brand.light.palettes.neutral.100.color.tone} or var(--palette-neutral-100-tone)
+      // Palette tone/on-tone reference e.g. {brand.light.palettes.neutral.100.color.tone} or {brand.themes.light.palettes.palette-1.default.color.on-tone}
       const pal = parsePaletteToneRef(rawInput)
-      if (pal) return `var(${buildPaletteVar(pal.paletteKey, pal.level, 'tone')})`
+      if (pal) {
+        const type = pal.type || 'tone'
+        return `var(${buildPaletteVar(pal.paletteKey, pal.level, type)})`
+      }
       // Core palette reference e.g. {brand.light.palettes.core-colors.alert}
       const coreVar = parseCoreVarName(rawInput)
       if (coreVar) return `var(${coreVar})`
@@ -266,8 +286,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     return null
   }
   const applyForLayer = (spec: any, prefix: string) => {
-    const brandBase = `--brand-light-layer-layer-${prefix}-property-`
+    const brandBase = `--recursica-brand-light-layer-layer-${prefix}-property-`
+    // Extract surface value - handle both direct values and $value wrapper
     let surfRaw = spec?.property?.surface
+    if (surfRaw && typeof surfRaw === 'object' && typeof (surfRaw as any)['$value'] === 'string') {
+      surfRaw = (surfRaw as any)['$value']
+    }
     // If alternative layer has no explicit surface, synthesize from core palette for correct AA evaluation
     const altMatch = typeof prefix === 'string' ? /^alternative\-(.+)$/.exec(prefix) : null
     if (!surfRaw && altMatch) {
@@ -277,19 +301,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       else if (key === 'success') surfRaw = 'var(--recursica-brand-light-palettes-core-success, var(--palette-success))'
       else if (key === 'high-contrast') surfRaw = 'var(--recursica-brand-light-palettes-core-black)'
       else if (key === 'primary-color') {
-        // Resolve from Brand.json - check for default first, then fall back to primary
-        const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-        const palette1Default = root?.light?.palettes?.['palette-1']?.['default']?.$value
-        const palette1Primary = root?.light?.palettes?.['palette-1']?.['primary']
-        if (palette1Default) {
-          // Resolve the default reference
-          const resolved = resolveRef(palette1Default)
-          surfRaw = typeof resolved === 'string' ? resolved : 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
-        } else if (palette1Primary) {
-          surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
-        } else {
-          surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
-        }
+        // Use palette-1 primary tone directly - this will be parsed by parsePaletteToneRef
+        surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
       }
     }
     const surfPalette = parsePaletteToneRef(surfRaw)
@@ -298,7 +311,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     const padSizeKey = parseSizeTokenRef(padRaw)
     const pad = resolveRef(padRaw)
     // Preserve only var references for border color; avoid emitting hex
-    const bcolVarRef = coerceToVarRef(spec?.property?.['border-color'])
+    // Extract border color value - handle both direct values and $value wrapper
+    let bcolRaw = spec?.property?.['border-color']
+    if (bcolRaw && typeof bcolRaw === 'object' && typeof (bcolRaw as any)['$value'] === 'string') {
+      bcolRaw = (bcolRaw as any)['$value']
+    }
+    const bcolVarRef = coerceToVarRef(bcolRaw)
     const bthRaw = spec?.property?.['border-thickness']
     const bthSizeKey = parseSizeTokenRef(bthRaw)
     const bth = resolveRef(bthRaw)
@@ -384,9 +402,13 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       }
     }
 
-    const brandTextBase = `--brand-light-layer-layer-${prefix}-property-element-text-`
+    const brandTextBase = `--recursica-brand-light-layer-layer-${prefix}-property-element-text-`
     const brandTextRefBase = `--recursica-brand-light-layer-layer-${prefix}-property-element-text-`
-    const tcolorRaw = spec?.element?.text?.color
+    // Extract text color value - handle both direct values and $value wrapper
+    let tcolorRaw = spec?.element?.text?.color
+    if (tcolorRaw && typeof tcolorRaw === 'object' && typeof (tcolorRaw as any)['$value'] === 'string') {
+      tcolorRaw = (tcolorRaw as any)['$value']
+    }
     // Only allow var references for text color overrides; otherwise derive from surface
     const tcolorVarRef = coerceToVarRef(tcolorRaw)
     const talert = resolveRef(spec?.element?.text?.alert)
@@ -427,9 +449,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     result[`${brandTextBase}high-emphasis`] = 'var(--recursica-brand-light-text-emphasis-high)'
     result[`${brandTextBase}low-emphasis`] = 'var(--recursica-brand-light-text-emphasis-low)'
     // Status colors: core color → step within its token family → fallback to surface on-tone (AA with opacity considered)
-    const coreAlert = resolveRef('{brand.light.palettes.core.alert}') ?? resolveRef('{brand.light.palettes.core-colors.alert}')
-    const coreWarn = resolveRef('{brand.light.palettes.core.warning}') ?? resolveRef('{brand.light.palettes.core-colors.warning}')
-    const coreSuccess = resolveRef('{brand.light.palettes.core.success}') ?? resolveRef('{brand.light.palettes.core-colors.success}')
+    // Support both old format (brand.light.*) and new format (brand.themes.light.*)
+    const coreAlert = resolveRef('{brand.themes.light.palettes.core-colors.alert}') ?? resolveRef('{brand.light.palettes.core-colors.alert}') ?? resolveRef('{brand.light.palettes.core.alert}')
+    const coreWarn = resolveRef('{brand.themes.light.palettes.core-colors.warning}') ?? resolveRef('{brand.light.palettes.core-colors.warning}') ?? resolveRef('{brand.light.palettes.core.warning}')
+    const coreSuccess = resolveRef('{brand.themes.light.palettes.core-colors.success}') ?? resolveRef('{brand.light.palettes.core-colors.success}') ?? resolveRef('{brand.light.palettes.core.success}')
     const alertHex = typeof (talert ?? coreAlert) === 'string' ? String(talert ?? coreAlert) : undefined
     const warnHex = typeof (twarn ?? coreWarn) === 'string' ? String(twarn ?? coreWarn) : undefined
     const successHex = typeof (tsuccess ?? coreSuccess) === 'string' ? String(tsuccess ?? coreSuccess) : undefined
@@ -501,94 +524,96 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       else result[`${brandTextBase}success`] = 'var(--recursica-brand-light-palettes-core-success, var(--palette-success))'
     }
 
-    const brandInterBase = `--brand-light-layer-layer-${prefix}-property-element-interactive-`
-    const icolorVar = coerceToVarRef(spec?.element?.interactive?.color)
+    const brandInterBase = `--recursica-brand-light-layer-layer-${prefix}-property-element-interactive-`
+    
+    // Helper to extract value from $value wrapper or direct value
+    const extractValue = (val: any): any => {
+      if (val && typeof val === 'object' && typeof (val as any)['$value'] === 'string') {
+        return (val as any)['$value']
+      }
+      return val
+    }
+    
+    // Extract all interactive color values - handle both direct values and $value wrapper
+    // New structure: tone, tone-hover, on-tone, on-tone-hover
+    const itoneRaw = extractValue(spec?.element?.interactive?.tone)
+    const itoneHoverRaw = extractValue(spec?.element?.interactive?.['tone-hover'])
+    const ionToneRaw = extractValue(spec?.element?.interactive?.['on-tone'])
+    const ionToneHoverRaw = extractValue(spec?.element?.interactive?.['on-tone-hover'])
+    
+    // Legacy support: check for old property names
+    const ibgRaw = extractValue(spec?.element?.interactive?.background)
+    const ibgHoverRaw = extractValue(spec?.element?.interactive?.['background-hover'])
+    const itextRaw = extractValue(spec?.element?.interactive?.text)
+    const itextHoverRaw = extractValue(spec?.element?.interactive?.['text-hover'])
+    
+    // Legacy support: check for old 'color' property
+    let icolorRaw = extractValue(spec?.element?.interactive?.color)
+    const icolorVar = coerceToVarRef(icolorRaw)
+    
     const ihRaw = spec?.element?.interactive?.['high-emphasis']
     const ih = resolveRef(ihRaw)
     const ihoverRaw = spec?.element?.interactive?.['hover-color']
     const ihover = resolveRef(ihoverRaw)
-    // Interactive color: core token palette tone → step within its palette → fallback to surface on-tone (AA considers opacity)
-    const interactiveHex = readCssVar('--recursica-brand-light-palettes-core-interactive') || readCssVar('--palette-interactive') || ((): string | undefined => {
-      const coreInteractive = resolveRef('{brand.light.palettes.core.interactive}') ?? resolveRef('{brand.light.palettes.core-colors.interactive}')
-      return typeof coreInteractive === 'string' ? String(coreInteractive) : undefined
-    })()
-    if (icolorVar) {
-      // Explicit override from spec takes precedence
-      result[`${brandInterBase}color`] = icolorVar
-    } else if ((surfaceHex || surfPalette) && interactiveHex) {
-      const bgHex = surfPalette
-        ? (readCssVar(buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')) || surfaceHex || '')
-        : (readIfCssVarOrHex(surfaceHex) || '')
-      const interToken = parseCoreTokenRef('interactive')
-      const interHighOpacity = (() => {
-        const fromSpec = (() => {
-          const v = ih
-          const n = typeof v === 'number' ? v : (typeof v === 'string' ? Number(v) : NaN)
-          return Number.isFinite(n) ? (n <= 1 ? n : n / 100) : undefined
-        })()
-        if (fromSpec != null) return fromSpec
-        if (surfPalette) {
-          const hi = readCssVar(buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'high-emphasis'))
-          const n = typeof hi === 'string' ? Number(hi) : NaN
-          return Number.isFinite(n) ? (n <= 1 ? n : n / 100) : 1
-        }
-        return 1
-      })()
-      let finalRef: string | undefined
-      let chosenLevel: string | undefined
-      if (interToken) {
-        // Use core token directly - AA compliance will be handled reactively in Phase 3
-        finalRef = 'var(--recursica-brand-light-palettes-core-interactive)'
-        chosenLevel = interToken.level
-        // Hover: use same token (AA compliance will be handled reactively in Phase 3)
-        if (chosenLevel) {
-          result[`${brandInterBase}hover-color`] = `var(--recursica-tokens-color-${interToken.family}-${chosenLevel})`
-        }
+    
+    // Resolve all interactive properties - prefer new names, fall back to old names
+    // Note: text-hover is also used in some alternative layers (e.g., high-contrast) as an alias for on-tone-hover
+    const itoneVar = coerceToVarRef(itoneRaw) || coerceToVarRef(ibgRaw)
+    const itoneHoverVar = coerceToVarRef(itoneHoverRaw) || coerceToVarRef(ibgHoverRaw)
+    const ionToneVar = coerceToVarRef(ionToneRaw) || coerceToVarRef(itextRaw)
+    const ionToneHoverVar = coerceToVarRef(ionToneHoverRaw) || coerceToVarRef(itextHoverRaw)
+    
+    // Helper to get default reference for interactive properties
+    const getDefaultInteractiveRef = (property: 'tone' | 'tone-hover' | 'on-tone' | 'on-tone-hover'): string => {
+      if (property === 'tone') {
+        return 'var(--recursica-brand-light-palettes-core-interactive-default-tone)'
+      } else if (property === 'tone-hover') {
+        return 'var(--recursica-brand-light-palettes-core-interactive-hover-tone)'
+      } else if (property === 'on-tone') {
+        return 'var(--recursica-brand-light-palettes-core-interactive-default-on-tone)'
+      } else if (property === 'on-tone-hover') {
+        return 'var(--recursica-brand-light-palettes-core-interactive-hover-on-tone)'
       }
-      if (!finalRef) {
-        const onToneVar = surfPalette ? buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone') : undefined
-        if (onToneVar) {
-          const deref = readCssVar(onToneVar)
-          // If deref is a hex value, convert it to a token var reference if possible
-          if (deref && typeof deref === 'string') {
-            const hex = deref.trim()
-            if (/^#?[0-9a-f]{6}$/i.test(hex)) {
-              const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-              if (h === '#ffffff' || h === '#000000') {
-                finalRef = mapBWHexToVar(h)
-                } else {
-                  // Fall back to on-tone var (token-by-hex lookup removed - should be in JSON)
-                  finalRef = `var(${onToneVar})`
-                }
-            } else {
-              // Not a hex value, use as-is or fall back to on-tone var
-              finalRef = deref || `var(${onToneVar})`
-            }
-          } else {
-            // No deref value, use on-tone var
-            finalRef = `var(${onToneVar})`
-          }
-        } else {
-          // Default to black - AA compliance will be handled reactively in Phase 3
-          finalRef = 'var(--recursica-brand-light-palettes-core-black)'
-        }
-      }
-      result[`${brandInterBase}color`] = finalRef
+      return 'var(--recursica-brand-light-palettes-core-interactive-default-tone)'
+    }
+    
+    // Set tone colors (background)
+    if (itoneVar) {
+      result[`${brandInterBase}tone`] = itoneVar
     } else {
-      // Fallback: keep reference to core var so it updates when palette changes
-      const interToken = parseCoreTokenRef('interactive')
-      if (interToken) {
-        const pk = findPaletteKeyForFamilyLevel(interToken.family, interToken.level)
-        if (pk) {
-          const v = `var(${buildPaletteVar(pk, interToken.level, 'tone')})`
-          result[`${brandInterBase}color`] = v
-        } else {
-          const v = 'var(--recursica-brand-light-palettes-core-interactive, var(--palette-interactive))'
-          result[`${brandInterBase}color`] = v
-        }
-      } else {
-        const v = 'var(--recursica-brand-light-palettes-core-interactive, var(--palette-interactive))'
-        result[`${brandInterBase}color`] = v
+      // Use default from core palette - AA compliance will be handled reactively
+      result[`${brandInterBase}tone`] = getDefaultInteractiveRef('tone')
+    }
+    
+    if (itoneHoverVar) {
+      result[`${brandInterBase}tone-hover`] = itoneHoverVar
+    } else {
+      // Use default from core palette - AA compliance will be handled reactively
+      result[`${brandInterBase}tone-hover`] = getDefaultInteractiveRef('tone-hover')
+    }
+    
+    // Set on-tone colors (text)
+    if (ionToneVar) {
+      result[`${brandInterBase}on-tone`] = ionToneVar
+    } else {
+      // Use default from core palette - AA compliance will be handled reactively
+      result[`${brandInterBase}on-tone`] = getDefaultInteractiveRef('on-tone')
+    }
+    
+    if (ionToneHoverVar) {
+      result[`${brandInterBase}on-tone-hover`] = ionToneHoverVar
+    } else {
+      // Use default from core palette - AA compliance will be handled reactively
+      result[`${brandInterBase}on-tone-hover`] = getDefaultInteractiveRef('on-tone-hover')
+    }
+    
+    // Legacy support: if old 'color' property exists, use it for backward compatibility
+    if (icolorVar) {
+      // Map old 'color' to tone for backward compatibility
+      result[`${brandInterBase}color`] = icolorVar
+      // Also set as tone if not already set
+      if (!itoneVar) {
+        result[`${brandInterBase}tone`] = icolorVar
       }
     }
     // Default interactive high-emphasis to text high-emphasis if not provided; prefer opacity tokens
@@ -614,9 +639,14 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       const vref = coerceToVarRef(ihoverRaw) || String(ihover ?? '')
       if (vref) result[`${brandInterBase}hover-color`] = vref
     }
+    
+    // Generate layer-specific interactive on-tone variables for UIKit references
+    // These reference the core palette on-tone variables
+    result[`${brandInterBase}default-on-tone`] = 'var(--recursica-brand-light-palettes-core-interactive-default-on-tone)'
+    result[`${brandInterBase}hover-on-tone`] = 'var(--recursica-brand-light-palettes-core-interactive-hover-on-tone)'
   }
 
-  ;['0','1','2','3'].forEach((lvl) => {
+  ;['0','1','2','3','4'].forEach((lvl) => {
     const key = `layer-${lvl}`
     if (layersLight && Object.prototype.hasOwnProperty.call(layersLight, key)) applyForLayer(layersLight[key], lvl)
   })

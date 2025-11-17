@@ -117,6 +117,7 @@ export default function OpacityPicker() {
               style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
+                alignItems: 'center',
                 width: '100%', 
                 border: `1px solid ${isSelected ? 'var(--recursica-brand-light-layer-layer-1-property-border-color)' : 'var(--recursica-brand-light-layer-layer-1-property-border-color)'}`, 
                 background: isSelected ? 'var(--recursica-brand-light-layer-layer-1-property-surface)' : 'transparent', 
@@ -125,7 +126,12 @@ export default function OpacityPicker() {
                 cursor: 'pointer' 
               }}
             >
-              <span style={{ textTransform: 'capitalize' }}>{opt.name.replace('opacity/','')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {isSelected && (
+                  <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone, #3b82f6)' }}>✓</span>
+                )}
+                <span style={{ textTransform: 'capitalize' }}>{opt.name.replace('opacity/','')}</span>
+              </span>
               <span>{`${Math.round(opt.value <= 1 ? opt.value * 100 : opt.value)}%`}</span>
             </button>
           )

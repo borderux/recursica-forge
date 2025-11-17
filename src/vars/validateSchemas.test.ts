@@ -38,20 +38,20 @@ describe('JSON Schema Validation', () => {
       expect(validate).toBeDefined()
     })
 
-    it('should have brand.light.palettes.core-colors', () => {
-      expect(brandJson.brand?.light?.palettes?.['core-colors']).toBeDefined()
-      expect(brandJson.brand?.light?.palettes?.['core-colors']?.$type).toBe('color')
-      expect(brandJson.brand?.light?.palettes?.['core-colors']?.$value).toBeDefined()
+    it('should have brand.themes.light.palettes.core-colors', () => {
+      expect(brandJson.brand?.themes?.light?.palettes?.['core-colors']).toBeDefined()
+      expect(brandJson.brand?.themes?.light?.palettes?.['core-colors']?.$type).toBe('color')
+      expect(brandJson.brand?.themes?.light?.palettes?.['core-colors']?.$value).toBeDefined()
     })
 
-    it('should have brand.dark.palettes.core-colors', () => {
-      expect(brandJson.brand?.dark?.palettes?.['core-colors']).toBeDefined()
-      expect(brandJson.brand?.dark?.palettes?.['core-colors']?.$type).toBe('color')
-      expect(brandJson.brand?.dark?.palettes?.['core-colors']?.$value).toBeDefined()
+    it('should have brand.themes.dark.palettes.core-colors', () => {
+      expect(brandJson.brand?.themes?.dark?.palettes?.['core-colors']).toBeDefined()
+      expect(brandJson.brand?.themes?.dark?.palettes?.['core-colors']?.$type).toBe('color')
+      expect(brandJson.brand?.themes?.dark?.palettes?.['core-colors']?.$value).toBeDefined()
     })
 
     it('should have required core-colors values', () => {
-      const coreColors = brandJson.brand?.light?.palettes?.['core-colors']?.$value
+      const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']?.$value
       expect(coreColors).toBeDefined()
       expect(coreColors?.black).toBeDefined()
       expect(coreColors?.white).toBeDefined()
@@ -62,13 +62,13 @@ describe('JSON Schema Validation', () => {
     })
 
     it('should have neutral palette', () => {
-      expect(brandJson.brand?.light?.palettes?.neutral).toBeDefined()
-      expect(brandJson.brand?.dark?.palettes?.neutral).toBeDefined()
+      expect(brandJson.brand?.themes?.light?.palettes?.neutral).toBeDefined()
+      expect(brandJson.brand?.themes?.dark?.palettes?.neutral).toBeDefined()
     })
 
     it('should have matching structure between light and dark', () => {
-      const lightKeys = Object.keys(brandJson.brand?.light?.palettes || {})
-      const darkKeys = Object.keys(brandJson.brand?.dark?.palettes || {})
+      const lightKeys = Object.keys(brandJson.brand?.themes?.light?.palettes || {})
+      const darkKeys = Object.keys(brandJson.brand?.themes?.dark?.palettes || {})
       
       // Both should have core-colors and neutral
       expect(lightKeys).toContain('core-colors')
