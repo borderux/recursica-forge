@@ -292,6 +292,18 @@ export default function ColorTokenPicker() {
     // Also update theme JSON for core colors so changes persist across navigation
     if (isCoreColor) {
       updateCoreColorInTheme(targetVar, tokenName)
+      
+      // If core black or white changed, re-check all palette on-tone colors
+      // Use setTimeout to ensure CSS var and theme updates complete first
+      const isCoreBlackOrWhite = targetVar === '--recursica-brand-light-palettes-core-black' ||
+                                  targetVar === '--recursica-brand-light-palettes-core-white'
+      if (isCoreBlackOrWhite) {
+        setTimeout(() => {
+          try {
+            window.dispatchEvent(new CustomEvent('recheckAllPaletteOnTones'))
+          } catch {}
+        }, 10)
+      }
     }
     
     setAnchor(null)

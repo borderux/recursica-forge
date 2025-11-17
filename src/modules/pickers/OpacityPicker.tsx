@@ -55,6 +55,18 @@ export default function OpacityPicker() {
     // Update the target CSS variable to reference the opacity token
     updateCssVar(targetCssVar, `var(${opacityCssVar})`)
     
+    // If high or low emphasis opacity changed, re-check all palette on-tone colors
+    // Use setTimeout to ensure CSS var update completes first
+    const isEmphasisOpacity = targetCssVar.includes('text-emphasis-high') || 
+                               targetCssVar.includes('text-emphasis-low')
+    if (isEmphasisOpacity) {
+      setTimeout(() => {
+        try {
+          window.dispatchEvent(new CustomEvent('recheckAllPaletteOnTones'))
+        } catch {}
+      }, 10)
+    }
+    
     setAnchor(null)
     setTargetCssVar(null)
     setCurrentToken(null)

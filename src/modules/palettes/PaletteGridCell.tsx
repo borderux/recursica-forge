@@ -99,7 +99,11 @@ export function PaletteEmphasisCell({
       setUpdateTrigger((prev) => prev + 1)
     }
     window.addEventListener('paletteVarsChanged', handler as any)
-    return () => window.removeEventListener('paletteVarsChanged', handler as any)
+    window.addEventListener('recheckAllPaletteOnTones', handler as any)
+    return () => {
+      window.removeEventListener('paletteVarsChanged', handler as any)
+      window.removeEventListener('recheckAllPaletteOnTones', handler as any)
+    }
   }, [])
 
   // Check AA compliance with opacity consideration
@@ -212,9 +216,14 @@ export function PaletteEmphasisCell({
     const currentRatio = contrastRatio(toneHex, blendedOnTone)
     const passesAA = currentRatio >= AA
     
-    // Check if black and white pass AA for BOTH high and low emphasis
-    const black = '#000000'
-    const white = '#ffffff'
+    // Read actual core black and white colors from CSS variables (not hardcoded)
+    // mode is already declared above (line 151)
+    const coreBlackVar = `--recursica-brand-${mode}-palettes-core-black`
+    const coreWhiteVar = `--recursica-brand-${mode}-palettes-core-white`
+    const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
+    const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
+    const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
+    const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
     
     // Check high emphasis
     const blackHighBlended = blendHexOver(black, toneHex, highOpacity)
