@@ -278,6 +278,15 @@ class VarsStore {
       
       // Watch core colors (alert, warning, success, interactive) to update alternative layers
       this.aaWatcher?.watchCoreColors()
+      
+      // Run startup validation after CSS vars are applied
+      // The watcher will run its own validation, but we also ensure it runs after a delay
+      setTimeout(() => {
+        if (this.aaWatcher) {
+          // Force a full compliance check
+          this.aaWatcher.updateAllLayers()
+        }
+      }, 200)
     })
   }
 

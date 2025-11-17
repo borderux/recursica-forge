@@ -4,8 +4,150 @@ import PaletteGrid from './PaletteGrid'
 import { useVars } from '../vars/VarsContext'
 import ColorTokenPicker from '../pickers/ColorTokenPicker'
 import OpacityPicker from '../pickers/OpacityPicker'
+import { readCssVar } from '../../core/css/readCssVar'
+import { contrastRatio } from '../theme/contrastUtil'
+import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 type PaletteEntry = { key: string; title: string; defaultLevel: number; initialFamily?: string }
+
+// Component for core interactive swatch with AA compliance checking
+function CoreInteractiveSwatch({
+  toneCssVar,
+  onToneCssVar,
+  fallbackToneCssVar,
+  pickerCssVar,
+}: {
+  toneCssVar: string
+  onToneCssVar: string
+  fallbackToneCssVar?: string
+  pickerCssVar: string
+}) {
+  const { tokens: tokensJson } = useVars()
+  const [isHovered, setIsHovered] = useState(false)
+  const AA = 4.5
+
+  // Check AA compliance (without opacity for core colors - they're fully opaque)
+  const aaStatus = useMemo(() => {
+    if (!tokensJson) return null
+    
+    const toneValue = readCssVar(toneCssVar) || (fallbackToneCssVar ? readCssVar(fallbackToneCssVar) : null)
+    const onToneValue = readCssVar(onToneCssVar)
+    
+    if (!toneValue || !onToneValue) return null
+    
+    const tokenIndex = buildTokenIndex(tokensJson)
+    const toneHex = resolveCssVarToHex(toneValue, tokenIndex) || (fallbackToneCssVar ? resolveCssVarToHex(readCssVar(fallbackToneCssVar) || '', tokenIndex) : null)
+    const onToneHex = resolveCssVarToHex(onToneValue, tokenIndex)
+    
+    if (!toneHex || !onToneHex) return null
+    
+    // Core colors are fully opaque, so no opacity blending needed
+    const currentRatio = contrastRatio(toneHex, onToneHex)
+    const passesAA = currentRatio >= AA
+    
+    // Check if black and white pass AA
+    const black = '#000000'
+    const white = '#ffffff'
+    const blackContrast = contrastRatio(toneHex, black)
+    const whiteContrast = contrastRatio(toneHex, white)
+    const blackPasses = blackContrast >= AA
+    const whitePasses = whiteContrast >= AA
+    
+    return {
+      passesAA,
+      blackPasses,
+      whitePasses,
+      currentRatio,
+      toneHex,
+      onToneHex,
+    }
+  }, [toneCssVar, fallbackToneCssVar, onToneCssVar, tokensJson])
+
+  const showAAWarning = aaStatus 
+    ? (!aaStatus.passesAA && !aaStatus.blackPasses && !aaStatus.whitePasses)
+    : false
+
+  return (
+    <td 
+      className="swatch-box" 
+      style={{ 
+        position: 'relative',
+        backgroundColor: `var(${toneCssVar}${fallbackToneCssVar ? `, var(${fallbackToneCssVar})` : ''})`, 
+        cursor: 'pointer' 
+      }} 
+      onClick={(e) => (window as any).openPicker?.(e.currentTarget, pickerCssVar)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {showAAWarning ? (
+        <div 
+          style={{ 
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            color: `var(${onToneCssVar})`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          ✕
+        </div>
+      ) : (
+        <div 
+          style={{ 
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            backgroundColor: `var(${onToneCssVar})`,
+            // No border as requested
+          }} 
+        />
+      )}
+      
+      {showAAWarning && isHovered && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            marginTop: '4px',
+            padding: '8px 12px',
+            backgroundColor: 'var(--recursica-brand-light-layer-layer-1-property-surface)',
+            border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+            borderRadius: '6px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+            minWidth: '200px',
+            fontSize: '12px',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
+            AA Compliance Issue
+          </div>
+          <div style={{ marginBottom: '8px', color: 'var(--recursica-brand-light-layer-layer-0-element-text-color)' }}>
+            Both black and white don't pass contrast (≥4.5:1)
+          </div>
+          <div style={{ marginBottom: '8px', fontSize: '11px', color: 'var(--recursica-brand-light-layer-layer-0-element-text-color)', opacity: 0.8 }}>
+            Current: {aaStatus?.currentRatio.toFixed(2)}:1
+          </div>
+        </div>
+      )}
+    </td>
+  )
+}
 
 export default function PalettesPage() {
   const { tokens: tokensJson, theme: themeJson, palettes: palettesState, setPalettes, setTheme } = useVars()
@@ -135,18 +277,18 @@ export default function PalettesPage() {
   }
 
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)', color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color, #111111)' }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface)', color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)' }}>
       <div className="container-padding">
         <div className="header-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <h2 id="theme-mode-label" style={{ margin: 0 }}>Palettes</h2>
           <div style={{ display: 'inline-flex', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, overflow: 'hidden' }}>
             <button
               onClick={() => setIsDarkMode(false)}
-              style={{ padding: '6px 10px', border: 'none', background: !isDarkMode ? 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent', color: !isDarkMode ? '#fff' : 'inherit', cursor: 'pointer' }}
+              style={{ padding: '6px 10px', border: 'none', background: !isDarkMode ? 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent', color: !isDarkMode ? 'var(--recursica-brand-light-palettes-core-white)' : 'inherit', cursor: 'pointer' }}
             >Light</button>
             <button
               onClick={() => setIsDarkMode(true)}
-              style={{ padding: '6px 10px', border: 'none', borderLeft: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: isDarkMode ? 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent', color: isDarkMode ? '#fff' : 'inherit', cursor: 'pointer' }}
+              style={{ padding: '6px 10px', border: 'none', borderLeft: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: isDarkMode ? 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)' : 'transparent', color: isDarkMode ? 'var(--recursica-brand-light-palettes-core-white)' : 'inherit', cursor: 'pointer' }}
             >Dark</button>
           </div>
         </div>
@@ -176,52 +318,17 @@ export default function PalettesPage() {
                 <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-alert)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-alert')} />
                 <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-warning)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-warning')} />
                 <td className="swatch-box" style={{ backgroundColor: 'var(--recursica-brand-light-palettes-core-success)', cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-success')} />
-                <td 
-                  className="swatch-box" 
-                  style={{ 
-                    position: 'relative',
-                    backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive-default-tone, var(--recursica-brand-light-palettes-core-interactive))', 
-                    cursor: 'pointer' 
-                  }} 
-                  onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-interactive-default-tone')}
-                >
-                  <div 
-                    style={{ 
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      width: '12px',
-                      height: '12px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive-default-on-tone, #ffffff)',
-                      border: '1px solid rgba(0, 0, 0, 0.1)'
-                    }} 
-                  />
-                </td>
-                <td 
-                  className="swatch-box" 
-                  style={{ 
-                    position: 'relative',
-                    backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive-hover-tone)', 
-                    cursor: 'pointer' 
-                  }} 
-                  onClick={(e) => (window as any).openPicker?.(e.currentTarget, '--recursica-brand-light-palettes-core-interactive-hover-tone')}
-                >
-                  <div 
-                    style={{ 
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      width: '12px',
-                      height: '12px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--recursica-brand-light-palettes-core-interactive-hover-on-tone, #ffffff)',
-                      border: '1px solid rgba(0, 0, 0, 0.1)'
-                    }} 
-                  />
-                </td>
+                <CoreInteractiveSwatch
+                  toneCssVar="--recursica-brand-light-palettes-core-interactive-default-tone"
+                  onToneCssVar="--recursica-brand-light-palettes-core-interactive-default-on-tone"
+                  fallbackToneCssVar="--recursica-brand-light-palettes-core-interactive"
+                  pickerCssVar="--recursica-brand-light-palettes-core-interactive-default-tone"
+                />
+                <CoreInteractiveSwatch
+                  toneCssVar="--recursica-brand-light-palettes-core-interactive-hover-tone"
+                  onToneCssVar="--recursica-brand-light-palettes-core-interactive-hover-on-tone"
+                  pickerCssVar="--recursica-brand-light-palettes-core-interactive-hover-tone"
+                />
               </tr>
               {/* Removed hex values row under swatches per request */}
             </tbody>

@@ -71,7 +71,7 @@ export default function OpacityPicker() {
       background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', 
       border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
       borderRadius: 8, 
-      boxShadow: '0 8px 24px rgba(0,0,0,0.2)', 
+      boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', 
       padding: 10, 
       zIndex: 1100 
     }}>
@@ -128,7 +128,7 @@ export default function OpacityPicker() {
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {isSelected && (
-                  <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone, #3b82f6)' }}>✓</span>
+                  <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone)' }}>✓</span>
                 )}
                 <span style={{ textTransform: 'capitalize' }}>{opt.name.replace('opacity/','')}</span>
               </span>

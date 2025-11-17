@@ -26,7 +26,7 @@ export default function ColorTokens() {
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
   const [showAddColorModal, setShowAddColorModal] = useState(false)
-  const [pendingColorHex, setPendingColorHex] = useState<string>('#000000')
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-light-palettes-core-black)')
 
   // Initialize deleted families from localStorage
   useEffect(() => {
@@ -692,7 +692,7 @@ export default function ColorTokens() {
   const levelOrder = Array.from(presentLevels).sort((a, b) => Number(b) - Number(a))
 
   return (
-    <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, padding: 12 }}>
+    <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
       <div style={{ display: 'grid', gridTemplateColumns: `100px repeat(${families.length}, 1fr)`, columnGap: 12, rowGap: 0, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>

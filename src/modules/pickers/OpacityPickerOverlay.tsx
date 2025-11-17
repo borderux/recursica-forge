@@ -159,11 +159,11 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
         top: pos.top,
         left: pos.left,
         width: 400,
-        background: 'var(--layer-layer-0-property-surface, #ffffff)',
-        color: 'var(--layer-layer-0-property-element-text-color, #111111)',
-        border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
+        background: 'var(--layer-layer-0-property-surface)',
+        color: 'var(--layer-layer-0-property-element-text-color)',
+        border: '1px solid var(--layer-layer-1-property-border-color)',
         borderRadius: 8,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+        boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)',
         padding: 16,
         zIndex: 9999,
       }}
@@ -221,14 +221,14 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
                   title={targetCssVar ? `Set ${targetCssVar} to ${opacityCssVar}` : `Select ${it.name}`}
                 >
                   {isSelected && (
-                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone, #3b82f6)' }}>✓</span>
+                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone)' }}>✓</span>
                   )}
                   {label}
                 </button>
               ) : (
                 <label htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9, display: 'flex', alignItems: 'center', gap: 8 }}>
                   {isSelected && (
-                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone, #3b82f6)' }}>✓</span>
+                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone)' }}>✓</span>
                   )}
                   {label}
                 </label>

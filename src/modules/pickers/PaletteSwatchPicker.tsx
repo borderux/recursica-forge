@@ -131,7 +131,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
   return createPortal(
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--layer-layer-0-property-surface, #ffffff)', color: 'var(--layer-layer-0-property-element-text-color, #111111)', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 9999 }}>
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--layer-layer-0-property-surface)', color: 'var(--layer-layer-0-property-element-text-color)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', padding: 10, zIndex: 9999 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>Pick palette color</div>
         <button onClick={() => setAnchor(null)} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
@@ -181,7 +181,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       height: swatch,
                       background: `var(${paletteCssVar})`,
                       cursor: 'pointer',
-                      border: '1px solid rgba(0,0,0,0.15)',
+                      border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
                       flex: '0 0 auto',
                     }}
                   >
@@ -203,7 +203,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         {/* White checkmark with dark shadow for visibility on any background */}
                         <path
                           d="M2 6L5 9L10 2"
-                          stroke="#000"
+                          stroke="var(--recursica-brand-light-palettes-core-black)"
                           strokeWidth="2.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -211,7 +211,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         />
                         <path
                           d="M2 6L5 9L10 2"
-                          stroke="#fff"
+                          stroke="var(--recursica-brand-light-palettes-core-white)"
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"

@@ -544,13 +544,13 @@ function FamilyDropdown({
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer', minWidth: 160, justifyContent: 'space-between' }}
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid rgba(0,0,0,0.15)', background: currentHex || 'transparent' }} />
+            <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: currentHex || 'transparent' }} />
             <span>{getFriendlyName(selectedFamily)}</span>
           </span>
           <span aria-hidden style={{ opacity: 0.6 }}>▾</span>
         </button>
         {open && (
-          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1200, background: 'var(--layer-layer-0-property-surface, #ffffff)', border: '1px solid var(--layer-layer-1-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 6, minWidth: 200 }}>
+          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1200, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', padding: 6, minWidth: 200 }}>
             <div style={{ maxHeight: 280, overflow: 'auto', display: 'grid' }}>
               {families.map((fam) => {
                 const hex = getSwatchHex(fam)
@@ -560,7 +560,7 @@ function FamilyDropdown({
                     onClick={() => { onSelect(fam); setOpen(false) }}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}
                   >
-                    <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid rgba(0,0,0,0.15)', background: hex || 'transparent' }} />
+                    <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: hex || 'transparent' }} />
                     <span>{getFriendlyName(fam)}</span>
                   </button>
                 )

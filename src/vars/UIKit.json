@@ -204,7 +204,7 @@
           },
           "optional-text-opacity": {
             "$type": "number",
-            "$value": "{brand.themes.light.layers.layer-0.element.text.color}"
+            "$value": "{brand.themes.light.text-emphasis.low}"
           }
         },
         "size": {
@@ -623,7 +623,7 @@
             }
           },
           "border-radius-no-text": {
-            "$type": "number",
+            "$type": "dimension",
             "$value": {
               "value": "{brand.dimensions.border-radius.xl}",
               "unit": "px"

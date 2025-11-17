@@ -293,6 +293,8 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
                 onMouseEnter={() => setHoverLevelStr(lvl)}
                 onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
                 onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                paletteKey={paletteKey}
+                tokens={tokensJson}
               />
             ))}
           </tr>
@@ -315,6 +317,9 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
                   onMouseEnter={() => setHoverLevelStr(lvl)}
                   onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
                   onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                  paletteKey={paletteKey}
+                  level={lvl}
+                  tokens={tokensJson}
                 />
               )
             })}
@@ -336,6 +341,9 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
                   onMouseEnter={() => setHoverLevelStr(lvl)}
                   onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
                   onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                  paletteKey={paletteKey}
+                  level={lvl}
+                  tokens={tokensJson}
                 />
               )
             })}

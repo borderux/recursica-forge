@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UIKit JSON Schema",
+  "description": "Schema for UIKit.json structure",
+  "type": "object",
+  "required": ["ui-kit"],
+  "properties": {
+    "ui-kit": {
+      "type": "object",
+      "required": ["global"],
+      "properties": {
+        "global": {
+          "type": "object",
+          "properties": {
+            "icon": {
+              "type": "object"
+            },
+            "form": {
+              "type": "object"
+            },
+            "indicator": {
+              "type": "object"
+            },
+            "field": {
+              "type": "object"
+            },
+            "label": {
+              "type": "object"
+            },
+            "assistive-element": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": true
+        },
+        "components": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-z0-9-]+$": {
+              "type": "object",
+              "properties": {
+                "color": {
+                  "type": "object"
+                },
+                "size": {
+                  "type": "object"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
+
+
