@@ -16,17 +16,19 @@ type LayerModuleProps = {
 
 export default function LayerModule({ level, alternativeKey, title, className, children, onSelect, isSelected }: LayerModuleProps) {
   const { tokens, theme } = useVars()
-  const [, setVersion] = useState(0)
+  const [version, setVersion] = useState(0)
   useEffect(() => {
     const handler = () => setVersion((v) => v + 1)
     try {
       window.addEventListener('tokenOverridesChanged', handler as any)
       window.addEventListener('paletteReset', handler as any)
+      window.addEventListener('paletteVarsChanged', handler as any)
     } catch {}
     return () => {
       try {
         window.removeEventListener('tokenOverridesChanged', handler as any)
         window.removeEventListener('paletteReset', handler as any)
+        window.removeEventListener('paletteVarsChanged', handler as any)
       } catch {}
     }
   }, [])
@@ -174,18 +176,22 @@ export default function LayerModule({ level, alternativeKey, title, className, c
   }
   const headingStyle = buildTypeStyle('h3')
   const bodyStyle = buildTypeStyle('body-1')
+  
+  // Force style object recreation on each render to ensure CSS variables update
+  const containerStyle = useMemo(() => ({
+    backgroundColor: paletteBackground ?? `var(${brandBase}surface)`,
+    color: `var(${brandBase}element-text-color)`,
+    padding: `var(${brandBase}padding)`,
+    border: includeBorder ? `var(${brandBase}border-thickness) solid var(${brandBase}border-color)` : undefined,
+    borderRadius: includeBorder ? `var(${brandBase}border-radius)` : undefined,
+    cursor: onSelect ? 'pointer' as const : undefined,
+    boxShadow: cssVarBoxShadow,
+  }), [paletteBackground, brandBase, includeBorder, onSelect, cssVarBoxShadow, version])
+  
   return (
     <div
       className={className ? `layer-container ${className}` : 'layer-container'}
-      style={{
-        backgroundColor: paletteBackground ?? `var(${brandBase}surface)`,
-        color: `var(${brandBase}element-text-color)`,
-        padding: `var(${brandBase}padding)`,
-        border: includeBorder ? `var(${brandBase}border-thickness) solid var(${brandBase}border-color)` : undefined,
-        borderRadius: includeBorder ? `var(${brandBase}border-radius)` : undefined,
-        cursor: onSelect ? 'pointer' as const : undefined,
-        boxShadow: cssVarBoxShadow,
-      }}
+      style={containerStyle}
       onClick={(e) => { if (onSelect) { e.stopPropagation(); onSelect() } }}
     >
       <div className="layer-content" style={isAlternative ? { height: '100%' } : undefined}>

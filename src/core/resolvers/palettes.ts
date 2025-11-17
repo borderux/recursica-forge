@@ -236,24 +236,39 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const primaryOnToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-primary-on-tone`
     
     if (!vars[primaryToneVar]) {
-      // Try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
-      const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
-      let fallbackLevel: string | null = null
+      // First, check localStorage for user-selected primary level
+      let primaryLevel: string | null = null
+      try {
+        const raw = localStorage.getItem(`palette-primary-level:${pk}`)
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          if (typeof parsed === 'string') {
+            primaryLevel = parsed.padStart(3, '0')
+          }
+        }
+      } catch {}
       
-      for (const level of fallbackLevels) {
-        const fallbackToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-${level}-tone`
-        if (vars[fallbackToneVar]) {
-          fallbackLevel = level
-          break
+      // If no localStorage value, try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
+      if (!primaryLevel) {
+        const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
+        for (const level of fallbackLevels) {
+          const fallbackToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-${level}-tone`
+          if (vars[fallbackToneVar]) {
+            primaryLevel = level
+            break
+          }
         }
       }
       
-      // If we found a fallback level, create primary-tone and primary-on-tone by referencing it
-      if (fallbackLevel) {
-        vars[primaryToneVar] = `var(--recursica-brand-${modeLower}-palettes-${pk}-${fallbackLevel}-tone)`
-        const fallbackOnToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-${fallbackLevel}-on-tone`
-        if (vars[fallbackOnToneVar]) {
-          vars[primaryOnToneVar] = `var(--recursica-brand-${modeLower}-palettes-${pk}-${fallbackLevel}-on-tone)`
+      // If we found a primary level (from localStorage or fallback), create primary-tone and primary-on-tone by referencing it
+      if (primaryLevel) {
+        const targetToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-${primaryLevel}-tone`
+        const targetOnToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-${primaryLevel}-on-tone`
+        if (vars[targetToneVar]) {
+          vars[primaryToneVar] = `var(${targetToneVar})`
+          if (vars[targetOnToneVar]) {
+            vars[primaryOnToneVar] = `var(${targetOnToneVar})`
+          }
         }
       }
     }
