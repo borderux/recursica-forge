@@ -47,9 +47,32 @@
                       "type": "string"
                     },
                     "$value": {
-                      "type": ["number", "string"]
+                      "oneOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "oneOf": [
+                                { "type": "number" },
+                                { "type": "string" }
+                              ]
+                            },
+                            "unit": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["value"]
+                        }
+                      ]
                     }
                   },
+                  "required": ["$type", "$value"],
                   "additionalProperties": true
                 },
                 {

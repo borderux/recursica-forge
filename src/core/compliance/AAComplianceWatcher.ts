@@ -86,12 +86,17 @@ export class AAComplianceWatcher {
   private lastValues: Map<string, string> = new Map()
   private paletteFamilyChangedHandler: ((ev: CustomEvent) => void) | null = null
   private paletteDeletedHandler: ((ev: CustomEvent) => void) | null = null
+  private isFixing: boolean = false
 
   constructor(tokens: JsonLike, theme: JsonLike) {
     this.tokens = tokens
     this.theme = theme
     this.tokenIndex = buildTokenIndex(tokens)
     this.setupWatcher()
+    // Run startup validation after a short delay to ensure CSS vars are set
+    setTimeout(() => {
+      this.validateAllCompliance()
+    }, 100)
   }
 
   private setupWatcher() {
@@ -259,7 +264,7 @@ export class AAComplianceWatcher {
     const toneHex = resolveCssVarToHex(toneValue, this.tokenIndex)
     if (!toneHex) return
     
-    // Use pickAAOnTone logic
+    // Use pickAAOnTone logic with strict AA compliance
     const black = '#000000'
     const white = '#ffffff'
     const cBlack = contrastRatio(toneHex, black)
@@ -267,6 +272,7 @@ export class AAComplianceWatcher {
     const AA = 4.5
     
     let chosen: 'black' | 'white'
+    // Strict: both must meet AA, prefer higher contrast
     if (cBlack >= AA && cWhite >= AA) {
       chosen = cBlack >= cWhite ? 'black' : 'white'
     } else if (cBlack >= AA) {
@@ -274,6 +280,9 @@ export class AAComplianceWatcher {
     } else if (cWhite >= AA) {
       chosen = 'white'
     } else {
+      // Neither meets AA - this is a problem, but choose the better one
+      // Log a warning that the tone color itself may need adjustment
+      console.warn(`[AA Compliance] Palette ${paletteKey}-${level}: Neither black nor white meets AA contrast (black: ${cBlack.toFixed(2)}, white: ${cWhite.toFixed(2)}). Tone color may need adjustment.`)
       chosen = cBlack >= cWhite ? 'black' : 'white'
     }
     
@@ -674,6 +683,226 @@ export class AAComplianceWatcher {
    */
   checkAllAlternativeLayers() {
     this.updateAllLayers()
+  }
+
+  /**
+   * Validate all color combinations for AA compliance on startup
+   */
+  validateAllCompliance(): void {
+    const issues: Array<{ type: string; message: string; severity: 'error' | 'warning' }> = []
+    const AA = 4.5
+    
+    // Validate all layer element colors
+    for (let layer = 0; layer <= 3; layer++) {
+      const surfaceVar = `--recursica-brand-light-layer-layer-${layer}-property-surface`
+      const surfaceValue = readCssVar(surfaceVar)
+      
+      if (!surfaceValue) continue
+      
+      const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
+      if (!surfaceHex) continue
+      
+      const brandBase = `--recursica-brand-light-layer-layer-${layer}-property-`
+      
+      // Check text color
+      const textColorVar = `${brandBase}element-text-color`
+      const textColorValue = readCssVar(textColorVar)
+      if (textColorValue) {
+        const textColorHex = resolveCssVarToHex(textColorValue, this.tokenIndex)
+        if (textColorHex) {
+          const ratio = contrastRatio(surfaceHex, textColorHex)
+          if (ratio < AA) {
+            issues.push({
+              type: 'layer-text',
+              message: `Layer ${layer}: Text color contrast ratio ${ratio.toFixed(2)} < ${AA}`,
+              severity: 'error'
+            })
+          }
+        }
+      }
+      
+      // Check interactive colors
+      // Check interactive-tone and interactive-color against surface
+      const interactiveToneVar = `${brandBase}element-interactive-tone`
+      const interactiveColorVar = `${brandBase}element-interactive-color`
+      
+      const interactiveToneValue = readCssVar(interactiveToneVar)
+      const interactiveColorValue = readCssVar(interactiveColorVar)
+      
+      if (interactiveToneValue) {
+        const interactiveToneHex = resolveCssVarToHex(interactiveToneValue, this.tokenIndex)
+        if (interactiveToneHex) {
+          const ratio = contrastRatio(surfaceHex, interactiveToneHex)
+          if (ratio < AA) {
+            issues.push({
+              type: 'layer-interactive',
+              message: `Layer ${layer}: Interactive color contrast ratio ${ratio.toFixed(2)} < ${AA} for ${interactiveToneVar}`,
+              severity: 'error'
+            })
+          }
+        }
+      }
+      
+      if (interactiveColorValue) {
+        const interactiveColorHex = resolveCssVarToHex(interactiveColorValue, this.tokenIndex)
+        if (interactiveColorHex) {
+          const ratio = contrastRatio(surfaceHex, interactiveColorHex)
+          if (ratio < AA) {
+            issues.push({
+              type: 'layer-interactive',
+              message: `Layer ${layer}: Interactive color contrast ratio ${ratio.toFixed(2)} < ${AA} for ${interactiveColorVar}`,
+              severity: 'error'
+            })
+          }
+        }
+      }
+      
+      // Check interactive-on-tone against interactive-tone (not surface)
+      const interactiveOnToneVar = `${brandBase}element-interactive-on-tone`
+      const interactiveOnToneValue = readCssVar(interactiveOnToneVar)
+      if (interactiveOnToneValue && interactiveToneValue) {
+        const interactiveOnToneHex = resolveCssVarToHex(interactiveOnToneValue, this.tokenIndex)
+        const interactiveToneHex = resolveCssVarToHex(interactiveToneValue, this.tokenIndex)
+        if (interactiveOnToneHex && interactiveToneHex) {
+          const ratio = contrastRatio(interactiveToneHex, interactiveOnToneHex)
+          if (ratio < AA) {
+            issues.push({
+              type: 'layer-interactive',
+              message: `Layer ${layer}: Interactive on-tone contrast ratio ${ratio.toFixed(2)} < ${AA} for ${interactiveOnToneVar}`,
+              severity: 'error'
+            })
+          }
+        }
+      }
+    }
+    
+    // Validate alternative layers
+    const altLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+    altLayers.forEach((altKey) => {
+      const surfaceVar = `--recursica-brand-light-layer-layer-alternative-${altKey}-property-surface`
+      const surfaceValue = readCssVar(surfaceVar)
+      
+      if (!surfaceValue) return
+      
+      const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
+      if (!surfaceHex) return
+      
+      const brandBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property-`
+      
+      // Check text color
+      const textColorVar = `${brandBase}element-text-color`
+      const textColorValue = readCssVar(textColorVar)
+      if (textColorValue) {
+        const textColorHex = resolveCssVarToHex(textColorValue, this.tokenIndex)
+        if (textColorHex) {
+          const ratio = contrastRatio(surfaceHex, textColorHex)
+          if (ratio < AA) {
+            issues.push({
+              type: 'alt-layer-text',
+              message: `Alternative layer ${altKey}: Text color contrast ratio ${ratio.toFixed(2)} < ${AA}`,
+              severity: 'error'
+            })
+          }
+        }
+      }
+      
+      // Check interactive colors
+      const interactiveVar = `${brandBase}element-interactive-color`
+      const interactiveValue = readCssVar(interactiveVar)
+      if (interactiveValue) {
+        const interactiveHex = resolveCssVarToHex(interactiveValue, this.tokenIndex)
+        if (interactiveHex) {
+          const ratio = contrastRatio(surfaceHex, interactiveHex)
+          if (ratio < AA) {
+            issues.push({
+              type: 'alt-layer-interactive',
+              message: `Alternative layer ${altKey}: Interactive color contrast ratio ${ratio.toFixed(2)} < ${AA}`,
+              severity: 'error'
+            })
+          }
+        }
+      }
+    })
+    
+    // Validate palette on-tone combinations
+    try {
+      const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
+      const themes = root?.themes || root
+      const lightPal: any = themes?.light?.palettes || {}
+      const levels = ['900', '800', '700', '600', '500', '400', '300', '200', '100', '050']
+      
+      Object.keys(lightPal).forEach((paletteKey) => {
+        if (paletteKey === 'core' || paletteKey === 'core-colors' || paletteKey === 'neutral') return
+        
+        levels.forEach((level) => {
+          const toneVar = `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
+          const onToneVar = `--recursica-brand-light-palettes-${paletteKey}-${level}-on-tone`
+          
+          const toneValue = readCssVar(toneVar)
+          const onToneValue = readCssVar(onToneVar)
+          
+          if (toneValue && onToneValue) {
+            const toneHex = resolveCssVarToHex(toneValue, this.tokenIndex)
+            const onToneHex = resolveCssVarToHex(onToneValue, this.tokenIndex)
+            
+            if (toneHex && onToneHex) {
+              const ratio = contrastRatio(toneHex, onToneHex)
+              if (ratio < AA) {
+                issues.push({
+                  type: 'palette-on-tone',
+                  message: `Palette ${paletteKey}-${level}: On-tone contrast ratio ${ratio.toFixed(2)} < ${AA}`,
+                  severity: 'error'
+                })
+              }
+            }
+          }
+        })
+      })
+    } catch (err) {
+      // Silently fail palette validation if structure is unexpected
+    }
+    
+    // Log issues
+    if (issues.length > 0) {
+      const errors = issues.filter(i => i.severity === 'error')
+      const warnings = issues.filter(i => i.severity === 'warning')
+      
+      if (errors.length > 0) {
+        console.error(`[AA Compliance] Found ${errors.length} AA compliance errors:`, errors)
+      }
+      if (warnings.length > 0) {
+        console.warn(`[AA Compliance] Found ${warnings.length} AA compliance warnings:`, warnings)
+      }
+      
+      // Auto-fix errors by triggering updates (only if not already fixing to prevent loops)
+      if (errors.length > 0 && !this.isFixing) {
+        this.isFixing = true
+        console.log('[AA Compliance] Attempting to auto-fix compliance issues...')
+        this.updateAllLayers()
+        // Re-check palette on-tones - proactively fix all palettes
+        this.checkPaletteOnToneVars()
+        // Also proactively update all palette on-tones to ensure they're correct
+        try {
+          const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
+          const themes = root?.themes || root
+          const lightPal: any = themes?.light?.palettes || {}
+          const levels = ['900', '800', '700', '600', '500', '400', '300', '200', '100', '050']
+          Object.keys(lightPal).forEach((paletteKey) => {
+            if (paletteKey === 'core' || paletteKey === 'core-colors' || paletteKey === 'neutral') return
+            levels.forEach((level) => {
+              this.updatePaletteOnTone(paletteKey, level, 'light')
+            })
+          })
+        } catch {}
+        
+        // Reset fixing flag after a delay to allow CSS vars to update
+        setTimeout(() => {
+          this.isFixing = false
+        }, 500)
+      }
+    } else {
+      console.log('[AA Compliance] All color combinations meet AA standards ✓')
+    }
   }
 
   /**

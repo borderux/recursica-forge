@@ -77,7 +77,7 @@ const LayerSection = ({ layer, children }: { layer: LayerOption; children: React
   }, [theme, layer, isAlternativeLayer])
   
   // Construct box-shadow CSS variable using elevation
-  const boxShadow = `var(--recursica-brand-light-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-shadow-color, rgba(0,0,0,0))`
+  const boxShadow = `var(--recursica-brand-light-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-color-gray-1000))`
   
   const layerLabel = layer.startsWith('layer-alternative-') 
     ? layer.replace('layer-alternative-', '').replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())
@@ -215,9 +215,9 @@ export default function PreviewPage() {
         url: `${base}/badge`,
         render: (_selectedLayers) => (
           <div style={{ display: 'flex', gap: 8 }}>
-            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
-            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-warning-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
-            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-success-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
+            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
+            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-warning-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
+            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-success-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
           </div>
         ),
       },
@@ -452,7 +452,7 @@ export default function PreviewPage() {
             <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
             <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
             <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
-            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', borderRadius: 999, padding: '2px 10px' }}>Primary</span>
+            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', borderRadius: 999, padding: '2px 10px' }}>Primary</span>
             <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
           </div>
         ),
@@ -504,7 +504,7 @@ export default function PreviewPage() {
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <button>{'<'}</button>
             {[1, 2, 3, 4, 5].map((p) => (
-              <button key={p} style={{ padding: '4px 8px', borderRadius: 6, background: p === 2 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : undefined, color: p === 2 ? '#fff' : undefined }}>{p}</button>
+              <button key={p} style={{ padding: '4px 8px', borderRadius: 6, background: p === 2 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : undefined, color: p === 2 ? 'var(--recursica-brand-light-palettes-core-white)' : undefined }}>{p}</button>
             ))}
             <button>{'>'}</button>
           </div>
@@ -559,7 +559,7 @@ export default function PreviewPage() {
         url: `${base}/segmented-control`,
         render: (_selectedLayers) => (
           <div style={{ display: 'inline-flex', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, overflow: 'hidden' }}>
-            <button style={{ padding: '6px 10px', background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 0 }}>First</button>
+            <button style={{ padding: '6px 10px', background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', border: 0 }}>First</button>
             <button style={{ padding: '6px 10px', border: 0 }}>Second</button>
             <button style={{ padding: '6px 10px', border: 0 }}>Third</button>
           </div>
@@ -579,7 +579,7 @@ export default function PreviewPage() {
           <ol style={{ display: 'flex', gap: 12, listStyle: 'none', padding: 0 }}>
             {['One', 'Two', 'Three'].map((s, i) => (
               <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'var(--palette-neutral-300-tone)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
+                <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'var(--palette-neutral-300-tone)', color: 'var(--recursica-brand-light-palettes-core-white)', display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
                 <span>{s}</span>
               </li>
             ))}
@@ -608,7 +608,7 @@ export default function PreviewPage() {
         url: `${base}/tabs`,
         render: (_selectedLayers) => (
           <div style={{ display: 'flex', gap: 6 }}>
-            <button style={{ padding: '6px 10px', borderRadius: 999, background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: '#fff', border: 0 }}>Active</button>
+            <button style={{ padding: '6px 10px', borderRadius: 999, background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', border: 0 }}>Active</button>
             <button style={{ padding: '6px 10px', borderRadius: 999 }}>Default</button>
             <button style={{ padding: '6px 10px', borderRadius: 999, opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}>Disabled</button>
           </div>
@@ -798,12 +798,12 @@ export default function PreviewPage() {
         </div>
       </div>
       {mappedCount > 0 && (
-        <div style={{ fontSize: 14, color: 'var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis, rgba(0,0,0,0.6))' }}>
+        <div style={{ fontSize: 14, color: 'var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis)' }}>
           Showing {visibleSections.length} of {sections.length} components ({mappedCount} mapped)
         </div>
       )}
       {visibleSections.length === 0 ? (
-        <div style={{ padding: 24, textAlign: 'center', color: 'var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis, rgba(0,0,0,0.6))' }}>
+        <div style={{ padding: 24, textAlign: 'center', color: 'var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis)' }}>
           No components to display. {showUnmapped ? 'All components are mapped.' : 'Enable "Show unmapped components" to see all components.'}
         </div>
       ) : (

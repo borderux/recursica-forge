@@ -238,7 +238,7 @@ export default function ColorTokenPicker() {
     <>
       {anchor && targetVar && (
         createPortal(
-          <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', padding: 10, zIndex: 9999 }}>
+          <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', padding: 10, zIndex: 9999 }}>
             <div
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
               onMouseDown={(e) => {
@@ -287,7 +287,7 @@ export default function ColorTokenPicker() {
                             height: swatch, 
                             background: tokenCssVar ? `var(${tokenCssVar})` : it.value, 
                             cursor: 'pointer', 
-                            border: '1px solid rgba(0,0,0,0.15)', 
+                            border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
                             flex: '0 0 auto' 
                           }}
                         >
@@ -309,7 +309,7 @@ export default function ColorTokenPicker() {
                               {/* White checkmark with dark shadow for visibility on any background */}
                               <path
                                 d="M2 6L5 9L10 2"
-                                stroke="#000"
+                                stroke="var(--recursica-brand-light-palettes-core-black)"
                                 strokeWidth="2.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -317,7 +317,7 @@ export default function ColorTokenPicker() {
                               />
                               <path
                                 d="M2 6L5 9L10 2"
-                                stroke="#fff"
+                                stroke="var(--recursica-brand-light-palettes-core-white)"
                                 strokeWidth="1.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -338,7 +338,7 @@ export default function ColorTokenPicker() {
       
       <InteractiveHoverModal
         open={showHoverModal}
-        newInteractiveHex={pendingInteractiveHex || '#000000'}
+        newInteractiveHex={pendingInteractiveHex || 'var(--recursica-brand-light-palettes-core-black)'}
         onClose={() => {
           setShowHoverModal(false)
           setPendingInteractiveHex(null)

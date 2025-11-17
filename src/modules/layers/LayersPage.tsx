@@ -176,7 +176,7 @@ export default function LayersPage() {
     })
   }
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface, var(--layer-layer-0-property-surface, #ffffff))', color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color, var(--layer-layer-0-property-element-text-color, #111111))' }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface)', color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)' }}>
       <div className="container-padding">
         <div className="section">
           <h2>Layers</h2>

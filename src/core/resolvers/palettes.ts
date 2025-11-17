@@ -228,6 +228,35 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       }
       // Do not emit per-level palette emphasis vars; consumers should reference brand-level text emphasis tokens directly
     })
+    
+    // After processing all levels, ensure primary-tone exists even if there's no 'default' level
+    // This is needed because UIKit and other references use {palettes.neutral.default.color.tone}
+    // which resolves to --recursica-brand-light-palettes-neutral-primary-tone
+    const primaryToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-primary-tone`
+    const primaryOnToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-primary-on-tone`
+    
+    if (!vars[primaryToneVar]) {
+      // Try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
+      const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
+      let fallbackLevel: string | null = null
+      
+      for (const level of fallbackLevels) {
+        const fallbackToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-${level}-tone`
+        if (vars[fallbackToneVar]) {
+          fallbackLevel = level
+          break
+        }
+      }
+      
+      // If we found a fallback level, create primary-tone and primary-on-tone by referencing it
+      if (fallbackLevel) {
+        vars[primaryToneVar] = `var(--recursica-brand-${modeLower}-palettes-${pk}-${fallbackLevel}-tone)`
+        const fallbackOnToneVar = `--recursica-brand-${modeLower}-palettes-${pk}-${fallbackLevel}-on-tone`
+        if (vars[fallbackOnToneVar]) {
+          vars[primaryOnToneVar] = `var(--recursica-brand-${modeLower}-palettes-${pk}-${fallbackLevel}-on-tone)`
+        }
+      }
+    }
   })
   return vars
 }

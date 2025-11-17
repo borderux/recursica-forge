@@ -21,7 +21,7 @@ export function InteractiveHoverModal({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
+        background: 'color-mix(in srgb, var(--recursica-brand-light-palettes-core-black) 50%, transparent)',
         display: 'grid',
         placeItems: 'center',
         zIndex: 10001,
@@ -30,11 +30,11 @@ export function InteractiveHoverModal({
     >
       <div
         style={{
-          background: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)',
-          color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color, #111111)',
-          border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
+          background: 'var(--recursica-brand-light-layer-layer-0-property-surface)',
+          color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)',
+          border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
           borderRadius: 12,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+          boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)',
           padding: 24,
           display: 'grid',
           gap: 16,
@@ -76,9 +76,9 @@ export function InteractiveHoverModal({
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
-              background: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)',
-              color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color, #111111)',
+              border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+              background: 'var(--recursica-brand-light-layer-layer-0-property-surface)',
+              color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)',
               cursor: 'pointer',
               fontSize: 14,
               textAlign: 'left',
@@ -96,9 +96,9 @@ export function InteractiveHoverModal({
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
-              background: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)',
-              color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color, #111111)',
+              border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+              background: 'var(--recursica-brand-light-layer-layer-0-property-surface)',
+              color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)',
               cursor: 'pointer',
               fontSize: 14,
               textAlign: 'left',
@@ -116,9 +116,9 @@ export function InteractiveHoverModal({
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color, rgba(0,0,0,0.1))',
-              background: 'var(--recursica-brand-light-layer-layer-0-property-surface, #ffffff)',
-              color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color, #111111)',
+              border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+              background: 'var(--recursica-brand-light-layer-layer-0-property-surface)',
+              color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)',
               cursor: 'pointer',
               fontSize: 14,
               textAlign: 'left',

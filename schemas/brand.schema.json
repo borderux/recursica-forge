@@ -84,8 +84,59 @@
                       "pattern": "^\\{tokens\\.color\\.[a-z0-9_-]+\\.[0-9]{2,4}|000|050\\}$"
                     },
                     "interactive": {
-                      "type": "string",
-                      "pattern": "^\\{tokens\\.color\\.[a-z0-9_-]+\\.[0-9]{2,4}|000|050\\}$"
+                      "type": "object",
+                      "required": ["default", "hover"],
+                      "properties": {
+                        "default": {
+                          "type": "object",
+                          "required": ["tone", "on-tone"],
+                          "properties": {
+                            "tone": {
+                              "type": "object",
+                              "required": ["$value"],
+                              "properties": {
+                                "$value": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "on-tone": {
+                              "type": "object",
+                              "required": ["$value"],
+                              "properties": {
+                                "$value": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "hover": {
+                          "type": "object",
+                          "required": ["tone", "on-tone"],
+                          "properties": {
+                            "tone": {
+                              "type": "object",
+                              "required": ["$value"],
+                              "properties": {
+                                "$value": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "on-tone": {
+                              "type": "object",
+                              "required": ["$value"],
+                              "properties": {
+                                "$value": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "additionalProperties": false
@@ -171,17 +222,22 @@
                     }
                   },
                   "required": ["tone", "on-tone"]
-                }
-              }
+                },
+                "$value": false
+              },
+              "required": ["color"],
+              "additionalProperties": false
             },
             {
               "type": "object",
               "properties": {
                 "$value": {
                   "type": "string"
-                }
+                },
+                "color": false
               },
-              "required": ["$value"]
+              "required": ["$value"],
+              "additionalProperties": false
             }
           ]
         }

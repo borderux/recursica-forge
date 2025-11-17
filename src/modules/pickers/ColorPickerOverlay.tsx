@@ -22,6 +22,8 @@ export function ColorPickerOverlay({
   displayFamilyName,
 }: ColorPickerOverlayProps) {
   const overlayRef = useRef<HTMLDivElement | null>(null)
+  const svRef = useRef<HTMLDivElement | null>(null)
+  const hRef = useRef<HTMLDivElement | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [hsvState, setHsvState] = useState<{ h: number; s: number; v: number }>(() => hexToHsv(/^#([0-9a-f]{6})$/i.test(currentHex) ? currentHex : '#000000'))
   const [cascadeDown, setCascadeDown] = useState<boolean>(false)
@@ -54,10 +56,12 @@ export function ColorPickerOverlay({
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n))
 
-  const handleSV = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
-    const s = clamp((e.clientX - rect.left) / rect.width, 0, 1)
-    const v = clamp(1 - (e.clientY - rect.top) / rect.height, 0, 1)
+  const handleSV = (clientX: number, clientY: number) => {
+    const el = svRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const s = clamp((clientX - rect.left) / rect.width, 0, 1)
+    const v = clamp(1 - (clientY - rect.top) / rect.height, 0, 1)
     const next = { ...hsvState, s, v }
     setHsvState(next)
     const hex = hsvToHex(next.h, next.s, next.v).toLowerCase()
@@ -65,9 +69,11 @@ export function ColorPickerOverlay({
     onChange(hex, cascadeDown, cascadeUp)
   }
 
-  const handleH = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
-    const h = clamp(((e.clientX - rect.left) / rect.width) * 360, 0, 360)
+  const handleH = (clientX: number) => {
+    const el = hRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const h = clamp(((clientX - rect.left) / rect.width) * 360, 0, 360)
     const next = { ...hsvState, h }
     setHsvState(next)
     const hex = hsvToHex(next.h, next.s, next.v).toLowerCase()
@@ -121,9 +127,10 @@ export function ColorPickerOverlay({
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>
       <div
+        ref={svRef}
         onMouseDown={(e) => {
-          handleSV(e)
-          const move = (ev: MouseEvent) => handleSV(ev as any)
+          handleSV(e.clientX, e.clientY)
+          const move = (ev: MouseEvent) => handleSV(ev.clientX, ev.clientY)
           const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
           window.addEventListener('mousemove', move)
           window.addEventListener('mouseup', up)
@@ -133,9 +140,10 @@ export function ColorPickerOverlay({
         <div style={{ position: 'absolute', left: thumbLeft, top: thumbTop, transform: 'translate(-50%, -50%)', width: 12, height: 12, borderRadius: '50%', border: '2px solid #fff', boxShadow: '0 0 0 1px rgba(0,0,0,0.5)' }} />
       </div>
       <div
+        ref={hRef}
         onMouseDown={(e) => {
-          handleH(e)
-          const move = (ev: MouseEvent) => handleH(ev as any)
+          handleH(e.clientX)
+          const move = (ev: MouseEvent) => handleH(ev.clientX)
           const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
           window.addEventListener('mousemove', move)
           window.addEventListener('mouseup', up)
