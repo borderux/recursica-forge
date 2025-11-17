@@ -91,7 +91,15 @@ const LayerSection = ({ layer, children }: { layer: LayerOption; children: React
       padding: `var(${layerBase}-padding, 12px)`,
       boxShadow: boxShadow
     }}>
-      <h4 style={{ margin: '0 0 12px 0', fontSize: 14, fontWeight: 600, color: `var(${layerBase}-element-text-color)` }}>{layerLabel}</h4>
+      <h4 style={{ 
+        margin: '0 0 12px 0', 
+        fontFamily: 'var(--recursica-brand-typography-h4-font-family)',
+        fontSize: 'var(--recursica-brand-typography-h4-font-size)',
+        fontWeight: 'var(--recursica-brand-typography-h4-font-weight)',
+        letterSpacing: 'var(--recursica-brand-typography-h4-font-letter-spacing)',
+        lineHeight: 'var(--recursica-brand-typography-h4-line-height)',
+        color: `var(${layerBase}-element-text-color)` 
+      }}>{layerLabel}</h4>
       <div style={{ display: 'grid', gap: 8 }}>{children}</div>
     </div>
   )
@@ -113,7 +121,15 @@ const ComponentSection = ({ title, url, children, onEditCssVars, selectedLayers 
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <h2 style={{ margin: 0, color: `var(${layer0Base}-element-text-color)` }}>{title}</h2>
+          <h2 style={{ 
+            margin: 0, 
+            fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+            fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+            fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+            letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+            lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+            color: `var(${layer0Base}-element-text-color)` 
+          }}>{title}</h2>
           <button
             onClick={onEditCssVars}
             aria-label="Edit CSS Variables"
@@ -229,12 +245,30 @@ export default function PreviewPage() {
           return (
             <div style={{ display: 'grid', gap: 16 }}>
               {layers.map((layer) => {
+                // Build CSS variable names for this layer's text color with high emphasis
+                const isAlternativeLayer = layer.startsWith('layer-alternative-')
+                const layerBase = isAlternativeLayer
+                  ? `--recursica-brand-light-layer-layer-alternative-${layer.replace('layer-alternative-', '')}-property`
+                  : `--recursica-brand-light-layer-${layer}-property`
+                const textColorVar = `${layerBase}-element-text-color`
+                const highEmphasisVar = `${layerBase}-element-text-high-emphasis`
+                
                 return (
                   <div key={layer} style={{ display: 'grid', gap: 12 }}>
                     <div style={{ display: 'grid', gap: 12 }}>
                       {variants.map((variant) => (
                         <div key={variant} style={{ display: 'grid', gap: 8 }}>
-                          <div style={{ fontSize: 12, opacity: 0.7, textTransform: 'capitalize' }}>{variant}</div>
+                          <h5 style={{ 
+                            margin: 0, 
+                            fontFamily: 'var(--recursica-brand-typography-h5-font-family)',
+                            fontSize: 'var(--recursica-brand-typography-h5-font-size)',
+                            fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
+                            letterSpacing: 'var(--recursica-brand-typography-h5-font-letter-spacing)',
+                            lineHeight: 'var(--recursica-brand-typography-h5-line-height)',
+                            color: `var(${textColorVar})`,
+                            opacity: `var(${highEmphasisVar})`,
+                            textTransform: 'capitalize'
+                          }}>{variant}</h5>
                           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                             {sizes.map((size) => (
                               <Button 
