@@ -115,18 +115,20 @@ function resolveTokenRef(
     // Directly map path patterns to CSS variable references
     // Don't resolve actual values - we want CSS var references
     
-    // Layer references: layers.layer-0.property.surface (note: "layers" is now plural)
-    const layerMatch = /^layers?\.layer-(\d+)\.property\.(.+)$/i.exec(path)
+    // Layer references: layers.layer-0.property.surface or layers.0.property.surface (note: "layers" is now plural)
+    // Handle both formats: layer-0 and numeric 0
+    const layerMatch = /^layers?\.(?:layer-)?(\d+)\.property\.(.+)$/i.exec(path)
     if (layerMatch) {
       const layerNum = layerMatch[1]
       const prop = layerMatch[2].replace(/\./g, '-')
       return `var(--recursica-brand-${mode}-layer-layer-${layerNum}-property-${prop})`
     }
     
-    // Layer element references: layers.layer-0.element.text.color (note: "layers" is now plural)
+    // Layer element references: layers.layer-0.element.text.color or layers.0.element.text.color (note: "layers" is now plural)
     // Note: Actual CSS var pattern is: --recursica-brand-light-layer-layer-0-property-element-text-*
     // The "property" part is included in the actual variable name
-    const layerElementMatch = /^layers?\.layer-(\d+)\.element\.(.+)$/i.exec(path)
+    // Handle both formats: layer-0 and numeric 0
+    const layerElementMatch = /^layers?\.(?:layer-)?(\d+)\.element\.(.+)$/i.exec(path)
     if (layerElementMatch) {
       const layerNum = layerElementMatch[1]
       let elementPath = layerElementMatch[2].replace(/\./g, '-')
