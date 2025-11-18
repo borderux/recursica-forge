@@ -159,13 +159,13 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
         top: pos.top,
         left: pos.left,
         width: 400,
-        background: 'var(--layer-layer-0-property-surface)',
-        color: 'var(--layer-layer-0-property-element-text-color)',
-        border: '1px solid var(--layer-layer-1-property-border-color)',
+        background: 'var(--recursica-brand-light-layer-layer-2-property-surface)',
+        color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)',
+        border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
         borderRadius: 8,
-        boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)',
+        boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)',
         padding: 16,
-        zIndex: 9999,
+        zIndex: 20000,
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>

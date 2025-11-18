@@ -1,5 +1,5 @@
 import '../theme/index.css'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import PaletteGrid from './PaletteGrid'
 import { useVars } from '../vars/VarsContext'
 import ColorTokenPicker from '../pickers/ColorTokenPicker'
@@ -25,7 +25,20 @@ function CoreInteractiveSwatch({
 }) {
   const { tokens: tokensJson } = useVars()
   const [isHovered, setIsHovered] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
   const AA = 4.5
+
+  // Listen for CSS var changes to trigger re-render
+  useEffect(() => {
+    const handleVarsChanged = () => {
+      setRefreshKey(k => k + 1)
+    }
+    
+    window.addEventListener('paletteVarsChanged', handleVarsChanged)
+    return () => {
+      window.removeEventListener('paletteVarsChanged', handleVarsChanged)
+    }
+  }, [])
 
   // Check AA compliance (without opacity for core colors - they're fully opaque)
   const aaStatus = useMemo(() => {
@@ -62,7 +75,7 @@ function CoreInteractiveSwatch({
       toneHex,
       onToneHex,
     }
-  }, [toneCssVar, fallbackToneCssVar, onToneCssVar, tokensJson])
+  }, [toneCssVar, fallbackToneCssVar, onToneCssVar, tokensJson, refreshKey])
 
   const showAAWarning = aaStatus 
     ? (!aaStatus.passesAA && !aaStatus.blackPasses && !aaStatus.whitePasses)

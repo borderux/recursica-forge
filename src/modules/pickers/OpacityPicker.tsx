@@ -5,7 +5,7 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
 
 export default function OpacityPicker() {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
@@ -55,6 +55,46 @@ export default function OpacityPicker() {
     // Update the target CSS variable to reference the opacity token
     updateCssVar(targetCssVar, `var(${opacityCssVar})`)
     
+    // Persist to theme JSON if this is a text-emphasis opacity
+    const isEmphasisOpacity = targetCssVar.includes('text-emphasis-high') || 
+                               targetCssVar.includes('text-emphasis-low')
+    if (isEmphasisOpacity && setTheme && themeJson) {
+      try {
+        const themeCopy = JSON.parse(JSON.stringify(themeJson))
+        const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+        const themes = root?.themes || root
+        
+        // Determine which mode (light or dark) and which emphasis (high or low)
+        const isDark = targetCssVar.includes('-dark-')
+        const isHigh = targetCssVar.includes('text-emphasis-high')
+        const modeKey = isDark ? 'dark' : 'light'
+        const emphasisKey = isHigh ? 'high' : 'low'
+        
+        // Ensure text-emphasis structure exists
+        if (!themes[modeKey]) themes[modeKey] = {}
+        if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
+        
+        // Update the opacity reference in theme JSON
+        themes[modeKey]['text-emphasis'][emphasisKey] = {
+          $value: `{tokens.opacity.${tokenKey}}`
+        }
+        
+        setTheme(themeCopy)
+      } catch (err) {
+        console.error('Failed to update theme JSON for opacity:', err)
+      }
+    }
+    
+    // If high or low emphasis opacity changed, re-check all palette on-tone colors
+    // Use setTimeout to ensure CSS var update completes first
+    if (isEmphasisOpacity) {
+      setTimeout(() => {
+        try {
+          window.dispatchEvent(new CustomEvent('recheckAllPaletteOnTones'))
+        } catch {}
+      }, 10)
+    }
+    
     setAnchor(null)
     setTargetCssVar(null)
     setCurrentToken(null)
@@ -68,12 +108,12 @@ export default function OpacityPicker() {
       top: pos.top, 
       left: pos.left, 
       width: 240, 
-      background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', 
-      border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
+      background: 'var(--recursica-brand-light-layer-layer-2-property-surface)', 
+      border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)', 
       borderRadius: 8, 
-      boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', 
+      boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)', 
       padding: 10, 
-      zIndex: 1100 
+      zIndex: 20000 
     }}>
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
@@ -119,8 +159,8 @@ export default function OpacityPicker() {
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 width: '100%', 
-                border: `1px solid ${isSelected ? 'var(--recursica-brand-light-layer-layer-1-property-border-color)' : 'var(--recursica-brand-light-layer-layer-1-property-border-color)'}`, 
-                background: isSelected ? 'var(--recursica-brand-light-layer-layer-1-property-surface)' : 'transparent', 
+                border: `1px solid ${isSelected ? 'var(--recursica-brand-light-layer-layer-2-property-border-color)' : 'var(--recursica-brand-light-layer-layer-2-property-border-color)'}`, 
+                background: isSelected ? 'var(--recursica-brand-light-layer-layer-2-property-surface)' : 'transparent', 
                 borderRadius: 6, 
                 padding: '6px 8px', 
                 cursor: 'pointer' 

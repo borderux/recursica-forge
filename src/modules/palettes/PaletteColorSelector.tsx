@@ -3,7 +3,7 @@ import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
 import { updateCssVar } from '../../core/css/updateCssVar'
-import { readCssVar, readCssVarNumber } from '../../core/css/readCssVar'
+import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
 
 type PaletteColorSelectorProps = {
   paletteKey: string
@@ -30,9 +30,17 @@ function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
 // Determine the correct on-tone color (white or black) considering opacity for AA compliance
 function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'white' | 'black' {
   const AA = 4.5
-  const black = '#000000'
-  const white = '#ffffff'
   const modeLower = modeLabel.toLowerCase()
+  
+  // Read actual core black and white colors from CSS variables (not hardcoded)
+  const coreBlackVar = `--recursica-brand-${modeLower}-palettes-core-black`
+  const coreWhiteVar = `--recursica-brand-${modeLower}-palettes-core-white`
+  const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
+  const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
+  
+  // Normalize hex values (ensure they start with # and are lowercase)
+  const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
+  const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
   
   // First, check contrast without opacity (baseline)
   const whiteBaseContrast = contrastRatio(toneHex, white)
@@ -227,26 +235,99 @@ export default function PaletteColorSelector({
   }, [detectFamilyFromTheme])
 
   // Re-check AA compliance for a palette when token values change
-  const recheckAACompliance = useCallback((family: string) => {
-    if (family !== selectedFamily) return
+  // If family is provided, only re-check if this palette uses that family
+  // If family is not provided (e.g., when core colors or opacities change), always re-check
+  const recheckAACompliance = useCallback((family?: string) => {
+    if (family !== undefined && family !== selectedFamily) return
+    
+    // Use selectedFamily if family is not provided
+    const familyToUse = family || selectedFamily
+    if (!familyToUse) return
     
     const rootEl = document.documentElement
     const modeLower = mode.toLowerCase()
     
+    // Store verified on-tone values for theme JSON update
+    const verifiedOnTones: Record<string, 'white' | 'black'> = {}
+    
     headerLevels.forEach((lvl) => {
-      const tokenName = `color/${family}/${lvl}`
+      const tokenName = `color/${familyToUse}/${lvl}`
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
-        // Re-check AA compliance and update on-tone if needed
-        const onToneCore = pickOnToneWithOpacity(hex, mode)
+        const onToneCssVar = `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
+        
+        // Get actual core color values (read from CSS variables to get current values)
+        const coreBlackVar = `--recursica-brand-${modeLower}-palettes-core-black`
+        const coreWhiteVar = `--recursica-brand-${modeLower}-palettes-core-white`
+        const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
+        const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
+        const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
+        const normalizedWhite = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
+        
+        // Get emphasis opacity values
+        const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-high`)
+        const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-low`)
+        const AA = 4.5
+        
+        // Check both core colors with opacity blending
+        const whiteHighBlended = blendHexOver(normalizedWhite, hex, highEmphasisOpacity)
+        const whiteLowBlended = blendHexOver(normalizedWhite, hex, lowEmphasisOpacity)
+        const blackHighBlended = blendHexOver(normalizedBlack, hex, highEmphasisOpacity)
+        const blackLowBlended = blendHexOver(normalizedBlack, hex, lowEmphasisOpacity)
+        
+        const whiteHighContrast = contrastRatio(hex, whiteHighBlended)
+        const whiteLowContrast = contrastRatio(hex, whiteLowBlended)
+        const blackHighContrast = contrastRatio(hex, blackHighBlended)
+        const blackLowContrast = contrastRatio(hex, blackLowBlended)
+        
+        const whitePassesHigh = whiteHighContrast >= AA
+        const whitePassesLow = whiteLowContrast >= AA
+        const whitePassesBoth = whitePassesHigh && whitePassesLow
+        
+        const blackPassesHigh = blackHighContrast >= AA
+        const blackPassesLow = blackLowContrast >= AA
+        const blackPassesBoth = blackPassesHigh && blackPassesLow
+        
+        // Determine best on-tone color based on AA compliance
+        // Priority: both pass > low emphasis > high emphasis > baseline contrast
+        if (whitePassesBoth && blackPassesBoth) {
+          // Both pass - choose based on contrast
+          onToneCore = whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+        } else if (whitePassesBoth) {
+          onToneCore = 'white'
+        } else if (blackPassesBoth) {
+          onToneCore = 'black'
+        } else if (whitePassesLow || blackPassesLow) {
+          // At least one passes low emphasis
+          onToneCore = whitePassesLow ? 'white' : 'black'
+        } else if (whitePassesHigh || blackPassesHigh) {
+          // At least one passes high emphasis
+          onToneCore = whitePassesHigh ? 'white' : 'black'
+        } else {
+          // Neither passes - choose based on baseline contrast
+          const whiteBaseContrast = contrastRatio(hex, normalizedWhite)
+          const blackBaseContrast = contrastRatio(hex, normalizedBlack)
+          onToneCore = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+        }
+        
+        // Update CSS variable with verified on-tone
         updateCssVar(
-          `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
+          onToneCssVar,
           `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
         )
+        
+        // Store verified value for theme JSON update
+        verifiedOnTones[lvl] = onToneCore
       }
     })
     
+    // Dispatch event to trigger UI re-render for AA compliance indicators
+    try {
+      window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
+    } catch {}
+    
     // Also update theme JSON for both modes to persist the new on-tone values
+    // Use verified on-tone values for current mode, recalculate for other mode
     if (setTheme && themeJson) {
       try {
         const themeCopy = JSON.parse(JSON.stringify(themeJson))
@@ -254,13 +335,64 @@ export default function PaletteColorSelector({
         
         for (const modeKey of ['light', 'dark']) {
           const modeLabel = modeKey === 'light' ? 'Light' : 'Dark'
+          const modeKeyLower = modeKey.toLowerCase()
           if (!root[modeKey]?.palettes?.[paletteKey]) continue
           
           headerLevels.forEach((lvl) => {
-            const tokenName = `color/${family}/${lvl}`
+            const tokenName = `color/${familyToUse}/${lvl}`
             const hex = getTokenValueByName(tokenName)
             if (typeof hex === 'string') {
-              const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
+              // Use verified value for current mode, recalculate for other mode
+              let onToneCore: 'white' | 'black'
+              if (modeKeyLower === modeLower && verifiedOnTones[lvl]) {
+                onToneCore = verifiedOnTones[lvl]
+              } else {
+                // Recalculate for other mode using same verification logic
+                const otherCoreBlackVar = `--recursica-brand-${modeKeyLower}-palettes-core-black`
+                const otherCoreWhiteVar = `--recursica-brand-${modeKeyLower}-palettes-core-white`
+                const otherBlackHex = readCssVarResolved(otherCoreBlackVar) || '#000000'
+                const otherWhiteHex = readCssVarResolved(otherCoreWhiteVar) || '#ffffff'
+                const otherNormalizedBlack = otherBlackHex.startsWith('#') ? otherBlackHex.toLowerCase() : `#${otherBlackHex.toLowerCase()}`
+                const otherNormalizedWhite = otherWhiteHex.startsWith('#') ? otherWhiteHex.toLowerCase() : `#${otherWhiteHex.toLowerCase()}`
+                
+                const otherHighEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeKeyLower}-text-emphasis-high`)
+                const otherLowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeKeyLower}-text-emphasis-low`)
+                
+                const otherWhiteHighBlended = blendHexOver(otherNormalizedWhite, hex, otherHighEmphasisOpacity)
+                const otherWhiteLowBlended = blendHexOver(otherNormalizedWhite, hex, otherLowEmphasisOpacity)
+                const otherBlackHighBlended = blendHexOver(otherNormalizedBlack, hex, otherHighEmphasisOpacity)
+                const otherBlackLowBlended = blendHexOver(otherNormalizedBlack, hex, otherLowEmphasisOpacity)
+                
+                const otherWhiteHighContrast = contrastRatio(hex, otherWhiteHighBlended)
+                const otherWhiteLowContrast = contrastRatio(hex, otherWhiteLowBlended)
+                const otherBlackHighContrast = contrastRatio(hex, otherBlackHighBlended)
+                const otherBlackLowContrast = contrastRatio(hex, otherBlackLowBlended)
+                
+                const otherWhitePassesHigh = otherWhiteHighContrast >= 4.5
+                const otherWhitePassesLow = otherWhiteLowContrast >= 4.5
+                const otherWhitePassesBoth = otherWhitePassesHigh && otherWhitePassesLow
+                
+                const otherBlackPassesHigh = otherBlackHighContrast >= 4.5
+                const otherBlackPassesLow = otherBlackLowContrast >= 4.5
+                const otherBlackPassesBoth = otherBlackPassesHigh && otherBlackPassesLow
+                
+                if (otherWhitePassesBoth && otherBlackPassesBoth) {
+                  onToneCore = otherWhiteLowContrast >= otherBlackLowContrast ? 'white' : 'black'
+                } else if (otherWhitePassesBoth) {
+                  onToneCore = 'white'
+                } else if (otherBlackPassesBoth) {
+                  onToneCore = 'black'
+                } else if (otherWhitePassesLow || otherBlackPassesLow) {
+                  onToneCore = otherWhitePassesLow ? 'white' : 'black'
+                } else if (otherWhitePassesHigh || otherBlackPassesHigh) {
+                  onToneCore = otherWhitePassesHigh ? 'white' : 'black'
+                } else {
+                  const otherWhiteBaseContrast = contrastRatio(hex, otherNormalizedWhite)
+                  const otherBlackBaseContrast = contrastRatio(hex, otherNormalizedBlack)
+                  onToneCore = otherWhiteBaseContrast >= otherBlackBaseContrast ? 'white' : 'black'
+                }
+              }
+              
               if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
               root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
                 $value: `{brand.${modeKey}.palettes.core-colors.${onToneCore}}`
@@ -275,6 +407,21 @@ export default function PaletteColorSelector({
       }
     }
   }, [selectedFamily, mode, paletteKey, headerLevels, getTokenValueByName, setTheme, themeJson])
+
+  // Listen for requests to re-check all palette on-tone colors
+  useEffect(() => {
+    const handler = () => {
+      // Re-check AA compliance for this palette when core colors or emphasis opacities change
+      // Don't pass family parameter so it re-checks regardless of family
+      if (selectedFamily) {
+        recheckAACompliance()
+      }
+    }
+    window.addEventListener('recheckAllPaletteOnTones', handler as any)
+    return () => {
+      window.removeEventListener('recheckAllPaletteOnTones', handler as any)
+    }
+  }, [selectedFamily, recheckAACompliance])
 
   useEffect(() => {
     const handler = (ev: Event) => {
