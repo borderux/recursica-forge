@@ -14,7 +14,7 @@ import { useVars } from '../../vars/VarsContext'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { useJsonExport, ExportComplianceModal } from '../../../core/export/exportWithCompliance'
+import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
@@ -22,7 +22,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const { mode, setMode } = useThemeMode()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
-  const { handleExport, showModal, complianceIssues, handleAcknowledge, handleCancel } = useJsonExport()
+  const { handleExport, showSelectionModal, showComplianceModal, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   const location = useLocation()
   const navigate = useNavigate()
@@ -161,8 +161,13 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
           {children}
         </AppShell.Main>
       </AppShell>
+      <ExportSelectionModalWrapper
+        show={showSelectionModal}
+        onConfirm={handleSelectionConfirm}
+        onCancel={handleSelectionCancel}
+      />
       <ExportComplianceModal
-        show={showModal}
+        show={showComplianceModal}
         issues={complianceIssues}
         onAcknowledge={handleAcknowledge}
         onCancel={handleCancel}

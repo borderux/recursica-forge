@@ -7,38 +7,62 @@
 import { useState } from 'react'
 import { checkAACompliance } from './aaComplianceCheck'
 import { ComplianceModal } from './ComplianceModal'
+import { ExportSelectionModal } from './ExportSelectionModal'
 import { downloadJsonFiles } from './jsonExport'
 
 export function useJsonExport() {
-  const [showModal, setShowModal] = useState(false)
+  const [showSelectionModal, setShowSelectionModal] = useState(false)
+  const [showComplianceModal, setShowComplianceModal] = useState(false)
   const [complianceIssues, setComplianceIssues] = useState<ReturnType<typeof checkAACompliance>>([])
+  const [pendingExportFiles, setPendingExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean } | null>(null)
   
   const handleExport = () => {
+    // Show selection modal first
+    setShowSelectionModal(true)
+  }
+  
+  const handleSelectionConfirm = (files: { tokens: boolean; brand: boolean; uikit: boolean }) => {
+    setShowSelectionModal(false)
+    setPendingExportFiles(files)
+    
+    // Check compliance before exporting
     const issues = checkAACompliance()
     
     if (issues.length > 0) {
       setComplianceIssues(issues)
-      setShowModal(true)
+      setShowComplianceModal(true)
     } else {
       // No issues, proceed with export
-      downloadJsonFiles()
+      downloadJsonFiles(files)
+      setPendingExportFiles(null)
     }
   }
   
+  const handleSelectionCancel = () => {
+    setShowSelectionModal(false)
+  }
+  
   const handleAcknowledge = () => {
-    setShowModal(false)
-    downloadJsonFiles()
+    setShowComplianceModal(false)
+    if (pendingExportFiles) {
+      downloadJsonFiles(pendingExportFiles)
+      setPendingExportFiles(null)
+    }
   }
   
   const handleCancel = () => {
-    setShowModal(false)
+    setShowComplianceModal(false)
     setComplianceIssues([])
+    setPendingExportFiles(null)
   }
   
   return {
     handleExport,
-    showModal,
+    showSelectionModal,
+    showComplianceModal,
     complianceIssues,
+    handleSelectionConfirm,
+    handleSelectionCancel,
     handleAcknowledge,
     handleCancel,
   }
@@ -58,5 +82,17 @@ export function ExportComplianceModal({
   if (!show) return null
   
   return <ComplianceModal issues={issues} onAcknowledge={onAcknowledge} onCancel={onCancel} />
+}
+
+export function ExportSelectionModalWrapper({
+  show,
+  onConfirm,
+  onCancel,
+}: {
+  show: boolean
+  onConfirm: (files: { tokens: boolean; brand: boolean; uikit: boolean }) => void
+  onCancel: () => void
+}) {
+  return <ExportSelectionModal show={show} onExport={onConfirm} onCancel={onCancel} />
 }
 

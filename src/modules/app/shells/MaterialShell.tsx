@@ -12,7 +12,7 @@ import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { useJsonExport, ExportComplianceModal } from '../../../core/export/exportWithCompliance'
+import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
@@ -22,7 +22,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const [styles, setStyles] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
-  const { handleExport, showModal, complianceIssues, handleAcknowledge, handleCancel } = useJsonExport()
+  const { handleExport, showSelectionModal, showComplianceModal, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   
   const onFileSelect = async (files: FileList | null) => {
@@ -162,8 +162,13 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           </Button>
         </DialogActions>
       </Dialog>
+      <ExportSelectionModalWrapper
+        show={showSelectionModal}
+        onConfirm={handleSelectionConfirm}
+        onCancel={handleSelectionCancel}
+      />
       <ExportComplianceModal
-        show={showModal}
+        show={showComplianceModal}
         issues={complianceIssues}
         onAcknowledge={handleAcknowledge}
         onCancel={handleCancel}

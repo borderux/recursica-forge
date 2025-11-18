@@ -12,6 +12,7 @@ import type { JsonLike } from '../resolvers/tokens'
 import tokensJson from '../../vars/Tokens.json'
 import brandJson from '../../vars/Brand.json'
 import uikitJson from '../../vars/UIKit.json'
+import { getVarsStore } from '../store/varsStore'
 
 /**
  * Gets all CSS variables from the DOM
@@ -246,14 +247,26 @@ function setNestedValue(obj: any, path: string, value: any): void {
 }
 
 /**
- * Exports tokens.json from current CSS variables
+ * Exports tokens.json from current CSS variables ONLY
+ * Only includes tokens that exist in the store AND have corresponding CSS variables
  */
 export function exportTokensJson(): object {
   const vars = getAllCssVars()
   const tokenIndex = buildTokenIndex(tokensJson as JsonLike)
-  const result = JSON.parse(JSON.stringify(tokensJson)) as any
+  const store = getVarsStore()
+  const storeState = store.getState()
+  const storeTokens = (storeState.tokens as any)?.tokens || {}
   
-  // Process token CSS variables
+  const result: any = {
+    tokens: {
+      color: {},
+      size: {},
+      opacity: {},
+      font: {}
+    }
+  }
+  
+  // Process token CSS variables - only include what exists in store AND CSS vars
   Object.entries(vars).forEach(([cssVar, cssValue]) => {
     if (!cssVar.startsWith('--recursica-tokens-')) return
     
@@ -264,10 +277,18 @@ export function exportTokensJson(): object {
       const family = path[1]
       const level = path.slice(2).join('-')
       
-      if (result.tokens?.color?.[family]?.[level]) {
+      // Only export if this color family and level exists in the store
+      if (storeTokens.color?.[family]?.[level]) {
+        if (!result.tokens.color[family]) {
+          result.tokens.color[family] = {}
+        }
+        
         const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
         if (jsonValue !== undefined) {
-          result.tokens.color[family][level].$value = jsonValue
+          result.tokens.color[family][level] = {
+            $type: 'color',
+            $value: jsonValue
+          }
         }
       }
     }
@@ -276,13 +297,13 @@ export function exportTokensJson(): object {
     if (path[0] === 'size' && path.length >= 2) {
       const name = path.slice(1).join('-')
       
-      if (result.tokens?.size?.[name]) {
+      // Only export if this size token exists in the store
+      if (storeTokens.size?.[name]) {
         const jsonValue = cssValueToJsonValue(cssValue, 'dimension', tokenIndex)
         if (jsonValue !== undefined) {
-          if (typeof result.tokens.size[name] === 'object' && '$value' in result.tokens.size[name]) {
-            result.tokens.size[name].$value = jsonValue
-          } else {
-            result.tokens.size[name] = jsonValue
+          result.tokens.size[name] = {
+            $type: 'dimension',
+            $value: jsonValue
           }
         }
       }
@@ -292,10 +313,14 @@ export function exportTokensJson(): object {
     if (path[0] === 'opacity' && path.length >= 2) {
       const name = path.slice(1).join('-')
       
-      if (result.tokens?.opacity?.[name]) {
+      // Only export if this opacity token exists in the store
+      if (storeTokens.opacity?.[name]) {
         const jsonValue = cssValueToJsonValue(cssValue, 'number', tokenIndex)
         if (jsonValue !== undefined) {
-          result.tokens.opacity[name].$value = jsonValue
+          result.tokens.opacity[name] = {
+            $type: 'number',
+            $value: jsonValue
+          }
         }
       }
     }
@@ -305,30 +330,48 @@ export function exportTokensJson(): object {
       const category = path[1]
       const key = path.slice(2).join('-')
       
-      if (result.tokens?.font?.[category]?.[key]) {
+      // Only export if this font token exists in the store
+      if (storeTokens.font?.[category]?.[key]) {
+        if (!result.tokens.font[category]) {
+          result.tokens.font[category] = {}
+        }
+        
         const type = category === 'size' ? 'dimension' : 'number'
         const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
         if (jsonValue !== undefined) {
-          if (typeof result.tokens.font[category][key] === 'object' && '$value' in result.tokens.font[category][key]) {
-            result.tokens.font[category][key].$value = jsonValue
-          } else {
-            result.tokens.font[category][key] = jsonValue
+          result.tokens.font[category][key] = {
+            $type: type,
+            $value: jsonValue
           }
         }
       }
     }
   })
   
+  // Remove empty sections
+  if (Object.keys(result.tokens.color).length === 0) delete result.tokens.color
+  if (Object.keys(result.tokens.size).length === 0) delete result.tokens.size
+  if (Object.keys(result.tokens.opacity).length === 0) delete result.tokens.opacity
+  if (Object.keys(result.tokens.font).length === 0) delete result.tokens.font
+  
   return result
 }
 
 /**
- * Exports brand.json from current CSS variables
+ * Exports brand.json from current CSS variables ONLY
+ * Only includes brand data that has corresponding CSS variables
  */
 export function exportBrandJson(): object {
   const vars = getAllCssVars()
   const tokenIndex = buildTokenIndex(tokensJson as JsonLike)
-  const result = JSON.parse(JSON.stringify(brandJson)) as any
+  const result: any = {
+    brand: {
+      themes: {
+        light: { palettes: {}, layers: {} },
+        dark: { palettes: {}, layers: {} }
+      }
+    }
+  }
   
   // Process brand CSS variables
   Object.entries(vars).forEach(([cssVar, cssValue]) => {
@@ -348,18 +391,23 @@ export function exportBrandJson(): object {
         const level = path[1]
         const type = path.slice(2).join('-') // tone, on-tone, etc.
         
-        if (result.brand?.themes?.[mode]?.palettes?.[paletteKey]?.[level]) {
-          if (type === 'tone' || type === 'on-tone') {
-            if (!result.brand.themes[mode].palettes[paletteKey][level].color) {
-              result.brand.themes[mode].palettes[paletteKey][level].color = {}
-            }
-            const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
-            if (jsonValue !== undefined) {
-              if (!result.brand.themes[mode].palettes[paletteKey][level].color[type]) {
-                result.brand.themes[mode].palettes[paletteKey][level].color[type] = { $type: 'color', $value: jsonValue }
-              } else {
-                result.brand.themes[mode].palettes[paletteKey][level].color[type].$value = jsonValue
-              }
+        // Build structure from CSS vars only
+        if (!result.brand.themes[mode].palettes[paletteKey]) {
+          result.brand.themes[mode].palettes[paletteKey] = {}
+        }
+        if (!result.brand.themes[mode].palettes[paletteKey][level]) {
+          result.brand.themes[mode].palettes[paletteKey][level] = {}
+        }
+        
+        if (type === 'tone' || type === 'on-tone') {
+          if (!result.brand.themes[mode].palettes[paletteKey][level].color) {
+            result.brand.themes[mode].palettes[paletteKey][level].color = {}
+          }
+          const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
+          if (jsonValue !== undefined) {
+            result.brand.themes[mode].palettes[paletteKey][level].color[type] = { 
+              $type: 'color', 
+              $value: jsonValue 
             }
           }
         }
@@ -372,28 +420,33 @@ export function exportBrandJson(): object {
         const layerId = path[0]
         path.shift() // Remove layer ID
         
+        // Build structure from CSS vars only
+        if (!result.brand.themes[mode].layers[layerId]) {
+          result.brand.themes[mode].layers[layerId] = { property: {}, element: {} }
+        }
+        if (!result.brand.themes[mode].layers[layerId].property) {
+          result.brand.themes[mode].layers[layerId].property = {}
+        }
+        if (!result.brand.themes[mode].layers[layerId].element) {
+          result.brand.themes[mode].layers[layerId].element = {}
+        }
+        
         if (path[0] === 'property') {
           path.shift() // Remove 'property'
           const propName = path.join('-')
           
-          if (result.brand?.themes?.[mode]?.layers?.[layerId]?.property) {
-            const propType = propName.includes('color') ? 'color' : 
-                            propName.includes('radius') || propName.includes('padding') || propName.includes('thickness') ? 'number' :
-                            propName === 'elevation' ? 'elevation' : 'color'
-            
-            const jsonValue = cssValueToJsonValue(cssValue, propType, tokenIndex)
-            if (jsonValue !== undefined) {
-              if (!result.brand.themes[mode].layers[layerId].property[propName]) {
-                result.brand.themes[mode].layers[layerId].property[propName] = { $type: propType, $value: jsonValue }
-              } else {
-                result.brand.themes[mode].layers[layerId].property[propName].$value = jsonValue
-              }
+          const propType = propName.includes('color') ? 'color' : 
+                          propName.includes('radius') || propName.includes('padding') || propName.includes('thickness') ? 'number' :
+                          propName === 'elevation' ? 'elevation' : 'color'
+          
+          const jsonValue = cssValueToJsonValue(cssValue, propType, tokenIndex)
+          if (jsonValue !== undefined) {
+            result.brand.themes[mode].layers[layerId].property[propName] = { 
+              $type: propType, 
+              $value: jsonValue 
             }
           }
-        }
-        
-        if (path[0] === 'property' && path[1] === 'element') {
-          path.shift() // Remove 'property'
+        } else if (path[0] === 'element') {
           path.shift() // Remove 'element'
           const elementPath = path.join('-')
           
@@ -403,14 +456,15 @@ export function exportBrandJson(): object {
             const elementType = parts[0] // text, interactive
             const elementProp = parts.slice(1).join('-') // color, tone, etc.
             
-            if (result.brand?.themes?.[mode]?.layers?.[layerId]?.element?.[elementType]) {
-              const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
-              if (jsonValue !== undefined) {
-                if (!result.brand.themes[mode].layers[layerId].element[elementType][elementProp]) {
-                  result.brand.themes[mode].layers[layerId].element[elementType][elementProp] = { $type: 'color', $value: jsonValue }
-                } else {
-                  result.brand.themes[mode].layers[layerId].element[elementType][elementProp].$value = jsonValue
-                }
+            if (!result.brand.themes[mode].layers[layerId].element[elementType]) {
+              result.brand.themes[mode].layers[layerId].element[elementType] = {}
+            }
+            
+            const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
+            if (jsonValue !== undefined) {
+              result.brand.themes[mode].layers[layerId].element[elementType][elementProp] = { 
+                $type: 'color', 
+                $value: jsonValue 
               }
             }
           }
@@ -428,12 +482,18 @@ export function exportBrandJson(): object {
 }
 
 /**
- * Exports uikit.json from current CSS variables
+ * Exports uikit.json from current CSS variables ONLY
+ * Only includes UIKit data that has corresponding CSS variables
  */
 export function exportUIKitJson(): object {
   const vars = getAllCssVars()
   const tokenIndex = buildTokenIndex(tokensJson as JsonLike)
-  const result = JSON.parse(JSON.stringify(uikitJson)) as any
+  const result: any = {
+    'ui-kit': {
+      global: {},
+      components: {}
+    }
+  }
   
   // Process UIKit CSS variables
   Object.entries(vars).forEach(([cssVar, cssValue]) => {
@@ -446,26 +506,25 @@ export function exportUIKitJson(): object {
       path.shift() // Remove 'global'
       const globalPath = path.join('.')
       
-      // Navigate to the path in result.ui-kit.global
+      // Build structure from CSS vars only
       const parts = globalPath.split('.')
-      let current = result['ui-kit']?.global
+      let current = result['ui-kit'].global
       
-      if (current) {
-        for (let i = 0; i < parts.length - 1; i++) {
-          if (!current[parts[i]]) {
-            current[parts[i]] = {}
-          }
-          current = current[parts[i]]
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!current[parts[i]]) {
+          current[parts[i]] = {}
         }
-        
-        const lastPart = parts[parts.length - 1]
-        if (current[lastPart]) {
-          const type = cssValue.includes('var') ? 'string' : 
-                      /^\d+px$/.test(cssValue) ? 'dimension' : 'string'
-          const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
-          if (jsonValue !== undefined && typeof current[lastPart] === 'object' && '$value' in current[lastPart]) {
-            current[lastPart].$value = jsonValue
-          }
+        current = current[parts[i]]
+      }
+      
+      const lastPart = parts[parts.length - 1]
+      const type = cssValue.includes('var') ? 'string' : 
+                  /^\d+px$/.test(cssValue) ? 'dimension' : 'string'
+      const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
+      if (jsonValue !== undefined) {
+        current[lastPart] = {
+          $type: type,
+          $value: jsonValue
         }
       }
     }
@@ -481,25 +540,31 @@ export function exportUIKitJson(): object {
       
       const componentPath = path.join('.')
       
-      // Navigate to the path in result.ui-kit.components[componentName][category]
-      const parts = componentPath.split('.')
-      let current = result['ui-kit']?.components?.[componentName]?.[category]
+      // Build structure from CSS vars only
+      if (!result['ui-kit'].components[componentName]) {
+        result['ui-kit'].components[componentName] = {}
+      }
+      if (!result['ui-kit'].components[componentName][category]) {
+        result['ui-kit'].components[componentName][category] = {}
+      }
       
-      if (current) {
-        for (let i = 0; i < parts.length - 1; i++) {
-          if (!current[parts[i]]) {
-            current[parts[i]] = {}
-          }
-          current = current[parts[i]]
+      const parts = componentPath.split('.')
+      let current = result['ui-kit'].components[componentName][category]
+      
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!current[parts[i]]) {
+          current[parts[i]] = {}
         }
-        
-        const lastPart = parts[parts.length - 1]
-        if (current[lastPart]) {
-          const type = category === 'color' ? 'color' : 'dimension'
-          const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
-          if (jsonValue !== undefined && typeof current[lastPart] === 'object' && '$value' in current[lastPart]) {
-            current[lastPart].$value = jsonValue
-          }
+        current = current[parts[i]]
+      }
+      
+      const lastPart = parts[parts.length - 1]
+      const type = category === 'color' ? 'color' : 'dimension'
+      const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
+      if (jsonValue !== undefined) {
+        current[lastPart] = {
+          $type: type,
+          $value: jsonValue
         }
       }
     }
@@ -524,15 +589,26 @@ function downloadJsonFile(json: object, filename: string): void {
 }
 
 /**
- * Downloads all three JSON files (tokens, brand, uikit)
+ * Downloads selected JSON files
  */
-export function downloadJsonFiles(): void {
-  const tokens = exportTokensJson()
-  const brand = exportBrandJson()
-  const uikit = exportUIKitJson()
+export function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean } = { tokens: true, brand: true, uikit: true }): void {
+  let delay = 0
   
-  downloadJsonFile(tokens, 'tokens.json')
-  setTimeout(() => downloadJsonFile(brand, 'brand.json'), 100)
-  setTimeout(() => downloadJsonFile(uikit, 'uikit.json'), 200)
+  if (files.tokens) {
+    const tokens = exportTokensJson()
+    downloadJsonFile(tokens, 'tokens.json')
+    delay += 100
+  }
+  
+  if (files.brand) {
+    const brand = exportBrandJson()
+    setTimeout(() => downloadJsonFile(brand, 'brand.json'), delay)
+    delay += 100
+  }
+  
+  if (files.uikit) {
+    const uikit = exportUIKitJson()
+    setTimeout(() => downloadJsonFile(uikit, 'uikit.json'), delay)
+  }
 }
 
