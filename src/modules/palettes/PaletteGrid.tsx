@@ -265,7 +265,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
               type="button"
               onClick={onDelete}
               title="Delete palette"
-              style={{ padding: '6px 10px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+              style={{ padding: '6px 10px', border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
             >Delete</button>
           )}
           <PaletteColorSelector

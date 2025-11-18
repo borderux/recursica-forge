@@ -3,9 +3,10 @@ import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
-  const { palettes, theme: themeJson, tokens: tokensJson } = useVars()
+  const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [targetCssVars, setTargetCssVars] = useState<string[]>([])
@@ -16,7 +17,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     const staticPalettes: string[] = []
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const lightPal: any = root?.light?.palettes || {}
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      const lightPal: any = themes?.light?.palettes || themes?.light?.palette || {}
       Object.keys(lightPal).forEach((k) => {
         // Only show palettes, exclude core and core-colors
         if (k !== 'core' && k !== 'core-colors' && !dynamic.includes(k)) {
@@ -32,7 +35,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     paletteKeys.forEach((pk) => {
       try {
         const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-        const paletteData: any = root?.light?.palettes?.[pk]
+        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+        const themes = root?.themes || root
+        const paletteData: any = themes?.light?.palettes?.[pk] || themes?.light?.palette?.[pk]
         if (paletteData) {
           // Get all numeric levels including 000 and 1000 - no normalization or deduplication
           const levels = Object.keys(paletteData).filter((k) => /^(\d{2,4}|000|1000)$/.test(k))
@@ -53,9 +58,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return levelsByPalette
   }, [paletteKeys, themeJson])
 
+  const { mode } = useThemeMode()
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
     // Use actual level - no normalization (000 stays 000, 1000 stays 1000)
-    return `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
+    return `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
   }
 
   // Get the resolved value of the target CSS var to compare with palette swatches
@@ -197,7 +203,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
   return createPortal(
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--recursica-brand-light-layer-layer-2-property-surface)', color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)', border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)', borderRadius: 8, boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)', padding: 10, zIndex: 20000 }}>
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`, color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`, border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`, borderRadius: 8, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`, padding: 10, zIndex: 20000 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>Pick palette color</div>
         <button onClick={() => setAnchor(null)} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
@@ -233,6 +239,43 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                           updateCssVar(prefixedTarget, `var(${paletteCssVar})`, tokensJson)
                         })
                         
+                        // Persist to theme JSON if this is an overlay color
+                        const isOverlayColor = cssVarsToUpdate.some(cssVar => cssVar.includes('state-overlay-color'))
+                        if (isOverlayColor && setTheme && themeJson) {
+                          try {
+                            const themeCopy = JSON.parse(JSON.stringify(themeJson))
+                            const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                            const themes = root?.themes || root
+                            
+                            // Determine which mode (light or dark)
+                            const isDark = cssVarsToUpdate.some(cssVar => cssVar.includes('-dark-'))
+                            const modeKey = isDark ? 'dark' : 'light'
+                            
+                            // Extract palette key and level from paletteCssVar
+                            // Format: --recursica-brand-{mode}-palettes-{paletteKey}-{level}-tone
+                            const paletteMatch = paletteCssVar.match(/--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-([a-z0-9]+)-tone/)
+                            if (paletteMatch) {
+                              const [, paletteKey, level] = paletteMatch
+                              const cssLevel = level === 'primary' ? 'default' : level
+                              
+                              // Ensure state structure exists
+                              if (!themes[modeKey]) themes[modeKey] = {}
+                              if (!themes[modeKey].state) themes[modeKey].state = {}
+                              if (!themes[modeKey].state.overlay) themes[modeKey].state.overlay = {}
+                              
+                              // Update the overlay color reference in theme JSON
+                              themes[modeKey].state.overlay.color = {
+                                $type: 'color',
+                                $value: `{brand.themes.${modeKey}.palettes.${paletteKey}.${cssLevel}.color.tone}`
+                              }
+                              
+                              setTheme(themeCopy)
+                            }
+                          } catch (err) {
+                            console.error('Failed to update theme JSON for overlay color:', err)
+                          }
+                        }
+                        
                         onSelect?.(paletteCssVar)
                       } catch (err) {
                         console.error('Failed to set palette CSS variable:', err)
@@ -247,7 +290,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       height: swatch,
                       background: `var(${paletteCssVar})`,
                       cursor: 'pointer',
-                      border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
+                      border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`,
                       flex: '0 0 auto',
                     }}
                   >
@@ -269,7 +312,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         {/* White checkmark with dark shadow for visibility on any background */}
                         <path
                           d="M2 6L5 9L10 2"
-                          stroke="var(--recursica-brand-light-palettes-core-black)"
+                          stroke={`var(--recursica-brand-${mode}-palettes-core-black)`}
                           strokeWidth="2.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -277,7 +320,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         />
                         <path
                           d="M2 6L5 9L10 2"
-                          stroke="var(--recursica-brand-light-palettes-core-white)"
+                          stroke={`var(--recursica-brand-${mode}-palettes-core-white)`}
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"

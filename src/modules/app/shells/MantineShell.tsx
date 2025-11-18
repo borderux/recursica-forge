@@ -5,7 +5,7 @@
  * and import/export of CSS variables.
  */
 import { ReactNode, useEffect, useState } from 'react'
-import { AppShell, Group, Title, Button, Select, MantineProvider, Modal, Tabs, ActionIcon } from '@mantine/core'
+import { AppShell, Group, Title, Button, Select, MantineProvider, Modal, Tabs, ActionIcon, Switch } from '@mantine/core'
 import '@mantine/core/styles.css'
 import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
 import { clearOverrides } from '../../theme/tokenOverrides'
@@ -13,9 +13,11 @@ import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
+import { useThemeMode } from '../../theme/ThemeModeContext'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
+  const { mode, setMode } = useThemeMode()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
@@ -62,6 +64,12 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
               <ActionIcon variant="default" onClick={() => setIsModalOpen(true)} title="Import / Export">
                 ⤓
               </ActionIcon>
+              <Switch
+                checked={mode === 'dark'}
+                onChange={(e) => setMode(e.currentTarget.checked ? 'dark' : 'light')}
+                label={mode === 'dark' ? 'Dark' : 'Light'}
+                size="sm"
+              />
               <Select
                 value={kit}
                 onChange={(v) => onKitChange((v as UiKit) ?? 'mantine')}

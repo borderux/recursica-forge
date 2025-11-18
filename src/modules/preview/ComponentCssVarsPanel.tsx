@@ -5,6 +5,7 @@ import { useVars } from '../vars/VarsContext'
 import PaletteColorControl from '../forms/PaletteColorControl'
 import TokenSlider from '../forms/TokenSlider'
 import uikitJson from '../../vars/UIKit.json'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 /**
  * Converts a UIKit.json path to a CSS variable name
@@ -182,6 +183,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
     setUpdateKey(k => k + 1)
   }
   
+  const { mode } = useThemeMode()
   return (
     <div 
       aria-hidden={!open} 
@@ -191,9 +193,9 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
         right: 0, 
         height: '100vh', 
         width: 'clamp(260px, 34vw, 560px)', 
-        background: 'var(--recursica-brand-light-layer-layer-1-property-surface)', 
-        borderLeft: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
-        boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', 
+        background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`, 
+        borderLeft: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, 
+        boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-3-shadow-color)`, 
         transform: open ? 'translateX(0)' : 'translateX(100%)', 
         transition: 'transform 200ms ease', 
         zIndex: 10000, 
@@ -207,7 +209,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
           onClick={onClose} 
           aria-label="Close" 
           style={{ 
-            border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
+            border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, 
             background: 'transparent', 
             cursor: 'pointer', 
             borderRadius: 6, 
@@ -219,7 +221,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
       </div>
       
       {componentVars.length === 0 ? (
-        <div style={{ padding: 24, textAlign: 'center', color: 'var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis)' }}>
+        <div style={{ padding: 24, textAlign: 'center', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-low-emphasis)` }}>
           No CSS variables found for {componentName}
         </div>
       ) : (
@@ -321,7 +323,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                                 placeholder={`Enter value (type: ${type})`}
                                 style={{ 
                                   padding: '6px 8px', 
-                                  border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
+                                  border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, 
                                   borderRadius: 6 
                                 }}
                               />
@@ -387,7 +389,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                       placeholder={`Enter value (type: ${type})`}
                       style={{ 
                         padding: '6px 8px', 
-                        border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
+                        border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, 
                         borderRadius: 6 
                       }}
                     />
@@ -403,7 +405,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
               onClick={handleRevertAll}
               style={{ 
                 padding: '8px 10px', 
-                border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
+                border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, 
                 background: 'transparent', 
                 borderRadius: 6, 
                 cursor: 'pointer' 

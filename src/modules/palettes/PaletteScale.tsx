@@ -201,7 +201,7 @@ export function PaletteScaleHeader({
             e.preventDefault()
             e.stopPropagation()
             // Extract token name from the tone CSS variable
-            const toneCssVar = `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
+            const toneCssVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
             const toneValue = readCssVar(toneCssVar)
             const tokenName = extractTokenNameFromCssVar(toneValue)
             

@@ -2,22 +2,22 @@ import type { JsonLike } from './tokens'
 import { buildTokenIndex } from './tokens'
 import { readCssVar } from '../css/readCssVar'
 
-export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Record<string, any>): Record<string, string> {
+export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' | 'dark' = 'light', overrides?: Record<string, any>): Record<string, string> {
   const tokenIndex = buildTokenIndex(tokens)
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
   // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
   const themes = troot?.themes || troot
-  const layersLight: any = themes?.light?.layers || themes?.light?.layer || {}
+  const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
 
   const mapBWHexToVar = (hex: string): string => {
     const h = (hex || '').toLowerCase()
-    return h === '#ffffff' ? 'var(--recursica-brand-light-palettes-core-white)' : 'var(--recursica-brand-light-palettes-core-black)'
+    return h === '#ffffff' ? `var(--recursica-brand-${mode}-palettes-core-white)` : `var(--recursica-brand-${mode}-palettes-core-black)`
   }
   const LEVELS = ['900','800','700','600','500','400','300','200','100','050']
   const PALETTE_KEYS = ['neutral','palette-1','palette-2','palette-3','palette-4']
   const buildPaletteVar = (paletteKey: string, level: string, type: 'tone' | 'on-tone' | 'high-emphasis' | 'low-emphasis'): string => {
     const levelPart = level === 'primary' ? 'primary' : level
-    return `--recursica-brand-light-palettes-${paletteKey}-${levelPart}-${type}`
+    return `--recursica-brand-${mode}-palettes-${paletteKey}-${levelPart}-${type}`
   }
   // Simplified: just return the requested var name (no CSS var reading during resolution)
   const buildPaletteVarRef = (
@@ -27,7 +27,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
   ): string => {
     return `var(${buildPaletteVar(paletteKey, level, type)})`
   }
-  const parsePaletteToneRef = (input: any): { paletteKey: string; level: string; type?: 'tone' | 'on-tone' } | null => {
+  const parsePaletteToneRef = (input: any): { paletteKey: string; level: string; type?: 'tone' | 'on-tone'; refMode?: 'light' | 'dark' } | null => {
     try {
       const raw = ((): any => {
         if (typeof input === 'string') return input
@@ -43,14 +43,16 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
         const inner = s.slice(1, -1).trim()
         // Support both old format (brand.light.*) and new format (brand.themes.light.*)
         // Handle both .color.tone and .color.on-tone
-        const m = /^(?:brand|theme)(?:\.themes)?\.light\.palettes\.([a-z0-9\-]+)\.([0-9]{3}|000|050|primary|default)\.color\.(tone|on-tone)$/i.exec(inner)
+        // Also support dark mode references
+        const m = /^(?:brand|theme)(?:\.themes)?\.(light|dark)\.palettes\.([a-z0-9\-]+)\.([0-9]{3}|000|050|primary|default)\.color\.(tone|on-tone)$/i.exec(inner)
         if (m) {
-          const paletteKey = m[1]
-          const lvl = m[2].toLowerCase()
-          const type = (m[3] || 'tone').toLowerCase() as 'tone' | 'on-tone'
+          const refMode = (m[1].toLowerCase() === 'dark' ? 'dark' : 'light') as 'light' | 'dark'
+          const paletteKey = m[2]
+          const lvl = m[3].toLowerCase()
+          const type = (m[4] || 'tone').toLowerCase() as 'tone' | 'on-tone'
           // Normalize 'default' to 'primary' so downstream CSS var names are valid
           const level = (lvl === 'default') ? 'primary' : lvl
-          return { paletteKey, level, type }
+          return { paletteKey, level, type, refMode }
         }
       }
       // Legacy palette var format
@@ -72,8 +74,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = root?.themes || root
       const core: any =
-        themes?.light?.palettes?.['core']?.['$value'] || themes?.light?.palettes?.['core'] ||
-        themes?.light?.palettes?.['core-colors']?.['$value'] || themes?.light?.palettes?.['core-colors'] || themes?.light?.palettes?.core?.['$value'] || themes?.light?.palettes?.core || {}
+        themes?.[mode]?.palettes?.['core']?.['$value'] || themes?.[mode]?.palettes?.['core'] ||
+        themes?.[mode]?.palettes?.['core-colors']?.['$value'] || themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core?.['$value'] || themes?.[mode]?.palettes?.core || {}
       const v: any = core?.[name]
       const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
       if (!s) return null
@@ -109,7 +111,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       const mVar = /^var\(\s*(--palette-(black|white|interactive|alert|warning|success))\s*\)\s*$/i.exec(s)
       if (mVar) {
         const label = (mVar[2] || '').toLowerCase()
-        return `--recursica-brand-light-palettes-core-${label}`
+        return `--recursica-brand-${mode}-palettes-core-${label}`
       }
       // Handle {theme.dark.palettes.black} and {theme.dark.palettes.white} → map to core colors
       const themeDarkPalette = /^(?:brand|theme)\.dark\.palettes\.(black|white)$/i.exec(
@@ -117,13 +119,13 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       )
       if (themeDarkPalette) {
         const label = themeDarkPalette[1].toLowerCase()
-        return `--recursica-brand-light-palettes-core-${label}`
+        return `--recursica-brand-${mode}-palettes-core-${label}`
       }
       // {brand|theme}.{themes.}?{light|dark}.palettes.core.<key> (also accept legacy core-colors)
       // Support both old format (brand.light.*) and new format (brand.themes.light.*)
       const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1) : s
       const m = /^(?:brand|theme)(?:\.themes)?\.(?:light|dark)\.palettes\.(?:core|core-colors)\.(black|white|interactive|alert|warning|success)$/i.exec(inner)
-      if (m) return `--recursica-brand-light-palettes-core-${m[1].toLowerCase()}`
+      if (m) return `--recursica-brand-${mode}-palettes-core-${m[1].toLowerCase()}`
     } catch {}
     return null
   }
@@ -218,7 +220,11 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       const pal = parsePaletteToneRef(rawInput)
       if (pal) {
         const type = pal.type || 'tone'
-        return `var(${buildPaletteVar(pal.paletteKey, pal.level, type)})`
+        // Use refMode if specified (from the reference itself), otherwise use current mode
+        const useMode = pal.refMode ?? mode
+        const levelPart = pal.level === 'primary' ? 'primary' : pal.level
+        const varName = `--recursica-brand-${useMode}-palettes-${pal.paletteKey}-${levelPart}-${type}`
+        return `var(${varName})`
       }
       // Core palette reference e.g. {brand.light.palettes.core-colors.alert}
       const coreVar = parseCoreVarName(rawInput)
@@ -286,7 +292,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     return null
   }
   const applyForLayer = (spec: any, prefix: string) => {
-    const brandBase = `--recursica-brand-light-layer-layer-${prefix}-property-`
+    const brandBase = `--recursica-brand-${mode}-layer-layer-${prefix}-property-`
     // Extract surface value - handle both direct values and $value wrapper
     let surfRaw = spec?.property?.surface
     if (surfRaw && typeof surfRaw === 'object' && typeof (surfRaw as any)['$value'] === 'string') {
@@ -296,13 +302,13 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     const altMatch = typeof prefix === 'string' ? /^alternative\-(.+)$/.exec(prefix) : null
     if (!surfRaw && altMatch) {
       const key = altMatch[1]
-      if (key === 'alert') surfRaw = 'var(--recursica-brand-light-palettes-core-alert, var(--palette-alert))'
-      else if (key === 'warning') surfRaw = 'var(--recursica-brand-light-palettes-core-warning, var(--palette-warning))'
-      else if (key === 'success') surfRaw = 'var(--recursica-brand-light-palettes-core-success, var(--palette-success))'
-      else if (key === 'high-contrast') surfRaw = 'var(--recursica-brand-light-palettes-core-black)'
+      if (key === 'alert') surfRaw = `var(--recursica-brand-${mode}-palettes-core-alert, var(--palette-alert))`
+      else if (key === 'warning') surfRaw = `var(--recursica-brand-${mode}-palettes-core-warning, var(--palette-warning))`
+      else if (key === 'success') surfRaw = `var(--recursica-brand-${mode}-palettes-core-success, var(--palette-success))`
+      else if (key === 'high-contrast') surfRaw = `var(--recursica-brand-${mode}-palettes-core-black)`
       else if (key === 'primary-color') {
         // Use palette-1 primary tone directly - this will be parsed by parsePaletteToneRef
-        surfRaw = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+        surfRaw = `var(--recursica-brand-${mode}-palettes-palette-1-primary-tone)`
       }
     }
     const surfPalette = parsePaletteToneRef(surfRaw)
@@ -402,8 +408,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       }
     }
 
-    const brandTextBase = `--recursica-brand-light-layer-layer-${prefix}-property-element-text-`
-    const brandTextRefBase = `--recursica-brand-light-layer-layer-${prefix}-property-element-text-`
+    const brandTextBase = `--recursica-brand-${mode}-layer-layer-${prefix}-property-element-text-`
+    const brandTextRefBase = `--recursica-brand-${mode}-layer-layer-${prefix}-property-element-text-`
     // Extract text color value - handle both direct values and $value wrapper
     let tcolorRaw = spec?.element?.text?.color
     if (tcolorRaw && typeof tcolorRaw === 'object' && typeof (tcolorRaw as any)['$value'] === 'string') {
@@ -443,16 +449,16 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       result[`${brandTextBase}color`] = tcolorVarRef
     } else if (surfaceHex) {
       // Default to black - AA compliance will be handled reactively in Phase 3
-      result[`${brandTextBase}color`] = 'var(--recursica-brand-light-palettes-core-black)'
+      result[`${brandTextBase}color`] = `var(--recursica-brand-${mode}-palettes-core-black)`
     }
     // Emphasis opacities: always reference brand-level text emphasis (theme opacity)
-    result[`${brandTextBase}high-emphasis`] = 'var(--recursica-brand-light-text-emphasis-high)'
-    result[`${brandTextBase}low-emphasis`] = 'var(--recursica-brand-light-text-emphasis-low)'
+    result[`${brandTextBase}high-emphasis`] = `var(--recursica-brand-${mode}-text-emphasis-high)`
+    result[`${brandTextBase}low-emphasis`] = `var(--recursica-brand-${mode}-text-emphasis-low)`
     // Status colors: core color → step within its token family → fallback to surface on-tone (AA with opacity considered)
     // Support both old format (brand.light.*) and new format (brand.themes.light.*)
-    const coreAlert = resolveRef('{brand.themes.light.palettes.core-colors.alert}') ?? resolveRef('{brand.light.palettes.core-colors.alert}') ?? resolveRef('{brand.light.palettes.core.alert}')
-    const coreWarn = resolveRef('{brand.themes.light.palettes.core-colors.warning}') ?? resolveRef('{brand.light.palettes.core-colors.warning}') ?? resolveRef('{brand.light.palettes.core.warning}')
-    const coreSuccess = resolveRef('{brand.themes.light.palettes.core-colors.success}') ?? resolveRef('{brand.light.palettes.core-colors.success}') ?? resolveRef('{brand.light.palettes.core.success}')
+    const coreAlert = resolveRef(`{brand.themes.${mode}.palettes.core-colors.alert}`) ?? resolveRef(`{brand.${mode}.palettes.core-colors.alert}`) ?? resolveRef(`{brand.${mode}.palettes.core.alert}`)
+    const coreWarn = resolveRef(`{brand.themes.${mode}.palettes.core-colors.warning}`) ?? resolveRef(`{brand.${mode}.palettes.core-colors.warning}`) ?? resolveRef(`{brand.${mode}.palettes.core.warning}`)
+    const coreSuccess = resolveRef(`{brand.themes.${mode}.palettes.core-colors.success}`) ?? resolveRef(`{brand.${mode}.palettes.core-colors.success}`) ?? resolveRef(`{brand.${mode}.palettes.core.success}`)
     const alertHex = typeof (talert ?? coreAlert) === 'string' ? String(talert ?? coreAlert) : undefined
     const warnHex = typeof (twarn ?? coreWarn) === 'string' ? String(twarn ?? coreWarn) : undefined
     const successHex = typeof (tsuccess ?? coreSuccess) === 'string' ? String(tsuccess ?? coreSuccess) : undefined
@@ -479,7 +485,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
         let finalRef: string | undefined
         if (r.coreToken) {
           // Use core token directly - AA compliance will be handled reactively in Phase 3
-          finalRef = `var(--recursica-brand-light-palettes-core-${r.name})`
+          finalRef = `var(--recursica-brand-${mode}-palettes-core-${r.name})`
         }
         if (!finalRef) {
           const onToneVar = surfPalette ? buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone') : undefined
@@ -506,7 +512,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
             }
           } else {
             // Default to black - AA compliance will be handled reactively in Phase 3
-            finalRef = 'var(--recursica-brand-light-palettes-core-black)'
+            finalRef = `var(--recursica-brand-${mode}-palettes-core-black)`
           }
         }
         result[brandKey] = finalRef
@@ -517,14 +523,14 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       const wTok = parseCoreTokenRef('warning')
       const sTok = parseCoreTokenRef('success')
       if (aTok) result[`${brandTextBase}alert`] = `var(--recursica-tokens-color-${aTok.family}-${aTok.level})`
-      else result[`${brandTextBase}alert`] = 'var(--recursica-brand-light-palettes-core-alert, var(--palette-alert))'
+      else result[`${brandTextBase}alert`] = `var(--recursica-brand-${mode}-palettes-core-alert, var(--palette-alert))`
       if (wTok) result[`${brandTextBase}warning`] = `var(--recursica-tokens-color-${wTok.family}-${wTok.level})`
-      else result[`${brandTextBase}warning`] = 'var(--recursica-brand-light-palettes-core-warning, var(--palette-warning))'
+      else result[`${brandTextBase}warning`] = `var(--recursica-brand-${mode}-palettes-core-warning, var(--palette-warning))`
       if (sTok) result[`${brandTextBase}success`] = `var(--recursica-tokens-color-${sTok.family}-${sTok.level})`
-      else result[`${brandTextBase}success`] = 'var(--recursica-brand-light-palettes-core-success, var(--palette-success))'
+      else result[`${brandTextBase}success`] = `var(--recursica-brand-${mode}-palettes-core-success, var(--palette-success))`
     }
 
-    const brandInterBase = `--recursica-brand-light-layer-layer-${prefix}-property-element-interactive-`
+    const brandInterBase = `--recursica-brand-${mode}-layer-layer-${prefix}-property-element-interactive-`
     
     // Helper to extract value from $value wrapper or direct value
     const extractValue = (val: any): any => {
@@ -566,15 +572,15 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
     // Helper to get default reference for interactive properties
     const getDefaultInteractiveRef = (property: 'tone' | 'tone-hover' | 'on-tone' | 'on-tone-hover'): string => {
       if (property === 'tone') {
-        return 'var(--recursica-brand-light-palettes-core-interactive-default-tone)'
+        return `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)`
       } else if (property === 'tone-hover') {
-        return 'var(--recursica-brand-light-palettes-core-interactive-hover-tone)'
+        return `var(--recursica-brand-${mode}-palettes-core-interactive-hover-tone)`
       } else if (property === 'on-tone') {
-        return 'var(--recursica-brand-light-palettes-core-interactive-default-on-tone)'
+        return `var(--recursica-brand-${mode}-palettes-core-interactive-default-on-tone)`
       } else if (property === 'on-tone-hover') {
-        return 'var(--recursica-brand-light-palettes-core-interactive-hover-on-tone)'
+        return `var(--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone)`
       }
-      return 'var(--recursica-brand-light-palettes-core-interactive-default-tone)'
+      return `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)`
     }
     
     // Set tone colors (background)
@@ -636,22 +642,27 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, overrides?: Re
       result[`${brandInterBase}high-emphasis`] = v
     }
     if (ihoverRaw != null) {
-      const vref = coerceToVarRef(ihoverRaw) || String(ihover ?? '')
-      if (vref) result[`${brandInterBase}hover-color`] = vref
+      const vref = coerceToVarRef(ihoverRaw)
+      if (vref) {
+        result[`${brandInterBase}hover-color`] = vref
+      } else {
+        // If coerceToVarRef failed, use default interactive hover tone instead of direct hex
+        result[`${brandInterBase}hover-color`] = `var(--recursica-brand-${mode}-palettes-core-interactive-hover-tone)`
+      }
     }
     
     // Generate layer-specific interactive on-tone variables for UIKit references
     // These reference the core palette on-tone variables
-    result[`${brandInterBase}default-on-tone`] = 'var(--recursica-brand-light-palettes-core-interactive-default-on-tone)'
-    result[`${brandInterBase}hover-on-tone`] = 'var(--recursica-brand-light-palettes-core-interactive-hover-on-tone)'
+    result[`${brandInterBase}default-on-tone`] = `var(--recursica-brand-${mode}-palettes-core-interactive-default-on-tone)`
+    result[`${brandInterBase}hover-on-tone`] = `var(--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone)`
   }
 
   ;['0','1','2','3','4'].forEach((lvl) => {
     const key = `layer-${lvl}`
-    if (layersLight && Object.prototype.hasOwnProperty.call(layersLight, key)) applyForLayer(layersLight[key], lvl)
+    if (layersData && Object.prototype.hasOwnProperty.call(layersData, key)) applyForLayer(layersData[key], lvl)
   })
 
-  const alts: any = layersLight?.['layer-alternative'] || {}
+  const alts: any = layersData?.['layer-alternative'] || {}
   Object.keys(alts).forEach((altKey) => {
     applyForLayer(alts[altKey], `alternative-${altKey}`)
   })

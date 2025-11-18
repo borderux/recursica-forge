@@ -4,6 +4,7 @@ import { readOverrides } from '../theme/tokenOverrides'
 import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 type PaletteColorSelectorProps = {
   paletteKey: string
@@ -234,6 +235,38 @@ export default function PaletteColorSelector({
     }
   }, [detectFamilyFromTheme])
 
+  // Build theme index to read token levels from Brand.json (needed for recheckAACompliance)
+  const themeIndex = useMemo(() => {
+    const out: Record<string, { value: any }> = {}
+    const visit = (node: any, prefix: string, modeLabel: 'Light' | 'Dark') => {
+      if (!node || typeof node !== 'object') return
+      if (Object.prototype.hasOwnProperty.call(node, '$value')) {
+        out[`${modeLabel}::${prefix}`] = { value: (node as any)['$value'] }
+        return
+      }
+      Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, modeLabel))
+    }
+    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+    const themes = root?.themes || root
+    if (themes?.light?.palettes) visit(themes.light.palettes, 'palette', 'Light')
+    if (themes?.dark?.palettes) visit(themes.dark.palettes, 'palette', 'Dark')
+    return out
+  }, [themeJson])
+
+  // Helper to get token level from Brand.json for a given palette level
+  const getTokenLevelForPaletteLevel = useCallback((paletteLevel: string): string | null => {
+    const toneName = `palette/${paletteKey}/${paletteLevel}/color/tone`
+    const toneRaw = themeIndex[`${mode}::${toneName}`]?.value
+    if (typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
+      const inner = toneRaw.slice(1, -1).trim()
+      const match = /^tokens\.color\.([a-z0-9_-]+)\.(000|050|[1-9][0-9]{2}|1000)$/i.exec(inner)
+      if (match) {
+        return match[2] // Return the token level (e.g., '050' for dark mode neutral 1000)
+      }
+    }
+    return null
+  }, [themeIndex, mode, paletteKey])
+
   // Re-check AA compliance for a palette when token values change
   // If family is provided, only re-check if this palette uses that family
   // If family is not provided (e.g., when core colors or opacities change), always re-check
@@ -251,7 +284,9 @@ export default function PaletteColorSelector({
     const verifiedOnTones: Record<string, 'white' | 'black'> = {}
     
     headerLevels.forEach((lvl) => {
-      const tokenName = `color/${familyToUse}/${lvl}`
+      // Get the actual token level from Brand.json (not the palette level)
+      const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
+      const tokenName = `color/${familyToUse}/${tokenLevel}`
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
         const onToneCssVar = `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
@@ -339,7 +374,9 @@ export default function PaletteColorSelector({
           if (!root[modeKey]?.palettes?.[paletteKey]) continue
           
           headerLevels.forEach((lvl) => {
-            const tokenName = `color/${familyToUse}/${lvl}`
+            // Get the actual token level from Brand.json (not the palette level)
+            const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
+            const tokenName = `color/${familyToUse}/${tokenLevel}`
             const hex = getTokenValueByName(tokenName)
             if (typeof hex === 'string') {
               // Use verified value for current mode, recalculate for other mode
@@ -406,7 +443,7 @@ export default function PaletteColorSelector({
         console.error('Failed to update theme for AA compliance:', err)
       }
     }
-  }, [selectedFamily, mode, paletteKey, headerLevels, getTokenValueByName, setTheme, themeJson])
+  }, [selectedFamily, mode, paletteKey, headerLevels, getTokenValueByName, setTheme, themeJson, getTokenLevelForPaletteLevel])
 
   // Listen for requests to re-check all palette on-tone colors
   useEffect(() => {
@@ -459,7 +496,9 @@ export default function PaletteColorSelector({
     const rootEl = document.documentElement
     const modeLower = mode.toLowerCase()
     headerLevels.forEach((lvl) => {
-      const tokenName = `color/${selectedFamily}/${lvl}`
+      // Get the actual token level from Brand.json (not the palette level)
+      const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
+      const tokenName = `color/${selectedFamily}/${tokenLevel}`
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
         // Set tone CSS variable - only for this specific palette
@@ -478,7 +517,7 @@ export default function PaletteColorSelector({
     })
     hasInitialized.current = true
     // Only depend on mode and paletteKey, not selectedFamily - CSS vars are set via updatePaletteForFamily
-  }, [mode, paletteKey, headerLevels, getTokenValueByName])
+  }, [mode, paletteKey, headerLevels, getTokenValueByName, getTokenLevelForPaletteLevel, selectedFamily])
 
   // Update theme JSON and CSS variables when family changes
   const updatePaletteForFamily = (family: string) => {
@@ -503,13 +542,32 @@ export default function PaletteColorSelector({
           if (!targetRoot[modeKey].palettes[paletteKey][lvl]) targetRoot[modeKey].palettes[paletteKey][lvl] = {}
           if (!targetRoot[modeKey].palettes[paletteKey][lvl].color) targetRoot[modeKey].palettes[paletteKey][lvl].color = {}
           
-          // Update tone to reference the new family token
+          // Get the actual token level from Brand.json (preserve the mapping, e.g., 1000 -> 050 for dark mode)
+          // For the current mode, use getTokenLevelForPaletteLevel; for other mode, read from theme index
+          let tokenLevel = lvl
+          if (modeKey === mode.toLowerCase()) {
+            tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
+          } else {
+            // For other mode, read from theme index
+            const otherModeLabel = modeKey === 'light' ? 'Light' : 'Dark'
+            const toneName = `palette/${paletteKey}/${lvl}/color/tone`
+            const toneRaw = themeIndex[`${otherModeLabel}::${toneName}`]?.value
+            if (typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
+              const inner = toneRaw.slice(1, -1).trim()
+              const match = /^tokens\.color\.([a-z0-9_-]+)\.(000|050|[1-9][0-9]{2}|1000)$/i.exec(inner)
+              if (match) {
+                tokenLevel = match[2]
+              }
+            }
+          }
+          
+          // Update tone to reference the new family token (using the correct token level)
           targetRoot[modeKey].palettes[paletteKey][lvl].color.tone = {
-            $value: `{tokens.color.${family}.${lvl}}`
+            $value: `{tokens.color.${family}.${tokenLevel}}`
           }
           
           // Determine on-tone color considering opacity for AA compliance
-          const tokenName = `color/${family}/${lvl}`
+          const tokenName = `color/${family}/${tokenLevel}`
           const hex = getTokenValueByName(tokenName)
           if (typeof hex === 'string') {
             const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
@@ -527,7 +585,9 @@ export default function PaletteColorSelector({
       // This ensures CSS vars are set before theme update triggers re-renders
       const modeLower = mode.toLowerCase()
       headerLevels.forEach((lvl) => {
-        const tokenName = `color/${family}/${lvl}`
+        // Get the actual token level from Brand.json (not the palette level)
+        const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
+        const tokenName = `color/${family}/${tokenLevel}`
         const hex = getTokenValueByName(tokenName)
         if (typeof hex === 'string') {
           // Set tone CSS variable - only for this specific palette
@@ -590,6 +650,7 @@ function FamilyDropdown({
   onSelect: (fam: string) => void
   getSwatchHex: (fam: string) => string | undefined
 }) {
+  const { mode } = useThemeMode()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement | null>(null)
   const [tokenVersion, setTokenVersion] = useState(0)
@@ -691,13 +752,13 @@ function FamilyDropdown({
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer', minWidth: 160, justifyContent: 'space-between' }}
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: currentHex || 'transparent' }} />
+            <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: currentHex || 'transparent' }} />
             <span>{getFriendlyName(selectedFamily)}</span>
           </span>
           <span aria-hidden style={{ opacity: 0.6 }}>▾</span>
         </button>
         {open && (
-          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1200, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', padding: 6, minWidth: 200 }}>
+          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1200, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: `var(--recursica-brand-${mode.toLowerCase()}-elevations-elevation-3-shadow-color)`, padding: 6, minWidth: 200 }}>
             <div style={{ maxHeight: 280, overflow: 'auto', display: 'grid' }}>
               {families.map((fam) => {
                 const hex = getSwatchHex(fam)
@@ -707,7 +768,7 @@ function FamilyDropdown({
                     onClick={() => { onSelect(fam); setOpen(false) }}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}
                   >
-                    <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: hex || 'transparent' }} />
+                    <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: hex || 'transparent' }} />
                     <span>{getFriendlyName(fam)}</span>
                   </button>
                 )

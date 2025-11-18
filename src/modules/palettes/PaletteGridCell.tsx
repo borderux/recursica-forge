@@ -370,8 +370,8 @@ export function PaletteEmphasisCell({
             transform: 'translateX(-50%)',
             marginTop: '4px',
             padding: '8px 12px',
-            backgroundColor: 'var(--recursica-brand-light-layer-layer-1-property-surface)',
-            border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+            backgroundColor: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
+            border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -385,15 +385,15 @@ export function PaletteEmphasisCell({
           <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
             AA Compliance Issue
           </div>
-          <div style={{ marginBottom: '8px', color: 'var(--recursica-brand-light-layer-layer-0-element-text-color)' }}>
+          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)` }}>
             Tone doesn't pass contrast (≥4.5:1) for high or low emphasis
           </div>
           {aaStatus && (
-            <div style={{ fontSize: '11px', color: 'var(--recursica-brand-light-layer-layer-0-element-text-color)', opacity: 0.8 }}>
+            <div style={{ fontSize: '11px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)`, opacity: 0.8 }}>
               Current: {aaStatus.currentRatio.toFixed(2)}:1
             </div>
           )}
-          <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--recursica-brand-light-layer-layer-0-element-text-color)', opacity: 0.7, fontStyle: 'italic' }}>
+          <div style={{ marginTop: '8px', fontSize: '11px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)`, opacity: 0.7, fontStyle: 'italic' }}>
             Click to change tone color
           </div>
         </div>

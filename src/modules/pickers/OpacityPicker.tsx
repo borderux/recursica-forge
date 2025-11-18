@@ -55,28 +55,46 @@ export default function OpacityPicker() {
     // Update the target CSS variable to reference the opacity token
     updateCssVar(targetCssVar, `var(${opacityCssVar})`)
     
-    // Persist to theme JSON if this is a text-emphasis opacity
+    // Persist to theme JSON if this is a text-emphasis opacity or overlay opacity
     const isEmphasisOpacity = targetCssVar.includes('text-emphasis-high') || 
                                targetCssVar.includes('text-emphasis-low')
-    if (isEmphasisOpacity && setTheme && themeJson) {
+    const isOverlayOpacity = targetCssVar.includes('state-overlay-opacity')
+    
+    if ((isEmphasisOpacity || isOverlayOpacity) && setTheme && themeJson) {
       try {
         const themeCopy = JSON.parse(JSON.stringify(themeJson))
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
         const themes = root?.themes || root
         
-        // Determine which mode (light or dark) and which emphasis (high or low)
+        // Determine which mode (light or dark)
         const isDark = targetCssVar.includes('-dark-')
-        const isHigh = targetCssVar.includes('text-emphasis-high')
         const modeKey = isDark ? 'dark' : 'light'
-        const emphasisKey = isHigh ? 'high' : 'low'
         
-        // Ensure text-emphasis structure exists
-        if (!themes[modeKey]) themes[modeKey] = {}
-        if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
-        
-        // Update the opacity reference in theme JSON
-        themes[modeKey]['text-emphasis'][emphasisKey] = {
-          $value: `{tokens.opacity.${tokenKey}}`
+        if (isEmphasisOpacity) {
+          // Handle text-emphasis opacity
+          const isHigh = targetCssVar.includes('text-emphasis-high')
+          const emphasisKey = isHigh ? 'high' : 'low'
+          
+          // Ensure text-emphasis structure exists
+          if (!themes[modeKey]) themes[modeKey] = {}
+          if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
+          
+          // Update the opacity reference in theme JSON
+          themes[modeKey]['text-emphasis'][emphasisKey] = {
+            $value: `{tokens.opacity.${tokenKey}}`
+          }
+        } else if (isOverlayOpacity) {
+          // Handle overlay opacity
+          // Ensure state structure exists
+          if (!themes[modeKey]) themes[modeKey] = {}
+          if (!themes[modeKey].state) themes[modeKey].state = {}
+          if (!themes[modeKey].state.overlay) themes[modeKey].state.overlay = {}
+          
+          // Update the overlay opacity reference in theme JSON
+          themes[modeKey].state.overlay.opacity = {
+            $type: 'number',
+            $value: `{tokens.opacity.${tokenKey}}`
+          }
         }
         
         setTheme(themeCopy)

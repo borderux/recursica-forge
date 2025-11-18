@@ -4,6 +4,7 @@ import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 function toTitleCase(label: string): string {
   return (label || '')
@@ -152,6 +153,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
 
   if (!anchor) return null
 
+  const { mode } = useThemeMode()
   return createPortal(
     <div
       style={{
@@ -159,11 +161,11 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
         top: pos.top,
         left: pos.left,
         width: 400,
-        background: 'var(--recursica-brand-light-layer-layer-2-property-surface)',
-        color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)',
-        border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
+        background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`,
+        color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
+        border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`,
         borderRadius: 8,
-        boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)',
+        boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`,
         padding: 16,
         zIndex: 20000,
       }}

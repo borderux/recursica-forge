@@ -11,9 +11,11 @@ import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '
 import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
+import { useThemeMode } from '../../theme/ThemeModeContext'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
+  const { mode, setMode } = useThemeMode()
   const [mat, setMat] = useState<any>(null)
   const [styles, setStyles] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -40,7 +42,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
 
   if (!mat || !styles) return <div style={{ padding: 16 }}>Loading Material UI…</div>
 
-  const { AppBar, Toolbar, Typography, Button, Select, MenuItem, Container, CssBaseline, Tabs, Tab, IconButton } = mat
+  const { AppBar, Toolbar, Typography, Button, Select, MenuItem, Container, CssBaseline, Tabs, Tab, IconButton, Switch, FormControlLabel } = mat
   const { ThemeProvider, createTheme } = styles
   const theme = createTheme()
   return (
@@ -60,6 +62,18 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           </Tabs>
           <IconButton color="inherit" size="small" onClick={() => { clearOverrides(tokensJson as any); resetAll() }} title="Reset to defaults">↺</IconButton>
           <IconButton color="inherit" size="small" onClick={() => {/* open modal not implemented for MUI shell */}} title="Import / Export">⤓</IconButton>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={mode === 'dark'}
+                onChange={(e) => setMode(e.target.checked ? 'dark' : 'light')}
+                size="small"
+                sx={{ color: 'white' }}
+              />
+            }
+            label={mode === 'dark' ? 'Dark' : 'Light'}
+            sx={{ color: 'white', ml: 1 }}
+          />
           <Select
             size="small"
             value={kit}
