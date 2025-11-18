@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 
@@ -14,6 +15,14 @@ export function InteractiveHoverModal({
   onClose,
   onSelect,
 }: InteractiveHoverModalProps) {
+  // Close modal when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      onClose()
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [onClose])
   if (!open) return null
 
   return createPortal(

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar } from '../../core/css/updateCssVar'
@@ -11,6 +11,17 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [targetCssVars, setTargetCssVars] = useState<string[]>([])
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
+
+  // Close picker when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setAnchor(null)
+      setTargetCssVar(null)
+      setTargetCssVars([])
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
 
   const paletteKeys = useMemo(() => {
     const dynamic = palettes?.dynamic?.map((p) => p.key) || []

@@ -33,6 +33,18 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
 
+  // Close overlay when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setAnchor(null)
+      setTargetCssVar(null)
+      setCurrentToken(null)
+      onClose()
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [onClose])
+
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {

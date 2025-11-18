@@ -167,6 +167,15 @@ const ComponentSection = ({ title, url, children, onEditCssVars, selectedLayers 
 export default function PreviewPage() {
   const [showUnmapped, setShowUnmapped] = useState(false)
   const [editingComponent, setEditingComponent] = useState<string | null>(null)
+
+  // Close panel when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setEditingComponent(null)
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
   const [selectedLayers, setSelectedLayers] = useState<Set<LayerOption>>(new Set(['layer-0']))
   
   // Get list of mapped components from UIKit.json

@@ -65,6 +65,15 @@ export function PaletteEmphasisCell({
   const [isHovered, setIsHovered] = useState(false)
   const [updateTrigger, setUpdateTrigger] = useState(0)
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
+
+  // Close picker when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setOpenPicker(null)
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const cellRef = useRef<HTMLTableCellElement>(null)
   const { updateToken } = useVars()

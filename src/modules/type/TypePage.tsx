@@ -97,6 +97,16 @@ export function TypePage() {
   useEffect(() => {
     if (selected.length > 0) setIsPanelOpen(false) // leave tokens panel closed when editing styles
   }, [selected])
+
+  // Close panels when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setIsPanelOpen(false)
+      setSelected([])
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

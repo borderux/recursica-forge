@@ -27,6 +27,8 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('theme-mode', next)
       // Update varsStore to switch mode and regenerate CSS vars
       getVarsStore().switchMode(next)
+      // Close all open pickers, overlays, and panels when switching modes
+      window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
     } catch {}
   }
 

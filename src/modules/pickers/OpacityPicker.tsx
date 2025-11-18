@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar } from '../../core/css/updateCssVar'
@@ -10,6 +10,17 @@ export default function OpacityPicker() {
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
+
+  // Close picker when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setAnchor(null)
+      setTargetCssVar(null)
+      setCurrentToken(null)
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
   
   const options = useMemo(() => {
     const src = (tokensJson as any)?.tokens?.opacity || {}

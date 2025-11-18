@@ -19,6 +19,18 @@ export default function ColorTokenPicker() {
   const [showHoverModal, setShowHoverModal] = useState(false)
   const [pendingInteractiveHex, setPendingInteractiveHex] = useState<string | null>(null)
   
+  // Close picker when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setAnchor(null)
+      setTargetVar(null)
+      setShowHoverModal(false)
+      setPendingInteractiveHex(null)
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
+  
   useEffect(() => {
     try {
       const raw = localStorage.getItem('family-friendly-names')

@@ -20,6 +20,16 @@ export default function LayersPage() {
     return () => clearTimeout(timeout)
   }, [checkAlternativeLayersAA])
 
+  // Close panels when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setSelectedLayerLevels(new Set())
+      setSelectedLevels(new Set())
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
+
   // Extract token lists for UI (values are resolved via CSS vars)
   const availableSizeTokens = useMemo(() => {
     const tokens: Array<{ name: string; value: number; label: string }> = []

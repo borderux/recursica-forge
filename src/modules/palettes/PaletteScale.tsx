@@ -60,6 +60,15 @@ export function PaletteScaleHeader({
 }: Pick<PaletteScaleProps, 'level' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary' | 'paletteKey' | 'tokens'>) {
   const headerWidth = isPrimary ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%'
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
+
+  // Close picker when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setOpenPicker(null)
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const headerRef = useRef<HTMLTableCellElement>(null)
   const { updateToken } = useVars()
