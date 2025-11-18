@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { hexToHsv, hsvToHex, toKebabCase } from '../tokens/colors/colorUtils'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 export type ColorPickerOverlayProps = {
   tokenName: string
@@ -84,11 +85,12 @@ export function ColorPickerOverlay({
   const thumbLeft = `${hsvState.s * 100}%`
   const thumbTop = `${(1 - hsvState.v) * 100}%`
   const gradientColor = hsvToHex(hsvState.h, 1, 1)
+  const { mode } = useThemeMode()
 
   return createPortal(
     <div
       ref={overlayRef}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 20000, background: 'var(--recursica-brand-light-layer-layer-2-property-surface, #ffffff)', color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color, #111111)', border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))', borderRadius: 8, boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)', padding: 12, display: 'grid', gap: 10, width: 300 }}
+      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 20000, background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface, #ffffff)`, color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color, #111111)`, border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`, borderRadius: 8, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`, padding: 12, display: 'grid', gap: 10, width: 300 }}
     >
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'move' }}
@@ -164,7 +166,7 @@ export function ColorPickerOverlay({
               onChange(normalized, cascadeDown, cascadeUp)
             }
           }}
-          style={{ flex: 1, fontSize: 13, padding: '6px 8px', border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))', borderRadius: 6 }}
+          style={{ flex: 1, fontSize: 13, padding: '6px 8px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`, borderRadius: 6 }}
         />
         <button
           title="Name this color"
@@ -174,7 +176,7 @@ export function ColorPickerOverlay({
             const hex = hsvToHex(hsvState.h, hsvState.s, hsvState.v)
             onNameFromHex(family, hex)
           }}
-          style={{ border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px' }}
+          style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px' }}
         >🏷️</button>
       </div>
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>

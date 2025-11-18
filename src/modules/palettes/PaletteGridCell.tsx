@@ -7,9 +7,7 @@ import type { JsonLike } from '../../core/resolvers/tokens'
 import { ColorPickerOverlay } from '../pickers/ColorPickerOverlay'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
-
-// Module-level Set to track logged AA check entries across all component instances
-const loggedAAChecks = new Set<string>()
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
@@ -65,9 +63,19 @@ export function PaletteEmphasisCell({
   const [isHovered, setIsHovered] = useState(false)
   const [updateTrigger, setUpdateTrigger] = useState(0)
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
+
+  // Close picker when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setOpenPicker(null)
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const cellRef = useRef<HTMLTableCellElement>(null)
   const { updateToken } = useVars()
+  const { mode } = useThemeMode()
   const AA = 4.5
 
   // Load family names from localStorage
@@ -152,7 +160,6 @@ export function PaletteEmphasisCell({
       : 1
     
     // Also get high and low emphasis opacities to check both
-    const mode = toneCssVar.includes('-dark-') ? 'dark' : 'light'
     const highEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-high`
     const lowEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-low`
     
@@ -217,7 +224,6 @@ export function PaletteEmphasisCell({
     const passesAA = currentRatio >= AA
     
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    // mode is already declared above (line 151)
     const coreBlackVar = `--recursica-brand-${mode}-palettes-core-black`
     const coreWhiteVar = `--recursica-brand-${mode}-palettes-core-white`
     const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
@@ -262,7 +268,7 @@ export function PaletteEmphasisCell({
       opacity,
       toneFailsAA, // New: indicates if tone fails AA for either emphasis level
     }
-  }, [toneCssVar, onToneCssVar, emphasisCssVar, tokens, paletteKey, level, updateTrigger])
+  }, [toneCssVar, onToneCssVar, emphasisCssVar, tokens, paletteKey, level, updateTrigger, mode])
 
   // Show "x" only if:
   // 1. Current on-tone doesn't pass AA (with opacity considered)
@@ -277,14 +283,6 @@ export function PaletteEmphasisCell({
   // If tone fails AA for either emphasis level, both cells should open color picker (not set primary)
   const shouldOpenColorPicker = aaStatus?.toneFailsAA ?? false
   
-  // Debug logging (remove after testing) - only log once per unique state across all instances
-  if (aaStatus && paletteKey === 'palette-1' && level === '400') {
-    const logKey = `${paletteKey}-${level}-${aaStatus.passesAA}-${aaStatus.blackPasses}-${aaStatus.whitePasses}-${aaStatus.opacity.toFixed(2)}-${aaStatus.currentRatio.toFixed(2)}`
-    if (!loggedAAChecks.has(logKey)) {
-      console.log(`[AA Check] ${paletteKey}-${level}: passesAA=${aaStatus.passesAA}, blackPasses=${aaStatus.blackPasses}, whitePasses=${aaStatus.whitePasses}, opacity=${aaStatus.opacity.toFixed(2)}, ratio=${aaStatus.currentRatio.toFixed(2)}`)
-      loggedAAChecks.add(logKey)
-    }
-  }
 
   return (
     <td
@@ -370,8 +368,8 @@ export function PaletteEmphasisCell({
             transform: 'translateX(-50%)',
             marginTop: '4px',
             padding: '8px 12px',
-            backgroundColor: 'var(--recursica-brand-light-layer-layer-1-property-surface)',
-            border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+            backgroundColor: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
+            border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -385,15 +383,15 @@ export function PaletteEmphasisCell({
           <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
             AA Compliance Issue
           </div>
-          <div style={{ marginBottom: '8px', color: 'var(--recursica-brand-light-layer-layer-0-element-text-color)' }}>
+          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)` }}>
             Tone doesn't pass contrast (≥4.5:1) for high or low emphasis
           </div>
           {aaStatus && (
-            <div style={{ fontSize: '11px', color: 'var(--recursica-brand-light-layer-layer-0-element-text-color)', opacity: 0.8 }}>
+            <div style={{ fontSize: '11px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)`, opacity: 0.8 }}>
               Current: {aaStatus.currentRatio.toFixed(2)}:1
             </div>
           )}
-          <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--recursica-brand-light-layer-layer-0-element-text-color)', opacity: 0.7, fontStyle: 'italic' }}>
+          <div style={{ marginTop: '8px', fontSize: '11px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)`, opacity: 0.7, fontStyle: 'italic' }}>
             Click to change tone color
           </div>
         </div>

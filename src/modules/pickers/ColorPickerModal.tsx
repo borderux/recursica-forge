@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { hexToHsv, hsvToHex } from '../tokens/colors/colorUtils'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 export type ColorPickerModalProps = {
   open: boolean
@@ -60,6 +61,7 @@ export function ColorPickerModal({
   const thumbTop = `${(1 - hsvState.v) * 100}%`
   const gradientColor = hsvToHex(hsvState.h, 1, 1)
   const currentHex = hsvToHex(hsvState.h, hsvState.s, hsvState.v).toLowerCase()
+  const { mode } = useThemeMode()
 
   if (!open) return null
 
@@ -77,11 +79,11 @@ export function ColorPickerModal({
     >
       <div
         style={{
-          background: 'var(--recursica-brand-light-layer-layer-2-property-surface, #ffffff)',
-          color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color, #111111)',
-          border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))',
+          background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface, #ffffff)`,
+          color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color, #111111)`,
+          border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`,
           borderRadius: 12,
-          boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)',
+          boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`,
           padding: 20,
           display: 'grid',
           gap: 16,
@@ -175,7 +177,7 @@ export function ColorPickerModal({
               height: 60,
               borderRadius: 8,
               background: currentHex,
-              border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))',
+              border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`,
               flexShrink: 0,
             }}
           />
@@ -195,7 +197,7 @@ export function ColorPickerModal({
               flex: 1,
               fontSize: 14,
               padding: '8px 12px',
-              border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))',
+              border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`,
               borderRadius: 6,
             }}
             placeholder="#000000"
@@ -208,7 +210,7 @@ export function ColorPickerModal({
             style={{
               padding: '8px 16px',
               borderRadius: 6,
-              border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color, rgba(0,0,0,0.1))',
+              border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`,
               background: 'transparent',
               cursor: 'pointer',
               fontSize: 14,
@@ -222,7 +224,7 @@ export function ColorPickerModal({
               padding: '8px 16px',
               borderRadius: 6,
               border: 'none',
-              background: 'var(--recursica-brand-light-palettes-core-interactive, #3b82f6)',
+              background: `var(--recursica-brand-${mode}-palettes-core-interactive, #3b82f6)`,
               color: '#fff',
               cursor: 'pointer',
               fontSize: 14,

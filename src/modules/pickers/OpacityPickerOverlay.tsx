@@ -4,6 +4,7 @@ import { useVars } from '../vars/VarsContext'
 import { readOverrides, setOverride } from '../theme/tokenOverrides'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 function toTitleCase(label: string): string {
   return (label || '')
@@ -31,6 +32,19 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   const [selectedTokenName, setSelectedTokenName] = useState<string | undefined>(propTokenName)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
+  const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
+
+  // Close overlay when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setAnchor(null)
+      setTargetCssVar(null)
+      setCurrentToken(null)
+      onClose()
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [onClose])
 
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
@@ -90,6 +104,12 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
     return null
   }
 
+  // Recalculate currentToken whenever targetCssVar changes or CSS var is updated
+  const resolvedCurrentToken = useMemo(() => {
+    if (!targetCssVar) return null
+    return extractTokenFromCssVar(targetCssVar)
+  }, [targetCssVar, version, cssVarUpdateTrigger]) // Include version and cssVarUpdateTrigger to react to changes
+
   ;(window as any).openOpacityPicker = (el: HTMLElement, targetTokenNameOrCssVar?: string) => {
     setAnchor(el)
     // If it looks like a CSS variable (starts with --), treat it as targetCssVar
@@ -137,6 +157,9 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
         // Set the target CSS variable to reference the opacity token CSS variable
         updateCssVar(prefixedTarget, `var(${opacityCssVar})`)
         
+        // Trigger recalculation of resolvedCurrentToken
+        setCssVarUpdateTrigger((prev) => prev + 1)
+        
         // Call onSelect with the opacity token CSS var name
         onSelect?.(tokenName, value, opacityCssVar)
       } catch (err) {
@@ -152,6 +175,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
 
   if (!anchor) return null
 
+  const { mode } = useThemeMode()
   return createPortal(
     <div
       style={{
@@ -159,11 +183,11 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
         top: pos.top,
         left: pos.left,
         width: 400,
-        background: 'var(--recursica-brand-light-layer-layer-2-property-surface)',
-        color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)',
-        border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
+        background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`,
+        color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
+        border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`,
         borderRadius: 8,
-        boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)',
+        boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`,
         padding: 16,
         zIndex: 20000,
       }}
@@ -186,7 +210,9 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
           const tokenKey = it.name.replace('opacity/', '')
           const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
           const isClickable = targetCssVar !== null || onSelect !== undefined
-          const isSelected = currentToken === it.name
+          // Use resolvedCurrentToken if available, otherwise fall back to currentToken
+          const effectiveCurrentToken = resolvedCurrentToken !== null ? resolvedCurrentToken : currentToken
+          const isSelected = effectiveCurrentToken === it.name
           
           return (
             <div
@@ -221,14 +247,14 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
                   title={targetCssVar ? `Set ${targetCssVar} to ${opacityCssVar}` : `Select ${it.name}`}
                 >
                   {isSelected && (
-                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone)' }}>✓</span>
+                    <span style={{ fontSize: 14, color: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)` }}>✓</span>
                   )}
                   {label}
                 </button>
               ) : (
                 <label htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9, display: 'flex', alignItems: 'center', gap: 8 }}>
                   {isSelected && (
-                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone)' }}>✓</span>
+                    <span style={{ fontSize: 14, color: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)` }}>✓</span>
                   )}
                   {label}
                 </label>

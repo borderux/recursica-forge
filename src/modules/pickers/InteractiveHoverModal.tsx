@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 export type InteractiveHoverModalProps = {
   open: boolean
@@ -14,6 +16,15 @@ export function InteractiveHoverModal({
   onClose,
   onSelect,
 }: InteractiveHoverModalProps) {
+  // Close modal when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      onClose()
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [onClose])
+  const { mode } = useThemeMode()
   if (!open) return null
 
   return createPortal(
@@ -21,7 +32,7 @@ export function InteractiveHoverModal({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'color-mix(in srgb, var(--recursica-brand-light-palettes-core-black) 50%, transparent)',
+        background: `color-mix(in srgb, var(--recursica-brand-${mode}-palettes-core-black) 50%, transparent)`,
         display: 'grid',
         placeItems: 'center',
         zIndex: 20000,
@@ -30,11 +41,11 @@ export function InteractiveHoverModal({
     >
       <div
         style={{
-          background: 'var(--recursica-brand-light-layer-layer-2-property-surface)',
-          color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)',
-          border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
+          background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`,
+          color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
+          border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`,
           borderRadius: 12,
-          boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)',
+          boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`,
           padding: 24,
           display: 'grid',
           gap: 16,
@@ -76,9 +87,9 @@ export function InteractiveHoverModal({
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
-              background: 'var(--recursica-brand-light-layer-layer-2-property-surface)',
-              color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)',
+              border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`,
+              background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`,
+              color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
               cursor: 'pointer',
               fontSize: 14,
               textAlign: 'left',
@@ -96,9 +107,9 @@ export function InteractiveHoverModal({
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
-              background: 'var(--recursica-brand-light-layer-layer-2-property-surface)',
-              color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)',
+              border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`,
+              background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`,
+              color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
               cursor: 'pointer',
               fontSize: 14,
               textAlign: 'left',
@@ -116,9 +127,9 @@ export function InteractiveHoverModal({
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
-              background: 'var(--recursica-brand-light-layer-layer-2-property-surface)',
-              color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)',
+              border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`,
+              background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`,
+              color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
               cursor: 'pointer',
               fontSize: 14,
               textAlign: 'left',

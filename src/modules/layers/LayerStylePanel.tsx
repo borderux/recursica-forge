@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
+import { useThemeMode } from '../theme/ThemeModeContext'
 import PaletteColorControl from '../forms/PaletteColorControl'
 import TokenSlider from '../forms/TokenSlider'
 import brandDefault from '../../vars/Brand.json'
@@ -26,17 +27,18 @@ export default function LayerStylePanel({
   onUpdate: (updater: (layerSpec: any) => any) => void
 }) {
   const { tokens: tokensJson, theme: themeJson } = useVars()
+  const { mode } = useThemeMode()
   const layerKey = useMemo(() => (selectedLevels.length ? `layer-${selectedLevels[0]}` : ''), [selectedLevels])
   const spec = useMemo(() => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
       const themes = root?.themes || root
-      return themes?.light?.layers?.[layerKey] || themes?.light?.layer?.[layerKey] || root?.light?.layers?.[layerKey] || root?.light?.layer?.[layerKey] || {}
+      return themes?.[mode]?.layers?.[layerKey] || themes?.[mode]?.layer?.[layerKey] || root?.[mode]?.layers?.[layerKey] || root?.[mode]?.layer?.[layerKey] || {}
     } catch {
       return {}
     }
-  }, [theme, layerKey])
+  }, [theme, layerKey, mode])
   const sizeOptions = useMemo(() => {
     const out: Array<{ label: string; value: string }> = []
     try {
@@ -136,7 +138,7 @@ export default function LayerStylePanel({
           <select
             value={typeof val === 'string' ? val : ''}
             onChange={(e) => updateValue(path, e.currentTarget.value)}
-            style={{ padding: '6px 8px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 6 }}
+            style={{ padding: '6px 8px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 6 }}
           >
             <option value="">-- select --</option>
             {options.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
@@ -146,7 +148,7 @@ export default function LayerStylePanel({
             type={(typeof val === 'number') ? 'number' : 'text'}
             value={val ?? ''}
             onChange={(e) => updateValue(path, e.currentTarget.value)}
-            style={{ padding: '6px 8px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 6 }}
+            style={{ padding: '6px 8px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 6 }}
           />
         )}
       </label>
@@ -155,9 +157,9 @@ export default function LayerStylePanel({
   const renderPaletteButton = (target: 'surface' | 'border-color', title: string) => {
     // Build CSS variables for all selected layers
     const targetCssVars = selectedLevels.map(level => 
-      `--recursica-brand-light-layer-layer-${level}-property-${target}`
+      `--recursica-brand-${mode}-layer-layer-${level}-property-${target}`
     )
-    const targetCssVar = targetCssVars[0] || `--recursica-brand-light-layer-layer-${layerKey}-property-${target}`
+    const targetCssVar = targetCssVars[0] || `--recursica-brand-${mode}-layer-layer-${layerKey}-property-${target}`
     
     return (
       <PaletteColorControl
@@ -187,10 +189,10 @@ export default function LayerStylePanel({
   }
   const title = selectedLevels.length === 1 ? `Layer ${selectedLevels[0]}` : `Layers ${selectedLevels.join(', ')}`
   return (
-    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 34vw, 560px)', background: 'var(--recursica-brand-light-layer-layer-1-property-surface)', borderLeft: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 34vw, 560px)', background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-3-shadow-color)`, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 700 }}>{title}</div>
-        <button onClick={onClose} aria-label="Close" style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
+        <button onClick={onClose} aria-label="Close" style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         {/* Palette color pickers: Surface (all layers, including 0) and Border Color (non-0 layers) */}
@@ -284,16 +286,19 @@ export default function LayerStylePanel({
               const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
               // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
               const themes = root?.themes || root
-              const defaults: any = themes?.light?.layers || themes?.light?.layer || root?.light?.layers || root?.light?.layer || {}
+              // Use current mode instead of hardcoded 'light'
+              const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
               const levels = selectedLevels.slice()
               
-              // Clear CSS variables for surface and border-color so they regenerate from theme defaults
+              // Clear CSS variables for surface, border-color, and text-color so they regenerate from theme defaults
               // This is necessary because varsStore preserves existing CSS variables
               const rootEl = document.documentElement
               levels.forEach((lvl) => {
-                const surfaceVar = `--recursica-brand-light-layer-layer-${lvl}-property-surface`
-                const borderVar = `--recursica-brand-light-layer-layer-${lvl}-property-border-color`
+                const surfaceVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-surface`
+                const borderVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-border-color`
+                const textColorVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-element-text-color`
                 rootEl.style.removeProperty(surfaceVar)
+                rootEl.style.removeProperty(textColorVar)
                 if (lvl > 0) {
                   rootEl.style.removeProperty(borderVar)
                 }
@@ -308,7 +313,7 @@ export default function LayerStylePanel({
                 }
               })
             }}
-            style={{ padding: '8px 10px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+            style={{ padding: '8px 10px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
           >
             Revert
           </button>

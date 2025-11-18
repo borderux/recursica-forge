@@ -11,9 +11,11 @@ import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '
 import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
+import { useThemeMode } from '../../theme/ThemeModeContext'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
+  const { mode, setMode } = useThemeMode()
   const [carbon, setCarbon] = useState<any>(null)
   const [isOpen, setIsOpen] = useState(false)
   const onUpload = async (file?: File | null) => {
@@ -39,7 +41,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
 
   if (!carbon) return <div style={{ padding: 16 }}>Loading Carbon…</div>
 
-  const { Header, HeaderName, HeaderGlobalBar, Select, SelectItem, Theme, Grid, Column, ComposedModal, ModalHeader, ModalBody, ModalFooter, Button } = carbon
+  const { Header, HeaderName, HeaderGlobalBar, Select, SelectItem, Theme, Grid, Column, ComposedModal, ModalHeader, ModalBody, ModalFooter, Button, Toggle } = carbon
 
   return (
     <Theme theme="g10">
@@ -55,6 +57,13 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
         <HeaderGlobalBar>
           <button onClick={() => { clearOverrides(tokensJson as any); resetAll() }} title="Reset to defaults" style={{ marginRight: 8 }}>↺</button>
           <button onClick={() => downloadCurrentCssVars()} title="Download" style={{ marginRight: 8 }}>⤓</button>
+          <Toggle
+            id="theme-mode-toggle"
+            labelText={mode === 'dark' ? 'Dark' : 'Light'}
+            toggled={mode === 'dark'}
+            onToggle={(checked) => setMode(checked ? 'dark' : 'light')}
+            style={{ marginRight: 8 }}
+          />
           <div style={{ minWidth: 180 }}>
             <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
               <SelectItem text="Mantine" value="mantine" />

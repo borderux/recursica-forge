@@ -90,9 +90,13 @@ function migratePaletteLocalKeys(): PaletteStore {
     for (let i = 0; i < localStorage.length; i += 1) {
       const k = localStorage.key(i) || ''
       if (k.startsWith('palette-primary-level:')) {
-        const key = k.split(':')[1] || ''
-        const v = JSON.parse(localStorage.getItem(k) || 'null')
-        if (typeof v === 'string') primaryLevels[key] = v
+        // Format is now: palette-primary-level:${paletteKey}:${mode}
+        const parts = k.split(':')
+        if (parts.length >= 2) {
+          const key = parts[1] || ''
+          const v = JSON.parse(localStorage.getItem(k) || 'null')
+          if (typeof v === 'string') primaryLevels[key] = v
+        }
       }
     }
   } catch {}
@@ -250,19 +254,22 @@ class VarsStore {
     import('../compliance/AAComplianceWatcher').then(({ AAComplianceWatcher }) => {
       this.aaWatcher = new AAComplianceWatcher(this.state.tokens, this.state.theme)
       
-      // Watch all palette on-tone vars
+      // Watch all palette on-tone vars for both light and dark modes
       try {
         const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
         // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
         const themes = root?.themes || root
-        const lightPal: any = themes?.light?.palettes || {}
         const levels = ['900','800','700','600','500','400','300','200','100','050']
-        Object.keys(lightPal).forEach((paletteKey) => {
-          if (paletteKey === 'core') return
-          levels.forEach((level) => {
-            this.aaWatcher?.watchPaletteOnTone(paletteKey, level, 'light')
+        // Watch both light and dark modes
+        for (const mode of ['light', 'dark'] as const) {
+          const pal: any = themes?.[mode]?.palettes || {}
+          Object.keys(pal).forEach((paletteKey) => {
+            if (paletteKey === 'core' || paletteKey === 'core-colors') return
+            levels.forEach((level) => {
+              this.aaWatcher?.watchPaletteOnTone(paletteKey, level, mode)
+            })
           })
-        })
+        }
       } catch {}
       
       // Watch all layer surfaces
@@ -718,9 +725,26 @@ class VarsStore {
     try { const raw = localStorage.getItem('type-token-choices'); return raw ? JSON.parse(raw) : {} } catch { return {} }
   }
 
+  private getCurrentMode(): 'light' | 'dark' {
+    try {
+      const saved = localStorage.getItem('theme-mode') as 'light' | 'dark' | null
+      return saved ?? 'light'
+    } catch {
+      return 'light'
+    }
+  }
+
+  public switchMode(mode: 'light' | 'dark') {
+    try {
+      localStorage.setItem('theme-mode', mode)
+    } catch {}
+    this.recomputeAndApplyAll()
+  }
+
   private recomputeAndApplyAll() {
     // Build complete CSS variable map from current state
     // Note: Tokens are now the single source of truth - no overrides needed
+    const currentMode = this.getCurrentMode()
     const allVars: Record<string, string> = {}
     
     // Tokens: expose size tokens as CSS vars under --tokens-size-<key>
@@ -797,14 +821,11 @@ class VarsStore {
       Object.assign(allVars, vars)
     } catch {}
     // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
+    // Generate for both light and dark modes
     try {
       const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = root?.themes || root
-      // Get core-colors object - it may have $value wrapper or be direct
-      const coreColorsObj: any = themes?.light?.palettes?.['core-colors'] || themes?.light?.palettes?.core
-      // Extract the actual colors object (handle both $value wrapper and direct structure)
-      const core: any = coreColorsObj?.$value || coreColorsObj || {}
       
       const normalizeLevel = (lvl?: string): string | undefined => {
         if (!lvl) return undefined
@@ -816,251 +837,367 @@ class VarsStore {
         return allowed.has(s) ? s : undefined
       }
       
-      // Map core color names to CSS variable names
-      const coreColorMap: Record<string, string> = {
-        black: '--recursica-brand-light-palettes-core-black',
-        white: '--recursica-brand-light-palettes-core-white',
-        alert: '--recursica-brand-light-palettes-core-alert',
-        warning: '--recursica-brand-light-palettes-core-warning',
-        success: '--recursica-brand-light-palettes-core-success',
-        interactive: '--recursica-brand-light-palettes-core-interactive',
-      }
+      // Process both light and dark modes
+      for (const mode of ['light', 'dark'] as const) {
+        // Get core-colors object - it may have $value wrapper or be direct
+        const coreColorsObj: any = themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core
+        // Extract the actual colors object (handle both $value wrapper and direct structure)
+        const core: any = coreColorsObj?.$value || coreColorsObj || {}
+        
+        // Map core color names to CSS variable names
+        const coreColorMap: Record<string, string> = {
+          black: `--recursica-brand-${mode}-palettes-core-black`,
+          white: `--recursica-brand-${mode}-palettes-core-white`,
+          alert: `--recursica-brand-${mode}-palettes-core-alert`,
+          warning: `--recursica-brand-${mode}-palettes-core-warning`,
+          success: `--recursica-brand-${mode}-palettes-core-success`,
+          interactive: `--recursica-brand-${mode}-palettes-core-interactive`,
+        }
       
-      // Default fallbacks if theme JSON doesn't have the value
-      const defaults: Record<string, string> = {
-        black: 'color/gray/1000',
-        white: 'color/gray/000',
-        alert: 'color/mandy/500',
-        warning: 'color/mandarin/500',
-        success: 'color/greensheen/500',
-        interactive: 'color/salmon/400',
-      }
-      
-      const colors: Record<string, string> = {}
-      
-      // Helper function to resolve a token reference
-      const resolveTokenRef = (value: any): string | null => {
-        if (typeof value === 'string') {
-          const trimmed = value.trim()
-          if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-            const inner = trimmed.slice(1, -1).trim()
-            // Match pattern: tokens.color.<family>.<level>
-            const match = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|000|050|1000)$/i.exec(inner)
-            if (match) {
-              const family = match[1]
-              const level = normalizeLevel(match[2])
-              if (family && level) {
-                return `var(--recursica-tokens-color-${family}-${level})`
+        // Default fallbacks if theme JSON doesn't have the value
+        const defaults: Record<string, string> = {
+          black: mode === 'light' ? 'color/gray/1000' : 'color/gray/000',
+          white: mode === 'light' ? 'color/gray/000' : 'color/gray/1000',
+          alert: mode === 'light' ? 'color/mandy/600' : 'color/mandy/400',
+          warning: mode === 'light' ? 'color/mandarin/600' : 'color/mandarin/400',
+          success: mode === 'light' ? 'color/greensheen/600' : 'color/greensheen/400',
+          interactive: mode === 'light' ? 'color/mandy/500' : 'color/mandy/400',
+        }
+        
+        const colors: Record<string, string> = {}
+        
+        // Helper function to resolve a token reference
+        const resolveTokenRef = (value: any): string | null => {
+          if (typeof value === 'string') {
+            const trimmed = value.trim()
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+              const inner = trimmed.slice(1, -1).trim()
+              // Match pattern: tokens.color.<family>.<level>
+              const match = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|000|050|1000)$/i.exec(inner)
+              if (match) {
+                const family = match[1]
+                const level = normalizeLevel(match[2])
+                if (family && level) {
+                  return `var(--recursica-tokens-color-${family}-${level})`
+                }
               }
-            }
-            // Match pattern: brand.themes.light.palettes.white or brand.themes.light.palettes.black
-            const brandMatch = /^brand\.themes\.light\.palettes\.(white|black)$/i.exec(inner)
-            if (brandMatch) {
-              const color = brandMatch[1].toLowerCase()
-              return `var(--recursica-brand-light-palettes-core-${color})`
-            }
-          }
-        }
-        return null
-      }
-      
-      // Process each core color
-      Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
-        // Get the value from theme JSON - core should now be the direct colors object
-        const coreValue: any = core[colorName]
-        let tokenRef: string | null = null
-        
-        // Special handling for interactive (nested structure)
-        if (colorName === 'interactive' && coreValue && typeof coreValue === 'object' && !coreValue.$value) {
-          // Handle nested structure: interactive.default.tone, interactive.default.on-tone, etc.
-          const defaultTone = coreValue.default?.tone?.$value || coreValue.default?.tone
-          const defaultOnTone = coreValue.default?.['on-tone']?.$value || coreValue.default?.['on-tone']
-          const hoverTone = coreValue.hover?.tone?.$value || coreValue.hover?.tone
-          const hoverOnTone = coreValue.hover?.['on-tone']?.$value || coreValue.hover?.['on-tone']
-          
-          // Main interactive var (backward compatibility) maps to default tone
-          if (defaultTone) {
-            tokenRef = resolveTokenRef(defaultTone)
-          }
-          
-          // Generate additional CSS vars for nested structure
-          if (defaultTone) {
-            const defaultToneRef = resolveTokenRef(defaultTone)
-            if (defaultToneRef) {
-              colors['--recursica-brand-light-palettes-core-interactive-default-tone'] = defaultToneRef
-            }
-          }
-          if (defaultOnTone) {
-            const defaultOnToneRef = resolveTokenRef(defaultOnTone)
-            if (defaultOnToneRef) {
-              colors['--recursica-brand-light-palettes-core-interactive-default-on-tone'] = defaultOnToneRef
-            }
-          }
-          if (hoverTone) {
-            const hoverToneRef = resolveTokenRef(hoverTone)
-            if (hoverToneRef) {
-              colors['--recursica-brand-light-palettes-core-interactive-hover-tone'] = hoverToneRef
-            }
-          }
-          if (hoverOnTone) {
-            const hoverOnToneRef = resolveTokenRef(hoverOnTone)
-            if (hoverOnToneRef) {
-              colors['--recursica-brand-light-palettes-core-interactive-hover-on-tone'] = hoverOnToneRef
-            }
-          }
-        } else {
-          // Handle simple string values for other core colors
-          tokenRef = resolveTokenRef(coreValue)
-        }
-        
-        // Fallback to default if parsing failed
-        if (!tokenRef) {
-          const defaultToken = defaults[colorName]
-          if (defaultToken) {
-            const parts = defaultToken.split('/')
-            if (parts.length === 3 && parts[0] === 'color') {
-              const family = parts[1]
-              const level = normalizeLevel(parts[2])
-              if (family && level) {
-                tokenRef = `var(--recursica-tokens-color-${family}-${level})`
+              // Match pattern: brand.themes.{mode}.palettes.white or brand.themes.{mode}.palettes.black
+              const brandMatch = new RegExp(`^brand\\.themes\\.(light|dark)\\.palettes\\.(white|black)$`, 'i').exec(inner)
+              if (brandMatch) {
+                const modeMatch = brandMatch[1].toLowerCase()
+                const color = brandMatch[2].toLowerCase()
+                return `var(--recursica-brand-${modeMatch}-palettes-core-${color})`
               }
             }
           }
+          return null
+        }
+      
+        // Process each core color
+        Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
+          // Get the value from theme JSON - core should now be the direct colors object
+          const coreValue: any = core[colorName]
+          let tokenRef: string | null = null
+          
+          // Special handling for interactive (nested structure)
+          if (colorName === 'interactive' && coreValue && typeof coreValue === 'object' && !coreValue.$value) {
+            // Handle nested structure: interactive.default.tone, interactive.default.on-tone, etc.
+            const defaultTone = coreValue.default?.tone?.$value || coreValue.default?.tone
+            const defaultOnTone = coreValue.default?.['on-tone']?.$value || coreValue.default?.['on-tone']
+            const hoverTone = coreValue.hover?.tone?.$value || coreValue.hover?.tone
+            const hoverOnTone = coreValue.hover?.['on-tone']?.$value || coreValue.hover?.['on-tone']
+            
+            // Main interactive var (backward compatibility) maps to default tone
+            if (defaultTone) {
+              tokenRef = resolveTokenRef(defaultTone)
+            }
+            
+            // Generate additional CSS vars for nested structure
+            if (defaultTone) {
+              const defaultToneRef = resolveTokenRef(defaultTone)
+              if (defaultToneRef) {
+                colors[`--recursica-brand-${mode}-palettes-core-interactive-default-tone`] = defaultToneRef
+              }
+            }
+            if (defaultOnTone) {
+              const defaultOnToneRef = resolveTokenRef(defaultOnTone)
+              if (defaultOnToneRef) {
+                colors[`--recursica-brand-${mode}-palettes-core-interactive-default-on-tone`] = defaultOnToneRef
+              }
+            }
+            if (hoverTone) {
+              const hoverToneRef = resolveTokenRef(hoverTone)
+              if (hoverToneRef) {
+                colors[`--recursica-brand-${mode}-palettes-core-interactive-hover-tone`] = hoverToneRef
+              }
+            }
+            if (hoverOnTone) {
+              const hoverOnToneRef = resolveTokenRef(hoverOnTone)
+              if (hoverOnToneRef) {
+                colors[`--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone`] = hoverOnToneRef
+              }
+            }
+          } else {
+            // Handle simple string values for other core colors
+            tokenRef = resolveTokenRef(coreValue)
+          }
+          
+          // Fallback to default if parsing failed
+          if (!tokenRef) {
+            const defaultToken = defaults[colorName]
+            if (defaultToken) {
+              const parts = defaultToken.split('/')
+              if (parts.length === 3 && parts[0] === 'color') {
+                const family = parts[1]
+                const level = normalizeLevel(parts[2])
+                if (family && level) {
+                  tokenRef = `var(--recursica-tokens-color-${family}-${level})`
+                }
+              }
+            }
+          }
+          
+          // Last resort fallback
+          if (!tokenRef) {
+            console.warn(`Could not resolve token reference for ${cssVar}, using gray-500 as fallback`)
+            tokenRef = 'var(--recursica-tokens-color-gray-500)'
+          }
+          
+          colors[cssVar] = tokenRef
+        })
+        
+        // Preserve existing core color CSS variables if they exist in DOM (user customizations)
+        // This ensures user changes to core colors persist across mode switches and page navigation
+        Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
+          const existingValue = readCssVar(cssVar)
+          const generatedValue = colors[cssVar]
+          
+          // Preserve if it exists in DOM and is different from generated (user customization)
+          // OR if it exists but wasn't generated (customization not in theme JSON)
+          if (existingValue && existingValue.startsWith('var(')) {
+            if (!generatedValue || existingValue !== generatedValue) {
+              colors[cssVar] = existingValue
+            }
+          }
+        })
+        
+        // Also preserve interactive sub-properties if they exist
+        if (core['interactive'] && typeof core['interactive'] === 'object') {
+          const interactiveSubVars = [
+            `--recursica-brand-${mode}-palettes-core-interactive-default-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-default-on-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-hover-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone`,
+          ]
+          
+          interactiveSubVars.forEach((cssVar) => {
+            const existingValue = readCssVar(cssVar)
+            const generatedValue = colors[cssVar]
+            
+            // Preserve if it exists in DOM and is different from generated (user customization)
+            if (existingValue && existingValue.startsWith('var(') && generatedValue && existingValue !== generatedValue) {
+              colors[cssVar] = existingValue
+            } else if (existingValue && existingValue.startsWith('var(') && !generatedValue) {
+              // Preserve if it exists but wasn't generated (customization not in theme JSON)
+              colors[cssVar] = existingValue
+            }
+          })
         }
         
-        // Last resort fallback
-        if (!tokenRef) {
-          console.warn(`Could not resolve token reference for ${cssVar}, using gray-500 as fallback`)
-          tokenRef = 'var(--recursica-tokens-color-gray-500)'
-        }
-        
-        colors[cssVar] = tokenRef
-      })
-      // Expose palette opacity bindings as CSS vars
-      try {
-        const toTokenVar = (token?: string, fallback?: number): string | undefined => {
-          if (typeof token === 'string' && token.startsWith('opacity/')) {
-            return `var(--recursica-tokens-${token.replace(/\//g, '-')})`
-          }
-          if (Number.isFinite(fallback as any)) {
-            const n = Number(fallback)
-            const norm = n <= 1 ? n : n / 100
-            return `var(--recursica-tokens-opacity-veiled, ${String(Math.max(0, Math.min(1, norm)))})`
-          }
-          return undefined
-        }
-        const disabled = this.state.palettes?.opacity?.disabled
-        const overlay = this.state.palettes?.opacity?.overlay
-        const dRef = toTokenVar(disabled?.token, disabled?.value)
-        const oRef = toTokenVar(overlay?.token, overlay?.value)
-        if (typeof dRef === 'string') colors['--brand-light-opacity-disabled'] = dRef
-        if (typeof oRef === 'string') colors['--brand-light-opacity-overlay'] = oRef
-      } catch {}
-      Object.assign(allVars, colors)
+        Object.assign(allVars, colors)
+      }
     } catch {}
-    // Palettes (Light mode default for now; dark can be toggled by UI where needed)
+    // Palettes - generate for both modes
     const paletteVarsLight = buildPaletteVars(this.state.tokens, this.state.theme, 'Light')
+    const paletteVarsDark = buildPaletteVars(this.state.tokens, this.state.theme, 'Dark')
     Object.assign(allVars, paletteVarsLight)
-    // Layers (from Brand)
-    const layerVars = buildLayerVars(this.state.tokens, this.state.theme)
+    Object.assign(allVars, paletteVarsDark)
+    // Combine palette vars for passing to buildLayerVars (so it can look up on-tone values during initialization)
+    const allPaletteVars = { ...paletteVarsLight, ...paletteVarsDark }
+    // Layers (from Brand) - generate for both modes
+    const layerVarsLight = buildLayerVars(this.state.tokens, this.state.theme, 'light', undefined, allPaletteVars)
+    const layerVarsDark = buildLayerVars(this.state.tokens, this.state.theme, 'dark', undefined, allPaletteVars)
+    const layerVars = { ...layerVarsLight, ...layerVarsDark }
     
     // Ensure primary-color alternative layer surface is always set (fixes refresh/reset issue)
     // Check what palette-1 vars were actually generated and use the best available one
-    const primaryColorSurfaceKey = '--recursica-brand-light-layer-layer-alternative-primary-color-property-surface'
-    if (!layerVars[primaryColorSurfaceKey]) {
-      // Check palette vars that were just generated (they're in allVars now)
-      // Try primary-tone first, then common levels (500, 400, 600)
-      const candidates = [
-        '--recursica-brand-light-palettes-palette-1-primary-tone',
-        '--recursica-brand-light-palettes-palette-1-500-tone',
-        '--recursica-brand-light-palettes-palette-1-400-tone',
-        '--recursica-brand-light-palettes-palette-1-600-tone'
-      ]
-      
-      let foundVar: string | null = null
-      for (const candidate of candidates) {
-        if (allVars[candidate] || readCssVar(candidate)) {
-          foundVar = candidate
-          break
+    // Do this for both modes
+    for (const modeLoop of ['light', 'dark'] as const) {
+      const primaryColorSurfaceKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-primary-color-property-surface`
+      if (!layerVars[primaryColorSurfaceKey]) {
+        // Check palette vars that were just generated (they're in allVars now)
+        // Try primary-tone first, then common levels (500, 400, 600)
+        const candidates = [
+          `--recursica-brand-${modeLoop}-palettes-palette-1-primary-tone`,
+          `--recursica-brand-${modeLoop}-palettes-palette-1-500-tone`,
+          `--recursica-brand-${modeLoop}-palettes-palette-1-400-tone`,
+          `--recursica-brand-${modeLoop}-palettes-palette-1-600-tone`
+        ]
+        
+        let foundVar: string | null = null
+        for (const candidate of candidates) {
+          if (allVars[candidate] || readCssVar(candidate)) {
+            foundVar = candidate
+            break
+          }
         }
-      }
-      
-      if (foundVar) {
-        layerVars[primaryColorSurfaceKey] = `var(${foundVar})`
-      } else {
-        // Last resort: use primary-tone reference (will resolve when palette vars are generated)
-        layerVars[primaryColorSurfaceKey] = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
+        
+        if (foundVar) {
+          layerVars[primaryColorSurfaceKey] = `var(${foundVar})`
+        } else {
+          // Last resort: use primary-tone reference (will resolve when palette vars are generated)
+          layerVars[primaryColorSurfaceKey] = `var(--recursica-brand-${modeLoop}-palettes-palette-1-primary-tone)`
+        }
       }
     }
     
     // Preserve existing palette CSS variables for layer colors (surface and border-color)
     // Also preserve AA compliance updates for text and interactive colors
-    // Check all layers (0-4) and alternative layers
+    // Check all layers (0-4) and alternative layers for both modes
     try {
-      for (let i = 0; i <= 4; i++) {
-        const prefixedBase = `--recursica-brand-light-layer-layer-${i}-property-`
-        
-        // Check surface color
-        const existingSurface = readCssVar(`${prefixedBase}surface`)
-        if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
-          layerVars[`--recursica-brand-light-layer-layer-${i}-property-surface`] = existingSurface
-        }
-        
-        // Check border color (only for non-zero layers)
-        if (i > 0) {
-          const existingBorderColor = readCssVar(`${prefixedBase}border-color`)
-          if (existingBorderColor && existingBorderColor.startsWith('var(') && existingBorderColor.includes('palettes')) {
-            layerVars[`--recursica-brand-light-layer-layer-${i}-property-border-color`] = existingBorderColor
+      for (const modeLoop of ['light', 'dark'] as const) {
+        for (let i = 0; i <= 4; i++) {
+          const prefixedBase = `--recursica-brand-${modeLoop}-layer-layer-${i}-property-`
+          
+          // Check surface color
+          const existingSurface = readCssVar(`${prefixedBase}surface`)
+          if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
+            layerVars[`--recursica-brand-${modeLoop}-layer-layer-${i}-property-surface`] = existingSurface
           }
-        }
-        
-        // Preserve AA compliance updates for text and interactive colors
-        // These are set by AAComplianceWatcher and should not be overwritten
-        const textColorBase = `${prefixedBase}element-text-`
-        const interColorBase = `${prefixedBase}element-interactive-`
-        
-        // Text color
-        const existingTextColor = readCssVar(`${textColorBase}color`)
-        if (existingTextColor && existingTextColor.startsWith('var(')) {
-          layerVars[`--recursica-brand-light-layer-layer-${i}-property-element-text-color`] = existingTextColor
-        }
-        
-        // Interactive color
-        const existingInterColor = readCssVar(`${interColorBase}color`)
-        if (existingInterColor && existingInterColor.startsWith('var(')) {
-          layerVars[`--recursica-brand-light-layer-layer-${i}-property-element-interactive-color`] = existingInterColor
-        }
-        
-        // Status colors (alert, warning, success)
-        const statusColors = ['alert', 'warning', 'success']
-        statusColors.forEach((status) => {
-          const existingStatusColor = readCssVar(`${textColorBase}${status}`)
-          if (existingStatusColor && existingStatusColor.startsWith('var(')) {
-            layerVars[`--recursica-brand-light-layer-layer-${i}-property-element-text-${status}`] = existingStatusColor
+          
+          // Check border color (only for non-zero layers)
+          if (i > 0) {
+            const existingBorderColor = readCssVar(`${prefixedBase}border-color`)
+            if (existingBorderColor && existingBorderColor.startsWith('var(') && existingBorderColor.includes('palettes')) {
+              layerVars[`--recursica-brand-${modeLoop}-layer-layer-${i}-property-border-color`] = existingBorderColor
+            }
           }
-        })
-      }
-      
-      // Also check alternative layers
-      const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
-      for (const altKey of altKeys) {
-        const prefixedBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property-`
+          
+          // Preserve AA compliance updates for text and interactive colors
+          // These are set by AAComplianceWatcher and should not be overwritten
+          const textColorBase = `${prefixedBase}element-text-`
+          const interColorBase = `${prefixedBase}element-interactive-`
+          
+          // Text color - only preserve if it exists AND wasn't just generated (to avoid overwriting on init/reset)
+          // Check if this variable was already generated by buildLayerVars
+          const textColorKey = `--recursica-brand-${modeLoop}-layer-layer-${i}-property-element-text-color`
+          const existingTextColor = readCssVar(`${textColorBase}color`)
+          // IMPORTANT: Only preserve if:
+          // 1. layerVars doesn't already have this key (meaning buildLayerVars generated it)
+          // 2. The existing value is different from what was just generated (meaning AAComplianceWatcher updated it)
+          // This ensures we always use the value from buildLayerVars on init/mode switch, not stale DOM values
+          // But we preserve AA compliance updates that were made after initial generation
+          const generatedValue = layerVars[textColorKey]
+          if (existingTextColor && existingTextColor.startsWith('var(') && generatedValue && existingTextColor !== generatedValue) {
+            // Only preserve if it's different from generated (AA compliance update)
+            layerVars[textColorKey] = existingTextColor
+          }
+          
+          // Interactive color - only preserve if it's different from generated (AA compliance update)
+          const interColorKey = `--recursica-brand-${modeLoop}-layer-layer-${i}-property-element-interactive-color`
+          const existingInterColor = readCssVar(`${interColorBase}color`)
+          const generatedInterColor = layerVars[interColorKey]
+          if (existingInterColor && existingInterColor.startsWith('var(') && generatedInterColor && existingInterColor !== generatedInterColor) {
+            // Only preserve if it's different from generated (AA compliance update)
+            layerVars[interColorKey] = existingInterColor
+          }
+          
+          // Status colors (alert, warning, success) - only preserve if different from generated (AA compliance update)
+          const statusColors = ['alert', 'warning', 'success']
+          statusColors.forEach((status) => {
+            const statusColorKey = `--recursica-brand-${modeLoop}-layer-layer-${i}-property-element-text-${status}`
+            const existingStatusColor = readCssVar(`${textColorBase}${status}`)
+            const generatedStatusColor = layerVars[statusColorKey]
+            if (existingStatusColor && existingStatusColor.startsWith('var(') && generatedStatusColor && existingStatusColor !== generatedStatusColor) {
+              // Only preserve if it's different from generated (AA compliance update)
+              layerVars[statusColorKey] = existingStatusColor
+            }
+          })
+        }
         
-        const existingSurface = readCssVar(`${prefixedBase}surface`)
-        // For primary-color, always ensure it's set even if not existing (fixes refresh/reset issue)
-        if (altKey === 'primary-color' && !existingSurface) {
-          layerVars[`--recursica-brand-light-layer-layer-alternative-${altKey}-property-surface`] = 'var(--recursica-brand-light-palettes-palette-1-primary-tone)'
-        } else if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
-          layerVars[`--recursica-brand-light-layer-layer-alternative-${altKey}-property-surface`] = existingSurface
+        // Also check alternative layers - preserve ALL variables, not just surface
+        const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+        for (const altKey of altKeys) {
+          const prefixedBase = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-`
+          
+          // Preserve surface variable - but prefer generated value over existing DOM value
+          const surfaceKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-surface`
+          const existingSurface = readCssVar(`${prefixedBase}surface`)
+          const generatedSurface = layerVars[surfaceKey]
+          
+          // For primary-color, always use the palette-1-primary-tone reference directly
+          // This ensures it always reflects the current primary tone selection, regardless of what was generated or exists
+          if (altKey === 'primary-color') {
+            layerVars[surfaceKey] = `var(--recursica-brand-${modeLoop}-palettes-palette-1-primary-tone)`
+          } else if (generatedSurface) {
+            // Use generated value (from buildLayerVars) - this is the source of truth from JSON
+            // ALWAYS use generated value if it exists, even if it differs from existing DOM value
+            layerVars[surfaceKey] = generatedSurface
+          } else if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
+            // Fallback: use existing DOM value only if no generated value exists
+            layerVars[surfaceKey] = existingSurface
+          }
+          
+          // Preserve element text colors (similar to standard layers)
+          const textColorBase = `${prefixedBase}element-text-`
+          const textColorKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-element-text-color`
+          const existingTextColor = readCssVar(`${textColorBase}color`)
+          const generatedTextColor = layerVars[textColorKey]
+          // Preserve if it exists and is different from generated (AA compliance update), OR if it exists but wasn't generated
+          if (existingTextColor && existingTextColor.startsWith('var(')) {
+            if (!generatedTextColor || existingTextColor !== generatedTextColor) {
+              layerVars[textColorKey] = existingTextColor
+            }
+          }
+          
+          // Preserve element interactive colors
+          const interColorBase = `${prefixedBase}element-interactive-`
+          const interColorKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-element-interactive-color`
+          const existingInterColor = readCssVar(`${interColorBase}color`)
+          const generatedInterColor = layerVars[interColorKey]
+          // Preserve if it exists and is different from generated (AA compliance update), OR if it exists but wasn't generated
+          if (existingInterColor && existingInterColor.startsWith('var(')) {
+            if (!generatedInterColor || existingInterColor !== generatedInterColor) {
+              layerVars[interColorKey] = existingInterColor
+            }
+          }
+          
+          // Preserve other interactive properties (tone, on-tone, etc.)
+          const interactiveProps = ['tone', 'tone-hover', 'on-tone', 'on-tone-hover', 'high-emphasis']
+          interactiveProps.forEach((prop) => {
+            const propKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-element-interactive-${prop}`
+            const existingProp = readCssVar(`${interColorBase}${prop}`)
+            const generatedProp = layerVars[propKey]
+            if (existingProp && existingProp.startsWith('var(')) {
+              if (!generatedProp || existingProp !== generatedProp) {
+                layerVars[propKey] = existingProp
+              }
+            }
+          })
+          
+          // Preserve text emphasis opacities
+          const emphasisProps = ['high-emphasis', 'low-emphasis']
+          emphasisProps.forEach((prop) => {
+            const propKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-element-text-${prop}`
+            const existingProp = readCssVar(`${textColorBase}${prop}`)
+            const generatedProp = layerVars[propKey]
+            if (existingProp && existingProp.startsWith('var(')) {
+              if (!generatedProp || existingProp !== generatedProp) {
+                layerVars[propKey] = existingProp
+              }
+            }
+          })
         }
       }
     } catch {}
     
     Object.assign(allVars, layerVars)
-    // Dimensions (Light mode default for now; dark can be toggled by UI where needed)
+    // Dimensions - generate for both modes (dimensions are mode-agnostic but vars are generated for both)
     try {
       const dimensionVarsLight = buildDimensionVars(this.state.tokens, this.state.theme, 'light')
+      const dimensionVarsDark = buildDimensionVars(this.state.tokens, this.state.theme, 'dark')
       Object.assign(allVars, dimensionVarsLight)
+      Object.assign(allVars, dimensionVarsDark)
     } catch {}
     // UIKit components
     try {
@@ -1159,12 +1296,14 @@ class VarsStore {
         // Convert 0..1 opacity token to percentage weight for color-mix.
         `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
       const familyForPalette: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
-      const shadowColorForLevel = (level: number): string => {
+      const shadowColorForLevel = (level: number, paletteVars?: Record<string, string>): string => {
         const key = `elevation-${level}`
         const sel = this.state.elevation.paletteSelections[key]
         if (sel) {
           // Use palette CSS variable instead of token CSS variable
-          const paletteVarRef = `var(--recursica-brand-light-palettes-${sel.paletteKey}-${sel.level}-tone)`
+          const paletteVarName = `--recursica-brand-${currentMode}-palettes-${sel.paletteKey}-${sel.level}-tone`
+          // Check if palette var exists in paletteVars (during initialization) or use var() reference
+          const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
           const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
           const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
           return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
@@ -1204,7 +1343,7 @@ class VarsStore {
         const dir = dirForLevel(i)
         const sxExpr = dir.x === 'right' ? `var(--recursica-tokens-${xTok.replace(/\//g, '-')})` : `calc(var(--recursica-tokens-${xTok.replace(/\//g, '-')}) * -1)`
         const syExpr = dir.y === 'down' ? `var(--recursica-tokens-${yTok.replace(/\//g, '-')})` : `calc(var(--recursica-tokens-${yTok.replace(/\//g, '-')}) * -1)`
-        const brandScope = `--brand-light-elevations-elevation-${i}`
+        const brandScope = `--brand-${currentMode}-elevations-elevation-${i}`
         const prefixedScope = `--recursica-${brandScope.slice(2)}`
         
         // Check if there's already a palette CSS variable set (preserve user selections)
@@ -1243,7 +1382,7 @@ class VarsStore {
           }
         } else {
           // Calculate color from state
-          const color = shadowColorForLevel(i)
+          const color = shadowColorForLevel(i, allPaletteVars)
           vars[`${brandScope}-shadow-color`] = String(color)
         }
         vars[`${brandScope}-blur`] = `var(--recursica-tokens-${blurTok.replace(/\//g, '-')})`

@@ -169,6 +169,9 @@
             }
           }
         },
+        "state": {
+          "$ref": "#/definitions/state"
+        },
         "typography": {
           "type": "object"
         }
@@ -412,6 +415,63 @@
         }
       },
       "additionalProperties": false
+    },
+    "state": {
+      "type": "object",
+      "properties": {
+        "disabled": {
+          "type": "object",
+          "required": ["$type", "$value"],
+          "properties": {
+            "$type": {
+              "type": "string",
+              "enum": ["number"]
+            },
+            "$value": {
+              "type": "string",
+              "pattern": "^\\{tokens\\.opacity\\.[a-z0-9_-]+\\}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "overlay": {
+          "type": "object",
+          "required": ["color", "opacity"],
+          "properties": {
+            "color": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["color"]
+                },
+                "$value": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "opacity": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["number"]
+                },
+                "$value": {
+                  "type": "string",
+                  "pattern": "^\\{tokens\\.opacity\\.[a-z0-9_-]+\\}$"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
     }
   }
 }

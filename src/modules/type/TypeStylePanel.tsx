@@ -3,6 +3,7 @@ import { useVars } from '../vars/VarsContext'
 import { updateCssVar as updateCssVarUtil, removeCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
 import TokenSlider from '../forms/TokenSlider'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -189,8 +190,9 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const lineHeightCurrentToken = useMemo(() => prefix ? getCurrentTokenName(lineHeightCssVar, lineHeightOptions) : undefined, [lineHeightCssVar, lineHeightOptions, updateKey, prefix])
   const currentFamily = useMemo(() => prefix ? getCurrentFamily(familyCssVar) : '', [familyCssVar, familyOptions, updateKey, prefix])
 
+  const { mode } = useThemeMode()
   return (
-    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(240px, 36vw, 520px)', background: 'var(--recursica-brand-light-layer-layer-1-property-surface)', borderLeft: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(240px, 36vw, 520px)', background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-3-shadow-color)`, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 700 }}>{title}</div>
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
@@ -206,7 +208,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                     const v = (e.target as HTMLSelectElement).value
                     updateCssVarValue('font-family', v)
                   }}
-                  style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)' }}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)` }}
                 >
                   <option value=""></option>
                   {familyOptions.map((o) => (<option key={o.short} value={o.value}>{o.label}</option>))}

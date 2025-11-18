@@ -3,11 +3,13 @@ import LayerModule from './LayerModule'
 import LayerStylePanel from './LayerStylePanel'
 import { useMemo, useState, useEffect } from 'react'
 import { useVars } from '../vars/VarsContext'
+import { useThemeMode } from '../theme/ThemeModeContext'
 import ElevationModule from '../elevation/ElevationModule'
 import ElevationStylePanel from '../elevation/ElevationStylePanel'
 
 export default function LayersPage() {
   const { tokens: tokensJson, theme, setTheme, elevation, updateElevation, checkAlternativeLayersAA } = useVars()
+  const { mode } = useThemeMode()
   const [selectedLayerLevels, setSelectedLayerLevels] = useState<Set<number>>(() => new Set())
   const [selectedLevels, setSelectedLevels] = useState<Set<number>>(() => new Set<number>())
 
@@ -19,6 +21,16 @@ export default function LayersPage() {
     }, 100)
     return () => clearTimeout(timeout)
   }, [checkAlternativeLayersAA])
+
+  // Close panels when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setSelectedLayerLevels(new Set())
+      setSelectedLevels(new Set())
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
 
   // Extract token lists for UI (values are resolved via CSS vars)
   const availableSizeTokens = useMemo(() => {
@@ -88,7 +100,8 @@ export default function LayersPage() {
   // Revert selected levels to theme defaults
   const revertSelected = (levels: Set<number>) => {
     const brand: any = (theme as any)?.brand || (theme as any)
-    const light: any = brand?.light?.elevations || {}
+    const themes = brand?.themes || brand
+    const light: any = themes?.[mode]?.elevations || brand?.[mode]?.elevations || {}
     
     const toSize = (ref?: any): string => {
       const s: string | undefined = typeof ref === 'string' ? ref : (ref?.['$value'] as any)
@@ -176,7 +189,7 @@ export default function LayersPage() {
     })
   }
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface)', color: 'var(--recursica-brand-light-layer-layer-0-property-element-text-color)' }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-color)` }}>
       <div className="container-padding">
         <div className="section">
           <h2>Layers</h2>
@@ -274,12 +287,12 @@ export default function LayersPage() {
               const target = nextTheme.brand || nextTheme
               // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
               const themes = target?.themes || target
-              const container = themes?.light?.layers || themes?.light?.layer || target?.light?.layers || target?.light?.layer
+              const container = themes?.[mode]?.layers || themes?.[mode]?.layer || target?.[mode]?.layers || target?.[mode]?.layer
               if (!container) {
                 // Create the structure if it doesn't exist
-                if (!themes.light) themes.light = {}
-                if (!themes.light.layers) themes.light.layers = {}
-                const newContainer = themes.light.layers
+                if (!themes[mode]) themes[mode] = {}
+                if (!themes[mode].layers) themes[mode].layers = {}
+                const newContainer = themes[mode].layers
                 Array.from(selectedLayerLevels).forEach((lvl) => {
                   const key = `layer-${lvl}`
                   if (!newContainer[key]) newContainer[key] = {}

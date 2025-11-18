@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Button } from '../../components/adapters/Button'
 import uikitJson from '../../vars/UIKit.json'
 import ComponentCssVarsPanel from './ComponentCssVarsPanel'
 import { useVars } from '../vars/VarsContext'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3' | 'layer-alternative-high-contrast' | 'layer-alternative-primary-color' | 'layer-alternative-alert' | 'layer-alternative-warning' | 'layer-alternative-success'
 
@@ -46,10 +47,11 @@ function sortLayers(layers: LayerOption[]): LayerOption[] {
 // Layer section component - renders a single layer's content with that layer's styling
 const LayerSection = ({ layer, children }: { layer: LayerOption; children: React.ReactNode }) => {
   const { theme } = useVars()
+  const { mode } = useThemeMode()
   const isAlternativeLayer = layer.startsWith('layer-alternative-')
   const layerBase = isAlternativeLayer
-    ? `--recursica-brand-light-layer-layer-alternative-${layer.replace('layer-alternative-', '')}-property`
-    : `--recursica-brand-light-layer-${layer}-property`
+    ? `--recursica-brand-${mode}-layer-layer-alternative-${layer.replace('layer-alternative-', '')}-property`
+    : `--recursica-brand-${mode}-layer-${layer}-property`
   
   // For layer-0, no border; for other layers, use border-color
   const hasBorder = !isAlternativeLayer && layer !== 'layer-0'
@@ -64,7 +66,7 @@ const LayerSection = ({ layer, children }: { layer: LayerOption; children: React
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const themes = root?.themes || root
       const layerId = layer.replace('layer-', '')
-      const layerSpec: any = themes?.light?.layers?.[layer] || themes?.light?.layer?.[layer] || root?.light?.layers?.[layer] || root?.light?.layer?.[layer] || {}
+      const layerSpec: any = themes?.[mode]?.layers?.[layer] || themes?.[mode]?.layer?.[layer] || root?.[mode]?.layers?.[layer] || root?.[mode]?.layer?.[layer] || {}
       const v: any = layerSpec?.property?.elevation?.$value
       if (typeof v === 'string') {
         // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
@@ -74,10 +76,10 @@ const LayerSection = ({ layer, children }: { layer: LayerOption; children: React
     } catch {}
     // Default to layer number if elevation not found
     return layer.replace('layer-', '')
-  }, [theme, layer, isAlternativeLayer])
+  }, [theme, layer, isAlternativeLayer, mode])
   
   // Construct box-shadow CSS variable using elevation
-  const boxShadow = `var(--recursica-brand-light-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-light-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-color-gray-1000))`
+  const boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-color-gray-1000))`
   
   const layerLabel = layer.startsWith('layer-alternative-') 
     ? layer.replace('layer-alternative-', '').replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())
@@ -107,13 +109,14 @@ const LayerSection = ({ layer, children }: { layer: LayerOption; children: React
 
 // Component section - renders a component with header and all layer groups
 const ComponentSection = ({ title, url, children, onEditCssVars, selectedLayers }: { title: string; url: string; children: (selectedLayers: Set<LayerOption>) => React.ReactNode; onEditCssVars: () => void; selectedLayers: Set<LayerOption> }) => {
+  const { mode } = useThemeMode()
   const layers = sortLayers(Array.from(selectedLayers))
-  const layer0Base = '--recursica-brand-light-layer-layer-0-property'
+  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
   
   return (
     <section style={{ 
       background: `var(${layer0Base}-surface)`, 
-      border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
+      border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, 
       borderRadius: 8, 
       padding: 16,
       display: 'grid',
@@ -167,6 +170,16 @@ const ComponentSection = ({ title, url, children, onEditCssVars, selectedLayers 
 export default function PreviewPage() {
   const [showUnmapped, setShowUnmapped] = useState(false)
   const [editingComponent, setEditingComponent] = useState<string | null>(null)
+  const { mode } = useThemeMode()
+
+  // Close panel when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setEditingComponent(null)
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
   const [selectedLayers, setSelectedLayers] = useState<Set<LayerOption>>(new Set(['layer-0']))
   
   // Get list of mapped components from UIKit.json
@@ -215,9 +228,9 @@ export default function PreviewPage() {
         url: `${base}/badge`,
         render: (_selectedLayers) => (
           <div style={{ display: 'flex', gap: 8 }}>
-            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
-            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-warning-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
-            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-success-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
+            <span style={{ background: `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
+            <span style={{ background: `var(--recursica-brand-${mode}-layer-layer-alternative-warning-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
+            <span style={{ background: `var(--recursica-brand-${mode}-layer-layer-alternative-success-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
           </div>
         ),
       },
@@ -248,8 +261,8 @@ export default function PreviewPage() {
                 // Build CSS variable names for this layer's text color with high emphasis
                 const isAlternativeLayer = layer.startsWith('layer-alternative-')
                 const layerBase = isAlternativeLayer
-                  ? `--recursica-brand-light-layer-layer-alternative-${layer.replace('layer-alternative-', '')}-property`
-                  : `--recursica-brand-light-layer-${layer}-property`
+                  ? `--recursica-brand-${mode}-layer-layer-alternative-${layer.replace('layer-alternative-', '')}-property`
+                  : `--recursica-brand-${mode}-layer-${layer}-property`
                 const textColorVar = `${layerBase}-element-text-color`
                 const highEmphasisVar = `${layerBase}-element-text-high-emphasis`
                 
@@ -375,7 +388,7 @@ export default function PreviewPage() {
         render: (_selectedLayers) => (
           <div style={{ display: 'flex', gap: 12 }}>
             <a href="#">Default link</a>
-            <a href="#" style={{ opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }} aria-disabled>Disabled link</a>
+            <a href="#" style={{ opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }} aria-disabled>Disabled link</a>
           </div>
         ),
       },
@@ -384,7 +397,7 @@ export default function PreviewPage() {
         url: `${base}/loader`,
         render: (_selectedLayers) => (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <div style={{ width: 16, height: 16, border: '2px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderTopColor: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <div style={{ width: 16, height: 16, border: `2px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderTopColor: `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
             <style>
               {`@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }`}
             </style>
@@ -396,10 +409,10 @@ export default function PreviewPage() {
         name: 'Menu',
         url: `${base}/menu`,
         render: (_selectedLayers) => (
-          <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8 }}>
+          <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 8 }}>
             <li style={{ padding: 8 }}>Profile</li>
             <li style={{ padding: 8 }}>Settings</li>
-            <li style={{ padding: 8, opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}>Disabled</li>
+            <li style={{ padding: 8, opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>Disabled</li>
           </ul>
         ),
       },
@@ -407,7 +420,7 @@ export default function PreviewPage() {
         name: 'Modal',
         url: `${base}/modal`,
         render: (_selectedLayers) => (
-          <div style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', padding: 12, borderRadius: 8, background: 'var(--recursica-brand-light-layer-layer-0-property-surface)' }}>
+          <div style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, padding: 12, borderRadius: 8, background: `var(--recursica-brand-${mode}-layer-layer-0-property-surface)` }}>
             <strong>Modal</strong>
             <div style={{ fontSize: 12, opacity: 0.75 }}>Header, body, actions</div>
           </div>
@@ -418,12 +431,12 @@ export default function PreviewPage() {
         url: `${base}/card`,
         render: (_selectedLayers) => (
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ width: 240, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+            <div style={{ width: 240, border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 8, padding: 12 }}>
               <strong>Card Title</strong>
               <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses elevation 1.</p>
               <a href="#" style={{ fontSize: 12 }}>Learn more</a>
             </div>
-            <div style={{ width: 240, border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12, boxShadow: '0 8px 16px var(--recursica-brand-light-elevations-elevation-2-shadow-color)' }}>
+            <div style={{ width: 240, border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 8, padding: 12, boxShadow: `0 8px 16px var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)` }}>
               <strong>Higher Elevation</strong>
               <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses elevation 8.</p>
             </div>
@@ -449,11 +462,11 @@ export default function PreviewPage() {
         url: `${base}/chip`,
         render: (_selectedLayers) => (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
-            <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
-            <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
-            <span style={{ background: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', borderRadius: 999, padding: '2px 10px' }}>Primary</span>
-            <span style={{ border: '1px solid var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-layer-layer-alternative-primary-color-property-element-interactive-color)', borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
+            <span style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
+            <span style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
+            <span style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
+            <span style={{ background: `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 10px' }}>Primary</span>
+            <span style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
           </div>
         ),
       },
@@ -481,9 +494,9 @@ export default function PreviewPage() {
               <div>List item 2</div>
               <div style={{ fontSize: 12, opacity: 0.75 }}>Secondary text</div>
             </li>
-              <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}>
-              Disabled item
-            </li>
+              <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>
+                Disabled item
+              </li>
           </ul>
         ),
       },
@@ -504,7 +517,7 @@ export default function PreviewPage() {
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <button>{'<'}</button>
             {[1, 2, 3, 4, 5].map((p) => (
-              <button key={p} style={{ padding: '4px 8px', borderRadius: 6, background: p === 2 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : undefined, color: p === 2 ? 'var(--recursica-brand-light-palettes-core-white)' : undefined }}>{p}</button>
+              <button key={p} style={{ padding: '4px 8px', borderRadius: 6, background: p === 2 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : undefined, color: p === 2 ? `var(--recursica-brand-${mode}-palettes-core-white)` : undefined }}>{p}</button>
             ))}
             <button>{'>'}</button>
           </div>
@@ -531,7 +544,7 @@ export default function PreviewPage() {
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <label><input type="radio" name="r1" defaultChecked /> First</label>
             <label><input type="radio" name="r1" /> Second</label>
-            <label style={{ opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}><input type="radio" name="r1" disabled /> Disabled</label>
+            <label style={{ opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}><input type="radio" name="r1" disabled /> Disabled</label>
           </div>
         ),
       },
@@ -559,7 +572,7 @@ export default function PreviewPage() {
         url: `${base}/segmented-control`,
         render: (_selectedLayers) => (
           <div style={{ display: 'inline-flex', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, overflow: 'hidden' }}>
-            <button style={{ padding: '6px 10px', background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', border: 0 }}>First</button>
+            <button style={{ padding: '6px 10px', background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: `var(--recursica-brand-${mode}-palettes-core-white)`, border: 0 }}>First</button>
             <button style={{ padding: '6px 10px', border: 0 }}>Second</button>
             <button style={{ padding: '6px 10px', border: 0 }}>Third</button>
           </div>
@@ -579,7 +592,7 @@ export default function PreviewPage() {
           <ol style={{ display: 'flex', gap: 12, listStyle: 'none', padding: 0 }}>
             {['One', 'Two', 'Three'].map((s, i) => (
               <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'var(--palette-neutral-300-tone)', color: 'var(--recursica-brand-light-palettes-core-white)', display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
+                <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'var(--palette-neutral-300-tone)', color: `var(--recursica-brand-${mode}-palettes-core-white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
                 <span>{s}</span>
               </li>
             ))}
@@ -597,7 +610,7 @@ export default function PreviewPage() {
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <input type="checkbox" /> Off
             </label>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>
               <input type="checkbox" disabled /> Disabled
             </label>
           </div>
@@ -608,9 +621,9 @@ export default function PreviewPage() {
         url: `${base}/tabs`,
         render: (_selectedLayers) => (
           <div style={{ display: 'flex', gap: 6 }}>
-            <button style={{ padding: '6px 10px', borderRadius: 999, background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: 'var(--recursica-brand-light-palettes-core-white)', border: 0 }}>Active</button>
+            <button style={{ padding: '6px 10px', borderRadius: 999, background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: `var(--recursica-brand-${mode}-palettes-core-white)`, border: 0 }}>Active</button>
             <button style={{ padding: '6px 10px', borderRadius: 999 }}>Default</button>
-            <button style={{ padding: '6px 10px', borderRadius: 999, opacity: 'var(--recursica-brand-light-opacity-disabled, 0.5)' }}>Disabled</button>
+            <button style={{ padding: '6px 10px', borderRadius: 999, opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>Disabled</button>
           </div>
         ),
       },
@@ -691,7 +704,7 @@ export default function PreviewPage() {
         ...section,
         isMapped: mappedComponents.has(section.name)
       }))
-  }, [mappedComponents])
+  }, [mappedComponents, mode])
   
   // Filter sections based on toggle
   const visibleSections = useMemo(() => {
@@ -751,8 +764,8 @@ export default function PreviewPage() {
         </div>
         <div style={{ 
           padding: 16, 
-          background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', 
-          border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
+          background: `var(--recursica-brand-${mode}-layer-layer-0-property-surface)`, 
+          border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, 
           borderRadius: 8,
           display: 'grid',
           gap: 12
@@ -798,12 +811,12 @@ export default function PreviewPage() {
         </div>
       </div>
       {mappedCount > 0 && (
-        <div style={{ fontSize: 14, color: 'var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis)' }}>
+        <div style={{ fontSize: 14, color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-low-emphasis)` }}>
           Showing {visibleSections.length} of {sections.length} components ({mappedCount} mapped)
         </div>
       )}
       {visibleSections.length === 0 ? (
-        <div style={{ padding: 24, textAlign: 'center', color: 'var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis)' }}>
+        <div style={{ padding: 24, textAlign: 'center', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-low-emphasis)` }}>
           No components to display. {showUnmapped ? 'All components are mapped.' : 'Enable "Show unmapped components" to see all components.'}
         </div>
       ) : (

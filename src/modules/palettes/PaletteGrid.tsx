@@ -203,7 +203,8 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   }, [paletteKey, themeIndex, defaultLevelStr, mode])
   const [primaryLevelStr, setPrimaryLevelStr] = useState<string>(() => {
     try {
-      const raw = localStorage.getItem(`palette-primary-level:${paletteKey}`)
+      // Use mode-specific localStorage key
+      const raw = localStorage.getItem(`palette-primary-level:${paletteKey}:${mode}`)
       if (raw) {
         const v = JSON.parse(raw)
         if (typeof v === 'string') return v.padStart(3, '0')
@@ -211,9 +212,29 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     } catch {}
     return resolveDefaultLevelForPalette
   })
+  
+  // Update primary level when mode changes
   useEffect(() => {
-    try { localStorage.setItem(`palette-primary-level:${paletteKey}`, JSON.stringify(primaryLevelStr)) } catch {}
-  }, [paletteKey, primaryLevelStr])
+    try {
+      const raw = localStorage.getItem(`palette-primary-level:${paletteKey}:${mode}`)
+      if (raw) {
+        const v = JSON.parse(raw)
+        if (typeof v === 'string') {
+          const newLevel = v.padStart(3, '0')
+          setPrimaryLevelStr(newLevel)
+        }
+      } else {
+        // If no mode-specific value exists, use the default
+        setPrimaryLevelStr(resolveDefaultLevelForPalette)
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, paletteKey]) // Only update when mode or paletteKey changes, not when primaryLevelStr changes
+  
+  useEffect(() => {
+    // Store mode-specific primary level
+    try { localStorage.setItem(`palette-primary-level:${paletteKey}:${mode}`, JSON.stringify(primaryLevelStr)) } catch {}
+  }, [paletteKey, primaryLevelStr, mode])
   const [hoverLevelStr, setHoverLevelStr] = useState<string | null>(null)
   const applyThemeMappingsFromJson = (modeLabel: 'Light' | 'Dark') => {
     const levels = headerLevels
@@ -251,6 +272,16 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-primary-on-tone`,
         `var(--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone)`
       )
+      
+      // If this is palette-1, update the alt layer surface for this mode
+      if (paletteKey === 'palette-1') {
+        const altLayerSurfaceKey = `--recursica-brand-${mode.toLowerCase()}-layer-layer-alternative-primary-color-property-surface`
+        updateCssVar(
+          altLayerSurfaceKey,
+          `var(--recursica-brand-${mode.toLowerCase()}-palettes-palette-1-primary-tone)`
+        )
+      }
+      
       // Notify dependents that primary-level derived vars changed
       try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}
     } catch {}
@@ -265,7 +296,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
               type="button"
               onClick={onDelete}
               title="Delete palette"
-              style={{ padding: '6px 10px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+              style={{ padding: '6px 10px', border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
             >Delete</button>
           )}
           <PaletteColorSelector

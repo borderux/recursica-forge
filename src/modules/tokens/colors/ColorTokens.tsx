@@ -21,6 +21,15 @@ export default function ColorTokens() {
   const [values, setValues] = useState<Record<string, string | number>>({})
   const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
+
+  // Close picker when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setOpenPicker(null)
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
   const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>({})
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [namesHydrated, setNamesHydrated] = useState(false)

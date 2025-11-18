@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 export default function OpacityPicker() {
   const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
@@ -10,6 +11,17 @@ export default function OpacityPicker() {
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
+
+  // Close picker when mode changes
+  useEffect(() => {
+    const handleCloseAll = () => {
+      setAnchor(null)
+      setTargetCssVar(null)
+      setCurrentToken(null)
+    }
+    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
+    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
+  }, [])
   
   const options = useMemo(() => {
     const src = (tokensJson as any)?.tokens?.opacity || {}
@@ -55,28 +67,46 @@ export default function OpacityPicker() {
     // Update the target CSS variable to reference the opacity token
     updateCssVar(targetCssVar, `var(${opacityCssVar})`)
     
-    // Persist to theme JSON if this is a text-emphasis opacity
+    // Persist to theme JSON if this is a text-emphasis opacity or overlay opacity
     const isEmphasisOpacity = targetCssVar.includes('text-emphasis-high') || 
                                targetCssVar.includes('text-emphasis-low')
-    if (isEmphasisOpacity && setTheme && themeJson) {
+    const isOverlayOpacity = targetCssVar.includes('state-overlay-opacity')
+    
+    if ((isEmphasisOpacity || isOverlayOpacity) && setTheme && themeJson) {
       try {
         const themeCopy = JSON.parse(JSON.stringify(themeJson))
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
         const themes = root?.themes || root
         
-        // Determine which mode (light or dark) and which emphasis (high or low)
+        // Determine which mode (light or dark)
         const isDark = targetCssVar.includes('-dark-')
-        const isHigh = targetCssVar.includes('text-emphasis-high')
         const modeKey = isDark ? 'dark' : 'light'
-        const emphasisKey = isHigh ? 'high' : 'low'
         
-        // Ensure text-emphasis structure exists
-        if (!themes[modeKey]) themes[modeKey] = {}
-        if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
-        
-        // Update the opacity reference in theme JSON
-        themes[modeKey]['text-emphasis'][emphasisKey] = {
-          $value: `{tokens.opacity.${tokenKey}}`
+        if (isEmphasisOpacity) {
+          // Handle text-emphasis opacity
+          const isHigh = targetCssVar.includes('text-emphasis-high')
+          const emphasisKey = isHigh ? 'high' : 'low'
+          
+          // Ensure text-emphasis structure exists
+          if (!themes[modeKey]) themes[modeKey] = {}
+          if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
+          
+          // Update the opacity reference in theme JSON
+          themes[modeKey]['text-emphasis'][emphasisKey] = {
+            $value: `{tokens.opacity.${tokenKey}}`
+          }
+        } else if (isOverlayOpacity) {
+          // Handle overlay opacity
+          // Ensure state structure exists
+          if (!themes[modeKey]) themes[modeKey] = {}
+          if (!themes[modeKey].state) themes[modeKey].state = {}
+          if (!themes[modeKey].state.overlay) themes[modeKey].state.overlay = {}
+          
+          // Update the overlay opacity reference in theme JSON
+          themes[modeKey].state.overlay.opacity = {
+            $type: 'number',
+            $value: `{tokens.opacity.${tokenKey}}`
+          }
         }
         
         setTheme(themeCopy)
@@ -100,6 +130,7 @@ export default function OpacityPicker() {
     setCurrentToken(null)
   }
 
+  const { mode } = useThemeMode()
   if (!anchor || !targetCssVar) return null
   
   return createPortal(
@@ -108,10 +139,11 @@ export default function OpacityPicker() {
       top: pos.top, 
       left: pos.left, 
       width: 240, 
-      background: 'var(--recursica-brand-light-layer-layer-2-property-surface)', 
-      border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)', 
+      background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`, 
+      color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
+      border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`, 
       borderRadius: 8, 
-      boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)', 
+      boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`, 
       padding: 10, 
       zIndex: 20000 
     }}>
@@ -142,7 +174,7 @@ export default function OpacityPicker() {
         <button 
           onClick={() => { setAnchor(null); setTargetCssVar(null); setCurrentToken(null) }} 
           aria-label="Close" 
-          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}
+          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)` }}
         >
           &times;
         </button>
@@ -159,8 +191,9 @@ export default function OpacityPicker() {
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 width: '100%', 
-                border: `1px solid ${isSelected ? 'var(--recursica-brand-light-layer-layer-2-property-border-color)' : 'var(--recursica-brand-light-layer-layer-2-property-border-color)'}`, 
-                background: isSelected ? 'var(--recursica-brand-light-layer-layer-2-property-surface)' : 'transparent', 
+                border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`, 
+                background: isSelected ? `var(--recursica-brand-${mode}-layer-layer-2-property-surface)` : 'transparent', 
+                color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
                 borderRadius: 6, 
                 padding: '6px 8px', 
                 cursor: 'pointer' 
@@ -168,7 +201,7 @@ export default function OpacityPicker() {
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {isSelected && (
-                  <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone)' }}>✓</span>
+                  <span style={{ fontSize: 14, color: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)` }}>✓</span>
                 )}
                 <span style={{ textTransform: 'capitalize' }}>{opt.name.replace('opacity/','')}</span>
               </span>

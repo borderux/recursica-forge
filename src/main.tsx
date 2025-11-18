@@ -8,6 +8,7 @@ import PreviewPage from './modules/preview/PreviewPage'
 import TokensPage from './modules/tokens/TokensPage'
 import LayersPage from './modules/layers/LayersPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
+import { ThemeModeProvider } from './modules/theme/ThemeModeContext'
 import { VarsProvider } from './modules/vars/VarsContext'
 import { UnifiedThemeProvider } from './components/providers/UnifiedThemeProvider'
 import './styles/index.css'
@@ -65,11 +66,13 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <UiKitProvider>
-      <VarsProvider>
-        <UnifiedThemeProvider>
-          <RouterProvider router={router} />
-        </UnifiedThemeProvider>
-      </VarsProvider>
+      <ThemeModeProvider>
+        <VarsProvider>
+          <UnifiedThemeProvider>
+            <RouterProvider router={router} />
+          </UnifiedThemeProvider>
+        </VarsProvider>
+      </ThemeModeProvider>
     </UiKitProvider>
   </React.StrictMode>,
 )
