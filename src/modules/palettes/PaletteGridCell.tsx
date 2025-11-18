@@ -9,9 +9,6 @@ import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { useThemeMode } from '../theme/ThemeModeContext'
 
-// Module-level Set to track logged AA check entries across all component instances
-const loggedAAChecks = new Set<string>()
-
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
   const fg = hexToRgb(fgHex)
@@ -286,14 +283,6 @@ export function PaletteEmphasisCell({
   // If tone fails AA for either emphasis level, both cells should open color picker (not set primary)
   const shouldOpenColorPicker = aaStatus?.toneFailsAA ?? false
   
-  // Debug logging (remove after testing) - only log once per unique state across all instances
-  if (aaStatus && paletteKey === 'palette-1' && level === '400') {
-    const logKey = `${paletteKey}-${level}-${aaStatus.passesAA}-${aaStatus.blackPasses}-${aaStatus.whitePasses}-${aaStatus.opacity.toFixed(2)}-${aaStatus.currentRatio.toFixed(2)}`
-    if (!loggedAAChecks.has(logKey)) {
-      console.log(`[AA Check] ${paletteKey}-${level}: passesAA=${aaStatus.passesAA}, blackPasses=${aaStatus.blackPasses}, whitePasses=${aaStatus.whitePasses}, opacity=${aaStatus.opacity.toFixed(2)}, ratio=${aaStatus.currentRatio.toFixed(2)}`)
-      loggedAAChecks.add(logKey)
-    }
-  }
 
   return (
     <td

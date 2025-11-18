@@ -929,7 +929,6 @@ export class AAComplianceWatcher {
       // Auto-fix errors by triggering updates (only if not already fixing to prevent loops)
       if (errors.length > 0 && !this.isFixing) {
         this.isFixing = true
-        console.log('[AA Compliance] Attempting to auto-fix compliance issues...')
         this.updateAllLayers()
         // Re-check palette on-tones - proactively fix all palettes
         this.checkPaletteOnToneVars()
@@ -952,8 +951,6 @@ export class AAComplianceWatcher {
           this.isFixing = false
         }, 500)
       }
-    } else {
-      console.log('[AA Compliance] All color combinations meet AA standards ✓')
     }
   }
 

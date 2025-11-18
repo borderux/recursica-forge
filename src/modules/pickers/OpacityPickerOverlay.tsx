@@ -32,6 +32,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   const [selectedTokenName, setSelectedTokenName] = useState<string | undefined>(propTokenName)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
+  const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
 
   // Close overlay when mode changes
   useEffect(() => {
@@ -103,6 +104,12 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
     return null
   }
 
+  // Recalculate currentToken whenever targetCssVar changes or CSS var is updated
+  const resolvedCurrentToken = useMemo(() => {
+    if (!targetCssVar) return null
+    return extractTokenFromCssVar(targetCssVar)
+  }, [targetCssVar, version, cssVarUpdateTrigger]) // Include version and cssVarUpdateTrigger to react to changes
+
   ;(window as any).openOpacityPicker = (el: HTMLElement, targetTokenNameOrCssVar?: string) => {
     setAnchor(el)
     // If it looks like a CSS variable (starts with --), treat it as targetCssVar
@@ -149,6 +156,9 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
         
         // Set the target CSS variable to reference the opacity token CSS variable
         updateCssVar(prefixedTarget, `var(${opacityCssVar})`)
+        
+        // Trigger recalculation of resolvedCurrentToken
+        setCssVarUpdateTrigger((prev) => prev + 1)
         
         // Call onSelect with the opacity token CSS var name
         onSelect?.(tokenName, value, opacityCssVar)
@@ -200,7 +210,9 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
           const tokenKey = it.name.replace('opacity/', '')
           const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
           const isClickable = targetCssVar !== null || onSelect !== undefined
-          const isSelected = currentToken === it.name
+          // Use resolvedCurrentToken if available, otherwise fall back to currentToken
+          const effectiveCurrentToken = resolvedCurrentToken !== null ? resolvedCurrentToken : currentToken
+          const isSelected = effectiveCurrentToken === it.name
           
           return (
             <div

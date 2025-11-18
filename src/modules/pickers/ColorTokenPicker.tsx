@@ -20,6 +20,7 @@ export default function ColorTokenPicker() {
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [showHoverModal, setShowHoverModal] = useState(false)
   const [pendingInteractiveHex, setPendingInteractiveHex] = useState<string | null>(null)
+  const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
   
   // Close picker when mode changes
   useEffect(() => {
@@ -116,7 +117,7 @@ export default function ColorTokenPicker() {
     const resolved = readCssVarResolved(targetVar)
     const directValue = readCssVar(targetVar)
     return { resolved, direct: directValue }
-  }, [targetVar])
+  }, [targetVar, cssVarUpdateTrigger]) // Include cssVarUpdateTrigger to react to CSS var changes
 
   // Check if a color token swatch is currently selected
   const isTokenSelected = (tokenName: string, tokenHex: string): boolean => {
@@ -138,16 +139,43 @@ export default function ColorTokenPicker() {
       if (trimmed === expectedValue) {
         return true
       }
-      // If target is a CSS var reference (not hex), only match exact references
+      
+      // If target is a CSS var reference, check if it resolves to this token
       if (trimmed.startsWith('var(')) {
-        return false
+        // Extract the inner CSS variable name
+        const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+        if (varMatch) {
+          const innerVar = varMatch[1].trim()
+          // Recursively check if the inner var resolves to our token
+          let currentVar = innerVar
+          let depth = 0
+          const maxDepth = 10
+          while (depth < maxDepth) {
+            const currentValue = readCssVar(currentVar)
+            if (!currentValue) break
+            
+            const trimmedValue = currentValue.trim()
+            if (trimmedValue === expectedValue) {
+              return true
+            }
+            
+            // If it's another var() reference, continue resolving
+            const nextVarMatch = trimmedValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+            if (nextVarMatch) {
+              currentVar = nextVarMatch[1].trim()
+              depth++
+            } else {
+              break
+            }
+          }
+        }
       }
     }
     
-    // Fallback: compare resolved hex values (only if target is a direct hex, not a var reference)
-    if (targetResolvedValue.direct && !targetResolvedValue.direct.trim().startsWith('var(')) {
+    // Fallback: compare resolved hex values
+    if (targetResolvedValue.resolved) {
       const normalizedHex = tokenHex.startsWith('#') ? tokenHex.toLowerCase().trim() : `#${tokenHex.toLowerCase().trim()}`
-      if (targetResolvedValue.resolved && /^#[0-9a-f]{6}$/.test(normalizedHex)) {
+      if (/^#[0-9a-f]{6}$/.test(normalizedHex)) {
         const targetHex = targetResolvedValue.resolved.startsWith('#') 
           ? targetResolvedValue.resolved.toLowerCase().trim() 
           : `#${targetResolvedValue.resolved.toLowerCase().trim()}`
@@ -254,13 +282,7 @@ export default function ColorTokenPicker() {
     // Verify the CSS variable exists before trying to use it
     // Check both the prefixed and unprefixed versions
     const tokenVarValue = readCssVar(tokenCssVar) || readCssVar(tokenCssVar.replace('--recursica-', '--'))
-    if (!tokenVarValue) {
-      console.error(`CSS variable ${tokenCssVar} does not exist. Cannot select level ${level} for ${family}.`)
-      console.error(`This may indicate that varsStore is not generating CSS variables for level ${level}.`)
-      // Still try to set it - the variable might be created dynamically
-    } else {
-      console.log(`Selecting ${tokenCssVar} (value: ${tokenVarValue})`)
-    }
+    // Still try to set it even if variable doesn't exist yet - it might be created dynamically
     
     // Check if this is a core color CSS var
     const isCoreColor = targetVar.startsWith(`--recursica-brand-${mode}-palettes-core-`)
@@ -304,6 +326,9 @@ export default function ColorTokenPicker() {
       console.error(`Failed to update ${targetVar} to var(${tokenCssVar})`)
       return
     }
+    
+    // Trigger recalculation of targetResolvedValue to update checkmark
+    setCssVarUpdateTrigger((prev) => prev + 1)
     
     // Also update theme JSON for core colors so changes persist across navigation
     if (isCoreColor) {

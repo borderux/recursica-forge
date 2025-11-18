@@ -129,10 +129,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
         const refMode = m[1].toLowerCase() as 'light' | 'dark'
         const color = m[2].toLowerCase()
         const result = `--recursica-brand-${refMode}-palettes-core-${color}`
-        // Debug logging for high-contrast surface
-        if (process.env.NODE_ENV === 'development' && color === 'white' && refMode === 'dark') {
-          console.log(`[Layers] parseCoreVarName matched:`, { s, inner, refMode, color, result })
-        }
         return result
       }
     } catch {}
@@ -345,15 +341,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       result[`${brandBase}surface`] = `var(${toneVarName})`
     } else {
       const surfVarRef = coerceToVarRef(surfRaw)
-      // Debug logging for high-contrast surface
-      if (process.env.NODE_ENV === 'development' && prefix === 'alternative-high-contrast' && mode === 'dark') {
-        console.log(`[Layers] High-contrast surface resolution (${mode}):`, {
-          surfRaw,
-          surfVarRef,
-          surf,
-          prefix
-        })
-      }
       if (surfVarRef) {
         result[`${brandBase}surface`] = surfVarRef
       } else if (surf != null && typeof surf === 'string' && !isAlt) {
@@ -450,15 +437,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       // Always use the var() reference directly - don't try to dereference from paletteVars
       // The palette variable will resolve correctly when CSS vars are applied
       result[`${brandTextBase}color`] = `var(${paletteVarName})`
-      // Debug logging
-      if (process.env.NODE_ENV === 'development' && prefix === '1' && mode === 'dark') {
-        console.log(`[Layers] Setting text color for layer-${prefix} (${mode}):`, {
-          tcolorRaw,
-          tcolorPalette,
-          paletteVarName,
-          result: result[`${brandTextBase}color`]
-        })
-      }
     } else {
       // Not a palette reference, try coerceToVarRef
       const tcolorVarRef = coerceToVarRef(tcolorRaw)
@@ -474,14 +452,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       // paletteVars contains the actual CSS variable values (like "var(--recursica-brand-light-palettes-core-black)")
       // IMPORTANT: paletteVars keys are the CSS variable names WITHOUT the '--' prefix in some cases, but actually they ARE the full CSS variable names
       let onToneValue: string | undefined = paletteVars?.[onToneVarName]
-      
-      // Debug: Log if we can't find the palette variable (only in dev)
-      if (!onToneValue && process.env.NODE_ENV === 'development') {
-        const availableKeys = Object.keys(paletteVars || {}).filter(k => k.includes('on-tone')).slice(0, 5)
-        console.log(`[Layers] Looking for on-tone var: ${onToneVarName}`)
-        console.log(`[Layers] Available on-tone vars (sample):`, availableKeys)
-        console.log(`[Layers] Found in paletteVars:`, !!paletteVars?.[onToneVarName])
-      }
       
       if (!onToneValue) {
         // Fall back to reading from DOM (for runtime updates after initialization)

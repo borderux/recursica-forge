@@ -90,9 +90,13 @@ function migratePaletteLocalKeys(): PaletteStore {
     for (let i = 0; i < localStorage.length; i += 1) {
       const k = localStorage.key(i) || ''
       if (k.startsWith('palette-primary-level:')) {
-        const key = k.split(':')[1] || ''
-        const v = JSON.parse(localStorage.getItem(k) || 'null')
-        if (typeof v === 'string') primaryLevels[key] = v
+        // Format is now: palette-primary-level:${paletteKey}:${mode}
+        const parts = k.split(':')
+        if (parts.length >= 2) {
+          const key = parts[1] || ''
+          const v = JSON.parse(localStorage.getItem(k) || 'null')
+          if (typeof v === 'string') primaryLevels[key] = v
+        }
       }
     }
   } catch {}
@@ -1086,25 +1090,7 @@ class VarsStore {
           const generatedValue = layerVars[textColorKey]
           if (existingTextColor && existingTextColor.startsWith('var(') && generatedValue && existingTextColor !== generatedValue) {
             // Only preserve if it's different from generated (AA compliance update)
-            // Debug: Log when we're preserving an AA compliance update
-            if (process.env.NODE_ENV === 'development' && modeLoop === 'dark' && i === 1) {
-              console.log(`[VarsStore] Preserving AA compliance update for layer-${i} (${modeLoop}):`, {
-                existingTextColor,
-                generated: generatedValue,
-                preserving: true
-              })
-            }
             layerVars[textColorKey] = existingTextColor
-          } else if (!generatedValue && existingTextColor && existingTextColor.startsWith('var(')) {
-            // If no generated value but DOM has a value, use generated value from buildLayerVars (shouldn't happen, but fallback)
-            // Actually, if buildLayerVars didn't generate it, we shouldn't preserve - let it be regenerated
-          } else if (process.env.NODE_ENV === 'development' && modeLoop === 'dark' && i === 1) {
-            // Debug: Log when we're using the generated value
-            console.log(`[VarsStore] Using generated text color for layer-${i} (${modeLoop}):`, {
-              existingTextColor,
-              generated: generatedValue,
-              willUseGenerated: !!generatedValue
-            })
           }
           
           // Interactive color - only preserve if it's different from generated (AA compliance update)
@@ -1139,18 +1125,9 @@ class VarsStore {
           const existingSurface = readCssVar(`${prefixedBase}surface`)
           const generatedSurface = layerVars[surfaceKey]
           
-          // Debug logging for high-contrast surface
-          if (process.env.NODE_ENV === 'development' && altKey === 'high-contrast' && modeLoop === 'dark') {
-            console.log(`[VarsStore] High-contrast surface preservation (${modeLoop}):`, {
-              surfaceKey,
-              existingSurface,
-              generatedSurface,
-              willUseGenerated: !!generatedSurface
-            })
-          }
-          
-          // For primary-color, always ensure it's set even if not existing (fixes refresh/reset issue)
-          if (altKey === 'primary-color' && !existingSurface && !generatedSurface) {
+          // For primary-color, always use the palette-1-primary-tone reference directly
+          // This ensures it always reflects the current primary tone selection, regardless of what was generated or exists
+          if (altKey === 'primary-color') {
             layerVars[surfaceKey] = `var(--recursica-brand-${modeLoop}-palettes-palette-1-primary-tone)`
           } else if (generatedSurface) {
             // Use generated value (from buildLayerVars) - this is the source of truth from JSON

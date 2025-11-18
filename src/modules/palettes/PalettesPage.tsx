@@ -362,18 +362,18 @@ export default function PalettesPage() {
                         <td className="swatch-box overlay" style={{ background: `var(--recursica-brand-${modeVar}-layer-layer-0-property-surface)`, padding: `var(--recursica-brand-${modeVar}-layer-layer-0-property-padding)`, cursor: 'pointer', position: 'relative' }} onClick={(e) => {
                           e.stopPropagation()
                           const rect = e.currentTarget.getBoundingClientRect()
-                          // Open palette picker for color first
-                          if ((window as any).openPalettePicker) {
-                            (window as any).openPalettePicker(e.currentTarget, `--recursica-brand-${modeVar}-state-overlay-color`)
+                          // Open color token picker for color
+                          if ((window as any).openPicker) {
+                            (window as any).openPicker(e.currentTarget, `--recursica-brand-${modeVar}-state-overlay-color`)
                           }
-                          // Open opacity picker after a short delay, positioned to the right of the palette picker
+                          // Open opacity picker after a short delay, positioned to the right of the color token picker
                           setTimeout(() => {
                             if ((window as any).openOpacityPicker) {
                               // Create a temporary element positioned to the right of where the palette picker would be
                               const tempEl = document.createElement('div')
                               tempEl.style.position = 'fixed'
                               tempEl.style.top = `${rect.bottom + 8}px`
-                              tempEl.style.left = `${Math.min(rect.left + 450, window.innerWidth - 260)}px`
+                              tempEl.style.left = `${Math.min(rect.left + 450, window.innerWidth - 400)}px`
                               tempEl.style.width = '1px'
                               tempEl.style.height = '1px'
                               document.body.appendChild(tempEl)

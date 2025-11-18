@@ -56,7 +56,6 @@ if (typeof window !== 'undefined') {
     // Wait for app to fully initialize and CSS vars to be set
     // Use setTimeout to ensure all providers and stores have initialized
     setTimeout(() => {
-      console.log('%c🔍 Auto-running CSS variable audit (localhost only)...', 'color: #4CAF50; font-weight: bold;')
       runCssVarAudit()
     }, 1000) // 1 second delay to ensure all CSS vars are applied
   }
