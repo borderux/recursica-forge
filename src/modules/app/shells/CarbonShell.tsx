@@ -12,12 +12,14 @@ import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
+import { useJsonExport, ExportComplianceModal } from '../../../core/export/exportWithCompliance'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
   const { mode, setMode } = useThemeMode()
   const [carbon, setCarbon] = useState<any>(null)
   const [isOpen, setIsOpen] = useState(false)
+  const { handleExport, showModal, complianceIssues, handleAcknowledge, handleCancel } = useJsonExport()
   const onUpload = async (file?: File | null) => {
     if (!file) return
     const text = await file.text()
@@ -56,7 +58,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
         </div>
         <HeaderGlobalBar>
           <button onClick={() => { clearOverrides(tokensJson as any); resetAll() }} title="Reset to defaults" style={{ marginRight: 8 }}>↺</button>
-          <button onClick={() => downloadCurrentCssVars()} title="Download" style={{ marginRight: 8 }}>⤓</button>
+          <button onClick={() => downloadCurrentCssVars()} title="Download CSS Variables" style={{ marginRight: 8 }}>⤓</button>
+          <button onClick={handleExport} title="Export JSON Files" style={{ marginRight: 8 }}>📥</button>
           <Toggle
             id="theme-mode-toggle"
             labelText={mode === 'dark' ? 'Dark' : 'Light'}
@@ -95,6 +98,12 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           {children}
         </Column>
       </Grid>
+      <ExportComplianceModal
+        show={showModal}
+        issues={complianceIssues}
+        onAcknowledge={handleAcknowledge}
+        onCancel={handleCancel}
+      />
     </Theme>
   )
 }

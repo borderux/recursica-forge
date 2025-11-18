@@ -12,6 +12,7 @@ import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
+import { useJsonExport, ExportComplianceModal } from '../../../core/export/exportWithCompliance'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -19,6 +20,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const [mat, setMat] = useState<any>(null)
   const [styles, setStyles] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const { handleExport, showModal, complianceIssues, handleAcknowledge, handleCancel } = useJsonExport()
   const onUpload = async (file?: File | null) => {
     if (!file) return
     const text = await file.text()
@@ -61,7 +63,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             <Tab value="uikit" label="UI Kit" component={Link as any} to="/uikit" />
           </Tabs>
           <IconButton color="inherit" size="small" onClick={() => { clearOverrides(tokensJson as any); resetAll() }} title="Reset to defaults">↺</IconButton>
-          <IconButton color="inherit" size="small" onClick={() => {/* open modal not implemented for MUI shell */}} title="Import / Export">⤓</IconButton>
+          <IconButton color="inherit" size="small" onClick={() => {/* open modal not implemented for MUI shell */}} title="Import / Export CSS Variables">⤓</IconButton>
+          <IconButton color="inherit" size="small" onClick={handleExport} title="Export JSON Files">📥</IconButton>
           <FormControlLabel
             control={
               <Switch
@@ -89,6 +92,12 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
       <Container maxWidth="lg" sx={{ py: 2 }}>
         {children}
       </Container>
+      <ExportComplianceModal
+        show={showModal}
+        issues={complianceIssues}
+        onAcknowledge={handleAcknowledge}
+        onCancel={handleCancel}
+      />
     </ThemeProvider>
   )
 }

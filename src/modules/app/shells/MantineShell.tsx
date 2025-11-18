@@ -14,11 +14,13 @@ import { useVars } from '../../vars/VarsContext'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
+import { useJsonExport, ExportComplianceModal } from '../../../core/export/exportWithCompliance'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
   const { mode, setMode } = useThemeMode()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const { handleExport, showModal, complianceIssues, handleAcknowledge, handleCancel } = useJsonExport()
   const location = useLocation()
   const navigate = useNavigate()
   const currentTab = location.pathname.startsWith('/tokens') ? 'tokens' : location.pathname.startsWith('/type') ? 'type' : location.pathname.startsWith('/layers') ? 'layers' : location.pathname.startsWith('/uikit') ? 'uikit' : 'palettes'
@@ -61,8 +63,11 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
               }} title="Reset to defaults">
                 ↺
               </ActionIcon>
-              <ActionIcon variant="default" onClick={() => setIsModalOpen(true)} title="Import / Export">
+              <ActionIcon variant="default" onClick={() => setIsModalOpen(true)} title="Import / Export CSS Variables">
                 ⤓
+              </ActionIcon>
+              <ActionIcon variant="default" onClick={handleExport} title="Export JSON Files">
+                📥
               </ActionIcon>
               <Switch
                 checked={mode === 'dark'}
@@ -102,6 +107,12 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
           {children}
         </AppShell.Main>
       </AppShell>
+      <ExportComplianceModal
+        show={showModal}
+        issues={complianceIssues}
+        onAcknowledge={handleAcknowledge}
+        onCancel={handleCancel}
+      />
     </MantineProvider>
   )
 }
