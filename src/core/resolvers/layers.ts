@@ -2,7 +2,7 @@ import type { JsonLike } from './tokens'
 import { buildTokenIndex } from './tokens'
 import { readCssVar } from '../css/readCssVar'
 
-export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' | 'dark' = 'light', overrides?: Record<string, any>): Record<string, string> {
+export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' | 'dark' = 'light', overrides?: Record<string, any>, paletteVars?: Record<string, string>): Record<string, string> {
   const tokenIndex = buildTokenIndex(tokens)
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
   // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
@@ -415,39 +415,87 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     if (tcolorRaw && typeof tcolorRaw === 'object' && typeof (tcolorRaw as any)['$value'] === 'string') {
       tcolorRaw = (tcolorRaw as any)['$value']
     }
-    // Only allow var references for text color overrides; otherwise derive from surface
-    const tcolorVarRef = coerceToVarRef(tcolorRaw)
+    // Check if it's a palette reference first, before calling coerceToVarRef
+    // This ensures we always use the correct palette variable even if coerceToVarRef fails
+    const tcolorPalette = parsePaletteToneRef(tcolorRaw)
     const talert = resolveRef(spec?.element?.text?.alert)
     const twarn = resolveRef(spec?.element?.text?.warning)
     const tsuccess = resolveRef(spec?.element?.text?.success)
-    // Base text color: choose surface palette on-tone where possible
+    // Base text color: use explicit text color if set, otherwise derive from surface palette on-tone
     const surfaceHex = typeof surf === 'string' ? String(surf) : undefined
-    if (surfPalette) {
+    if (tcolorPalette) {
+      // It's a palette reference - always use the correct palette variable
+      // Use refMode from the reference if specified, otherwise use current mode
+      const useMode = tcolorPalette.refMode ?? mode
+      const levelPart = tcolorPalette.level === 'primary' ? 'primary' : tcolorPalette.level
+      const paletteVarName = `--recursica-brand-${useMode}-palettes-${tcolorPalette.paletteKey}-${levelPart}-${tcolorPalette.type || 'on-tone'}`
+      // Always use the var() reference directly - don't try to dereference from paletteVars
+      // The palette variable will resolve correctly when CSS vars are applied
+      result[`${brandTextBase}color`] = `var(${paletteVarName})`
+      // Debug logging
+      if (process.env.NODE_ENV === 'development' && prefix === '1' && mode === 'dark') {
+        console.log(`[Layers] Setting text color for layer-${prefix} (${mode}):`, {
+          tcolorRaw,
+          tcolorPalette,
+          paletteVarName,
+          result: result[`${brandTextBase}color`]
+        })
+      }
+    } else {
+      // Not a palette reference, try coerceToVarRef
+      const tcolorVarRef = coerceToVarRef(tcolorRaw)
+      if (tcolorVarRef) {
+        result[`${brandTextBase}color`] = tcolorVarRef
+      }
+    }
+    // If text color wasn't set above, derive from surface palette on-tone
+    if (!result[`${brandTextBase}color`] && surfPalette) {
       // Map on-tone to brand core black/white by dereferencing the palette on-tone var
       const onToneVarName = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone')
-      const deref = readCssVar(onToneVarName)
-      // If deref is a hex value, convert it to a token var reference if possible
-      if (deref && typeof deref === 'string') {
-        const hex = deref.trim()
-        if (/^#?[0-9a-f]{6}$/i.test(hex)) {
-          const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+      // Try to get the value from paletteVars first (during initialization), then fall back to reading from DOM
+      // paletteVars contains the actual CSS variable values (like "var(--recursica-brand-light-palettes-core-black)")
+      // IMPORTANT: paletteVars keys are the CSS variable names WITHOUT the '--' prefix in some cases, but actually they ARE the full CSS variable names
+      let onToneValue: string | undefined = paletteVars?.[onToneVarName]
+      
+      // Debug: Log if we can't find the palette variable (only in dev)
+      if (!onToneValue && process.env.NODE_ENV === 'development') {
+        const availableKeys = Object.keys(paletteVars || {}).filter(k => k.includes('on-tone')).slice(0, 5)
+        console.log(`[Layers] Looking for on-tone var: ${onToneVarName}`)
+        console.log(`[Layers] Available on-tone vars (sample):`, availableKeys)
+        console.log(`[Layers] Found in paletteVars:`, !!paletteVars?.[onToneVarName])
+      }
+      
+      if (!onToneValue) {
+        // Fall back to reading from DOM (for runtime updates after initialization)
+        onToneValue = readCssVar(onToneVarName)
+      }
+      // If we found a value, use it directly (it's already a var() reference or hex)
+      if (onToneValue && typeof onToneValue === 'string') {
+        const trimmed = onToneValue.trim()
+        // If it's already a var() reference, use it directly
+        if (/^var\s*\(/.test(trimmed)) {
+          result[`${brandTextBase}color`] = trimmed
+        } else if (/^#?[0-9a-f]{6}$/i.test(trimmed)) {
+          // It's a hex value, convert to core color var if black/white
+          const h = trimmed.startsWith('#') ? trimmed.toLowerCase() : `#${trimmed.toLowerCase()}`
           if (h === '#ffffff' || h === '#000000') {
             result[`${brandTextBase}color`] = mapBWHexToVar(h)
           } else {
-            // Fall back to on-tone var (token-by-hex lookup removed - should be in JSON)
+            // Fall back to on-tone var reference
             result[`${brandTextBase}color`] = `var(${onToneVarName})`
           }
         } else {
-          // Not a hex value, use as-is or fall back to on-tone var
-          result[`${brandTextBase}color`] = deref || `var(${onToneVarName})`
+          // Not a hex value and not a var(), use as-is or fall back to on-tone var
+          result[`${brandTextBase}color`] = trimmed || `var(${onToneVarName})`
         }
       } else {
-        // No deref value, use on-tone var
+        // No value found in paletteVars or DOM, use on-tone var reference directly
+        // This ensures the CSS variable is set even if we can't resolve it yet
         result[`${brandTextBase}color`] = `var(${onToneVarName})`
       }
-    } else if (tcolorVarRef) {
-      result[`${brandTextBase}color`] = tcolorVarRef
-    } else if (surfaceHex) {
+    }
+    // Final fallback: if text color still wasn't set, default to black
+    if (!result[`${brandTextBase}color`] && surfaceHex) {
       // Default to black - AA compliance will be handled reactively in Phase 3
       result[`${brandTextBase}color`] = `var(--recursica-brand-${mode}-palettes-core-black)`
     }
@@ -464,11 +512,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     const successHex = typeof (tsuccess ?? coreSuccess) === 'string' ? String(tsuccess ?? coreSuccess) : undefined
     if (surfaceHex || surfPalette) {
       const bgHex = surfPalette
-        ? (readCssVar(buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')) || surfaceHex || '')
+        ? (paletteVars?.[buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')] || readCssVar(buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')) || surfaceHex || '')
         : (readIfCssVarOrHex(surfaceHex) || '')
       const textHighOpacity = (() => {
         if (surfPalette) {
-          const hi = readCssVar(buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'high-emphasis'))
+          const hiVarName = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'high-emphasis')
+          const hi = paletteVars?.[hiVarName] || readCssVar(hiVarName)
           const n = typeof hi === 'string' ? Number(hi) : NaN
           return Number.isFinite(n) ? (n <= 1 ? n : n / 100) : 1
         }
@@ -490,11 +539,20 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
         if (!finalRef) {
           const onToneVar = surfPalette ? buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'on-tone') : undefined
           if (onToneVar) {
-            const deref = readCssVar(onToneVar)
+            // Try to get the value from paletteVars first (during initialization), then fall back to reading from DOM
+            let deref: string | undefined = paletteVars?.[onToneVar]
+            if (!deref) {
+              deref = readCssVar(onToneVar)
+            }
             // If deref is a hex value, convert it to a token var reference if possible
             if (deref && typeof deref === 'string') {
               const hex = deref.trim()
-              if (/^#?[0-9a-f]{6}$/i.test(hex)) {
+              // Handle var() references - extract the inner variable name
+              const varMatch = hex.match(/^var\s*\(\s*(--[^)]+)\s*\)$/)
+              if (varMatch) {
+                // It's already a var() reference, use it directly
+                finalRef = hex
+              } else if (/^#?[0-9a-f]{6}$/i.test(hex)) {
                 const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
                 if (h === '#ffffff' || h === '#000000') {
                   finalRef = mapBWHexToVar(h)
