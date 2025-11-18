@@ -1,6 +1,7 @@
 import React from 'react'
 import PaletteColorControl from '../forms/PaletteColorControl'
 import TokenSlider from '../forms/TokenSlider'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 type SizeToken = { name: string; value: number; label: string }
 type OpacityToken = { name: string; value: number; label: string }
@@ -42,10 +43,11 @@ export default function ElevationStylePanel({
   onClose: () => void
 }) {
   const levelsArr = React.useMemo(() => Array.from(selectedLevels), [selectedLevels])
+  const { mode } = useThemeMode()
 
   const getShadowColorCssVar = React.useCallback((level: number): string => {
-    return `--recursica-brand-light-elevations-elevation-${level}-shadow-color`
-  }, [])
+    return `--recursica-brand-${mode}-elevations-elevation-${level}-shadow-color`
+  }, [mode])
 
   const getTokenLabel = React.useCallback((tokenName: string, tokens: Array<{ name: string; label: string }>): string => {
     const token = tokens.find((t) => t.name === tokenName)
@@ -59,7 +61,7 @@ export default function ElevationStylePanel({
   }, [availableSizeTokens])
 
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 28vw, 440px)', background: 'var(--recursica-brand-light-layer-layer-1-property-surface)', borderLeft: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', boxShadow: 'var(--recursica-brand-light-elevations-elevation-3-shadow-color)', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 28vw, 440px)', background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-3-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>
           {(() => {
@@ -181,7 +183,7 @@ export default function ElevationStylePanel({
           <button
             type="button"
             onClick={() => revertSelected(selectedLevels)}
-            style={{ padding: '8px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+            style={{ padding: '8px 10px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
           >
             Revert
           </button>

@@ -254,7 +254,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                           toggleAccordion(accordionKey)
                         }
                       }}
-                      style={{ border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 6, overflow: 'hidden' }}
+                      style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 6, overflow: 'hidden' }}
                     >
                       <summary
                         style={{

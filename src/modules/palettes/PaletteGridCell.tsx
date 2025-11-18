@@ -7,6 +7,7 @@ import type { JsonLike } from '../../core/resolvers/tokens'
 import { ColorPickerOverlay } from '../pickers/ColorPickerOverlay'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 // Module-level Set to track logged AA check entries across all component instances
 const loggedAAChecks = new Set<string>()
@@ -77,6 +78,7 @@ export function PaletteEmphasisCell({
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const cellRef = useRef<HTMLTableCellElement>(null)
   const { updateToken } = useVars()
+  const { mode } = useThemeMode()
   const AA = 4.5
 
   // Load family names from localStorage
@@ -161,7 +163,6 @@ export function PaletteEmphasisCell({
       : 1
     
     // Also get high and low emphasis opacities to check both
-    const mode = toneCssVar.includes('-dark-') ? 'dark' : 'light'
     const highEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-high`
     const lowEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-low`
     
@@ -226,7 +227,6 @@ export function PaletteEmphasisCell({
     const passesAA = currentRatio >= AA
     
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    // mode is already declared above (line 151)
     const coreBlackVar = `--recursica-brand-${mode}-palettes-core-black`
     const coreWhiteVar = `--recursica-brand-${mode}-palettes-core-white`
     const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
@@ -271,7 +271,7 @@ export function PaletteEmphasisCell({
       opacity,
       toneFailsAA, // New: indicates if tone fails AA for either emphasis level
     }
-  }, [toneCssVar, onToneCssVar, emphasisCssVar, tokens, paletteKey, level, updateTrigger])
+  }, [toneCssVar, onToneCssVar, emphasisCssVar, tokens, paletteKey, level, updateTrigger, mode])
 
   // Show "x" only if:
   // 1. Current on-tone doesn't pass AA (with opacity considered)

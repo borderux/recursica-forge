@@ -9,9 +9,11 @@ import { updateInteractiveColor } from './interactiveColorUpdater'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { hexToCssVarRef, getSteppedColor, resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { pickAAOnTone } from '../theme/contrastUtil'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 export default function ColorTokenPicker() {
   const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
+  const { mode } = useThemeMode()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetVar, setTargetVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
@@ -160,20 +162,26 @@ export default function ColorTokenPicker() {
   const updateCoreColorInTheme = (cssVar: string, tokenName: string) => {
     if (!setTheme || !themeJson) return
     
-    // Map CSS var names to theme JSON paths (relative to themes.light.palettes.core-colors.$value)
-    const coreColorMap: Record<string, { isInteractive?: boolean; isHover?: boolean }> = {
-      '--recursica-brand-light-palettes-core-black': {},
-      '--recursica-brand-light-palettes-core-white': {},
-      '--recursica-brand-light-palettes-core-alert': {},
-      '--recursica-brand-light-palettes-core-warning': {},
-      '--recursica-brand-light-palettes-core-success': {},
-      '--recursica-brand-light-palettes-core-interactive': { isInteractive: true },
-      '--recursica-brand-light-palettes-core-interactive-default-tone': { isInteractive: true },
-      '--recursica-brand-light-palettes-core-interactive-hover-tone': { isInteractive: true, isHover: true },
+    // Check if this is a core color CSS var for the current mode
+    const coreColorPrefix = `--recursica-brand-${mode}-palettes-core-`
+    if (!cssVar.startsWith(coreColorPrefix)) return // Not a core color
+    
+    // Extract the color name from the CSS var
+    const colorName = cssVar.replace(coreColorPrefix, '')
+    
+    // Determine mapping based on color name
+    let mapping: { isInteractive?: boolean; isHover?: boolean } | null = null
+    if (colorName === 'black' || colorName === 'white' || colorName === 'alert' || colorName === 'warning' || colorName === 'success') {
+      mapping = {}
+    } else if (colorName === 'interactive') {
+      mapping = { isInteractive: true }
+    } else if (colorName === 'interactive-default-tone') {
+      mapping = { isInteractive: true }
+    } else if (colorName === 'interactive-hover-tone') {
+      mapping = { isInteractive: true, isHover: true }
     }
     
-    const mapping = coreColorMap[cssVar]
-    if (!mapping) return // Not a core color
+    if (!mapping) return // Not a recognized core color
     
     try {
       const themeCopy = JSON.parse(JSON.stringify(themeJson))
@@ -181,12 +189,12 @@ export default function ColorTokenPicker() {
       const themes = root?.themes || root
       
       // Navigate to core-colors.$value
-      if (!themes.light) themes.light = {}
-      if (!themes.light.palettes) themes.light.palettes = {}
-      if (!themes.light.palettes['core-colors']) themes.light.palettes['core-colors'] = {}
-      if (!themes.light.palettes['core-colors'].$value) themes.light.palettes['core-colors'].$value = {}
+      if (!themes[mode]) themes[mode] = {}
+      if (!themes[mode].palettes) themes[mode].palettes = {}
+      if (!themes[mode].palettes['core-colors']) themes[mode].palettes['core-colors'] = {}
+      if (!themes[mode].palettes['core-colors'].$value) themes[mode].palettes['core-colors'].$value = {}
       
-      const coreColors = themes.light.palettes['core-colors'].$value
+      const coreColors = themes[mode].palettes['core-colors'].$value
       
       // Build the token reference string: {tokens.color.{family}.{level}}
       const tokenParts = tokenName.split('/')
@@ -194,16 +202,12 @@ export default function ColorTokenPicker() {
       const level = tokenParts[2]
       const tokenRef = `{tokens.color.${family}.${level}}`
       
-      // Extract color name from CSS var
-      const colorNameMatch = cssVar.match(/core-(.+)$/)
-      if (!colorNameMatch) return
-      
-      const colorName = colorNameMatch[1]
+      // Color name was already extracted above
       
       // Handle interactive colors with nested structure
       if (mapping.isInteractive) {
         // For main interactive var (backward compatibility), it maps to default.tone
-        const isMainInteractive = cssVar === '--recursica-brand-light-palettes-core-interactive'
+        const isMainInteractive = cssVar === `--recursica-brand-${mode}-palettes-core-interactive`
         
         if (!coreColors.interactive) {
           coreColors.interactive = {
@@ -259,11 +263,11 @@ export default function ColorTokenPicker() {
     }
     
     // Check if this is a core color CSS var
-    const isCoreColor = targetVar.startsWith('--recursica-brand-light-palettes-core-')
+    const isCoreColor = targetVar.startsWith(`--recursica-brand-${mode}-palettes-core-`)
     
     // Check if this is an interactive color change
-    const isInteractiveDefault = targetVar === '--recursica-brand-light-palettes-core-interactive-default-tone' ||
-                                  targetVar === '--recursica-brand-light-palettes-core-interactive'
+    const isInteractiveDefault = targetVar === `--recursica-brand-${mode}-palettes-core-interactive-default-tone` ||
+                                  targetVar === `--recursica-brand-${mode}-palettes-core-interactive`
     
     if (isInteractiveDefault) {
       // Get the hex value for the selected token from tokens JSON (checking overrides first)
@@ -307,8 +311,8 @@ export default function ColorTokenPicker() {
       
       // If core black or white changed, re-check all palette on-tone colors
       // Use setTimeout to ensure CSS var and theme updates complete first
-      const isCoreBlackOrWhite = targetVar === '--recursica-brand-light-palettes-core-black' ||
-                                  targetVar === '--recursica-brand-light-palettes-core-white'
+      const isCoreBlackOrWhite = targetVar === `--recursica-brand-${mode}-palettes-core-black` ||
+                                  targetVar === `--recursica-brand-${mode}-palettes-core-white`
       if (isCoreBlackOrWhite) {
         setTimeout(() => {
           try {
@@ -349,11 +353,11 @@ export default function ColorTokenPicker() {
       let hoverHex: string
       if (option === 'keep') {
         // Keep current hover color - read it now
-        const currentHover = readCssVar('--recursica-brand-light-palettes-core-interactive-hover-tone')
+        const currentHover = readCssVar(`--recursica-brand-${mode}-palettes-core-interactive-hover-tone`)
         if (currentHover && !currentHover.startsWith('var(')) {
           hoverHex = currentHover
         } else {
-          hoverHex = resolveCssVarToHex(`var(--recursica-brand-light-palettes-core-interactive-hover-tone)`, tokenIndex) || normalizedHex
+          hoverHex = resolveCssVarToHex(`var(--recursica-brand-${mode}-palettes-core-interactive-hover-tone)`, tokenIndex) || normalizedHex
         }
       } else {
         hoverHex = getSteppedColor(normalizedHex, option, tokensJson) || normalizedHex
@@ -387,12 +391,12 @@ export default function ColorTokenPicker() {
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const themes = root?.themes || root
       
-      if (!themes.light) themes.light = {}
-      if (!themes.light.palettes) themes.light.palettes = {}
-      if (!themes.light.palettes['core-colors']) themes.light.palettes['core-colors'] = {}
-      if (!themes.light.palettes['core-colors'].$value) themes.light.palettes['core-colors'].$value = {}
+      if (!themes[mode]) themes[mode] = {}
+      if (!themes[mode].palettes) themes[mode].palettes = {}
+      if (!themes[mode].palettes['core-colors']) themes[mode].palettes['core-colors'] = {}
+      if (!themes[mode].palettes['core-colors'].$value) themes[mode].palettes['core-colors'].$value = {}
       
-      const coreColors = themes.light.palettes['core-colors'].$value
+      const coreColors = themes[mode].palettes['core-colors'].$value
       if (!coreColors.interactive) {
         coreColors.interactive = { default: {}, hover: {} }
       }
@@ -417,12 +421,12 @@ export default function ColorTokenPicker() {
       // Update on-tone colors in theme JSON (only on-tone, not tone)
       if (!coreColors.interactive.default) coreColors.interactive.default = {}
       coreColors.interactive.default['on-tone'] = {
-        $value: `{brand.themes.light.palettes.core-colors.${defaultOnToneCore}}`
+        $value: `{brand.themes.${mode}.palettes.core-colors.${defaultOnToneCore}}`
       }
       
       if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
       coreColors.interactive.hover['on-tone'] = {
-        $value: `{brand.themes.light.palettes.core-colors.${hoverOnToneCore}}`
+        $value: `{brand.themes.${mode}.palettes.core-colors.${hoverOnToneCore}}`
       }
       
       // Update theme JSON synchronously BEFORE updating CSS vars
@@ -462,7 +466,7 @@ export default function ColorTokenPicker() {
     <>
       {anchor && targetVar && (
         createPortal(
-          <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: 'var(--recursica-brand-light-layer-layer-2-property-surface)', color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)', border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)', borderRadius: 8, boxShadow: 'var(--recursica-brand-light-elevations-elevation-2-x-axis) var(--recursica-brand-light-elevations-elevation-2-y-axis) var(--recursica-brand-light-elevations-elevation-2-blur) var(--recursica-brand-light-elevations-elevation-2-spread) var(--recursica-brand-light-elevations-elevation-2-shadow-color)', padding: 10, zIndex: 20000 }}>
+          <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`, color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`, border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`, borderRadius: 8, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`, padding: 10, zIndex: 20000 }}>
             <div
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
               onMouseDown={(e) => {
@@ -511,7 +515,7 @@ export default function ColorTokenPicker() {
                             height: swatch, 
                             background: tokenCssVar ? `var(${tokenCssVar})` : it.value, 
                             cursor: 'pointer', 
-                            border: '1px solid var(--recursica-brand-light-layer-layer-2-property-border-color)', 
+                            border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`, 
                             flex: '0 0 auto' 
                           }}
                         >
@@ -533,7 +537,7 @@ export default function ColorTokenPicker() {
                               {/* White checkmark with dark shadow for visibility on any background */}
                               <path
                                 d="M2 6L5 9L10 2"
-                                stroke="var(--recursica-brand-light-palettes-core-black)"
+                                stroke={`var(--recursica-brand-${mode}-palettes-core-black)`}
                                 strokeWidth="2.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -541,7 +545,7 @@ export default function ColorTokenPicker() {
                               />
                               <path
                                 d="M2 6L5 9L10 2"
-                                stroke="var(--recursica-brand-light-palettes-core-white)"
+                                stroke={`var(--recursica-brand-${mode}-palettes-core-white)`}
                                 strokeWidth="1.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -562,7 +566,7 @@ export default function ColorTokenPicker() {
       
       <InteractiveHoverModal
         open={showHoverModal}
-        newInteractiveHex={pendingInteractiveHex || 'var(--recursica-brand-light-palettes-core-black)'}
+        newInteractiveHex={pendingInteractiveHex || `var(--recursica-brand-${mode}-palettes-core-black)`}
         onClose={() => {
           setShowHoverModal(false)
           setPendingInteractiveHex(null)

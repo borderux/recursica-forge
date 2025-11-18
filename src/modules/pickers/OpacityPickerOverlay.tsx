@@ -235,14 +235,14 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
                   title={targetCssVar ? `Set ${targetCssVar} to ${opacityCssVar}` : `Select ${it.name}`}
                 >
                   {isSelected && (
-                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone)' }}>✓</span>
+                    <span style={{ fontSize: 14, color: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)` }}>✓</span>
                   )}
                   {label}
                 </button>
               ) : (
                 <label htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9, display: 'flex', alignItems: 'center', gap: 8 }}>
                   {isSelected && (
-                    <span style={{ fontSize: 14, color: 'var(--recursica-brand-light-palettes-core-interactive-default-tone)' }}>✓</span>
+                    <span style={{ fontSize: 14, color: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)` }}>✓</span>
                   )}
                   {label}
                 </label>

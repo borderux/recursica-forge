@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useMemo } from 'react'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useVars } from '../vars/VarsContext'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 type PaletteColorControlProps = {
   /** The CSS variable name to set when a color is selected */
@@ -282,7 +283,7 @@ export default function PaletteColorControl({
           alignItems: 'center',
           gap: 8,
           padding: '6px 8px',
-          border: '1px solid var(--layer-layer-1-property-border-color)',
+          border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
           background: 'transparent',
           borderRadius: 6,
           cursor: 'pointer',
@@ -294,7 +295,7 @@ export default function PaletteColorControl({
             width: swatchSize,
             height: swatchSize,
             borderRadius: 4,
-            border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+            border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
             background: `var(${displayCssVar}, transparent)`,
             flexShrink: 0,
           }}
