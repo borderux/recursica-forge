@@ -105,6 +105,14 @@ export default function PaletteColorControl({
     return null
   }
   
+  // Helper function to format palette name (e.g., "palette-1" -> "Palette 1", "neutral" -> "Neutral")
+  const formatPaletteName = (paletteKey: string): string => {
+    return paletteKey
+      .replace(/[-_/]+/g, ' ')
+      .replace(/\b\w/g, (m) => m.toUpperCase())
+      .trim()
+  }
+  
   // Initialize display label by reading CSS variable value immediately
   const getInitialLabel = (): string => {
     const cssValue = readCssVar(displayCssVar)
@@ -163,14 +171,6 @@ export default function PaletteColorControl({
   
   const [displayLabel, setDisplayLabel] = useState<string>(getInitialLabel)
   const [refreshKey, setRefreshKey] = useState(0) // Force re-read when picker closes
-
-  // Helper function to format palette name (e.g., "palette-1" -> "Palette 1", "neutral" -> "Neutral")
-  const formatPaletteName = (paletteKey: string): string => {
-    return paletteKey
-      .replace(/[-_/]+/g, ' ')
-      .replace(/\b\w/g, (m) => m.toUpperCase())
-      .trim()
-  }
 
   // Helper function to update display label from CSS variable
   const updateDisplayLabel = () => {

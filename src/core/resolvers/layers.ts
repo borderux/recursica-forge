@@ -124,8 +124,17 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       // {brand|theme}.{themes.}?{light|dark}.palettes.core.<key> (also accept legacy core-colors)
       // Support both old format (brand.light.*) and new format (brand.themes.light.*)
       const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1) : s
-      const m = /^(?:brand|theme)(?:\.themes)?\.(?:light|dark)\.palettes\.(?:core|core-colors)\.(black|white|interactive|alert|warning|success)$/i.exec(inner)
-      if (m) return `--recursica-brand-${mode}-palettes-core-${m[1].toLowerCase()}`
+      const m = /^(?:brand|theme)(?:\.themes)?\.(light|dark)\.palettes\.(?:core|core-colors)\.(black|white|interactive|alert|warning|success)$/i.exec(inner)
+      if (m) {
+        const refMode = m[1].toLowerCase() as 'light' | 'dark'
+        const color = m[2].toLowerCase()
+        const result = `--recursica-brand-${refMode}-palettes-core-${color}`
+        // Debug logging for high-contrast surface
+        if (process.env.NODE_ENV === 'development' && color === 'white' && refMode === 'dark') {
+          console.log(`[Layers] parseCoreVarName matched:`, { s, inner, refMode, color, result })
+        }
+        return result
+      }
     } catch {}
     return null
   }
@@ -336,6 +345,15 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       result[`${brandBase}surface`] = `var(${toneVarName})`
     } else {
       const surfVarRef = coerceToVarRef(surfRaw)
+      // Debug logging for high-contrast surface
+      if (process.env.NODE_ENV === 'development' && prefix === 'alternative-high-contrast' && mode === 'dark') {
+        console.log(`[Layers] High-contrast surface resolution (${mode}):`, {
+          surfRaw,
+          surfVarRef,
+          surf,
+          prefix
+        })
+      }
       if (surfVarRef) {
         result[`${brandBase}surface`] = surfVarRef
       } else if (surf != null && typeof surf === 'string' && !isAlt) {

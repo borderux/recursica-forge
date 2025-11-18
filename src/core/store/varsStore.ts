@@ -961,6 +961,45 @@ class VarsStore {
           
           colors[cssVar] = tokenRef
         })
+        
+        // Preserve existing core color CSS variables if they exist in DOM (user customizations)
+        // This ensures user changes to core colors persist across mode switches and page navigation
+        Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
+          const existingValue = readCssVar(cssVar)
+          const generatedValue = colors[cssVar]
+          
+          // Preserve if it exists in DOM and is different from generated (user customization)
+          // OR if it exists but wasn't generated (customization not in theme JSON)
+          if (existingValue && existingValue.startsWith('var(')) {
+            if (!generatedValue || existingValue !== generatedValue) {
+              colors[cssVar] = existingValue
+            }
+          }
+        })
+        
+        // Also preserve interactive sub-properties if they exist
+        if (core['interactive'] && typeof core['interactive'] === 'object') {
+          const interactiveSubVars = [
+            `--recursica-brand-${mode}-palettes-core-interactive-default-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-default-on-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-hover-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone`,
+          ]
+          
+          interactiveSubVars.forEach((cssVar) => {
+            const existingValue = readCssVar(cssVar)
+            const generatedValue = colors[cssVar]
+            
+            // Preserve if it exists in DOM and is different from generated (user customization)
+            if (existingValue && existingValue.startsWith('var(') && generatedValue && existingValue !== generatedValue) {
+              colors[cssVar] = existingValue
+            } else if (existingValue && existingValue.startsWith('var(') && !generatedValue) {
+              // Preserve if it exists but wasn't generated (customization not in theme JSON)
+              colors[cssVar] = existingValue
+            }
+          })
+        }
+        
         Object.assign(allVars, colors)
       }
     } catch {}
@@ -1090,18 +1129,87 @@ class VarsStore {
           })
         }
         
-        // Also check alternative layers
+        // Also check alternative layers - preserve ALL variables, not just surface
         const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
         for (const altKey of altKeys) {
           const prefixedBase = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-`
           
+          // Preserve surface variable - but prefer generated value over existing DOM value
+          const surfaceKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-surface`
           const existingSurface = readCssVar(`${prefixedBase}surface`)
-          // For primary-color, always ensure it's set even if not existing (fixes refresh/reset issue)
-          if (altKey === 'primary-color' && !existingSurface) {
-            layerVars[`--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-surface`] = `var(--recursica-brand-${modeLoop}-palettes-palette-1-primary-tone)`
-          } else if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
-            layerVars[`--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-surface`] = existingSurface
+          const generatedSurface = layerVars[surfaceKey]
+          
+          // Debug logging for high-contrast surface
+          if (process.env.NODE_ENV === 'development' && altKey === 'high-contrast' && modeLoop === 'dark') {
+            console.log(`[VarsStore] High-contrast surface preservation (${modeLoop}):`, {
+              surfaceKey,
+              existingSurface,
+              generatedSurface,
+              willUseGenerated: !!generatedSurface
+            })
           }
+          
+          // For primary-color, always ensure it's set even if not existing (fixes refresh/reset issue)
+          if (altKey === 'primary-color' && !existingSurface && !generatedSurface) {
+            layerVars[surfaceKey] = `var(--recursica-brand-${modeLoop}-palettes-palette-1-primary-tone)`
+          } else if (generatedSurface) {
+            // Use generated value (from buildLayerVars) - this is the source of truth from JSON
+            // ALWAYS use generated value if it exists, even if it differs from existing DOM value
+            layerVars[surfaceKey] = generatedSurface
+          } else if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
+            // Fallback: use existing DOM value only if no generated value exists
+            layerVars[surfaceKey] = existingSurface
+          }
+          
+          // Preserve element text colors (similar to standard layers)
+          const textColorBase = `${prefixedBase}element-text-`
+          const textColorKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-element-text-color`
+          const existingTextColor = readCssVar(`${textColorBase}color`)
+          const generatedTextColor = layerVars[textColorKey]
+          // Preserve if it exists and is different from generated (AA compliance update), OR if it exists but wasn't generated
+          if (existingTextColor && existingTextColor.startsWith('var(')) {
+            if (!generatedTextColor || existingTextColor !== generatedTextColor) {
+              layerVars[textColorKey] = existingTextColor
+            }
+          }
+          
+          // Preserve element interactive colors
+          const interColorBase = `${prefixedBase}element-interactive-`
+          const interColorKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-element-interactive-color`
+          const existingInterColor = readCssVar(`${interColorBase}color`)
+          const generatedInterColor = layerVars[interColorKey]
+          // Preserve if it exists and is different from generated (AA compliance update), OR if it exists but wasn't generated
+          if (existingInterColor && existingInterColor.startsWith('var(')) {
+            if (!generatedInterColor || existingInterColor !== generatedInterColor) {
+              layerVars[interColorKey] = existingInterColor
+            }
+          }
+          
+          // Preserve other interactive properties (tone, on-tone, etc.)
+          const interactiveProps = ['tone', 'tone-hover', 'on-tone', 'on-tone-hover', 'high-emphasis']
+          interactiveProps.forEach((prop) => {
+            const propKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-element-interactive-${prop}`
+            const existingProp = readCssVar(`${interColorBase}${prop}`)
+            const generatedProp = layerVars[propKey]
+            if (existingProp && existingProp.startsWith('var(')) {
+              if (!generatedProp || existingProp !== generatedProp) {
+                layerVars[propKey] = existingProp
+              }
+            }
+          })
+          
+          // Preserve text emphasis opacities
+          const emphasisProps = ['high-emphasis', 'low-emphasis']
+          emphasisProps.forEach((prop) => {
+            const propKey = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-element-text-${prop}`
+            const existingProp = readCssVar(`${textColorBase}${prop}`)
+            const generatedProp = layerVars[propKey]
+            if (existingProp && existingProp.startsWith('var(')) {
+              if (!generatedProp || existingProp !== generatedProp) {
+                layerVars[propKey] = existingProp
+              }
+            }
+          })
         }
       }
     } catch {}

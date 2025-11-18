@@ -43,7 +43,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
     ? alternativeKey === 'alert' ? `var(--recursica-brand-${mode}-palettes-core-alert, var(--palette-alert))`
       : alternativeKey === 'warning' ? `var(--recursica-brand-${mode}-palettes-core-warning, var(--palette-warning))`
       : alternativeKey === 'success' ? `var(--recursica-brand-${mode}-palettes-core-success, var(--palette-success))`
-      : alternativeKey === 'high-contrast' ? `var(--recursica-brand-${mode}-palettes-core-black)`
+      : alternativeKey === 'high-contrast' ? null // Use CSS variable from JSON instead of hardcoded fallback
       : alternativeKey === 'primary-color' ? `var(--recursica-brand-${mode}-palettes-palette-1-primary-tone)`
       : null
     : null
