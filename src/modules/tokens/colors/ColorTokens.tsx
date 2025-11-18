@@ -556,6 +556,23 @@ export default function ColorTokens() {
         setTokens(nextTokens)
       }
       
+      // Remove all CSS variables for this color family
+      const root = document.documentElement
+      const style = root.style
+      const cssVarsToRemove: string[] = []
+      
+      // Collect all CSS variables for this color family from inline styles
+      // Iterate backwards to avoid index shifting issues
+      for (let i = style.length - 1; i >= 0; i--) {
+        const prop = style[i]
+        if (prop && prop.startsWith(`--recursica-tokens-color-${family}-`)) {
+          cssVarsToRemove.push(prop)
+        }
+      }
+      
+      // Remove all CSS variables
+      cssVarsToRemove.forEach(prop => root.style.removeProperty(prop))
+      
       // Update local values state - remove all tokens for this family
       const newValues = { ...values }
       Object.keys(newValues).forEach((tokenName) => {

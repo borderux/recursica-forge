@@ -12,18 +12,54 @@ import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
+import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
+import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
   const { mode, setMode } = useThemeMode()
   const [carbon, setCarbon] = useState<any>(null)
   const [isOpen, setIsOpen] = useState(false)
-  const onUpload = async (file?: File | null) => {
-    if (!file) return
-    const text = await file.text()
-    const json = JSON.parse(text)
-    const vars = extractCssVarsFromObject(json)
-    if (Object.keys(vars).length) applyCssVars(vars)
+  const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
+  const { handleExport, showSelectionModal, showComplianceModal, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel } = useJsonExport()
+  const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
+  
+  const onFileSelect = async (files: FileList | null) => {
+    if (!files || files.length === 0) {
+      setSelectedFiles({})
+      setSelectedFileNames([])
+      return
+    }
+    
+    // Process files and detect types
+    const importFiles = await processUploadedFilesAsync(files)
+    
+    // Update selected files display
+    const fileNames: string[] = []
+    if (importFiles.tokens) fileNames.push('tokens.json')
+    if (importFiles.brand) fileNames.push('brand.json')
+    if (importFiles.uikit) fileNames.push('uikit.json')
+    setSelectedFileNames(fileNames)
+    
+    // Store files for import
+    setSelectedFiles(importFiles)
+  }
+  
+  const handleImportClick = () => {
+    handleImport(() => {
+      // Close modal and clear selection on success
+      setIsOpen(false)
+      clearSelectedFiles()
+      setSelectedFileNames([])
+    })
+  }
+  
+  const handleDirtyAcknowledgeWithClose = () => {
+    handleDirtyAcknowledge(() => {
+      setIsOpen(false)
+      clearSelectedFiles()
+      setSelectedFileNames([])
+    })
   }
 
   useEffect(() => {
@@ -56,7 +92,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
         </div>
         <HeaderGlobalBar>
           <button onClick={() => { clearOverrides(tokensJson as any); resetAll() }} title="Reset to defaults" style={{ marginRight: 8 }}>↺</button>
-          <button onClick={() => downloadCurrentCssVars()} title="Download" style={{ marginRight: 8 }}>⤓</button>
+          <button onClick={() => downloadCurrentCssVars()} title="Download CSS Variables" style={{ marginRight: 8 }}>⤓</button>
+          <button onClick={handleExport} title="Export JSON Files" style={{ marginRight: 8 }}>📥</button>
           <Toggle
             id="theme-mode-toggle"
             labelText={mode === 'dark' ? 'Dark' : 'Light'}
@@ -73,28 +110,64 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           </div>
         </HeaderGlobalBar>
       </Header>
-      <ComposedModal open={isOpen} onClose={() => setIsOpen(false)} size="sm">
-        <ModalHeader label="Import/Export" title="Import/Export" />
+      <ComposedModal open={isOpen} onClose={() => { setIsOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} size="sm">
+        <ModalHeader label="Import JSON Files" title="Import JSON Files" />
         <ModalBody hasForm>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input
-              type="file"
-              accept="application/json,.json"
-              onChange={(e: any) => {
-                onUpload(e.currentTarget.files?.[0])
-                e.currentTarget.value = ''
-              }}
-            />
-            <Button kind="secondary" onClick={() => downloadCurrentCssVars()}>Download</Button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Select JSON Files:</label>
+              <input
+                type="file"
+                accept="application/json,.json"
+                multiple
+                onChange={(e: any) => {
+                  onFileSelect(e.currentTarget.files)
+                  e.currentTarget.value = ''
+                }}
+                style={{ marginBottom: 8 }}
+              />
+              {selectedFileNames.length > 0 && (
+                <div style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>
+                  Selected: {selectedFileNames.join(', ')}
+                </div>
+              )}
+              <div style={{ fontSize: '12px', color: '#888', marginTop: 4 }}>
+                Upload tokens.json, brand.json, and/or uikit.json files
+              </div>
+            </div>
           </div>
         </ModalBody>
-        <ModalFooter primaryButtonText="Close" onRequestClose={() => setIsOpen(false)} onRequestSubmit={() => setIsOpen(false)} />
+        <ModalFooter>
+          <Button kind="secondary" onClick={() => { setIsOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
+            Cancel
+          </Button>
+          <Button kind="primary" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
+            Import
+          </Button>
+        </ModalFooter>
       </ComposedModal>
       <Grid condensed style={{ padding: 16 }}>
         <Column lg={16} md={8} sm={4}>
           {children}
         </Column>
       </Grid>
+      <ExportSelectionModalWrapper
+        show={showSelectionModal}
+        onConfirm={handleSelectionConfirm}
+        onCancel={handleSelectionCancel}
+      />
+      <ExportComplianceModal
+        show={showComplianceModal}
+        issues={complianceIssues}
+        onAcknowledge={handleAcknowledge}
+        onCancel={handleCancel}
+      />
+      <ImportDirtyDataModal
+        show={showDirtyModal}
+        filesToImport={filesToImport}
+        onAcknowledge={handleDirtyAcknowledgeWithClose}
+        onCancel={handleDirtyCancel}
+      />
     </Theme>
   )
 }
