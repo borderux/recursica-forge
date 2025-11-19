@@ -6,6 +6,7 @@ import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import ElevationModule from '../elevation/ElevationModule'
 import ElevationStylePanel from '../elevation/ElevationStylePanel'
+import { removeCssVar } from '../../core/css/updateCssVar'
 
 export default function LayersPage() {
   const { tokens: tokensJson, theme, setTheme, elevation, updateElevation, checkAlternativeLayersAA } = useVars()
@@ -166,6 +167,10 @@ export default function LayersPage() {
         // Remove palette selections
         const { [key]: __, ...paletteRest } = next.paletteSelections
         next.paletteSelections = paletteRest
+
+        // Clear shadow color CSS variable to reset to default
+        const shadowColorCssVar = `--recursica-brand-${mode}-elevations-elevation-${lvl}-shadow-color`
+        removeCssVar(shadowColorCssVar)
 
         // Update alpha tokens
         const alphaToken = parseOpacityToken(node?.opacity)

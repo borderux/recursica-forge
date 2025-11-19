@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar as updateCssVarUtil, removeCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -35,6 +35,15 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const { tokens } = useVars()
   const [updateKey, setUpdateKey] = useState(0)
 
+  // Listen for reset events to refresh font options
+  useEffect(() => {
+    const handler = () => {
+      setUpdateKey((k) => k + 1)
+    }
+    window.addEventListener('tokenOverridesChanged', handler)
+    return () => window.removeEventListener('tokenOverridesChanged', handler)
+  }, [])
+
   // options
   const sizeOptions = useMemo(() => {
     const out: Array<{ short: string; label: string }> = []
@@ -59,18 +68,23 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const familyOptions = useMemo(() => {
     const out: Array<{ short: string; label: string; value: string }> = []
     const seen = new Set<string>()
+    // Helper to check if a value is populated (not empty or whitespace)
+    const isPopulated = (val: string): boolean => {
+      return val && val.trim().length > 0
+    }
+    
     // from Tokens.json (font.family)
     try {
       Object.entries((tokens as any)?.tokens?.font?.family || {}).forEach(([short, rec]: [string, any]) => {
-        const val = String((rec as any)?.$value || '')
-        if (val && !seen.has(val)) { seen.add(val); out.push({ short, label: toTitleCase(short), value: val }) }
+        const val = String((rec as any)?.$value || '').trim()
+        if (isPopulated(val) && !seen.has(val)) { seen.add(val); out.push({ short, label: toTitleCase(short), value: val }) }
       })
     } catch {}
     // from Tokens.json (font.typeface)
     try {
       Object.entries((tokens as any)?.tokens?.font?.['typeface'] || {}).forEach(([short, rec]: [string, any]) => {
-        const val = String((rec as any)?.$value || '')
-        if (val && !seen.has(val)) { seen.add(val); out.push({ short, label: toTitleCase(short), value: val }) }
+        const val = String((rec as any)?.$value || '').trim()
+        if (isPopulated(val) && !seen.has(val)) { seen.add(val); out.push({ short, label: toTitleCase(short), value: val }) }
       })
     } catch {}
     // include overrides-only additions (font/family/* and font/typeface/*)
@@ -80,13 +94,24 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         if (typeof name !== 'string') return
         if (!(name.startsWith('font/family/') || name.startsWith('font/typeface/'))) return
         const short = name.split('/').pop() as string
-        const literal = String(val || '')
-        if (literal && !seen.has(literal)) { seen.add(literal); out.push({ short, label: toTitleCase(short), value: literal }) }
+        const literal = String(val || '').trim()
+        if (isPopulated(literal) && !seen.has(literal)) { seen.add(literal); out.push({ short, label: toTitleCase(short), value: literal }) }
+      })
+    } catch {}
+    // include custom fonts from localStorage
+    try {
+      const customFonts = JSON.parse(localStorage.getItem('custom-fonts') || '[]') as Array<{ name: string }>
+      customFonts.forEach((font) => {
+        const fontName = font.name?.trim() || ''
+        if (isPopulated(fontName) && !seen.has(fontName)) {
+          seen.add(fontName)
+          out.push({ short: fontName, label: fontName, value: fontName })
+        }
       })
     } catch {}
     out.sort((a,b) => a.label.localeCompare(b.label))
     return out
-  }, [tokens])
+  }, [tokens, updateKey])
 
   // Helper to get current token name from CSS variable
   const getCurrentTokenName = (cssVar: string, options: Array<{ short: string }>): string | undefined => {
@@ -203,7 +228,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span style={{ fontSize: 12, opacity: 0.7 }}>Font Family</span>
                 <select 
-                  value={currentFamily} 
+                  value={currentFamily || ''} 
                   onChange={(e) => { 
                     const v = (e.target as HTMLSelectElement).value
                     updateCssVarValue('font-family', v)

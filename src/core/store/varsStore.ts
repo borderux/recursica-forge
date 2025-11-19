@@ -11,6 +11,7 @@ import { readCssVar } from '../css/readCssVar'
 import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
+import { clearCustomFonts } from '../../modules/type/fontUtils'
 // Note: Override system removed - tokens are now the single source of truth
 
 type PaletteStore = {
@@ -546,6 +547,10 @@ class VarsStore {
     try {
       ['elevation-controls','shadow-color-control','elevation-color-tokens','elevation-alpha-tokens','elevation-palette-selections','elevation-directions','offset-x-direction','offset-y-direction']
         .forEach((k) => { try { localStorage.removeItem(k) } catch {} })
+    } catch {}
+    // Clear custom fonts and their @font-face rules
+    try {
+      clearCustomFonts()
     } catch {}
     this.state = { tokens: sortedTokens, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any), version: (this.state.version || 0) + 1 }
     // Persist freshly initialized elevation defaults so future reads are consistent
