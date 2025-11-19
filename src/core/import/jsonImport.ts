@@ -10,6 +10,7 @@ import tokensJson from '../../vars/Tokens.json'
 import brandJson from '../../vars/Brand.json'
 import uikitJson from '../../vars/UIKit.json'
 import type { JsonLike } from '../resolvers/tokens'
+import { validateBrandJson, validateTokensJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 
 /**
  * Clears CSS variables based on what's being imported
@@ -91,9 +92,16 @@ export function detectJsonFileType(json: any): 'tokens' | 'brand' | 'uikit' | nu
  * Imports tokens.json and updates CSS variables
  */
 export function importTokensJson(tokens: object): void {
-  const store = getVarsStore()
-  // Normalize tokens structure
+  // Validate schema before importing
   const normalizedTokens = (tokens as any)?.tokens ? tokens : { tokens: tokens }
+  try {
+    validateTokensJson(normalizedTokens as JsonLike)
+  } catch (error) {
+    console.error('[Import] Tokens.json validation failed:', error)
+    throw new Error(`Failed to import tokens.json: ${error instanceof Error ? error.message : String(error)}`)
+  }
+  
+  const store = getVarsStore()
   store.setTokens(normalizedTokens as JsonLike)
 }
 
@@ -101,9 +109,16 @@ export function importTokensJson(tokens: object): void {
  * Imports brand.json and updates CSS variables
  */
 export function importBrandJson(brand: object): void {
-  const store = getVarsStore()
-  // Normalize brand structure
+  // Validate schema before importing
   const normalizedBrand = (brand as any)?.brand ? brand : { brand: brand }
+  try {
+    validateBrandJson(normalizedBrand as JsonLike)
+  } catch (error) {
+    console.error('[Import] Brand.json validation failed:', error)
+    throw new Error(`Failed to import brand.json: ${error instanceof Error ? error.message : String(error)}`)
+  }
+  
+  const store = getVarsStore()
   store.setTheme(normalizedBrand as JsonLike)
 }
 
@@ -111,9 +126,16 @@ export function importBrandJson(brand: object): void {
  * Imports uikit.json and updates CSS variables
  */
 export function importUIKitJson(uikit: object): void {
-  const store = getVarsStore()
-  // Normalize uikit structure
+  // Validate schema before importing
   const normalizedUiKit = (uikit as any)?.['ui-kit'] ? uikit : { 'ui-kit': uikit }
+  try {
+    validateUIKitJson(normalizedUiKit as JsonLike)
+  } catch (error) {
+    console.error('[Import] UIKit.json validation failed:', error)
+    throw new Error(`Failed to import uikit.json: ${error instanceof Error ? error.message : String(error)}`)
+  }
+  
+  const store = getVarsStore()
   store.setUiKit(normalizedUiKit as JsonLike)
 }
 

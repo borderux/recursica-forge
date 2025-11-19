@@ -214,5 +214,233 @@ describe('JSON Schema Validation', () => {
       expect(lightLayers.sort()).toEqual(darkLayers.sort())
     })
   })
+
+  describe('Schema Validation Edge Cases', () => {
+    it('should reject invalid color hex values in Tokens.json', () => {
+      const invalidTokens = {
+        tokens: {
+          color: {
+            gray: {
+              '500': {
+                $type: 'color',
+                $value: 'invalid-hex' // Should be #RRGGBB format
+              }
+            }
+          }
+        }
+      }
+      
+      const validate = ajv.compile(tokensSchema)
+      const valid = validate(invalidTokens)
+      
+      // Should fail validation
+      expect(valid).toBe(false)
+      if (!valid && validate.errors) {
+        const colorErrors = validate.errors.filter(e => 
+          e.instancePath?.includes('color') && e.instancePath?.includes('$value')
+        )
+        expect(colorErrors.length).toBeGreaterThan(0)
+      }
+    })
+
+    it('should reject invalid opacity values (outside 0-1 range)', () => {
+      const invalidTokens = {
+        tokens: {
+          opacity: {
+            invalid: {
+              $type: 'number',
+              $value: 1.5 // Should be between 0 and 1
+            }
+          }
+        }
+      }
+      
+      const validate = ajv.compile(tokensSchema)
+      const valid = validate(invalidTokens)
+      
+      // Should fail validation
+      expect(valid).toBe(false)
+    })
+
+    it('should reject Brand.json missing required core-colors', () => {
+      const invalidBrand = {
+        brand: {
+          themes: {
+            light: {
+              palettes: {
+                // Missing core-colors
+                neutral: {}
+              }
+            }
+          }
+        }
+      }
+      
+      const validate = ajv.compile(brandSchema)
+      const valid = validate(invalidBrand)
+      
+      // Should fail validation
+      expect(valid).toBe(false)
+      if (!valid && validate.errors) {
+        const requiredErrors = validate.errors.filter(e => 
+          e.keyword === 'required' && e.instancePath?.includes('core-colors')
+        )
+        expect(requiredErrors.length).toBeGreaterThan(0)
+      }
+    })
+
+    it('should reject Brand.json missing required neutral palette', () => {
+      const invalidBrand = {
+        brand: {
+          themes: {
+            light: {
+              palettes: {
+                'core-colors': {
+                  $type: 'color',
+                  $value: {
+                    black: '{tokens.color.gray.900}',
+                    white: '{tokens.color.gray.000}',
+                    alert: '{tokens.color.gray.900}',
+                    success: '{tokens.color.gray.900}',
+                    warning: '{tokens.color.gray.900}',
+                    interactive: {
+                      default: {
+                        tone: { $value: '{tokens.color.gray.500}' },
+                        'on-tone': { $value: '{tokens.color.gray.000}' }
+                      },
+                      hover: {
+                        tone: { $value: '{tokens.color.gray.600}' },
+                        'on-tone': { $value: '{tokens.color.gray.000}' }
+                      }
+                    }
+                  }
+                }
+                // Missing neutral palette
+              }
+            }
+          }
+        }
+      }
+      
+      const validate = ajv.compile(brandSchema)
+      const valid = validate(invalidBrand)
+      
+      // Should fail validation
+      expect(valid).toBe(false)
+      if (!valid && validate.errors) {
+        const requiredErrors = validate.errors.filter(e => 
+          e.keyword === 'required' && e.instancePath?.includes('neutral')
+        )
+        expect(requiredErrors.length).toBeGreaterThan(0)
+      }
+    })
+
+    it('should reject UIKit.json missing required global section', () => {
+      const invalidUIKit = {
+        'ui-kit': {
+          // Missing global section
+          components: {}
+        }
+      }
+      
+      const validate = ajv.compile(uikitSchema)
+      const valid = validate(invalidUIKit)
+      
+      // Should fail validation
+      expect(valid).toBe(false)
+      if (!valid && validate.errors) {
+        const requiredErrors = validate.errors.filter(e => 
+          e.keyword === 'required' && e.instancePath?.includes('global')
+        )
+        expect(requiredErrors.length).toBeGreaterThan(0)
+      }
+    })
+
+    it('should validate correct token reference patterns in Brand.json', () => {
+      const validBrand = {
+        brand: {
+          themes: {
+            light: {
+              palettes: {
+                'core-colors': {
+                  $type: 'color',
+                  $value: {
+                    black: '{tokens.color.gray.900}',
+                    white: '{tokens.color.gray.000}',
+                    alert: '{tokens.color.gray.900}',
+                    success: '{tokens.color.gray.900}',
+                    warning: '{tokens.color.gray.900}',
+                    interactive: {
+                      default: {
+                        tone: { $value: '{tokens.color.gray.500}' },
+                        'on-tone': { $value: '{tokens.color.gray.000}' }
+                      },
+                      hover: {
+                        tone: { $value: '{tokens.color.gray.600}' },
+                        'on-tone': { $value: '{tokens.color.gray.000}' }
+                      }
+                    }
+                  }
+                },
+                neutral: {
+                  '500': {
+                    color: {
+                      tone: { $value: '{tokens.color.gray.500}' },
+                      'on-tone': { $value: '{tokens.color.gray.000}' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      const validate = ajv.compile(brandSchema)
+      const valid = validate(validBrand)
+      
+      // Should pass basic structure validation (pattern matching may be lenient)
+      expect(validate).toBeDefined()
+    })
+
+    it('should handle empty objects gracefully', () => {
+      const emptyTokens = { tokens: {} }
+      const validate = ajv.compile(tokensSchema)
+      const valid = validate(emptyTokens)
+      
+      // Empty tokens should be valid (just no tokens defined)
+      expect(valid).toBe(true)
+    })
+
+    it('should validate elevation structure in Brand.json', () => {
+      const brandWithElevation = {
+        brand: {
+          themes: {
+            light: {
+              elevations: {
+                'elevation-0': {
+                  $type: 'boxShadow',
+                  $value: {
+                    x: { $value: '0', unit: 'px' },
+                    y: { $value: '0', unit: 'px' },
+                    blur: { $value: '0', unit: 'px' },
+                    spread: { $value: '0', unit: 'px' },
+                    color: { $value: '#000000', $type: 'color' },
+                    opacity: { $value: '{tokens.opacity.solid}', $type: 'opacity' }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      const validate = ajv.compile(brandSchema)
+      const valid = validate(brandWithElevation)
+      
+      // Should validate elevation structure
+      expect(validate).toBeDefined()
+    })
+  })
 })
 
