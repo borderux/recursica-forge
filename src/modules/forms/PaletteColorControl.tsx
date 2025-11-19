@@ -35,6 +35,7 @@ export default function PaletteColorControl({
   fontSize = 13,
 }: PaletteColorControlProps) {
   const { palettes, theme: themeJson } = useVars()
+  const { mode } = useThemeMode()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const displayCssVar = currentValueCssVar || targetCssVar
   

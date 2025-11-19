@@ -11,6 +11,8 @@
  * - Dispatches 'tokenOverridesChanged' with detail { name, value, all }
  *   on set; and { all, reset: true } when cleared
  */
+import { clearCustomFonts } from '../type/fontUtils'
+
 const STORAGE_KEY = 'token-overrides'
 
 export type TokenOverrides = Record<string, number | string>
@@ -45,6 +47,11 @@ export function clearOverrides(initialAll?: any) {
     localStorage.removeItem(STORAGE_KEY)
   } catch {}
   try {
+    // Clear custom fonts and their @font-face rules
+    try {
+      clearCustomFonts()
+    } catch {}
+    
     // Clear other ephemeral client-side state
     const removeKeys = (
       Object.keys(localStorage || {}) as Array<string>

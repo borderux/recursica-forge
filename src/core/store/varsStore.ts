@@ -11,6 +11,7 @@ import { readCssVar } from '../css/readCssVar'
 import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
+// Note: clearCustomFonts is imported dynamically to avoid circular dependencies
 // Note: Override system removed - tokens are now the single source of truth
 
 type PaletteStore = {
@@ -243,10 +244,26 @@ class VarsStore {
     const onTypeChoices = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     const onPaletteVarsChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     const onPaletteFamilyChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
+    // Debounce font-loaded events to avoid excessive recomputation
+    // Note: We still recompute to update font-family names in token CSS variables,
+    // but typography CSS variables are preserved if they were set directly by the user
+    let fontLoadedTimeout: ReturnType<typeof setTimeout> | null = null
+    const onFontLoaded = () => { 
+      // Debounce: only recompute after fonts have finished loading
+      if (fontLoadedTimeout) {
+        clearTimeout(fontLoadedTimeout)
+      }
+      fontLoadedTimeout = setTimeout(() => {
+        this.bumpVersion()
+        this.recomputeAndApplyAll()
+        fontLoadedTimeout = null
+      }, 500) // Wait 500ms for multiple fonts to load
+    }
     window.addEventListener('typeChoicesChanged', onTypeChoices as any)
     // Recompute layers and dependent CSS whenever palette CSS vars or families change
     window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
     window.addEventListener('paletteFamilyChanged', onPaletteFamilyChanged as any)
+    window.addEventListener('font-loaded', onFontLoaded as any)
   }
 
   private initAAWatcher() {
@@ -546,6 +563,13 @@ class VarsStore {
     try {
       ['elevation-controls','shadow-color-control','elevation-color-tokens','elevation-alpha-tokens','elevation-palette-selections','elevation-directions','offset-x-direction','offset-y-direction']
         .forEach((k) => { try { localStorage.removeItem(k) } catch {} })
+    } catch {}
+    // Clear custom fonts and their @font-face rules
+    try {
+      // Use dynamic import to avoid circular dependencies
+      import('../../modules/type/fontUtils').then(({ clearCustomFonts }) => {
+        clearCustomFonts()
+      }).catch(() => {})
     } catch {}
     this.state = { tokens: sortedTokens, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any), version: (this.state.version || 0) + 1 }
     // Persist freshly initialized elevation defaults so future reads are consistent
@@ -1206,22 +1230,68 @@ class VarsStore {
     } catch {}
     // Typography
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, this.readTypeChoices())
+    
+    // Preserve typography CSS variables that were set directly by the user (e.g., via TypeStylePanel)
+    // This prevents font-loaded events and recomputes from overwriting user changes
+    // Check all typography CSS variables in the DOM and preserve any that differ from generated
+    Object.keys(typeVars).forEach((cssVar) => {
+      const existingValue = readCssVar(cssVar)
+      const generatedValue = typeVars[cssVar]
+      
+      // Preserve if it exists in DOM and is different from generated (user customization)
+      // This ensures user changes via TypeStylePanel persist across recomputes
+      if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
+        typeVars[cssVar] = existingValue
+      }
+    })
+    
+    // Also check for any brand typography CSS variables that might have been set directly
+    // These are the ones TypeStylePanel modifies (e.g., --recursica-brand-typography-h1-font-family)
+    try {
+      const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'button', 'caption', 'overline']
+      const typographyProperties = ['font-family', 'font-size', 'font-weight', 'font-letter-spacing', 'line-height']
+      
+      typographyPrefixes.forEach((prefix) => {
+        typographyProperties.forEach((property) => {
+          const cssVar = `--recursica-brand-typography-${prefix}-${property}`
+          const existingValue = readCssVar(cssVar)
+          const generatedValue = typeVars[cssVar]
+          
+          // If there's an existing value that differs from generated, preserve it
+          // This catches direct CSS variable changes from TypeStylePanel
+          if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
+            typeVars[cssVar] = existingValue
+          }
+        })
+      })
+    } catch {}
+    
     Object.assign(allVars, typeVars)
-    // Ensure web fonts load lazily
-    familiesToLoad.forEach((family) => {
+    // Ensure fonts load lazily (web fonts, npm fonts, git fonts)
+    // Use dynamic import to avoid circular dependencies
+    Promise.all(familiesToLoad.map(async (family) => {
       try {
         const trimmed = String(family).trim()
         if (!trimmed) return
-        const id = `gf-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
-        if (document.getElementById(id)) return
-        const href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(trimmed).replace(/%20/g, '+')}:wght@100..900&display=swap`
-        const link = document.createElement('link')
-        link.id = id
-        link.rel = 'stylesheet'
-        link.href = href
-        document.head.appendChild(link)
-      } catch {}
-    })
+        // Dynamically import fontUtils to check for npm/git sources
+        const { ensureFontLoaded } = await import('../../modules/type/fontUtils')
+        await ensureFontLoaded(trimmed)
+      } catch (error) {
+        // Fallback to web font loading if ensureFontLoaded fails
+        try {
+          const trimmed = String(family).trim()
+          if (!trimmed) return
+          const id = `gf-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+          if (document.getElementById(id)) return
+          const href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(trimmed).replace(/%20/g, '+')}:wght@100..900&display=swap`
+          const link = document.createElement('link')
+          link.id = id
+          link.rel = 'stylesheet'
+          link.href = href
+          document.head.appendChild(link)
+        } catch {}
+      }
+    })).catch(() => {})
 
     // Elevation CSS variables (apply for levels 0..4)
     try {

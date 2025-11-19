@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar as updateCssVarUtil, removeCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -35,6 +35,15 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const { tokens } = useVars()
   const [updateKey, setUpdateKey] = useState(0)
 
+  // Listen for reset events to refresh font options
+  useEffect(() => {
+    const handler = () => {
+      setUpdateKey((k) => k + 1)
+    }
+    window.addEventListener('tokenOverridesChanged', handler)
+    return () => window.removeEventListener('tokenOverridesChanged', handler)
+  }, [])
+
   // options
   const sizeOptions = useMemo(() => {
     const out: Array<{ short: string; label: string }> = []
@@ -59,34 +68,75 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const familyOptions = useMemo(() => {
     const out: Array<{ short: string; label: string; value: string }> = []
     const seen = new Set<string>()
-    // from Tokens.json (font.family)
-    try {
-      Object.entries((tokens as any)?.tokens?.font?.family || {}).forEach(([short, rec]: [string, any]) => {
-        const val = String((rec as any)?.$value || '')
-        if (val && !seen.has(val)) { seen.add(val); out.push({ short, label: toTitleCase(short), value: val }) }
-      })
-    } catch {}
-    // from Tokens.json (font.typeface)
+    // Helper to check if a value is populated (not empty or whitespace)
+    const isPopulated = (val: string): boolean => {
+      return val && val.trim().length > 0
+    }
+    
+    // Token order sequence (from smallest to largest)
+    const TOKEN_ORDER = ['primary','secondary','tertiary','quaternary','quinary','senary','septenary','octonary']
+    
+    // Collect typeface tokens first (they take precedence)
+    const typefaceTokens: Array<{ short: string; label: string; value: string; order: number }> = []
     try {
       Object.entries((tokens as any)?.tokens?.font?.['typeface'] || {}).forEach(([short, rec]: [string, any]) => {
-        const val = String((rec as any)?.$value || '')
-        if (val && !seen.has(val)) { seen.add(val); out.push({ short, label: toTitleCase(short), value: val }) }
+        const val = String((rec as any)?.$value || '').trim()
+        if (isPopulated(val) && !seen.has(val)) {
+          seen.add(val)
+          const orderIndex = TOKEN_ORDER.indexOf(short)
+          typefaceTokens.push({ 
+            short, 
+            label: toTitleCase(short), 
+            value: val,
+            order: orderIndex >= 0 ? orderIndex : 999 // Put unknown tokens at the end
+          })
+        }
       })
     } catch {}
-    // include overrides-only additions (font/family/* and font/typeface/*)
+    
+    // Collect family tokens (only if not already in typeface)
+    const familyTokens: Array<{ short: string; label: string; value: string; order: number }> = []
     try {
-      const ov = (window && typeof window !== 'undefined') ? ((): Record<string, any> => { try { return JSON.parse(localStorage.getItem('token-overrides') || '{}') } catch { return {} } })() : {}
-      Object.entries(ov || {}).forEach(([name, val]) => {
-        if (typeof name !== 'string') return
-        if (!(name.startsWith('font/family/') || name.startsWith('font/typeface/'))) return
-        const short = name.split('/').pop() as string
-        const literal = String(val || '')
-        if (literal && !seen.has(literal)) { seen.add(literal); out.push({ short, label: toTitleCase(short), value: literal }) }
+      Object.entries((tokens as any)?.tokens?.font?.family || {}).forEach(([short, rec]: [string, any]) => {
+        const val = String((rec as any)?.$value || '').trim()
+        if (isPopulated(val) && !seen.has(val)) {
+          seen.add(val)
+          const orderIndex = TOKEN_ORDER.indexOf(short)
+          familyTokens.push({ 
+            short, 
+            label: toTitleCase(short), 
+            value: val,
+            order: orderIndex >= 0 ? orderIndex : 999 // Put unknown tokens at the end
+          })
+        }
       })
     } catch {}
-    out.sort((a,b) => a.label.localeCompare(b.label))
-    return out
-  }, [tokens])
+    
+    // Combine and sort by order (typeface first, then family, both in token order)
+    const allTokens = [...typefaceTokens, ...familyTokens]
+    allTokens.sort((a, b) => {
+      // First sort by order index
+      if (a.order !== b.order) {
+        return a.order - b.order
+      }
+      // If same order, typeface comes before family
+      const aIsTypeface = typefaceTokens.some(t => t.short === a.short)
+      const bIsTypeface = typefaceTokens.some(t => t.short === b.short)
+      if (aIsTypeface && !bIsTypeface) return -1
+      if (!aIsTypeface && bIsTypeface) return 1
+      // Otherwise maintain stable order
+      return 0
+    })
+    
+    // Extract fields and format label with font name in parentheses
+    return allTokens.map(({ short, label, value }) => {
+      // Format: "Primary (Lexend)" or just "Primary" if no value
+      const displayLabel = value && value.trim() 
+        ? `${label} (${value})`
+        : label
+      return { short, label: displayLabel, value }
+    })
+  }, [tokens, updateKey])
 
   // Helper to get current token name from CSS variable
   const getCurrentTokenName = (cssVar: string, options: Array<{ short: string }>): string | undefined => {
@@ -140,9 +190,27 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           const isTypeface = (tokens as any)?.tokens?.font?.typeface?.[option.short] !== undefined
           const category = isTypeface ? 'typeface' : 'family'
           updateCssVarUtil(cssVar, `var(--recursica-tokens-font-${category}-${option.short})`)
+          
+          // Load the font asynchronously (don't block UI)
+          if (tokenValue && tokenValue.trim()) {
+            import('../../modules/type/fontUtils').then(({ ensureFontLoaded }) => {
+              ensureFontLoaded(tokenValue.trim()).catch((error) => {
+                console.warn(`Failed to load font ${tokenValue}:`, error)
+              })
+            }).catch(() => {})
+          }
         } else if (tokenValue) {
           // Use literal value
           updateCssVarUtil(cssVar, tokenValue)
+          
+          // Load the font asynchronously (don't block UI)
+          if (tokenValue.trim()) {
+            import('../../modules/type/fontUtils').then(({ ensureFontLoaded }) => {
+              ensureFontLoaded(tokenValue.trim()).catch((error) => {
+                console.warn(`Failed to load font ${tokenValue}:`, error)
+              })
+            }).catch(() => {})
+          }
         }
       } else {
         // Map property to token category
@@ -203,7 +271,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span style={{ fontSize: 12, opacity: 0.7 }}>Font Family</span>
                 <select 
-                  value={currentFamily} 
+                  value={currentFamily || ''} 
                   onChange={(e) => { 
                     const v = (e.target as HTMLSelectElement).value
                     updateCssVarValue('font-family', v)

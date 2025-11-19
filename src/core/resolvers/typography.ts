@@ -1,6 +1,31 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex, resolveBraceRef } from './tokens'
 
+// Dynamically import fontUtils to avoid circular dependencies
+let getCachedFontFamilyName: ((name: string) => string) | null = null
+let fontUtilsImportPromise: Promise<void> | null = null
+
+// Initialize the import promise once
+if (typeof window !== 'undefined') {
+  fontUtilsImportPromise = import('../../modules/type/fontUtils').then(module => {
+    getCachedFontFamilyName = module.getCachedFontFamilyName
+  }).catch(() => {
+    // Fallback: provide a simple function that just returns the name with quotes if needed
+    getCachedFontFamilyName = (name: string) => {
+      return name.includes(' ') ? `"${name}"` : name
+    }
+  })
+}
+
+// Helper function to safely get cached font family name
+function safeGetCachedFontFamilyName(name: string): string {
+  if (getCachedFontFamilyName) {
+    return getCachedFontFamilyName(name)
+  }
+  // Fallback if not loaded yet
+  return name.includes(' ') ? `"${name}"` : name
+}
+
 export type TypographyChoices = Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>
 
 export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides: Record<string, any> | undefined, choices: TypographyChoices | undefined): { vars: Record<string, string>; familiesToLoad: string[] } {
@@ -11,27 +36,83 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
   const usedFamilies = new Set<string>()
   const vars: Record<string, string> = {}
   const readChoices = choices || {}
+  
+  // Read overrides from localStorage if not provided
+  const readOverrides = (): Record<string, any> => {
+    if (overrides) return overrides
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return {}
+      const raw = localStorage.getItem('token-overrides')
+      if (!raw) return {}
+      return JSON.parse(raw) || {}
+    } catch {
+      return {}
+    }
+  }
+  const effectiveOverrides = readOverrides()
 
   // Emit CSS variables for font tokens so Brand can reference them via var(--recursica-tokens-font-*)
+  // Check for deleted font families to skip creating CSS variables for them
+  const readDeletedFontFamilies = (): Record<string, true> => {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return {}
+      const raw = localStorage.getItem('font-families-deleted')
+      if (!raw) return {}
+      const obj = JSON.parse(raw)
+      if (obj && typeof obj === 'object') return obj as Record<string, true>
+    } catch {}
+    return {}
+  }
+  const deletedFamilies = readDeletedFontFamilies()
+  
   try {
     const src: any = (tokens as any)?.tokens?.font || {}
     const emitCategory = (category: string, unitHint?: string) => {
       const cat: any = src?.[category] || {}
       Object.keys(cat).forEach((short) => {
         if (short.startsWith('$')) return
-        const raw = cat[short]?.$value
+        // Skip if this font family/typeface is marked as deleted
+        const tokenName = `font/${category}/${short}`
+        if (deletedFamilies[tokenName]) {
+          // Skip creating CSS variable for deleted font family
+          return
+        }
+        
+        // Check if there's an override value first
+        const overrideKey = `font/${category}/${short}`
+        const overrideValue = effectiveOverrides[overrideKey]
+        
+        // For font families/typefaces, only create CSS variable if it exists in overrides
+        // This ensures deleted font families don't reappear
+        if (category === 'family' || category === 'typeface') {
+          if (overrideValue === undefined || overrideValue === null) {
+            // Not in overrides, skip creating CSS variable
+            return
+          }
+        }
+        
+        // Use override value if it exists, otherwise use token value
         let valueStr: string | undefined = undefined
-        if (typeof raw === 'string') {
-          valueStr = raw
-        } else if (typeof raw === 'number') {
-          valueStr = unitHint ? `${raw}${unitHint}` : String(raw)
-        } else if (raw && typeof raw === 'object') {
-          const val: any = (raw as any).value
-          const unit: any = (raw as any).unit
-          if (typeof val === 'number') valueStr = unit ? `${val}${unit}` : (unitHint ? `${val}${unitHint}` : String(val))
-          else if (typeof val === 'string') valueStr = unit ? `${val}${unit}` : String(val)
+        if (overrideValue !== undefined && overrideValue !== null && String(overrideValue).trim()) {
+          valueStr = String(overrideValue)
+        } else {
+          const raw = cat[short]?.$value
+          if (typeof raw === 'string') {
+            valueStr = raw
+          } else if (typeof raw === 'number') {
+            valueStr = unitHint ? `${raw}${unitHint}` : String(raw)
+          } else if (raw && typeof raw === 'object') {
+            const val: any = (raw as any).value
+            const unit: any = (raw as any).unit
+            if (typeof val === 'number') valueStr = unit ? `${val}${unit}` : (unitHint ? `${val}${unitHint}` : String(val))
+            else if (typeof val === 'string') valueStr = unit ? `${val}${unit}` : String(val)
+          }
         }
         if (typeof valueStr === 'string' && valueStr) {
+          // For font families/typefaces, use the cached actual font-family name from CSS
+          if (category === 'family' || category === 'typeface') {
+            valueStr = safeGetCachedFontFamilyName(valueStr)
+          }
           vars[`--tokens-font-${category}-${short}`] = valueStr
         }
       })
@@ -43,6 +124,33 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     emitCategory('letter-spacing', 'em')
     emitCategory('line-height')       // unitless or string
   } catch {}
+  
+  // Also emit CSS variables from overrides for font families/typefaces
+  // This ensures custom-added font families and overridden values get CSS variables
+  // Only create CSS variables for font families that exist in overrides
+  try {
+    Object.keys(effectiveOverrides).forEach((name) => {
+      if (name.startsWith('font/typeface/') || name.startsWith('font/family/')) {
+        const key = name.replace('font/typeface/', '').replace('font/family/', '')
+        const category = name.startsWith('font/typeface/') ? 'typeface' : 'family'
+        const value = String(effectiveOverrides[name] || '')
+        
+        // Skip if deleted
+        const tokenName = `font/${category}/${key}`
+        if (deletedFamilies[tokenName]) return
+        
+        // Only create CSS variable if value is not empty
+        // Empty values mean the font family was deleted
+        if (value && value.trim()) {
+          // For font families/typefaces, use the cached actual font-family name from CSS
+          const finalValue = (category === 'family' || category === 'typeface')
+            ? safeGetCachedFontFamilyName(value)
+            : value
+          vars[`--tokens-font-${category}-${key}`] = finalValue
+        }
+      }
+    })
+  } catch {}
 
   const getFontToken = (path: string): any => {
     // Allow overrides of font tokens using the same flat key naming used elsewhere
@@ -52,7 +160,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       if (!kind || !key) return undefined
       return `font/${kind}/${key}`
     })()
-    if (name && overrides && Object.prototype.hasOwnProperty.call(overrides, name)) return overrides[name]
+    if (name && effectiveOverrides && Object.prototype.hasOwnProperty.call(effectiveOverrides, name)) return effectiveOverrides[name]
     return tokenIndex.get(`font/${parts[0]}/${parts[1]}`)
   }
 
@@ -197,8 +305,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       return null
     }
     
-    const brandPrefix = `--brand-typography-${cssVarPrefix}-`
-    const shortPrefix = `--brand-typography-${cssVarPrefix}-`
+    const brandPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
+    const shortPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
     if (family != null) {
       const brandVal = familyToken 
         ? `var(--recursica-tokens-font-${familyToken.category}-${familyToken.suffix})`
