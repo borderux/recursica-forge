@@ -3,6 +3,7 @@ import { validateAllJsonSchemas } from './utils/validateJsonSchemas'
 import tokensImport from '../vars/Tokens.json'
 import themeImport from '../vars/Brand.json'
 import uikitImport from '../vars/UIKit.json'
+import { loadStoredCustomFonts } from '../modules/type/fontUtils'
 
 // Initialize the store and compute/apply initial CSS vars before React mounts
 export function bootstrapTheme() {
@@ -12,6 +13,13 @@ export function bootstrapTheme() {
     validateAllJsonSchemas(theme, tokensImport as any, uikitImport as any)
     
     getVarsStore()
+    
+    // Load stored custom fonts (npm/git sources) on startup
+    if (typeof window !== 'undefined') {
+      loadStoredCustomFonts().catch((error) => {
+        console.warn('[Bootstrap] Failed to load some custom fonts:', error)
+      })
+    }
   } catch (error) {
     // Log validation errors but don't crash the app in production
     if (process.env.NODE_ENV === 'development') {

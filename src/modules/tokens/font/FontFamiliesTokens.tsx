@@ -13,6 +13,8 @@ import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
 import { removeCssVar } from '../../../core/css/updateCssVar'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getVarsStore } from '../../../core/store/varsStore'
+import { CustomFontModal } from '../../type/CustomFontModal'
+import { storeCustomFont, loadFontFromNpm, loadFontFromGit } from '../../type/fontUtils'
 
 type FamilyRow = { name: string; value: string; position: number }
 
@@ -21,6 +23,8 @@ const ORDER = ['primary','secondary','tertiary','quaternary','quinary','senary',
 export default function FontFamiliesTokens() {
   const { tokens: tokensJson, updateToken } = useVars()
   const [fonts, setFonts] = useState<string[]>(["Inter","Roboto","Open Sans","Lato","Montserrat","Poppins","Source Sans 3","Nunito","Raleway","Merriweather","PT Sans","Ubuntu","Noto Sans","Playfair Display","Work Sans","Rubik","Fira Sans","Manrope","Crimson Pro","Space Grotesk","Custom..."])
+  const [customModalOpen, setCustomModalOpen] = useState(false)
+  const [customModalRowName, setCustomModalRowName] = useState<string | null>(null)
 
   // Build rows from overrides, falling back to tokens.json if overrides are empty
   const buildRows = (): FamilyRow[] => {
@@ -337,7 +341,9 @@ export default function FontFamiliesTokens() {
                   onChange={(ev) => {
                     const chosen = ev.currentTarget.value
                     if (chosen === 'Custom...') {
-                      // Switch to custom input - handled by isCustom logic
+                      // Open custom font modal
+                      setCustomModalRowName(r.name)
+                      setCustomModalOpen(true)
                       return
                     }
                     const all = readOverrides()
@@ -379,6 +385,54 @@ export default function FontFamiliesTokens() {
           )
         })}
       </div>
+      
+      <CustomFontModal
+        open={customModalOpen}
+        onClose={() => {
+          setCustomModalOpen(false)
+          setCustomModalRowName(null)
+        }}
+        onAccept={async (fontName, fontSource) => {
+          if (!customModalRowName) return
+          
+          try {
+            // Handle npm/git sources
+            if (fontSource.type === 'npm') {
+              await loadFontFromNpm(fontName, fontSource.url)
+            } else if (fontSource.type === 'git') {
+              const [repoUrl, fontPath] = fontSource.url.split('#')
+              await loadFontFromGit(fontName, repoUrl, fontPath || 'fonts')
+            }
+            
+            // Store custom font info
+            storeCustomFont(fontName, undefined, fontSource)
+            
+            // Update the row with the font name
+            const all = readOverrides()
+            const updated = { ...all, [customModalRowName]: fontName }
+            writeOverrides(updated)
+            setRows(buildRows())
+            
+            // Update token in store
+            updateToken(customModalRowName, fontName)
+            
+            // Trigger recompute
+            setTimeout(() => {
+              try {
+                const store = getVarsStore()
+                store.setTokens(store.getState().tokens)
+              } catch {}
+            }, 0)
+            
+            // Close modal
+            setCustomModalOpen(false)
+            setCustomModalRowName(null)
+          } catch (error) {
+            console.error('Failed to add custom font:', error)
+            alert(`Failed to add custom font: ${error instanceof Error ? error.message : String(error)}`)
+          }
+        }}
+      />
     </section>
   )
 }

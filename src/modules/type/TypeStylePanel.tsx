@@ -4,6 +4,8 @@ import { updateCssVar as updateCssVarUtil, removeCssVar } from '../../core/css/u
 import { readCssVar } from '../../core/css/readCssVar'
 import TokenSlider from '../forms/TokenSlider'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { CustomFontModal } from './CustomFontModal'
+import { storeCustomFont, loadFontFromNpm, loadFontFromGit } from './fontUtils'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -34,6 +36,7 @@ function extractTokenFromCssVar(cssValue: string): string | null {
 export default function TypeStylePanel({ open, selectedPrefixes, title, onClose }: { open: boolean; selectedPrefixes: string[]; title: string; onClose: () => void }) {
   const { tokens } = useVars()
   const [updateKey, setUpdateKey] = useState(0)
+  const [customModalOpen, setCustomModalOpen] = useState(false)
 
   // Listen for reset events to refresh font options
   useEffect(() => {
@@ -110,6 +113,8 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       })
     } catch {}
     out.sort((a,b) => a.label.localeCompare(b.label))
+    // Add "Custom..." option
+    out.push({ short: 'custom', label: 'Custom...', value: 'Custom...' })
     return out
   }, [tokens, updateKey])
 
@@ -231,6 +236,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                   value={currentFamily || ''} 
                   onChange={(e) => { 
                     const v = (e.target as HTMLSelectElement).value
+                    if (v === 'Custom...') {
+                      setCustomModalOpen(true)
+                      return
+                    }
                     updateCssVarValue('font-family', v)
                   }}
                   style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)` }}
@@ -289,6 +298,34 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           <button onClick={revert}>Revert</button>
         </div>
       </div>
+      
+      <CustomFontModal
+        open={customModalOpen}
+        onClose={() => setCustomModalOpen(false)}
+        onAccept={async (fontName, fontSource) => {
+          try {
+            // Handle npm/git sources
+            if (fontSource.type === 'npm') {
+              await loadFontFromNpm(fontName, fontSource.url)
+            } else if (fontSource.type === 'git') {
+              const [repoUrl, fontPath] = fontSource.url.split('#')
+              await loadFontFromGit(fontName, repoUrl, fontPath || 'fonts')
+            }
+            
+            // Store custom font info
+            storeCustomFont(fontName, undefined, fontSource)
+            
+            // Update CSS variable with the font name
+            updateCssVarValue('font-family', fontName)
+            
+            // Close modal
+            setCustomModalOpen(false)
+          } catch (error) {
+            console.error('Failed to add custom font:', error)
+            alert(`Failed to add custom font: ${error instanceof Error ? error.message : String(error)}`)
+          }
+        }}
+      />
     </div>
   )
 }
