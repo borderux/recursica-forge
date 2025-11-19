@@ -1,6 +1,31 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex, resolveBraceRef } from './tokens'
 
+// Dynamically import fontUtils to avoid circular dependencies
+let getCachedFontFamilyName: ((name: string) => string) | null = null
+let fontUtilsImportPromise: Promise<void> | null = null
+
+// Initialize the import promise once
+if (typeof window !== 'undefined') {
+  fontUtilsImportPromise = import('../../modules/type/fontUtils').then(module => {
+    getCachedFontFamilyName = module.getCachedFontFamilyName
+  }).catch(() => {
+    // Fallback: provide a simple function that just returns the name with quotes if needed
+    getCachedFontFamilyName = (name: string) => {
+      return name.includes(' ') ? `"${name}"` : name
+    }
+  })
+}
+
+// Helper function to safely get cached font family name
+function safeGetCachedFontFamilyName(name: string): string {
+  if (getCachedFontFamilyName) {
+    return getCachedFontFamilyName(name)
+  }
+  // Fallback if not loaded yet
+  return name.includes(' ') ? `"${name}"` : name
+}
+
 export type TypographyChoices = Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>
 
 export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides: Record<string, any> | undefined, choices: TypographyChoices | undefined): { vars: Record<string, string>; familiesToLoad: string[] } {
@@ -84,6 +109,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
           }
         }
         if (typeof valueStr === 'string' && valueStr) {
+          // For font families/typefaces, use the cached actual font-family name from CSS
+          if (category === 'family' || category === 'typeface') {
+            valueStr = safeGetCachedFontFamilyName(valueStr)
+          }
           vars[`--tokens-font-${category}-${short}`] = valueStr
         }
       })
@@ -113,7 +142,11 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         // Only create CSS variable if value is not empty
         // Empty values mean the font family was deleted
         if (value && value.trim()) {
-          vars[`--tokens-font-${category}-${key}`] = value
+          // For font families/typefaces, use the cached actual font-family name from CSS
+          const finalValue = (category === 'family' || category === 'typeface')
+            ? safeGetCachedFontFamilyName(value)
+            : value
+          vars[`--tokens-font-${category}-${key}`] = finalValue
         }
       }
     })
@@ -272,8 +305,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       return null
     }
     
-    const brandPrefix = `--brand-typography-${cssVarPrefix}-`
-    const shortPrefix = `--brand-typography-${cssVarPrefix}-`
+    const brandPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
+    const shortPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
     if (family != null) {
       const brandVal = familyToken 
         ? `var(--recursica-tokens-font-${familyToken.category}-${familyToken.suffix})`

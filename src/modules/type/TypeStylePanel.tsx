@@ -4,8 +4,6 @@ import { updateCssVar as updateCssVarUtil, removeCssVar } from '../../core/css/u
 import { readCssVar } from '../../core/css/readCssVar'
 import TokenSlider from '../forms/TokenSlider'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { CustomFontModal } from './CustomFontModal'
-import { storeCustomFont, loadFontFromNpm, loadFontFromGit } from './fontUtils'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -36,7 +34,6 @@ function extractTokenFromCssVar(cssValue: string): string | null {
 export default function TypeStylePanel({ open, selectedPrefixes, title, onClose }: { open: boolean; selectedPrefixes: string[]; title: string; onClose: () => void }) {
   const { tokens } = useVars()
   const [updateKey, setUpdateKey] = useState(0)
-  const [customModalOpen, setCustomModalOpen] = useState(false)
 
   // Listen for reset events to refresh font options
   useEffect(() => {
@@ -76,46 +73,69 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       return val && val.trim().length > 0
     }
     
-    // from Tokens.json (font.family)
-    try {
-      Object.entries((tokens as any)?.tokens?.font?.family || {}).forEach(([short, rec]: [string, any]) => {
-        const val = String((rec as any)?.$value || '').trim()
-        if (isPopulated(val) && !seen.has(val)) { seen.add(val); out.push({ short, label: toTitleCase(short), value: val }) }
-      })
-    } catch {}
-    // from Tokens.json (font.typeface)
+    // Token order sequence (from smallest to largest)
+    const TOKEN_ORDER = ['primary','secondary','tertiary','quaternary','quinary','senary','septenary','octonary']
+    
+    // Collect typeface tokens first (they take precedence)
+    const typefaceTokens: Array<{ short: string; label: string; value: string; order: number }> = []
     try {
       Object.entries((tokens as any)?.tokens?.font?.['typeface'] || {}).forEach(([short, rec]: [string, any]) => {
         const val = String((rec as any)?.$value || '').trim()
-        if (isPopulated(val) && !seen.has(val)) { seen.add(val); out.push({ short, label: toTitleCase(short), value: val }) }
-      })
-    } catch {}
-    // include overrides-only additions (font/family/* and font/typeface/*)
-    try {
-      const ov = (window && typeof window !== 'undefined') ? ((): Record<string, any> => { try { return JSON.parse(localStorage.getItem('token-overrides') || '{}') } catch { return {} } })() : {}
-      Object.entries(ov || {}).forEach(([name, val]) => {
-        if (typeof name !== 'string') return
-        if (!(name.startsWith('font/family/') || name.startsWith('font/typeface/'))) return
-        const short = name.split('/').pop() as string
-        const literal = String(val || '').trim()
-        if (isPopulated(literal) && !seen.has(literal)) { seen.add(literal); out.push({ short, label: toTitleCase(short), value: literal }) }
-      })
-    } catch {}
-    // include custom fonts from localStorage
-    try {
-      const customFonts = JSON.parse(localStorage.getItem('custom-fonts') || '[]') as Array<{ name: string }>
-      customFonts.forEach((font) => {
-        const fontName = font.name?.trim() || ''
-        if (isPopulated(fontName) && !seen.has(fontName)) {
-          seen.add(fontName)
-          out.push({ short: fontName, label: fontName, value: fontName })
+        if (isPopulated(val) && !seen.has(val)) {
+          seen.add(val)
+          const orderIndex = TOKEN_ORDER.indexOf(short)
+          typefaceTokens.push({ 
+            short, 
+            label: toTitleCase(short), 
+            value: val,
+            order: orderIndex >= 0 ? orderIndex : 999 // Put unknown tokens at the end
+          })
         }
       })
     } catch {}
-    out.sort((a,b) => a.label.localeCompare(b.label))
-    // Add "Custom..." option
-    out.push({ short: 'custom', label: 'Custom...', value: 'Custom...' })
-    return out
+    
+    // Collect family tokens (only if not already in typeface)
+    const familyTokens: Array<{ short: string; label: string; value: string; order: number }> = []
+    try {
+      Object.entries((tokens as any)?.tokens?.font?.family || {}).forEach(([short, rec]: [string, any]) => {
+        const val = String((rec as any)?.$value || '').trim()
+        if (isPopulated(val) && !seen.has(val)) {
+          seen.add(val)
+          const orderIndex = TOKEN_ORDER.indexOf(short)
+          familyTokens.push({ 
+            short, 
+            label: toTitleCase(short), 
+            value: val,
+            order: orderIndex >= 0 ? orderIndex : 999 // Put unknown tokens at the end
+          })
+        }
+      })
+    } catch {}
+    
+    // Combine and sort by order (typeface first, then family, both in token order)
+    const allTokens = [...typefaceTokens, ...familyTokens]
+    allTokens.sort((a, b) => {
+      // First sort by order index
+      if (a.order !== b.order) {
+        return a.order - b.order
+      }
+      // If same order, typeface comes before family
+      const aIsTypeface = typefaceTokens.some(t => t.short === a.short)
+      const bIsTypeface = typefaceTokens.some(t => t.short === b.short)
+      if (aIsTypeface && !bIsTypeface) return -1
+      if (!aIsTypeface && bIsTypeface) return 1
+      // Otherwise maintain stable order
+      return 0
+    })
+    
+    // Extract fields and format label with font name in parentheses
+    return allTokens.map(({ short, label, value }) => {
+      // Format: "Primary (Lexend)" or just "Primary" if no value
+      const displayLabel = value && value.trim() 
+        ? `${label} (${value})`
+        : label
+      return { short, label: displayLabel, value }
+    })
   }, [tokens, updateKey])
 
   // Helper to get current token name from CSS variable
@@ -170,9 +190,27 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           const isTypeface = (tokens as any)?.tokens?.font?.typeface?.[option.short] !== undefined
           const category = isTypeface ? 'typeface' : 'family'
           updateCssVarUtil(cssVar, `var(--recursica-tokens-font-${category}-${option.short})`)
+          
+          // Load the font asynchronously (don't block UI)
+          if (tokenValue && tokenValue.trim()) {
+            import('../../modules/type/fontUtils').then(({ ensureFontLoaded }) => {
+              ensureFontLoaded(tokenValue.trim()).catch((error) => {
+                console.warn(`Failed to load font ${tokenValue}:`, error)
+              })
+            }).catch(() => {})
+          }
         } else if (tokenValue) {
           // Use literal value
           updateCssVarUtil(cssVar, tokenValue)
+          
+          // Load the font asynchronously (don't block UI)
+          if (tokenValue.trim()) {
+            import('../../modules/type/fontUtils').then(({ ensureFontLoaded }) => {
+              ensureFontLoaded(tokenValue.trim()).catch((error) => {
+                console.warn(`Failed to load font ${tokenValue}:`, error)
+              })
+            }).catch(() => {})
+          }
         }
       } else {
         // Map property to token category
@@ -236,10 +274,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                   value={currentFamily || ''} 
                   onChange={(e) => { 
                     const v = (e.target as HTMLSelectElement).value
-                    if (v === 'Custom...') {
-                      setCustomModalOpen(true)
-                      return
-                    }
                     updateCssVarValue('font-family', v)
                   }}
                   style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)` }}
@@ -298,34 +332,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           <button onClick={revert}>Revert</button>
         </div>
       </div>
-      
-      <CustomFontModal
-        open={customModalOpen}
-        onClose={() => setCustomModalOpen(false)}
-        onAccept={async (fontName, fontSource) => {
-          try {
-            // Handle npm/git sources
-            if (fontSource.type === 'npm') {
-              await loadFontFromNpm(fontName, fontSource.url)
-            } else if (fontSource.type === 'git') {
-              const [repoUrl, fontPath] = fontSource.url.split('#')
-              await loadFontFromGit(fontName, repoUrl, fontPath || 'fonts')
-            }
-            
-            // Store custom font info
-            storeCustomFont(fontName, undefined, fontSource)
-            
-            // Update CSS variable with the font name
-            updateCssVarValue('font-family', fontName)
-            
-            // Close modal
-            setCustomModalOpen(false)
-          } catch (error) {
-            console.error('Failed to add custom font:', error)
-            alert(`Failed to add custom font: ${error instanceof Error ? error.message : String(error)}`)
-          }
-        }}
-      />
     </div>
   )
 }

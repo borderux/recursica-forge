@@ -14,7 +14,7 @@ import { removeCssVar } from '../../../core/css/updateCssVar'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { CustomFontModal } from '../../type/CustomFontModal'
-import { storeCustomFont, loadFontFromNpm, loadFontFromGit } from '../../type/fontUtils'
+import { storeCustomFont, loadFontFromNpm, loadFontFromGit, ensureFontLoaded } from '../../type/fontUtils'
 
 type FamilyRow = { name: string; value: string; position: number }
 
@@ -313,7 +313,7 @@ export default function FontFamiliesTokens() {
                   id={r.name}
                   type="text"
                   value={r.value}
-                  onChange={(ev) => {
+                  onChange={async (ev) => {
                     const next = ev.currentTarget.value
                     const all = readOverrides()
                     const updated = { ...all, [r.name]: next }
@@ -322,6 +322,13 @@ export default function FontFamiliesTokens() {
                     
                     // Update token in store (updates tokens.json structure)
                     updateToken(r.name, next)
+                    
+                    // Ensure font is loaded (web font, npm, or git)
+                    if (next && next.trim()) {
+                      ensureFontLoaded(next).catch((error) => {
+                        console.warn(`Failed to load font ${next}:`, error)
+                      })
+                    }
                     
                     // Trigger recompute to regenerate CSS variables from overrides
                     setTimeout(() => {
@@ -338,7 +345,7 @@ export default function FontFamiliesTokens() {
                   key={r.name}
                   id={r.name}
                   value={r.value || ''}
-                  onChange={(ev) => {
+                  onChange={async (ev) => {
                     const chosen = ev.currentTarget.value
                     if (chosen === 'Custom...') {
                       // Open custom font modal
@@ -353,6 +360,13 @@ export default function FontFamiliesTokens() {
                     
                     // Update token in store (updates tokens.json structure)
                     updateToken(r.name, chosen)
+                    
+                    // Ensure font is loaded (web font, npm, or git)
+                    if (chosen && chosen.trim()) {
+                      ensureFontLoaded(chosen).catch((error) => {
+                        console.warn(`Failed to load font ${chosen}:`, error)
+                      })
+                    }
                     
                     // Trigger recompute to regenerate CSS variables from overrides
                     setTimeout(() => {
