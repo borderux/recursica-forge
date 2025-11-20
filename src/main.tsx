@@ -7,6 +7,7 @@ import TypePage from './modules/type/TypePage'
 import PreviewPage from './modules/preview/PreviewPage'
 import TokensPage from './modules/tokens/TokensPage'
 import LayersPage from './modules/layers/LayersPage'
+import ThemePage from './modules/theme/ThemePage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { ThemeModeProvider } from './modules/theme/ThemeModeContext'
 import { VarsProvider } from './modules/vars/VarsContext'
@@ -54,11 +55,22 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <Navigate to="/tokens" replace /> },
       { path: '/tokens', element: <TokensPage /> },
-      { path: '/palettes', element: <PalettesPage /> },
-      { path: '/elevation', element: <Navigate to="/layers" replace /> },
-      { path: '/type', element: <TypePage /> },
-      { path: '/layers', element: <LayersPage /> },
-      { path: '/uikit', element: <PreviewPage /> },
+      { path: '/components', element: <PreviewPage /> },
+      { path: '/uikit', element: <Navigate to="/components" replace /> },
+      { path: '/palettes', element: <Navigate to="/theme/palettes" replace /> },
+      { path: '/type', element: <Navigate to="/theme/type" replace /> },
+      { path: '/layers', element: <Navigate to="/theme/layers" replace /> },
+      { path: '/elevation', element: <Navigate to="/theme/layers" replace /> },
+      {
+        path: '/theme',
+        element: <ThemePage />,
+        children: [
+          { path: '/theme', element: <Navigate to="/theme/palettes" replace /> },
+          { path: '/theme/palettes', element: <PalettesPage /> },
+          { path: '/theme/type', element: <TypePage /> },
+          { path: '/theme/layers', element: <LayersPage /> },
+        ],
+      },
     ],
   },
 ])

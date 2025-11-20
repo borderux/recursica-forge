@@ -5,8 +5,9 @@
  * and import/export of CSS variables.
  */
 import { ReactNode, useEffect, useState } from 'react'
-import { AppShell, Group, Title, Button, Select, MantineProvider, Modal, Tabs, ActionIcon, Switch } from '@mantine/core'
+import { AppShell, Group, Select, MantineProvider, Modal, Switch } from '@mantine/core'
 import '@mantine/core/styles.css'
+import { ArrowPathIcon, ArrowDownTrayIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { extractCssVarsFromObject, applyCssVars } from '../../theme/varsUtil'
 import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
@@ -16,6 +17,7 @@ import type { UiKit } from '../../uikit/UiKitContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
+import { Button } from '../../../components/adapters/Button'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -26,7 +28,25 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   const location = useLocation()
   const navigate = useNavigate()
-  const currentTab = location.pathname.startsWith('/tokens') ? 'tokens' : location.pathname.startsWith('/type') ? 'type' : location.pathname.startsWith('/layers') ? 'layers' : location.pathname.startsWith('/uikit') ? 'uikit' : 'palettes'
+  
+  // Determine current route for navigation highlighting
+  const getCurrentRoute = () => {
+    if (location.pathname.startsWith('/tokens')) return 'tokens'
+    if (location.pathname.startsWith('/theme')) return 'theme'
+    if (location.pathname.startsWith('/components')) return 'components'
+    return 'tokens'
+  }
+  const currentRoute = getCurrentRoute()
+  
+  // Logo placeholder SVG
+  const LogoIcon = () => (
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" fill="#DC2626" rx="4"/>
+      <path d="M20 20 L20 10 Q20 8 18 8 L10 8 Q8 8 8 10 L8 18 Q8 20 10 20 L20 20 Z" fill="white" fillOpacity="0.9"/>
+      <path d="M20 20 L20 30 Q20 32 22 32 L30 32 Q32 32 32 30 L32 22 Q32 20 30 20 L20 20 Z" fill="white" fillOpacity="0.7"/>
+      <path d="M20 20 L10 20 Q8 20 8 22 L8 30 Q8 32 10 32 L18 32 Q20 32 20 30 L20 20 Z" fill="white" fillOpacity="0.5"/>
+    </svg>
+  )
   
   const onFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) {
@@ -69,45 +89,80 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
     <MantineProvider>
       <AppShell header={{ height: 56 }} padding="md">
         <AppShell.Header>
-          <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-            <Title order={3}>
-              <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Recursica Theme Forge</Link>
-            </Title>
+          <Group h="100%" px="var(--recursica-tokens-size-2x)" justify="space-between" wrap="nowrap">
+            {/* Logo and Brand */}
+            <Group gap="var(--recursica-tokens-size-default)" wrap="nowrap">
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                <LogoIcon />
+              </Link>
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                <Link to="/" style={{ color: 'inherit', textDecoration: 'none', fontWeight: 600, fontSize: 'var(--recursica-tokens-size-md)' }}>
+                  Recursica
+                </Link>
+                <span style={{ fontSize: 'var(--recursica-tokens-size-xs)', opacity: 0.7 }}>Theme Forge</span>
+              </div>
+            </Group>
 
-            <Tabs value={currentTab} onChange={(val) => {
-              const v = (val as string) || 'tokens'
-              if (v === 'tokens') navigate('/tokens')
-              else if (v === 'palettes') navigate('/palettes')
-              else if (v === 'uikit') navigate('/uikit')
-              else navigate(`/${v}`)
-            }} keepMounted={false} variant="pills" radius="xl">
-              <Tabs.List>
-                <Tabs.Tab value="tokens">Tokens</Tabs.Tab>
-                <Tabs.Tab value="palettes">Palettes</Tabs.Tab>
-                <Tabs.Tab value="type">Type</Tabs.Tab>
-                <Tabs.Tab value="layers">Layers</Tabs.Tab>
-                <Tabs.Tab value="uikit">UI Kit</Tabs.Tab>
-              </Tabs.List>
-            </Tabs>
+            {/* Navigation Buttons */}
+            <Group gap="var(--recursica-tokens-size-0-5x)" wrap="nowrap">
+              <Button
+                variant={currentRoute === 'tokens' ? 'solid' : 'text'}
+                onClick={() => navigate('/tokens')}
+                size="default"
+              >
+                Tokens
+              </Button>
+              <Button
+                variant={currentRoute === 'theme' ? 'solid' : 'text'}
+                onClick={() => navigate('/theme')}
+                size="default"
+              >
+                Theme
+              </Button>
+              <Button
+                variant={currentRoute === 'components' ? 'solid' : 'text'}
+                onClick={() => navigate('/components')}
+                size="default"
+              >
+                Components
+              </Button>
+            </Group>
 
-            <Group gap="xs" wrap="nowrap">
-              <ActionIcon variant="default" onClick={() => {
-                clearOverrides(tokensJson as any)
-                resetAll()
-              }} title="Reset to defaults">
-                ↺
-              </ActionIcon>
-              <ActionIcon variant="default" onClick={() => setIsModalOpen(true)} title="Import / Export CSS Variables">
-                ⤓
-              </ActionIcon>
-              <ActionIcon variant="default" onClick={handleExport} title="Export JSON Files">
-                📥
-              </ActionIcon>
+            {/* Action Icons and Controls */}
+            <Group gap="var(--recursica-tokens-size-xs)" wrap="nowrap">
+              <Button
+                variant="text"
+                size="small"
+                icon={<ArrowPathIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
+                onClick={() => {
+                  clearOverrides(tokensJson as any)
+                  resetAll()
+                }}
+                title="Reset to defaults"
+              />
+              <Button
+                variant="text"
+                size="small"
+                icon={<ArrowDownTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
+                onClick={() => setIsModalOpen(true)}
+                title="Import / Export CSS Variables"
+              />
+              <Button
+                variant="text"
+                size="small"
+                icon={<ArrowUpTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
+                onClick={handleExport}
+                title="Export JSON Files"
+              />
               <Switch
                 checked={mode === 'dark'}
                 onChange={(e) => setMode(e.currentTarget.checked ? 'dark' : 'light')}
-                label={mode === 'dark' ? 'Dark' : 'Light'}
                 size="sm"
+                styles={{
+                  track: {
+                    backgroundColor: mode === 'dark' ? 'var(--recursica-brand-light-palettes-core-interactive)' : 'var(--recursica-brand-light-layer-layer-1-property-border-color)',
+                  },
+                }}
               />
               <Select
                 value={kit}
@@ -119,14 +174,20 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 ]}
                 allowDeselect={false}
                 w={180}
+                styles={{
+                  input: {
+                    backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface)',
+                    borderColor: 'var(--recursica-brand-light-layer-layer-1-property-border-color)',
+                  },
+                }}
               />
             </Group>
           </Group>
         </AppShell.Header>
         <Modal opened={isModalOpen} onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} title="Import JSON Files">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-tokens-size-1-5x)' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Select JSON Files:</label>
+              <label style={{ display: 'block', marginBottom: 'var(--recursica-tokens-size-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
               <input
                 type="file"
                 accept="application/json,.json"
@@ -135,22 +196,22 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   onFileSelect(e.currentTarget.files)
                   e.currentTarget.value = ''
                 }}
-                style={{ marginBottom: 8 }}
+                style={{ marginBottom: 'var(--recursica-tokens-size-default)' }}
               />
               {selectedFileNames.length > 0 && (
-                <div style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>
+                <div style={{ fontSize: 'var(--recursica-tokens-size-xs)', color: '#666', marginTop: 'var(--recursica-tokens-size-0-5x)' }}>
                   Selected: {selectedFileNames.join(', ')}
                 </div>
               )}
-              <div style={{ fontSize: '12px', color: '#888', marginTop: 4 }}>
+              <div style={{ fontSize: 'var(--recursica-tokens-size-xs)', color: '#888', marginTop: 'var(--recursica-tokens-size-0-5x)' }}>
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-            <Group gap="sm" justify="flex-end" style={{ borderTop: '1px solid #e0e0e0', paddingTop: 12 }}>
-              <Button variant="default" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
+            <Group gap="sm" justify="flex-end" style={{ borderTop: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', paddingTop: 'var(--recursica-tokens-size-1-5x)' }}>
+              <Button variant="outline" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
                 Cancel
               </Button>
-              <Button variant="filled" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
+              <Button variant="solid" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
                 Import
               </Button>
             </Group>
