@@ -8,6 +8,13 @@ import uikitImport from '../vars/UIKit.json'
 // Initialize the store and compute/apply initial CSS vars before React mounts
 export function bootstrapTheme() {
   try {
+    // Set initial theme mode data attribute
+    if (typeof window !== 'undefined') {
+      const savedMode = localStorage.getItem('theme-mode') as 'light' | 'dark' | null
+      const initialMode = savedMode ?? 'light'
+      document.documentElement.setAttribute('data-theme-mode', initialMode)
+    }
+    
     // Validate JSON schemas before initializing store
     const theme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
     validateAllJsonSchemas(theme, tokensImport as any, uikitImport as any)

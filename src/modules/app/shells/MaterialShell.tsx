@@ -38,13 +38,10 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   }
   const currentRoute = getCurrentRoute()
   
-  // Logo placeholder SVG
+  // Logo SVG
   const LogoIcon = () => (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" fill="#DC2626" rx="4"/>
-      <path d="M20 20 L20 10 Q20 8 18 8 L10 8 Q8 8 8 10 L8 18 Q8 20 10 20 L20 20 Z" fill="white" fillOpacity="0.9"/>
-      <path d="M20 20 L20 30 Q20 32 22 32 L30 32 Q32 32 32 30 L32 22 Q32 20 30 20 L20 20 Z" fill="white" fillOpacity="0.7"/>
-      <path d="M20 20 L10 20 Q8 20 8 22 L8 30 Q8 32 10 32 L18 32 Q20 32 20 30 L20 20 Z" fill="white" fillOpacity="0.5"/>
+    <svg width="65" height="44" viewBox="0 0 65 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fillRule="evenodd" clipRule="evenodd" d="M2.73689 0C1.22535 0 0 1.23486 0 2.75813V40.2687C0 41.792 1.22535 43.0269 2.73689 43.0269H61.3063C62.8178 43.0269 64.0431 41.792 64.0431 40.2687V2.75813C64.0431 1.23486 62.8178 0 61.3063 0H2.73689ZM4.10533 38.8628C4.10533 20.1314 18.8106 4.86124 37.2217 4.1372V38.8628H4.10533ZM45.4323 38.8628C42.4092 38.8628 39.9585 36.3931 39.9585 33.3465H45.4323V38.8628ZM59.8947 24.2447H39.9585V4.15383C50.6584 4.836 59.2177 13.4618 59.8947 24.2447ZM59.8674 27.0028C59.2296 33.2132 54.3317 38.1491 48.1692 38.7918V27.0028H59.8674ZM43.5165 27.0297C41.5515 27.0297 39.9585 28.635 39.9585 30.6153H43.5165V27.0297Z" fill={`var(--recursica-brand-${mode}-palettes-palette-1-primary-tone)`}/>
     </svg>
   )
   
@@ -104,56 +101,88 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const { AppBar, Toolbar, Select, MenuItem, Container, CssBaseline, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions, Box } = mat
   const { ThemeProvider, createTheme } = styles
   const theme = createTheme()
+  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
+  
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar position="static">
-        <Toolbar sx={{ gap: 'var(--recursica-tokens-size-default)', justifyContent: 'space-between' }}>
-          {/* Logo and Brand */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)' }}>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+      <AppBar
+        position="static"
+        sx={{
+          backgroundColor: `var(${layer0Base}-surface)`,
+          paddingTop: 'var(--recursica-tokens-size-2x)',
+          paddingBottom: 'var(--recursica-tokens-size-2x)',
+          paddingLeft: 'var(--recursica-tokens-size-3x)',
+          paddingRight: 'var(--recursica-tokens-size-3x)',
+          height: 'auto',
+          boxShadow: 'none',
+        }}
+      >
+        <Toolbar sx={{ gap: 'var(--recursica-tokens-size-default)', justifyContent: 'space-between', minHeight: 'auto !important' }}>
+          {/* Logo, Brand, and Navigation Buttons */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-2x)' }}>
+            {/* Logo and Brand */}
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', textDecoration: 'none' }}>
               <LogoIcon />
-            </Link>
-            <Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-              <Link to="/" style={{ color: 'inherit', textDecoration: 'none', fontWeight: 600, fontSize: 'var(--recursica-tokens-size-md)' }}>
-                Recursica
-              </Link>
-              <Box component="span" sx={{ fontSize: 'var(--recursica-tokens-size-xs)', opacity: 0.7 }}>
-                Theme Forge
+              <Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                <Box
+                  component="span"
+                  sx={{
+                    color: `var(${layer0Base}-element-text-color)`,
+                    opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                    fontWeight: 600,
+                    fontSize: 'var(--recursica-tokens-size-md)',
+                  }}
+                >
+                  Recursica
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    fontSize: 'var(--recursica-tokens-size-xs)',
+                    color: `var(${layer0Base}-element-text-color)`,
+                    opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                  }}
+                >
+                  Theme Forge
+                </Box>
               </Box>
+            </Link>
+
+            {/* Navigation Buttons */}
+            <Box sx={{ display: 'flex', gap: 'var(--recursica-tokens-size-default)' }}>
+              <Button
+                variant={currentRoute === 'tokens' ? 'solid' : 'text'}
+                onClick={() => navigate('/tokens')}
+                size="default"
+                layer="layer-0"
+              >
+                Tokens
+              </Button>
+              <Button
+                variant={currentRoute === 'theme' ? 'solid' : 'text'}
+                onClick={() => navigate('/theme')}
+                size="default"
+                layer="layer-0"
+              >
+                Theme
+              </Button>
+              <Button
+                variant={currentRoute === 'components' ? 'solid' : 'text'}
+                onClick={() => navigate('/components')}
+                size="default"
+                layer="layer-0"
+              >
+                Components
+              </Button>
             </Box>
           </Box>
 
-          {/* Navigation Buttons */}
-          <Box sx={{ display: 'flex', gap: 'var(--recursica-tokens-size-0-5x)' }}>
-            <Button
-              variant={currentRoute === 'tokens' ? 'solid' : 'text'}
-              onClick={() => navigate('/tokens')}
-              size="default"
-            >
-              Tokens
-            </Button>
-            <Button
-              variant={currentRoute === 'theme' ? 'solid' : 'text'}
-              onClick={() => navigate('/theme')}
-              size="default"
-            >
-              Theme
-            </Button>
-            <Button
-              variant={currentRoute === 'components' ? 'solid' : 'text'}
-              onClick={() => navigate('/components')}
-              size="default"
-            >
-              Components
-            </Button>
-          </Box>
-
           {/* Action Icons and Controls */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-xs)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-xs)', marginLeft: 'auto' }}>
             <Button
-              variant="text"
-              size="small"
+              variant="outline"
+              size="default"
               icon={<ArrowPathIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
               onClick={() => {
                 clearOverrides(tokensJson as any)
@@ -162,15 +191,15 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               title="Reset to defaults"
             />
             <Button
-              variant="text"
-              size="small"
+              variant="outline"
+              size="default"
               icon={<ArrowDownTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
               onClick={() => setIsDialogOpen(true)}
               title="Import / Export CSS Variables"
             />
             <Button
-              variant="text"
-              size="small"
+              variant="outline"
+              size="default"
               icon={<ArrowUpTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
               onClick={handleExport}
               title="Export JSON Files"

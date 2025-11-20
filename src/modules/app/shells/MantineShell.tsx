@@ -38,13 +38,10 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   }
   const currentRoute = getCurrentRoute()
   
-  // Logo placeholder SVG
+  // Logo SVG
   const LogoIcon = () => (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" fill="#DC2626" rx="4"/>
-      <path d="M20 20 L20 10 Q20 8 18 8 L10 8 Q8 8 8 10 L8 18 Q8 20 10 20 L20 20 Z" fill="white" fillOpacity="0.9"/>
-      <path d="M20 20 L20 30 Q20 32 22 32 L30 32 Q32 32 32 30 L32 22 Q32 20 30 20 L20 20 Z" fill="white" fillOpacity="0.7"/>
-      <path d="M20 20 L10 20 Q8 20 8 22 L8 30 Q8 32 10 32 L18 32 Q20 32 20 30 L20 20 Z" fill="white" fillOpacity="0.5"/>
+    <svg width="65" height="44" viewBox="0 0 65 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fillRule="evenodd" clipRule="evenodd" d="M2.73689 0C1.22535 0 0 1.23486 0 2.75813V40.2687C0 41.792 1.22535 43.0269 2.73689 43.0269H61.3063C62.8178 43.0269 64.0431 41.792 64.0431 40.2687V2.75813C64.0431 1.23486 62.8178 0 61.3063 0H2.73689ZM4.10533 38.8628C4.10533 20.1314 18.8106 4.86124 37.2217 4.1372V38.8628H4.10533ZM45.4323 38.8628C42.4092 38.8628 39.9585 36.3931 39.9585 33.3465H45.4323V38.8628ZM59.8947 24.2447H39.9585V4.15383C50.6584 4.836 59.2177 13.4618 59.8947 24.2447ZM59.8674 27.0028C59.2296 33.2132 54.3317 38.1491 48.1692 38.7918V27.0028H59.8674ZM43.5165 27.0297C41.5515 27.0297 39.9585 28.635 39.9585 30.6153H43.5165V27.0297Z" fill={`var(--recursica-brand-${mode}-palettes-palette-1-primary-tone)`}/>
     </svg>
   )
   
@@ -85,54 +82,85 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
       setSelectedFileNames([])
     })
   }
+  
+  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
+  
   return (
     <MantineProvider>
-      <AppShell header={{ height: 56 }} padding="md">
-        <AppShell.Header>
-          <Group h="100%" px="var(--recursica-tokens-size-2x)" justify="space-between" wrap="nowrap">
-            {/* Logo and Brand */}
-            <Group gap="var(--recursica-tokens-size-default)" wrap="nowrap">
-              <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+      <div>
+        <header
+          style={{
+            backgroundColor: `var(${layer0Base}-surface)`,
+            paddingTop: 'var(--recursica-tokens-size-2x)',
+            paddingBottom: 'var(--recursica-tokens-size-2x)',
+            paddingLeft: 'var(--recursica-tokens-size-3x)',
+            paddingRight: 'var(--recursica-tokens-size-3x)',
+            height: 'auto',
+          }}
+        >
+          <Group justify="space-between" wrap="nowrap">
+            {/* Logo, Brand, and Navigation Buttons */}
+            <Group gap="var(--recursica-tokens-size-2x)" wrap="nowrap">
+              {/* Logo and Brand */}
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', textDecoration: 'none' }}>
                 <LogoIcon />
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                  <span
+                    style={{
+                      color: `var(${layer0Base}-element-text-color)`,
+                      opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                      fontWeight: 600,
+                      fontSize: 'var(--recursica-tokens-size-md)',
+                    }}
+                  >
+                    Recursica
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 'var(--recursica-tokens-size-xs)',
+                      color: `var(${layer0Base}-element-text-color)`,
+                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                    }}
+                  >
+                    Theme Forge
+                  </span>
+                </div>
               </Link>
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-                <Link to="/" style={{ color: 'inherit', textDecoration: 'none', fontWeight: 600, fontSize: 'var(--recursica-tokens-size-md)' }}>
-                  Recursica
-                </Link>
-                <span style={{ fontSize: 'var(--recursica-tokens-size-xs)', opacity: 0.7 }}>Theme Forge</span>
-              </div>
-            </Group>
 
-            {/* Navigation Buttons */}
-            <Group gap="var(--recursica-tokens-size-0-5x)" wrap="nowrap">
-              <Button
-                variant={currentRoute === 'tokens' ? 'solid' : 'text'}
-                onClick={() => navigate('/tokens')}
-                size="default"
-              >
-                Tokens
-              </Button>
-              <Button
-                variant={currentRoute === 'theme' ? 'solid' : 'text'}
-                onClick={() => navigate('/theme')}
-                size="default"
-              >
-                Theme
-              </Button>
-              <Button
-                variant={currentRoute === 'components' ? 'solid' : 'text'}
-                onClick={() => navigate('/components')}
-                size="default"
-              >
-                Components
-              </Button>
+              {/* Navigation Buttons */}
+              <Group gap="var(--recursica-tokens-size-default)" wrap="nowrap">
+                <Button
+                  variant={currentRoute === 'tokens' ? 'solid' : 'text'}
+                  onClick={() => navigate('/tokens')}
+                  size="default"
+                  layer="layer-0"
+                >
+                  Tokens
+                </Button>
+                <Button
+                  variant={currentRoute === 'theme' ? 'solid' : 'text'}
+                  onClick={() => navigate('/theme')}
+                  size="default"
+                  layer="layer-0"
+                >
+                  Theme
+                </Button>
+                <Button
+                  variant={currentRoute === 'components' ? 'solid' : 'text'}
+                  onClick={() => navigate('/components')}
+                  size="default"
+                  layer="layer-0"
+                >
+                  Components
+                </Button>
+              </Group>
             </Group>
 
             {/* Action Icons and Controls */}
-            <Group gap="var(--recursica-tokens-size-xs)" wrap="nowrap">
+            <Group gap="var(--recursica-tokens-size-xs)" wrap="nowrap" style={{ marginLeft: 'auto' }}>
               <Button
-                variant="text"
-                size="small"
+                variant="outline"
+                size="default"
                 icon={<ArrowPathIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
                 onClick={() => {
                   clearOverrides(tokensJson as any)
@@ -141,15 +169,15 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 title="Reset to defaults"
               />
               <Button
-                variant="text"
-                size="small"
+                variant="outline"
+                size="default"
                 icon={<ArrowDownTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
                 onClick={() => setIsModalOpen(true)}
                 title="Import / Export CSS Variables"
               />
               <Button
-                variant="text"
-                size="small"
+                variant="outline"
+                size="default"
                 icon={<ArrowUpTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
                 onClick={handleExport}
                 title="Export JSON Files"
@@ -183,7 +211,10 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
               />
             </Group>
           </Group>
-        </AppShell.Header>
+        </header>
+        <div style={{ padding: 'var(--recursica-tokens-size-md)' }}>
+          {children}
+        </div>
         <Modal opened={isModalOpen} onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} title="Import JSON Files">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-tokens-size-1-5x)' }}>
             <div>
@@ -217,11 +248,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             </Group>
           </div>
         </Modal>
-
-        <AppShell.Main>
-          {children}
-        </AppShell.Main>
-      </AppShell>
+      </div>
       <ExportSelectionModalWrapper
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}
