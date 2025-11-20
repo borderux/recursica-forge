@@ -98,14 +98,14 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
   if (!carbon) return <div style={{ padding: 'var(--recursica-tokens-size-2x)' }}>Loading Carbon…</div>
 
   const { Select, SelectItem, Theme, Grid, Column, ComposedModal, ModalHeader, ModalBody, ModalFooter, Toggle } = carbon
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
 
   return (
     <Theme theme="g10">
       <header
         aria-label="Recursica Theme Forge"
         style={{
-          backgroundColor: `var(${layer0Base}-surface)`,
+          backgroundColor: `var(${layer1Base}-surface)`,
           paddingTop: 'var(--recursica-tokens-size-2x)',
           paddingBottom: 'var(--recursica-tokens-size-2x)',
           paddingLeft: 'var(--recursica-tokens-size-3x)',
@@ -114,38 +114,43 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
+          borderBottomStyle: 'solid',
+          borderBottomColor: `var(${layer1Base}-border-color)`,
         }}
       >
         {/* Logo, Brand, and Navigation Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-2x)' }}>
-          {/* Logo and Brand */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', textDecoration: 'none' }}>
-            <LogoIcon />
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-              <span
-                style={{
-                  color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-high-emphasis)`,
-                  fontWeight: 600,
-                  fontSize: 'var(--recursica-tokens-size-md)',
-                }}
-              >
-                Recursica
-              </span>
-              <span
-                style={{
-                  fontSize: 'var(--recursica-tokens-size-xs)',
-                  color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-low-emphasis)`,
-                }}
-              >
-                Theme Forge
-              </span>
-            </div>
-          </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-3x)', width: '100%' }}>
+          {/* Chunk 1: Logo and Brand */}
+          <div style={{ minWidth: '220px', display: 'flex', alignItems: 'center' }}>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', textDecoration: 'none' }}>
+              <LogoIcon />
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                <span
+                  style={{
+                    color: `var(${layer1Base}-element-text-color)`,
+                    opacity: `var(${layer1Base}-element-text-high-emphasis)`,
+                    fontWeight: 600,
+                    fontSize: 'var(--recursica-tokens-size-md)',
+                  }}
+                >
+                  Recursica
+                </span>
+                <span
+                  style={{
+                    fontSize: 'var(--recursica-tokens-size-xs)',
+                    color: `var(${layer1Base}-element-text-color)`,
+                    opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+                  }}
+                >
+                  Theme Forge
+                </span>
+              </div>
+            </Link>
+          </div>
 
-          {/* Navigation Buttons */}
-          <div style={{ display: 'flex', gap: 'var(--recursica-tokens-size-default)' }}>
+          {/* Chunk 2: Navigation Buttons */}
+          <div style={{ display: 'flex', gap: 'var(--recursica-tokens-size-default)', alignItems: 'center' }}>
             <Button
               variant={currentRoute === 'tokens' ? 'solid' : 'text'}
               onClick={() => navigate('/tokens')}
@@ -171,47 +176,50 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
               Components
             </Button>
           </div>
-        </div>
 
-        {/* Action Icons and Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-xs)' }}>
-          <Button
-            variant="outline"
-            size="default"
-            icon={<ArrowPathIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
-            onClick={() => {
-              clearOverrides(tokensJson as any)
-              resetAll()
-            }}
-            title="Reset to defaults"
-          />
-          <Button
-            variant="outline"
-            size="default"
-            icon={<ArrowDownTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
-            onClick={() => setIsOpen(true)}
-            title="Import / Export CSS Variables"
-          />
-          <Button
-            variant="outline"
-            size="default"
-            icon={<ArrowUpTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
-            onClick={handleExport}
-            title="Export JSON Files"
-          />
-          <Toggle
-            id="theme-mode-toggle"
-            labelText={mode === 'dark' ? 'Dark' : 'Light'}
-            toggled={mode === 'dark'}
-            onToggle={(checked) => setMode(checked ? 'dark' : 'light')}
-            style={{ marginRight: 'var(--recursica-tokens-size-default)' }}
-          />
-          <div style={{ minWidth: 180 }}>
-            <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
-              <SelectItem text="Mantine" value="mantine" />
-              <SelectItem text="Material UI" value="material" />
-              <SelectItem text="Carbon" value="carbon" />
-            </Select>
+          {/* Chunk 3: Action Buttons and Framework Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', marginLeft: 'auto' }}>
+            <Button
+              variant="outline"
+              size="default"
+              icon={<ArrowPathIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
+              onClick={() => {
+                clearOverrides(tokensJson as any)
+                resetAll()
+              }}
+              title="Reset to defaults"
+            />
+            <Button
+              variant="outline"
+              size="default"
+              icon={<ArrowDownTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
+              onClick={() => setIsOpen(true)}
+              title="Import / Export CSS Variables"
+            />
+            <Button
+              variant="outline"
+              size="default"
+              icon={<ArrowUpTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
+              onClick={handleExport}
+              title="Export JSON Files"
+            />
+            <div style={{ minWidth: 180 }}>
+              <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
+                <SelectItem text="Mantine" value="mantine" />
+                <SelectItem text="Material UI" value="material" />
+                <SelectItem text="Carbon" value="carbon" />
+              </Select>
+            </div>
+          </div>
+
+          {/* Chunk 4: Theme Mode Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Toggle
+              id="theme-mode-toggle"
+              labelText={mode === 'dark' ? 'Dark' : 'Light'}
+              toggled={mode === 'dark'}
+              onToggle={(checked) => setMode(checked ? 'dark' : 'light')}
+            />
           </div>
         </div>
       </header>

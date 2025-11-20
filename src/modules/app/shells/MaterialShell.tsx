@@ -101,7 +101,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const { AppBar, Toolbar, Select, MenuItem, Container, CssBaseline, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions, Box } = mat
   const { ThemeProvider, createTheme } = styles
   const theme = createTheme()
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
   
   return (
     <ThemeProvider theme={theme}>
@@ -109,27 +109,29 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
       <AppBar
         position="static"
         sx={{
-          backgroundColor: `var(${layer0Base}-surface)`,
+          backgroundColor: `var(${layer1Base}-surface)`,
           paddingTop: 'var(--recursica-tokens-size-2x)',
           paddingBottom: 'var(--recursica-tokens-size-2x)',
           paddingLeft: 'var(--recursica-tokens-size-3x)',
           paddingRight: 'var(--recursica-tokens-size-3x)',
           height: 'auto',
           boxShadow: 'none',
+          borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
+          borderBottomStyle: 'solid',
+          borderBottomColor: `var(${layer1Base}-border-color)`,
         }}
       >
-        <Toolbar sx={{ gap: 'var(--recursica-tokens-size-default)', justifyContent: 'space-between', minHeight: 'auto !important' }}>
-          {/* Logo, Brand, and Navigation Buttons */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-2x)' }}>
-            {/* Logo and Brand */}
+        <Toolbar sx={{ gap: 'var(--recursica-tokens-size-3x)', justifyContent: 'space-between', minHeight: 'auto !important', width: '100%' }}>
+          {/* Chunk 1: Logo and Brand */}
+          <Box sx={{ minWidth: '220px', display: 'flex', alignItems: 'center' }}>
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', textDecoration: 'none' }}>
               <LogoIcon />
               <Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                 <Box
                   component="span"
                   sx={{
-                    color: `var(${layer0Base}-element-text-color)`,
-                    opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                    color: `var(${layer1Base}-element-text-color)`,
+                    opacity: `var(${layer1Base}-element-text-high-emphasis)`,
                     fontWeight: 600,
                     fontSize: 'var(--recursica-tokens-size-md)',
                   }}
@@ -140,46 +142,46 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                   component="span"
                   sx={{
                     fontSize: 'var(--recursica-tokens-size-xs)',
-                    color: `var(${layer0Base}-element-text-color)`,
-                    opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                    color: `var(${layer1Base}-element-text-color)`,
+                    opacity: `var(${layer1Base}-element-text-low-emphasis)`,
                   }}
                 >
                   Theme Forge
                 </Box>
               </Box>
             </Link>
-
-            {/* Navigation Buttons */}
-            <Box sx={{ display: 'flex', gap: 'var(--recursica-tokens-size-default)' }}>
-              <Button
-                variant={currentRoute === 'tokens' ? 'solid' : 'text'}
-                onClick={() => navigate('/tokens')}
-                size="default"
-                layer="layer-0"
-              >
-                Tokens
-              </Button>
-              <Button
-                variant={currentRoute === 'theme' ? 'solid' : 'text'}
-                onClick={() => navigate('/theme')}
-                size="default"
-                layer="layer-0"
-              >
-                Theme
-              </Button>
-              <Button
-                variant={currentRoute === 'components' ? 'solid' : 'text'}
-                onClick={() => navigate('/components')}
-                size="default"
-                layer="layer-0"
-              >
-                Components
-              </Button>
-            </Box>
           </Box>
 
-          {/* Action Icons and Controls */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-xs)', marginLeft: 'auto' }}>
+          {/* Chunk 2: Navigation Buttons */}
+          <Box sx={{ display: 'flex', gap: 'var(--recursica-tokens-size-default)', alignItems: 'center' }}>
+            <Button
+              variant={currentRoute === 'tokens' ? 'solid' : 'text'}
+              onClick={() => navigate('/tokens')}
+              size="default"
+              layer="layer-0"
+            >
+              Tokens
+            </Button>
+            <Button
+              variant={currentRoute === 'theme' ? 'solid' : 'text'}
+              onClick={() => navigate('/theme')}
+              size="default"
+              layer="layer-0"
+            >
+              Theme
+            </Button>
+            <Button
+              variant={currentRoute === 'components' ? 'solid' : 'text'}
+              onClick={() => navigate('/components')}
+              size="default"
+              layer="layer-0"
+            >
+              Components
+            </Button>
+          </Box>
+
+          {/* Chunk 3: Action Buttons and Framework Dropdown */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', marginLeft: 'auto' }}>
             <Button
               variant="outline"
               size="default"
@@ -204,6 +206,20 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               onClick={handleExport}
               title="Export JSON Files"
             />
+            <Select
+              size="small"
+              value={kit}
+              onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}
+              sx={{ color: 'white', ml: 1, minWidth: 150, '& .MuiSelect-select': { color: 'white' } }}
+            >
+              <MenuItem value="mantine">Mantine</MenuItem>
+              <MenuItem value="material">Material UI</MenuItem>
+              <MenuItem value="carbon">Carbon</MenuItem>
+            </Select>
+          </Box>
+
+          {/* Chunk 4: Theme Mode Toggle */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <FormControlLabel
               control={
                 <Switch
@@ -216,16 +232,6 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               label={mode === 'dark' ? 'Dark' : 'Light'}
               sx={{ color: 'white', ml: 1 }}
             />
-            <Select
-              size="small"
-              value={kit}
-              onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}
-              sx={{ color: 'white', ml: 1, minWidth: 150, '& .MuiSelect-select': { color: 'white' } }}
-            >
-              <MenuItem value="mantine">Mantine</MenuItem>
-              <MenuItem value="material">Material UI</MenuItem>
-              <MenuItem value="carbon">Carbon</MenuItem>
-            </Select>
           </Box>
         </Toolbar>
       </AppBar>

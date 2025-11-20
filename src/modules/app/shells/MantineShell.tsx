@@ -83,32 +83,34 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
     })
   }
   
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
   
   return (
     <MantineProvider>
       <div>
         <header
           style={{
-            backgroundColor: `var(${layer0Base}-surface)`,
+            backgroundColor: `var(${layer1Base}-surface)`,
             paddingTop: 'var(--recursica-tokens-size-2x)',
             paddingBottom: 'var(--recursica-tokens-size-2x)',
             paddingLeft: 'var(--recursica-tokens-size-3x)',
             paddingRight: 'var(--recursica-tokens-size-3x)',
             height: 'auto',
+            borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
+            borderBottomStyle: 'solid',
+            borderBottomColor: `var(${layer1Base}-border-color)`,
           }}
         >
-          <Group justify="space-between" wrap="nowrap">
-            {/* Logo, Brand, and Navigation Buttons */}
-            <Group gap="var(--recursica-tokens-size-2x)" wrap="nowrap">
-              {/* Logo and Brand */}
+          <Group gap="var(--recursica-tokens-size-3x)" wrap="nowrap" style={{ width: '100%' }}>
+            {/* Chunk 1: Logo and Brand */}
+            <div style={{ minWidth: '220px', display: 'flex', alignItems: 'center' }}>
               <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', textDecoration: 'none' }}>
                 <LogoIcon />
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                   <span
                     style={{
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                      color: `var(${layer1Base}-element-text-color)`,
+                      opacity: `var(${layer1Base}-element-text-high-emphasis)`,
                       fontWeight: 600,
                       fontSize: 'var(--recursica-tokens-size-md)',
                     }}
@@ -118,46 +120,46 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   <span
                     style={{
                       fontSize: 'var(--recursica-tokens-size-xs)',
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                      color: `var(${layer1Base}-element-text-color)`,
+                      opacity: `var(${layer1Base}-element-text-low-emphasis)`,
                     }}
                   >
                     Theme Forge
                   </span>
                 </div>
               </Link>
+            </div>
 
-              {/* Navigation Buttons */}
-              <Group gap="var(--recursica-tokens-size-default)" wrap="nowrap">
-                <Button
-                  variant={currentRoute === 'tokens' ? 'solid' : 'text'}
-                  onClick={() => navigate('/tokens')}
-                  size="default"
-                  layer="layer-0"
-                >
-                  Tokens
-                </Button>
-                <Button
-                  variant={currentRoute === 'theme' ? 'solid' : 'text'}
-                  onClick={() => navigate('/theme')}
-                  size="default"
-                  layer="layer-0"
-                >
-                  Theme
-                </Button>
-                <Button
-                  variant={currentRoute === 'components' ? 'solid' : 'text'}
-                  onClick={() => navigate('/components')}
-                  size="default"
-                  layer="layer-0"
-                >
-                  Components
-                </Button>
-              </Group>
-            </Group>
+            {/* Chunk 2: Navigation Buttons */}
+            <div style={{ display: 'flex', gap: 'var(--recursica-tokens-size-default)', alignItems: 'center' }}>
+              <Button
+                variant={currentRoute === 'tokens' ? 'solid' : 'text'}
+                onClick={() => navigate('/tokens')}
+                size="default"
+                layer="layer-0"
+              >
+                Tokens
+              </Button>
+              <Button
+                variant={currentRoute === 'theme' ? 'solid' : 'text'}
+                onClick={() => navigate('/theme')}
+                size="default"
+                layer="layer-0"
+              >
+                Theme
+              </Button>
+              <Button
+                variant={currentRoute === 'components' ? 'solid' : 'text'}
+                onClick={() => navigate('/components')}
+                size="default"
+                layer="layer-0"
+              >
+                Components
+              </Button>
+            </div>
 
-            {/* Action Icons and Controls */}
-            <Group gap="var(--recursica-tokens-size-xs)" wrap="nowrap" style={{ marginLeft: 'auto' }}>
+            {/* Chunk 3: Action Buttons and Framework Dropdown */}
+            <div style={{ display: 'flex', gap: 'var(--recursica-tokens-size-default)', alignItems: 'center', marginLeft: 'auto' }}>
               <Button
                 variant="outline"
                 size="default"
@@ -182,16 +184,6 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 onClick={handleExport}
                 title="Export JSON Files"
               />
-              <Switch
-                checked={mode === 'dark'}
-                onChange={(e) => setMode(e.currentTarget.checked ? 'dark' : 'light')}
-                size="sm"
-                styles={{
-                  track: {
-                    backgroundColor: mode === 'dark' ? 'var(--recursica-brand-light-palettes-core-interactive)' : 'var(--recursica-brand-light-layer-layer-1-property-border-color)',
-                  },
-                }}
-              />
               <Select
                 value={kit}
                 onChange={(v) => onKitChange((v as UiKit) ?? 'mantine')}
@@ -209,7 +201,21 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   },
                 }}
               />
-            </Group>
+            </div>
+
+            {/* Chunk 4: Theme Mode Toggle */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Switch
+                checked={mode === 'dark'}
+                onChange={(e) => setMode(e.currentTarget.checked ? 'dark' : 'light')}
+                size="sm"
+                styles={{
+                  track: {
+                    backgroundColor: mode === 'dark' ? 'var(--recursica-brand-light-palettes-core-interactive)' : 'var(--recursica-brand-light-layer-layer-1-property-border-color)',
+                  },
+                }}
+              />
+            </div>
           </Group>
         </header>
         <div style={{ padding: 'var(--recursica-tokens-size-md)' }}>

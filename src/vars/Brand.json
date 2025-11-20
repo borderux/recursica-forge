@@ -49,7 +49,7 @@
               },
               "surface": {
                 "$type": "color",
-                "$value": "{brand.themes.light.palettes.neutral.050.color.tone}"
+                "$value": "{brand.themes.light.palettes.neutral.000.color.tone}"
               },
               "padding": {
                 "$type": "number",
@@ -1155,7 +1155,7 @@
               },
               "surface": {
                 "$type": "color",
-                "$value": "{brand.themes.dark.palettes.core-colors.black}"
+                "$value": "{brand.themes.dark.palettes.neutral.1000.color.tone}"
               },
               "padding": {
                 "$type": "number",
