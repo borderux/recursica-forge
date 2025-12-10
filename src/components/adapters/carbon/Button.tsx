@@ -67,29 +67,6 @@ export default function Button({
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
   
-  // Render icon with proper sizing using UIKit.json CSS variables
-  const iconElement = icon ? (
-    <span style={{
-      display: 'inline-flex',
-      width: `var(${iconSizeVar})`,
-      height: `var(${iconSizeVar})`,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0, // Prevent icon from shrinking when content is truncated
-      marginRight: children ? `var(${iconGapVar})` : 0,
-    }}>
-      <span style={{
-        display: 'flex',
-        width: '100%',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        {icon}
-      </span>
-    </span>
-  ) : undefined
-  
   // Merge library-specific props
   const carbonProps = {
     kind: carbonKind,
@@ -110,17 +87,17 @@ export default function Button({
       paddingLeft: `var(${horizontalPaddingVar})`,
       paddingRight: `var(${horizontalPaddingVar})`,
       borderRadius: `var(${borderRadiusVar})`,
-      // Content max width with text truncation
-      maxWidth: `var(${contentMaxWidthVar})`,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
+      // Ensure flex layout for truncation to work with icons
+      display: 'flex',
+      alignItems: 'center',
       // For icon-only buttons, ensure flex centering
       ...(isIconOnly && {
-        display: 'flex',
-        alignItems: 'center',
         justifyContent: 'center',
       }),
+      // Set CSS custom properties for CSS file overrides
+      '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      '--button-content-max-width': `var(${contentMaxWidthVar})`,
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Carbon's default disabled styles to keep colors unchanged
       ...(disabled && {
@@ -140,18 +117,10 @@ export default function Button({
     ...props,
   }
   
+  // Use native children prop - CSS will handle icon placement and text truncation
   return (
     <CarbonButton {...carbonProps}>
-      {iconElement}
-      <span style={{
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        flex: 1,
-        minWidth: 0, // Allow flex item to shrink below content size
-      }}>
-        {children}
-      </span>
+      {isIconOnly ? icon : children}
     </CarbonButton>
   )
 }

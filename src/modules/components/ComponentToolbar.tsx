@@ -139,13 +139,21 @@ export default function ComponentToolbar({
       propsMap.set(key, prop)
     })
 
-    return Array.from(propsMap.values()).sort((a, b) => {
+    // Filter out font-size for Button component (it's controlled by theme typography)
+    const filteredProps = Array.from(propsMap.values()).filter(prop => {
+      if (componentName.toLowerCase() === 'button' && prop.name.toLowerCase() === 'font-size') {
+        return false
+      }
+      return true
+    })
+
+    return filteredProps.sort((a, b) => {
       // Sort: non-variant props first, then variant props
       if (a.isVariantSpecific && !b.isVariantSpecific) return 1
       if (!a.isVariantSpecific && b.isVariantSpecific) return -1
       return a.name.localeCompare(b.name)
     })
-  }, [structure.props])
+  }, [structure.props, componentName])
 
   const handleReset = () => {
     // Remove all CSS var overrides for this component

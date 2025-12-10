@@ -18,16 +18,179 @@ export default function DimensionTokenSelector({
   label,
   propName,
 }: DimensionTokenSelectorProps) {
-  const { theme } = useVars()
+  const { theme, tokens } = useVars()
 
   // Get available dimension tokens from theme JSON structure and convert to Token format
   const dimensionTokens = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: string }> = []
     
     try {
+      const propNameLower = propName.toLowerCase()
+      
+      // For font-size prop, only collect font size tokens from tokens.font.size
+      if (propNameLower === 'font-size') {
+        const tokensRoot: any = (tokens as any)?.tokens || {}
+        const fontSizes = tokensRoot?.font?.size || {}
+        
+        // Collect font size tokens (2xs, xs, sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl)
+        Object.keys(fontSizes).forEach(sizeKey => {
+          const sizeValue = fontSizes[sizeKey]
+          if (sizeValue && typeof sizeValue === 'object' && '$value' in sizeValue) {
+            const cssVar = `--recursica-tokens-font-size-${sizeKey}`
+            const cssValue = readCssVar(cssVar)
+            
+            // Only add if the CSS var exists (has been generated)
+            if (cssValue) {
+              options.push({
+                label: toSentenceCase(sizeKey),
+                cssVar,
+                value: `var(${cssVar})`,
+              })
+            }
+          }
+        })
+        
+        // Convert to Token format with numeric values for sorting
+        const fontSizeTokens = options.map(opt => {
+          const resolvedValue = readCssVarResolved(opt.cssVar)
+          let numericValue: number | undefined
+          
+          if (resolvedValue) {
+            const match = resolvedValue.match(/^(-?\d+(?:\.\d+)?)/)
+            if (match) {
+              numericValue = parseFloat(match[1])
+            }
+          }
+          
+          return {
+            name: opt.cssVar,
+            value: numericValue,
+            label: opt.label,
+          }
+        })
+        
+        // Sort by numeric value (smallest to largest)
+        return fontSizeTokens.sort((a, b) => {
+          if (a.value !== undefined && b.value !== undefined) {
+            return a.value - b.value
+          }
+          if (a.value !== undefined) return -1
+          if (b.value !== undefined) return 1
+          return (a.label || a.name).localeCompare(b.label || b.name)
+        })
+      }
+      
+      // For horizontal-padding prop, only collect spacer dimensions
+      if (propNameLower === 'horizontal-padding') {
+        const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+        const dimensions = root?.dimensions || {}
+        const spacers = dimensions?.spacer || {}
+        
+        // Collect spacer dimensions (xs, sm, md, lg, xl, default)
+        Object.keys(spacers).forEach(spacerKey => {
+          const spacerValue = spacers[spacerKey]
+          if (spacerValue && typeof spacerValue === 'object' && '$value' in spacerValue) {
+            const cssVar = `--recursica-brand-dimensions-spacer-${spacerKey}`
+            const cssValue = readCssVar(cssVar)
+            
+            // Only add if the CSS var exists (has been generated)
+            if (cssValue) {
+              options.push({
+                label: toSentenceCase(spacerKey),
+                cssVar,
+                value: `var(${cssVar})`,
+              })
+            }
+          }
+        })
+        
+        // Convert to Token format with numeric values for sorting
+        const spacerTokens = options.map(opt => {
+          const resolvedValue = readCssVarResolved(opt.cssVar)
+          let numericValue: number | undefined
+          
+          if (resolvedValue) {
+            const match = resolvedValue.match(/^(-?\d+(?:\.\d+)?)/)
+            if (match) {
+              numericValue = parseFloat(match[1])
+            }
+          }
+          
+          return {
+            name: opt.cssVar,
+            value: numericValue,
+            label: opt.label,
+          }
+        })
+        
+        // Sort by numeric value (smallest to largest)
+        return spacerTokens.sort((a, b) => {
+          if (a.value !== undefined && b.value !== undefined) {
+            return a.value - b.value
+          }
+          if (a.value !== undefined) return -1
+          if (b.value !== undefined) return 1
+          return (a.label || a.name).localeCompare(b.label || b.name)
+        })
+      }
+      
+      // For icon prop, only collect icon dimensions
+      if (propNameLower === 'icon') {
+        const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+        const dimensions = root?.dimensions || {}
+        const icons = dimensions?.icon || {}
+        
+        // Collect icon dimensions (xs, sm, default, lg)
+        Object.keys(icons).forEach(iconKey => {
+          const iconValue = icons[iconKey]
+          if (iconValue && typeof iconValue === 'object' && '$value' in iconValue) {
+            const cssVar = `--recursica-brand-dimensions-icon-${iconKey}`
+            const cssValue = readCssVar(cssVar)
+            
+            // Only add if the CSS var exists (has been generated)
+            if (cssValue) {
+              options.push({
+                label: toSentenceCase(iconKey),
+                cssVar,
+                value: `var(${cssVar})`,
+              })
+            }
+          }
+        })
+        
+        // Convert to Token format with numeric values for sorting
+        const iconTokens = options.map(opt => {
+          const resolvedValue = readCssVarResolved(opt.cssVar)
+          let numericValue: number | undefined
+          
+          if (resolvedValue) {
+            const match = resolvedValue.match(/^(-?\d+(?:\.\d+)?)/)
+            if (match) {
+              numericValue = parseFloat(match[1])
+            }
+          }
+          
+          return {
+            name: opt.cssVar,
+            value: numericValue,
+            label: opt.label,
+          }
+        })
+        
+        // Sort by numeric value (smallest to largest)
+        return iconTokens.sort((a, b) => {
+          if (a.value !== undefined && b.value !== undefined) {
+            return a.value - b.value
+          }
+          if (a.value !== undefined) return -1
+          if (b.value !== undefined) return 1
+          return (a.label || a.name).localeCompare(b.label || b.name)
+        })
+      }
+      
+      // For other props, collect dimension tokens from theme
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const dimensions = root?.dimensions || {}
-      const propNameLower = propName.toLowerCase()
       
       // Helper to recursively collect dimension options
       const collectDimensions = (obj: any, prefix: string[] = []) => {
@@ -60,28 +223,38 @@ export default function DimensionTokenSelector({
       }
       
       // First, check if this prop name matches a dimension category (e.g., "border-radius")
-      if (dimensions[propNameLower] && typeof dimensions[propNameLower] === 'object') {
+      // For border-radius, only collect border-radius specific dimensions
+      if (propNameLower === 'border-radius' && dimensions['border-radius'] && typeof dimensions['border-radius'] === 'object') {
+        collectDimensions(dimensions['border-radius'], ['border-radius'])
+      } else if (dimensions[propNameLower] && typeof dimensions[propNameLower] === 'object') {
         collectDimensions(dimensions[propNameLower], [propNameLower])
       }
       
-      // Also collect general dimensions (default, sm, md, lg, xl)
-      const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
-      generalDims.forEach(dim => {
-        if (dimensions[dim] && typeof dimensions[dim] === 'object' && '$value' in dimensions[dim]) {
-          const cssVar = `--recursica-brand-dimensions-${dim}`
-          const cssValue = readCssVar(cssVar)
-          if (cssValue) {
-            options.push({
-              label: toSentenceCase(dim),
-              cssVar,
-              value: `var(${cssVar})`,
-            })
-          }
+      // For non-border-radius, non-horizontal-padding, and non-icon props, also collect general dimensions (default, sm, md, lg, xl) from the "general" node
+      if (propNameLower !== 'border-radius' && propNameLower !== 'horizontal-padding' && propNameLower !== 'icon') {
+        const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
+        if (dimensions.general && typeof dimensions.general === 'object') {
+          generalDims.forEach(dim => {
+            if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
+              const cssVar = `--recursica-brand-dimensions-general-${dim}`
+              const cssValue = readCssVar(cssVar)
+              if (cssValue) {
+                options.push({
+                  label: toSentenceCase(dim),
+                  cssVar,
+                  value: `var(${cssVar})`,
+                })
+              }
+            }
+          })
         }
-      })
+      }
       
       // Also collect all nested dimensions (like icon.default, spacer.sm, etc.)
-      collectDimensions(dimensions, [])
+      // But skip this for border-radius, horizontal-padding, and icon since we only want specific tokens
+      if (propNameLower !== 'border-radius' && propNameLower !== 'horizontal-padding' && propNameLower !== 'icon') {
+        collectDimensions(dimensions, [])
+      }
       
       // Filter out dimensions that don't make sense for this prop
       // Remove dimensions like "gutter.horizontal", "gutter.vertical" which are layout-specific
@@ -91,8 +264,32 @@ export default function DimensionTokenSelector({
         const cssVarParts = cssVarName.split('-')
         const firstPart = cssVarParts[0]
         
-        // Always keep general dimensions (default, sm, md, lg, xl, xs)
-        const generalDims = ['default', 'sm', 'md', 'lg', 'xl', 'xs']
+        // For border-radius prop, only keep border-radius specific tokens
+        if (propNameLower === 'border-radius') {
+          // Only keep tokens that start with "border-radius-"
+          return firstPart === 'border' && cssVarParts[1] === 'radius'
+        }
+        
+        // For horizontal-padding prop, only keep spacer tokens
+        if (propNameLower === 'horizontal-padding') {
+          // Only keep tokens that start with "spacer-"
+          return firstPart === 'spacer'
+        }
+        
+        // For icon prop, only keep icon tokens
+        if (propNameLower === 'icon') {
+          // Only keep tokens that start with "icon-"
+          return firstPart === 'icon'
+        }
+        
+        // Always keep general dimensions (default, sm, md, lg, xl)
+        // These are now under dimensions.general, so CSS vars are --recursica-brand-dimensions-general-*
+        const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
+        // Check if it's a general dimension (either "general-{dim}" or just "{dim}" for backwards compatibility)
+        if (firstPart === 'general' && generalDims.includes(cssVarParts[1])) {
+          return true
+        }
+        // Also check for direct general dims (for backwards compatibility if any exist)
         if (generalDims.includes(cssVarName) || generalDims.includes(firstPart)) {
           return true
         }
@@ -165,7 +362,7 @@ export default function DimensionTokenSelector({
       if (b.value !== undefined) return 1
       return (a.label || a.name).localeCompare(b.label || b.name)
     })
-  }, [theme, propName])
+  }, [theme, tokens, propName])
 
   // Track slider position in local state - initialized from CSS var once, then controlled by user
   const [selectedToken, setSelectedToken] = useState<string | undefined>(undefined)
@@ -216,9 +413,11 @@ export default function DimensionTokenSelector({
       // Raw pixel mode
       setIsPixelMode(true)
       const pxValue = extractPixelValue(currentValue)
-      setPixelValue(Math.max(0, Math.min(200, pxValue))) // Clamp to 0-200
+      // Determine max pixel value based on prop name
+      const maxPixelValue = propName.toLowerCase() === 'content-max-width' ? 500 : 200
+      setPixelValue(Math.max(0, Math.min(maxPixelValue, pxValue))) // Clamp to 0-maxPixelValue
     }
-  }, [targetCssVar, dimensionTokens])
+  }, [targetCssVar, dimensionTokens, propName])
   
   // Read initial value when component mounts or targetCssVar changes
   useEffect(() => {
@@ -263,6 +462,10 @@ export default function DimensionTokenSelector({
     })
   }
 
+  // Determine max pixel value based on prop name
+  // content-max-width can go up to 500px, others default to 200px
+  const maxPixelValue = propName.toLowerCase() === 'content-max-width' ? 500 : 200
+
   // Render pixel slider for raw pixel values
   if (isPixelMode) {
     return (
@@ -275,7 +478,7 @@ export default function DimensionTokenSelector({
             <input
               type="range"
               min={0}
-              max={200}
+              max={maxPixelValue}
               step={1}
               value={pixelValue}
               onChange={(e) => handlePixelChange(Number(e.target.value))}
@@ -284,13 +487,13 @@ export default function DimensionTokenSelector({
             <input
               type="number"
               min={0}
-              max={200}
+              max={maxPixelValue}
               step={1}
               value={pixelValue}
               onChange={(e) => {
                 const value = Number(e.target.value)
                 if (!isNaN(value)) {
-                  const clampedValue = Math.max(0, Math.min(200, value))
+                  const clampedValue = Math.max(0, Math.min(maxPixelValue, value))
                   handlePixelChange(clampedValue)
                 }
               }}
@@ -299,8 +502,8 @@ export default function DimensionTokenSelector({
                 const value = Number(e.target.value)
                 if (isNaN(value) || value < 0) {
                   handlePixelChange(0)
-                } else if (value > 200) {
-                  handlePixelChange(200)
+                } else if (value > maxPixelValue) {
+                  handlePixelChange(maxPixelValue)
                 }
               }}
               style={{

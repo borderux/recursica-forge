@@ -2283,25 +2283,27 @@
           "$value": "{tokens.size.2x}"
         }
       },
-      "lg": {
-        "$type": "number",
-        "$value": "{tokens.size.2x}"
-      },
-      "md": {
-        "$type": "number",
-        "$value": "{tokens.size.1-5x}"
-      },
-      "sm": {
-        "$type": "number",
-        "$value": "{tokens.size.0-5x}"
-      },
-      "default": {
-        "$type": "number",
-        "$value": "{tokens.size.default}"
-      },
-      "xl": {
-        "$type": "number",
-        "$value": "{tokens.size.3x}"
+      "general": {
+        "lg": {
+          "$type": "number",
+          "$value": "{tokens.size.2x}"
+        },
+        "md": {
+          "$type": "number",
+          "$value": "{tokens.size.1-5x}"
+        },
+        "sm": {
+          "$type": "number",
+          "$value": "{tokens.size.0-5x}"
+        },
+        "default": {
+          "$type": "number",
+          "$value": "{tokens.size.default}"
+        },
+        "xl": {
+          "$type": "number",
+          "$value": "{tokens.size.3x}"
+        }
       }
     },
     "typography": {

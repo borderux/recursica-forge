@@ -140,19 +140,19 @@ export default function TokenSlider({
               }}
             />
           ))}
-          <input
-            type="range"
-            min={min}
-            max={max}
-            step={1}
-            value={displaySignedValue !== undefined ? displaySignedValue : currentIdx}
-            onChange={handleChange}
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={1}
+          value={displaySignedValue !== undefined ? displaySignedValue : currentIdx}
+          onChange={handleChange}
             style={{
               position: 'relative',
               zIndex: 1,
               width: '100%',
             }}
-          />
+        />
         </div>
       </label>
     </div>

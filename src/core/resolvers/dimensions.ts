@@ -115,6 +115,21 @@ export function buildDimensionVars(
     // Dimensions are mode-agnostic, but we still need mode for CSS var naming
     // Generate CSS vars without mode prefix since dimensions are shared
     traverseDimensions(dimensions, [], vars, tokenIndex, theme, mode)
+    
+    // Add backwards compatibility aliases for general dimensions
+    // Old format: --recursica-brand-dimensions-sm
+    // New format: --recursica-brand-dimensions-general-sm
+    // Generate aliases so old references still work
+    if (dimensions.general && typeof dimensions.general === 'object') {
+      const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
+      generalDims.forEach(dim => {
+        const newVarName = `--recursica-brand-dimensions-general-${dim}`
+        const oldVarName = `--recursica-brand-dimensions-${dim}`
+        if (vars[newVarName] && !vars[oldVarName]) {
+          vars[oldVarName] = vars[newVarName]
+        }
+      })
+    }
   }
 
   return vars

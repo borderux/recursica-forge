@@ -137,7 +137,7 @@
           "icon-text-gap": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.default}",
+              "value": "{brand.dimensions.general.default}",
               "unit": "px"
             }
           },
@@ -151,7 +151,7 @@
           "horizontal-padding": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.lg}",
+              "value": "{brand.dimensions.spacer.lg}",
               "unit": "px"
             }
           },
@@ -179,14 +179,14 @@
           "vertical-padding": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.md}",
+              "value": "{brand.dimensions.general.md}",
               "unit": "px"
             }
           },
           "vertical-gutter": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.default}",
+              "value": "{brand.dimensions.general.default}",
               "unit": "px"
             }
           }
@@ -211,7 +211,7 @@
           "required-indicator-gap": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.default}",
+              "value": "{brand.dimensions.general.default}",
               "unit": "px"
             }
           },
@@ -219,7 +219,7 @@
             "bottom-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.default}",
+                "value": "{brand.dimensions.general.default}",
                 "unit": "px"
               }
             }
@@ -251,7 +251,7 @@
             "vertical-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.md}",
+                "value": "{brand.dimensions.general.md}",
                 "unit": "px"
               }
             }
@@ -286,7 +286,7 @@
           },
           "icon-text-gap": {
             "$type": "number",
-            "$value": "{brand.dimensions.sm}"
+            "$value": "{brand.dimensions.general.sm}"
           }
         }
       }
@@ -554,14 +554,14 @@
                 "horizontal-padding": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.lg}",
+                    "value": "{brand.dimensions.general.lg}",
                     "unit": "px"
                   }
                 },
                 "icon-text-gap": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.default}",
+                    "value": "{brand.dimensions.general.default}",
                     "unit": "px"
                   }
                 }
@@ -598,7 +598,7 @@
                 "icon-text-gap": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.sm}",
+                    "value": "{brand.dimensions.general.sm}",
                     "unit": "px"
                   }
                 }
@@ -622,7 +622,7 @@
         "content-max-width": {
           "$type": "dimension",
           "$value": {
-            "value": 320,
+            "value": 500,
             "unit": "px"
           }
         }

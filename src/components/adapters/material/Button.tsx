@@ -67,29 +67,6 @@ export default function Button({
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
   
-  // Render icon with proper sizing using UIKit.json CSS variables
-  const iconElement = icon ? (
-    <span style={{
-      display: 'inline-flex',
-      width: `var(${iconSizeVar})`,
-      height: `var(${iconSizeVar})`,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0, // Prevent icon from shrinking when content is truncated
-      marginRight: children ? `var(${iconGapVar})` : 0,
-    }}>
-      <span style={{
-        display: 'flex',
-        width: '100%',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        {icon}
-      </span>
-    </span>
-  ) : undefined
-  
   // Merge library-specific props
   const materialProps = {
     variant: materialVariant,
@@ -98,7 +75,8 @@ export default function Button({
     onClick,
     type,
     className,
-    startIcon: iconElement,
+    // Use Material's native startIcon prop - CSS will handle sizing and spacing
+    startIcon: icon && !isIconOnly ? icon : undefined,
     sx: {
       // Use CSS variables for theming - supports both standard and alternative layers
       backgroundColor: `var(${buttonBgVar})`,
@@ -112,17 +90,17 @@ export default function Button({
       paddingLeft: `var(${horizontalPaddingVar})`,
       paddingRight: `var(${horizontalPaddingVar})`,
       borderRadius: `var(${borderRadiusVar})`,
-      // Content max width with text truncation
-      maxWidth: `var(${contentMaxWidthVar})`,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
+      // Ensure flex layout for truncation to work with icons
+      display: 'flex',
+      alignItems: 'center',
       // For icon-only buttons, ensure flex centering
       ...(isIconOnly && {
-        display: 'flex',
-        alignItems: 'center',
         justifyContent: 'center',
       }),
+      // Set CSS custom properties for CSS file overrides
+      '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      '--button-content-max-width': `var(${contentMaxWidthVar})`,
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Material UI's default disabled styles to keep colors unchanged
       ...(disabled && {
@@ -143,6 +121,7 @@ export default function Button({
     ...props,
   }
   
-  return <MaterialButton {...materialProps}>{children}</MaterialButton>
+  // Use native children prop - CSS will handle truncation
+  return <MaterialButton {...materialProps}>{isIconOnly ? icon : children}</MaterialButton>
 }
 

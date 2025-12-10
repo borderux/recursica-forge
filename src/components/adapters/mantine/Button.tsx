@@ -81,34 +81,6 @@ export default function Button({
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
   
-  // Render icon with proper sizing using UIKit.json CSS variables
-  // Set marginInlineEnd directly on the icon element to override Mantine's default spacing
-  const iconElement = icon ? (
-    <span 
-      className="recursica-button-icon"
-      data-icon-gap-var={iconGapVar}
-      style={{
-        display: 'inline-flex',
-        width: `var(${iconSizeVar})`,
-        height: `var(${iconSizeVar})`,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        marginInlineEnd: children ? `var(${iconGapVar})` : 0,
-      }}
-    >
-      <span style={{
-        display: 'flex',
-        width: '100%',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        {icon}
-      </span>
-    </span>
-  ) : undefined
-  
   // Merge library-specific props
   const mantineProps = {
     variant: mantineVariant,
@@ -122,16 +94,18 @@ export default function Button({
       leftSection: 'recursica-button-left-section',
       ...mantine?.classNames,
     },
-    // For icon-only buttons, don't use leftSection - render icon as children for better centering
-    leftSection: isIconOnly ? undefined : iconElement,
+    // Use Mantine's native leftSection prop - CSS will handle sizing and spacing
+    leftSection: icon && !isIconOnly ? icon : undefined,
     // Use Mantine's styles prop to override leftSection margin-inline-end and disabled state
     styles: {
       root: {
-        ...(isIconOnly && {
+        // Ensure button root uses flex layout for all buttons with content
+        // Use space-around to center content when button is wider than content
+        ...(children || icon ? {
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-        }),
+          justifyContent: 'space-around',
+        } : {}),
         // Override disabled state to keep colors unchanged, only apply opacity
         ...(disabled && {
           backgroundColor: isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar}) !important`,
@@ -145,10 +119,12 @@ export default function Button({
         }),
       },
       leftSection: icon && children ? {
-        // marginInlineEnd is overridden via CSS file with !important to override Mantine defaults
-        // Also set via styles prop as backup
-        marginInlineEnd: `var(${iconGapVar})`,
+        // CSS file handles marginInlineEnd override
         flexShrink: 0, // Prevent icon from shrinking when content is truncated
+      } : undefined,
+      label: children ? {
+        // CSS file handles truncation styles - only set line-height here for vertical centering
+        lineHeight: `var(${heightVar})`, // Match button height for vertical centering
       } : undefined,
       ...mantine?.styles,
     },
@@ -160,7 +136,12 @@ export default function Button({
       // Set button color without fallback to Mantine colors
       '--button-color': buttonColorRef,
       // Set icon-text-gap CSS variable for CSS file override
-      '--button-icon-text-gap': `var(${iconGapVar})`,
+      '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      // Set icon size CSS variable for CSS file override
+      // Always set it, even for icon-only buttons, so CSS can use it
+      '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      // Set content max width CSS variable for CSS file override
+      '--button-content-max-width': `var(${contentMaxWidthVar})`,
       // For outline buttons, override Mantine's border color CSS variable
       // Mantine uses: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-blue-outline)
       // We override to use our recursica CSS var
@@ -178,11 +159,11 @@ export default function Button({
       // Directly set color to override Mantine's fallback (var(--button-color, var(--mantine-color-white)))
       color: buttonColorRef,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
-      // For icon-only buttons, ensure flex centering
+      // For icon-only buttons, ensure flex centering with space-around
       ...(isIconOnly && {
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-around',
       }),
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       ...(disabled && {
@@ -190,18 +171,14 @@ export default function Button({
       }),
       minWidth: `var(${minWidthVar})`,
       borderRadius: `var(${borderRadiusVar})`,
-      // Content max width with text truncation
-      maxWidth: `var(${contentMaxWidthVar})`,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
+      // Don't apply maxWidth to root - it will be applied to label element only
       ...style,
     },
     ...mantine,
     ...props,
   }
   
-  // For icon-only buttons, render icon as children for proper centering
-  return <MantineButton {...mantineProps}>{isIconOnly ? iconElement : children}</MantineButton>
+  // For icon-only buttons, render icon as children - CSS will handle centering
+  return <MantineButton {...mantineProps}>{isIconOnly ? icon : children}</MantineButton>
 }
 

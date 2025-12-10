@@ -9,15 +9,69 @@
 .mantine-Button-leftSection[data-position='left'],
 [class*="mantine-Button-leftSection"][data-position='left'] {
   margin-inline-end: var(--button-icon-text-gap, var(--recursica-ui-kit-components-button-size-variant-default-icon-text-gap)) !important;
+  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
+  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-/* Ensure SVG icons scale to fill their container */
+/* Ensure SVG icons scale to fill their container in leftSection */
 /* Override fixed width/height attributes on SVGs */
-.mantine-Button-root .mantine-Button-leftSection svg,
-.mantine-Button-root svg {
+.mantine-Button-root .mantine-Button-leftSection svg {
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
   max-height: 100% !important;
   flex-shrink: 0;
+}
+
+/* General rule: Set all SVGs in buttons to use icon size CSS var */
+/* This applies to trailing icons and icon-only buttons */
+/* Note: leftSection SVGs use 100% to fill their container (see rule below) */
+.mantine-Button-root svg {
+  width: var(--button-icon-size) !important;
+  height: var(--button-icon-size) !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+
+/* Ensure button label can truncate text with ellipsis */
+/* CSS handles truncation - maxWidth accounts for icon width and gap */
+.mantine-Button-root .mantine-Button-label {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  display: block !important;
+  /* maxWidth is calculated: content-max-width minus icon size and gap */
+  /* When icon size is 0px (text-only), this simplifies to just content-max-width */
+  max-width: calc(var(--button-content-max-width, var(--recursica-ui-kit-components-button-content-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+}
+
+/* When icon exists, we need to center the icon+text group, not expand the label */
+/* Don't use flex: 1 on label when we want centering - truncation will work with max-width alone */
+.mantine-Button-root:has(.mantine-Button-leftSection) .mantine-Button-label {
+  flex: none !important;
+  min-width: 0 !important; /* Allow flex item to shrink below content size */
+  /* Truncation will work with max-width constraint */
+}
+
+/* For text-only buttons (no icon), don't use flex: 1 to allow centering */
+.mantine-Button-root:not(:has(.mantine-Button-leftSection)) .mantine-Button-label {
+  flex: none !important;
+}
+
+
+/* For icon-only buttons, set the span (or container) around the SVG to display: flex */
+/* Mantine may wrap the icon in a span or other container for icon-only buttons */
+.mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) > span,
+.mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) > *:has(svg),
+.mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) span:has(svg) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }

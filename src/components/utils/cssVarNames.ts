@@ -99,8 +99,8 @@ export function getComponentCssVar(
       }
     } else {
       // Non-variant color property
-      const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-      parts.push(normalizedProperty)
+  const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+  parts.push(normalizedProperty)
     }
   }
   
