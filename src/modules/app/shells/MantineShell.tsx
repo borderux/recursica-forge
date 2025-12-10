@@ -4,9 +4,10 @@
  * App frame using Mantine components; provides navigation, reset defaults,
  * and import/export of CSS variables.
  */
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState, useMemo } from 'react'
 import { AppShell, Group, Select, MantineProvider, Modal, Tabs as MantineTabs } from '@mantine/core'
 import '@mantine/core/styles.css'
+import './MantineShell.css'
 import { ArrowPathIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline'
 import { extractCssVarsFromObject, applyCssVars } from '../../theme/varsUtil'
 import { clearOverrides } from '../../theme/tokenOverrides'
@@ -19,6 +20,7 @@ import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } fro
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Sidebar } from '../Sidebar'
+import { ThemeSidebar } from '../ThemeSidebar'
 import { ComponentsSidebar } from '../../preview/ComponentsSidebar'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 
@@ -33,13 +35,12 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const navigate = useNavigate()
   
   // Determine current route for navigation highlighting
-  const getCurrentRoute = () => {
+  const currentRoute = useMemo(() => {
     if (location.pathname.startsWith('/tokens')) return 'tokens'
     if (location.pathname.startsWith('/theme')) return 'theme'
     if (location.pathname.startsWith('/components')) return 'components'
     return 'tokens'
-  }
-  const currentRoute = getCurrentRoute()
+  }, [location.pathname])
   
   // Logo SVG
   const LogoIcon = () => (
@@ -88,6 +89,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   
   const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
   const showSidebar = location.pathname.startsWith('/tokens')
+  const showThemeSidebar = location.pathname.startsWith('/theme')
   
   return (
     <MantineProvider>
@@ -146,6 +148,12 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
               const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
               
               return (
+                <div
+                  style={{
+                    '--header-tab-active-bg': `var(${buttonSolidBg})`,
+                    '--header-tab-active-text': `var(${buttonSolidText})`,
+                  } as React.CSSProperties}
+                >
                 <MantineTabs
                   value={currentRoute}
                   variant="pills"
@@ -153,6 +161,9 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                     if (value === 'tokens') navigate('/tokens')
                     else if (value === 'theme') navigate('/theme')
                     else if (value === 'components') navigate('/components')
+                  }}
+                  classNames={{
+                    tab: 'header-nav-tab',
                   }}
                   styles={{
                     root: {
@@ -172,14 +183,14 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                       paddingRight: `var(${buttonPadding})`,
                       borderRadius: `var(${buttonBorderRadius})`,
                       transition: 'all 0.2s',
+                      '&:hover': {
+                        opacity: `var(${layer1Base}-element-text-high-emphasis)`,
+                      },
                       '&[data-active]': {
                         color: `var(${buttonSolidText})`,
                         backgroundColor: `var(${buttonSolidBg})`,
                         opacity: 1,
                         fontWeight: 600,
-                      },
-                      '&:hover': {
-                        opacity: `var(${layer1Base}-element-text-high-emphasis)`,
                       },
                     },
                   }}
@@ -190,6 +201,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                     <MantineTabs.Tab value="components">Components</MantineTabs.Tab>
                   </MantineTabs.List>
                 </MantineTabs>
+                </div>
               )
             })()}
 
@@ -319,6 +331,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
         </header>
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           {showSidebar && <Sidebar />}
+          {showThemeSidebar && <ThemeSidebar />}
           <main style={{ flex: 1, overflow: 'auto' }}>
             {children}
           </main>

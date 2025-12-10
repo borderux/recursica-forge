@@ -4,7 +4,7 @@
  * App frame using Material UI; lazy-loads MUI packages on mount and
  * provides navigation, reset defaults, and download controls.
  */
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowPathIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline'
 import type { UiKit } from '../../uikit/UiKitContext'
@@ -17,6 +17,7 @@ import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } fro
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Sidebar } from '../Sidebar'
+import { ThemeSidebar } from '../ThemeSidebar'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
@@ -32,13 +33,12 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   
   // Determine current route for navigation highlighting
-  const getCurrentRoute = () => {
+  const currentRoute = useMemo(() => {
     if (location.pathname.startsWith('/tokens')) return 'tokens'
     if (location.pathname.startsWith('/theme')) return 'theme'
     if (location.pathname.startsWith('/components')) return 'components'
     return 'tokens'
-  }
-  const currentRoute = getCurrentRoute()
+  }, [location.pathname])
   
   // Logo SVG
   const LogoIcon = () => (
@@ -105,6 +105,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const theme = createTheme()
   const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
   const showSidebar = location.pathname.startsWith('/tokens')
+  const showThemeSidebar = location.pathname.startsWith('/theme')
   
   return (
     <ThemeProvider theme={theme}>
@@ -369,6 +370,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
       </AppBar>
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {showSidebar && <Sidebar />}
+        {showThemeSidebar && <ThemeSidebar />}
         <main style={{ flex: 1, overflow: 'auto' }}>
           {children}
         </main>
