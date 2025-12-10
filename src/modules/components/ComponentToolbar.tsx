@@ -12,6 +12,33 @@ import {
   PaintBrushIcon,
   ArrowsPointingOutIcon,
   ArrowPathIcon,
+  SwatchIcon,
+  Square2StackIcon,
+  BarsArrowUpIcon,
+  ScaleIcon,
+  EqualsIcon,
+  ArrowLongUpIcon,
+  ArrowLongDownIcon,
+  ArrowLongLeftIcon,
+  ArrowLongRightIcon,
+  PauseIcon,
+  EqualsIcon as EqualsIconAlias,
+  ArrowsPointingInIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChevronDoubleRightIcon,
+  ArrowsUpDownIcon,
+  ArrowsRightLeftIcon,
+  ArrowRightStartOnRectangleIcon,
+  ArrowUpOnSquareIcon,
+  ArrowUturnRightIcon,
+  RectangleGroupIcon,
+  SquaresPlusIcon,
+  Squares2X2Icon,
+  ListBulletIcon,
+  ViewColumnsIcon,
 } from '@heroicons/react/24/outline'
 import { parseComponentStructure, toSentenceCase, ComponentProp } from './componentToolbarUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -132,14 +159,44 @@ export default function ComponentToolbar({
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
   }
 
-  // Icon name to component mapping
+  // Icon name to component mapping - includes all icons from propIconMapping.json
+  // Maps the names from the JSON file (which may or may not have "Icon" suffix) to the actual imported icon components
   const iconMap = useMemo(() => ({
+    // Icons with "Icon" suffix in JSON
     PaintBrushIcon,
     Bars3Icon,
     ArrowsPointingOutIcon,
     RectangleStackIcon,
     ArrowPathIcon,
-  }), [])
+    ArrowLongUpIcon,
+    ArrowLongDownIcon,
+    ArrowLongLeftIcon,
+    ArrowLongRightIcon,
+    PauseIcon,
+    EqualsIcon: EqualsIconAlias,
+    ArrowsPointingInIcon,
+    ArrowUpIcon,
+    ArrowDownIcon,
+    ArrowLeftIcon,
+    ArrowRightIcon,
+    ChevronDoubleRightIcon,
+    ArrowsUpDownIcon,
+    ArrowsRightLeftIcon,
+    ArrowRightStartOnRectangleIcon,
+    ArrowUpOnSquareIcon,
+    ArrowUturnRightIcon,
+    RectangleGroupIcon,
+    SquaresPlusIcon,
+    Squares2X2Icon,
+    ListBulletIcon,
+    ViewColumnsIcon,
+    // Icons without "Icon" suffix in JSON - map to their Icon versions
+    Swatch: SwatchIcon,
+    Square2Stack: Square2StackIcon,
+    BarsArrowUp: BarsArrowUpIcon,
+    Scale: ScaleIcon,
+    Equals: EqualsIcon,
+  } as Record<string, React.ComponentType<any>>), [])
 
   // Get icon for prop type using mapping dictionary
   const getPropIcon = (prop: ComponentProp) => {
@@ -148,8 +205,8 @@ export default function ComponentToolbar({
     // Look up icon name from mapping dictionary
     const iconName = (propIconMapping as Record<string, string>)[name]
     
-    if (iconName && iconMap[iconName as keyof typeof iconMap]) {
-      return iconMap[iconName as keyof typeof iconMap]
+    if (iconName && iconMap[iconName]) {
+      return iconMap[iconName]
     }
     
     // Fallback to default icon if not found in mapping

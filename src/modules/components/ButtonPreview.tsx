@@ -83,42 +83,72 @@ export default function ButtonPreview({
     return null
   }, [selectedAltLayer, bgColor, colorVariant, selectedLayer, tokens])
 
-  const states = [
-    { label: 'Enabled', disabled: false, icon: false },
-    { label: 'Disabled', disabled: true, icon: false },
-    { label: 'With Icon', disabled: false, icon: true },
-    { label: 'Disabled with Icon', disabled: true, icon: true },
-  ]
+  // Icon for buttons
+  const iconElement = (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14"></path>
+      <path d="M12 5l7 7-7 7"></path>
+    </svg>
+  )
 
   return (
     <div className="button-preview">
-      <div className="button-preview-header">
-        <h3 className="button-preview-title">
-          {colorVariant.charAt(0).toUpperCase() + colorVariant.slice(1)} / {sizeVariant.charAt(0).toUpperCase() + sizeVariant.slice(1)}
-        </h3>
-        {contrastWarning && (
-          <div className="button-preview-warning">
-            ⚠️ WCAG AA contrast warning: {contrastWarning.ratio}:1 (requires 4.5:1)
-            <br />
-            Using {colorVariant} variant on {selectedAltLayer} background is not recommended.
-          </div>
-        )}
-      </div>
-      <div className="button-preview-grid">
-        {states.map(state => (
-          <div key={`${state.disabled}-${state.icon}`} className="button-preview-item">
-            <div className="button-preview-label">{state.label}</div>
-            <Button
-              variant={colorVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              disabled={state.disabled}
-              icon={state.icon ? <span>🔍</span> : undefined}
-            >
-              Button
-            </Button>
-          </div>
-        ))}
+      {contrastWarning && (
+        <div className="button-preview-warning">
+          ⚠️ WCAG AA contrast warning: {contrastWarning.ratio}:1 (requires 4.5:1)
+          <br />
+          Using {colorVariant} variant on {selectedAltLayer} background is not recommended.
+        </div>
+      )}
+      <div className="button-preview-row">
+        {/* Button with text */}
+        <Button
+          variant={colorVariant as any}
+          size={sizeVariant as any}
+          layer={actualLayer}
+        >
+          Button
+        </Button>
+        
+        {/* Button with icon on left */}
+        <Button
+          variant={colorVariant as any}
+          size={sizeVariant as any}
+          layer={actualLayer}
+          icon={iconElement}
+        >
+          Button
+        </Button>
+        
+        {/* Icon-only button */}
+        <Button
+          variant={colorVariant as any}
+          size={sizeVariant as any}
+          layer={actualLayer}
+          icon={iconElement}
+        />
+        
+        {/* Button with icon on right - we'll need to handle this differently */}
+        <Button
+          variant={colorVariant as any}
+          size={sizeVariant as any}
+          layer={actualLayer}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
+            Button
+            {iconElement}
+          </span>
+        </Button>
+        
+        {/* Disabled button */}
+        <Button
+          variant={colorVariant as any}
+          size={sizeVariant as any}
+          layer={actualLayer}
+          disabled
+        >
+          Button
+        </Button>
       </div>
     </div>
   )

@@ -10,6 +10,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { Switch } from '../tokens/font/Switch'
 import { useMemo, useEffect } from 'react'
 import uikitJson from '../../vars/UIKit.json'
+import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 
 export function ComponentsSidebar({ showUnmapped, onShowUnmappedChange }: { showUnmapped: boolean; onShowUnmappedChange: (show: boolean) => void }) {
   const location = useLocation()
@@ -80,11 +81,12 @@ export function ComponentsSidebar({ showUnmapped, onShowUnmappedChange }: { show
     })
   }, [mappedComponents, showUnmapped])
 
-  // Get current component from URL
+  // Get current component from URL (convert slug to component name)
   const getCurrentComponent = (): string | null => {
     const match = location.pathname.match(/^\/components\/(.+)$/)
     if (match) {
-      return decodeURIComponent(match[1])
+      const slug = decodeURIComponent(match[1])
+      return slugToComponentName(slug)
     }
     return null
   }
@@ -98,8 +100,8 @@ export function ComponentsSidebar({ showUnmapped, onShowUnmappedChange }: { show
   useEffect(() => {
     if (location.pathname === '/components' && allComponents.length > 0) {
       const firstComponent = allComponents[0]
-      const encodedName = encodeURIComponent(firstComponent.name)
-      navigate(`/components/${encodedName}`, { replace: true })
+      const slug = componentNameToSlug(firstComponent.name)
+      navigate(`/components/${slug}`, { replace: true })
     }
   }, [location.pathname, allComponents, navigate])
 
@@ -107,8 +109,8 @@ export function ComponentsSidebar({ showUnmapped, onShowUnmappedChange }: { show
   const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
   
   const handleNavClick = (componentName: string) => {
-    const encodedName = encodeURIComponent(componentName)
-    navigate(`/components/${encodedName}`)
+    const slug = componentNameToSlug(componentName)
+    navigate(`/components/${slug}`)
   }
   
   return (
