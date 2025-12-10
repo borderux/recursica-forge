@@ -306,6 +306,40 @@
                 }
               }
             },
+            "floating": {
+              "element": {
+                "text": {
+                  "color": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.core-colors.black}"
+                  }
+                },
+                "interactive": {
+                  "color": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.palette-1.400.color.tone}"
+                  },
+                  "hover-color": {
+                    "$type": "color",
+                    "$value": "{brand.themes.light.palettes.palette-1.300.color.tone}"
+                  }
+                }
+              },
+              "property": {
+                "padding": {
+                  "$type": "number",
+                  "$value": "{tokens.size.3x}"
+                },
+                "surface": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.white}"
+                },
+                "elevation": {
+                  "$type": "elevation",
+                  "$value": "{brand.themes.light.elevations.elevation-4}"
+                }
+              }
+            },
             "success": {
               "element": {
                 "text": {
@@ -1377,6 +1411,40 @@
                 "surface": {
                   "$type": "color",
                   "$value": "{brand.themes.dark.palettes.core-colors.white}"
+                }
+              }
+            },
+            "floating": {
+              "element": {
+                "text": {
+                  "color": {
+                    "$type": "color",
+                    "$value": "{brand.themes.dark.palettes.core-colors.black}"
+                  }
+                },
+                "interactive": {
+                  "color": {
+                    "$type": "color",
+                    "$value": "{brand.themes.dark.palettes.palette-1.400.color.tone}"
+                  },
+                  "hover-color": {
+                    "$type": "color",
+                    "$value": "{brand.themes.dark.palettes.palette-1.300.color.tone}"
+                  }
+                }
+              },
+              "property": {
+                "padding": {
+                  "$type": "number",
+                  "$value": "{tokens.size.3x}"
+                },
+                "surface": {
+                  "$type": "color",
+                  "$value": "{brand.themes.dark.palettes.core-colors.white}"
+                },
+                "elevation": {
+                  "$type": "elevation",
+                  "$value": "{brand.themes.dark.elevations.elevation-4}"
                 }
               }
             },

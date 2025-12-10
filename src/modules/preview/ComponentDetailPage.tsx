@@ -104,32 +104,54 @@ export default function ComponentDetailPage() {
   // Get elevation level from layer property (if it exists)
   // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}
   // We need to extract the elevation number and build the box-shadow CSS
-  // For alt layers, use base layer elevation (alt layers typically only override surface/colors)
+  // For alt layers, check if they have their own elevation, otherwise use base layer elevation
   const elevationBoxShadow = useMemo(() => {
-    // Layer 0 typically doesn't have elevation, layers 1-3 do
-    if (layerNum === '0') {
-      return undefined
-    }
+    let elevationLevel: string | null = null
     
-    // Try to read the elevation value from the base layer property in the theme
-    let elevationLevel = layerNum
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const themes = root?.themes || root
-      const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
-      const v: any = layerSpec?.property?.elevation?.$value
-      if (typeof v === 'string') {
-        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
-        const m = v.match(/elevations\.(elevation-(\d+))/i)
-        if (m) elevationLevel = m[2]
+      
+      // First, check if alt layer has its own elevation (e.g., floating)
+      if (selectedAltLayer) {
+        const altLayerSpec: any = themes?.[mode]?.layers?.['layer-alternative']?.[selectedAltLayer] || themes?.[mode]?.layer?.['layer-alternative']?.[selectedAltLayer] || root?.[mode]?.layers?.['layer-alternative']?.[selectedAltLayer] || root?.[mode]?.layer?.['layer-alternative']?.[selectedAltLayer] || {}
+        const v: any = altLayerSpec?.property?.elevation?.$value
+        if (typeof v === 'string') {
+          // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
+          const m = v.match(/elevations\.(elevation-(\d+))/i)
+          if (m) {
+            elevationLevel = m[2]
+          }
+        }
+      }
+      
+      // If alt layer doesn't have elevation, check base layer
+      if (elevationLevel === null) {
+        // Layer 0 typically doesn't have elevation, layers 1-3 do
+        if (layerNum === '0') {
+          return undefined
+        }
+        
+        elevationLevel = layerNum
+        const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
+        const v: any = layerSpec?.property?.elevation?.$value
+        if (typeof v === 'string') {
+          // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
+          const m = v.match(/elevations\.(elevation-(\d+))/i)
+          if (m) elevationLevel = m[2]
+        }
       }
     } catch {}
     
+    // If no elevation found, return undefined
+    if (elevationLevel === null) {
+      return undefined
+    }
+    
     // Build elevation box-shadow from elevation CSS variables
     // Format: x-axis y-axis blur spread shadow-color
-    // Use base layer elevation even for alt layers (alt layers don't typically override elevation)
     return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-  }, [mode, layerNum, theme])
+  }, [mode, layerNum, selectedAltLayer, theme])
 
   return (
     <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-xl)' }}>

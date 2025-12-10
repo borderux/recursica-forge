@@ -164,7 +164,7 @@ h3 {
   display: flex;
   flex-wrap: nowrap; /* Keep all alternative layers on one row */
   gap: 24px;
-  overflow-x: auto;
+  overflow: visible;
 }
 .alt-layer-card {
   padding: 24px;

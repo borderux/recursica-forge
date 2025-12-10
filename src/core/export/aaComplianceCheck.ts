@@ -167,7 +167,7 @@ export function checkAACompliance(): ComplianceIssue[] {
   }
   
   // Check alternative layers
-  const altLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+  const altLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color', 'floating']
   for (const mode of ['light', 'dark'] as const) {
     altLayers.forEach((altKey) => {
       const surfaceVar = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-surface`

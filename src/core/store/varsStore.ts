@@ -295,7 +295,7 @@ class VarsStore {
       }
       
       // Watch alternative layer surfaces (all alternative layers from Brand.json)
-      const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+      const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color', 'floating']
       altKeys.forEach((key) => {
         this.aaWatcher?.watchAlternativeLayerSurface(key)
       })
@@ -1140,7 +1140,7 @@ class VarsStore {
         }
         
         // Also check alternative layers - preserve ALL variables, not just surface
-        const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color']
+        const altKeys = ['alert', 'warning', 'success', 'high-contrast', 'primary-color', 'floating']
         for (const altKey of altKeys) {
           const prefixedBase = `--recursica-brand-${modeLoop}-layer-layer-alternative-${altKey}-property-`
           

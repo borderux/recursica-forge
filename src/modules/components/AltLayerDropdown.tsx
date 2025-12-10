@@ -19,6 +19,7 @@ const ALT_LAYERS = [
   { key: 'alert', label: 'Alert' },
   { key: 'success', label: 'Success' },
   { key: 'warning', label: 'Warning' },
+  { key: 'floating', label: 'Floating' },
 ] as const
 
 export default function AltLayerDropdown({ selected, onSelect, mode, open: controlledOpen, onOpenChange }: AltLayerDropdownProps) {
@@ -80,6 +81,9 @@ export default function AltLayerDropdown({ selected, onSelect, mode, open: contr
       }
       if (altLayer === 'primary-color') {
         return readCssVar(`--recursica-brand-${mode}-palettes-palette-1-primary-tone`) || '#3b82f6'
+      }
+      if (altLayer === 'floating') {
+        return readCssVar(`--recursica-brand-${mode}-palettes-core-white`) || '#ffffff'
       }
     }
 
