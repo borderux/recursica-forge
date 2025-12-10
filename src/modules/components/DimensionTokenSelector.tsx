@@ -83,6 +83,49 @@ export default function DimensionTokenSelector({
       // Also collect all nested dimensions (like icon.default, spacer.sm, etc.)
       collectDimensions(dimensions, [])
       
+      // Filter out dimensions that don't make sense for this prop
+      // Remove dimensions like "gutter.horizontal", "gutter.vertical" which are layout-specific
+      // and not relevant for general spacing/sizing props
+      const filteredOptions = options.filter(opt => {
+        const cssVarName = opt.cssVar.replace('--recursica-brand-dimensions-', '')
+        const cssVarParts = cssVarName.split('-')
+        const firstPart = cssVarParts[0]
+        
+        // Always keep general dimensions (default, sm, md, lg, xl, xs)
+        const generalDims = ['default', 'sm', 'md', 'lg', 'xl', 'xs']
+        if (generalDims.includes(cssVarName) || generalDims.includes(firstPart)) {
+          return true
+        }
+        
+        // Keep if it matches the prop name category (e.g., "border-radius" for "border-radius" prop)
+        if (propNameLower) {
+          const propParts = propNameLower.split('-')
+          // Check if any part of the CSS var matches any part of the prop name
+          if (cssVarParts.some(part => propParts.includes(part) || propParts.some(pp => part.includes(pp)))) {
+            return true
+          }
+        }
+        
+        // Keep common spacing/sizing categories (spacer.*, icon.*)
+        const commonCategories = ['spacer', 'icon']
+        if (commonCategories.includes(firstPart)) {
+          return true
+        }
+        
+        // Filter out layout-specific categories like "gutter" that aren't relevant for component props
+        const layoutCategories = ['gutter']
+        if (layoutCategories.includes(firstPart)) {
+          return false
+        }
+        
+        // Keep other dimensions by default (border-radius, etc.)
+        return true
+      })
+      
+      // Replace options with filtered list
+      options.length = 0
+      options.push(...filteredOptions)
+      
     } catch (error) {
       console.error('Error loading dimension options:', error)
     }

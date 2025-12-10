@@ -7,6 +7,7 @@
 import { Button as MantineButton } from '@mantine/core'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { getComponentCssVar } from '../../utils/cssVarNames'
+import './Button.css'
 
 export default function Button({
   children,
@@ -70,23 +71,41 @@ export default function Button({
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
-  const iconPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-padding`, undefined)
   const horizontalPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
+  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
+  const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
+  const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+  const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
+  const contentMaxWidthVar = getComponentCssVar('Button', 'size', 'content-max-width', undefined)
   
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
   
   // Render icon with proper sizing using UIKit.json CSS variables
+  // Set marginInlineEnd directly on the icon element to override Mantine's default spacing
   const iconElement = icon ? (
-    <span style={{
-      display: 'inline-flex',
-      width: `var(${iconSizeVar})`,
-      height: `var(${iconSizeVar})`,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    }}>
-      {icon}
+    <span 
+      className="recursica-button-icon"
+      data-icon-gap-var={iconGapVar}
+      style={{
+        display: 'inline-flex',
+        width: `var(${iconSizeVar})`,
+        height: `var(${iconSizeVar})`,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        marginInlineEnd: children ? `var(${iconGapVar})` : 0,
+      }}
+    >
+      <span style={{
+        display: 'flex',
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        {icon}
+      </span>
     </span>
   ) : undefined
   
@@ -98,6 +117,11 @@ export default function Button({
     onClick,
     type,
     className,
+    // Add custom class names for CSS targeting
+    classNames: {
+      leftSection: 'recursica-button-left-section',
+      ...mantine?.classNames,
+    },
     // For icon-only buttons, don't use leftSection - render icon as children for better centering
     leftSection: isIconOnly ? undefined : iconElement,
     // Use Mantine's styles prop to override leftSection margin-inline-end and disabled state
@@ -121,29 +145,35 @@ export default function Button({
         }),
       },
       leftSection: icon && children ? {
+        // marginInlineEnd is overridden via CSS file with !important to override Mantine defaults
+        // Also set via styles prop as backup
         marginInlineEnd: `var(${iconGapVar})`,
+        flexShrink: 0, // Prevent icon from shrinking when content is truncated
       } : undefined,
       ...mantine?.styles,
     },
     style: {
       // Use CSS variables for theming - supports both standard and alternative layers
+      // getComponentCssVar returns CSS variable names, so wrap in var() for standard layers
       '--button-bg': isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar})`,
       '--button-hover': isAlternativeLayer ? buttonHoverVar : `var(${buttonHoverVar})`,
       // Set button color without fallback to Mantine colors
       '--button-color': buttonColorRef,
+      // Set icon-text-gap CSS variable for CSS file override
+      '--button-icon-text-gap': `var(${iconGapVar})`,
       // For outline buttons, override Mantine's border color CSS variable
       // Mantine uses: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-blue-outline)
       // We override to use our recursica CSS var
       ...(buttonBorderColor && {
         '--button-bd': `calc(0.0625rem * var(--mantine-scale, 1)) solid ${buttonBorderColor}`,
       }),
-      '--button-height': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-height)`,
-      '--button-min-width': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-min-width)`,
-      '--button-padding': isIconOnly ? `var(${iconPaddingVar})` : `var(${horizontalPaddingVar})`,
-      '--button-padding-x': isIconOnly ? `var(${iconPaddingVar})` : `var(${horizontalPaddingVar})`,
-      '--button-border-radius': `var(--recursica-ui-kit-components-button-size-border-radius)`,
-      '--button-font-size': `var(--recursica-ui-kit-components-button-size-font-size)`,
-      '--button-fz': `var(--recursica-ui-kit-components-button-size-font-size)`,
+      '--button-height': `var(${heightVar})`,
+      '--button-min-width': `var(${minWidthVar})`,
+      '--button-padding': `var(${horizontalPaddingVar})`,
+      '--button-padding-x': `var(${horizontalPaddingVar})`,
+      '--button-border-radius': `var(${borderRadiusVar})`,
+      '--button-font-size': `var(${fontSizeVar})`,
+      '--button-fz': `var(${fontSizeVar})`,
       '--button-font-weight': 'var(--recursica-brand-typography-button-font-weight)',
       // Directly set color to override Mantine's fallback (var(--button-color, var(--mantine-color-white)))
       color: buttonColorRef,
@@ -158,8 +188,13 @@ export default function Button({
       ...(disabled && {
         opacity: 'var(--recursica-brand-light-state-disabled)',
       }),
-      minWidth: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-min-width)`,
-      borderRadius: `var(--recursica-ui-kit-components-button-size-border-radius)`,
+      minWidth: `var(${minWidthVar})`,
+      borderRadius: `var(${borderRadiusVar})`,
+      // Content max width with text truncation
+      maxWidth: `var(${contentMaxWidthVar})`,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
       ...style,
     },
     ...mantine,

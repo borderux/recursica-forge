@@ -83,12 +83,43 @@ export default function ButtonPreview({
     return null
   }, [selectedAltLayer, bgColor, colorVariant, selectedLayer, tokens])
 
-  // Icon for buttons
-  const iconElement = (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  // Get icon size and gap CSS variables for proper sizing
+  const sizePrefix = sizeVariant === 'small' ? 'small' : 'default'
+  const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
+  const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+
+  // Icon SVG element
+  const iconSvg = (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M5 12h14"></path>
       <path d="M12 5l7 7-7 7"></path>
     </svg>
+  )
+
+  // Icon element with proper container for left-side icons (used by Button component)
+  const iconElement = iconSvg
+
+  // Icon element with proper container for right-side icons
+  const rightIconElement = (
+    <span style={{
+      display: 'inline-flex',
+      width: `var(${iconSizeVar})`,
+      height: `var(${iconSizeVar})`,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+      marginLeft: `var(${iconGapVar})`,
+    }}>
+      <span style={{
+        display: 'flex',
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        {iconSvg}
+      </span>
+    </span>
   )
 
   return (
@@ -128,15 +159,15 @@ export default function ButtonPreview({
           icon={iconElement}
         />
         
-        {/* Button with icon on right - we'll need to handle this differently */}
+        {/* Button with icon on right */}
         <Button
           variant={colorVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
         >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
+          <span style={{ display: 'flex', alignItems: 'center' }}>
             Button
-            {iconElement}
+            {rightIconElement}
           </span>
         </Button>
         

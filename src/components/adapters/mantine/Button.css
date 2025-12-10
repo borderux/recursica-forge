@@ -1,0 +1,23 @@
+/* Override Mantine Button leftSection margin to use our CSS variable */
+/* Use custom class name for higher specificity */
+.recursica-button-left-section,
+.mantine-Button-root .recursica-button-left-section,
+[class*="m_a74036a"].recursica-button-left-section,
+[class*="m_a74036a"][data-position='left'],
+.mantine-Button-root .mantine-Button-leftSection,
+.mantine-Button-root[data-position='left'],
+.mantine-Button-leftSection[data-position='left'],
+[class*="mantine-Button-leftSection"][data-position='left'] {
+  margin-inline-end: var(--button-icon-text-gap, var(--recursica-ui-kit-components-button-size-variant-default-icon-text-gap)) !important;
+}
+
+/* Ensure SVG icons scale to fill their container */
+/* Override fixed width/height attributes on SVGs */
+.mantine-Button-root .mantine-Button-leftSection svg,
+.mantine-Button-root svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  flex-shrink: 0;
+}

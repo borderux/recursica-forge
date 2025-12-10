@@ -7,6 +7,7 @@
 import { Button as CarbonButton } from '@carbon/react'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { getComponentCssVar } from '../../utils/cssVarNames'
+import './Button.css'
 
 export default function Button({
   children,
@@ -56,8 +57,12 @@ export default function Button({
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
-  const iconPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-padding`, undefined)
   const horizontalPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
+  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
+  const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
+  const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+  const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
+  const contentMaxWidthVar = getComponentCssVar('Button', 'size', 'content-max-width', undefined)
   
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
@@ -70,10 +75,18 @@ export default function Button({
       height: `var(${iconSizeVar})`,
       alignItems: 'center',
       justifyContent: 'center',
-      flexShrink: 0,
+      flexShrink: 0, // Prevent icon from shrinking when content is truncated
       marginRight: children ? `var(${iconGapVar})` : 0,
     }}>
-      {icon}
+      <span style={{
+        display: 'flex',
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        {icon}
+      </span>
     </span>
   ) : undefined
   
@@ -90,13 +103,18 @@ export default function Button({
       // getComponentCssVar returns just the variable name, so wrap in var()
       '--cds-button-primary': isAlternativeLayer ? `var(${buttonBgVar})` : `var(${buttonBgVar})`,
       '--cds-button-text-primary': isAlternativeLayer ? `var(${buttonColorVar})` : `var(${buttonColorVar})`,
-      fontSize: `var(--recursica-ui-kit-components-button-size-font-size)`,
+      fontSize: `var(${fontSizeVar})`,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
-      height: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-height)`,
-      minWidth: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-min-width)`,
-      paddingLeft: isIconOnly ? `var(${iconPaddingVar})` : `var(${horizontalPaddingVar})`,
-      paddingRight: isIconOnly ? `var(${iconPaddingVar})` : `var(${horizontalPaddingVar})`,
-      borderRadius: `var(--recursica-ui-kit-components-button-size-border-radius)`,
+      height: `var(${heightVar})`,
+      minWidth: `var(${minWidthVar})`,
+      paddingLeft: `var(${horizontalPaddingVar})`,
+      paddingRight: `var(${horizontalPaddingVar})`,
+      borderRadius: `var(${borderRadiusVar})`,
+      // Content max width with text truncation
+      maxWidth: `var(${contentMaxWidthVar})`,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
       // For icon-only buttons, ensure flex centering
       ...(isIconOnly && {
         display: 'flex',
@@ -125,7 +143,15 @@ export default function Button({
   return (
     <CarbonButton {...carbonProps}>
       {iconElement}
-      {children}
+      <span style={{
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        flex: 1,
+        minWidth: 0, // Allow flex item to shrink below content size
+      }}>
+        {children}
+      </span>
     </CarbonButton>
   )
 }

@@ -104,11 +104,15 @@ export default function PropControl({
             }
           })
         } else {
-          // For size props, just match the variant
+          // For size props, find the CSS var that matches the selected variant
+          // First try to replace variant in the CSS var name
           const variantInVar = propToCheck.cssVar.match(/-variant-([^-]+)-/)?.[1]
-          if (variantInVar) {
+          if (variantInVar && variantInVar !== selectedVariant) {
             const updatedCssVar = propToCheck.cssVar.replace(`-variant-${variantInVar}-`, `-variant-${selectedVariant}-`)
             vars.push(updatedCssVar)
+          } else if (variantInVar && variantInVar === selectedVariant) {
+            // Already matches selected variant
+            vars.push(propToCheck.cssVar)
           } else {
             // Fallback: try to find the prop in the structure with the selected variant
             const structure = parseComponentStructure(componentName)
@@ -191,11 +195,16 @@ export default function PropControl({
     }
 
     if (propToRender.type === 'dimension') {
+      // For font-size prop on Button component, also update the theme typography CSS var
+      const additionalCssVars = propToRender.name === 'font-size' && componentName.toLowerCase() === 'button'
+        ? ['--recursica-brand-typography-button-font-size']
+        : []
+      
       // For dimension props, use dimension token selector (only theme values)
       return (
         <DimensionTokenSelector
           targetCssVar={primaryVar}
-          targetCssVars={cssVars}
+          targetCssVars={[...cssVars, ...additionalCssVars]}
           label={label}
           propName={propToRender.name}
         />

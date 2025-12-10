@@ -1,0 +1,9 @@
+/* Ensure SVG icons scale to fill their container */
+/* Override fixed width/height attributes on SVGs */
+.cds--btn svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  flex-shrink: 0;
+}
