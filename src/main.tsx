@@ -7,7 +7,6 @@ import TypePage from './modules/type/TypePage'
 import PreviewPage from './modules/preview/PreviewPage'
 import TokensPage from './modules/tokens/TokensPage'
 import LayersPage from './modules/layers/LayersPage'
-import ComponentsPage from './modules/components/ComponentsPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { ThemeModeProvider } from './modules/theme/ThemeModeContext'
 import { VarsProvider } from './modules/vars/VarsContext'
@@ -60,7 +59,6 @@ const router = createBrowserRouter([
       { path: '/type', element: <TypePage /> },
       { path: '/layers', element: <LayersPage /> },
       { path: '/uikit', element: <PreviewPage /> },
-      { path: '/components', element: <ComponentsPage /> },
     ],
   },
 ])
