@@ -8,11 +8,22 @@ interface VariantDropdownProps {
   variants: string[]
   selected: string
   onSelect: (variant: string) => void
+  open?: boolean
+  onOpenChange?: (isOpen: boolean) => void
 }
 
-export default function VariantDropdown({ propName, variants, selected, onSelect }: VariantDropdownProps) {
-  const [open, setOpen] = useState(false)
+export default function VariantDropdown({ propName, variants, selected, onSelect, open: controlledOpen, onOpenChange }: VariantDropdownProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const ref = useRef<HTMLDivElement>(null)
+  
+  const setOpen = (isOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(isOpen)
+    } else {
+      setInternalOpen(isOpen)
+    }
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -26,6 +37,13 @@ export default function VariantDropdown({ propName, variants, selected, onSelect
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [open])
+  
+  // Sync internal state with controlled prop
+  useEffect(() => {
+    if (controlledOpen !== undefined) {
+      setInternalOpen(controlledOpen)
+    }
+  }, [controlledOpen])
 
   // Get icon for variant prop type
   const getIcon = () => {
@@ -57,13 +75,13 @@ export default function VariantDropdown({ propName, variants, selected, onSelect
   return (
     <div className="dropdown-container" ref={ref}>
       <button
-        className="toolbar-icon-button"
+        className={`toolbar-icon-button ${open ? 'active' : ''}`}
         onClick={() => setOpen(!open)}
         title={`${toSentenceCase(propName)} variant`}
         aria-label={`${toSentenceCase(propName)} variant`}
       >
         {icon}
-        <ChevronDownIcon className="dropdown-chevron" />
+        <ChevronDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />
       </button>
       {open && (
         <div className="dropdown-menu">

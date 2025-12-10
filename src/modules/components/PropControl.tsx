@@ -43,45 +43,38 @@ export default function PropControl({
 
     const calculatePosition = () => {
       const rect = anchorElement.getBoundingClientRect()
-      const toolbar = anchorElement.closest('.component-toolbar')
-      const toolbarRect = toolbar?.getBoundingClientRect()
       
-      if (toolbarRect) {
-        // Position below the toolbar, aligned with the clicked icon
-        let x = rect.left
-        let y = toolbarRect.bottom + 8 // 8px gap below toolbar
-        
-        // Use estimated dimensions (will be adjusted after render if needed)
-        const controlWidth = 280 // min-width from CSS
-        const controlHeight = 200 // estimated height
-        const screenWidth = window.innerWidth
-        const screenHeight = window.innerHeight
-        
-        // Adjust if it would go off the right edge
-        if (x + controlWidth > screenWidth) {
-          x = screenWidth - controlWidth - 16 // 16px margin from edge
-        }
-        
-        // Adjust if it would go off the left edge
-        if (x < 16) {
-          x = 16
-        }
-        
-        // Adjust if it would go off the bottom edge
-        if (y + controlHeight > screenHeight) {
-          // Try positioning above the toolbar instead
-          y = toolbarRect.top - controlHeight - 8
-          // If still off screen, position at top of screen
-          if (y < 16) {
-            y = 16
-          }
-        }
-        
-        setPosition({ x, y })
-      } else {
-        // Fallback: center of screen
-        setPosition({ x: window.innerWidth / 2 - 140, y: window.innerHeight / 2 - 100 })
+      // Position at the same Y as dropdown menus (4px below the button, matching dropdown-menu CSS)
+      let x = rect.left
+      let y = rect.bottom + 4 // Same as dropdown-menu: top: calc(100% + 4px)
+      
+      // Use estimated dimensions (will be adjusted after render if needed)
+      const controlWidth = 280 // min-width from CSS
+      const controlHeight = 200 // estimated height
+      const screenWidth = window.innerWidth
+      const screenHeight = window.innerHeight
+      
+      // Adjust if it would go off the right edge
+      if (x + controlWidth > screenWidth) {
+        x = screenWidth - controlWidth - 16 // 16px margin from edge
       }
+      
+      // Adjust if it would go off the left edge
+      if (x < 16) {
+        x = 16
+      }
+      
+      // Adjust if it would go off the bottom edge
+      if (y + controlHeight > screenHeight) {
+        // Try positioning above the button instead
+        y = rect.top - controlHeight - 4
+        // If still off screen, position at top of screen
+        if (y < 16) {
+          y = 16
+        }
+      }
+      
+      setPosition({ x, y })
     }
 
     // Use requestAnimationFrame to ensure DOM is ready

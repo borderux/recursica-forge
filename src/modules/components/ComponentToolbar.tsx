@@ -43,6 +43,7 @@ export default function ComponentToolbar({
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer', 'altLayer'
   const iconRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
@@ -165,7 +166,19 @@ export default function ComponentToolbar({
             propName={variant.propName}
             variants={variant.variants}
             selected={selectedVariants[variant.propName] || variant.variants[0]}
-            onSelect={(variantName) => onVariantChange(variant.propName, variantName)}
+            onSelect={(variantName) => {
+              onVariantChange(variant.propName, variantName)
+              setOpenDropdown(null)
+            }}
+            open={openDropdown === `variant-${variant.propName}`}
+            onOpenChange={(isOpen) => {
+              if (isOpen) {
+                setOpenPropControl(null) // Close any open palette
+                setOpenDropdown(`variant-${variant.propName}`)
+              } else {
+                setOpenDropdown(null)
+              }
+            }}
           />
         ))}
       </div>
@@ -175,12 +188,36 @@ export default function ComponentToolbar({
       <div className="toolbar-section-group">
         <LayerDropdown
           selected={selectedLayer}
-          onSelect={onLayerChange}
+          onSelect={(layer) => {
+            onLayerChange(layer)
+            setOpenDropdown(null)
+          }}
+          open={openDropdown === 'layer'}
+          onOpenChange={(isOpen) => {
+            if (isOpen) {
+              setOpenPropControl(null) // Close any open palette
+              setOpenDropdown('layer')
+            } else {
+              setOpenDropdown(null)
+            }
+          }}
         />
         <AltLayerDropdown
           selected={selectedAltLayer}
-          onSelect={onAltLayerChange}
+          onSelect={(altLayer) => {
+            onAltLayerChange(altLayer)
+            setOpenDropdown(null)
+          }}
           mode={mode}
+          open={openDropdown === 'altLayer'}
+          onOpenChange={(isOpen) => {
+            if (isOpen) {
+              setOpenPropControl(null) // Close any open palette
+              setOpenDropdown('altLayer')
+            } else {
+              setOpenDropdown(null)
+            }
+          }}
         />
       </div>
       <div className="toolbar-separator" />
@@ -201,11 +238,12 @@ export default function ComponentToolbar({
                     iconRefs.current.delete(propKey)
                   }
                 }}
-                className="toolbar-icon-button"
+                className={`toolbar-icon-button ${openPropControl === propKey ? 'active' : ''}`}
                 onClick={() => {
                   if (openPropControl === propKey) {
                     setOpenPropControl(null)
                   } else {
+                    setOpenDropdown(null) // Close any open dropdown
                     setOpenPropControl(propKey)
                   }
                 }}

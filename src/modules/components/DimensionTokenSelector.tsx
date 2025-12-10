@@ -263,10 +263,10 @@ export default function DimensionTokenSelector({
               style={{
                 width: 60,
                 padding: '4px 8px',
-                border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
-                borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-                background: 'var(--recursica-brand-light-layer-layer-1-property-surface)',
-                color: 'var(--recursica-brand-light-layer-layer-1-element-text-color)',
+                border: 'var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
+                borderRadius: 'var(--recursica-brand-light-layer-layer-2-property-border-radius)',
+                background: 'var(--recursica-brand-light-layer-layer-2-property-surface)',
+                color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)',
                 fontSize: 12,
                 textAlign: 'right',
               }}

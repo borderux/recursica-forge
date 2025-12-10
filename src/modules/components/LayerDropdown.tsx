@@ -6,11 +6,22 @@ import './Dropdown.css'
 interface LayerDropdownProps {
   selected: string
   onSelect: (layer: string) => void
+  open?: boolean
+  onOpenChange?: (isOpen: boolean) => void
 }
 
-export default function LayerDropdown({ selected, onSelect }: LayerDropdownProps) {
-  const [open, setOpen] = useState(false)
+export default function LayerDropdown({ selected, onSelect, open: controlledOpen, onOpenChange }: LayerDropdownProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const ref = useRef<HTMLDivElement>(null)
+  
+  const setOpen = (isOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(isOpen)
+    } else {
+      setInternalOpen(isOpen)
+    }
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -24,19 +35,26 @@ export default function LayerDropdown({ selected, onSelect }: LayerDropdownProps
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [open])
+  
+  // Sync internal state with controlled prop
+  useEffect(() => {
+    if (controlledOpen !== undefined) {
+      setInternalOpen(controlledOpen)
+    }
+  }, [controlledOpen])
 
   const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
 
   return (
     <div className="dropdown-container" ref={ref}>
       <button
-        className="toolbar-icon-button"
+        className={`toolbar-icon-button ${open ? 'active' : ''}`}
         onClick={() => setOpen(!open)}
         title="Layer"
         aria-label="Layer"
       >
         <Squares2X2Icon className="toolbar-icon" />
-        <ChevronDownIcon className="dropdown-chevron" />
+        <ChevronDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />
       </button>
       {open && (
         <div className="dropdown-menu">

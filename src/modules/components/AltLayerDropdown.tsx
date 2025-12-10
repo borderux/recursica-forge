@@ -8,6 +8,8 @@ interface AltLayerDropdownProps {
   selected: string | null
   onSelect: (altLayer: string | null) => void
   mode: 'light' | 'dark'
+  open?: boolean
+  onOpenChange?: (isOpen: boolean) => void
 }
 
 const ALT_LAYERS = [
@@ -19,9 +21,18 @@ const ALT_LAYERS = [
   { key: 'warning', label: 'Warning' },
 ] as const
 
-export default function AltLayerDropdown({ selected, onSelect, mode }: AltLayerDropdownProps) {
-  const [open, setOpen] = useState(false)
+export default function AltLayerDropdown({ selected, onSelect, mode, open: controlledOpen, onOpenChange }: AltLayerDropdownProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const ref = useRef<HTMLDivElement>(null)
+  
+  const setOpen = (isOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(isOpen)
+    } else {
+      setInternalOpen(isOpen)
+    }
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -35,6 +46,13 @@ export default function AltLayerDropdown({ selected, onSelect, mode }: AltLayerD
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [open])
+  
+  // Sync internal state with controlled prop
+  useEffect(() => {
+    if (controlledOpen !== undefined) {
+      setInternalOpen(controlledOpen)
+    }
+  }, [controlledOpen])
 
   const getSwatchColor = (altLayer: string | null): string => {
     if (!altLayer) {
@@ -71,13 +89,13 @@ export default function AltLayerDropdown({ selected, onSelect, mode }: AltLayerD
   return (
     <div className="dropdown-container" ref={ref}>
       <button
-        className="toolbar-icon-button"
+        className={`toolbar-icon-button ${open ? 'active' : ''}`}
         onClick={() => setOpen(!open)}
         title="Alt layer"
         aria-label="Alt layer"
       >
         <CircleStackIcon className="toolbar-icon" />
-        <ChevronDownIcon className="dropdown-chevron" />
+        <ChevronDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />
       </button>
       {open && (
         <div className="dropdown-menu">
