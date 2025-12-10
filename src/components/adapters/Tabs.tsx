@@ -50,7 +50,6 @@ export function Tabs({
     onChange,
     orientation,
     variant,
-    children,
     className,
     style,
     mantine,

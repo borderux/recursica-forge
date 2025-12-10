@@ -5,12 +5,17 @@
 }
 
 .button-preview-warning {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
   padding: var(--recursica-brand-dimensions-md);
   background: var(--recursica-brand-light-palettes-core-warning, #f59e0b);
   color: white;
   border-radius: var(--recursica-brand-dimensions-border-radius-default);
   font-size: 13px;
   line-height: 1.5;
+  z-index: 10;
 }
 
 .button-preview-row {
