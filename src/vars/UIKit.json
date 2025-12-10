@@ -295,346 +295,335 @@
       "button": {
         "color": {
           "layer-0": {
-            "solid": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone-hover}"
-              },
-              "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.on-tone}"
-              },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.on-tone-hover}"
-              }
-            },
-            "text": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.property.surface}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.property.surface}"
+            "variant": {
+              "solid": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone-hover}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.element.interactive.on-tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.element.interactive.on-tone-hover}"
+                }
               },
               "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone}"
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.property.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone-hover}"
+                }
               },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone-hover}"
-              }
-            },
-            "outline": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.property.surface}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.property.surface}"
-              },
-              "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone}"
-              },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone-hover}"
+              "outline": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.property.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.element.interactive.tone-hover}"
+                }
               }
             }
           },
           "layer-1": {
-            "solid": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
-              },
-              "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.on-tone}"
-              },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.on-tone-hover}"
-              }
-            },
-            "text": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.property.surface}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+            "variant": {
+              "solid": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.element.interactive.on-tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.element.interactive.on-tone-hover}"
+                }
               },
               "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone}"
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
+                }
               },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
-              }
-            },
-            "outline": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.property.surface}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.property.surface}"
-              },
-              "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone}"
-              },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
+              "outline": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
+                }
               }
             }
           },
           "layer-2": {
-            "solid": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
-              },
-              "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.on-tone}"
-              },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.on-tone-hover}"
-              }
-            },
-            "text": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.property.surface}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.property.surface}"
+            "variant": {
+              "solid": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.on-tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.on-tone-hover}"
+                }
               },
               "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.property.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
+                }
               },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
-              }
-            },
-            "outline": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.property.surface}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.property.surface}"
-              },
-              "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
-              },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
+              "outline": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.property.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
+                }
               }
             }
           },
           "layer-3": {
-            "solid": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
-              },
-              "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.on-tone}"
-              },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.on-tone-hover}"
-              }
-            },
-            "text": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.property.surface}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.property.surface}"
+            "variant": {
+              "solid": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.on-tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.on-tone-hover}"
+                }
               },
               "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.property.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
+                }
               },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
-              }
-            },
-            "outline": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.property.surface}"
-              },
-              "background-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.property.surface}"
-              },
-              "text": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
-              },
-              "text-hover": {
-                "$type": "color",
-                "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
+              "outline": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.property.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
+                }
               }
             }
           }
         },
         "size": {
-          "default": {
-            "icon": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.icon.default}",
-                "unit": "px"
+            "variant": {
+              "default": {
+                "icon": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.icon.default}",
+                    "unit": "px"
+                  }
+                },
+                "height": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 48,
+                    "unit": "px"
+                  }
+                },
+                "min-width": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 48,
+                    "unit": "px"
+                  }
+                },
+                "horizontal-padding": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.lg}",
+                    "unit": "px"
+                  }
+                },
+                "icon-text-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.default}",
+                    "unit": "px"
+                  }
+                }
+              },
+              "small": {
+                "icon": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.icon.sm}",
+                    "unit": "px"
+                  }
+                },
+                "height": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 32,
+                    "unit": "px"
+                  }
+                },
+                "min-width": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 32,
+                    "unit": "px"
+                  }
+                },
+                "horizontal-padding": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 12,
+                    "unit": "px"
+                  }
+                },
+                "icon-text-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.sm}",
+                    "unit": "px"
+                  }
+                }
               }
-            },
-            "height": {
-              "$type": "dimension",
-              "$value": {
-                "value": 48,
-                "unit": "px"
-              }
-            },
-            "min-width": {
-              "$type": "dimension",
-              "$value": {
-                "value": 48,
-                "unit": "px"
-              }
-            },
-            "horizontal-padding": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.lg}",
-                "unit": "px"
-              }
-            },
-            "icon-padding": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.default}",
-                "unit": "px"
-              }
-            },
-            "icon-text-gap": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.default}",
-                "unit": "px"
-              }
-            }
-          },
-          "small": {
-            "icon": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.icon.sm}",
-                "unit": "px"
-              }
-            },
-            "height": {
-              "$type": "dimension",
-              "$value": {
-                "value": 32,
-                "unit": "px"
-              }
-            },
-            "min-width": {
-              "$type": "dimension",
-              "$value": {
-                "value": 32,
-                "unit": "px"
-              }
-            },
-            "horizontal-padding": {
-              "$type": "dimension",
-              "$value": {
-                "value": 12,
-                "unit": "px"
-              }
-            },
-            "icon-padding": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.sm}",
-                "unit": "px"
-              }
-            },
-            "icon-text-gap": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.sm}",
-                "unit": "px"
-              }
-            }
-          },
-          "font-size": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.typography.button.font-size}",
-              "unit": "px"
-            }
-          },
-          "border-radius": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.border-radius.xl}",
-              "unit": "px"
-            }
-          },
-          "border-radius-no-text": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.border-radius.xl}",
-              "unit": "px"
-            }
-          },
-          "content-max-width": {
-            "$type": "dimension",
-            "$value": {
-              "value": 320,
-              "unit": "px"
-            }
+          }
+        },
+        "font-size": {
+          "$type": "dimension",
+          "$value": {
+            "value": "{brand.typography.button.font-size}",
+            "unit": "px"
+          }
+        },
+        "border-radius": {
+          "$type": "dimension",
+          "$value": {
+            "value": "{brand.dimensions.border-radius.xl}",
+            "unit": "px"
+          }
+        },
+        "content-max-width": {
+          "$type": "dimension",
+          "$value": {
+            "value": 320,
+            "unit": "px"
           }
         }
       }

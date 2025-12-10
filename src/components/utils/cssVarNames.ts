@@ -35,7 +35,7 @@ export function toCssVarName(path: string): string {
  * 
  * @example
  * getComponentCssVar('Button', 'size', 'default-height', undefined)
- * => '--recursica-ui-kit-components-button-size-default-height'
+ * => '--recursica-ui-kit-components-button-size-variant-default-height'
  */
 export function getComponentCssVar(
   component: ComponentName,
@@ -46,14 +46,46 @@ export function getComponentCssVar(
   const parts = ['components', component.toLowerCase(), category]
   
   // For color category, layer comes before the property
-  // For size category, layer is not used (size properties are at root level)
   if (category === 'color' && layer) {
     parts.push(layer)
   }
   
-  // Handle nested properties like "default-height" -> stays as "default-height"
-  const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-  parts.push(normalizedProperty)
+  // For size category, check if property contains variant name (e.g., "default-height", "small-height")
+  // If it does, we need to insert "variant" into the path
+  if (category === 'size') {
+    const variantMatch = property.match(/^(default|small)-(.+)$/)
+    if (variantMatch) {
+      const [, variantName, propName] = variantMatch
+      parts.push('variant', variantName, propName)
+    } else {
+      // Non-variant size property (e.g., "font-size", "border-radius")
+      const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+      parts.push(normalizedProperty)
+    }
+  } else {
+    // For color category, check if property contains variant name (e.g., "solid-text", "outline-background")
+    // Color variants are now nested under "variant" nodes in UIKit.json
+    // If it does, we need to insert "variant" into the path
+    // Pattern: {variant-name}-{property-name} where variant-name is a word and property-name follows
+    const colorVariantMatch = property.match(/^([a-z]+)-(.+)$/)
+    if (colorVariantMatch) {
+      const [, variantName, propName] = colorVariantMatch
+      // Known color variants: solid, text, outline
+      // If it matches a known variant pattern, insert "variant" segment
+      const knownVariants = ['solid', 'text', 'outline']
+      if (knownVariants.includes(variantName)) {
+        parts.push('variant', variantName, propName)
+      } else {
+        // Unknown variant pattern - treat as regular property
+        const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+        parts.push(normalizedProperty)
+      }
+    } else {
+      // Non-variant color property
+      const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+      parts.push(normalizedProperty)
+    }
+  }
   
   return toCssVarName(parts.join('.'))
 }

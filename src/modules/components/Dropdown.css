@@ -1,0 +1,81 @@
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-chevron {
+  width: 12px;
+  height: 12px;
+  margin-left: 4px;
+  transition: transform 0.2s;
+}
+
+.dropdown-chevron.flipped {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 160px;
+  background: var(--recursica-brand-light-layer-layer-2-property-surface);
+  border: var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color);
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: var(--recursica-brand-light-layer-layer-2-property-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--recursica-brand-dimensions-sm);
+  padding: var(--recursica-brand-dimensions-sm) var(--recursica-brand-dimensions-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius);
+  cursor: pointer;
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  text-align: left;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.dropdown-item:hover:not(.selected) {
+  background: var(--recursica-brand-light-layer-layer-2-property-surface-hover);
+}
+
+.dropdown-item.selected {
+  position: relative;
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color) !important;
+  font-weight: 500;
+  z-index: 1;
+}
+
+.dropdown-item.selected::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--recursica-brand-light-palettes-core-black);
+  opacity: 0.2;
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dropdown-item.selected:hover::before {
+  opacity: 0.25;
+}
+
+.alt-layer-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  border: var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color);
+  flex-shrink: 0;
+}
