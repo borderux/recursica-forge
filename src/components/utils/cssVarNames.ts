@@ -63,9 +63,28 @@ export function getComponentCssVar(
       parts.push(normalizedProperty)
     }
   } else {
-    // For color category, handle nested properties
-    const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-    parts.push(normalizedProperty)
+    // For color category, check if property contains variant name (e.g., "solid-text", "outline-background")
+    // Color variants are now nested under "variant" nodes in UIKit.json
+    // If it does, we need to insert "variant" into the path
+    // Pattern: {variant-name}-{property-name} where variant-name is a word and property-name follows
+    const colorVariantMatch = property.match(/^([a-z]+)-(.+)$/)
+    if (colorVariantMatch) {
+      const [, variantName, propName] = colorVariantMatch
+      // Known color variants: solid, text, outline
+      // If it matches a known variant pattern, insert "variant" segment
+      const knownVariants = ['solid', 'text', 'outline']
+      if (knownVariants.includes(variantName)) {
+        parts.push('variant', variantName, propName)
+      } else {
+        // Unknown variant pattern - treat as regular property
+        const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+        parts.push(normalizedProperty)
+      }
+    } else {
+      // Non-variant color property
+      const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+      parts.push(normalizedProperty)
+    }
   }
   
   return toCssVarName(parts.join('.'))

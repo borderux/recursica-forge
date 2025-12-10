@@ -88,7 +88,13 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           }
         }
         // Continue traversing into variants
-        traverse(value, currentPath, prefix[prefix.length - 1])
+        // Use propName (the actual variant prop like "color" or "size") instead of prefix[prefix.length - 1]
+        // which would be the layer name for color properties
+        let variantPropName = prefix[prefix.length - 1]
+        if (variantPropName.startsWith('layer-') && prefix.length > 1) {
+          variantPropName = prefix[prefix.length - 2]
+        }
+        traverse(value, currentPath, variantPropName)
         return
       }
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
 import { Squares2X2Icon } from '@heroicons/react/24/solid'
 import './Dropdown.css'
@@ -15,13 +15,13 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const ref = useRef<HTMLDivElement>(null)
   
-  const setOpen = (isOpen: boolean) => {
+  const setOpen = useCallback((isOpen: boolean) => {
     if (onOpenChange) {
       onOpenChange(isOpen)
     } else {
       setInternalOpen(isOpen)
     }
-  }
+  }, [onOpenChange])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -34,7 +34,7 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [open])
+  }, [open, setOpen])
   
   // Sync internal state with controlled prop
   useEffect(() => {
