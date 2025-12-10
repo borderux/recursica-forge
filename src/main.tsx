@@ -5,6 +5,7 @@ import { Layout } from './modules/app/Layout'
 import PalettesPage from './modules/palettes/PalettesPage'
 import TypePage from './modules/type/TypePage'
 import PreviewPage from './modules/preview/PreviewPage'
+import ComponentDetailPage from './modules/preview/ComponentDetailPage'
 import TokensPage from './modules/tokens/TokensPage'
 import LayersPage from './modules/layers/LayersPage'
 import ThemePage from './modules/theme/ThemePage'
@@ -56,7 +57,13 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <Navigate to="/tokens" replace /> },
       { path: '/tokens', element: <TokensPage /> },
-      { path: '/components', element: <PreviewPage /> },
+      {
+        path: '/components',
+        element: <PreviewPage />,
+        children: [
+          { path: '/components/:componentName', element: <ComponentDetailPage /> },
+        ],
+      },
       { path: '/uikit', element: <Navigate to="/components" replace /> },
       { path: '/palettes', element: <Navigate to="/theme/palettes" replace /> },
       { path: '/type', element: <Navigate to="/theme/type" replace /> },

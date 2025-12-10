@@ -19,6 +19,7 @@ import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } fro
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Sidebar } from '../Sidebar'
+import { ComponentsSidebar } from '../../preview/ComponentsSidebar'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
