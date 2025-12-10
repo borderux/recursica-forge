@@ -1,0 +1,115 @@
+.prop-control {
+  position: fixed;
+  min-width: 280px;
+  max-width: 400px;
+  background: var(--recursica-brand-light-layer-layer-2-property-surface);
+  border: var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color);
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+}
+
+.prop-control-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--recursica-brand-light-layer-layer-2-property-padding);
+  border-bottom: var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color);
+  background: var(--recursica-brand-light-layer-layer-2-property-surface);
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius) var(--recursica-brand-light-layer-layer-2-property-border-radius) 0 0;
+}
+
+.prop-control-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+}
+
+.prop-control-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius);
+  cursor: pointer;
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  transition: background-color 0.2s;
+}
+
+.prop-control-close:hover {
+  background: var(--recursica-brand-light-layer-layer-2-property-surface-hover);
+}
+
+.prop-control-close-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.prop-control-body {
+  padding: var(--recursica-brand-light-layer-layer-2-property-padding);
+}
+
+.prop-control-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--recursica-brand-dimensions-sm);
+}
+
+.prop-control-content:has(> :nth-child(2)) {
+  gap: var(--recursica-brand-dimensions-md);
+}
+
+.prop-control-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+}
+
+.prop-control-input-group {
+  display: flex;
+  gap: var(--recursica-brand-dimensions-sm);
+}
+
+.prop-control-input {
+  flex: 1;
+  padding: var(--recursica-brand-dimensions-sm) var(--recursica-brand-dimensions-md);
+  border: var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color);
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius);
+  background: var(--recursica-brand-light-layer-layer-2-property-surface);
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  font-size: 14px;
+}
+
+.prop-control-input:focus {
+  outline: none;
+  border-color: var(--recursica-brand-light-layer-layer-2-property-element-interactive-tone);
+}
+
+.prop-control-unit-select {
+  padding: var(--recursica-brand-dimensions-sm) var(--recursica-brand-dimensions-md);
+  border: var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color);
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius);
+  background: var(--recursica-brand-light-layer-layer-2-property-surface);
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.prop-control-unit-select:focus {
+  outline: none;
+  border-color: var(--recursica-brand-light-layer-layer-2-property-element-interactive-tone);
+}
+
+.prop-control-readonly {
+  padding: var(--recursica-brand-dimensions-sm) var(--recursica-brand-dimensions-md);
+  border: var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color);
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius);
+  background: var(--recursica-brand-light-layer-layer-2-property-surface);
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  font-size: 14px;
+  opacity: 0.7;
+}
