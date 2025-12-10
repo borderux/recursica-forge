@@ -133,7 +133,7 @@ export default function TokenSlider({
                 top: '50%',
                 width: '2px',
                 height: '8px',
-                backgroundColor: 'var(--recursica-brand-light-layer-layer-2-property-element-text-low-emphasis)',
+                backgroundColor: 'var(--recursica-brand-light-layer-layer-alternative-floating-property-element-text-low-emphasis, var(--recursica-brand-light-layer-layer-3-property-element-text-low-emphasis))',
                 transform: 'translate(-50%, -50%)',
                 pointerEvents: 'none',
                 zIndex: 0,

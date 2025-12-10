@@ -284,7 +284,7 @@ export default function PaletteColorControl({
           alignItems: 'center',
           gap: 8,
           padding: '6px 8px',
-          border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+          border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color)`,
           background: 'transparent',
           borderRadius: 6,
           cursor: 'pointer',
@@ -296,7 +296,7 @@ export default function PaletteColorControl({
             width: swatchSize,
             height: swatchSize,
             borderRadius: 4,
-            border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+            border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color)`,
             background: `var(${displayCssVar}, transparent)`,
             flexShrink: 0,
           }}

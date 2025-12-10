@@ -19,6 +19,7 @@ export default function DimensionTokenSelector({
   propName,
 }: DimensionTokenSelectorProps) {
   const { theme, tokens } = useVars()
+  const { mode } = useThemeMode()
 
   // Get available dimension tokens from theme JSON structure and convert to Token format
   const dimensionTokens = useMemo(() => {
@@ -509,10 +510,10 @@ export default function DimensionTokenSelector({
               style={{
                 width: 60,
                 padding: '4px 8px',
-                border: 'var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color)',
-                borderRadius: 'var(--recursica-brand-light-layer-layer-2-property-border-radius)',
-                background: 'var(--recursica-brand-light-layer-layer-2-property-surface)',
-                color: 'var(--recursica-brand-light-layer-layer-2-property-element-text-color)',
+                border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness, var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, var(--recursica-brand-${mode}-layer-layer-3-property-border-color))`,
+                borderRadius: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-radius, var(--recursica-brand-${mode}-layer-layer-3-property-border-radius))`,
+                background: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-surface, var(--recursica-brand-${mode}-layer-layer-3-property-surface))`,
+                color: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-element-text-color, var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color))`,
                 fontSize: 12,
                 textAlign: 'right',
               }}
