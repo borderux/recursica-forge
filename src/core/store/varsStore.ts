@@ -1226,6 +1226,21 @@ class VarsStore {
     // UIKit components
     try {
       const uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit)
+      
+      // Preserve UIKit CSS variables that were set directly by the user (e.g., via ComponentToolbar)
+      // This prevents recomputes from overwriting user changes
+      // Check all UIKit CSS variables in the DOM and preserve any that differ from generated
+      Object.keys(uikitVars).forEach((cssVar) => {
+        const existingValue = readCssVar(cssVar)
+        const generatedValue = uikitVars[cssVar]
+        
+        // Preserve if it exists in DOM and is different from generated (user customization)
+        // This ensures user changes via ComponentToolbar persist across recomputes
+        if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
+          uikitVars[cssVar] = existingValue
+        }
+      })
+      
       Object.assign(allVars, uikitVars)
     } catch {}
     // Typography

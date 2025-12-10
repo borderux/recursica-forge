@@ -1,0 +1,26 @@
+.components-page {
+  padding: var(--recursica-brand-dimensions-lg);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.components-page-header {
+  margin-bottom: var(--recursica-brand-dimensions-xl);
+}
+
+.components-page-header h1 {
+  margin: 0 0 var(--recursica-brand-dimensions-md) 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--recursica-brand-light-layer-layer-0-element-text-color);
+}
+
+.components-page-header p {
+  margin: 0;
+  font-size: 16px;
+  color: var(--recursica-brand-light-layer-layer-0-element-text-low-emphasis);
+}
+
+.components-page-content {
+  margin-top: var(--recursica-brand-dimensions-xl);
+}
