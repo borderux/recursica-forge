@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { PlusIcon } from '@heroicons/react/24/outline'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { removeCssVar } from '../../../core/css/updateCssVar'
@@ -7,6 +8,8 @@ import { clamp, hsvToHex, hexToHsv, toTitleCase, toKebabCase } from './colorUtil
 import { cascadeColor, computeLevel500Hex, parseLevel, IDX_MAP, LEVELS_ASC } from './colorCascade'
 import { getFriendlyNamePreferNtc, getNtcName } from '../../utils/colorNaming'
 import { ColorPickerModal } from '../../pickers/ColorPickerModal'
+import { useThemeMode } from '../../theme/ThemeModeContext'
+import { Button } from '../../../components/adapters/Button'
 
 type TokenEntry = {
   name: string
@@ -18,6 +21,7 @@ type ModeName = 'Mode 1' | 'Mode 2' | string
 
 export default function ColorTokens() {
   const { tokens: tokensJson, updateToken, setTokens, theme, palettes } = useVars()
+  const { mode: themeMode } = useThemeMode()
   const [values, setValues] = useState<Record<string, string | number>>({})
   const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
@@ -713,22 +717,75 @@ export default function ColorTokens() {
   families = [...existing, ...appended]
 
   const presentLevels = new Set<string>(families.flatMap(([_, lvls]) => lvls.map((l) => l.level)))
-  const standardLevels = ['900', '800', '700', '600', '500', '400', '300', '200', '100', '050']
+  // Include 1000 and 000 in standard levels
+  const standardLevels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
   standardLevels.forEach((lvl) => presentLevels.add(lvl))
-  const levelOrder = Array.from(presentLevels).sort((a, b) => Number(b) - Number(a))
+  const levelOrder = Array.from(presentLevels).sort((a, b) => {
+    // Handle 000 specially - it should be last
+    if (a === '000') return 1
+    if (b === '000') return -1
+    return Number(b) - Number(a)
+  })
+
+  const layer0Base = `--recursica-brand-${themeMode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-${themeMode}-layer-layer-1-property`
+  const interactiveColor = `--recursica-brand-${themeMode}-palettes-core-interactive`
 
   return (
-    <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `100px repeat(${families.length}, 1fr)`, columnGap: 12, rowGap: 0, alignItems: 'start' }}>
+    <section style={{ 
+      background: `var(${layer0Base}-surface)`, 
+      border: `1px solid var(${layer1Base}-border-color)`, 
+      borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
+      padding: 'var(--recursica-brand-dimensions-spacer-md)',
+    }}>
+      {/* Header with Add Color Scale button */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: 'var(--recursica-brand-dimensions-spacer-md)',
+      }}>
+        <div style={{ flex: 1 }} /> {/* Spacer */}
+        <Button
+          variant="outline"
+          onClick={handleAddColor}
+          icon={<PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+          style={{
+            borderColor: `var(${interactiveColor})`,
+            color: `var(${interactiveColor})`,
+          }}
+        >
+          Add color scale
+        </Button>
+      </div>
+
+      {/* Color scales grid */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: `100px repeat(${families.length}, 1fr)`, 
+        columnGap: 'var(--recursica-brand-dimensions-spacer-md)', 
+        rowGap: 0, 
+        alignItems: 'start' 
+      }}>
+        {/* Numerical scale column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-            <button
-              onClick={handleAddColor}
-              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer' }}
-            >+Color</button>
-          </div>
+          <div style={{ height: 40, marginBottom: 'var(--recursica-brand-dimensions-spacer-sm)' }} /> {/* Spacer for header */}
           {levelOrder.map((level) => (
-            <div key={'label-' + level} style={{ textAlign: 'center', fontSize: 12, opacity: 0.8, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{level}</div>
+            <div 
+              key={'label-' + level} 
+              style={{ 
+                textAlign: 'center', 
+                fontSize: 'var(--recursica-brand-typography-caption-font-size)', 
+                color: `var(${layer0Base}-element-text-color)`,
+                opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                height: 40, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center' 
+              }}
+            >
+              {level}
+            </div>
           ))}
         </div>
         {families.map(([family, levels]) => (

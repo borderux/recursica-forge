@@ -75,3 +75,4 @@ According to the plan: **"minimize overrides so users change CSS vars directly"*
 Token overrides are currently **display-only** and do not affect CSS variables. Users should change CSS variables directly for real-time updates. The override system can be considered deprecated/legacy and should be removed in a future refactoring.
 
 
+

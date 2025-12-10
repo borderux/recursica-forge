@@ -6,7 +6,7 @@
  */
 import { ReactNode, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowPathIcon, ArrowDownTrayIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
+import { ArrowPathIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline'
 import type { UiKit } from '../../uikit/UiKitContext'
 import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
 import { clearOverrides } from '../../theme/tokenOverrides'
@@ -16,12 +16,22 @@ import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
+import { Sidebar } from '../Sidebar'
+import { Tabs } from '../../../components/adapters/Tabs'
+import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
   const { mode, setMode } = useThemeMode()
   const location = useLocation()
   const navigate = useNavigate()
+  const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+  const buttonHeight = getComponentCssVar('Button', 'size', 'default-height', undefined)
+  const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
+  const buttonTextBg = getComponentCssVar('Button', 'color', 'text-background', 'layer-0')
+  const buttonTextText = getComponentCssVar('Button', 'color', 'text-text', 'layer-0')
+  const buttonSolidBg = getComponentCssVar('Button', 'color', 'solid-background', 'layer-0')
+  const buttonSolidText = getComponentCssVar('Button', 'color', 'solid-text', 'layer-0')
   const [carbon, setCarbon] = useState<any>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
@@ -95,94 +105,144 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
     }
   }, [])
 
-  if (!carbon) return <div style={{ padding: 'var(--recursica-tokens-size-2x)' }}>Loading Carbon…</div>
+  if (!carbon) return <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-lg)' }}>Loading Carbon…</div>
 
   const { Select, SelectItem, Theme, Grid, Column, ComposedModal, ModalHeader, ModalBody, ModalFooter, Toggle } = carbon
   const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const showSidebar = location.pathname.startsWith('/tokens')
 
   return (
     <Theme theme="g10">
-      <header
-        aria-label="Recursica Theme Forge"
-        style={{
-          backgroundColor: `var(${layer1Base}-surface)`,
-          paddingTop: 'var(--recursica-tokens-size-2x)',
-          paddingBottom: 'var(--recursica-tokens-size-2x)',
-          paddingLeft: 'var(--recursica-tokens-size-3x)',
-          paddingRight: 'var(--recursica-tokens-size-3x)',
-          height: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
-          borderBottomStyle: 'solid',
-          borderBottomColor: `var(${layer1Base}-border-color)`,
-        }}
-      >
-        {/* Logo, Brand, and Navigation Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-3x)', width: '100%' }}>
-          {/* Chunk 1: Logo and Brand */}
-          <div style={{ minWidth: '220px', display: 'flex', alignItems: 'center' }}>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', textDecoration: 'none' }}>
-              <LogoIcon />
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <header
+          aria-label="Recursica Theme Forge"
+          style={{
+            backgroundColor: `var(${layer1Base}-surface)`,
+            paddingTop: 'var(--recursica-brand-dimensions-spacer-lg)',
+            paddingBottom: 'var(--recursica-brand-dimensions-spacer-lg)',
+            paddingLeft: 'var(--recursica-brand-dimensions-spacer-xl)',
+            paddingRight: 'var(--recursica-brand-dimensions-spacer-xl)',
+            height: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
+            borderBottomStyle: 'solid',
+            borderBottomColor: `var(${layer1Base}-border-color)`,
+            flexShrink: 0,
+          }}
+        >
+          {/* Logo, Brand, and Navigation Buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-xl)', width: '100%' }}>
+            {/* Chunk 1: Logo and Brand */}
+            <div style={{ minWidth: '220px', display: 'flex', alignItems: 'center' }}>
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)', textDecoration: 'none' }}>
+                <LogoIcon />
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                 <span
                   style={{
                     color: `var(${layer1Base}-element-text-color)`,
                     opacity: `var(${layer1Base}-element-text-high-emphasis)`,
                     fontWeight: 600,
-                    fontSize: 'var(--recursica-tokens-size-md)',
+                    fontSize: 'var(--recursica-brand-typography-body-font-size)',
                   }}
                 >
                   Recursica
                 </span>
                 <span
                   style={{
-                    fontSize: 'var(--recursica-tokens-size-xs)',
+                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                     color: `var(${layer1Base}-element-text-color)`,
                     opacity: `var(${layer1Base}-element-text-low-emphasis)`,
                   }}
                 >
                   Theme Forge
                 </span>
-              </div>
-            </Link>
-          </div>
+                </div>
+              </Link>
+            </div>
 
-          {/* Chunk 2: Navigation Buttons */}
-          <div style={{ display: 'flex', gap: 'var(--recursica-tokens-size-default)', alignItems: 'center' }}>
-            <Button
-              variant={currentRoute === 'tokens' ? 'solid' : 'text'}
-              onClick={() => navigate('/tokens')}
-              size="default"
-              layer="layer-0"
+            {/* Chunk 2: Navigation Tabs */}
+            <Tabs
+              value={currentRoute}
+              onChange={(value) => {
+                if (value === 'tokens') navigate('/tokens')
+                else if (value === 'theme') navigate('/theme')
+                else if (value === 'components') navigate('/components')
+              }}
+              style={{
+                flex: 1,
+                display: 'flex',
+                gap: 'var(--recursica-brand-dimensions-spacer-default)',
+              }}
             >
-              Tokens
-            </Button>
-            <Button
-              variant={currentRoute === 'theme' ? 'solid' : 'text'}
-              onClick={() => navigate('/theme')}
-              size="default"
-              layer="layer-0"
-            >
-              Theme
-            </Button>
-            <Button
-              variant={currentRoute === 'components' ? 'solid' : 'text'}
-              onClick={() => navigate('/components')}
-              size="default"
-              layer="layer-0"
-            >
-              Components
-            </Button>
-          </div>
+              <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+                <button
+                  onClick={() => navigate('/tokens')}
+                  style={{
+                    height: `var(${buttonHeight})`,
+                    paddingLeft: `var(${buttonPadding})`,
+                    paddingRight: `var(${buttonPadding})`,
+                    border: 'none',
+                    background: currentRoute === 'tokens' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                    color: currentRoute === 'tokens' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                    opacity: currentRoute === 'tokens' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    fontWeight: currentRoute === 'tokens' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
+                    fontSize: 'var(--recursica-brand-typography-button-font-size)',
+                    borderRadius: `var(${buttonBorderRadius})`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Tokens
+                </button>
+                <button
+                  onClick={() => navigate('/theme')}
+                  style={{
+                    height: `var(${buttonHeight})`,
+                    paddingLeft: `var(${buttonPadding})`,
+                    paddingRight: `var(${buttonPadding})`,
+                    border: 'none',
+                    background: currentRoute === 'theme' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                    color: currentRoute === 'theme' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                    opacity: currentRoute === 'theme' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    fontWeight: currentRoute === 'theme' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
+                    fontSize: 'var(--recursica-brand-typography-button-font-size)',
+                    borderRadius: `var(${buttonBorderRadius})`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Theme
+                </button>
+                <button
+                  onClick={() => navigate('/components')}
+                  style={{
+                    height: `var(${buttonHeight})`,
+                    paddingLeft: `var(${buttonPadding})`,
+                    paddingRight: `var(${buttonPadding})`,
+                    border: 'none',
+                    background: currentRoute === 'components' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                    color: currentRoute === 'components' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                    opacity: currentRoute === 'components' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    fontWeight: currentRoute === 'components' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
+                    fontSize: 'var(--recursica-brand-typography-button-font-size)',
+                    borderRadius: `var(${buttonBorderRadius})`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Components
+                </button>
+              </div>
+            </Tabs>
 
           {/* Chunk 3: Action Buttons and Framework Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-tokens-size-default)', marginLeft: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)', marginLeft: 'auto' }}>
             <Button
               variant="outline"
               size="default"
-              icon={<ArrowPathIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
+              icon={<ArrowPathIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
               onClick={() => {
                 clearOverrides(tokensJson as any)
                 resetAll()
@@ -192,14 +252,14 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             <Button
               variant="outline"
               size="default"
-              icon={<ArrowDownTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
+              icon={<ArrowDownTrayIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
               onClick={() => setIsOpen(true)}
               title="Import / Export CSS Variables"
             />
             <Button
               variant="outline"
               size="default"
-              icon={<ArrowUpTrayIcon style={{ width: 'var(--recursica-tokens-size-md)', height: 'var(--recursica-tokens-size-md)' }} />}
+              icon={<ArrowUpTrayIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
               onClick={handleExport}
               title="Export JSON Files"
             />
@@ -212,23 +272,97 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             </div>
           </div>
 
-          {/* Chunk 4: Theme Mode Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Toggle
-              id="theme-mode-toggle"
-              labelText={mode === 'dark' ? 'Dark' : 'Light'}
-              toggled={mode === 'dark'}
-              onToggle={(checked) => setMode(checked ? 'dark' : 'light')}
-            />
-          </div>
+          {/* Chunk 4: Theme Mode Segmented Control */}
+          {(() => {
+            const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+            const buttonSmallHeight = getComponentCssVar('Button', 'size', 'small-height', undefined)
+            const buttonSmallMinWidth = getComponentCssVar('Button', 'size', 'small-min-width', undefined)
+            const buttonSmallIcon = getComponentCssVar('Button', 'size', 'small-icon', undefined)
+            const buttonSmallIconPadding = getComponentCssVar('Button', 'size', 'small-icon-padding', undefined)
+            const buttonSolidBg = getComponentCssVar('Button', 'color', 'solid-background', 'layer-0')
+            const buttonSolidText = getComponentCssVar('Button', 'color', 'solid-text', 'layer-0')
+            const buttonTextBg = getComponentCssVar('Button', 'color', 'text-background', 'layer-0')
+            const buttonTextText = getComponentCssVar('Button', 'color', 'text-text', 'layer-0')
+            
+            return (
+              <div style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center',
+                backgroundColor: `var(${layer1Base}-surface)`,
+                border: `1px solid var(${layer1Base}-border-color)`,
+                borderRadius: `var(${buttonBorderRadius})`,
+                padding: `var(${buttonSmallIconPadding})`,
+                gap: 0,
+              }}>
+                <button
+                  onClick={() => setMode('light')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: `var(${buttonSmallMinWidth})`,
+                    height: `var(${buttonSmallHeight})`,
+                    minWidth: `var(${buttonSmallMinWidth})`,
+                    border: 'none',
+                    borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
+                    backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                    color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                    opacity: mode === 'light' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  title="Light theme"
+                >
+                  <SunIcon 
+                    style={{ 
+                      width: `var(${buttonSmallIcon})`, 
+                      height: `var(${buttonSmallIcon})`,
+                    }} 
+                  />
+                </button>
+                <button
+                  onClick={() => setMode('dark')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: `var(${buttonSmallMinWidth})`,
+                    height: `var(${buttonSmallHeight})`,
+                    minWidth: `var(${buttonSmallMinWidth})`,
+                    border: 'none',
+                    borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
+                    backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                    color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                    opacity: mode === 'dark' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  title="Dark theme"
+                >
+                  <MoonIcon 
+                    style={{ 
+                      width: `var(${buttonSmallIcon})`, 
+                      height: `var(${buttonSmallIcon})`,
+                    }} 
+                  />
+                </button>
+              </div>
+            )
+          })()}
         </div>
       </header>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {showSidebar && <Sidebar />}
+        <main style={{ flex: 1, overflow: 'auto' }}>
+          {children}
+        </main>
+      </div>
       <ComposedModal open={isOpen} onClose={() => { setIsOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} size="sm">
         <ModalHeader label="Import JSON Files" title="Import JSON Files" />
         <ModalBody hasForm>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-tokens-size-1-5x)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: 'var(--recursica-tokens-size-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
+              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-spacer-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
               <input
                 type="file"
                 accept="application/json,.json"
@@ -237,14 +371,14 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                   onFileSelect(e.currentTarget.files)
                   e.currentTarget.value = ''
                 }}
-                style={{ marginBottom: 'var(--recursica-tokens-size-default)' }}
+                style={{ marginBottom: 'var(--recursica-brand-dimensions-spacer-default)' }}
               />
               {selectedFileNames.length > 0 && (
-                <div style={{ fontSize: 'var(--recursica-tokens-size-xs)', color: '#666', marginTop: 'var(--recursica-tokens-size-0-5x)' }}>
+                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
                   Selected: {selectedFileNames.join(', ')}
                 </div>
               )}
-              <div style={{ fontSize: 'var(--recursica-tokens-size-xs)', color: '#888', marginTop: 'var(--recursica-tokens-size-0-5x)' }}>
+              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
@@ -259,11 +393,6 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           </Button>
         </ModalFooter>
       </ComposedModal>
-      <Grid condensed style={{ padding: 'var(--recursica-tokens-size-2x)' }}>
-        <Column lg={16} md={8} sm={4}>
-          {children}
-        </Column>
-      </Grid>
       <ExportSelectionModalWrapper
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}
@@ -281,6 +410,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
         onAcknowledge={handleDirtyAcknowledgeWithClose}
         onCancel={handleDirtyCancel}
       />
+      </div>
     </Theme>
   )
 }

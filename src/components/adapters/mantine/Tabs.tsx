@@ -13,6 +13,7 @@ export default function Tabs({
   defaultValue,
   onChange,
   orientation = 'horizontal',
+  variant = 'default',
   children,
   className,
   style,
@@ -26,6 +27,7 @@ export default function Tabs({
     defaultValue,
     onChange,
     orientation,
+    variant: variant === 'pills' ? 'pills' : 'default',
     className,
     style: {
       ...style,

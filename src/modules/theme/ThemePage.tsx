@@ -18,6 +18,7 @@ export default function ThemePage() {
   const getCurrentTab = () => {
     if (location.pathname.includes('/theme/type')) return 'type'
     if (location.pathname.includes('/theme/layers')) return 'layers'
+    if (location.pathname.includes('/theme/dimensions')) return 'dimensions'
     return 'palettes' // default
   }
   
@@ -30,27 +31,27 @@ export default function ThemePage() {
   
   const handleTabChange = (value: string | null) => {
     if (!value) return
-    const tab = value as 'palettes' | 'type' | 'layers'
+    const tab = value as 'palettes' | 'type' | 'layers' | 'dimensions'
     setCurrentTab(tab)
     navigate(`/theme/${tab}`)
   }
   
   // Simple vertical tab navigation using buttons styled with tokens
   return (
-    <div style={{ padding: 'var(--recursica-tokens-size-2x)' }}>
-      <div style={{ display: 'flex', gap: 'var(--recursica-tokens-size-2x)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 180, gap: 'var(--recursica-tokens-size-0-5x)' }}>
+    <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
+      <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 180, gap: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
           <button
             onClick={() => handleTabChange('palettes')}
             style={{
-              padding: 'var(--recursica-tokens-size-default) var(--recursica-tokens-size-2x)',
+              padding: 'var(--recursica-brand-dimensions-spacer-default) var(--recursica-brand-dimensions-spacer-lg)',
               textAlign: 'left',
               background: currentTab === 'palettes' ? 'var(--recursica-brand-light-palettes-core-interactive, #3b82f6)' : 'transparent',
               color: currentTab === 'palettes' ? '#fff' : 'inherit',
               border: 'none',
-              borderRadius: 'var(--recursica-tokens-size-0-5x)',
+              borderRadius: 'var(--recursica-brand-dimensions-border-radius-sm)',
               cursor: 'pointer',
-              fontSize: 'var(--recursica-tokens-size-sm)',
+              fontSize: 'var(--recursica-brand-dimensions-sm)',
             }}
           >
             Palettes
@@ -58,14 +59,14 @@ export default function ThemePage() {
           <button
             onClick={() => handleTabChange('type')}
             style={{
-              padding: 'var(--recursica-tokens-size-default) var(--recursica-tokens-size-2x)',
+              padding: 'var(--recursica-brand-dimensions-spacer-default) var(--recursica-brand-dimensions-spacer-lg)',
               textAlign: 'left',
               background: currentTab === 'type' ? 'var(--recursica-brand-light-palettes-core-interactive, #3b82f6)' : 'transparent',
               color: currentTab === 'type' ? '#fff' : 'inherit',
               border: 'none',
-              borderRadius: 'var(--recursica-tokens-size-0-5x)',
+              borderRadius: 'var(--recursica-brand-dimensions-border-radius-sm)',
               cursor: 'pointer',
-              fontSize: 'var(--recursica-tokens-size-sm)',
+              fontSize: 'var(--recursica-brand-dimensions-sm)',
             }}
           >
             Type
@@ -73,17 +74,32 @@ export default function ThemePage() {
           <button
             onClick={() => handleTabChange('layers')}
             style={{
-              padding: 'var(--recursica-tokens-size-default) var(--recursica-tokens-size-2x)',
+              padding: 'var(--recursica-brand-dimensions-spacer-default) var(--recursica-brand-dimensions-spacer-lg)',
               textAlign: 'left',
               background: currentTab === 'layers' ? 'var(--recursica-brand-light-palettes-core-interactive, #3b82f6)' : 'transparent',
               color: currentTab === 'layers' ? '#fff' : 'inherit',
               border: 'none',
-              borderRadius: 'var(--recursica-tokens-size-0-5x)',
+              borderRadius: 'var(--recursica-brand-dimensions-border-radius-sm)',
               cursor: 'pointer',
-              fontSize: 'var(--recursica-tokens-size-sm)',
+              fontSize: 'var(--recursica-brand-dimensions-sm)',
             }}
           >
             Layers
+          </button>
+          <button
+            onClick={() => handleTabChange('dimensions')}
+            style={{
+              padding: 'var(--recursica-brand-dimensions-spacer-default) var(--recursica-brand-dimensions-spacer-lg)',
+              textAlign: 'left',
+              background: currentTab === 'dimensions' ? 'var(--recursica-brand-light-palettes-core-interactive, #3b82f6)' : 'transparent',
+              color: currentTab === 'dimensions' ? '#fff' : 'inherit',
+              border: 'none',
+              borderRadius: 'var(--recursica-brand-dimensions-border-radius-sm)',
+              cursor: 'pointer',
+              fontSize: 'var(--recursica-brand-dimensions-sm)',
+            }}
+          >
+            Dimensions
           </button>
         </div>
         <div style={{ flex: 1 }}>

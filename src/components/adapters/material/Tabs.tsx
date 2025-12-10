@@ -13,6 +13,7 @@ export default function Tabs({
   defaultValue,
   onChange,
   orientation = 'horizontal',
+  variant = 'default',
   children,
   className,
   style,
@@ -27,8 +28,17 @@ export default function Tabs({
       if (onChange) onChange(newValue)
     },
     orientation,
+    variant: variant === 'pills' ? 'scrollable' : 'standard',
     className,
     sx: {
+      ...(variant === 'pills' && {
+        '& .MuiTabs-indicator': {
+          display: 'none',
+        },
+        '& .MuiTabs-flexContainer': {
+          gap: 'var(--recursica-brand-dimensions-spacer-default)',
+        },
+      }),
       ...style,
       ...material?.sx,
     },

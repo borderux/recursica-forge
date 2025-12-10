@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import { TrashIcon } from '@heroicons/react/24/outline'
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
+import { useThemeMode } from '../../theme/ThemeModeContext'
 
 export type ColorScaleProps = {
   family: string
@@ -41,6 +43,7 @@ export function ColorScale({
 }: ColorScaleProps) {
   if (deletedFamilies[family]) return null
 
+  const { mode } = useThemeMode()
   const displayFamilyName = toTitleCase(familyNames[family] ?? family)
   const isDeleteDisabled = isUsedInPalettes || isLastColorScale
 
@@ -95,9 +98,11 @@ export function ColorScale({
     }
   }, [])
 
+  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <div style={{ marginBottom: 4 }}>
+      <div style={{ marginBottom: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
         <input
           required
           value={localName}
@@ -109,7 +114,16 @@ export function ColorScale({
               e.currentTarget.blur()
             }
           }}
-          style={{ fontSize: 13, padding: '4px 8px', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 6, width: '100%' }}
+          style={{ 
+            fontSize: 'var(--recursica-brand-typography-body-small-font-size)', 
+            padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-default)', 
+            border: `1px solid var(${layer1Base}-border-color)`, 
+            borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
+            width: '100%',
+            backgroundColor: `var(${layer1Base}-surface)`,
+            color: `var(${layer1Base}-element-text-color)`,
+            opacity: `var(${layer1Base}-element-text-high-emphasis)`,
+          }}
         />
       </div>
       {levelOrder.map((level) => {
@@ -150,7 +164,11 @@ export function ColorScale({
           />
         )
       })}
-      <div style={{ marginTop: 6 }}>
+      <div style={{ 
+        marginTop: 'var(--recursica-brand-dimensions-spacer-sm)',
+        display: 'flex',
+        justifyContent: 'center',
+      }}>
         <button
           onClick={() => {
             if (!isDeleteDisabled) {
@@ -163,18 +181,36 @@ export function ColorScale({
               ? isUsedInPalettes
                 ? 'Cannot delete: color scale is used in a palette'
                 : 'Cannot delete: this is the last color scale'
-              : 'Delete color column'
+              : 'Delete color scale'
           }
           style={{
-            border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)',
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            border: `1px solid var(--recursica-brand-${mode}-palettes-core-interactive)`,
             background: 'transparent',
             cursor: isDeleteDisabled ? 'not-allowed' : 'pointer',
-            borderRadius: 6,
-            padding: '6px 8px',
-            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
             opacity: isDeleteDisabled ? 0.5 : 1,
+            color: `var(--recursica-brand-${mode}-palettes-core-interactive)`,
+            transition: 'opacity 0.2s',
           }}
-        >🗑️</button>
+          onMouseEnter={(e) => {
+            if (!isDeleteDisabled) {
+              e.currentTarget.style.opacity = '0.8'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isDeleteDisabled) {
+              e.currentTarget.style.opacity = '1'
+            }
+          }}
+        >
+          <TrashIcon style={{ width: 16, height: 16 }} />
+        </button>
       </div>
     </div>
   )

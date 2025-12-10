@@ -70,6 +70,11 @@ export default function Button({
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+  const iconPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-padding`, undefined)
+  const horizontalPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
+  
+  // Detect icon-only button (icon exists but no children)
+  const isIconOnly = icon && !children
   
   // Render icon with proper sizing using UIKit.json CSS variables
   const iconElement = icon ? (
@@ -93,22 +98,30 @@ export default function Button({
     onClick,
     type,
     className,
-    leftSection: iconElement,
+    // For icon-only buttons, don't use leftSection - render icon as children for better centering
+    leftSection: isIconOnly ? undefined : iconElement,
     // Use Mantine's styles prop to override leftSection margin-inline-end and disabled state
     styles: {
-      leftSection: icon ? {
+      root: {
+        ...(isIconOnly && {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }),
+        // Override disabled state to keep colors unchanged, only apply opacity
+        ...(disabled && {
+          backgroundColor: isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar}) !important`,
+          color: `${buttonColorRef} !important`,
+          ...(variant === 'outline' && buttonBorderColor && {
+            borderColor: `${buttonBorderColor} !important`,
+          }),
+          ...(variant === 'text' && {
+            border: 'none !important',
+          }),
+        }),
+      },
+      leftSection: icon && children ? {
         marginInlineEnd: `var(${iconGapVar})`,
-      } : undefined,
-      // Override disabled state to keep colors unchanged, only apply opacity
-      root: disabled ? {
-        backgroundColor: isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar}) !important`,
-        color: `${buttonColorRef} !important`,
-        ...(variant === 'outline' && buttonBorderColor && {
-          borderColor: `${buttonBorderColor} !important`,
-        }),
-        ...(variant === 'text' && {
-          border: 'none !important',
-        }),
       } : undefined,
       ...mantine?.styles,
     },
@@ -126,8 +139,8 @@ export default function Button({
       }),
       '--button-height': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-height)`,
       '--button-min-width': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-min-width)`,
-      '--button-padding': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
-      '--button-padding-x': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
+      '--button-padding': isIconOnly ? `var(${iconPaddingVar})` : `var(${horizontalPaddingVar})`,
+      '--button-padding-x': isIconOnly ? `var(${iconPaddingVar})` : `var(${horizontalPaddingVar})`,
       '--button-border-radius': `var(--recursica-ui-kit-components-button-size-border-radius)`,
       '--button-font-size': `var(--recursica-ui-kit-components-button-size-font-size)`,
       '--button-fz': `var(--recursica-ui-kit-components-button-size-font-size)`,
@@ -135,6 +148,12 @@ export default function Button({
       // Directly set color to override Mantine's fallback (var(--button-color, var(--mantine-color-white)))
       color: buttonColorRef,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      // For icon-only buttons, ensure flex centering
+      ...(isIconOnly && {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }),
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       ...(disabled && {
         opacity: 'var(--recursica-brand-light-state-disabled)',
@@ -147,6 +166,7 @@ export default function Button({
     ...props,
   }
   
-  return <MantineButton {...mantineProps}>{children}</MantineButton>
+  // For icon-only buttons, render icon as children for proper centering
+  return <MantineButton {...mantineProps}>{isIconOnly ? iconElement : children}</MantineButton>
 }
 

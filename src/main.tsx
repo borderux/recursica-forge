@@ -8,6 +8,7 @@ import PreviewPage from './modules/preview/PreviewPage'
 import TokensPage from './modules/tokens/TokensPage'
 import LayersPage from './modules/layers/LayersPage'
 import ThemePage from './modules/theme/ThemePage'
+import DimensionsPage from './modules/dimensions/DimensionsPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { ThemeModeProvider } from './modules/theme/ThemeModeContext'
 import { VarsProvider } from './modules/vars/VarsContext'
@@ -69,6 +70,7 @@ const router = createBrowserRouter([
           { path: '/theme/palettes', element: <PalettesPage /> },
           { path: '/theme/type', element: <TypePage /> },
           { path: '/theme/layers', element: <LayersPage /> },
+          { path: '/theme/dimensions', element: <DimensionsPage /> },
         ],
       },
     ],

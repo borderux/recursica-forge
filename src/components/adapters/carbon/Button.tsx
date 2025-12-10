@@ -56,6 +56,11 @@ export default function Button({
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+  const iconPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-padding`, undefined)
+  const horizontalPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
+  
+  // Detect icon-only button (icon exists but no children)
+  const isIconOnly = icon && !children
   
   // Render icon with proper sizing using UIKit.json CSS variables
   const iconElement = icon ? (
@@ -66,7 +71,7 @@ export default function Button({
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
-      marginRight: `var(${iconGapVar})`,
+      marginRight: children ? `var(${iconGapVar})` : 0,
     }}>
       {icon}
     </span>
@@ -89,9 +94,15 @@ export default function Button({
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
       height: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-height)`,
       minWidth: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-min-width)`,
-      paddingLeft: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
-      paddingRight: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
+      paddingLeft: isIconOnly ? `var(${iconPaddingVar})` : `var(${horizontalPaddingVar})`,
+      paddingRight: isIconOnly ? `var(${iconPaddingVar})` : `var(${horizontalPaddingVar})`,
       borderRadius: `var(--recursica-ui-kit-components-button-size-border-radius)`,
+      // For icon-only buttons, ensure flex centering
+      ...(isIconOnly && {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }),
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Carbon's default disabled styles to keep colors unchanged
       ...(disabled && {

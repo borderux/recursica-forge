@@ -14,6 +14,7 @@ export type TabsProps = {
   defaultValue?: string
   onChange?: (value: string | null) => void
   orientation?: 'horizontal' | 'vertical'
+  variant?: 'default' | 'pills'
   children: ReactNode
   className?: string
   style?: React.CSSProperties
@@ -24,6 +25,7 @@ export function Tabs({
   defaultValue,
   onChange,
   orientation = 'horizontal',
+  variant = 'default',
   children,
   className,
   style,
@@ -47,6 +49,7 @@ export function Tabs({
     defaultValue,
     onChange,
     orientation,
+    variant,
     children,
     className,
     style,
