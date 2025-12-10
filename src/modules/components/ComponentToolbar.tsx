@@ -19,6 +19,7 @@ import VariantDropdown from './VariantDropdown'
 import LayerDropdown from './LayerDropdown'
 import AltLayerDropdown from './AltLayerDropdown'
 import PropControl from './PropControl'
+import propIconMapping from './propIconMapping.json'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
@@ -130,27 +131,27 @@ export default function ComponentToolbar({
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
   }
 
-  // Get icon for prop type
+  // Icon name to component mapping
+  const iconMap = useMemo(() => ({
+    PaintBrushIcon,
+    Bars3Icon,
+    ArrowsPointingOutIcon,
+    RectangleStackIcon,
+    ArrowPathIcon,
+  }), [])
+
+  // Get icon for prop type using mapping dictionary
   const getPropIcon = (prop: ComponentProp) => {
     const name = prop.name.toLowerCase()
-    if (name.includes('color') || name.includes('background')) {
-      return PaintBrushIcon
+    
+    // Look up icon name from mapping dictionary
+    const iconName = (propIconMapping as Record<string, string>)[name]
+    
+    if (iconName && iconMap[iconName as keyof typeof iconMap]) {
+      return iconMap[iconName as keyof typeof iconMap]
     }
-    if (name.includes('font') || name.includes('text') || name.includes('size')) {
-      return Bars3Icon
-    }
-    if (name.includes('padding') || name.includes('margin') || name.includes('gap')) {
-      return ArrowsPointingOutIcon
-    }
-    if (name.includes('border') || name.includes('radius')) {
-      return RectangleStackIcon
-    }
-    if (name.includes('height')) {
-      return ArrowsPointingOutIcon
-    }
-    if (name.includes('width')) {
-      return ArrowsPointingOutIcon
-    }
+    
+    // Fallback to default icon if not found in mapping
     return RectangleStackIcon
   }
 
