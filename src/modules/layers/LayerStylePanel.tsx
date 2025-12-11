@@ -16,12 +16,14 @@ function toTitleCase(str: string): string {
 export default function LayerStylePanel({
   open,
   selectedLevels,
+  alternativeKey,
   theme,
   onClose,
   onUpdate,
 }: {
   open: boolean
   selectedLevels: number[]
+  alternativeKey?: string | null
   theme: Json
   onClose: () => void
   onUpdate: (updater: (layerSpec: any) => any) => void
@@ -34,11 +36,17 @@ export default function LayerStylePanel({
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
       const themes = root?.themes || root
-      return themes?.[mode]?.layers?.[layerKey] || themes?.[mode]?.layer?.[layerKey] || root?.[mode]?.layers?.[layerKey] || root?.[mode]?.layer?.[layerKey] || {}
+      if (alternativeKey) {
+        // For alternative layers
+        return themes?.[mode]?.layers?.['layer-alternative']?.[alternativeKey] || themes?.[mode]?.layer?.['layer-alternative']?.[alternativeKey] || root?.[mode]?.layers?.['layer-alternative']?.[alternativeKey] || root?.[mode]?.layer?.['layer-alternative']?.[alternativeKey] || {}
+      } else {
+        // For regular layers
+        return themes?.[mode]?.layers?.[layerKey] || themes?.[mode]?.layer?.[layerKey] || root?.[mode]?.layers?.[layerKey] || root?.[mode]?.layer?.[layerKey] || {}
+      }
     } catch {
       return {}
     }
-  }, [theme, layerKey, mode])
+  }, [theme, layerKey, alternativeKey, mode])
   const sizeOptions = useMemo(() => {
     const out: Array<{ label: string; value: string }> = []
     try {
@@ -98,7 +106,8 @@ export default function LayerStylePanel({
       return []
     }
   }, [themeJson])
-  const isOnlyLayer0 = selectedLevels.length === 1 && selectedLevels[0] === 0
+  const isOnlyLayer0 = !alternativeKey && selectedLevels.length === 1 && selectedLevels[0] === 0
+  const isAlternative = !!alternativeKey
   const updateValue = (path: string[], raw: string) => {
     const value: any = (() => {
       if (/^-?\d+(\.\d+)?$/.test(raw)) return Number(raw)
@@ -155,11 +164,17 @@ export default function LayerStylePanel({
     )
   }
   const renderPaletteButton = (target: 'surface' | 'border-color', title: string) => {
-    // Build CSS variables for all selected layers
-    const targetCssVars = selectedLevels.map(level => 
-      `--recursica-brand-${mode}-layer-layer-${level}-property-${target}`
-    )
-    const targetCssVar = targetCssVars[0] || `--recursica-brand-${mode}-layer-layer-${layerKey}-property-${target}`
+    // Build CSS variables for all selected layers or alternative layer
+    const targetCssVar = isAlternative && alternativeKey
+      ? `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-${target}`
+      : selectedLevels.length > 0
+        ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-${target}`
+        : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-${target}`
+    const targetCssVars = isAlternative && alternativeKey
+      ? [targetCssVar]
+      : selectedLevels.map(level => 
+          `--recursica-brand-${mode}-layer-layer-${level}-property-${target}`
+        )
     
     return (
       <PaletteColorControl
@@ -187,7 +202,9 @@ export default function LayerStylePanel({
       </div>
     )
   }
-  const title = selectedLevels.length === 1 ? `Layer ${selectedLevels[0]}` : `Layers ${selectedLevels.join(', ')}`
+  const title = isAlternative 
+    ? alternativeKey.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    : selectedLevels.length === 1 ? `Layer ${selectedLevels[0]}` : `Layers ${selectedLevels.join(', ')}`
   return (
     <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 34vw, 560px)', background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-3-shadow-color)`, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -198,7 +215,7 @@ export default function LayerStylePanel({
         {/* Palette color pickers: Surface (all layers, including 0) and Border Color (non-0 layers) */}
         {renderPaletteButton('surface', 'Surface Color')}
         {!isOnlyLayer0 && renderPaletteButton('border-color', 'Border Color')}
-        {!isOnlyLayer0 && (
+        {(!isOnlyLayer0 || isAlternative) && (
           <TokenSlider
             label="Elevation"
             tokens={elevationOptions.map((o) => ({ name: o.name, label: o.label }))}
@@ -210,7 +227,7 @@ export default function LayerStylePanel({
               return m ? m[1] : undefined
             })()}
             onChange={(tokenName) => {
-              updateValue(['property','elevation'], `{brand.themes.light.elevations.${tokenName}}`)
+              updateValue(['property','elevation'], `{brand.themes.${mode}.elevations.${tokenName}}`)
             }}
             getTokenLabel={(token) => {
               const opt = elevationOptions.find((o) => o.name === token.name)
@@ -286,32 +303,49 @@ export default function LayerStylePanel({
               const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
               // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
               const themes = root?.themes || root
-              // Use current mode instead of hardcoded 'light'
-              const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
-              const levels = selectedLevels.slice()
               
-              // Clear CSS variables for surface, border-color, and text-color so they regenerate from theme defaults
-              // This is necessary because varsStore preserves existing CSS variables
-              const rootEl = document.documentElement
-              levels.forEach((lvl) => {
-                const surfaceVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-surface`
-                const borderVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-border-color`
-                const textColorVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-element-text-color`
-                rootEl.style.removeProperty(surfaceVar)
-                rootEl.style.removeProperty(textColorVar)
-                if (lvl > 0) {
-                  rootEl.style.removeProperty(borderVar)
-                }
-              })
-              
-              // Update theme JSON with defaults
-              levels.forEach((lvl) => {
-                const key = `layer-${lvl}`
-                const def = defaults[key]
+              if (alternativeKey) {
+                // For alternative layers
+                const defaults: any = themes?.[mode]?.layers?.['layer-alternative'] || themes?.[mode]?.layer?.['layer-alternative'] || root?.[mode]?.layers?.['layer-alternative'] || root?.[mode]?.layer?.['layer-alternative'] || {}
+                const def = defaults[alternativeKey]
                 if (def) {
+                  // Clear CSS variables for alternative layer
+                  const rootEl = document.documentElement
+                  const surfaceVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-surface`
+                  const textColorVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-element-text-color`
+                  rootEl.style.removeProperty(surfaceVar)
+                  rootEl.style.removeProperty(textColorVar)
+                  
                   onUpdate(() => JSON.parse(JSON.stringify(def)))
                 }
-              })
+              } else {
+                // For regular layers
+                const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
+                const levels = selectedLevels.slice()
+                
+                // Clear CSS variables for surface, border-color, and text-color so they regenerate from theme defaults
+                // This is necessary because varsStore preserves existing CSS variables
+                const rootEl = document.documentElement
+                levels.forEach((lvl) => {
+                  const surfaceVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-surface`
+                  const borderVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-border-color`
+                  const textColorVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-element-text-color`
+                  rootEl.style.removeProperty(surfaceVar)
+                  rootEl.style.removeProperty(textColorVar)
+                  if (lvl > 0) {
+                    rootEl.style.removeProperty(borderVar)
+                  }
+                })
+                
+                // Update theme JSON with defaults
+                levels.forEach((lvl) => {
+                  const key = `layer-${lvl}`
+                  const def = defaults[key]
+                  if (def) {
+                    onUpdate(() => JSON.parse(JSON.stringify(def)))
+                  }
+                })
+              }
             }}
             style={{ padding: '8px 10px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
           >

@@ -115,9 +115,80 @@ export default function PaletteColorControl({
       .trim()
   }
   
+  // Helper to recursively follow CSS variable chain to find palette/token references
+  const findPaletteInChain = (cssVarName: string, depth: number = 0, visited: Set<string> = new Set()): string | null => {
+    if (depth > 5) return null // Prevent infinite loops
+    if (visited.has(cssVarName)) return null // Prevent circular references
+    visited.add(cssVarName)
+    
+    const value = readCssVar(cssVarName)
+    if (!value) return null
+    
+    const trimmed = value.trim()
+    
+    // Check if this value directly contains a palette reference
+    const paletteMatch = trimmed.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+    if (paletteMatch) {
+      return trimmed
+    }
+    
+    // Check if this value directly contains a token reference
+    const tokenMatch = trimmed.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/)
+    if (tokenMatch) {
+      return trimmed
+    }
+    
+    // Check for color-mix() functions that contain palette references
+    const colorMixPaletteMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)[^)]*\)/)
+    if (colorMixPaletteMatch) {
+      return trimmed
+    }
+    
+    // Check for color-mix() functions that contain token references
+    const colorMixTokenMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/)
+    if (colorMixTokenMatch) {
+      return trimmed
+    }
+    
+    // If it's a var() reference, extract the inner variable name and recurse
+    const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+    if (varMatch) {
+      const innerVarName = varMatch[1].trim()
+      const result = findPaletteInChain(innerVarName, depth + 1, visited)
+      if (result) return result
+    }
+    
+    return null
+  }
+  
   // Initialize display label by reading CSS variable value immediately
   const getInitialLabel = (): string => {
-    const cssValue = readCssVar(displayCssVar)
+    // First try to find palette reference in the CSS variable chain
+    let paletteValue = findPaletteInChain(displayCssVar)
+    let cssValue = paletteValue || readCssVar(displayCssVar)
+    
+    // If we didn't find a palette reference in the chain, try resolving to hex and matching
+    if (!paletteValue && cssValue) {
+      const resolvedHex = readCssVarResolved(displayCssVar, 5)
+      if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
+        // Try to find which palette this hex matches
+        for (const pk of paletteKeys) {
+          const levels = paletteLevels[pk] || []
+          for (const level of levels) {
+            const paletteCssVar = buildPaletteCssVar(pk, level)
+            const paletteHex = readCssVarResolved(paletteCssVar, 5)
+            if (paletteHex && paletteHex.trim().toLowerCase() === resolvedHex.trim().toLowerCase()) {
+              // Found a match! Return the palette reference format
+              cssValue = `var(${paletteCssVar})`
+              paletteValue = cssValue
+              break
+            }
+          }
+          if (paletteValue) break
+        }
+      }
+    }
+    
     if (!cssValue) return fallbackLabel
     
     // Extract palette name and level from var() reference
@@ -176,8 +247,31 @@ export default function PaletteColorControl({
 
   // Helper function to update display label from CSS variable
   const updateDisplayLabel = () => {
-    // Get the CSS variable value - readCssVar checks both inline and computed styles
-    const cssValue = readCssVar(displayCssVar)
+    // First try to find palette reference in the CSS variable chain
+    let paletteValue = findPaletteInChain(displayCssVar)
+    let cssValue = paletteValue || readCssVar(displayCssVar)
+    
+    // If we didn't find a palette reference in the chain, try resolving to hex and matching
+    if (!paletteValue && cssValue) {
+      const resolvedHex = readCssVarResolved(displayCssVar, 5)
+      if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
+        // Try to find which palette this hex matches
+        for (const pk of paletteKeys) {
+          const levels = paletteLevels[pk] || []
+          for (const level of levels) {
+            const paletteCssVar = buildPaletteCssVar(pk, level)
+            const paletteHex = readCssVarResolved(paletteCssVar, 5)
+            if (paletteHex && paletteHex.trim().toLowerCase() === resolvedHex.trim().toLowerCase()) {
+              // Found a match! Return the palette reference format
+              cssValue = `var(${paletteCssVar})`
+              paletteValue = cssValue
+              break
+            }
+          }
+          if (paletteValue) break
+        }
+      }
+    }
 
     if (!cssValue) {
       setDisplayLabel(fallbackLabel)
@@ -274,7 +368,11 @@ export default function PaletteColorControl({
 
   return (
     <>
-      {label && <label>{label}</label>}
+      {label && (
+        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>
+          {label}
+        </label>
+      )}
       <button
         ref={buttonRef}
         type="button"
@@ -284,7 +382,7 @@ export default function PaletteColorControl({
           alignItems: 'center',
           gap: 8,
           padding: '6px 8px',
-          border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+          border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color)`,
           background: 'transparent',
           borderRadius: 6,
           cursor: 'pointer',
@@ -296,7 +394,7 @@ export default function PaletteColorControl({
             width: swatchSize,
             height: swatchSize,
             borderRadius: 4,
-            border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+            border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color)`,
             background: `var(${displayCssVar}, transparent)`,
             flexShrink: 0,
           }}

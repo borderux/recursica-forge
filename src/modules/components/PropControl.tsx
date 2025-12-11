@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { iconNameToReactComponent } from './iconUtils'
 import { createPortal } from 'react-dom'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from './componentToolbarUtils'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -104,11 +104,15 @@ export default function PropControl({
             }
           })
         } else {
-          // For size props, just match the variant
+          // For size props, find the CSS var that matches the selected variant
+          // First try to replace variant in the CSS var name
           const variantInVar = propToCheck.cssVar.match(/-variant-([^-]+)-/)?.[1]
-          if (variantInVar) {
+          if (variantInVar && variantInVar !== selectedVariant) {
             const updatedCssVar = propToCheck.cssVar.replace(`-variant-${variantInVar}-`, `-variant-${selectedVariant}-`)
             vars.push(updatedCssVar)
+          } else if (variantInVar && variantInVar === selectedVariant) {
+            // Already matches selected variant
+            vars.push(propToCheck.cssVar)
           } else {
             // Fallback: try to find the prop in the structure with the selected variant
             const structure = parseComponentStructure(componentName)
@@ -184,18 +188,24 @@ export default function PropControl({
       return (
         <PaletteColorControl
           targetCssVar={primaryVar}
-          targetCssVars={cssVars}
+          targetCssVars={cssVars.length > 1 ? cssVars : undefined}
+          currentValueCssVar={primaryVar}
           label={label}
         />
       )
     }
 
     if (propToRender.type === 'dimension') {
+      // For font-size prop on Button component, also update the theme typography CSS var
+      const additionalCssVars = propToRender.name === 'font-size' && componentName.toLowerCase() === 'button'
+        ? ['--recursica-brand-typography-button-font-size']
+        : []
+      
       // For dimension props, use dimension token selector (only theme values)
       return (
         <DimensionTokenSelector
           targetCssVar={primaryVar}
-          targetCssVars={cssVars}
+          targetCssVars={[...cssVars, ...additionalCssVars]}
           label={label}
           propName={propToRender.name}
         />
@@ -259,7 +269,10 @@ export default function PropControl({
           onClick={onClose}
           aria-label="Close"
         >
-          <XMarkIcon className="prop-control-close-icon" />
+          {(() => {
+            const CloseIcon = iconNameToReactComponent('x-mark')
+            return CloseIcon ? <CloseIcon className="prop-control-close-icon" /> : null
+          })()}
         </button>
       </div>
       <div className="prop-control-body">

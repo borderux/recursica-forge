@@ -6,13 +6,6 @@
  */
 
 import { useState, useMemo, useRef } from 'react'
-import {
-  Bars3Icon,
-  RectangleStackIcon,
-  PaintBrushIcon,
-  ArrowsPointingOutIcon,
-  ArrowPathIcon,
-} from '@heroicons/react/24/outline'
 import { parseComponentStructure, toSentenceCase, ComponentProp } from './componentToolbarUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import VariantDropdown from './VariantDropdown'
@@ -20,6 +13,7 @@ import LayerDropdown from './LayerDropdown'
 import AltLayerDropdown from './AltLayerDropdown'
 import PropControl from './PropControl'
 import propIconMapping from './propIconMapping.json'
+import { iconNameToReactComponent } from './iconUtils'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
@@ -112,13 +106,140 @@ export default function ComponentToolbar({
       propsMap.set(key, prop)
     })
 
-    return Array.from(propsMap.values()).sort((a, b) => {
+    // Filter out font-size for Button component (it's controlled by theme typography)
+    const filteredProps = Array.from(propsMap.values()).filter(prop => {
+      if (componentName.toLowerCase() === 'button' && prop.name.toLowerCase() === 'font-size') {
+        return false
+      }
+      return true
+    })
+
+    // Function to get category and order for sorting
+    const getPropCategory = (propName: string): { category: number; order: number } => {
+      const name = propName.toLowerCase()
+      
+      // Category 1: Colors
+      if (name.includes('background') || name.includes('color') || name === 'text' || name === 'text-hover') {
+        const colorOrder: Record<string, number> = {
+          'background': 1,
+          'background-hover': 2,
+          'color': 3,
+          'text': 4,
+          'text-hover': 5,
+          'border-color': 6,
+        }
+        return { category: 1, order: colorOrder[name] || 99 }
+      }
+      
+      // Category 2: Typography
+      if (name.includes('font') || name.includes('letter-spacing') || name.includes('line-height')) {
+        const typographyOrder: Record<string, number> = {
+          'font-size': 1,
+          'font-weight': 2,
+          'font-family': 3,
+          'letter-spacing': 4,
+          'line-height': 5,
+        }
+        return { category: 2, order: typographyOrder[name] || 99 }
+      }
+      
+      // Category 3: Widths
+      if (name.includes('width')) {
+        const widthOrder: Record<string, number> = {
+          'width': 1,
+          'min-width': 2,
+          'max-width': 3,
+          'content-max-width': 4,
+        }
+        return { category: 3, order: widthOrder[name] || 99 }
+      }
+      
+      // Category 4: Heights
+      if (name.includes('height')) {
+        const heightOrder: Record<string, number> = {
+          'height': 1,
+          'min-height': 2,
+          'max-height': 3,
+        }
+        return { category: 4, order: heightOrder[name] || 99 }
+      }
+      
+      // Category 5: Padding
+      if (name.includes('padding')) {
+        const paddingOrder: Record<string, number> = {
+          'padding': 1,
+          'padding-top': 2,
+          'padding-bottom': 3,
+          'padding-left': 4,
+          'padding-right': 5,
+          'padding-horizontal': 6,
+          'padding-vertical': 7,
+        }
+        return { category: 5, order: paddingOrder[name] || 99 }
+      }
+      
+      // Category 6: Margin
+      if (name.includes('margin')) {
+        const marginOrder: Record<string, number> = {
+          'margin': 1,
+          'margin-top': 2,
+          'margin-bottom': 3,
+          'margin-left': 4,
+          'margin-right': 5,
+        }
+        return { category: 6, order: marginOrder[name] || 99 }
+      }
+      
+      // Category 7: Gap
+      if (name === 'gap') {
+        return { category: 7, order: 1 }
+      }
+      
+      // Category 8: Borders
+      if (name.includes('border')) {
+        const borderOrder: Record<string, number> = {
+          'border-width': 1,
+          'border-style': 2,
+          'border-radius': 3,
+        }
+        return { category: 8, order: borderOrder[name] || 99 }
+      }
+      
+      // Category 9: Icons
+      if (name.includes('icon')) {
+        const iconOrder: Record<string, number> = {
+          'icon': 1,
+          'icon-padding': 2,
+          'icon-text-gap': 3,
+        }
+        return { category: 9, order: iconOrder[name] || 99 }
+      }
+      
+      // Category 10: Other (alphabetical)
+      return { category: 10, order: 0 }
+    }
+
+    return filteredProps.sort((a, b) => {
       // Sort: non-variant props first, then variant props
       if (a.isVariantSpecific && !b.isVariantSpecific) return 1
       if (!a.isVariantSpecific && b.isVariantSpecific) return -1
+      
+      // Then sort by category and order
+      const aCat = getPropCategory(a.name)
+      const bCat = getPropCategory(b.name)
+      
+      if (aCat.category !== bCat.category) {
+        return aCat.category - bCat.category
+      }
+      
+      if (aCat.order !== bCat.order) {
+        return aCat.order - bCat.order
+      }
+      
+      // Fallback to alphabetical
       return a.name.localeCompare(b.name)
     })
-  }, [structure.props])
+  }, [structure.props, componentName])
 
   const handleReset = () => {
     // Remove all CSS var overrides for this component
@@ -132,28 +253,24 @@ export default function ComponentToolbar({
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
   }
 
-  // Icon name to component mapping
-  const iconMap = useMemo(() => ({
-    PaintBrushIcon,
-    Bars3Icon,
-    ArrowsPointingOutIcon,
-    RectangleStackIcon,
-    ArrowPathIcon,
-  }), [])
 
   // Get icon for prop type using mapping dictionary
   const getPropIcon = (prop: ComponentProp) => {
     const name = prop.name.toLowerCase()
     
-    // Look up icon name from mapping dictionary
+    // Look up icon name from mapping dictionary (kebab-case)
     const iconName = (propIconMapping as Record<string, string>)[name]
     
-    if (iconName && iconMap[iconName as keyof typeof iconMap]) {
-      return iconMap[iconName as keyof typeof iconMap]
+    if (iconName) {
+      const iconComponent = iconNameToReactComponent(iconName)
+      if (iconComponent) {
+        return iconComponent
+      }
     }
     
     // Fallback to default icon if not found in mapping
-    return RectangleStackIcon
+    const defaultIcon = iconNameToReactComponent('square-2-stack')
+    return defaultIcon || null
   }
 
   return (
@@ -276,7 +393,11 @@ export default function ComponentToolbar({
           title="Reset to defaults"
           aria-label="Reset to defaults"
         >
-          <ArrowPathIcon className="toolbar-icon" />
+          {(() => {
+            const iconName = (propIconMapping as Record<string, string>).reset
+            const ResetIcon = iconName ? iconNameToReactComponent(iconName) : null
+            return ResetIcon ? <ResetIcon className="toolbar-icon" /> : null
+          })()}
         </button>
       </div>
     </div>

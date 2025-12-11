@@ -1,45 +1,26 @@
 .button-preview {
-  padding: var(--recursica-brand-dimensions-lg);
-  background: var(--recursica-brand-light-layer-layer-0-property-surface);
-  border-radius: var(--recursica-brand-dimensions-border-radius-default);
-}
-
-.button-preview-header {
-  margin-bottom: var(--recursica-brand-dimensions-lg);
-}
-
-.button-preview-title {
-  margin: 0 0 var(--recursica-brand-dimensions-md) 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--recursica-brand-light-layer-layer-0-element-text-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--recursica-brand-dimensions-md);
 }
 
 .button-preview-warning {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
   padding: var(--recursica-brand-dimensions-md);
   background: var(--recursica-brand-light-palettes-core-warning, #f59e0b);
   color: white;
   border-radius: var(--recursica-brand-dimensions-border-radius-default);
   font-size: 13px;
   line-height: 1.5;
+  z-index: 10;
 }
 
-.button-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--recursica-brand-dimensions-lg);
-}
-
-.button-preview-item {
+.button-preview-row {
   display: flex;
-  flex-direction: column;
   gap: var(--recursica-brand-dimensions-md);
-  align-items: flex-start;
-}
-
-.button-preview-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--recursica-brand-light-layer-layer-0-element-text-color);
-  opacity: 0.7;
+  align-items: center;
+  flex-wrap: wrap;
 }

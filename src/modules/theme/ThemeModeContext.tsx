@@ -27,14 +27,21 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('theme-mode', next)
       // Update varsStore to switch mode and regenerate CSS vars
       getVarsStore().switchMode(next)
+      // Set data attribute on html element for CSS targeting
+      if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme-mode', next)
+      }
       // Close all open pickers, overlays, and panels when switching modes
       window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
     } catch {}
   }
 
-  // Sync varsStore mode on mount
+  // Sync varsStore mode on mount and set data attribute
   useEffect(() => {
     getVarsStore().switchMode(mode)
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme-mode', mode)
+    }
   }, []) // Only run on mount
 
   const value = useMemo(() => ({ mode, setMode }), [mode])

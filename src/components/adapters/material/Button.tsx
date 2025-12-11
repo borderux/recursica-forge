@@ -5,8 +5,9 @@
  */
 
 import { Button as MaterialButton } from '@mui/material'
-import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import type { ButtonProps as AdapterButtonProps } from '../Button'
 import { getComponentCssVar } from '../../utils/cssVarNames'
+import './Button.css'
 
 export default function Button({
   children,
@@ -56,44 +57,50 @@ export default function Button({
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+  const horizontalPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
+  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
+  const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
+  const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+  const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
+  const contentMaxWidthVar = getComponentCssVar('Button', 'size', 'content-max-width', undefined)
   
-  // Render icon with proper sizing using UIKit.json CSS variables
-  const iconElement = icon ? (
-    <span style={{
-      display: 'inline-flex',
-      width: `var(${iconSizeVar})`,
-      height: `var(${iconSizeVar})`,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      marginRight: `var(${iconGapVar})`,
-    }}>
-      {icon}
-    </span>
-  ) : undefined
+  // Detect icon-only button (icon exists but no children)
+  const isIconOnly = icon && !children
   
   // Merge library-specific props
   const materialProps = {
-    variant: materialVariant,
-    size: materialSize,
+    variant: materialVariant as 'contained' | 'outlined' | 'text',
+    size: materialSize as 'small' | 'medium' | 'large',
     disabled,
     onClick,
     type,
     className,
-    startIcon: iconElement,
+    // Use Material's native startIcon prop - CSS will handle sizing and spacing
+    startIcon: icon && !isIconOnly ? icon : undefined,
     sx: {
       // Use CSS variables for theming - supports both standard and alternative layers
       backgroundColor: `var(${buttonBgVar})`,
       color: `var(${buttonColorVar})`,
       // For outline, use the outline-text CSS var for border color
       borderColor: variant === 'outline' ? `var(${buttonColorVar})` : undefined,
-      fontSize: `var(--recursica-ui-kit-components-button-size-font-size)`,
+      fontSize: `var(${fontSizeVar})`,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
-      height: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-height)`,
-      minWidth: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-min-width)`,
-      paddingLeft: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
-      paddingRight: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
-      borderRadius: `var(--recursica-ui-kit-components-button-size-border-radius)`,
+      height: `var(${heightVar})`,
+      minWidth: `var(${minWidthVar})`,
+      paddingLeft: `var(${horizontalPaddingVar})`,
+      paddingRight: `var(${horizontalPaddingVar})`,
+      borderRadius: `var(${borderRadiusVar})`,
+      // Ensure flex layout for truncation to work with icons
+      display: 'flex',
+      alignItems: 'center',
+      // For icon-only buttons, ensure flex centering
+      ...(isIconOnly && {
+        justifyContent: 'center',
+      }),
+      // Set CSS custom properties for CSS file overrides
+      '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      '--button-content-max-width': `var(${contentMaxWidthVar})`,
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Material UI's default disabled styles to keep colors unchanged
       ...(disabled && {
@@ -114,6 +121,7 @@ export default function Button({
     ...props,
   }
   
-  return <MaterialButton {...materialProps}>{children}</MaterialButton>
+  // Use native children prop - CSS will handle truncation
+  return <MaterialButton {...materialProps}>{isIconOnly ? icon : children}</MaterialButton>
 }
 

@@ -1,13 +1,20 @@
 import { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
+import { useThemeMode } from '../../theme/ThemeModeContext'
+import { StyledSlider } from './StyledSlider'
+import { getFormCssVar } from '../../../components/utils/cssVarNames'
 
-export default function FontSizeTokens() {
+type FontSizeTokensProps = {
+  autoScale?: boolean
+}
+
+export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProps) {
   const { tokens: tokensJson, updateToken } = useVars()
+  const { mode } = useThemeMode()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
       const src: any = (tokensJson as any)?.tokens?.font?.size || {}
-      // Tokens are already sorted in the store, so we can read them in order
       Object.keys(src).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : (typeof v === 'object' && v && typeof v.value === 'number' ? v.value : Number(v))
@@ -18,37 +25,65 @@ export default function FontSizeTokens() {
   }, [tokensJson])
 
   const items = useMemo(() => {
-    // Read directly from tokensJson - no local state needed since updateToken updates tokens directly
-    // Don't sort - keep stable order to prevent React from reordering inputs
-    return flattened.map((it) => ({
-      name: it.name,
-      value: it.value
-    }))
+    const order = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl']
+    const weight = (n: string) => {
+      const key = n.replace('font/size/', '')
+      const idx = order.indexOf(key)
+      return idx === -1 ? Number.POSITIVE_INFINITY : idx
+    }
+    return flattened.slice().sort((a, b) => weight(a.name) - weight(b.name))
   }, [flattened])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
+  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+
+  const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
-    <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
-      <div style={{ fontWeight: 600, marginBottom: 8 }}>Font Size</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 50px auto', gap: 8, alignItems: 'center' }}>
-        {items.map((it) => {
-          const label = toTitle(it.name.replace('font/size/', ''))
-          const current = Number(it.value)
-          return (
-            <div key={it.name} style={{ display: 'contents' }}>
-              <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
-              <input
-                type="range"
+    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+      {items.map((it) => {
+        const label = toTitle(it.name.replace('font/size/', ''))
+        const current = Number(it.value)
+        const fontSizeVar = `--recursica-tokens-font-size-${it.name.replace('font/size/', '')}`
+        
+        return (
+          <div key={it.name} style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'auto 1fr auto', 
+            gap: 'var(--recursica-brand-dimensions-spacer-md)',
+            alignItems: 'start',
+          }}>
+            <label htmlFor={it.name} style={{ 
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              color: `var(${layer0Base}-element-text-color)`,
+              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              minWidth: 60,
+              paddingTop: 'var(--recursica-brand-dimensions-spacer-xs)',
+            }}>
+              {label}
+            </label>
+            <div style={{
+              fontSize: `var(${fontSizeVar})`,
+              color: `var(${layer0Base}-element-text-color)`,
+              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              lineHeight: 1.5,
+            }}>
+              {exampleText}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+              <StyledSlider
+                id={it.name}
                 min={8}
                 max={72}
                 step={1}
                 value={current}
-                onChange={(ev) => {
-                  const next = Number(ev.currentTarget.value)
-                  updateToken(it.name, next)
+                onChange={(next) => updateToken(it.name, next)}
+                style={{ 
+                  flex: 1,
+                  minWidth: 200,
+                  maxWidth: 300,
                 }}
-                style={{ width: '100%', maxWidth: 300, justifySelf: 'end' }}
               />
               <input
                 type="number"
@@ -58,14 +93,25 @@ export default function FontSizeTokens() {
                   const next = Number(ev.currentTarget.value)
                   updateToken(it.name, next)
                 }}
-                style={{ width: 50 }}
+                style={{ 
+                  width: 60,
+                  height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
+                  paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
+                  paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
+                  paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
+                  paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
+                  border: `var(${getFormCssVar('field', 'size', 'border-thickness-default')}) solid var(${getFormCssVar('field', 'color', 'border')})`,
+                  borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
+                  background: `var(${getFormCssVar('field', 'color', 'background')})`,
+                  color: `var(${getFormCssVar('field', 'color', 'text-valued')})`,
+                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                }}
               />
-              <span style={{ fontSize: 12, opacity: 0.8 }}>px</span>
             </div>
-          )
-        })}
-      </div>
-    </section>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 

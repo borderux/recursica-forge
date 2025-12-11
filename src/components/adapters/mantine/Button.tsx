@@ -5,8 +5,9 @@
  */
 
 import { Button as MantineButton } from '@mantine/core'
-import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import type { ButtonProps as AdapterButtonProps } from '../Button'
 import { getComponentCssVar } from '../../utils/cssVarNames'
+import './Button.css'
 
 export default function Button({
   children,
@@ -70,20 +71,15 @@ export default function Button({
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+  const horizontalPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
+  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
+  const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
+  const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+  const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
+  const contentMaxWidthVar = getComponentCssVar('Button', 'size', 'content-max-width', undefined)
   
-  // Render icon with proper sizing using UIKit.json CSS variables
-  const iconElement = icon ? (
-    <span style={{
-      display: 'inline-flex',
-      width: `var(${iconSizeVar})`,
-      height: `var(${iconSizeVar})`,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    }}>
-      {icon}
-    </span>
-  ) : undefined
+  // Detect icon-only button (icon exists but no children)
+  const isIconOnly = icon && !children
   
   // Merge library-specific props
   const mantineProps = {
@@ -93,60 +89,96 @@ export default function Button({
     onClick,
     type,
     className,
-    leftSection: iconElement,
+    // Add custom class names for CSS targeting
+    classNames: {
+      leftSection: 'recursica-button-left-section',
+      ...mantine?.classNames,
+    },
+    // Use Mantine's native leftSection prop - CSS will handle sizing and spacing
+    leftSection: icon && !isIconOnly ? icon : undefined,
     // Use Mantine's styles prop to override leftSection margin-inline-end and disabled state
     styles: {
-      leftSection: icon ? {
-        marginInlineEnd: `var(${iconGapVar})`,
+      root: {
+        // Ensure button root uses flex layout for all buttons with content
+        // Use space-around to center content when button is wider than content
+        ...(children || icon ? {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-around',
+        } : {}),
+        // Override disabled state to keep colors unchanged, only apply opacity
+        ...(disabled && {
+          backgroundColor: isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar}) !important`,
+          color: `${buttonColorRef} !important`,
+          ...(variant === 'outline' && buttonBorderColor && {
+            borderColor: `${buttonBorderColor} !important`,
+          }),
+          ...(variant === 'text' && {
+            border: 'none !important',
+          }),
+        }),
+      },
+      leftSection: icon && children ? {
+        // CSS file handles marginInlineEnd override
+        flexShrink: 0, // Prevent icon from shrinking when content is truncated
       } : undefined,
-      // Override disabled state to keep colors unchanged, only apply opacity
-      root: disabled ? {
-        backgroundColor: isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar}) !important`,
-        color: `${buttonColorRef} !important`,
-        ...(variant === 'outline' && buttonBorderColor && {
-          borderColor: `${buttonBorderColor} !important`,
-        }),
-        ...(variant === 'text' && {
-          border: 'none !important',
-        }),
+      label: children ? {
+        // CSS file handles truncation styles - only set line-height here for vertical centering
+        lineHeight: `var(${heightVar})`, // Match button height for vertical centering
       } : undefined,
       ...mantine?.styles,
     },
     style: {
       // Use CSS variables for theming - supports both standard and alternative layers
+      // getComponentCssVar returns CSS variable names, so wrap in var() for standard layers
       '--button-bg': isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar})`,
       '--button-hover': isAlternativeLayer ? buttonHoverVar : `var(${buttonHoverVar})`,
       // Set button color without fallback to Mantine colors
       '--button-color': buttonColorRef,
+      // Set icon-text-gap CSS variable for CSS file override
+      '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      // Set icon size CSS variable for CSS file override
+      // Always set it, even for icon-only buttons, so CSS can use it
+      '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      // Set content max width CSS variable for CSS file override
+      '--button-content-max-width': `var(${contentMaxWidthVar})`,
       // For outline buttons, override Mantine's border color CSS variable
       // Mantine uses: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-blue-outline)
       // We override to use our recursica CSS var
       ...(buttonBorderColor && {
         '--button-bd': `calc(0.0625rem * var(--mantine-scale, 1)) solid ${buttonBorderColor}`,
       }),
-      '--button-height': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-height)`,
-      '--button-min-width': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-min-width)`,
-      '--button-padding': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
-      '--button-padding-x': `var(--recursica-ui-kit-components-button-size-${sizePrefix}-horizontal-padding)`,
-      '--button-border-radius': `var(--recursica-ui-kit-components-button-size-border-radius)`,
-      '--button-font-size': `var(--recursica-ui-kit-components-button-size-font-size)`,
-      '--button-fz': `var(--recursica-ui-kit-components-button-size-font-size)`,
+      '--button-height': `var(${heightVar})`,
+      '--button-min-width': `var(${minWidthVar})`,
+      '--button-padding': `var(${horizontalPaddingVar})`,
+      '--button-padding-x': `var(${horizontalPaddingVar})`,
+      '--button-border-radius': `var(${borderRadiusVar})`,
+      '--button-font-size': `var(${fontSizeVar})`,
+      '--button-fz': `var(${fontSizeVar})`,
       '--button-font-weight': 'var(--recursica-brand-typography-button-font-weight)',
       // Directly set color to override Mantine's fallback (var(--button-color, var(--mantine-color-white)))
       color: buttonColorRef,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      // For icon-only buttons, ensure flex centering with space-around
+      ...(isIconOnly && {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+      }),
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       ...(disabled && {
         opacity: 'var(--recursica-brand-light-state-disabled)',
       }),
-      minWidth: `var(--recursica-ui-kit-components-button-size-${sizePrefix}-min-width)`,
-      borderRadius: `var(--recursica-ui-kit-components-button-size-border-radius)`,
+      minWidth: `var(${minWidthVar})`,
+      borderRadius: `var(${borderRadiusVar})`,
+      // Don't apply maxWidth to root - it will be applied to label element only
       ...style,
     },
     ...mantine,
     ...props,
   }
   
-  return <MantineButton {...mantineProps}>{children}</MantineButton>
+  // For icon-only buttons, render icon as children - CSS will handle centering
+  return <MantineButton {...mantineProps}>{isIconOnly ? icon : children}</MantineButton>
 }
 

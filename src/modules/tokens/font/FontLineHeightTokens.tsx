@@ -1,7 +1,14 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
+import { useThemeMode } from '../../theme/ThemeModeContext'
+import { StyledSlider } from './StyledSlider'
+import { getFormCssVar } from '../../../components/utils/cssVarNames'
 
-export default function FontLineHeightTokens() {
+type FontLineHeightTokensProps = {
+  autoScale?: boolean
+}
+
+export default function FontLineHeightTokens({ autoScale = false }: FontLineHeightTokensProps) {
   const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
@@ -68,62 +75,68 @@ export default function FontLineHeightTokens() {
     Object.entries(updates).forEach(([n, v]) => updateToken(n, v))
   }
 
-  const scaleKey = 'font-line-scale-by-short-tall'
-  const [scaleByST, setScaleByST] = useState<boolean>(() => {
-    const v = localStorage.getItem(scaleKey)
-    return v === null ? false : v === 'true'
-  })
+  const scaleByST = autoScale
+  const { mode } = useThemeMode()
+  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
-    <section style={{ background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ fontWeight: 600 }}>Line Height</div>
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <input type="checkbox" checked={scaleByST} onChange={(e) => {
-            const next = e.currentTarget.checked
-            setScaleByST(next)
-            localStorage.setItem(scaleKey, String(next))
-          }} />
-          Scale based on short/tall
-        </label>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 80px', gap: 8, alignItems: 'center' }}>
-        {order.map((k) => {
-          const name = `font/line-height/${k}`
-          const label = toTitle(k)
-          const current = getVal(name)
-          const isDefault = k === 'default'
-          const isShort = k === 'short'
-          const isTall = k === 'tall'
-          const disabled = scaleByST && !(isDefault || isShort || isTall)
-          return (
-            <React.Fragment key={name}>
-              <label htmlFor={name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
-              <input
-                type="range"
+    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+      {order.map((k) => {
+        const name = `font/line-height/${k}`
+        const label = toTitle(k)
+        const current = getVal(name)
+        const isDefault = k === 'default'
+        const isShort = k === 'short'
+        const isTall = k === 'tall'
+        const disabled = scaleByST && !(isDefault || isShort || isTall)
+        const lineHeightVar = `--recursica-tokens-font-line-height-${k}`
+        
+        return (
+          <div key={name} style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'auto 1fr auto', 
+            gap: 'var(--recursica-brand-dimensions-spacer-md)',
+            alignItems: 'start',
+          }}>
+            <label htmlFor={name} style={{ 
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              color: `var(${layer0Base}-element-text-color)`,
+              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              minWidth: 80,
+              paddingTop: 'var(--recursica-brand-dimensions-spacer-xs)',
+            }}>
+              {label}
+            </label>
+            <div style={{
+              lineHeight: `var(${lineHeightVar})`,
+              color: `var(${layer0Base}-element-text-color)`,
+              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+            }}>
+              {exampleText}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+              <StyledSlider
+                id={name}
                 min={0.5}
                 max={1.5}
                 step={0.05}
                 disabled={disabled}
                 value={current}
-                onChange={(ev) => {
-                  const next = Number(ev.currentTarget.value)
+                onChange={(next) => {
                   if (scaleByST && (isDefault || isShort || isTall)) {
                     applyScaled(name, next)
                   } else {
                     updateToken(name, next)
                   }
                 }}
-                style={{ width: '100%', justifySelf: 'end' }}
-                list={name + '-ticks'}
+                style={{ 
+                  flex: 1,
+                  minWidth: 200,
+                  maxWidth: 300,
+                }}
               />
-              <datalist id={name + '-ticks'}>
-                <option value={0.5} />
-                <option value={0.75} />
-                <option value={1} />
-                <option value={1.25} />
-                <option value={1.5} />
-              </datalist>
               <input
                 type="number"
                 step={0.05}
@@ -137,13 +150,25 @@ export default function FontLineHeightTokens() {
                     updateToken(name, next)
                   }
                 }}
-                style={{ width: 80, paddingRight: 0, textAlign: 'right' }}
+                style={{ 
+                  width: 60,
+                  height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
+                  paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
+                  paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
+                  paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
+                  paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
+                  border: `var(${getFormCssVar('field', 'size', 'border-thickness-default')}) solid var(${getFormCssVar('field', 'color', 'border')})`,
+                  borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
+                  background: `var(${getFormCssVar('field', 'color', 'background')})`,
+                  color: `var(${getFormCssVar('field', 'color', 'text-valued')})`,
+                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                }}
               />
-            </React.Fragment>
-          )
-        })}
-      </div>
-    </section>
+            </div>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 

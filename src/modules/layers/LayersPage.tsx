@@ -13,6 +13,7 @@ export default function LayersPage() {
   const { mode } = useThemeMode()
   const [selectedLayerLevels, setSelectedLayerLevels] = useState<Set<number>>(() => new Set())
   const [selectedLevels, setSelectedLevels] = useState<Set<number>>(() => new Set<number>())
+  const [selectedAltLayer, setSelectedAltLayer] = useState<string | null>(null)
 
   // Trigger AA compliance checks for alternative layers when page loads/navigates to
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function LayersPage() {
     const handleCloseAll = () => {
       setSelectedLayerLevels(new Set())
       setSelectedLevels(new Set())
+      setSelectedAltLayer(null)
     }
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
@@ -211,11 +213,48 @@ export default function LayersPage() {
         <div className="section">
           <h2>Alternative Layers</h2>
           <div className="alt-layers-wrapper">
-            <LayerModule alternativeKey="high-contrast" title="High Contrast" className="card alt-layer-card" />
-            <LayerModule alternativeKey="primary-color" title="Primary Color" className="card alt-layer-card" />
-            <LayerModule alternativeKey="alert" title="Alert" className="card alt-layer-card" />
-            <LayerModule alternativeKey="warning" title="Warning" className="card alt-layer-card" />
-            <LayerModule alternativeKey="success" title="Success" className="card alt-layer-card" />
+            <LayerModule 
+              alternativeKey="high-contrast" 
+              title="High Contrast" 
+              className="card alt-layer-card"
+              onSelect={() => { setSelectedLayerLevels(new Set()); setSelectedLevels(new Set()); setSelectedAltLayer('high-contrast') }}
+              isSelected={selectedAltLayer === 'high-contrast'}
+            />
+            <LayerModule 
+              alternativeKey="primary-color" 
+              title="Primary Color" 
+              className="card alt-layer-card"
+              onSelect={() => { setSelectedLayerLevels(new Set()); setSelectedLevels(new Set()); setSelectedAltLayer('primary-color') }}
+              isSelected={selectedAltLayer === 'primary-color'}
+            />
+            <LayerModule 
+              alternativeKey="alert" 
+              title="Alert" 
+              className="card alt-layer-card"
+              onSelect={() => { setSelectedLayerLevels(new Set()); setSelectedLevels(new Set()); setSelectedAltLayer('alert') }}
+              isSelected={selectedAltLayer === 'alert'}
+            />
+            <LayerModule 
+              alternativeKey="warning" 
+              title="Warning" 
+              className="card alt-layer-card"
+              onSelect={() => { setSelectedLayerLevels(new Set()); setSelectedLevels(new Set()); setSelectedAltLayer('warning') }}
+              isSelected={selectedAltLayer === 'warning'}
+            />
+            <LayerModule 
+              alternativeKey="success" 
+              title="Success" 
+              className="card alt-layer-card"
+              onSelect={() => { setSelectedLayerLevels(new Set()); setSelectedLevels(new Set()); setSelectedAltLayer('success') }}
+              isSelected={selectedAltLayer === 'success'}
+            />
+            <LayerModule 
+              alternativeKey="floating" 
+              title="Floating" 
+              className="card alt-layer-card"
+              onSelect={() => { setSelectedLayerLevels(new Set()); setSelectedLevels(new Set()); setSelectedAltLayer('floating') }}
+              isSelected={selectedAltLayer === 'floating'}
+            />
           </div>
         </div>
         <div className="section">
@@ -310,6 +349,30 @@ export default function LayersPage() {
                   container[key] = updater(container[key] || {})
                 })
               }
+              setTheme(nextTheme)
+            }}
+          />
+        )}
+        {selectedAltLayer && (
+          <LayerStylePanel
+            open={!!selectedAltLayer}
+            selectedLevels={[]}
+            alternativeKey={selectedAltLayer}
+            theme={theme}
+            onClose={() => setSelectedAltLayer(null)}
+            onUpdate={(updater) => {
+              const t: any = theme
+              const root: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
+              const nextTheme = JSON.parse(JSON.stringify(root))
+              const target = nextTheme.brand || nextTheme
+              // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
+              const themes = target?.themes || target
+              if (!themes[mode]) themes[mode] = {}
+              if (!themes[mode].layers) themes[mode].layers = {}
+              if (!themes[mode].layers['layer-alternative']) themes[mode].layers['layer-alternative'] = {}
+              const altContainer = themes[mode].layers['layer-alternative']
+              if (!altContainer[selectedAltLayer]) altContainer[selectedAltLayer] = {}
+              altContainer[selectedAltLayer] = updater(altContainer[selectedAltLayer] || {})
               setTheme(nextTheme)
             }}
           />

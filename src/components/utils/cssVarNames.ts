@@ -31,11 +31,16 @@ export function toCssVarName(path: string): string {
  * 
  * @example
  * getComponentCssVar('Button', 'color', 'background-solid', 'layer-0')
- * => '--recursica-ui-kit-components-button-color-layer-0-background-solid'
+ * => '--recursica-ui-kit-components-button-color-layer-0-variant-solid-background'
  * 
  * @example
  * getComponentCssVar('Button', 'size', 'default-height', undefined)
  * => '--recursica-ui-kit-components-button-size-variant-default-height'
+ * 
+ * @example
+ * getComponentCssVar('Button', 'size', 'font-size', undefined)
+ * => '--recursica-ui-kit-components-button-font-size'
+ * Note: font-size and border-radius are siblings of 'size', not children
  */
 export function getComponentCssVar(
   component: ComponentName,
@@ -43,6 +48,18 @@ export function getComponentCssVar(
   property: string,
   layer?: ComponentLayer
 ): string {
+  // Properties that are direct children of the component (not under a category)
+  // These are siblings of 'size' and 'color' in UIKit.json
+  const componentLevelProperties = ['font-size', 'border-radius', 'content-max-width']
+  
+  // Check if this is a component-level property (not under size/color category)
+  if (componentLevelProperties.includes(property.toLowerCase())) {
+    const parts = ['components', component.toLowerCase()]
+    const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+    parts.push(normalizedProperty)
+    return toCssVarName(parts.join('.'))
+  }
+  
   const parts = ['components', component.toLowerCase(), category]
   
   // For color category, layer comes before the property
@@ -58,7 +75,7 @@ export function getComponentCssVar(
       const [, variantName, propName] = variantMatch
       parts.push('variant', variantName, propName)
     } else {
-      // Non-variant size property (e.g., "font-size", "border-radius")
+      // Non-variant size property (shouldn't happen for size category, but handle gracefully)
       const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
       parts.push(normalizedProperty)
     }
@@ -82,8 +99,8 @@ export function getComponentCssVar(
       }
     } else {
       // Non-variant color property
-      const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-      parts.push(normalizedProperty)
+  const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+  parts.push(normalizedProperty)
     }
   }
   

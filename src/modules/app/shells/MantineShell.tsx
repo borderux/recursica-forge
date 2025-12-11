@@ -4,9 +4,11 @@
  * App frame using Mantine components; provides navigation, reset defaults,
  * and import/export of CSS variables.
  */
-import { ReactNode, useEffect, useState } from 'react'
-import { AppShell, Group, Title, Button, Select, MantineProvider, Modal, Tabs, ActionIcon, Switch } from '@mantine/core'
+import { ReactNode, useEffect, useState, useMemo } from 'react'
+import { AppShell, Group, Select, MantineProvider, Modal, Tabs as MantineTabs } from '@mantine/core'
 import '@mantine/core/styles.css'
+import './MantineShell.css'
+import { iconNameToReactComponent } from '../../components/iconUtils'
 import { extractCssVarsFromObject, applyCssVars } from '../../theme/varsUtil'
 import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
@@ -16,6 +18,11 @@ import type { UiKit } from '../../uikit/UiKitContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
+import { Button } from '../../../components/adapters/Button'
+import { Sidebar } from '../Sidebar'
+import { ThemeSidebar } from '../ThemeSidebar'
+import { ComponentsSidebar } from '../../preview/ComponentsSidebar'
+import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -26,7 +33,21 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   const location = useLocation()
   const navigate = useNavigate()
-  const currentTab = location.pathname.startsWith('/tokens') ? 'tokens' : location.pathname.startsWith('/type') ? 'type' : location.pathname.startsWith('/layers') ? 'layers' : location.pathname.startsWith('/uikit') ? 'uikit' : 'palettes'
+  
+  // Determine current route for navigation highlighting
+  const currentRoute = useMemo(() => {
+    if (location.pathname.startsWith('/tokens')) return 'tokens'
+    if (location.pathname.startsWith('/theme')) return 'theme'
+    if (location.pathname.startsWith('/components')) return 'components'
+    return 'tokens'
+  }, [location.pathname])
+  
+  // Logo SVG
+  const LogoIcon = () => (
+    <svg width="65" height="44" viewBox="0 0 65 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fillRule="evenodd" clipRule="evenodd" d="M2.73689 0C1.22535 0 0 1.23486 0 2.75813V40.2687C0 41.792 1.22535 43.0269 2.73689 43.0269H61.3063C62.8178 43.0269 64.0431 41.792 64.0431 40.2687V2.75813C64.0431 1.23486 62.8178 0 61.3063 0H2.73689ZM4.10533 38.8628C4.10533 20.1314 18.8106 4.86124 37.2217 4.1372V38.8628H4.10533ZM45.4323 38.8628C42.4092 38.8628 39.9585 36.3931 39.9585 33.3465H45.4323V38.8628ZM59.8947 24.2447H39.9585V4.15383C50.6584 4.836 59.2177 13.4618 59.8947 24.2447ZM59.8674 27.0028C59.2296 33.2132 54.3317 38.1491 48.1692 38.7918V27.0028H59.8674ZM43.5165 27.0297C41.5515 27.0297 39.9585 28.635 39.9585 30.6153H43.5165V27.0297Z" fill={`var(--recursica-brand-${mode}-palettes-palette-1-primary-tone)`}/>
+    </svg>
+  )
   
   const onFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) {
@@ -65,49 +86,159 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
       setSelectedFileNames([])
     })
   }
+  
+  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const showSidebar = location.pathname.startsWith('/tokens')
+  const showThemeSidebar = location.pathname.startsWith('/theme')
+  
   return (
     <MantineProvider>
-      <AppShell header={{ height: 56 }} padding="md">
-        <AppShell.Header>
-          <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-            <Title order={3}>
-              <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Recursica Theme Forge</Link>
-            </Title>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <header
+          style={{
+            backgroundColor: `var(${layer1Base}-surface)`,
+            paddingTop: 'var(--recursica-brand-dimensions-spacer-lg)',
+            paddingBottom: 'var(--recursica-brand-dimensions-spacer-lg)',
+            paddingLeft: 'var(--recursica-brand-dimensions-spacer-xl)',
+            paddingRight: 'var(--recursica-brand-dimensions-spacer-xl)',
+            height: 'auto',
+            borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
+            borderBottomStyle: 'solid',
+            borderBottomColor: `var(${layer1Base}-border-color)`,
+            flexShrink: 0,
+          }}
+        >
+          <Group gap="var(--recursica-brand-dimensions-spacer-xl)" wrap="nowrap" style={{ width: '100%' }}>
+            {/* Chunk 1: Logo and Brand */}
+            <div style={{ minWidth: '220px', display: 'flex', alignItems: 'center' }}>
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)', textDecoration: 'none' }}>
+                <LogoIcon />
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                  <span
+                    style={{
+                      color: `var(${layer1Base}-element-text-color)`,
+                      opacity: `var(${layer1Base}-element-text-high-emphasis)`,
+                      fontWeight: 600,
+                      fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                    }}
+                  >
+                    Recursica
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                      color: `var(${layer1Base}-element-text-color)`,
+                      opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+                    }}
+                  >
+                    Theme Forge
+                  </span>
+                </div>
+              </Link>
+            </div>
 
-            <Tabs value={currentTab} onChange={(val) => {
-              const v = (val as string) || 'tokens'
-              if (v === 'tokens') navigate('/tokens')
-              else if (v === 'palettes') navigate('/palettes')
-              else if (v === 'uikit') navigate('/uikit')
-              else navigate(`/${v}`)
-            }} keepMounted={false} variant="pills" radius="xl">
-              <Tabs.List>
-                <Tabs.Tab value="tokens">Tokens</Tabs.Tab>
-                <Tabs.Tab value="palettes">Palettes</Tabs.Tab>
-                <Tabs.Tab value="type">Type</Tabs.Tab>
-                <Tabs.Tab value="layers">Layers</Tabs.Tab>
-                <Tabs.Tab value="uikit">UI Kit</Tabs.Tab>
-              </Tabs.List>
-            </Tabs>
+            {/* Chunk 2: Navigation Tabs */}
+            {(() => {
+              const buttonTextBg = getComponentCssVar('Button', 'color', 'text-background', 'layer-0')
+              const buttonTextText = getComponentCssVar('Button', 'color', 'text-text', 'layer-0')
+              const buttonSolidBg = getComponentCssVar('Button', 'color', 'solid-background', 'layer-0')
+              const buttonSolidText = getComponentCssVar('Button', 'color', 'solid-text', 'layer-0')
+              const buttonHeight = getComponentCssVar('Button', 'size', 'default-height', undefined)
+              const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
+              const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+              
+              return (
+                <div
+                  style={{
+                    '--header-tab-active-bg': `var(${buttonSolidBg})`,
+                    '--header-tab-active-text': `var(${buttonSolidText})`,
+                  } as React.CSSProperties}
+                >
+                <MantineTabs
+                  value={currentRoute}
+                  variant="pills"
+                  onChange={(value) => {
+                    if (value === 'tokens') navigate('/tokens')
+                    else if (value === 'theme') navigate('/theme')
+                    else if (value === 'components') navigate('/components')
+                  }}
+                  classNames={{
+                    tab: 'header-nav-tab',
+                  }}
+                  styles={{
+                    root: {
+                      flex: 1,
+                    },
+                    list: {
+                      gap: 'var(--recursica-brand-dimensions-spacer-default)',
+                    },
+                    tab: {
+                      color: `var(${buttonTextText})`,
+                      backgroundColor: `var(${buttonTextBg})`,
+                      opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+                      fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+                      fontSize: 'var(--recursica-brand-typography-button-font-size)',
+                      height: `var(${buttonHeight})`,
+                      paddingLeft: `var(${buttonPadding})`,
+                      paddingRight: `var(${buttonPadding})`,
+                      borderRadius: `var(${buttonBorderRadius})`,
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        opacity: `var(${layer1Base}-element-text-high-emphasis)`,
+                      },
+                      '&[dataActive]': {
+                        color: `var(${buttonSolidText})`,
+                        backgroundColor: `var(${buttonSolidBg})`,
+                        opacity: 1,
+                        fontWeight: 600,
+                      },
+                    },
+                  }}
+                >
+                  <MantineTabs.List>
+                    <MantineTabs.Tab value="tokens">Tokens</MantineTabs.Tab>
+                    <MantineTabs.Tab value="theme">Theme</MantineTabs.Tab>
+                    <MantineTabs.Tab value="components">Components</MantineTabs.Tab>
+                  </MantineTabs.List>
+                </MantineTabs>
+                </div>
+              )
+            })()}
 
-            <Group gap="xs" wrap="nowrap">
-              <ActionIcon variant="default" onClick={() => {
-                clearOverrides(tokensJson as any)
-                resetAll()
-              }} title="Reset to defaults">
-                ↺
-              </ActionIcon>
-              <ActionIcon variant="default" onClick={() => setIsModalOpen(true)} title="Import / Export CSS Variables">
-                ⤓
-              </ActionIcon>
-              <ActionIcon variant="default" onClick={handleExport} title="Export JSON Files">
-                📥
-              </ActionIcon>
-              <Switch
-                checked={mode === 'dark'}
-                onChange={(e) => setMode(e.currentTarget.checked ? 'dark' : 'light')}
-                label={mode === 'dark' ? 'Dark' : 'Light'}
-                size="sm"
+            {/* Chunk 3: Action Buttons and Framework Dropdown */}
+            <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacer-default)', alignItems: 'center', marginLeft: 'auto' }}>
+              <Button
+                variant="outline"
+                size="small"
+                icon={(() => {
+                  const RefreshIcon = iconNameToReactComponent('arrow-path')
+                  return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                })()}
+                onClick={() => {
+                  clearOverrides(tokensJson as any)
+                  resetAll()
+                }}
+                title="Reset to defaults"
+              />
+              <Button
+                variant="outline"
+                size="small"
+                icon={(() => {
+                  const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
+                  return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                })()}
+                onClick={() => setIsModalOpen(true)}
+                title="Import / Export CSS Variables"
+              />
+              <Button
+                variant="outline"
+                size="small"
+                icon={(() => {
+                  const UploadIcon = iconNameToReactComponent('arrow-up-tray')
+                  return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                })()}
+                onClick={handleExport}
+                title="Export JSON Files"
               />
               <Select
                 value={kit}
@@ -119,14 +250,111 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 ]}
                 allowDeselect={false}
                 w={180}
+                styles={{
+                  input: {
+                    backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface)',
+                    borderColor: 'var(--recursica-brand-light-layer-layer-1-property-border-color)',
+                  },
+                }}
               />
-            </Group>
+            </div>
+
+            {/* Chunk 4: Theme Mode Segmented Control */}
+            {(() => {
+              const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+              const buttonSmallHeight = getComponentCssVar('Button', 'size', 'small-height', undefined)
+              const buttonSmallMinWidth = getComponentCssVar('Button', 'size', 'small-min-width', undefined)
+              const buttonSmallIcon = getComponentCssVar('Button', 'size', 'small-icon', undefined)
+              const buttonSmallIconPadding = getComponentCssVar('Button', 'size', 'small-icon-padding', undefined)
+              const buttonSolidBg = getComponentCssVar('Button', 'color', 'solid-background', 'layer-0')
+              const buttonSolidText = getComponentCssVar('Button', 'color', 'solid-text', 'layer-0')
+              const buttonTextBg = getComponentCssVar('Button', 'color', 'text-background', 'layer-0')
+              const buttonTextText = getComponentCssVar('Button', 'color', 'text-text', 'layer-0')
+              
+              return (
+                <div style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center',
+                  backgroundColor: `var(${layer1Base}-surface)`,
+                  border: `1px solid var(${layer1Base}-border-color)`,
+                  borderRadius: `var(${buttonBorderRadius})`,
+                  padding: `var(${buttonSmallIconPadding})`,
+                  gap: 0,
+                }}>
+                  <button
+                    onClick={() => setMode('light')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: `var(${buttonSmallMinWidth})`,
+                      height: `var(${buttonSmallHeight})`,
+                      minWidth: `var(${buttonSmallMinWidth})`,
+                      border: 'none',
+                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
+                      backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                      color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                      opacity: mode === 'light' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    title="Light theme"
+                  >
+                    {(() => {
+                      const SunIcon = iconNameToReactComponent('sun')
+                      return SunIcon ? <SunIcon 
+                        style={{ 
+                          width: `var(${buttonSmallIcon})`, 
+                          height: `var(${buttonSmallIcon})`,
+                        }} 
+                      /> : null
+                    })()}
+                  </button>
+                  <button
+                    onClick={() => setMode('dark')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: `var(${buttonSmallMinWidth})`,
+                      height: `var(${buttonSmallHeight})`,
+                      minWidth: `var(${buttonSmallMinWidth})`,
+                      border: 'none',
+                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
+                      backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                      color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                      opacity: mode === 'dark' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    title="Dark theme"
+                  >
+                    {(() => {
+                      const MoonIcon = iconNameToReactComponent('moon')
+                      return MoonIcon ? <MoonIcon
+                        style={{ 
+                          width: `var(${buttonSmallIcon})`, 
+                          height: `var(${buttonSmallIcon})`,
+                        }} 
+                      /> : null
+                    })()}
+                  </button>
+                </div>
+              )
+            })()}
           </Group>
-        </AppShell.Header>
+        </header>
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+          {showSidebar && <Sidebar />}
+          {showThemeSidebar && <ThemeSidebar />}
+          <main style={{ flex: 1, overflow: 'auto' }}>
+            {children}
+          </main>
+        </div>
         <Modal opened={isModalOpen} onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} title="Import JSON Files">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Select JSON Files:</label>
+              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-spacer-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
               <input
                 type="file"
                 accept="application/json,.json"
@@ -135,32 +363,28 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   onFileSelect(e.currentTarget.files)
                   e.currentTarget.value = ''
                 }}
-                style={{ marginBottom: 8 }}
+                style={{ marginBottom: 'var(--recursica-brand-dimensions-spacer-default)' }}
               />
               {selectedFileNames.length > 0 && (
-                <div style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>
+                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
                   Selected: {selectedFileNames.join(', ')}
                 </div>
               )}
-              <div style={{ fontSize: '12px', color: '#888', marginTop: 4 }}>
+              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-            <Group gap="sm" justify="flex-end" style={{ borderTop: '1px solid #e0e0e0', paddingTop: 12 }}>
-              <Button variant="default" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
+            <Group gap="sm" justify="flex-end" style={{ borderTop: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', paddingTop: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+              <Button variant="outline" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
                 Cancel
               </Button>
-              <Button variant="filled" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
+              <Button variant="solid" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
                 Import
               </Button>
             </Group>
           </div>
         </Modal>
-
-        <AppShell.Main>
-          {children}
-        </AppShell.Main>
-      </AppShell>
+      </div>
       <ExportSelectionModalWrapper
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}

@@ -1,0 +1,39 @@
+/* Ensure SVG icons scale to fill their container */
+/* Override fixed width/height attributes on SVGs */
+.MuiButton-root svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  flex-shrink: 0;
+}
+
+/* Size and space Material's startIcon */
+.MuiButton-root .MuiButton-startIcon {
+  width: var(--button-icon-size, 0px) !important;
+  height: var(--button-icon-size, 0px) !important;
+  margin-right: var(--button-icon-text-gap, 0px) !important;
+  margin-left: 0 !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Material UI buttons render text as direct children or in the button's text content */
+/* Apply truncation to the button's content area */
+.MuiButton-root {
+  /* The button itself handles truncation when max-width is set on the root */
+  max-width: calc(var(--button-content-max-width, var(--recursica-ui-kit-components-button-content-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+}
+
+/* For buttons with icons, ensure text area can truncate */
+.MuiButton-root:has(.MuiButton-startIcon) {
+  /* Text will truncate within the available space */
+}
+
+/* For text-only buttons (no icon), use full content max width and center */
+.MuiButton-root:not(:has(.MuiButton-startIcon)) {
+  max-width: var(--button-content-max-width, var(--recursica-ui-kit-components-button-content-max-width)) !important;
+  justify-content: center !important;
+}

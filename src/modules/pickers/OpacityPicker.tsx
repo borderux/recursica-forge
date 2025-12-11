@@ -139,11 +139,11 @@ export default function OpacityPicker() {
       top: pos.top, 
       left: pos.left, 
       width: 240, 
-      background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface)`, 
-      color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
-      border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`, 
-      borderRadius: 8, 
-      boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`, 
+      background: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-surface, var(--recursica-brand-${mode}-layer-layer-3-property-surface))`, 
+      color: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-element-text-color, var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color))`,
+      border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness, var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, var(--recursica-brand-${mode}-layer-layer-3-property-border-color))`, 
+      borderRadius: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-radius, var(--recursica-brand-${mode}-layer-layer-3-property-border-radius))`, 
+      boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-${mode}-elevations-elevation-4-blur) var(--recursica-brand-${mode}-elevations-elevation-4-spread) var(--recursica-brand-${mode}-elevations-elevation-4-shadow-color)`, 
       padding: 10, 
       zIndex: 20000 
     }}>
@@ -174,7 +174,7 @@ export default function OpacityPicker() {
         <button 
           onClick={() => { setAnchor(null); setTargetCssVar(null); setCurrentToken(null) }} 
           aria-label="Close" 
-          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)` }}
+          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-element-text-color)` }}
         >
           &times;
         </button>
@@ -191,9 +191,9 @@ export default function OpacityPicker() {
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 width: '100%', 
-                border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color)`, 
-                background: isSelected ? `var(--recursica-brand-${mode}-layer-layer-2-property-surface)` : 'transparent', 
-                color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color)`,
+                border: `1px solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color)`, 
+                background: isSelected ? `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-surface)` : 'transparent', 
+                color: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-element-text-color)`,
                 borderRadius: 6, 
                 padding: '6px 8px', 
                 cursor: 'pointer' 

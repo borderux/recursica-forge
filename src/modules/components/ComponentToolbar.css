@@ -1,5 +1,6 @@
 .component-toolbar {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--recursica-brand-dimensions-sm);
   padding: var(--recursica-brand-light-layer-layer-1-property-padding);
@@ -11,6 +12,7 @@
 
 .toolbar-section-group {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--recursica-brand-dimensions-sm);
   position: relative;
@@ -27,6 +29,7 @@
   opacity: var(--recursica-brand-light-layer-layer-1-property-element-text-low-emphasis);
   margin: 0 var(--recursica-brand-dimensions-sm);
   flex-shrink: 0;
+  align-self: center;
 }
 
 .toolbar-icon-button {

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ChevronDownIcon } from '@heroicons/react/24/outline'
-import { Squares2X2Icon } from '@heroicons/react/24/solid'
+import propIconMapping from './propIconMapping.json'
+import { iconNameToReactComponent } from './iconUtils'
 import './Dropdown.css'
 
 interface LayerDropdownProps {
@@ -45,6 +45,11 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
 
   const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
 
+  // Get icon from mapping
+  const iconName = (propIconMapping as Record<string, string>).layer
+  const LayerIcon = iconName ? iconNameToReactComponent(iconName) : null
+  const CaretDownIcon = iconNameToReactComponent('chevron-down')
+
   return (
     <div className="dropdown-container" ref={ref}>
       <button
@@ -53,8 +58,8 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
         title="Layer"
         aria-label="Layer"
       >
-        <Squares2X2Icon className="toolbar-icon" />
-        <ChevronDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />
+        {LayerIcon && <LayerIcon className="toolbar-icon" />}
+        {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />}
       </button>
       {open && (
         <div className="dropdown-menu">

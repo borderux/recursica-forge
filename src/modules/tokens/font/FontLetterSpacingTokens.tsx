@@ -1,7 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
+import { useThemeMode } from '../../theme/ThemeModeContext'
+import { StyledSlider } from './StyledSlider'
+import { getFormCssVar } from '../../../components/utils/cssVarNames'
 
-export default function FontLetterSpacingTokens() {
+type FontLetterSpacingTokensProps = {
+  autoScale?: boolean
+}
+
+export default function FontLetterSpacingTokens({ autoScale = false }: FontLetterSpacingTokensProps) {
   const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
@@ -32,10 +39,7 @@ export default function FontLetterSpacingTokens() {
 
   const order = ['tightest','tighter','tight','default','wide','wider','widest'] as const
   const defaultIdx = 3
-  const [scaleByTW, setScaleByTW] = useState<boolean>(() => {
-    const v = localStorage.getItem('font-letter-scale-by-tight-wide')
-    return v === null ? true : v === 'true'
-  })
+  const scaleByTW = autoScale
   const availableShorts = useMemo(() => new Set(flattened.map((f) => f.name.replace('font/letter-spacing/',''))), [flattened])
   const resolveShortToActual = (short: string): string => {
     if (availableShorts.has(short)) return short
@@ -85,52 +89,68 @@ export default function FontLetterSpacingTokens() {
     Object.entries(updates).forEach(([n, v]) => updateToken(n, v))
   }
 
+  const { mode } = useThemeMode()
+  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
+
   return (
-    <section style={{ background: 'var(--recursica-brand-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ fontWeight: 600 }}>Letter Spacing</div>
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <input type="checkbox" checked={scaleByTW} onChange={(e) => {
-            const next = e.currentTarget.checked
-            setScaleByTW(next)
-            localStorage.setItem('font-letter-scale-by-tight-wide', String(next))
-          }} />
-          Scale based on tight/wide
-        </label>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 80px auto', gap: 8, alignItems: 'center' }}>
-        {items.map((it) => {
-          const keyName = it.name.replace('font/letter-spacing/','')
-          const label = keyName === 'tighest' ? 'Tightest' : toTitle(keyName)
-          const current = Number(it.value)
-          const isDefault = keyName === 'default'
-          const isTight = keyName === 'tight'
-          const isWide = keyName === 'wide'
-          const disabled = scaleByTW && !(isDefault || isTight || isWide)
-          return (
-            <div key={it.name} style={{ display: 'contents' }}>
-              <label key={it.name + '-label'} htmlFor={it.name} style={{ fontSize: 13, opacity: 0.9 }}>{label}</label>
-              <input
-                type="range"
+    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+      {items.map((it) => {
+        const keyName = it.name.replace('font/letter-spacing/','')
+        const label = keyName === 'tighest' ? 'Tightest' : toTitle(keyName)
+        const current = Number(it.value)
+        const isDefault = keyName === 'default'
+        const isTight = keyName === 'tight'
+        const isWide = keyName === 'wide'
+        const disabled = scaleByTW && !(isDefault || isTight || isWide)
+        const letterSpacingVar = `--recursica-tokens-font-letter-spacing-${keyName === 'tighest' ? 'tightest' : keyName}`
+        
+        return (
+          <div key={it.name} style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'auto 1fr auto', 
+            gap: 'var(--recursica-brand-dimensions-spacer-md)',
+            alignItems: 'start',
+          }}>
+            <label htmlFor={it.name} style={{ 
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              color: `var(${layer0Base}-element-text-color)`,
+              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              minWidth: 80,
+              paddingTop: 'var(--recursica-brand-dimensions-spacer-xs)',
+            }}>
+              {label}
+            </label>
+            <div style={{
+              letterSpacing: `var(${letterSpacingVar})`,
+              color: `var(${layer0Base}-element-text-color)`,
+              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              lineHeight: 1.5,
+            }}>
+              {exampleText}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+              <StyledSlider
+                id={it.name}
                 min={-2}
                 max={2}
                 step={0.05}
                 disabled={disabled}
                 value={current}
-                onChange={(ev) => {
-                  const next = Number(ev.currentTarget.value)
+                onChange={(next) => {
                   if (scaleByTW && (isDefault || isTight || isWide)) {
                     applyScaled(it.name, next)
                   } else {
                     updateToken(it.name, next)
                   }
                 }}
-                style={{ width: '100%', maxWidth: 300, justifySelf: 'end', background: `linear-gradient(to right, transparent 0%, transparent 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15) 50%), linear-gradient(to right, transparent 50%, rgba(0,0,0,0.3) 50%)` }}
-                list={it.name + '-ticks'}
+                style={{ 
+                  flex: 1,
+                  minWidth: 200,
+                  maxWidth: 300,
+                }}
               />
-              <datalist id={it.name + '-ticks'}>
-                <option value={0} />
-              </datalist>
               <input
                 type="number"
                 step={0.05}
@@ -144,14 +164,25 @@ export default function FontLetterSpacingTokens() {
                     updateToken(it.name, next)
                   }
                 }}
-                style={{ width: 80, paddingRight: 0, textAlign: 'right' }}
+                style={{ 
+                  width: 60,
+                  height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
+                  paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
+                  paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
+                  paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
+                  paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
+                  border: `var(${getFormCssVar('field', 'size', 'border-thickness-default')}) solid var(${getFormCssVar('field', 'color', 'border')})`,
+                  borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
+                  background: `var(${getFormCssVar('field', 'color', 'background')})`,
+                  color: `var(${getFormCssVar('field', 'color', 'text-valued')})`,
+                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                }}
               />
-              <span style={{ fontSize: 12, opacity: 0.8 }}>em</span>
             </div>
-          )
-        })}
-      </div>
-    </section>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 

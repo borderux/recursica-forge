@@ -86,6 +86,21 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
       const themes = root?.themes || root
+      
+      // Check for alternative layer elevation first
+      if (isAlternative && alternativeKey) {
+        const altLayerSpec: any = themes?.[mode]?.layers?.['layer-alternative']?.[alternativeKey] || themes?.[mode]?.layer?.['layer-alternative']?.[alternativeKey] || root?.[mode]?.layers?.['layer-alternative']?.[alternativeKey] || root?.[mode]?.layer?.['layer-alternative']?.[alternativeKey] || {}
+        const v: any = altLayerSpec?.property?.elevation?.$value
+        if (typeof v === 'string') {
+          // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
+          const m = v.match(/elevations\.(elevation-(\d+))/i)
+          if (m) return m[2]
+        }
+        // If no elevation in alt layer, fall back to layer-0 (no elevation)
+        return '0'
+      }
+      
+      // For regular layers
       const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerId}`] || themes?.[mode]?.layer?.[`layer-${layerId}`] || root?.[mode]?.layers?.[`layer-${layerId}`] || root?.[mode]?.layer?.[`layer-${layerId}`] || {}
       const v: any = layerSpec?.property?.elevation?.$value
       if (typeof v === 'string') {
@@ -95,7 +110,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       }
     } catch {}
     return String(layerId)
-  }, [theme, layerId, mode])
+  }, [theme, layerId, mode, isAlternative, alternativeKey])
   const cssVarBoxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-color-gray-1000))`
 
   type Style = React.CSSProperties

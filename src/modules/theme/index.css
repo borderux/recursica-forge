@@ -6,6 +6,13 @@ body {
   font-family: var(--font-family);
   transition: background-color 0.3s, color 0.3s;
   min-height: 100vh;
+  background-color: var(--recursica-brand-light-layer-layer-0-property-surface);
+  color: var(--recursica-brand-light-layer-layer-0-property-element-text-color);
+}
+
+html[data-theme-mode="dark"] body {
+  background-color: var(--recursica-brand-dark-layer-layer-0-property-surface);
+  color: var(--recursica-brand-dark-layer-layer-0-property-element-text-color);
 }
 
 .container-padding {
@@ -157,7 +164,7 @@ h3 {
   display: flex;
   flex-wrap: nowrap; /* Keep all alternative layers on one row */
   gap: 24px;
-  overflow-x: auto;
+  overflow: visible;
 }
 .alt-layer-card {
   padding: 24px;
