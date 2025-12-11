@@ -188,7 +188,8 @@ export default function PropControl({
       return (
         <PaletteColorControl
           targetCssVar={primaryVar}
-          targetCssVars={cssVars}
+          targetCssVars={cssVars.length > 1 ? cssVars : undefined}
+          currentValueCssVar={primaryVar}
           label={label}
         />
       )

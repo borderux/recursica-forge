@@ -33,7 +33,7 @@
   "border-radius": "angle",
   "border-width": "rectangle-stack",
   "border-style": "rectangle-group",
-  "icon": "diamond",
+  "icon": "frame-corners",
   "icon-padding": "split-horizontal",
   "icon-text-gap": "split-horizontal",
   "content-max-width": "arrows-out-line-horizontal",
