@@ -269,7 +269,10 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             <Button
               variant="outline"
               size="small"
-              icon={<Download style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+              icon={(() => {
+                const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
+                return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+              })()}
               onClick={() => setIsDialogOpen(true)}
               title="Import / Export CSS Variables"
             />

@@ -256,7 +256,10 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             <Button
               variant="outline"
               size="default"
-              icon={<Download style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+              icon={(() => {
+                const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
+                return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+              })()}
               onClick={() => setIsOpen(true)}
               title="Import / Export CSS Variables"
             />
