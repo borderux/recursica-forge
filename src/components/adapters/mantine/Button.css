@@ -9,8 +9,8 @@
 .mantine-Button-leftSection[data-position='left'],
 [class*="mantine-Button-leftSection"][data-position='left'] {
   margin-inline-end: var(--button-icon-text-gap, var(--recursica-ui-kit-components-button-size-variant-default-icon-text-gap)) !important;
-  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
-  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
+  width: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size))) !important;
+  height: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size))) !important;
   flex-shrink: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -30,10 +30,27 @@
 /* General rule: Set all SVGs in buttons to use icon size CSS var */
 /* This applies to trailing icons and icon-only buttons */
 /* Note: leftSection SVGs use 100% to fill their container (see rule above) - that rule is more specific so it will override */
-/* Apply to all SVGs regardless of visibility state */
-.mantine-Button-root svg {
-  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
-  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
+/* Apply to all SVGs regardless of visibility state, including those with inline width/height attributes or width/height="0" */
+/* Try recursica CSS variables first, then fall back to --button-icon-size */
+.mantine-Button-root svg,
+.mantine-Button-root svg[width],
+.mantine-Button-root svg[height],
+.mantine-Button-root svg[width="0"],
+.mantine-Button-root svg[height="0"],
+.mantine-Button-root svg[style*="width"],
+.mantine-Button-root svg[style*="height"],
+.mantine-Button-root svg[style*="width: 0"],
+.mantine-Button-root svg[style*="height: 0"],
+.mantine-Button-root svg[style*="width:0"],
+.mantine-Button-root svg[style*="height:0"],
+.mantine-Button-root .mantine-Button-label svg,
+.mantine-Button-root > svg {
+  width: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size))) !important;
+  height: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size))) !important;
+  min-width: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size))) !important;
+  min-height: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size))) !important;
+  max-width: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size))) !important;
+  max-height: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size))) !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
