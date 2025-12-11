@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
+import { useThemeMode } from '../theme/ThemeModeContext'
 import { toSentenceCase } from './componentToolbarUtils'
 import TokenSlider from '../forms/TokenSlider'
 

@@ -5,7 +5,7 @@
  */
 
 import { Button as MaterialButton } from '@mui/material'
-import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import type { ButtonProps as AdapterButtonProps } from '../Button'
 import { getComponentCssVar } from '../../utils/cssVarNames'
 import './Button.css'
 
@@ -69,8 +69,8 @@ export default function Button({
   
   // Merge library-specific props
   const materialProps = {
-    variant: materialVariant,
-    size: materialSize,
+    variant: materialVariant as 'contained' | 'outlined' | 'text',
+    size: materialSize as 'small' | 'medium' | 'large',
     disabled,
     onClick,
     type,

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { TrashIcon } from '@heroicons/react/24/outline'
+import { iconNameToReactComponent } from '../../components/iconUtils'
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
 import { useThemeMode } from '../../theme/ThemeModeContext'
@@ -209,7 +209,10 @@ export function ColorScale({
             }
           }}
         >
-          <TrashIcon style={{ width: 16, height: 16 }} />
+          {(() => {
+            const TrashIcon = iconNameToReactComponent('trash')
+            return TrashIcon ? <TrashIcon style={{ width: 16, height: 16 }} /> : null
+          })()}
         </button>
       </div>
     </div>

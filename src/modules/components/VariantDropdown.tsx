@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ChevronDownIcon } from '@heroicons/react/24/outline'
 import { toSentenceCase } from './componentToolbarUtils'
+import propIconMapping from './propIconMapping.json'
+import { iconNameToReactComponent } from './iconUtils'
 import './Dropdown.css'
 
 interface VariantDropdownProps {
@@ -45,32 +46,21 @@ export default function VariantDropdown({ propName, variants, selected, onSelect
     }
   }, [controlledOpen])
 
-  // Get icon for variant prop type
+  // Get icon for variant prop type from mapping
   const getIcon = () => {
-    if (propName === 'color') {
-      return (
-        <svg className="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-          <rect x="3" y="3" width="7" height="7" rx="1" />
-          <rect x="14" y="3" width="7" height="7" rx="1" />
-          <rect x="3" y="14" width="7" height="7" rx="1" />
-          <rect x="14" y="14" width="7" height="7" rx="1" />
-        </svg>
-      )
-    }
-    if (propName === 'size') {
-      return (
-        <svg className="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-          <path d="M3 21h18" />
-          <path d="M3 7h18" />
-          <path d="M3 3v18" />
-          <path d="M21 3v18" />
-        </svg>
-      )
+    const mappingKey = `variant-${propName}`
+    const iconName = (propIconMapping as Record<string, string>)[mappingKey]
+    if (iconName) {
+      const IconComponent = iconNameToReactComponent(iconName)
+      if (IconComponent) {
+        return <IconComponent className="toolbar-icon" />
+      }
     }
     return null
   }
 
   const icon = getIcon()
+  const CaretDownIcon = iconNameToReactComponent('chevron-down')
 
   return (
     <div className="dropdown-container" ref={ref}>
@@ -81,7 +71,7 @@ export default function VariantDropdown({ propName, variants, selected, onSelect
         aria-label={`${toSentenceCase(propName)} variant`}
       >
         {icon}
-        <ChevronDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />
+        {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />}
       </button>
       {open && (
         <div className="dropdown-menu">

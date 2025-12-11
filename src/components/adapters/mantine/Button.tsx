@@ -5,7 +5,7 @@
  */
 
 import { Button as MantineButton } from '@mantine/core'
-import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import type { ButtonProps as AdapterButtonProps } from '../Button'
 import { getComponentCssVar } from '../../utils/cssVarNames'
 import './Button.css'
 

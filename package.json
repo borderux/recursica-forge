@@ -10,7 +10,8 @@
     "type-check": "tsc -b --pretty false",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "watch:icons": "node scripts/watch-icon-mapping.mjs"
   },
   "dependencies": {
     "@carbon/react": "^1.93.0",
@@ -23,6 +24,7 @@
     "@mantine/notifications": "^8.3.5",
     "@mui/material": "^7.3.4",
     "@mui/system": "^7.3.3",
+    "@phosphor-icons/react": "^2.1.10",
     "@vanilla-extract/css": "^1.17.4",
     "@vanilla-extract/vite-plugin": "^5.1.1",
     "react": "^18.3.1",

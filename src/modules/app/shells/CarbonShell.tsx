@@ -6,7 +6,7 @@
  */
 import { ReactNode, useEffect, useState, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowPathIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline'
+import { iconNameToReactComponent } from '../../components/iconUtils'
 import type { UiKit } from '../../uikit/UiKitContext'
 import { extractCssVarsFromObject, applyCssVars, downloadCurrentCssVars } from '../../theme/varsUtil'
 import { clearOverrides } from '../../theme/tokenOverrides'
@@ -243,7 +243,10 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             <Button
               variant="outline"
               size="default"
-              icon={<ArrowPathIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+              icon={(() => {
+                const RefreshIcon = iconNameToReactComponent('arrow-path')
+                return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+              })()}
               onClick={() => {
                 clearOverrides(tokensJson as any)
                 resetAll()
@@ -253,14 +256,17 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             <Button
               variant="outline"
               size="default"
-              icon={<ArrowDownTrayIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+              icon={<Download style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
               onClick={() => setIsOpen(true)}
               title="Import / Export CSS Variables"
             />
             <Button
               variant="outline"
               size="default"
-              icon={<ArrowUpTrayIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+              icon={(() => {
+                const UploadIcon = iconNameToReactComponent('arrow-up-tray')
+                return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+              })()}
               onClick={handleExport}
               title="Export JSON Files"
             />
@@ -314,12 +320,15 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                   }}
                   title="Light theme"
                 >
-                  <SunIcon 
-                    style={{ 
-                      width: `var(${buttonSmallIcon})`, 
-                      height: `var(${buttonSmallIcon})`,
-                    }} 
-                  />
+                  {(() => {
+                    const SunIcon = iconNameToReactComponent('sun')
+                    return SunIcon ? <SunIcon 
+                      style={{ 
+                        width: `var(${buttonSmallIcon})`, 
+                        height: `var(${buttonSmallIcon})`,
+                      }} 
+                    /> : null
+                  })()}
                 </button>
                 <button
                   onClick={() => setMode('dark')}
@@ -340,12 +349,15 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                   }}
                   title="Dark theme"
                 >
-                  <MoonIcon 
-                    style={{ 
-                      width: `var(${buttonSmallIcon})`, 
-                      height: `var(${buttonSmallIcon})`,
-                    }} 
-                  />
+                  {(() => {
+                    const MoonIcon = iconNameToReactComponent('moon')
+                    return MoonIcon ? <MoonIcon
+                      style={{ 
+                        width: `var(${buttonSmallIcon})`, 
+                        height: `var(${buttonSmallIcon})`,
+                      }} 
+                    /> : null
+                  })()}
                 </button>
               </div>
             )

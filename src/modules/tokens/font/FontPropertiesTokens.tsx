@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowPathIcon } from '@heroicons/react/24/outline'
+import { iconNameToReactComponent } from '../../components/iconUtils'
 import FontSizeTokens from './FontSizeTokens'
 import FontLetterSpacingTokens from './FontLetterSpacingTokens'
 import FontLineHeightTokens from './FontLineHeightTokens'
@@ -114,7 +114,10 @@ export default function FontPropertiesTokens() {
           <Button
             variant="text"
             size="default"
-            icon={<ArrowPathIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+            icon={(() => {
+              const RefreshIcon = iconNameToReactComponent('arrow-path')
+              return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+            })()}
             onClick={handleReset}
           >
             Reset to default

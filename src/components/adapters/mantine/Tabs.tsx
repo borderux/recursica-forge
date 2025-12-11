@@ -6,7 +6,6 @@
 
 import { Tabs as MantineTabs } from '@mantine/core'
 import type { TabsProps as AdapterTabsProps } from '../Tabs'
-import { useThemeMode } from '../../../modules/theme/ThemeModeContext'
 
 export default function Tabs({
   value,
@@ -20,8 +19,6 @@ export default function Tabs({
   mantine,
   ...props
 }: AdapterTabsProps) {
-  const { mode } = useThemeMode()
-  
   const mantineProps = {
     value,
     defaultValue,

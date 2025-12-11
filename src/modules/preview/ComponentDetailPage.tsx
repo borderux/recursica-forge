@@ -1,12 +1,12 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { getComponentSections } from './componentSections'
 import ComponentToolbar from '../components/ComponentToolbar'
 import ButtonPreview from '../components/ButtonPreview'
-import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
-import { DocumentTextIcon } from '@heroicons/react/24/outline'
+import { slugToComponentName } from './componentUrlUtils'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
@@ -196,7 +196,10 @@ export default function ComponentDetailPage() {
             e.currentTarget.style.opacity = '1'
           }}
         >
-          <DocumentTextIcon style={{ width: 16, height: 16 }} />
+          {(() => {
+            const FileTextIcon = iconNameToReactComponent('document-text')
+            return FileTextIcon ? <FileTextIcon style={{ width: 16, height: 16 }} /> : null
+          })()}
           Read docs
         </a>
       </div>

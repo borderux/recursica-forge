@@ -75,10 +75,10 @@ describe('applyCssVars', () => {
   })
 
   it('should reject invalid variable names', () => {
-    const vars = {
+    const vars: Record<string, string> = {
       '': 'value',
-      null as any: 'value'
     }
+    vars[null as any] = 'value'
     
     const result = applyCssVars(vars)
     

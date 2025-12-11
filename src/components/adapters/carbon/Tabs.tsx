@@ -6,7 +6,6 @@
  */
 
 import type { TabsProps as AdapterTabsProps } from '../Tabs'
-import { useThemeMode } from '../../../modules/theme/ThemeModeContext'
 
 export default function Tabs({
   value,
@@ -19,8 +18,6 @@ export default function Tabs({
   carbon,
   ...props
 }: AdapterTabsProps) {
-  const { mode } = useThemeMode()
-  
   // Carbon doesn't have a Tabs component, so we'll render children directly
   // The actual tab functionality will be handled by the parent component
   return (

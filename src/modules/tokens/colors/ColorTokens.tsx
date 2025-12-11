@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { iconNameToReactComponent } from '../../components/iconUtils'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { removeCssVar } from '../../../core/css/updateCssVar'
@@ -749,7 +749,10 @@ export default function ColorTokens() {
         <Button
           variant="outline"
           onClick={handleAddColor}
-          icon={<PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+          icon={(() => {
+            const PlusIcon = iconNameToReactComponent('plus')
+            return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+          })()}
           style={{
             borderColor: `var(${interactiveColor})`,
             color: `var(${interactiveColor})`,

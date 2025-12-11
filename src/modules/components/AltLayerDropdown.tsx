@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ChevronDownIcon } from '@heroicons/react/24/outline'
-import { CircleStackIcon } from '@heroicons/react/24/solid'
 import { readCssVar } from '../../core/css/readCssVar'
+import propIconMapping from './propIconMapping.json'
+import { iconNameToReactComponent } from './iconUtils'
 import './Dropdown.css'
 
 interface AltLayerDropdownProps {
@@ -90,6 +90,11 @@ export default function AltLayerDropdown({ selected, onSelect, mode, open: contr
     return '#ffffff'
   }
 
+  // Get icon from mapping
+  const iconName = (propIconMapping as Record<string, string>)['alt-layer']
+  const AltLayerIcon = iconName ? iconNameToReactComponent(iconName) : null
+  const CaretDownIcon = iconNameToReactComponent('chevron-down')
+
   return (
     <div className="dropdown-container" ref={ref}>
       <button
@@ -98,8 +103,8 @@ export default function AltLayerDropdown({ selected, onSelect, mode, open: contr
         title="Alt layer"
         aria-label="Alt layer"
       >
-        <CircleStackIcon className="toolbar-icon" />
-        <ChevronDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />
+        {AltLayerIcon && <AltLayerIcon className="toolbar-icon" />}
+        {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />}
       </button>
       {open && (
         <div className="dropdown-menu">

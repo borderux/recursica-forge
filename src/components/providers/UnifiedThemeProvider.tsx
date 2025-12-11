@@ -6,7 +6,6 @@
  */
 
 import { ReactNode, useState, useEffect } from 'react'
-import { useUiKit } from '../../modules/uikit/UiKitContext'
 
 // Lazy load providers
 const MantineProvider = ({ children }: { children: ReactNode }) => {
@@ -31,7 +30,7 @@ const MaterialProvider = ({ children }: { children: ReactNode }) => {
       import('@mui/material'),
     ]).then(([{ ThemeProvider, createTheme }, { CssBaseline }]) => {
       const theme = createTheme()
-      setProvider(() => ({ children: ch }) => (
+      setProvider(() => ({ children: ch }: { children: ReactNode }) => (
         <ThemeProvider theme={theme}>
           <CssBaseline />
           {ch}
@@ -49,7 +48,7 @@ const CarbonProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     import('@carbon/react').then(({ Theme }) => {
-      setProvider(() => ({ children: ch }) => (
+      setProvider(() => ({ children: ch }: { children: ReactNode }) => (
         <Theme theme="g10">
           {ch}
         </Theme>

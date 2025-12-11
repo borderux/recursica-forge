@@ -4,7 +4,7 @@
  * Editor for font family and typeface tokens. Shows cards with font previews and weight selectors.
  */
 import { useEffect, useMemo, useState } from 'react'
-import { PlusIcon, XMarkIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
+import { iconNameToReactComponent } from '../../components/iconUtils'
 import { useVars } from '../../vars/VarsContext'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
 import { removeCssVar } from '../../../core/css/updateCssVar'
@@ -98,7 +98,10 @@ export function AddButton() {
       variant="solid"
       size="default"
       onClick={handleAdd}
-      icon={<PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+      icon={(() => {
+        const PlusIcon = iconNameToReactComponent('plus')
+        return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+      })()}
       style={{
         backgroundColor: `var(${interactiveColor})`,
         color: `var(--recursica-brand-${mode}-palettes-core-interactive-text)`,
@@ -341,7 +344,10 @@ export default function FontFamiliesTokens() {
                     justifyContent: 'center',
                   }}
                 >
-                  <XMarkIcon style={{ width: 20, height: 20, color: `var(${layer0Base}-element-text-color)`, opacity: 0.6 }} />
+                  {(() => {
+                    const XIcon = iconNameToReactComponent('x-mark')
+                    return XIcon ? <XIcon style={{ width: 20, height: 20, color: `var(${layer0Base}-element-text-color)`, opacity: 0.6 }} /> : null
+                  })()}
                 </button>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
@@ -470,7 +476,10 @@ export default function FontFamiliesTokens() {
                 justifyContent: 'center',
               }}
             >
-              <XMarkIcon style={{ width: 20, height: 20, color: `var(--recursica-brand-${mode}-palettes-core-interactive-text)` }} />
+              {(() => {
+                const XIcon = iconNameToReactComponent('x-mark')
+                return XIcon ? <XIcon style={{ width: 20, height: 20, color: `var(--recursica-brand-${mode}-palettes-core-interactive-text)` }} /> : null
+              })()}
             </button>
             <h3 style={{
               margin: 0,
@@ -492,7 +501,10 @@ export default function FontFamiliesTokens() {
               variant="solid"
               size="default"
               onClick={() => window.open('https://fonts.google.com', '_blank')}
-              icon={<ArrowTopRightOnSquareIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} />}
+              icon={(() => {
+                const LinkIcon = iconNameToReactComponent('arrow-top-right-on-square')
+                return LinkIcon ? <LinkIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+              })()}
               style={{
                 backgroundColor: `var(--recursica-brand-${mode}-palettes-core-interactive-text)`,
                 color: `var(${interactiveColor})`,

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { iconNameToReactComponent } from './iconUtils'
 import { createPortal } from 'react-dom'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from './componentToolbarUtils'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -268,7 +268,10 @@ export default function PropControl({
           onClick={onClose}
           aria-label="Close"
         >
-          <XMarkIcon className="prop-control-close-icon" />
+          {(() => {
+            const CloseIcon = iconNameToReactComponent('x-mark')
+            return CloseIcon ? <CloseIcon className="prop-control-close-icon" /> : null
+          })()}
         </button>
       </div>
       <div className="prop-control-body">

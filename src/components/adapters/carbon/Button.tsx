@@ -5,7 +5,7 @@
  */
 
 import { Button as CarbonButton } from '@carbon/react'
-import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import type { ButtonProps as AdapterButtonProps } from '../Button'
 import { getComponentCssVar } from '../../utils/cssVarNames'
 import './Button.css'
 
@@ -69,8 +69,8 @@ export default function Button({
   
   // Merge library-specific props
   const carbonProps = {
-    kind: carbonKind,
-    size: carbonSize,
+    kind: carbonKind as 'primary' | 'secondary' | 'danger' | 'ghost' | 'danger--primary' | 'danger--ghost' | 'danger--tertiary' | 'tertiary',
+    size: carbonSize as 'sm' | 'md' | 'lg' | 'xl',
     disabled,
     onClick,
     type,
