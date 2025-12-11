@@ -29,10 +29,11 @@
 
 /* General rule: Set all SVGs in buttons to use icon size CSS var */
 /* This applies to trailing icons and icon-only buttons */
-/* Note: leftSection SVGs use 100% to fill their container (see rule below) */
+/* Note: leftSection SVGs use 100% to fill their container (see rule above) - that rule is more specific so it will override */
+/* Apply to all SVGs regardless of visibility state */
 .mantine-Button-root svg {
-  width: var(--button-icon-size) !important;
-  height: var(--button-icon-size) !important;
+  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
+  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -71,6 +72,15 @@
 .mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) > span,
 .mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) > *:has(svg),
 .mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) span:has(svg) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* When there is no text and only an icon, the span with class mantine-Button-label needs to be display: flex !important; */
+.mantine-Button-root:not(:has(.mantine-Button-leftSection)) .mantine-Button-label:empty,
+.mantine-Button-root:not(:has(.mantine-Button-leftSection)) .mantine-Button-label:not(:has(text)),
+.mantine-Button-root:not(:has(.mantine-Button-leftSection)) .mantine-Button-label:not(:has(*:not(svg))) {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
