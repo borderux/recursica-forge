@@ -46,12 +46,15 @@ export default function ComponentToolbar({
   // Show both non-variant props and variant props (both color and size), but only one icon per prop name
   // When editing a variant prop, it will edit for the selected variant and layer
   // Combine props with "-hover" suffix into the base prop
+  // Combine track-selected and track-unselected into "track" prop
   const allProps = useMemo(() => {
     const propsMap = new Map<string, ComponentProp>()
     const seenProps = new Set<string>()
     const hoverPropsMap = new Map<string, ComponentProp>() // Map of base name -> hover prop
+    let firstTrackSelected: ComponentProp | undefined
+    let firstTrackUnselected: ComponentProp | undefined
 
-    // First pass: collect all props and identify hover props
+    // First pass: collect all props and identify hover props and track props
     structure.props.forEach(prop => {
       const propNameLower = prop.name.toLowerCase()
       
@@ -60,14 +63,26 @@ export default function ComponentToolbar({
         const baseName = propNameLower.slice(0, -6) // Remove "-hover"
         hoverPropsMap.set(baseName, prop)
       }
+      
+      // Check if this is a track prop (track-selected or track-unselected)
+      if (propNameLower === 'track-selected' && !firstTrackSelected) {
+        firstTrackSelected = prop
+      } else if (propNameLower === 'track-unselected' && !firstTrackUnselected) {
+        firstTrackUnselected = prop
+      }
     })
 
-    // Second pass: combine props with their hover variants
+    // Second pass: combine props with their hover variants and track variants
     structure.props.forEach(prop => {
       const propNameLower = prop.name.toLowerCase()
       
       // Skip hover props in the main list (they'll be attached to base props)
       if (propNameLower.endsWith('-hover')) {
+        return
+      }
+      
+      // Skip track-selected and track-unselected (they'll be combined into "track")
+      if (propNameLower === 'track-selected' || propNameLower === 'track-unselected') {
         return
       }
 
@@ -105,6 +120,27 @@ export default function ComponentToolbar({
       seenProps.add(key)
       propsMap.set(key, prop)
     })
+    
+    // Third pass: create a combined "track" prop from track-selected and track-unselected
+    if (firstTrackSelected || firstTrackUnselected) {
+      // Use track-selected as the base prop, or track-unselected if track-selected doesn't exist
+      const baseTrackProp = firstTrackSelected || firstTrackUnselected!
+      
+      // Create a new prop that represents "track" with both variants
+      // PropControl will use getCssVarsForProp to find the right CSS vars based on selectedVariants and selectedLayer
+      const combinedTrackProp: ComponentProp = {
+        ...baseTrackProp,
+        name: 'track',
+        trackSelectedProp: firstTrackSelected,
+        trackUnselectedProp: firstTrackUnselected,
+      }
+      
+      // Use "track" as the key - only one track icon
+      if (!seenProps.has('track')) {
+        propsMap.set('track', combinedTrackProp)
+        seenProps.add('track')
+      }
+    }
 
     // Filter out font-size for Button component (it's controlled by theme typography)
     const filteredProps = Array.from(propsMap.values()).filter(prop => {

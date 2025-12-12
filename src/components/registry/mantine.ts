@@ -13,6 +13,9 @@ registerComponent('mantine', 'Button', () => import('../adapters/mantine/Button'
 // Tabs
 registerComponent('mantine', 'Tabs', () => import('../adapters/mantine/Tabs'))
 
+// Switch
+registerComponent('mantine', 'Switch', () => import('../adapters/mantine/Switch'))
+
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))
 // registerComponent('mantine', 'TextField', () => import('../../adapters/mantine/TextField'))

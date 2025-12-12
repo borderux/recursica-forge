@@ -140,6 +140,49 @@ export default function LayerStylePanel({
     const isSize = typeHint === 'number' && /(padding|border-radius|border-thickness)$/.test(pathKey)
     const options = isColor ? colorOptions : isOpacity ? opacityOptions : isSize ? sizeOptions : []
     const isSelect = options.length > 0
+    
+    // Build CSS variable name for this field
+    const fieldCssVar = isAlternative && alternativeKey
+      ? `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-${pathKey.replace(/\./g, '-')}`
+      : selectedLevels.length > 0
+        ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-${pathKey.replace(/\./g, '-')}`
+        : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-${pathKey.replace(/\./g, '-')}`
+    
+    // For element-text-color, check contrast against surface
+    // For surface, check contrast against element-text-color
+    let contrastColorCssVar: string | undefined
+    // Check if this is element-text-color (pathKey might be "element.text.color" with dots)
+    const isElementTextColor = pathKey.includes('element-text-color') || pathKey.includes('element.text.color')
+    if (isColor && isElementTextColor) {
+      const surfaceVar = isAlternative && alternativeKey
+        ? `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-surface`
+        : selectedLevels.length > 0
+          ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-surface`
+          : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-surface`
+      contrastColorCssVar = surfaceVar
+    } else if (isColor && (pathKey === 'surface' || pathKey.includes('surface'))) {
+      const textColorVar = isAlternative && alternativeKey
+        ? `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-element-text-color`
+        : selectedLevels.length > 0
+          ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-element-text-color`
+          : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-element-text-color`
+      contrastColorCssVar = textColorVar
+    }
+    
+    // For color fields, use PaletteColorControl instead of select
+    if (isColor && !isSelect) {
+      return (
+        <PaletteColorControl
+          label={label}
+          targetCssVar={fieldCssVar}
+          currentValueCssVar={fieldCssVar}
+          swatchSize={14}
+          fontSize={13}
+          contrastColorCssVar={contrastColorCssVar}
+        />
+      )
+    }
+    
     return (
       <label style={{ display: 'grid', gap: 4 }}>
         <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span>
@@ -176,6 +219,18 @@ export default function LayerStylePanel({
           `--recursica-brand-${mode}-layer-layer-${level}-property-${target}`
         )
     
+    // For surface color, check contrast against element-text-color (the label text color)
+    // For element-text-color, check contrast against surface
+    let contrastColorCssVar: string | undefined
+    if (target === 'surface') {
+      const textColorVar = isAlternative && alternativeKey
+        ? `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-element-text-color`
+        : selectedLevels.length > 0
+          ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-element-text-color`
+          : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-element-text-color`
+      contrastColorCssVar = textColorVar
+    }
+    
     return (
       <PaletteColorControl
         label={title}
@@ -184,6 +239,7 @@ export default function LayerStylePanel({
         currentValueCssVar={targetCssVar}
         swatchSize={14}
         fontSize={13}
+        contrastColorCssVar={contrastColorCssVar}
       />
     )
   }

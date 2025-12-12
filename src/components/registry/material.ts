@@ -13,5 +13,8 @@ registerComponent('material', 'Button', () => import('../adapters/material/Butto
 // Tabs
 registerComponent('material', 'Tabs', () => import('../adapters/material/Tabs'))
 
+// Switch
+registerComponent('material', 'Switch', () => import('../adapters/material/Switch'))
+
 // Add more components as they're implemented
 

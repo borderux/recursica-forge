@@ -19,6 +19,8 @@ export interface ComponentProp {
   isVariantSpecific: boolean // Whether this prop is under a variant
   variantProp?: string // If variant-specific, which variant prop (e.g., "color", "size")
   hoverProp?: ComponentProp // If there's a corresponding "-hover" prop, reference it here
+  trackSelectedProp?: ComponentProp // For combined "track" prop, reference to track-selected
+  trackUnselectedProp?: ComponentProp // For combined "track" prop, reference to track-unselected
 }
 
 export interface ComponentStructure {

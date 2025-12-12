@@ -1,0 +1,37 @@
+/**
+ * Mantine Switch CSS Overrides
+ * 
+ * Overrides Mantine Switch styles to use Recursica CSS variables
+ */
+
+/* Override thumb background */
+.mantine-Switch-thumb {
+  background: var(--switch-thumb-bg, var(--mantine-color-white)) !important;
+}
+
+/* Remove the blue dot in the center of the thumb */
+.mantine-Switch-thumb::before,
+.mantine-Switch-thumb::after {
+  display: none !important;
+}
+
+/* Also check for any inner elements that might be the blue dot */
+.mantine-Switch-thumb > * {
+  display: none !important;
+}
+
+/* Override track colors */
+.mantine-Switch-track {
+  background-color: var(--switch-track-unchecked, var(--mantine-color-gray-3)) !important;
+  border-radius: var(--switch-border-radius, 999px) !important;
+}
+
+.mantine-Switch-input:checked + .mantine-Switch-track {
+  background-color: var(--switch-track-checked, var(--mantine-color-blue-6)) !important;
+}
+
+/* Override disabled state */
+.mantine-Switch-input:disabled + .mantine-Switch-track {
+  opacity: 0.5;
+}
+

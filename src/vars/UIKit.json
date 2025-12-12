@@ -626,7 +626,104 @@
             "unit": "px"
           }
         }
-      }
+      },
+      "switch": {
+        "color": {
+          "layer-0": {
+            "variant": {
+              "default": {
+                "thumb": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-0.property.surface}"
+                },
+                "track-selected": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.palette-1.default.color.tone}"
+                },
+                "track-unselected": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.neutral.800.color.tone}"
+                }
+              }
+
+            }
+          },
+          "layer-1": {
+            "variant": {
+              "default": {
+                "thumb": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                },
+                "track-selected": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.palette-1.default.color.tone}"
+                },
+                "track-unselected": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.neutral.800.color.tone}"
+                }
+              }
+            }
+          },
+          "layer-2": {
+            "variant": {
+              "default": {
+                "thumb": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                },
+                "track-selected": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.palette-1.default.color.tone}"
+                },
+                "track-unselected": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.neutral.800.color.tone}"
+                }
+              }
+            }
+          },
+          "layer-3": {
+            "variant": {
+              "default": {
+                "thumb": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                },
+                "track-selected": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.palette-1.default.color.tone}"
+                },
+                "track-unselected": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.neutral.800.color.tone}"
+                }
+              }
+            }
+          }
+        },
+        "size": {
+            "variant": {
+              "default": {
+                "border-radius": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.border-radius.xl}",
+                    "unit": "px"
+                  }
+                },
+                "label-switch-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.default}",
+                    "unit": "px"
+                  }
+                }
+              }
+          }
+        }
+      }     
     }
   }
 }

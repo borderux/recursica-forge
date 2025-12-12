@@ -183,14 +183,82 @@ export default function PropControl({
     }
   }, [isDragging, dragStart])
 
+  // Helper to determine contrast color CSS var based on prop name
+  const getContrastColorVar = (propToRender: ComponentProp): string | undefined => {
+    const propName = propToRender.name.toLowerCase()
+    const structure = parseComponentStructure(componentName)
+    
+    // For text colors, check against background
+    if (propName === 'text' || propName === 'text-hover') {
+      const bgPropName = propName === 'text-hover' ? 'background-hover' : 'background'
+      const bgProp = structure.props.find(p => 
+        p.name.toLowerCase() === bgPropName && 
+        p.category === 'color' &&
+        (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
+        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+      )
+      if (bgProp) {
+        const bgCssVars = getCssVarsForProp(bgProp)
+        return bgCssVars[0]
+      }
+    }
+    
+    // For background colors, check against text
+    if (propName === 'background' || propName === 'background-hover') {
+      const textPropName = propName === 'background-hover' ? 'text-hover' : 'text'
+      const textProp = structure.props.find(p => 
+        p.name.toLowerCase() === textPropName && 
+        p.category === 'color' &&
+        (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
+        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+      )
+      if (textProp) {
+        const textCssVars = getCssVarsForProp(textProp)
+        return textCssVars[0]
+      }
+    }
+    
+    // For switch track-selected, check against thumb
+    if (propName === 'track-selected' || propName === 'track-unselected') {
+      const thumbProp = structure.props.find(p => 
+        p.name.toLowerCase() === 'thumb' && 
+        p.category === 'color' &&
+        (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
+        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+      )
+      if (thumbProp) {
+        const thumbCssVars = getCssVarsForProp(thumbProp)
+        return thumbCssVars[0]
+      }
+    }
+    
+    // For switch thumb, check against track-selected (when checked)
+    if (propName === 'thumb') {
+      const trackProp = structure.props.find(p => 
+        p.name.toLowerCase() === 'track-selected' && 
+        p.category === 'color' &&
+        (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
+        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+      )
+      if (trackProp) {
+        const trackCssVars = getCssVarsForProp(trackProp)
+        return trackCssVars[0]
+      }
+    }
+    
+    return undefined
+  }
+
   const renderControl = (propToRender: ComponentProp, cssVars: string[], primaryVar: string, label: string) => {
     if (propToRender.type === 'color') {
+      const contrastColorVar = getContrastColorVar(propToRender)
       return (
         <PaletteColorControl
           targetCssVar={primaryVar}
           targetCssVars={cssVars.length > 1 ? cssVars : undefined}
           currentValueCssVar={primaryVar}
           label={label}
+          contrastColorCssVar={contrastColorVar}
         />
       )
     }
@@ -226,6 +294,50 @@ export default function PropControl({
 
   const renderControls = () => {
     const baseLabel = toSentenceCase(prop.name)
+    
+    // If this is a combined "track" prop, render both track-selected and track-unselected
+    if (prop.name.toLowerCase() === 'track' && (prop.trackSelectedProp || prop.trackUnselectedProp)) {
+      const trackSelectedCssVars = prop.trackSelectedProp ? getCssVarsForProp(prop.trackSelectedProp) : []
+      const trackUnselectedCssVars = prop.trackUnselectedProp ? getCssVarsForProp(prop.trackUnselectedProp) : []
+      const trackSelectedPrimaryVar = trackSelectedCssVars[0] || prop.trackSelectedProp?.cssVar
+      const trackUnselectedPrimaryVar = trackUnselectedCssVars[0] || prop.trackUnselectedProp?.cssVar
+      
+      // Get thumb color for contrast checking
+      const structure = parseComponentStructure(componentName)
+      const thumbProp = structure.props.find(p => 
+        p.name.toLowerCase() === 'thumb' && 
+        p.category === 'color' &&
+        (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
+        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+      )
+      const thumbCssVars = thumbProp ? getCssVarsForProp(thumbProp) : []
+      const thumbVar = thumbCssVars[0]
+      
+      return (
+        <>
+          {prop.trackSelectedProp && trackSelectedPrimaryVar && (
+            <PaletteColorControl
+              targetCssVar={trackSelectedPrimaryVar}
+              targetCssVars={trackSelectedCssVars.length > 1 ? trackSelectedCssVars : undefined}
+              currentValueCssVar={trackSelectedPrimaryVar}
+              label="Track Selected"
+              contrastColorCssVar={thumbVar}
+            />
+          )}
+          {prop.trackUnselectedProp && trackUnselectedPrimaryVar && (
+            <div style={{ marginTop: prop.trackSelectedProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+              <PaletteColorControl
+                targetCssVar={trackUnselectedPrimaryVar}
+                targetCssVars={trackUnselectedCssVars.length > 1 ? trackUnselectedCssVars : undefined}
+                currentValueCssVar={trackUnselectedPrimaryVar}
+                label="Track Unselected"
+                contrastColorCssVar={thumbVar}
+              />
+            </div>
+          )}
+        </>
+      )
+    }
     
     // If there's a hover prop, render both controls with spacing
     if (prop.hoverProp && hoverPrimaryCssVar) {

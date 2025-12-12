@@ -38,11 +38,11 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>,
       }
     }
     
-    // Try palette var reference
-    const paletteMatch = trimmed.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
+    // Try palette var reference (both light and dark modes)
+    const paletteMatch = trimmed.match(/--recursica-brand-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
     if (paletteMatch) {
-      const [, paletteKey, level, type] = paletteMatch
-      const paletteVarName = `--recursica-brand-light-palettes-${paletteKey}-${level}-${type}`
+      const [, paletteMode, paletteKey, level, type] = paletteMatch
+      const paletteVarName = `--recursica-brand-${paletteMode}-palettes-${paletteKey}-${level}-${type}`
       const paletteValue = readCssVar(paletteVarName)
       if (paletteValue) {
         return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)
