@@ -167,13 +167,63 @@ Create implementations for each library simultaneously. Each library implementat
 
 **File**: `src/components/adapters/{library}/{ComponentName}/{ComponentName}.css`
 
-#### Rules (See `ADAPTER_RULES.md`):
+#### Core Principle
 
-1. **Never Modify Component Structure** - Only CSS overrides allowed
-2. **Use High Specificity Selectors** - Target library's native class names
-3. **Use `!important` When Necessary** - To override library defaults
-4. **Reference CSS Custom Properties** - Set in TSX, reference in CSS
-5. **Use Library CSS Vars as Fallbacks** - `var(--recursica-var, var(--library-var))`
+**Adapters must NEVER modify the underlying component structure. Only CSS overrides are allowed.**
+
+#### Mandatory Rules
+
+1. **Never Modify Component Structure**
+   - ❌ **DO NOT** wrap components in custom elements (spans, divs, etc.)
+   - ❌ **DO NOT** create custom wrapper elements for icons, text, or other content
+   - ❌ **DO NOT** conditionally render different component structures
+   - ❌ **DO NOT** modify the component's children prop structure
+   - ✅ **DO** use the component's native props as intended by the library
+   - ✅ **DO** pass icons through native icon props (e.g., `startIcon`, `leftSection`, etc.)
+   - ✅ **DO** pass children directly to the component
+
+2. **Use CSS Overrides Only**
+   - ✅ **DO** use CSS files (`.css`) for all styling overrides
+   - ✅ **DO** use CSS custom properties (CSS variables) set on the root element for dynamic values
+   - ✅ **DO** use high-specificity selectors with `!important` when necessary to override library defaults
+   - ✅ **DO** use the component's native class names and data attributes for targeting
+   - ❌ **DO NOT** use inline styles for complex styling logic
+   - ❌ **DO NOT** modify component structure to apply styles
+
+3. **CSS Custom Properties Pattern**
+   - Set CSS custom properties on the root element's `style` prop in TSX
+   - Reference those custom properties in the CSS file
+   - Use `calc()` for calculations when needed
+
+4. **Component Props Usage**
+   - ✅ **DO** use the component's native props exactly as the library intended
+   - ✅ **DO** map unified props (from the adapter interface) to library-specific props
+   - ✅ **DO** use library-specific style props (e.g., Mantine's `styles`, Material's `sx`) only for simple overrides
+   - ❌ **DO NOT** use style props to create complex wrapper structures
+   - ❌ **DO NOT** conditionally change component structure based on props
+
+5. **Icon Handling**
+   - ✅ **DO** pass icons through native icon props (`startIcon`, `leftSection`, `icon`, etc.)
+   - ✅ **DO** use CSS to size and space icons
+   - ✅ **DO** set CSS custom properties for icon size and gap
+   - ❌ **DO NOT** wrap icons in custom span/div elements
+   - ❌ **DO NOT** create custom icon rendering logic
+
+6. **Text Truncation**
+   - ✅ **DO** use CSS for text truncation (`overflow: hidden`, `text-overflow: ellipsis`, `white-space: nowrap`)
+   - ✅ **DO** use CSS `calc()` with custom properties for dynamic max-width calculations
+   - ✅ **DO** target the component's native text/label elements via CSS
+   - ❌ **DO NOT** wrap text in custom span elements for truncation
+   - ❌ **DO NOT** modify children structure for truncation
+
+7. **CSS File Organization**
+   - ✅ **DO** create a `.css` file alongside each adapter (e.g., `Button.css`)
+   - ✅ **DO** use high-specificity selectors to override library defaults
+   - ✅ **DO** use `!important` when necessary to override library styles
+   - ✅ **DO** add comments explaining why overrides are needed
+   - ❌ **DO NOT** put complex styling logic in the TSX file
+
+8. **Use Library CSS Vars as Fallbacks** - `var(--recursica-var, var(--library-var))`
 
 #### Example Pattern:
 
@@ -191,6 +241,60 @@ Create implementations for each library simultaneously. Each library implementat
   margin-right: var(--component-icon-text-gap, 0px) !important;
 }
 ```
+
+#### ✅ Correct: Using Native Props and CSS
+
+```tsx
+// Button.tsx
+const mantineProps = {
+  leftSection: icon ? icon : undefined, // Use native prop
+  styles: {
+    root: {
+      // Only simple style overrides
+    },
+  },
+  style: {
+    // Set CSS custom properties for CSS file
+    '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+  },
+}
+return <MantineButton {...mantineProps}>{children}</MantineButton>
+```
+
+```css
+/* Button.css */
+.mantine-Button-root .mantine-Button-leftSection {
+  width: var(--button-icon-size) !important;
+  height: var(--button-icon-size) !important;
+}
+```
+
+#### ❌ Incorrect: Modifying Component Structure
+
+```tsx
+// ❌ DO NOT DO THIS
+const iconElement = icon ? (
+  <span style={{ /* custom styles */ }}>
+    <span>{icon}</span>
+  </span>
+) : undefined
+
+const buttonChildren = children ? (
+  <span style={{ /* truncation styles */ }}>
+    {children}
+  </span>
+) : children
+
+return <MantineButton leftSection={iconElement}>{buttonChildren}</MantineButton>
+```
+
+#### Enforcement Guidelines
+
+When working with adapters:
+
+1. **Always ask**: "Am I modifying the component structure?" If yes, refactor to use CSS only.
+2. **Always ask**: "Can this be done with CSS?" If yes, move it to the CSS file.
+3. **Always ask**: "Am I using the component's native props?" If no, refactor to use native props.
 
 ### Step 4: Register Components
 
@@ -215,7 +319,16 @@ See [Testing Requirements](#testing-requirements) section below.
 
 ### Step 6: Create Audit Documentation
 
-See [Component Audit](#component-audit) section below.
+**IMPORTANT**: Audits are **library-specific** and must be created for **each library separately**.
+
+Create an audit document for each library implementation:
+- `src/components/adapters/mantine/{ComponentName}/audit.md`
+- `src/components/adapters/material/{ComponentName}/audit.md`
+- `src/components/adapters/carbon/{ComponentName}/audit.md`
+
+**Do NOT create global audit reports** - each library has its own unique CSS variables, fallbacks, and implementation details that must be documented separately.
+
+See [Component Audit](#component-audit) section below for details.
 
 ### Step 7: Replace Existing Uses
 
@@ -267,6 +380,7 @@ import { Button } from '../../components/adapters/Button'
 All CSS variables from JSON files must be namespaced with `--recursica-*`:
 
 - **Component Variables**: `--recursica-ui-kit-components-{component}-{category}-{property}`
+- **Component-Level Props**: `--recursica-ui-kit-components-{component}-{property}` (e.g., `elevation`, `alternative-layer`)
 - **Brand Variables**: `--recursica-brand-{mode}-{category}-{property}`
 - **Token Variables**: `--recursica-tokens-{category}-{property}`
 
@@ -312,6 +426,65 @@ style={{
   margin-right: var(--button-icon-text-gap, 0px) !important;
 }
 ```
+
+### Component-Level Props (Elevation and Alternative Layer)
+
+Components support two special component-level props that are stored as separate CSS variables:
+
+1. **Elevation** (`elevation` prop)
+   - Type: `string | undefined` (e.g., `"elevation-0"`, `"elevation-1"`, etc.)
+   - CSS Variable: `--recursica-ui-kit-components-{component}-elevation`
+   - Initial Value: From `UIKit.json` (e.g., `{brand.themes.light.elevations.elevation-1}`)
+   - Behavior:
+     - When set (and not `"elevation-0"`), applies box-shadow using elevation CSS variables
+     - Format: `var(--recursica-brand-{mode}-elevations-elevation-{level}-x-axis) var(--recursica-brand-{mode}-elevations-elevation-{level}-y-axis) var(--recursica-brand-{mode}-elevations-elevation-{level}-blur) var(--recursica-brand-{mode}-elevations-elevation-{level}-spread) var(--recursica-brand-{mode}-elevations-elevation-{level}-shadow-color)`
+     - If `elevation-0`, no box-shadow is applied
+   - Implementation:
+     ```typescript
+     // In adapter component
+     elevation?: string
+     
+     // In library implementation
+     if (elevation && elevation !== 'elevation-0') {
+       const elevationMatch = elevation.match(/elevation-(\d+)/)
+       if (elevationMatch) {
+         const elevationLevel = elevationMatch[1]
+         styles.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+       }
+     }
+     ```
+
+2. **Alternative Layer** (`alternativeLayer` prop)
+   - Type: `string | null | undefined` (e.g., `"high-contrast"`, `"alert"`, `null`, `"none"`)
+   - CSS Variable: `--recursica-ui-kit-components-{component}-alternative-layer`
+   - Initial Value: From `UIKit.json` (typically `null` or `"none"`)
+   - Behavior:
+     - When set (not `null` and not `"none"`), overrides all surface and color props for that component
+     - Uses alternative layer's properties: `--recursica-brand-{mode}-layer-layer-alternative-{altLayer}-property-*`
+     - Disables toolbar icons for overridden props (handled by toolbar)
+     - If `null` or `"none"`, behaves as normal (uses layer prop)
+   - Implementation:
+     ```typescript
+     // In adapter component
+     alternativeLayer?: string | null
+     
+     // In library implementation
+     const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+     if (hasComponentAlternativeLayer) {
+       const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+       // Override all color/surface props with alt layer properties
+       bgVar = `${layerBase}-element-interactive-tone`
+       textVar = `${layerBase}-element-interactive-on-tone`
+       // ... etc
+     }
+     ```
+
+**Important Notes:**
+- These props use **separate CSS variables** specific to the component (not shared with other components)
+- The CSS variable names follow the pattern: `--recursica-ui-kit-components-{component}-{property}`
+- Use `getComponentLevelCssVar(componentName, 'elevation')` and `getComponentLevelCssVar(componentName, 'alternative-layer')` to generate the CSS variable names
+- The toolbar provides controls for these props in a separate section (after dynamic props, before reset button)
+- When `alternativeLayer` is set, it overrides all surface/color props, so those toolbar icons should be disabled
 
 ### Library CSS Variables
 
@@ -582,12 +755,40 @@ npm test Button.test.tsx
 
 ## Component Audit
 
-Each library implementation must include an audit document that identifies:
+**IMPORTANT**: Audits are **library-specific**. You must create **separate audit documents for each library** (Mantine, Material UI, Carbon). Each library has unique CSS variables, fallback chains, and implementation details that must be documented independently.
 
-1. **Library CSS Variables Used**
-2. **Recursica CSS Variables Overriding Library Vars**
-3. **Uncovered Library CSS Variables**
-4. **CSS Variable Fallback Chain**
+### Audit Requirements
+
+Each library implementation must include its own audit document that identifies:
+
+1. **Library CSS Variables Used** (specific to that library)
+2. **Recursica CSS Variables Overriding Library Vars** (how Recursica vars override library vars)
+3. **Uncovered Library CSS Variables** (library vars not overridden by Recursica)
+4. **CSS Variable Fallback Chain** (Recursica → Library → Browser default)
+
+### Audit File Location
+
+**Each library must have its own audit file**:
+
+```
+src/components/adapters/
+├── mantine/
+│   └── {ComponentName}/
+│       └── audit.md              # Mantine-specific audit
+├── material/
+│   └── {ComponentName}/
+│       └── audit.md              # Material UI-specific audit
+└── carbon/
+    └── {ComponentName}/
+        └── audit.md              # Carbon-specific audit
+```
+
+**File Path Pattern**: `src/components/adapters/{library}/{ComponentName}/audit.md`
+
+**Do NOT create**:
+- ❌ Global audit reports at the adapter root level
+- ❌ Combined audit files covering multiple libraries
+- ❌ Audit files outside the library's component folder
 
 ### Audit File Template
 
@@ -680,7 +881,40 @@ Browser default
 - [x] Visual appearance matches across all libraries
 - [x] All variants, sizes, and layers are tested
 
-## Automated Audit Commands
+## Running Audits
+
+### Audit Process
+
+**IMPORTANT**: Audits are **library-specific**. You must run audits **separately for each library** (Mantine, Material UI, Carbon). Each library has unique CSS variables, fallback chains, and implementation details that must be documented independently.
+
+**Audit Steps**:
+
+1. **Mantine Audit**: Analyze `mantine/{ComponentName}/` files
+   - Review `mantine/{ComponentName}/Button.tsx`
+   - Review `mantine/{ComponentName}/Button.css`
+   - Document all Mantine-specific CSS variables
+   - Save to: `mantine/{ComponentName}/audit.md`
+
+2. **Material UI Audit**: Analyze `material/{ComponentName}/` files
+   - Review `material/{ComponentName}/Button.tsx`
+   - Review `material/{ComponentName}/Button.css`
+   - Document all Material UI-specific CSS variables
+   - Save to: `material/{ComponentName}/audit.md`
+
+3. **Carbon Audit**: Analyze `carbon/{ComponentName}/` files
+   - Review `carbon/{ComponentName}/Button.tsx`
+   - Review `carbon/{ComponentName}/Button.css`
+   - Document all Carbon-specific CSS variables
+   - Save to: `carbon/{ComponentName}/audit.md`
+
+**Do NOT create**:
+- ❌ Global audit reports at the adapter root level
+- ❌ Combined audit files covering multiple libraries
+- ❌ Audit files outside the library's component folder
+
+### Automated Audit Commands
+
+Use these commands to find CSS variables in your component files. **Run these commands for each library separately**:
 
 ### Find Library CSS Variables
 
@@ -739,9 +973,23 @@ Screenshots should be captured for each test case across all three libraries to 
 
 ### Automated Audit Script
 
-Create a script to generate audit data:
+Create a script to generate audit data for a specific library:
 
 **File**: `scripts/audit-component.js`
+
+**Usage**: Run the script separately for each library:
+```bash
+# Audit Mantine implementation
+node scripts/audit-component.js Button mantine
+
+# Audit Material UI implementation
+node scripts/audit-component.js Button material
+
+# Audit Carbon implementation
+node scripts/audit-component.js Button carbon
+```
+
+**Important**: The script generates library-specific audit data. Each library must be audited separately.
 
 ```javascript
 #!/usr/bin/env node
@@ -830,13 +1078,15 @@ After creating a new component, complete this checklist:
 
 ### Audit
 
-- [ ] Audit document created for Mantine implementation
-- [ ] Audit document created for Material UI implementation
-- [ ] Audit document created for Carbon implementation
-- [ ] All library CSS variables documented
-- [ ] All Recursica CSS variables documented
-- [ ] Uncovered variables identified and documented
-- [ ] Automated audit commands documented
+- [ ] **Mantine audit document created** at `mantine/{ComponentName}/audit.md`
+- [ ] **Material UI audit document created** at `material/{ComponentName}/audit.md`
+- [ ] **Carbon audit document created** at `carbon/{ComponentName}/audit.md`
+- [ ] All Mantine library CSS variables documented in Mantine audit
+- [ ] All Material UI library CSS variables documented in Material UI audit
+- [ ] All Carbon library CSS variables documented in Carbon audit
+- [ ] All Recursica CSS variables documented (in each library's audit)
+- [ ] Uncovered variables identified and documented (in each library's audit)
+- [ ] **No global audit reports created** (audits are library-specific only)
 
 ### Migration
 
@@ -879,7 +1129,6 @@ See the existing Button component as a reference:
 
 ## Additional Resources
 
-- **Adapter Rules**: `src/components/adapters/ADAPTER_RULES.md`
 - **CSS Variable Utilities**: `src/components/utils/cssVarNames.ts`
 - **Component Registry**: `src/components/registry/`
 - **Testing Setup**: `vitest.setup.ts`
@@ -890,8 +1139,13 @@ See the existing Button component as a reference:
 If you're unsure about any aspect of component development:
 
 1. Review the existing Button component implementation
-2. Check `ADAPTER_RULES.md` for CSS override guidelines
-3. Review the audit documents for examples
+2. Review the CSS Override Files section above for CSS override guidelines
+3. Review the library-specific audit documents for examples:
+   - `mantine/{ComponentName}/audit.md`
+   - `material/{ComponentName}/audit.md`
+   - `carbon/{ComponentName}/audit.md`
+   
+   **Note**: Each library has its own audit document - do not create global audit reports.
 4. Consult the testing examples above
 5. Ask for clarification before proceeding
 

@@ -8,7 +8,7 @@ import { registerComponent } from './index'
 import type { ComponentName } from './types'
 
 // Button
-registerComponent('carbon', 'Button', () => import('../adapters/carbon/Button'))
+registerComponent('carbon', 'Button', () => import('../adapters/carbon/Button/Button'))
 
 // Tabs
 registerComponent('carbon', 'Tabs', () => import('../adapters/carbon/Tabs'))

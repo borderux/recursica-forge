@@ -5,13 +5,18 @@
  * layer selection, and prop controls.
  */
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { parseComponentStructure, toSentenceCase, ComponentProp } from './componentToolbarUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { useVars } from '../vars/VarsContext'
 import VariantDropdown from './VariantDropdown'
 import LayerDropdown from './LayerDropdown'
 import AltLayerDropdown from './AltLayerDropdown'
 import PropControl from './PropControl'
+import TokenSlider from '../forms/TokenSlider'
+import { getComponentLevelCssVar } from '../../components/utils/cssVarNames'
+import { readCssVar } from '../../core/css/readCssVar'
+import { updateCssVar } from '../../core/css/updateCssVar'
 import propIconMapping from './propIconMapping.json'
 import { iconNameToReactComponent } from './iconUtils'
 import './ComponentToolbar.css'
@@ -21,9 +26,13 @@ export interface ComponentToolbarProps {
   selectedVariants: Record<string, string> // e.g., { color: "solid", size: "default" }
   selectedLayer: string // e.g., "layer-0"
   selectedAltLayer: string | null // e.g., "high-contrast" or null
+  componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
+  componentAlternativeLayer?: string | null // e.g., "high-contrast", "none", null
   onVariantChange: (prop: string, variant: string) => void
   onLayerChange: (layer: string) => void
   onAltLayerChange: (altLayer: string | null) => void
+  onElevationChange?: (elevation: string) => void
+  onComponentAlternativeLayerChange?: (altLayer: string | null) => void
 }
 
 export default function ComponentToolbar({
@@ -31,14 +40,43 @@ export default function ComponentToolbar({
   selectedVariants,
   selectedLayer,
   selectedAltLayer,
+  componentElevation,
+  componentAlternativeLayer,
   onVariantChange,
   onLayerChange,
   onAltLayerChange,
+  onElevationChange,
+  onComponentAlternativeLayerChange,
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
+  const { theme: themeJson } = useVars()
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer', 'altLayer'
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer', 'altLayer', 'componentElevation', 'componentAltLayer'
+  const [openElevationPanel, setOpenElevationPanel] = useState(false)
   const iconRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const elevationButtonRef = useRef<HTMLButtonElement>(null)
+  const elevationPanelRef = useRef<HTMLDivElement>(null)
+  const altLayerButtonRef = useRef<HTMLDivElement>(null)
+
+  // Handle click outside for elevation panel
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        openElevationPanel &&
+        elevationButtonRef.current &&
+        elevationPanelRef.current &&
+        !elevationButtonRef.current.contains(event.target as Node) &&
+        !elevationPanelRef.current.contains(event.target as Node)
+      ) {
+        setOpenElevationPanel(false)
+      }
+    }
+
+    if (openElevationPanel) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [openElevationPanel])
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
@@ -277,6 +315,61 @@ export default function ComponentToolbar({
     })
   }, [structure.props, componentName])
 
+  // Get elevation options from brand theme
+  const elevationOptions = useMemo(() => {
+    try {
+      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+      const themes = root?.themes || root
+      const elev: any = themes?.light?.elevations || root?.light?.elevations || {}
+      const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a,b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
+      return names.map((n) => {
+        const idx = Number(n.split('-')[1])
+        const label = idx === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${idx}`
+        return { name: n, label }
+      })
+    } catch {
+      return []
+    }
+  }, [themeJson])
+
+  // Get current elevation value from CSS var or prop
+  const currentElevation = useMemo(() => {
+    if (componentElevation !== undefined) return componentElevation
+    const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
+    const value = readCssVar(elevationVar)
+    if (value) {
+      // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-1}"
+      const match = value.match(/elevations\.(elevation-\d+)/)
+      if (match) return match[1]
+      // Or could be direct value like "elevation-1"
+      if (/^elevation-\d+$/.test(value)) return value
+    }
+    return 'elevation-0' // Default
+  }, [componentElevation, componentName])
+
+  // Get current alternative-layer value from CSS var or prop
+  const currentAlternativeLayer = useMemo(() => {
+    if (componentAlternativeLayer !== undefined) return componentAlternativeLayer
+    const altLayerVar = getComponentLevelCssVar(componentName as any, 'alternative-layer')
+    const value = readCssVar(altLayerVar)
+    return value === 'none' ? null : (value || null)
+  }, [componentAlternativeLayer, componentName])
+
+  // Handle elevation change
+  const handleElevationChange = (elevationName: string) => {
+    const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
+    // Store as brand reference
+    updateCssVar(elevationVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
+    onElevationChange?.(elevationName)
+  }
+
+  // Handle alternative-layer change
+  const handleComponentAlternativeLayerChange = (altLayer: string | null) => {
+    const altLayerVar = getComponentLevelCssVar(componentName as any, 'alternative-layer')
+    updateCssVar(altLayerVar, altLayer === null ? 'none' : altLayer)
+    onComponentAlternativeLayerChange?.(altLayer)
+  }
+
   const handleReset = () => {
     // Remove all CSS var overrides for this component
     // This will make them fall back to their computed values (from JSON defaults)
@@ -284,6 +377,12 @@ export default function ComponentToolbar({
       // Remove the inline style override to restore to default
       document.documentElement.style.removeProperty(prop.cssVar)
     })
+
+    // Also reset elevation and alternative-layer
+    const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
+    const altLayerVar = getComponentLevelCssVar(componentName as any, 'alternative-layer')
+    document.documentElement.style.removeProperty(elevationVar)
+    document.documentElement.style.removeProperty(altLayerVar)
 
     // Force a re-render by triggering a custom event
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
@@ -309,10 +408,55 @@ export default function ComponentToolbar({
     return defaultIcon || null
   }
 
+  // Track CSS variable changes to re-render when props are updated
+  const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
+  
+  useEffect(() => {
+    const handleCssVarReset = () => {
+      setCssVarUpdateTrigger(prev => prev + 1)
+    }
+    window.addEventListener('cssVarsReset', handleCssVarReset)
+    
+    // Also watch for DOM changes to inline styles (when CSS vars are updated)
+    const observer = new MutationObserver(() => {
+      setCssVarUpdateTrigger(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsReset', handleCssVarReset)
+      observer.disconnect()
+    }
+  }, [])
+
+  // Check if a prop is using default/fallback value (not explicitly set)
+  const isPropUsingDefault = useMemo(() => {
+    const defaultMap = new Map<string, boolean>()
+    allProps.forEach(prop => {
+      // Check if the CSS variable is set in inline styles (explicitly set by user)
+      // If inline value is empty, it's using default/fallback
+      if (typeof document !== 'undefined') {
+        const inlineValue = document.documentElement.style.getPropertyValue(prop.cssVar)
+        defaultMap.set(prop.name, inlineValue === '')
+      } else {
+        defaultMap.set(prop.name, true)
+      }
+    })
+    return (prop: ComponentProp): boolean => {
+      return defaultMap.get(prop.name) ?? true
+    }
+  }, [allProps, cssVarUpdateTrigger])
+
   return (
     <div className="component-toolbar" data-layer="layer-1">
       {/* Dynamic Variants Section */}
       <div className="toolbar-section-group">
+        {structure.variants.length > 0 && (
+          <span className="toolbar-section-label">Variants</span>
+        )}
         {structure.variants.map(variant => (
           <VariantDropdown
             key={variant.propName}
@@ -339,6 +483,7 @@ export default function ComponentToolbar({
 
       {/* Consistent Layers Section */}
       <div className="toolbar-section-group">
+        <span className="toolbar-section-label">Layers</span>
         <LayerDropdown
           selected={selectedLayer}
           onSelect={(layer) => {
@@ -377,10 +522,14 @@ export default function ComponentToolbar({
 
       {/* Dynamic Props Section */}
       <div className="toolbar-section-group">
+        {allProps.length > 0 && (
+          <span className="toolbar-section-label">Props</span>
+        )}
         {allProps.map(prop => {
           const Icon = getPropIcon(prop)
           // Use prop name as key instead of cssVar since we have unique prop names now
           const propKey = prop.name
+          const isDefault = isPropUsingDefault(prop)
           return (
             <div key={propKey} className="toolbar-icon-wrapper">
               <button
@@ -403,7 +552,7 @@ export default function ComponentToolbar({
                 title={toSentenceCase(prop.name)}
                 aria-label={toSentenceCase(prop.name)}
               >
-                <Icon className="toolbar-icon" />
+                <Icon className="toolbar-icon" style={isDefault ? { color: '#ff0000' } : undefined} />
               </button>
               {openPropControl === propKey && iconRefs.current.get(propKey) && (
                 <PropControl
@@ -420,6 +569,127 @@ export default function ComponentToolbar({
         })}
       </div>
       {allProps.length > 0 && <div className="toolbar-separator" />}
+
+      {/* Component-Level Props Section (Elevation and Alternative Layer) */}
+      <div className="toolbar-section-group">
+        {/* Elevation Control */}
+        <div className="toolbar-icon-wrapper">
+          <button
+            ref={elevationButtonRef}
+            className={`toolbar-icon-button ${openElevationPanel ? 'active' : ''}`}
+            onClick={() => {
+              setOpenElevationPanel(!openElevationPanel)
+              setOpenDropdown(null)
+              setOpenPropControl(null)
+            }}
+            title="Elevation"
+            aria-label="Elevation"
+          >
+            {(() => {
+              const iconName = (propIconMapping as Record<string, string>).elevation || 'layers'
+              const ElevationIcon = iconNameToReactComponent(iconName)
+              return ElevationIcon ? <ElevationIcon className="toolbar-icon" /> : null
+            })()}
+          </button>
+          {openElevationPanel && elevationButtonRef.current && (
+            <div
+              ref={elevationPanelRef}
+              className="toolbar-popover"
+              style={{
+                position: 'absolute',
+                top: elevationButtonRef.current.offsetHeight + 8,
+                left: 0,
+                zIndex: 1000,
+                background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
+                border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+                borderRadius: `var(--recursica-brand-${mode}-layer-layer-1-property-border-radius)`,
+                padding: '12px',
+                minWidth: '200px',
+                boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-2-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-2-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color, rgba(0, 0, 0, 0.1))`,
+              }}
+            >
+              <TokenSlider
+                label="Elevation"
+                tokens={elevationOptions}
+                currentToken={currentElevation}
+                onChange={handleElevationChange}
+                getTokenLabel={(token) => {
+                  const opt = elevationOptions.find((o) => o.name === token.name)
+                  return opt?.label || token.label || token.name
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Component Alternative Layer Dropdown */}
+        <div className="toolbar-icon-wrapper" ref={altLayerButtonRef}>
+          <button
+            className={`toolbar-icon-button ${openDropdown === 'componentAltLayer' ? 'active' : ''}`}
+            onClick={() => {
+              if (openDropdown === 'componentAltLayer') {
+                setOpenDropdown(null)
+              } else {
+                setOpenPropControl(null)
+                setOpenElevationPanel(false)
+                setOpenDropdown('componentAltLayer')
+              }
+            }}
+            title="Component Alt Layer"
+            aria-label="Component Alt Layer"
+          >
+            {(() => {
+              const iconName = (propIconMapping as Record<string, string>)['alt-layer'] || 'layers'
+              const AltLayerIcon = iconNameToReactComponent(iconName)
+              const CaretDownIcon = iconNameToReactComponent('chevron-down')
+              return (
+                <>
+                  {AltLayerIcon && <AltLayerIcon className="toolbar-icon" />}
+                  {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${openDropdown === 'componentAltLayer' ? 'flipped' : ''}`} />}
+                </>
+              )
+            })()}
+          </button>
+          {openDropdown === 'componentAltLayer' && altLayerButtonRef.current && (
+            <div className="dropdown-menu" style={{
+              position: 'absolute',
+              top: altLayerButtonRef.current.offsetHeight + 8,
+              left: 0,
+              zIndex: 1000,
+            }}>
+              {[
+                { key: null, label: 'None' },
+                { key: 'high-contrast', label: 'High Contrast' },
+                { key: 'primary-color', label: 'Primary Color' },
+                { key: 'alert', label: 'Alert' },
+                { key: 'success', label: 'Success' },
+                { key: 'warning', label: 'Warning' },
+                { key: 'floating', label: 'Floating' },
+              ].map(altLayer => (
+                <button
+                  key={altLayer.key || 'none'}
+                  className={`dropdown-item ${currentAlternativeLayer === altLayer.key ? 'selected' : ''}`}
+                  onClick={() => {
+                    handleComponentAlternativeLayerChange(altLayer.key)
+                    setOpenDropdown(null)
+                  }}
+                >
+                  <span
+                    className="alt-layer-swatch"
+                    style={{ 
+                      backgroundColor: altLayer.key 
+                        ? (readCssVar(`--recursica-brand-${mode}-layer-layer-alternative-${altLayer.key}-property-surface`) || '#ffffff')
+                        : (readCssVar(`--recursica-brand-${mode}-layer-layer-0-property-surface`) || '#ffffff')
+                    }}
+                  />
+                  {altLayer.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="toolbar-separator" />
 
       {/* Reset Section */}
       <div className="toolbar-section-group">

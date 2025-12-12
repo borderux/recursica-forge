@@ -13,12 +13,16 @@ interface ButtonPreviewProps {
   selectedVariants: Record<string, string> // e.g., { color: "solid", size: "default" }
   selectedLayer: string // e.g., "layer-0"
   selectedAltLayer: string | null // e.g., "high-contrast" or null
+  componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
+  componentAlternativeLayer?: string | null // e.g., "high-contrast", "none", null
 }
 
 export default function ButtonPreview({
   selectedVariants,
   selectedLayer,
   selectedAltLayer,
+  componentElevation,
+  componentAlternativeLayer,
 }: ButtonPreviewProps) {
   const { mode } = useThemeMode()
   const { tokens } = useVars()
@@ -137,6 +141,8 @@ export default function ButtonPreview({
           variant={colorVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
+          elevation={componentElevation}
+          alternativeLayer={componentAlternativeLayer}
         >
           Button
         </Button>
@@ -146,6 +152,8 @@ export default function ButtonPreview({
           variant={colorVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
+          elevation={componentElevation}
+          alternativeLayer={componentAlternativeLayer}
           icon={iconElement}
         >
           Button
@@ -156,6 +164,8 @@ export default function ButtonPreview({
           variant={colorVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
+          elevation={componentElevation}
+          alternativeLayer={componentAlternativeLayer}
           icon={iconElement}
         />
         
@@ -164,6 +174,8 @@ export default function ButtonPreview({
           variant={colorVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
+          elevation={componentElevation}
+          alternativeLayer={componentAlternativeLayer}
         >
           <span style={{ display: 'flex', alignItems: 'center' }}>
             Button
@@ -176,6 +188,8 @@ export default function ButtonPreview({
           variant={colorVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
+          elevation={componentElevation}
+          alternativeLayer={componentAlternativeLayer}
           disabled
         >
           Button

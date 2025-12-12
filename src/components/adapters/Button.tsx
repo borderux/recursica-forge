@@ -7,7 +7,9 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar } from '../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type ButtonProps = {
@@ -15,6 +17,8 @@ export type ButtonProps = {
   variant?: 'solid' | 'outline' | 'text'
   size?: 'default' | 'small'
   layer?: ComponentLayer
+  elevation?: string // e.g., "elevation-0", "elevation-1", etc.
+  alternativeLayer?: string | null // e.g., "high-contrast", "none", null
   disabled?: boolean
   onClick?: (e: React.MouseEvent) => void
   type?: 'button' | 'submit' | 'reset'
@@ -28,6 +32,8 @@ export function Button({
   variant = 'solid',
   size = 'default',
   layer = 'layer-0',
+  elevation,
+  alternativeLayer,
   disabled = false,
   onClick,
   type = 'button',
@@ -39,6 +45,17 @@ export function Button({
   carbon,
 }: ButtonProps) {
   const Component = useComponent('Button')
+  const { mode } = useThemeMode()
+  
+  // Get elevation and alternative-layer from CSS vars if not provided as props
+  // These are set by the toolbar and initialized from UIKit.json
+  const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+  const alternativeLayerVar = getComponentLevelCssVar('Button', 'alternative-layer')
+  
+  const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+  const componentAlternativeLayer = alternativeLayer !== undefined 
+    ? alternativeLayer 
+    : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
   
   if (!Component) {
     // Fallback to native button if component not available
@@ -53,7 +70,7 @@ export function Button({
         onClick={onClick}
         className={className}
         style={{
-          ...getButtonStyles(variant, size, layer, disabled),
+          ...getButtonStyles(variant, size, layer, disabled, componentElevation, componentAlternativeLayer, mode),
           display: 'flex',
           alignItems: 'center',
           gap: icon ? `var(${iconGapVar})` : 0,
@@ -82,6 +99,8 @@ export function Button({
     variant,
     size,
     layer,
+    elevation: componentElevation,
+    alternativeLayer: componentAlternativeLayer,
     disabled,
     onClick,
     type,
@@ -104,21 +123,40 @@ function getButtonStyles(
   variant: 'solid' | 'outline' | 'text',
   size: 'default' | 'small',
   layer: ComponentLayer,
-  disabled: boolean
+  disabled: boolean,
+  elevation?: string,
+  alternativeLayer?: string | null,
+  mode: 'light' | 'dark' = 'light'
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
   
-  const isAlternativeLayer = layer.startsWith('layer-alternative-')
+  // If alternativeLayer is set (not null and not "none"), override all surface/color props
+  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+  const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
   
   // For alternative layers, use the layer's own colors directly since UIKit.json only defines layer-0 through layer-3
   // For standard layers, use UIKit.json button colors
   let bgVar: string
   let textVar: string
   
-  if (isAlternativeLayer) {
+  if (hasComponentAlternativeLayer) {
+    // Component has alternative-layer prop set - use that alt layer's properties
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+    
+    // Use alternative layer's interactive color and surface
+    // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
+    if (variant === 'solid') {
+      bgVar = `${layerBase}-element-interactive-tone`
+      textVar = `${layerBase}-element-interactive-on-tone`
+    } else {
+      // outline and text variants use interactive-tone for text color
+      bgVar = `${layerBase}-surface`
+      textVar = `${layerBase}-element-interactive-tone`
+    }
+  } else if (isAlternativeLayer) {
     // Extract alternative key (e.g., "high-contrast" from "layer-alternative-high-contrast")
     const altKey = layer.replace('layer-alternative-', '')
-    const layerBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property`
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
     
     // Use alternative layer's interactive color and surface
     // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
@@ -183,20 +221,31 @@ function getButtonStyles(
   
   // Apply disabled styles - use brand disabled opacity, don't change colors
   if (disabled) {
-    styles.opacity = 'var(--recursica-brand-light-state-disabled)'
+    styles.opacity = `var(--recursica-brand-${mode}-state-disabled)`
     styles.cursor = 'not-allowed'
   } else {
     styles.cursor = 'pointer'
   }
   
+  // Apply elevation if set (and not elevation-0)
+  if (elevation && elevation !== 'elevation-0') {
+    const elevationMatch = elevation.match(/elevation-(\d+)/)
+    if (elevationMatch) {
+      const elevationLevel = elevationMatch[1]
+      // Build box-shadow from elevation CSS variables
+      // Format: x-axis y-axis blur spread shadow-color
+      styles.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+    }
+  }
+  
   return styles
 }
 
-function mapButtonProps(props: ButtonProps): any {
+function mapButtonProps(props: ButtonProps & { elevation?: string; alternativeLayer?: string | null }): any {
   const { mantine, material, carbon, ...rest } = props
   
   // Base props that work across libraries
-  // Include variant, size, and layer so library adapters can use them
+  // Include variant, size, layer, elevation, and alternativeLayer so library adapters can use them
   const baseProps: any = {
     ...rest,
     disabled: props.disabled,

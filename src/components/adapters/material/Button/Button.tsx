@@ -5,8 +5,9 @@
  */
 
 import { Button as MaterialButton } from '@mui/material'
-import type { ButtonProps as AdapterButtonProps } from '../Button'
-import { getComponentCssVar } from '../../utils/cssVarNames'
+import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Button.css'
 
 export default function Button({
@@ -14,6 +15,8 @@ export default function Button({
   variant = 'solid',
   size = 'default',
   layer = 'layer-0',
+  elevation,
+  alternativeLayer,
   disabled,
   onClick,
   type,
@@ -23,6 +26,8 @@ export default function Button({
   material,
   ...props
 }: AdapterButtonProps) {
+  const { mode } = useThemeMode()
+  
   // Map unified variant to Material variant
   const materialVariant = variant === 'solid' ? 'contained' : variant === 'outline' ? 'outlined' : 'text'
   
@@ -32,15 +37,26 @@ export default function Button({
   // Determine size prefix for CSS variables
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
-  // For alternative layers, use the layer's own CSS variables
-  // For standard layers, use UIKit.json button CSS variables
-  const isAlternativeLayer = layer.startsWith('layer-alternative-')
+  // Check if component has alternative-layer prop set (overrides layer-based alt layer)
+  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+  const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
+  
   let buttonBgVar: string
   let buttonColorVar: string
   
-  if (isAlternativeLayer) {
+  if (hasComponentAlternativeLayer) {
+    // Component has alternative-layer prop set - use that alt layer's properties
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+    buttonBgVar = variant === 'solid' 
+      ? `${layerBase}-element-interactive-tone`
+      : `${layerBase}-surface`
+    // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
+    buttonColorVar = variant === 'solid'
+      ? `${layerBase}-element-interactive-on-tone`
+      : `${layerBase}-element-interactive-tone`
+  } else if (layer.startsWith('layer-alternative-')) {
     const altKey = layer.replace('layer-alternative-', '')
-    const layerBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property`
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
     buttonBgVar = variant === 'solid' 
       ? `${layerBase}-element-interactive-tone`
       : `${layerBase}-surface`
@@ -104,7 +120,7 @@ export default function Button({
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Material UI's default disabled styles to keep colors unchanged
       ...(disabled && {
-        opacity: 'var(--recursica-brand-light-state-disabled)',
+        opacity: `var(--recursica-brand-${mode}-state-disabled)`,
         backgroundColor: `var(${buttonBgVar}) !important`,
         color: `var(${buttonColorVar}) !important`,
         ...(variant === 'outline' && {
@@ -114,6 +130,17 @@ export default function Button({
           border: 'none !important',
         }),
       }),
+      // Apply elevation if set (and not elevation-0)
+      ...(elevation && elevation !== 'elevation-0' && (() => {
+        const elevationMatch = elevation.match(/elevation-(\d+)/)
+        if (elevationMatch) {
+          const elevationLevel = elevationMatch[1]
+          return {
+            boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+          }
+        }
+        return {}
+      })()),
       ...style,
       ...material?.sx,
     },
