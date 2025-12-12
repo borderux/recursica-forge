@@ -7,8 +7,8 @@
 
 import { Toggle } from '@carbon/react'
 import { useEffect, useRef } from 'react'
-import type { SwitchProps as AdapterSwitchProps } from '../Switch'
-import { toCssVarName } from '../../utils/cssVarNames'
+import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
+import { toCssVarName } from '../../../utils/cssVarNames'
 import './Switch.css'
 
 export default function Switch({

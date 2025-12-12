@@ -11,10 +11,10 @@ import type { ComponentName } from './types'
 registerComponent('carbon', 'Button', () => import('../adapters/carbon/Button/Button'))
 
 // Tabs
-registerComponent('carbon', 'Tabs', () => import('../adapters/carbon/Tabs'))
+registerComponent('carbon', 'Tabs', () => import('../adapters/carbon/Tabs/Tabs'))
 
 // Switch
-registerComponent('carbon', 'Switch', () => import('../adapters/carbon/Switch'))
+registerComponent('carbon', 'Switch', () => import('../adapters/carbon/Switch/Switch'))
 
 // Add more components as they're implemented
 

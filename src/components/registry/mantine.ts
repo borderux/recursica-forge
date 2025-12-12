@@ -11,10 +11,10 @@ import type { ComponentName } from './types'
 registerComponent('mantine', 'Button', () => import('../adapters/mantine/Button/Button'))
 
 // Tabs
-registerComponent('mantine', 'Tabs', () => import('../adapters/mantine/Tabs'))
+registerComponent('mantine', 'Tabs', () => import('../adapters/mantine/Tabs/Tabs'))
 
 // Switch
-registerComponent('mantine', 'Switch', () => import('../adapters/mantine/Switch'))
+registerComponent('mantine', 'Switch', () => import('../adapters/mantine/Switch/Switch'))
 
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))

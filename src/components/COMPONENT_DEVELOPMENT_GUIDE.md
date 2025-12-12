@@ -38,17 +38,17 @@ src/components/adapters/
 │   └── {ComponentName}/
 │       ├── {ComponentName}.tsx      # Mantine implementation
 │       ├── {ComponentName}.css      # Mantine CSS overrides
-│       └── audit.md                  # Mantine-specific audit
+│       └── {ComponentName}.mantine.audit.md  # Mantine-specific audit
 ├── material/
 │   └── {ComponentName}/
 │       ├── {ComponentName}.tsx      # Material UI implementation
 │       ├── {ComponentName}.css      # Material UI CSS overrides
-│       └── audit.md                  # Material UI-specific audit
+│       └── {ComponentName}.material.audit.md  # Material UI-specific audit
 └── carbon/
     └── {ComponentName}/
         ├── {ComponentName}.tsx      # Carbon implementation
         ├── {ComponentName}.css      # Carbon CSS overrides
-        └── audit.md                  # Carbon-specific audit
+        └── {ComponentName}.carbon.audit.md  # Carbon-specific audit
 ```
 
 ### Example: Button Component
@@ -60,17 +60,17 @@ src/components/adapters/
 │   └── Button/
 │       ├── Button.tsx
 │       ├── Button.css
-│       └── audit.md
+│       └── Button.mantine.audit.md
 ├── material/
 │   └── Button/
 │       ├── Button.tsx
 │       ├── Button.css
-│       └── audit.md
+│       └── Button.material.audit.md
 └── carbon/
     └── Button/
         ├── Button.tsx
         ├── Button.css
-        └── audit.md
+        └── Button.carbon.audit.md
 ```
 
 ## Development Process
@@ -322,9 +322,9 @@ See [Testing Requirements](#testing-requirements) section below.
 **IMPORTANT**: Audits are **library-specific** and must be created for **each library separately**.
 
 Create an audit document for each library implementation:
-- `src/components/adapters/mantine/{ComponentName}/audit.md`
-- `src/components/adapters/material/{ComponentName}/audit.md`
-- `src/components/adapters/carbon/{ComponentName}/audit.md`
+- `src/components/adapters/mantine/{ComponentName}/{ComponentName}.mantine.audit.md`
+- `src/components/adapters/material/{ComponentName}/{ComponentName}.material.audit.md`
+- `src/components/adapters/carbon/{ComponentName}/{ComponentName}.carbon.audit.md`
 
 **Do NOT create global audit reports** - each library has its own unique CSS variables, fallbacks, and implementation details that must be documented separately.
 
@@ -774,16 +774,20 @@ Each library implementation must include its own audit document that identifies:
 src/components/adapters/
 ├── mantine/
 │   └── {ComponentName}/
-│       └── audit.md              # Mantine-specific audit
+│       └── {ComponentName}.mantine.audit.md  # Mantine-specific audit
 ├── material/
 │   └── {ComponentName}/
-│       └── audit.md              # Material UI-specific audit
+│       └── {ComponentName}.material.audit.md  # Material UI-specific audit
 └── carbon/
     └── {ComponentName}/
-        └── audit.md              # Carbon-specific audit
+        └── {ComponentName}.carbon.audit.md  # Carbon-specific audit
 ```
 
-**File Path Pattern**: `src/components/adapters/{library}/{ComponentName}/audit.md`
+**File Path Pattern**: `src/components/adapters/{library}/{ComponentName}/{ComponentName}.{library}.audit.md`
+
+**Naming Convention**: `{ComponentName}.{library}.audit.md`
+- Examples: `Button.mantine.audit.md`, `Button.material.audit.md`, `Button.carbon.audit.md`
+- This naming makes it clear which component and library the audit covers
 
 **Do NOT create**:
 - ❌ Global audit reports at the adapter root level
@@ -792,7 +796,7 @@ src/components/adapters/
 
 ### Audit File Template
 
-**File**: `src/components/adapters/{library}/{ComponentName}/audit.md`
+**File**: `src/components/adapters/{library}/{ComponentName}/{ComponentName}.{library}.audit.md`
 
 ```markdown
 # {ComponentName} Component Audit - {Library}
@@ -880,6 +884,7 @@ Browser default
 - [x] Library variables are only used as fallbacks in `var()` functions
 - [x] Visual appearance matches across all libraries
 - [x] All variants, sizes, and layers are tested
+- [x] TSX to CSS migration opportunities identified and documented
 
 ## Running Audits
 
@@ -890,27 +895,166 @@ Browser default
 **Audit Steps**:
 
 1. **Mantine Audit**: Analyze `mantine/{ComponentName}/` files
-   - Review `mantine/{ComponentName}/Button.tsx`
-   - Review `mantine/{ComponentName}/Button.css`
+   - Review `mantine/{ComponentName}/{ComponentName}.tsx`
+   - Review `mantine/{ComponentName}/{ComponentName}.css`
    - Document all Mantine-specific CSS variables
-   - Save to: `mantine/{ComponentName}/audit.md`
+   - Save to: `mantine/{ComponentName}/{ComponentName}.mantine.audit.md`
 
 2. **Material UI Audit**: Analyze `material/{ComponentName}/` files
-   - Review `material/{ComponentName}/Button.tsx`
-   - Review `material/{ComponentName}/Button.css`
+   - Review `material/{ComponentName}/{ComponentName}.tsx`
+   - Review `material/{ComponentName}/{ComponentName}.css`
    - Document all Material UI-specific CSS variables
-   - Save to: `material/{ComponentName}/audit.md`
+   - Save to: `material/{ComponentName}/{ComponentName}.material.audit.md`
 
 3. **Carbon Audit**: Analyze `carbon/{ComponentName}/` files
-   - Review `carbon/{ComponentName}/Button.tsx`
-   - Review `carbon/{ComponentName}/Button.css`
+   - Review `carbon/{ComponentName}/{ComponentName}.tsx`
+   - Review `carbon/{ComponentName}/{ComponentName}.css`
    - Document all Carbon-specific CSS variables
-   - Save to: `carbon/{ComponentName}/audit.md`
+   - Save to: `carbon/{ComponentName}/{ComponentName}.carbon.audit.md`
 
 **Do NOT create**:
 - ❌ Global audit reports at the adapter root level
 - ❌ Combined audit files covering multiple libraries
 - ❌ Audit files outside the library's component folder
+
+### TSX to CSS Migration Audit
+
+**Goal**: Minimize code in TSX files and maximize CSS usage. During the audit process, identify any styling logic in the TSX file that could/should be moved to CSS.
+
+#### What to Look For
+
+Review the `{ComponentName}.tsx` file and identify:
+
+1. **Inline Styles in `style` prop**:
+   - Static CSS properties that don't change based on props
+   - Properties that could use CSS selectors instead
+   - Properties that could use CSS custom properties (CSS variables)
+
+2. **Conditional Style Objects**:
+   - Style objects built conditionally that could use CSS classes
+   - Variant-based styles that could use CSS attribute selectors or classes
+   - State-based styles (hover, active, disabled) that should be in CSS
+
+3. **Computed Style Values**:
+   - Style values calculated in TSX that could be CSS variables
+   - Dynamic values that could be set as CSS custom properties and used in CSS
+
+4. **Library-Specific Style Props**:
+   - Material UI `sx` prop usage that could be moved to CSS
+   - Mantine `styles` prop usage that could be moved to CSS
+   - Carbon inline styles that could be moved to CSS
+
+#### Migration Strategy
+
+**Before (TSX-heavy)**:
+```typescript
+// ❌ Bad: Inline styles in TSX
+style={{
+  backgroundColor: `var(${buttonBgVar})`,
+  color: `var(${buttonColorVar})`,
+  fontSize: `var(${fontSizeVar})`,
+  height: `var(${heightVar})`,
+  paddingLeft: `var(${horizontalPaddingVar})`,
+  paddingRight: `var(${horizontalPaddingVar})`,
+  borderRadius: `var(${borderRadiusVar})`,
+  ...(variant === 'outline' ? {
+    border: `1px solid var(${buttonColorVar})`,
+  } : {}),
+  ...(variant === 'text' ? {
+    border: 'none',
+  } : {}),
+}}
+```
+
+**After (CSS-heavy)**:
+```typescript
+// ✅ Good: CSS variables set in TSX, styles in CSS
+style={{
+  '--button-bg': `var(${buttonBgVar})`,
+  '--button-color': `var(${buttonColorVar})`,
+  '--button-font-size': `var(${fontSizeVar})`,
+  '--button-height': `var(${heightVar})`,
+  '--button-padding-x': `var(${horizontalPaddingVar})`,
+  '--button-border-radius': `var(${borderRadiusVar})`,
+}}
+```
+
+```css
+/* ✅ Good: All styling in CSS */
+.button-root {
+  background-color: var(--button-bg);
+  color: var(--button-color);
+  font-size: var(--button-font-size);
+  height: var(--button-height);
+  padding-left: var(--button-padding-x);
+  padding-right: var(--button-padding-x);
+  border-radius: var(--button-border-radius);
+}
+
+.button-root[data-variant='outline'] {
+  border: 1px solid var(--button-color);
+}
+
+.button-root[data-variant='text'] {
+  border: none;
+}
+```
+
+#### Audit Checklist
+
+When auditing, check for:
+
+- [ ] **Inline style properties** that could be moved to CSS
+- [ ] **Conditional style logic** that could use CSS selectors
+- [ ] **Computed style values** that could be CSS variables
+- [ ] **Library-specific style props** (sx, styles) that could be CSS
+- [ ] **State-based styles** (hover, active, disabled) that should be in CSS
+- [ ] **Variant-based styles** that could use CSS attribute selectors
+- [ ] **Size-based styles** that could use CSS attribute selectors
+
+#### Documentation
+
+In the audit document, add a section documenting:
+
+1. **TSX Code That Could Be CSS**:
+   - List specific inline styles or style objects
+   - Explain why they could be moved to CSS
+   - Provide migration recommendations
+
+2. **CSS Migration Opportunities**:
+   - Identify which styles can be moved
+   - Suggest CSS selectors or classes to use
+   - Document any CSS variables that should be created
+
+3. **Priority**:
+   - Mark high-priority items (easy wins, large impact)
+   - Mark low-priority items (complex, minimal benefit)
+
+#### Example Audit Section
+
+```markdown
+## TSX to CSS Migration Opportunities
+
+### High Priority
+
+1. **Inline Style Properties** (Lines 97-110 in Button.tsx)
+   - **Current**: Direct style properties in `sx` prop
+   - **Recommendation**: Move to CSS using component-level CSS variables
+   - **Impact**: Reduces TSX complexity, improves maintainability
+   - **Migration**: Set CSS variables in TSX, use in CSS file
+
+2. **Variant-Based Border Styles** (Lines 102-109 in Button.tsx)
+   - **Current**: Conditional border styles in TSX
+   - **Recommendation**: Use CSS attribute selectors `[data-variant='outline']`
+   - **Impact**: Cleaner TSX, better separation of concerns
+
+### Low Priority
+
+1. **Dynamic Elevation Calculation** (Lines 198-229 in Button.tsx)
+   - **Current**: Box-shadow calculated and applied in TSX
+   - **Recommendation**: Could use CSS custom properties, but complexity may justify TSX
+   - **Impact**: Minimal - logic is complex and dynamic
+```
 
 ### Automated Audit Commands
 
@@ -1078,14 +1222,15 @@ After creating a new component, complete this checklist:
 
 ### Audit
 
-- [ ] **Mantine audit document created** at `mantine/{ComponentName}/audit.md`
-- [ ] **Material UI audit document created** at `material/{ComponentName}/audit.md`
-- [ ] **Carbon audit document created** at `carbon/{ComponentName}/audit.md`
+- [ ] **Mantine audit document created** at `mantine/{ComponentName}/{ComponentName}.mantine.audit.md`
+- [ ] **Material UI audit document created** at `material/{ComponentName}/{ComponentName}.material.audit.md`
+- [ ] **Carbon audit document created** at `carbon/{ComponentName}/{ComponentName}.carbon.audit.md`
 - [ ] All Mantine library CSS variables documented in Mantine audit
 - [ ] All Material UI library CSS variables documented in Material UI audit
 - [ ] All Carbon library CSS variables documented in Carbon audit
 - [ ] All Recursica CSS variables documented (in each library's audit)
 - [ ] Uncovered variables identified and documented (in each library's audit)
+- [ ] **TSX to CSS migration opportunities identified and documented** (in each library's audit)
 - [ ] **No global audit reports created** (audits are library-specific only)
 
 ### Migration
@@ -1125,7 +1270,7 @@ See the existing Button component as a reference:
 - **Carbon**: `src/components/adapters/carbon/Button/Button.tsx`
 - **CSS Files**: `src/components/adapters/{library}/Button/Button.css`
 - **Tests**: `src/components/adapters/{library}/Button/Button.test.tsx`
-- **Audits**: `src/components/adapters/{library}/Button/audit.md`
+- **Audits**: `src/components/adapters/{library}/Button/Button.{library}.audit.md`
 
 ## Additional Resources
 
@@ -1141,9 +1286,9 @@ If you're unsure about any aspect of component development:
 1. Review the existing Button component implementation
 2. Review the CSS Override Files section above for CSS override guidelines
 3. Review the library-specific audit documents for examples:
-   - `mantine/{ComponentName}/audit.md`
-   - `material/{ComponentName}/audit.md`
-   - `carbon/{ComponentName}/audit.md`
+   - `mantine/{ComponentName}/{ComponentName}.mantine.audit.md`
+   - `material/{ComponentName}/{ComponentName}.material.audit.md`
+   - `carbon/{ComponentName}/{ComponentName}.carbon.audit.md`
    
    **Note**: Each library has its own audit document - do not create global audit reports.
 4. Consult the testing examples above

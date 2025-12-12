@@ -4,7 +4,7 @@
 
 This document audits the Button component implementation for Mantine, identifying all CSS variables used, their sources, and any gaps in coverage.
 
-**Last Updated**: 2025-01-27
+**Last Updated**: 2025-12-12
 
 ## Library CSS Variables
 
@@ -47,6 +47,11 @@ This document audits the Button component implementation for Mantine, identifyin
 | `--recursica-brand-light-layer-layer-alternative-{key}-property-surface` | Brand.json | Alternative layer surface |
 | `--recursica-brand-typography-button-font-weight` | Brand.json | Button font weight |
 | `--recursica-brand-light-state-disabled` | Brand.json | Disabled state opacity |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-x-axis` | Brand.json | Elevation shadow x-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-y-axis` | Brand.json | Elevation shadow y-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-blur` | Brand.json | Elevation shadow blur radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-spread` | Brand.json | Elevation shadow spread radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-shadow-color` | Brand.json | Elevation shadow color |
 
 ### Variables Used (with Library Fallbacks)
 
@@ -90,6 +95,7 @@ This document audits the Button component implementation for Mantine, identifyin
 | `--button-icon-text-gap` | Gap between icon and text | `0px` (when no icon) |
 | `--button-content-max-width` | Maximum content width | From UIKit.json |
 | `--button-bd` | Border style (for outline variant) | Calculated with `--mantine-scale` |
+| `boxShadow` (inline style) | Elevation shadow (when elevation prop is set) | Built from brand elevation CSS vars |
 | `--button-height` | Button height | From UIKit.json |
 | `--button-min-width` | Button minimum width | From UIKit.json |
 | `--button-padding` | Button padding | From UIKit.json |
@@ -144,9 +150,13 @@ Mantine default styles (via library)
 - [x] All sizes (default, small) are covered
 - [x] All layers (layer-0 through layer-3) are covered
 - [x] Alternative layers are supported
+- [x] Elevation prop is supported (component-level and from alt layers)
+- [x] Border handling is correct (outline has border, text has no border)
+- [x] Border color uses outline-text CSS variable
 - [x] All states (default, hover, active, disabled, focus) are covered
 - [x] Icon support (left, right, icon-only) is covered
 - [x] Text truncation is implemented
+- [ ] TSX to CSS migration opportunities identified and documented
 
 ## Automated Audit Commands
 
@@ -210,11 +220,65 @@ Screenshots should be captured for each test case to ensure visual consistency w
 4. ✅ No direct library variable modification
 5. ✅ All CSS variables follow the correct namespace pattern
 
+## Recent Changes
+
+### Elevation Support
+- Added `elevation` prop support that applies box-shadow using brand elevation CSS variables
+- Elevation is read from alternative layer properties if `alternativeLayer` prop is set, otherwise uses component-level `elevation` prop
+- Elevation-0 does not apply any box-shadow
+- Uses brand elevation CSS variables: `--recursica-brand-{mode}-elevations-elevation-{n}-{property}`
+
+### Border Handling
+- **Outline variant**: Now explicitly sets border with `1px solid` using outline-text CSS variable color
+- **Text variant**: Explicitly sets `border: 'none'` to ensure no border is displayed
+- Border color uses the outline-text CSS variable (`--recursica-ui-kit-components-button-color-layer-{n}-variant-outline-text`)
+
+## TSX to CSS Migration Opportunities
+
+### High Priority
+
+1. **Inline Style Properties in `style` prop** (Lines 151-197 in Button.tsx)
+   - **Current**: Direct style properties like `color`, `fontWeight`, `minWidth`, `borderRadius`, `opacity`, `display`, `alignItems`, `justifyContent` are set inline
+   - **Recommendation**: Move to CSS using component-level CSS variables and data attributes
+   - **Impact**: Reduces TSX complexity, improves maintainability, better separation of concerns
+   - **Migration**: 
+     - Set CSS variables in TSX (already done for most)
+     - Add CSS rules using data attributes: `[data-variant]`, `[data-size]`, `[data-disabled]`, `[data-icon-only]`
+     - Example: `color`, `fontWeight`, `minWidth`, `borderRadius` can all be in CSS
+
+2. **Conditional Flex Layout Styles** (Lines 124-128, 187-191 in Button.tsx)
+   - **Current**: Conditional `display: flex`, `alignItems: center`, `justifyContent` logic in TSX
+   - **Recommendation**: Use CSS selectors for icon-only and content states
+   - **Impact**: Cleaner TSX, better performance
+   - **Migration**: Use CSS `:has()` or data attributes to detect icon-only state
+
+### Medium Priority
+
+1. **Mantine `styles` prop usage** (Lines 120-149 in Button.tsx)
+   - **Current**: Uses Mantine's `styles` prop for disabled state overrides and flex layout
+   - **Recommendation**: Move disabled state styles to CSS using `:disabled` or `[data-disabled]` selectors
+   - **Impact**: Reduces library-specific prop usage, more maintainable
+   - **Note**: Some Mantine-specific styling may need to stay in `styles` prop for library compatibility
+
+2. **Elevation Box Shadow Calculation** (Lines 198-231 in Button.tsx)
+   - **Current**: Complex box-shadow calculation in TSX with elevation parsing
+   - **Recommendation**: Could use CSS custom properties for elevation, but complexity may justify TSX
+   - **Impact**: Low - logic is complex and dynamic, CSS would require many variables
+   - **Status**: Acceptable to keep in TSX due to complexity
+
+### Low Priority
+
+1. **Border Style for Variants** (Lines 168-174 in Button.tsx)
+   - **Current**: Border styles set via `--button-bd` CSS variable in TSX
+   - **Recommendation**: Already using CSS variable, but could use CSS attribute selectors
+   - **Impact**: Minimal - already well abstracted via CSS variable
+   - **Status**: Current approach is acceptable
+
 ## Issues Found
 
-None. The implementation follows all guidelines correctly.
+None. The implementation follows all guidelines correctly. See TSX to CSS Migration Opportunities above for potential improvements.
 
 ## Last Updated
 
-2025-01-27
+2025-12-12
 

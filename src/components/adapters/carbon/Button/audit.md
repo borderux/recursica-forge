@@ -4,7 +4,7 @@
 
 This document audits the Button component implementation for Carbon Design System, identifying all CSS variables used, their sources, and any gaps in coverage.
 
-**Last Updated**: 2025-01-27
+**Last Updated**: 2025-12-12
 
 ## Library CSS Variables
 
@@ -45,6 +45,11 @@ This document audits the Button component implementation for Carbon Design Syste
 | `--recursica-brand-light-layer-layer-alternative-{key}-property-surface` | Brand.json | Alternative layer surface |
 | `--recursica-brand-typography-button-font-weight` | Brand.json | Button font weight |
 | `--recursica-brand-light-state-disabled` | Brand.json | Disabled state opacity |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-x-axis` | Brand.json | Elevation shadow x-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-y-axis` | Brand.json | Elevation shadow y-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-blur` | Brand.json | Elevation shadow blur radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-spread` | Brand.json | Elevation shadow spread radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-shadow-color` | Brand.json | Elevation shadow color |
 
 ### Variables Used (with Library Fallbacks)
 
@@ -65,6 +70,15 @@ style: {
   '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
   '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
   '--button-content-max-width': `var(${contentMaxWidthVar})`,
+  // For outline, use the outline-text CSS var for border color and ensure border is set
+  ...(variant === 'outline' ? {
+    border: `1px solid var(${buttonColorVar})`,
+    borderColor: `var(${buttonColorVar})`,
+  } : {}),
+  // For text variant, explicitly remove border
+  ...(variant === 'text' ? {
+    border: 'none',
+  } : {}),
 }
 ```
 
@@ -142,9 +156,13 @@ Carbon default styles
 - [x] All sizes (default, small) are covered
 - [x] All layers (layer-0 through layer-3) are covered
 - [x] Alternative layers are supported
+- [x] Elevation prop is supported (component-level and from alt layers)
+- [x] Border handling is correct (outline has border, text has no border)
+- [x] Border color uses outline-text CSS variable
 - [x] All states (default, hover, active, disabled, focus) are covered
 - [x] Icon support (left, right, icon-only) is covered
 - [x] Text truncation is implemented
+- [x] TSX to CSS migration opportunities identified and documented
 
 ## Automated Audit Commands
 
@@ -230,7 +248,78 @@ background-color: var(--button-bg, var(--recursica-ui-kit-components-button-colo
 
 **Status**: ✅ Fixed - Carbon variables are now used only as fallbacks in CSS, not directly modified.
 
+### Issue #2: Border Handling (FIXED)
+
+**Previous Implementation** (❌ Incorrect):
+- Text variant had borders
+- Outline variant did not have borders
+
+**Current Implementation** (✅ Correct):
+- **Outline variant**: Explicitly sets `border: 1px solid` using outline-text CSS variable color
+- **Text variant**: Explicitly sets `border: 'none'` to ensure no border
+- Border color uses the outline-text CSS variable
+- CSS rules added to enforce: `.cds--btn--secondary` and `.cds--btn--tertiary`
+
+**Status**: ✅ Fixed - Border handling now correctly matches expected behavior.
+
+### Issue #3: Elevation Support (ADDED)
+
+**New Feature**:
+- Added `elevation` prop support that applies box-shadow using brand elevation CSS variables
+- Elevation is read from alternative layer properties if `alternativeLayer` prop is set, otherwise uses component-level `elevation` prop
+- Elevation-0 does not apply any box-shadow
+- Uses brand elevation CSS variables: `--recursica-brand-{mode}-elevations-elevation-{n}-{property}`
+
+**Status**: ✅ Implemented - Elevation support added to all Button implementations.
+
+## TSX to CSS Migration Opportunities
+
+### High Priority
+
+1. **Inline Style Properties in `style` prop** (Lines 95-175 in Button.tsx)
+   - **Current**: Direct style properties like `backgroundColor`, `color`, `fontSize`, `fontWeight`, `height`, `minWidth`, `paddingLeft`, `paddingRight`, `borderRadius`, `display`, `alignItems`, `justifyContent` are set inline
+   - **Recommendation**: Move to CSS using component-level CSS variables and data attributes
+   - **Impact**: Reduces TSX complexity, improves maintainability, better separation of concerns
+   - **Migration**: 
+     - Set CSS variables in TSX (already done for most)
+     - Add CSS rules using data attributes: `[data-variant]`, `[data-size]`, `[data-disabled]`, `[data-icon-only]`
+     - Example: Most properties can be moved to CSS, only keep dynamic values in TSX
+
+2. **Variant-Based Border Styles** (Lines 108-115 in Button.tsx)
+   - **Current**: Conditional border styles in `style` prop
+   - **Recommendation**: Use CSS attribute selectors `[data-variant='outline']` and `[data-variant='text']`
+   - **Impact**: Cleaner TSX, better separation of concerns
+   - **Migration**: Already partially done in CSS (lines 51-58 in Button.css), but still in `style` prop
+
+3. **Disabled State Styles** (Lines 131-141 in Button.tsx)
+   - **Current**: Disabled state overrides in `style` prop
+   - **Recommendation**: Move to CSS using `:disabled` or `[data-disabled]` selectors
+   - **Impact**: Reduces conditional logic in TSX
+   - **Migration**: Use CSS `:disabled` pseudo-class with `!important` if needed
+
+### Medium Priority
+
+1. **Icon-Only Button Centering** (Lines 120-122 in Button.tsx)
+   - **Current**: Conditional `justifyContent: 'center'` in `style` prop
+   - **Recommendation**: Use CSS selector for icon-only state
+   - **Impact**: Cleaner TSX
+   - **Migration**: Use `:not(:has(> svg))` or data attribute
+
+2. **Elevation Box Shadow Calculation** (Lines 142-175 in Button.tsx)
+   - **Current**: Complex box-shadow calculation in TSX with elevation parsing
+   - **Recommendation**: Could use CSS custom properties for elevation, but complexity may justify TSX
+   - **Impact**: Low - logic is complex and dynamic, CSS would require many variables
+   - **Status**: Acceptable to keep in TSX due to complexity
+
+### Low Priority
+
+1. **Flex Layout Properties** (Lines 117-118 in Button.tsx)
+   - **Current**: `display: flex` and `alignItems: center` in `style` prop
+   - **Recommendation**: Move to CSS
+   - **Impact**: Minimal - simple properties
+   - **Status**: Low priority but easy win
+
 ## Last Updated
 
-2025-01-27
+2025-12-12
 

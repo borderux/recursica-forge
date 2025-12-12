@@ -4,7 +4,7 @@
 
 This document audits the Button component implementation for Material UI, identifying all CSS variables used, their sources, and any gaps in coverage.
 
-**Last Updated**: 2025-01-27
+**Last Updated**: 2025-12-12
 
 ## Library CSS Variables
 
@@ -41,6 +41,11 @@ Material UI uses the `sx` prop and theme system rather than CSS variables. No Ma
 | `--recursica-brand-light-layer-layer-alternative-{key}-property-surface` | Brand.json | Alternative layer surface |
 | `--recursica-brand-typography-button-font-weight` | Brand.json | Button font weight |
 | `--recursica-brand-light-state-disabled` | Brand.json | Disabled state opacity |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-x-axis` | Brand.json | Elevation shadow x-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-y-axis` | Brand.json | Elevation shadow y-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-blur` | Brand.json | Elevation shadow blur radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-spread` | Brand.json | Elevation shadow spread radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-shadow-color` | Brand.json | Elevation shadow color |
 
 ### Variables Used (in sx prop)
 
@@ -49,7 +54,15 @@ Material UI uses the `sx` prop and theme system rather than CSS variables. No Ma
 sx: {
   backgroundColor: `var(${buttonBgVar})`,
   color: `var(${buttonColorVar})`,
-  borderColor: variant === 'outline' ? `var(${buttonColorVar})` : undefined,
+  // For outline, use the outline-text CSS var for border color and ensure border is set
+  ...(variant === 'outline' ? {
+    border: `1px solid var(${buttonColorVar})`,
+    borderColor: `var(${buttonColorVar})`,
+  } : {}),
+  // For text variant, explicitly remove border
+  ...(variant === 'text' ? {
+    border: 'none',
+  } : {}),
   fontSize: `var(${fontSizeVar})`,
   fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
   height: `var(${heightVar})`,
@@ -132,9 +145,13 @@ Material UI default theme styles
 - [x] All sizes (default, small) are covered
 - [x] All layers (layer-0 through layer-3) are covered
 - [x] Alternative layers are supported
+- [x] Elevation prop is supported (component-level and from alt layers)
+- [x] Border handling is correct (outline has border, text has no border)
+- [x] Border color uses outline-text CSS variable
 - [x] All states (default, hover, active, disabled, focus) are covered
 - [x] Icon support (left, right, icon-only) is covered
 - [x] Text truncation is implemented
+- [x] TSX to CSS migration opportunities identified and documented
 
 ## Automated Audit Commands
 
@@ -198,11 +215,73 @@ Screenshots should be captured for each test case to ensure visual consistency w
 4. ✅ No direct library variable modification (N/A)
 5. ✅ All CSS variables follow the correct namespace pattern
 
+## Recent Changes
+
+### Elevation Support
+- Added `elevation` prop support that applies box-shadow using brand elevation CSS variables
+- Elevation is read from alternative layer properties if `alternativeLayer` prop is set, otherwise uses component-level `elevation` prop
+- Elevation-0 does not apply any box-shadow
+- Uses brand elevation CSS variables: `--recursica-brand-{mode}-elevations-elevation-{n}-{property}`
+
+### Border Handling
+- **Outline variant**: Now explicitly sets border with `1px solid` using outline-text CSS variable color
+- **Text variant**: Explicitly sets `border: 'none'` to ensure no border is displayed
+- Border color uses the outline-text CSS variable (`--recursica-ui-kit-components-button-color-layer-{n}-variant-outline-text`)
+- CSS rules added to enforce border styles: `.MuiButton-outlined` and `.MuiButton-text`
+
+## TSX to CSS Migration Opportunities
+
+### High Priority
+
+1. **Extensive `sx` prop usage** (Lines 97-177 in Button.tsx)
+   - **Current**: All styling done via Material UI's `sx` prop with direct CSS properties
+   - **Recommendation**: Move static styles to CSS file, use CSS variables for dynamic values
+   - **Impact**: Large - significantly reduces TSX complexity, improves maintainability
+   - **Migration**: 
+     - Set CSS variables in TSX (already done for some)
+     - Move static properties to CSS: `fontSize`, `fontWeight`, `height`, `minWidth`, `paddingLeft`, `paddingRight`, `borderRadius`, `display`, `alignItems`
+     - Use CSS classes with data attributes: `[data-variant]`, `[data-size]`, `[data-disabled]`
+     - Keep only dynamic/computed values in `sx` prop
+
+2. **Variant-Based Border Styles** (Lines 102-109 in Button.tsx)
+   - **Current**: Conditional border styles in `sx` prop
+   - **Recommendation**: Use CSS attribute selectors `[data-variant='outline']` and `[data-variant='text']`
+   - **Impact**: Cleaner TSX, better separation of concerns
+   - **Migration**: Already partially done in CSS (lines 42-49 in Button.css), but still in `sx` prop
+
+3. **Disabled State Styles** (Lines 130-140 in Button.tsx)
+   - **Current**: Disabled state overrides in `sx` prop
+   - **Recommendation**: Move to CSS using `:disabled` or `[data-disabled]` selectors
+   - **Impact**: Reduces conditional logic in TSX
+   - **Migration**: Use CSS `:disabled` pseudo-class with `!important` if needed
+
+### Medium Priority
+
+1. **Icon-Only Button Centering** (Lines 121-123 in Button.tsx)
+   - **Current**: Conditional `justifyContent: 'center'` in `sx` prop
+   - **Recommendation**: Use CSS selector for icon-only state
+   - **Impact**: Cleaner TSX
+   - **Migration**: Use `:not(:has(.MuiButton-startIcon))` or data attribute
+
+2. **Elevation Box Shadow Calculation** (Lines 141-174 in Button.tsx)
+   - **Current**: Complex box-shadow calculation in TSX with elevation parsing
+   - **Recommendation**: Could use CSS custom properties for elevation, but complexity may justify TSX
+   - **Impact**: Low - logic is complex and dynamic, CSS would require many variables
+   - **Status**: Acceptable to keep in TSX due to complexity
+
+### Low Priority
+
+1. **Flex Layout Properties** (Lines 118-119 in Button.tsx)
+   - **Current**: `display: flex` and `alignItems: center` in `sx` prop
+   - **Recommendation**: Move to CSS
+   - **Impact**: Minimal - simple properties
+   - **Status**: Low priority but easy win
+
 ## Issues Found
 
-None. The implementation follows all guidelines correctly.
+None. The implementation follows all guidelines correctly. See TSX to CSS Migration Opportunities above for potential improvements.
 
 ## Last Updated
 
-2025-01-27
+2025-12-12
 
