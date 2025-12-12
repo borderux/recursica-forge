@@ -30,16 +30,21 @@
   "max-width": "arrows-out-line-horizontal",
   "min-height": "arrows-in-line-vertical",
   "max-height": "arrows-out-line-vertical",
-  "border-radius": "angle",
+  "border-radius": "corners-out",
   "border-width": "rectangle-stack",
   "border-style": "rectangle-group",
   "icon": "frame-corners",
   "icon-padding": "split-horizontal",
   "icon-text-gap": "split-horizontal",
+  "label-switch-gap": "split-horizontal",
+  "track": "paint-bucket",
+  "track-selected": "paint-bucket",
+  "track-unselected": "paint-bucket",
   "content-max-width": "arrows-out-line-horizontal",
   "variant-color": "diamonds-four",
   "variant-size": "resize",
   "layer": "square-3-stack-3d",
   "alt-layer": "swap",
-  "reset": "arrow-path"
+  "reset": "arrow-path",
+  "elevation": "copy-simple"
 }

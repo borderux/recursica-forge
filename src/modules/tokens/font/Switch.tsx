@@ -1,17 +1,52 @@
-import React from 'react'
-import { useThemeMode } from '../../theme/ThemeModeContext'
+import React, { useMemo } from 'react'
+import { toCssVarName } from '../../../components/utils/cssVarNames'
 
 type SwitchProps = {
   checked: boolean
   onChange: (checked: boolean) => void
   disabled?: boolean
+  layer?: string // e.g., "layer-0"
+  colorVariant?: string // e.g., "default"
+  sizeVariant?: string // e.g., "default"
 }
 
-export function Switch({ checked, onChange, disabled = false }: SwitchProps) {
-  const { mode } = useThemeMode()
-  const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+export function Switch({ 
+  checked, 
+  onChange, 
+  disabled = false,
+  layer = 'layer-0',
+  colorVariant = 'default',
+  sizeVariant = 'default',
+}: SwitchProps) {
+  // Build UIKit CSS var names
+  const thumbVar = useMemo(() => {
+    const path = ['components', 'switch', 'color', layer, 'variant', colorVariant, 'thumb']
+    return toCssVarName(path.join('.'))
+  }, [layer, colorVariant])
+
+  const trackSelectedVar = useMemo(() => {
+    const path = ['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-selected']
+    return toCssVarName(path.join('.'))
+  }, [layer, colorVariant])
+
+  const trackUnselectedVar = useMemo(() => {
+    const path = ['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-unselected']
+    return toCssVarName(path.join('.'))
+  }, [layer, colorVariant])
+
+  const borderRadiusVar = useMemo(() => {
+    const path = ['components', 'switch', 'size', 'variant', sizeVariant, 'border-radius']
+    return toCssVarName(path.join('.'))
+  }, [sizeVariant])
+
+  const thumbSizeVar = useMemo(() => {
+    const path = ['components', 'switch', 'size', 'variant', sizeVariant, 'thumb-size']
+    return toCssVarName(path.join('.'))
+  }, [sizeVariant])
+
+  // CSS variables already include the layer in the path
+  // e.g., --recursica-ui-kit-components-switch-color-layer-0-variant-default-thumb
+  // These will resolve to the correct layer-specific values from UIKit.json
   
   return (
     <button
@@ -22,14 +57,16 @@ export function Switch({ checked, onChange, disabled = false }: SwitchProps) {
       onClick={() => !disabled && onChange(!checked)}
       style={{
         position: 'relative',
-        width: 'var(--recursica-brand-dimensions-spacer-xl)',
-        height: 'var(--recursica-brand-dimensions-spacer-md)',
-        borderRadius: 'var(--recursica-brand-dimensions-spacer-md)',
+        width: '48px',
+        height: '24px',
+        borderRadius: `var(${borderRadiusVar})`,
         border: 'none',
-        background: checked ? `var(${interactiveColor})` : `var(${layer1Base}-border-color)`,
+        background: checked 
+          ? `var(${trackSelectedVar})` 
+          : `var(${trackUnselectedVar})`,
         cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'background-color 0.2s',
-        padding: 0,
+        padding: '2px',
         outline: 'none',
       }}
       onKeyDown={(e) => {
@@ -43,12 +80,13 @@ export function Switch({ checked, onChange, disabled = false }: SwitchProps) {
         style={{
           position: 'absolute',
           top: '50%',
-          left: checked ? 'calc(100% - var(--recursica-brand-dimensions-spacer-md) - var(--recursica-brand-dimensions-spacer-xs))' : 'var(--recursica-brand-dimensions-spacer-xs)',
+          left: checked ? 'calc(100% - 20px - 2px)' : '2px',
           transform: 'translateY(-50%)',
-          width: 'calc(var(--recursica-brand-dimensions-spacer-md) - var(--recursica-brand-dimensions-spacer-xs) * 2)',
-          height: 'calc(var(--recursica-brand-dimensions-spacer-md) - var(--recursica-brand-dimensions-spacer-xs) * 2)',
-          borderRadius: '50%',
-          background: `var(${layer0Base}-surface)`,
+          width: '20px',
+          height: '20px',
+          borderRadius: `var(${borderRadiusVar})`,
+          background: `var(${thumbVar})`,
+          zIndex: 1,
           transition: 'left 0.2s',
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
         }}

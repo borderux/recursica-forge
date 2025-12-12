@@ -19,9 +19,13 @@
 
 /* Carbon buttons render text as direct children */
 /* Apply truncation to text nodes and span elements that are not icons */
+/* Use Recursica CSS variables with Carbon variables as fallbacks */
 .cds--btn {
   /* Set max-width on button root to constrain content */
   max-width: calc(var(--button-content-max-width, var(--recursica-ui-kit-components-button-content-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  /* Use Recursica CSS vars with Carbon vars as fallbacks - don't modify Carbon vars directly */
+  background-color: var(--button-bg, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background, var(--cds-button-primary))) !important;
+  color: var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-text, var(--cds-button-text-primary))) !important;
 }
 
 /* Target text content for truncation */
@@ -41,4 +45,14 @@
 
 .cds--btn:not(:has(> svg)) > * {
   flex: none !important;
+}
+
+/* Ensure outline variant (secondary) has a border with the correct color */
+.cds--btn--secondary {
+  border: 1px solid var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-outline-text)) !important;
+}
+
+/* Ensure text variant (tertiary) has no border */
+.cds--btn--tertiary {
+  border: none !important;
 }
