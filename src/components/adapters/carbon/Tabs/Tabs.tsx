@@ -5,7 +5,7 @@
  * that matches Carbon's styling patterns.
  */
 
-import type { TabsProps as AdapterTabsProps } from '../Tabs'
+import type { TabsProps as AdapterTabsProps } from '../../Tabs'
 
 export default function Tabs({
   value,

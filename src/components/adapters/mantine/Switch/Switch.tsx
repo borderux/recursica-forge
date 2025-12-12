@@ -5,8 +5,8 @@
  */
 
 import { Switch as MantineSwitch } from '@mantine/core'
-import type { SwitchProps as AdapterSwitchProps } from '../Switch'
-import { toCssVarName } from '../../utils/cssVarNames'
+import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
+import { toCssVarName } from '../../../utils/cssVarNames'
 import './Switch.css'
 
 export default function Switch({

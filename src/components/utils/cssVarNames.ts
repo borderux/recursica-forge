@@ -50,7 +50,7 @@ export function getComponentCssVar(
 ): string {
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
-  const componentLevelProperties = ['font-size', 'border-radius', 'content-max-width']
+  const componentLevelProperties = ['font-size', 'border-radius', 'content-max-width', 'elevation', 'alternative-layer']
   
   // Check if this is a component-level property (not under size/color category)
   if (componentLevelProperties.includes(property.toLowerCase())) {
@@ -127,5 +127,24 @@ export function getFormCssVar(
   ...path: string[]
 ): string {
   return getGlobalCssVar('form', component, category, ...path)
+}
+
+/**
+ * Generates CSS variable name for component-level properties (elevation, alternative-layer, etc.)
+ * 
+ * @example
+ * getComponentLevelCssVar('Button', 'elevation')
+ * => '--recursica-ui-kit-components-button-elevation'
+ * 
+ * @example
+ * getComponentLevelCssVar('Button', 'alternative-layer')
+ * => '--recursica-ui-kit-components-button-alternative-layer'
+ */
+export function getComponentLevelCssVar(
+  component: ComponentName,
+  property: string
+): string {
+  const parts = ['components', component.toLowerCase(), property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()]
+  return toCssVarName(parts.join('.'))
 }
 

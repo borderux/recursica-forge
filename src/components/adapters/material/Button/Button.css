@@ -37,3 +37,13 @@
   max-width: var(--button-content-max-width, var(--recursica-ui-kit-components-button-content-max-width)) !important;
   justify-content: center !important;
 }
+
+/* Ensure outline variant has a border with the correct color */
+.MuiButton-outlined {
+  border: 1px solid var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-outline-text)) !important;
+}
+
+/* Ensure text variant has no border */
+.MuiButton-text {
+  border: none !important;
+}

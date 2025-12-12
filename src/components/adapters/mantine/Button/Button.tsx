@@ -5,8 +5,10 @@
  */
 
 import { Button as MantineButton } from '@mantine/core'
-import type { ButtonProps as AdapterButtonProps } from '../Button'
-import { getComponentCssVar } from '../../utils/cssVarNames'
+import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../../../core/css/readCssVar'
 import './Button.css'
 
 export default function Button({
@@ -14,6 +16,8 @@ export default function Button({
   variant = 'solid',
   size = 'default',
   layer = 'layer-0',
+  elevation,
+  alternativeLayer,
   disabled,
   onClick,
   type,
@@ -23,6 +27,8 @@ export default function Button({
   mantine,
   ...props
 }: AdapterButtonProps) {
+  const { mode } = useThemeMode()
+  
   // Map unified variant to Mantine variant
   const mantineVariant = variant === 'solid' ? 'filled' : variant === 'outline' ? 'outline' : 'subtle'
   
@@ -32,16 +38,30 @@ export default function Button({
   // Determine size prefix for CSS variables
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
-  // For alternative layers, use the layer's own CSS variables
-  // For standard layers, use UIKit.json button CSS variables
-  const isAlternativeLayer = layer.startsWith('layer-alternative-')
+  // Check if component has alternative-layer prop set (overrides layer-based alt layer)
+  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+  const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
+  
   let buttonBgVar: string
   let buttonHoverVar: string
   let buttonColorVar: string
   
-  if (isAlternativeLayer) {
+  if (hasComponentAlternativeLayer) {
+    // Component has alternative-layer prop set - use that alt layer's properties
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+    buttonBgVar = variant === 'solid' 
+      ? `var(${layerBase}-element-interactive-tone)`
+      : `var(${layerBase}-surface)`
+    buttonHoverVar = variant === 'solid'
+      ? `var(${layerBase}-element-interactive-tone-hover)`
+      : `var(${layerBase}-surface)`
+    // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
+    buttonColorVar = variant === 'solid'
+      ? `var(${layerBase}-element-interactive-on-tone)`
+      : `var(${layerBase}-element-interactive-tone)`
+  } else if (layer.startsWith('layer-alternative-')) {
     const altKey = layer.replace('layer-alternative-', '')
-    const layerBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property`
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
     buttonBgVar = variant === 'solid' 
       ? `var(${layerBase}-element-interactive-tone)`
       : `var(${layerBase}-surface)`
@@ -145,9 +165,13 @@ export default function Button({
       // For outline buttons, override Mantine's border color CSS variable
       // Mantine uses: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-blue-outline)
       // We override to use our recursica CSS var
-      ...(buttonBorderColor && {
+      ...(variant === 'outline' && buttonBorderColor ? {
         '--button-bd': `calc(0.0625rem * var(--mantine-scale, 1)) solid ${buttonBorderColor}`,
-      }),
+      } : {}),
+      // For text variant, explicitly remove border
+      ...(variant === 'text' ? {
+        '--button-bd': 'none',
+      } : {}),
       '--button-height': `var(${heightVar})`,
       '--button-min-width': `var(${minWidthVar})`,
       '--button-padding': `var(${horizontalPaddingVar})`,
@@ -167,10 +191,44 @@ export default function Button({
       }),
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       ...(disabled && {
-        opacity: 'var(--recursica-brand-light-state-disabled)',
+        opacity: `var(--recursica-brand-${mode}-state-disabled)`,
       }),
       minWidth: `var(${minWidthVar})`,
       borderRadius: `var(${borderRadiusVar})`,
+      // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
+      ...(() => {
+        let elevationToApply: string | undefined = elevation
+        
+        if (hasComponentAlternativeLayer) {
+          // Read elevation from alt layer's property
+          const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+          const altLayerElevation = readCssVar(altLayerElevationVar)
+          if (altLayerElevation) {
+            // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
+            const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+            if (match) {
+              elevationToApply = match[1]
+            } else if (/^elevation-\d+$/.test(altLayerElevation)) {
+              elevationToApply = altLayerElevation
+            }
+          }
+          // If alt layer doesn't have elevation, fall back to component-level elevation
+          if (!elevationToApply) {
+            elevationToApply = elevation
+          }
+        }
+        
+        if (elevationToApply && elevationToApply !== 'elevation-0') {
+          const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
+          if (elevationMatch) {
+            const elevationLevel = elevationMatch[1]
+            return {
+              boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+            }
+          }
+        }
+        return {}
+      })(),
       // Don't apply maxWidth to root - it will be applied to label element only
       ...style,
     },

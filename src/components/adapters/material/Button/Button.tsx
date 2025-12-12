@@ -5,8 +5,10 @@
  */
 
 import { Button as MaterialButton } from '@mui/material'
-import type { ButtonProps as AdapterButtonProps } from '../Button'
-import { getComponentCssVar } from '../../utils/cssVarNames'
+import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../../../core/css/readCssVar'
 import './Button.css'
 
 export default function Button({
@@ -14,6 +16,8 @@ export default function Button({
   variant = 'solid',
   size = 'default',
   layer = 'layer-0',
+  elevation,
+  alternativeLayer,
   disabled,
   onClick,
   type,
@@ -23,6 +27,8 @@ export default function Button({
   material,
   ...props
 }: AdapterButtonProps) {
+  const { mode } = useThemeMode()
+  
   // Map unified variant to Material variant
   const materialVariant = variant === 'solid' ? 'contained' : variant === 'outline' ? 'outlined' : 'text'
   
@@ -32,15 +38,26 @@ export default function Button({
   // Determine size prefix for CSS variables
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
-  // For alternative layers, use the layer's own CSS variables
-  // For standard layers, use UIKit.json button CSS variables
-  const isAlternativeLayer = layer.startsWith('layer-alternative-')
+  // Check if component has alternative-layer prop set (overrides layer-based alt layer)
+  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+  const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
+  
   let buttonBgVar: string
   let buttonColorVar: string
   
-  if (isAlternativeLayer) {
+  if (hasComponentAlternativeLayer) {
+    // Component has alternative-layer prop set - use that alt layer's properties
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+    buttonBgVar = variant === 'solid' 
+      ? `${layerBase}-element-interactive-tone`
+      : `${layerBase}-surface`
+    // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
+    buttonColorVar = variant === 'solid'
+      ? `${layerBase}-element-interactive-on-tone`
+      : `${layerBase}-element-interactive-tone`
+  } else if (layer.startsWith('layer-alternative-')) {
     const altKey = layer.replace('layer-alternative-', '')
-    const layerBase = `--recursica-brand-light-layer-layer-alternative-${altKey}-property`
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
     buttonBgVar = variant === 'solid' 
       ? `${layerBase}-element-interactive-tone`
       : `${layerBase}-surface`
@@ -81,8 +98,15 @@ export default function Button({
       // Use CSS variables for theming - supports both standard and alternative layers
       backgroundColor: `var(${buttonBgVar})`,
       color: `var(${buttonColorVar})`,
-      // For outline, use the outline-text CSS var for border color
-      borderColor: variant === 'outline' ? `var(${buttonColorVar})` : undefined,
+      // For outline, use the outline-text CSS var for border color and ensure border is set
+      ...(variant === 'outline' ? {
+        border: `1px solid var(${buttonColorVar})`,
+        borderColor: `var(${buttonColorVar})`,
+      } : {}),
+      // For text variant, explicitly remove border
+      ...(variant === 'text' ? {
+        border: 'none',
+      } : {}),
       fontSize: `var(${fontSizeVar})`,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
       height: `var(${heightVar})`,
@@ -104,7 +128,7 @@ export default function Button({
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Material UI's default disabled styles to keep colors unchanged
       ...(disabled && {
-        opacity: 'var(--recursica-brand-light-state-disabled)',
+        opacity: `var(--recursica-brand-${mode}-state-disabled)`,
         backgroundColor: `var(${buttonBgVar}) !important`,
         color: `var(${buttonColorVar}) !important`,
         ...(variant === 'outline' && {
@@ -114,6 +138,40 @@ export default function Button({
           border: 'none !important',
         }),
       }),
+      // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
+      ...(() => {
+        let elevationToApply: string | undefined = elevation
+        
+        if (hasComponentAlternativeLayer) {
+          // Read elevation from alt layer's property
+          const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+          const altLayerElevation = readCssVar(altLayerElevationVar)
+          if (altLayerElevation) {
+            // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
+            const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+            if (match) {
+              elevationToApply = match[1]
+            } else if (/^elevation-\d+$/.test(altLayerElevation)) {
+              elevationToApply = altLayerElevation
+            }
+          }
+          // If alt layer doesn't have elevation, fall back to component-level elevation
+          if (!elevationToApply) {
+            elevationToApply = elevation
+          }
+        }
+        
+        if (elevationToApply && elevationToApply !== 'elevation-0') {
+          const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
+          if (elevationMatch) {
+            const elevationLevel = elevationMatch[1]
+            return {
+              boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+            }
+          }
+        }
+        return {}
+      })(),
       ...style,
       ...material?.sx,
     },

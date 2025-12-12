@@ -35,6 +35,7 @@ export default function ComponentDetailPage() {
   })
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
   const [selectedAltLayer, setSelectedAltLayer] = useState<string | null>(null)
+  const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
 
   // Get layer label for display
   const layerLabel = useMemo(() => {
@@ -228,11 +229,13 @@ export default function ComponentDetailPage() {
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
               selectedAltLayer={selectedAltLayer}
+              componentElevation={componentElevation}
               onVariantChange={(prop, variant) => {
                 setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
               }}
               onLayerChange={setSelectedLayer}
               onAltLayerChange={setSelectedAltLayer}
+              onElevationChange={setComponentElevation}
             />
           </div>
         </div>
@@ -274,6 +277,7 @@ export default function ComponentDetailPage() {
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
               selectedAltLayer={selectedAltLayer}
+              componentElevation={componentElevation}
             />
           ) : (
             <div style={{

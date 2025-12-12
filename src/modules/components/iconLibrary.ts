@@ -32,6 +32,7 @@ import {
   CaretDoubleRight,
   CaretDown,
   Columns,
+  CopySimple,
   CornersOut,
   Diamond,
   DiamondsFour,
@@ -116,7 +117,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'split-horizontal': SplitHorizontal,
   'diamond': Diamond,
   'paint-bucket': PaintBucket,
-
+  'copy-simple': CopySimple,
+  
   // Variants
   'variant-color': DiamondsFour,
   'variant-size': Resize,

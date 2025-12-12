@@ -5,7 +5,7 @@
  */
 
 import { Tabs as MaterialTabs } from '@mui/material'
-import type { TabsProps as AdapterTabsProps } from '../Tabs'
+import type { TabsProps as AdapterTabsProps } from '../../Tabs'
 
 export default function Tabs({
   value,
