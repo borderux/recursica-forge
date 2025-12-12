@@ -1,0 +1,95 @@
+/**
+ * Carbon Toggle CSS Overrides
+ * 
+ * Overrides Carbon Toggle styles to use Recursica CSS variables
+ * Carbon uses "Toggle" component, not "Switch"
+ */
+
+/* Hide only the label text, not the entire label wrapper (which contains the toggle) */
+.recursica-carbon-toggle-wrapper .cds--toggle__label-text {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Make sure the label wrapper doesn't capture clicks - only the toggle itself should be interactive */
+.recursica-carbon-toggle-wrapper .cds--toggle__label {
+  pointer-events: none !important;
+  cursor: default !important;
+  user-select: none !important;
+}
+
+/* Prevent label from being clickable - make it non-interactive */
+.recursica-carbon-toggle-wrapper label.cds--toggle__label {
+  pointer-events: none !important;
+  cursor: default !important;
+  user-select: none !important;
+}
+
+/* Make sure any click handlers on the label are disabled */
+.recursica-carbon-toggle-wrapper .cds--toggle__label > * {
+  pointer-events: none !important;
+}
+
+/* Make the toggle input and track interactive - these should be the only clickable elements */
+/* Override the label's pointer-events: none for these specific elements */
+.recursica-carbon-toggle-wrapper .cds--toggle__label .cds--toggle__input {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 10;
+}
+
+.recursica-carbon-toggle-wrapper .cds--toggle__label .cds--toggle__track {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 10;
+}
+
+/* Ensure the thumb is also clickable */
+.recursica-carbon-toggle-wrapper .cds--toggle__label .cds--toggle__thumb {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 10;
+}
+
+/* Override thumb background - use wrapper class for scoping */
+.recursica-carbon-toggle-wrapper .cds--toggle__thumb {
+  background: var(--recursica-toggle-thumb-bg, var(--cds-icon-01)) !important;
+  opacity: 1 !important;
+}
+
+/* Override track colors - use wrapper class for scoping */
+.recursica-carbon-toggle-wrapper .cds--toggle__track {
+  background-color: var(--recursica-toggle-track-unchecked, var(--cds-toggle-off)) !important;
+  border-radius: var(--recursica-toggle-border-radius, 999px) !important;
+  opacity: 1 !important;
+  cursor: pointer;
+}
+
+/* Make the toggle input clickable */
+.recursica-carbon-toggle-wrapper .cds--toggle__input {
+  cursor: pointer;
+}
+
+/* Override checked state */
+.recursica-carbon-toggle-wrapper .cds--toggle__input:checked + .cds--toggle__track {
+  background-color: var(--recursica-toggle-track-checked, var(--cds-toggle-on)) !important;
+  opacity: 1 !important;
+}
+
+/* Override disabled state */
+.recursica-carbon-toggle-wrapper .cds--toggle__input:disabled + .cds--toggle__track {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recursica-carbon-toggle-wrapper .cds--toggle__input:disabled {
+  cursor: not-allowed;
+}
+

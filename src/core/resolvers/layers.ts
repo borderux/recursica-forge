@@ -397,11 +397,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     if (bthSizeKey) {
       result[`${brandBase}border-thickness`] = `var(--recursica-tokens-size-${bthSizeKey})`
     } else if (bth != null) {
-      const mapped = pickSizeTokenByNumeric(bth)
-      if (mapped) result[`${brandBase}border-thickness`] = `var(--recursica-tokens-size-${mapped})`
-      else {
-        const v = toCssValue(bth, 'px')!; result[`${brandBase}border-thickness`] = v
-      }
+      // Border thickness should always use direct pixel values, not tokens
+      const v = toCssValue(bth, 'px')!; result[`${brandBase}border-thickness`] = v
     }
     if (bradSizeKey) {
       result[`${brandBase}border-radius`] = `var(--recursica-tokens-size-${bradSizeKey})`

@@ -179,6 +179,9 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                   }}
                   sx={{
                     flex: 1,
+                    '& .MuiTabs-indicator': {
+                      display: 'none',
+                    },
                   }}
                 >
                   <Tab 
@@ -290,11 +293,42 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               size="small"
               value={kit}
               onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}
-              sx={{ color: 'white', ml: 1, minWidth: 150, '& .MuiSelect-select': { color: 'white' } }}
+              sx={{ 
+                ml: 1, 
+                minWidth: 150,
+                color: `var(${layer1Base}-element-text-color)`,
+                '& .MuiSelect-select': { 
+                  color: `var(${layer1Base}-element-text-color)`,
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: `var(${layer1Base}-border-color)`,
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: `var(${layer1Base}-border-color)`,
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: `var(${layer1Base}-border-color)`,
+                },
+              }}
             >
-              <MenuItem value="mantine">Mantine</MenuItem>
-              <MenuItem value="material">Material UI</MenuItem>
-              <MenuItem value="carbon">Carbon</MenuItem>
+              <MenuItem 
+                value="mantine"
+                sx={{ color: `var(${layer1Base}-element-text-color)` }}
+              >
+                Mantine
+              </MenuItem>
+              <MenuItem 
+                value="material"
+                sx={{ color: `var(${layer1Base}-element-text-color)` }}
+              >
+                Material UI
+              </MenuItem>
+              <MenuItem 
+                value="carbon"
+                sx={{ color: `var(${layer1Base}-element-text-color)` }}
+              >
+                Carbon
+              </MenuItem>
             </Select>
           </Box>
 

@@ -3,6 +3,9 @@ import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { contrastRatio } from '../theme/contrastUtil'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 
 type PaletteColorControlProps = {
   /** The CSS variable name to set when a color is selected */
@@ -19,6 +22,8 @@ type PaletteColorControlProps = {
   swatchSize?: number
   /** Font size for the label text */
   fontSize?: number
+  /** Optional CSS variable name for the color to check contrast against */
+  contrastColorCssVar?: string
 }
 
 /**
@@ -33,8 +38,9 @@ export default function PaletteColorControl({
   fallbackLabel = 'Not set',
   swatchSize = 16,
   fontSize = 13,
+  contrastColorCssVar,
 }: PaletteColorControlProps) {
-  const { palettes, theme: themeJson } = useVars()
+  const { palettes, theme: themeJson, tokens } = useVars()
   const { mode } = useThemeMode()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const displayCssVar = currentValueCssVar || targetCssVar
@@ -354,6 +360,43 @@ export default function PaletteColorControl({
     }
   }, [displayCssVar, fallbackLabel, refreshKey]) // Include refreshKey to force re-read
 
+  // Check contrast if contrastColorCssVar is provided
+  // Use the same approach as ButtonPreview
+  const contrastWarning = useMemo(() => {
+    if (!contrastColorCssVar) return null
+    
+    const tokenIndex = buildTokenIndex(tokens || {})
+    
+    // Read the CSS variable values - same as ButtonPreview
+    // If the value is already a var() reference, resolveCssVarToHex will handle it recursively
+    const currentColorValue = readCssVar(displayCssVar)
+    const contrastColorValue = readCssVar(contrastColorCssVar)
+    
+    if (!currentColorValue || !contrastColorValue) return null
+    
+    // Use the same resolveCssVarToHex function as ButtonPreview
+    // This function handles var() references recursively, including layer variables
+    // that reference palette variables
+    const currentHex = resolveCssVarToHex(currentColorValue, tokenIndex)
+    const contrastHex = resolveCssVarToHex(contrastColorValue, tokenIndex)
+    
+    if (!currentHex || !contrastHex) {
+      return null
+    }
+    
+    const ratio = contrastRatio(currentHex, contrastHex)
+    const AA_THRESHOLD = 4.5
+    
+    if (ratio < AA_THRESHOLD) {
+      return {
+        ratio: ratio.toFixed(2),
+        passes: false,
+      }
+    }
+    
+    return null
+  }, [contrastColorCssVar, displayCssVar, tokens, refreshKey, mode]) // Include mode and refreshKey to re-check when colors change
+
   const handleClick = () => {
     const el = buttonRef.current
     if (!el) return
@@ -402,6 +445,28 @@ export default function PaletteColorControl({
         <span style={{ fontSize, textTransform: 'capitalize' }}>
           {displayLabel}
         </span>
+        {contrastWarning && (
+          <span
+            title={`Poor contrast: ${contrastWarning.ratio}:1 (WCAG AA requires 4.5:1)`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              backgroundColor: '#ff4444',
+              color: '#ffffff',
+              fontSize: '10px',
+              fontWeight: 'bold',
+              marginLeft: '4px',
+              flexShrink: 0,
+            }}
+            aria-label={`Poor contrast warning: ${contrastWarning.ratio}:1 ratio`}
+          >
+            ⚠
+          </span>
+        )}
       </button>
       <PaletteSwatchPicker 
         onSelect={() => {

@@ -65,7 +65,10 @@
               },
               "border-thickness": {
                 "$type": "number",
-                "$value": 0
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                }
               }
             }
           },
@@ -73,7 +76,10 @@
             "property": {
               "border-thickness": {
                 "$type": "number",
-                "$value": 2
+                "$value": {
+                  "value": 2,
+                  "unit": "px"
+                }
               },
               "elevation": {
                 "$type": "elevation",
@@ -159,7 +165,10 @@
               },
               "border-thickness": {
                 "$type": "number",
-                "$value": 0
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                }
               }
             },
             "element": {
@@ -263,7 +272,10 @@
               },
               "border-thickness": {
                 "$type": "number",
-                "$value": 0
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                }
               }
             }
           },
@@ -1205,7 +1217,10 @@
               },
               "border-thickness": {
                 "$type": "number",
-                "$value": 0
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                }
               }
             }
           },
@@ -1213,7 +1228,10 @@
             "property": {
               "border-thickness": {
                 "$type": "number",
-                "$value": 2
+                "$value": {
+                  "value": 2,
+                  "unit": "px"
+                }
               },
               "elevation": {
                 "$type": "elevation",
@@ -1291,7 +1309,10 @@
               },
               "border-thickness": {
                 "$type": "number",
-                "$value": 0
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                }
               }
             },
             "element": {
@@ -1379,7 +1400,10 @@
               },
               "border-thickness": {
                 "$type": "number",
-                "$value": 0
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                }
               }
             }
           },

@@ -5,25 +5,33 @@
  * layer selection, and prop controls.
  */
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { parseComponentStructure, toSentenceCase, ComponentProp } from './componentToolbarUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { useVars } from '../vars/VarsContext'
 import VariantDropdown from './VariantDropdown'
 import LayerDropdown from './LayerDropdown'
 import AltLayerDropdown from './AltLayerDropdown'
 import PropControl from './PropControl'
+import TokenSlider from '../forms/TokenSlider'
+import { getComponentLevelCssVar } from '../../components/utils/cssVarNames'
+import { readCssVar } from '../../core/css/readCssVar'
+import { updateCssVar } from '../../core/css/updateCssVar'
 import propIconMapping from './propIconMapping.json'
 import { iconNameToReactComponent } from './iconUtils'
 import './ComponentToolbar.css'
+import './PropControl.css'
 
 export interface ComponentToolbarProps {
   componentName: string
   selectedVariants: Record<string, string> // e.g., { color: "solid", size: "default" }
   selectedLayer: string // e.g., "layer-0"
   selectedAltLayer: string | null // e.g., "high-contrast" or null
+  componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
   onVariantChange: (prop: string, variant: string) => void
   onLayerChange: (layer: string) => void
   onAltLayerChange: (altLayer: string | null) => void
+  onElevationChange?: (elevation: string) => void
 }
 
 export default function ComponentToolbar({
@@ -31,14 +39,39 @@ export default function ComponentToolbar({
   selectedVariants,
   selectedLayer,
   selectedAltLayer,
+  componentElevation,
   onVariantChange,
   onLayerChange,
   onAltLayerChange,
+  onElevationChange,
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
+  const { theme: themeJson } = useVars()
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer', 'altLayer'
   const iconRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const elevationButtonRef = useRef<HTMLButtonElement>(null)
+  const elevationPanelRef = useRef<HTMLDivElement>(null)
+
+  // Handle click outside for elevation panel
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        openPropControl === 'elevation' &&
+        elevationButtonRef.current &&
+        elevationPanelRef.current &&
+        !elevationButtonRef.current.contains(event.target as Node) &&
+        !elevationPanelRef.current.contains(event.target as Node)
+      ) {
+        setOpenPropControl(null)
+      }
+    }
+
+    if (openPropControl === 'elevation') {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [openPropControl])
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
@@ -46,12 +79,15 @@ export default function ComponentToolbar({
   // Show both non-variant props and variant props (both color and size), but only one icon per prop name
   // When editing a variant prop, it will edit for the selected variant and layer
   // Combine props with "-hover" suffix into the base prop
+  // Combine track-selected and track-unselected into "track" prop
   const allProps = useMemo(() => {
     const propsMap = new Map<string, ComponentProp>()
     const seenProps = new Set<string>()
     const hoverPropsMap = new Map<string, ComponentProp>() // Map of base name -> hover prop
+    let firstTrackSelected: ComponentProp | undefined
+    let firstTrackUnselected: ComponentProp | undefined
 
-    // First pass: collect all props and identify hover props
+    // First pass: collect all props and identify hover props and track props
     structure.props.forEach(prop => {
       const propNameLower = prop.name.toLowerCase()
       
@@ -60,14 +96,26 @@ export default function ComponentToolbar({
         const baseName = propNameLower.slice(0, -6) // Remove "-hover"
         hoverPropsMap.set(baseName, prop)
       }
+      
+      // Check if this is a track prop (track-selected or track-unselected)
+      if (propNameLower === 'track-selected' && !firstTrackSelected) {
+        firstTrackSelected = prop
+      } else if (propNameLower === 'track-unselected' && !firstTrackUnselected) {
+        firstTrackUnselected = prop
+      }
     })
 
-    // Second pass: combine props with their hover variants
+    // Second pass: combine props with their hover variants and track variants
     structure.props.forEach(prop => {
       const propNameLower = prop.name.toLowerCase()
       
       // Skip hover props in the main list (they'll be attached to base props)
       if (propNameLower.endsWith('-hover')) {
+        return
+      }
+      
+      // Skip track-selected and track-unselected (they'll be combined into "track")
+      if (propNameLower === 'track-selected' || propNameLower === 'track-unselected') {
         return
       }
 
@@ -105,6 +153,27 @@ export default function ComponentToolbar({
       seenProps.add(key)
       propsMap.set(key, prop)
     })
+    
+    // Third pass: create a combined "track" prop from track-selected and track-unselected
+    if (firstTrackSelected || firstTrackUnselected) {
+      // Use track-selected as the base prop, or track-unselected if track-selected doesn't exist
+      const baseTrackProp = firstTrackSelected || firstTrackUnselected!
+      
+      // Create a new prop that represents "track" with both variants
+      // PropControl will use getCssVarsForProp to find the right CSS vars based on selectedVariants and selectedLayer
+      const combinedTrackProp: ComponentProp = {
+        ...baseTrackProp,
+        name: 'track',
+        trackSelectedProp: firstTrackSelected,
+        trackUnselectedProp: firstTrackUnselected,
+      }
+      
+      // Use "track" as the key - only one track icon
+      if (!seenProps.has('track')) {
+        propsMap.set('track', combinedTrackProp)
+        seenProps.add('track')
+      }
+    }
 
     // Filter out font-size for Button component (it's controlled by theme typography)
     const filteredProps = Array.from(propsMap.values()).filter(prop => {
@@ -241,6 +310,46 @@ export default function ComponentToolbar({
     })
   }, [structure.props, componentName])
 
+  // Get elevation options from brand theme
+  const elevationOptions = useMemo(() => {
+    try {
+      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+      const themes = root?.themes || root
+      const elev: any = themes?.light?.elevations || root?.light?.elevations || {}
+      const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a,b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
+      return names.map((n) => {
+        const idx = Number(n.split('-')[1])
+        const label = idx === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${idx}`
+        return { name: n, label }
+      })
+    } catch {
+      return []
+    }
+  }, [themeJson])
+
+  // Get current elevation value from CSS var or prop
+  const currentElevation = useMemo(() => {
+    if (componentElevation !== undefined) return componentElevation
+    const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
+    const value = readCssVar(elevationVar)
+    if (value) {
+      // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-1}"
+      const match = value.match(/elevations\.(elevation-\d+)/)
+      if (match) return match[1]
+      // Or could be direct value like "elevation-1"
+      if (/^elevation-\d+$/.test(value)) return value
+    }
+    return 'elevation-0' // Default
+  }, [componentElevation, componentName])
+
+  // Handle elevation change
+  const handleElevationChange = (elevationName: string) => {
+    const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
+    // Store as brand reference
+    updateCssVar(elevationVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
+    onElevationChange?.(elevationName)
+  }
+
   const handleReset = () => {
     // Remove all CSS var overrides for this component
     // This will make them fall back to their computed values (from JSON defaults)
@@ -248,6 +357,10 @@ export default function ComponentToolbar({
       // Remove the inline style override to restore to default
       document.documentElement.style.removeProperty(prop.cssVar)
     })
+
+    // Also reset elevation
+    const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
+    document.documentElement.style.removeProperty(elevationVar)
 
     // Force a re-render by triggering a custom event
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
@@ -273,10 +386,14 @@ export default function ComponentToolbar({
     return defaultIcon || null
   }
 
+
   return (
     <div className="component-toolbar" data-layer="layer-1">
       {/* Dynamic Variants Section */}
       <div className="toolbar-section-group">
+        {structure.variants.length > 0 && (
+          <span className="toolbar-section-label">Variants</span>
+        )}
         {structure.variants.map(variant => (
           <VariantDropdown
             key={variant.propName}
@@ -299,10 +416,10 @@ export default function ComponentToolbar({
           />
         ))}
       </div>
-      {structure.variants.length > 0 && <div className="toolbar-separator" />}
 
       {/* Consistent Layers Section */}
       <div className="toolbar-section-group">
+        <span className="toolbar-section-label">Layers</span>
         <LayerDropdown
           selected={selectedLayer}
           onSelect={(layer) => {
@@ -337,11 +454,14 @@ export default function ComponentToolbar({
           }}
         />
       </div>
-      <div className="toolbar-separator" />
 
       {/* Dynamic Props Section */}
       <div className="toolbar-section-group">
-        {allProps.map(prop => {
+        <span className="toolbar-section-label">Props</span>
+        {allProps.filter(prop => {
+          const propNameLower = prop.name.toLowerCase()
+          return propNameLower !== 'elevation' && propNameLower !== 'alternative-layer' && propNameLower !== 'alt-layer'
+        }).map(prop => {
           const Icon = getPropIcon(prop)
           // Use prop name as key instead of cssVar since we have unique prop names now
           const propKey = prop.name
@@ -382,24 +502,83 @@ export default function ComponentToolbar({
             </div>
           )
         })}
-      </div>
-      {allProps.length > 0 && <div className="toolbar-separator" />}
+        
+        {/* Elevation Control - Special Prop */}
+        <div className="toolbar-icon-wrapper">
+          <button
+            ref={elevationButtonRef}
+            className={`toolbar-icon-button ${openPropControl === 'elevation' ? 'active' : ''}`}
+            onClick={() => {
+              if (openPropControl === 'elevation') {
+                setOpenPropControl(null)
+              } else {
+                setOpenDropdown(null)
+                setOpenPropControl('elevation')
+              }
+            }}
+            title="Elevation"
+            aria-label="Elevation"
+          >
+            {(() => {
+              const ElevationIcon = iconNameToReactComponent('copy-simple')
+              return ElevationIcon ? <ElevationIcon className="toolbar-icon" /> : null
+            })()}
+          </button>
+          {openPropControl === 'elevation' && elevationButtonRef.current && (
+            <div
+              ref={elevationPanelRef}
+              className="prop-control"
+              style={{
+                position: 'absolute',
+                top: elevationButtonRef.current.offsetHeight + 8,
+                left: 0,
+                zIndex: 1000,
+              }}
+            >
+              <div className="prop-control-header">
+                <span className="prop-control-title">Elevation</span>
+                <button
+                  className="prop-control-close"
+                  onClick={() => setOpenPropControl(null)}
+                  aria-label="Close"
+                >
+                  {(() => {
+                    const CloseIcon = iconNameToReactComponent('x-mark')
+                    return CloseIcon ? <CloseIcon className="prop-control-close-icon" /> : null
+                  })()}
+                </button>
+              </div>
+              <div className="prop-control-body">
+                <TokenSlider
+                  label="Elevation"
+                  tokens={elevationOptions}
+                  currentToken={currentElevation}
+                  onChange={handleElevationChange}
+                  getTokenLabel={(token) => {
+                    const opt = elevationOptions.find((o) => o.name === token.name)
+                    return opt?.label || token.label || token.name
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
-      {/* Reset Section */}
-      <div className="toolbar-section-group">
-        <button
-          className="toolbar-icon-button toolbar-reset-button"
-          onClick={handleReset}
-          title="Reset to defaults"
-          aria-label="Reset to defaults"
-        >
-          {(() => {
-            const iconName = (propIconMapping as Record<string, string>).reset
-            const ResetIcon = iconName ? iconNameToReactComponent(iconName) : null
-            return ResetIcon ? <ResetIcon className="toolbar-icon" /> : null
-          })()}
-        </button>
       </div>
+
+      {/* Reset Button */}
+      <button
+        className="toolbar-icon-button toolbar-reset-button"
+        onClick={handleReset}
+        title="Reset to defaults"
+        aria-label="Reset to defaults"
+      >
+        {(() => {
+          const iconName = (propIconMapping as Record<string, string>).reset
+          const ResetIcon = iconName ? iconNameToReactComponent(iconName) : null
+          return ResetIcon ? <ResetIcon className="toolbar-icon" /> : null
+        })()}
+      </button>
     </div>
   )
 }
