@@ -511,7 +511,67 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Toast',
       url: `${base}/toast`,
       render: (_selectedLayers) => (
-        <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', padding: 12, borderRadius: 8, background: 'var(--layer-layer-alternative-success-property-surface)' }}>Success toast</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{
+            background: 'var(--recursica-ui-kit-toast-color-layer-0-variant-default-background)',
+            color: 'var(--recursica-ui-kit-toast-color-layer-0-variant-default-text)',
+            padding: `var(--recursica-ui-kit-toast-size-vertical-padding) var(--recursica-ui-kit-toast-size-horizontal-padding)`,
+            borderRadius: 8,
+            minWidth: 'var(--recursica-ui-kit-toast-size-min-width)',
+            maxWidth: 'var(--recursica-ui-kit-toast-size-max-width)',
+            boxShadow: 'var(--recursica-ui-kit-toast-elevation)',
+          }}>
+            Default toast message
+          </div>
+          <div style={{
+            background: 'var(--recursica-ui-kit-toast-color-layer-0-variant-success-background)',
+            color: 'var(--recursica-ui-kit-toast-color-layer-0-variant-success-text)',
+            padding: `var(--recursica-ui-kit-toast-size-vertical-padding) var(--recursica-ui-kit-toast-size-horizontal-padding)`,
+            borderRadius: 8,
+            minWidth: 'var(--recursica-ui-kit-toast-size-min-width)',
+            maxWidth: 'var(--recursica-ui-kit-toast-size-max-width)',
+            boxShadow: 'var(--recursica-ui-kit-toast-elevation)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--recursica-ui-kit-toast-size-spacing)',
+          }}>
+            <span style={{ width: 'var(--recursica-ui-kit-toast-size-icon)', height: 'var(--recursica-ui-kit-toast-size-icon)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</span>
+            <span>Success toast message</span>
+            <button style={{
+              marginLeft: 'auto',
+              background: 'var(--recursica-ui-kit-toast-color-layer-0-variant-success-button)',
+              border: 'none',
+              borderRadius: 4,
+              padding: '4px 8px',
+              cursor: 'pointer',
+              color: 'inherit',
+            }}>×</button>
+          </div>
+          <div style={{
+            background: 'var(--recursica-ui-kit-toast-color-layer-0-variant-error-background)',
+            color: 'var(--recursica-ui-kit-toast-color-layer-0-variant-error-text)',
+            padding: `var(--recursica-ui-kit-toast-size-vertical-padding) var(--recursica-ui-kit-toast-size-horizontal-padding)`,
+            borderRadius: 8,
+            minWidth: 'var(--recursica-ui-kit-toast-size-min-width)',
+            maxWidth: 'var(--recursica-ui-kit-toast-size-max-width)',
+            boxShadow: 'var(--recursica-ui-kit-toast-elevation)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--recursica-ui-kit-toast-size-spacing)',
+          }}>
+            <span style={{ width: 'var(--recursica-ui-kit-toast-size-icon)', height: 'var(--recursica-ui-kit-toast-size-icon)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</span>
+            <span>Error toast message</span>
+            <button style={{
+              marginLeft: 'auto',
+              background: 'var(--recursica-ui-kit-toast-color-layer-0-variant-error-button)',
+              border: 'none',
+              borderRadius: 4,
+              padding: '4px 8px',
+              cursor: 'pointer',
+              color: 'inherit',
+            }}>×</button>
+          </div>
+        </div>
       ),
     },
     {
