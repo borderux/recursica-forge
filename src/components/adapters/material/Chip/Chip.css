@@ -1,0 +1,26 @@
+/* Override Material UI Chip styles to use Recursica CSS variables */
+.MuiChip-root {
+  border: 1px solid var(--chip-border, var(--mui-palette-divider)) !important;
+  cursor: pointer !important;
+}
+
+.MuiChip-root.Mui-disabled {
+  cursor: not-allowed !important;
+}
+
+/* Icon styling - use native icon prop */
+.MuiChip-root .MuiChip-icon {
+  width: var(--chip-icon-size, 0px) !important;
+  height: var(--chip-icon-size, 0px) !important;
+  margin-right: var(--chip-icon-text-gap, 0px) !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.MuiChip-root .MuiChip-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
