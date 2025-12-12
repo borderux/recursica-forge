@@ -629,10 +629,6 @@
         "elevation": {
           "$type": "elevation",
           "$value": "{brand.themes.light.elevations.elevation-0}"
-        },
-        "alternative-layer": {
-          "$type": "layer-alternative",
-          "$value": "none"
         }
       },
       "switch": {

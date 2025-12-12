@@ -45,5 +45,6 @@
   "variant-size": "resize",
   "layer": "square-3-stack-3d",
   "alt-layer": "swap",
-  "reset": "arrow-path"
+  "reset": "arrow-path",
+  "elevation": "copy-simple"
 }

@@ -2,7 +2,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-sm);
+  gap: var(--recursica-brand-dimensions-spacer-lg);
   padding: var(--recursica-brand-light-layer-layer-1-property-padding);
   background: var(--recursica-brand-light-layer-layer-1-property-surface);
   border: var(--recursica-brand-light-layer-layer-1-property-border-thickness) solid var(--recursica-brand-light-layer-layer-1-property-border-color);
@@ -16,20 +16,14 @@
   align-items: center;
   gap: var(--recursica-brand-dimensions-sm);
   position: relative;
+  padding: var(--recursica-brand-light-layer-layer-2-property-padding);
+  background: var(--recursica-brand-light-layer-layer-2-property-surface);
+  border: var(--recursica-brand-light-layer-layer-2-property-border-thickness) solid var(--recursica-brand-light-layer-layer-2-property-border-color);
+  border-radius: var(--recursica-brand-light-layer-layer-2-property-border-radius);
 }
 
 .toolbar-icon-wrapper {
   position: relative;
-}
-
-.toolbar-separator {
-  width: 1px;
-  height: 24px;
-  background: var(--recursica-brand-light-layer-layer-1-property-element-text-color);
-  opacity: var(--recursica-brand-light-layer-layer-1-property-element-text-low-emphasis);
-  margin: 0 var(--recursica-brand-dimensions-sm);
-  flex-shrink: 0;
-  align-self: center;
 }
 
 .toolbar-icon-button {
@@ -44,18 +38,18 @@
   border: none;
   border-radius: var(--recursica-brand-dimensions-border-radius-default);
   cursor: pointer;
-  color: var(--recursica-brand-light-layer-layer-1-property-element-text-color);
-  opacity: var(--recursica-brand-light-layer-layer-1-property-element-text-high-emphasis);
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  opacity: var(--recursica-brand-light-layer-layer-2-property-element-text-high-emphasis);
   transition: background-color 0.2s;
   position: relative;
 }
 
 .toolbar-icon-button:hover {
-  background: var(--recursica-brand-light-layer-layer-1-property-surface-hover);
+  background: var(--recursica-brand-light-layer-layer-2-property-surface-hover);
 }
 
 .toolbar-icon-button:active {
-  background: var(--recursica-brand-light-layer-layer-1-property-surface-active);
+  background: var(--recursica-brand-light-layer-layer-2-property-surface-active);
 }
 
 .toolbar-icon-button.active::before {
@@ -80,7 +74,7 @@
 }
 
 .toolbar-reset-button {
-  color: var(--recursica-brand-light-layer-layer-1-property-element-interactive-tone);
+  color: var(--recursica-brand-light-layer-layer-2-property-element-interactive-tone);
 }
 
 .toolbar-icon {
@@ -96,7 +90,7 @@
   font-weight: var(--recursica-brand-typography-caption-font-weight);
   letter-spacing: var(--recursica-brand-typography-caption-font-letter-spacing);
   line-height: var(--recursica-brand-typography-caption-line-height);
-  color: var(--recursica-brand-light-layer-layer-0-property-element-text-low-emphasis, var(--recursica-brand-light-layer-layer-1-property-element-text-low-emphasis));
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-low-emphasis);
   white-space: nowrap;
   margin-right: var(--recursica-brand-dimensions-sm, 8px);
 }

@@ -338,7 +338,7 @@ export default function LayerStylePanel({
               <input
                 type="range"
                 min={0}
-                max={16}
+                max={20}
                 step={1}
                 value={(() => {
                   const v = (spec as any)?.property?.['border-thickness']?.$value

@@ -8,6 +8,7 @@ import { Button as CarbonButton } from '@carbon/react'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../../../core/css/readCssVar'
 import './Button.css'
 
 export default function Button({
@@ -103,6 +104,15 @@ export default function Button({
       paddingLeft: `var(${horizontalPaddingVar})`,
       paddingRight: `var(${horizontalPaddingVar})`,
       borderRadius: `var(${borderRadiusVar})`,
+      // For outline, use the outline-text CSS var for border color and ensure border is set
+      ...(variant === 'outline' ? {
+        border: `1px solid var(${buttonColorVar})`,
+        borderColor: `var(${buttonColorVar})`,
+      } : {}),
+      // For text variant, explicitly remove border
+      ...(variant === 'text' ? {
+        border: 'none',
+      } : {}),
       // Ensure flex layout for truncation to work with icons
       display: 'flex',
       alignItems: 'center',
@@ -129,17 +139,40 @@ export default function Button({
           border: 'none !important',
         }),
       }),
-      // Apply elevation if set (and not elevation-0)
-      ...(elevation && elevation !== 'elevation-0' && (() => {
-        const elevationMatch = elevation.match(/elevation-(\d+)/)
-        if (elevationMatch) {
-          const elevationLevel = elevationMatch[1]
-          return {
-            boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+      // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
+      ...(() => {
+        let elevationToApply: string | undefined = elevation
+        
+        if (hasComponentAlternativeLayer) {
+          // Read elevation from alt layer's property
+          const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+          const altLayerElevation = readCssVar(altLayerElevationVar)
+          if (altLayerElevation) {
+            // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
+            const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+            if (match) {
+              elevationToApply = match[1]
+            } else if (/^elevation-\d+$/.test(altLayerElevation)) {
+              elevationToApply = altLayerElevation
+            }
+          }
+          // If alt layer doesn't have elevation, fall back to component-level elevation
+          if (!elevationToApply) {
+            elevationToApply = elevation
+          }
+        }
+        
+        if (elevationToApply && elevationToApply !== 'elevation-0') {
+          const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
+          if (elevationMatch) {
+            const elevationLevel = elevationMatch[1]
+            return {
+              boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+            }
           }
         }
         return {}
-      })()),
+      })(),
       ...style,
     },
     ...carbon,

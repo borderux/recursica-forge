@@ -20,6 +20,7 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import propIconMapping from './propIconMapping.json'
 import { iconNameToReactComponent } from './iconUtils'
 import './ComponentToolbar.css'
+import './PropControl.css'
 
 export interface ComponentToolbarProps {
   componentName: string
@@ -27,12 +28,10 @@ export interface ComponentToolbarProps {
   selectedLayer: string // e.g., "layer-0"
   selectedAltLayer: string | null // e.g., "high-contrast" or null
   componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  componentAlternativeLayer?: string | null // e.g., "high-contrast", "none", null
   onVariantChange: (prop: string, variant: string) => void
   onLayerChange: (layer: string) => void
   onAltLayerChange: (altLayer: string | null) => void
   onElevationChange?: (elevation: string) => void
-  onComponentAlternativeLayerChange?: (altLayer: string | null) => void
 }
 
 export default function ComponentToolbar({
@@ -41,42 +40,38 @@ export default function ComponentToolbar({
   selectedLayer,
   selectedAltLayer,
   componentElevation,
-  componentAlternativeLayer,
   onVariantChange,
   onLayerChange,
   onAltLayerChange,
   onElevationChange,
-  onComponentAlternativeLayerChange,
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
   const { theme: themeJson } = useVars()
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer', 'altLayer', 'componentElevation', 'componentAltLayer'
-  const [openElevationPanel, setOpenElevationPanel] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer', 'altLayer'
   const iconRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
   const elevationButtonRef = useRef<HTMLButtonElement>(null)
   const elevationPanelRef = useRef<HTMLDivElement>(null)
-  const altLayerButtonRef = useRef<HTMLDivElement>(null)
 
   // Handle click outside for elevation panel
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        openElevationPanel &&
+        openPropControl === 'elevation' &&
         elevationButtonRef.current &&
         elevationPanelRef.current &&
         !elevationButtonRef.current.contains(event.target as Node) &&
         !elevationPanelRef.current.contains(event.target as Node)
       ) {
-        setOpenElevationPanel(false)
+        setOpenPropControl(null)
       }
     }
 
-    if (openElevationPanel) {
+    if (openPropControl === 'elevation') {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [openElevationPanel])
+  }, [openPropControl])
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
@@ -347,27 +342,12 @@ export default function ComponentToolbar({
     return 'elevation-0' // Default
   }, [componentElevation, componentName])
 
-  // Get current alternative-layer value from CSS var or prop
-  const currentAlternativeLayer = useMemo(() => {
-    if (componentAlternativeLayer !== undefined) return componentAlternativeLayer
-    const altLayerVar = getComponentLevelCssVar(componentName as any, 'alternative-layer')
-    const value = readCssVar(altLayerVar)
-    return value === 'none' ? null : (value || null)
-  }, [componentAlternativeLayer, componentName])
-
   // Handle elevation change
   const handleElevationChange = (elevationName: string) => {
     const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
     // Store as brand reference
     updateCssVar(elevationVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
     onElevationChange?.(elevationName)
-  }
-
-  // Handle alternative-layer change
-  const handleComponentAlternativeLayerChange = (altLayer: string | null) => {
-    const altLayerVar = getComponentLevelCssVar(componentName as any, 'alternative-layer')
-    updateCssVar(altLayerVar, altLayer === null ? 'none' : altLayer)
-    onComponentAlternativeLayerChange?.(altLayer)
   }
 
   const handleReset = () => {
@@ -378,11 +358,9 @@ export default function ComponentToolbar({
       document.documentElement.style.removeProperty(prop.cssVar)
     })
 
-    // Also reset elevation and alternative-layer
+    // Also reset elevation
     const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
-    const altLayerVar = getComponentLevelCssVar(componentName as any, 'alternative-layer')
     document.documentElement.style.removeProperty(elevationVar)
-    document.documentElement.style.removeProperty(altLayerVar)
 
     // Force a re-render by triggering a custom event
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
@@ -408,47 +386,6 @@ export default function ComponentToolbar({
     return defaultIcon || null
   }
 
-  // Track CSS variable changes to re-render when props are updated
-  const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
-  
-  useEffect(() => {
-    const handleCssVarReset = () => {
-      setCssVarUpdateTrigger(prev => prev + 1)
-    }
-    window.addEventListener('cssVarsReset', handleCssVarReset)
-    
-    // Also watch for DOM changes to inline styles (when CSS vars are updated)
-    const observer = new MutationObserver(() => {
-      setCssVarUpdateTrigger(prev => prev + 1)
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-    
-    return () => {
-      window.removeEventListener('cssVarsReset', handleCssVarReset)
-      observer.disconnect()
-    }
-  }, [])
-
-  // Check if a prop is using default/fallback value (not explicitly set)
-  const isPropUsingDefault = useMemo(() => {
-    const defaultMap = new Map<string, boolean>()
-    allProps.forEach(prop => {
-      // Check if the CSS variable is set in inline styles (explicitly set by user)
-      // If inline value is empty, it's using default/fallback
-      if (typeof document !== 'undefined') {
-        const inlineValue = document.documentElement.style.getPropertyValue(prop.cssVar)
-        defaultMap.set(prop.name, inlineValue === '')
-      } else {
-        defaultMap.set(prop.name, true)
-      }
-    })
-    return (prop: ComponentProp): boolean => {
-      return defaultMap.get(prop.name) ?? true
-    }
-  }, [allProps, cssVarUpdateTrigger])
 
   return (
     <div className="component-toolbar" data-layer="layer-1">
@@ -479,7 +416,6 @@ export default function ComponentToolbar({
           />
         ))}
       </div>
-      {structure.variants.length > 0 && <div className="toolbar-separator" />}
 
       {/* Consistent Layers Section */}
       <div className="toolbar-section-group">
@@ -518,18 +454,17 @@ export default function ComponentToolbar({
           }}
         />
       </div>
-      <div className="toolbar-separator" />
 
       {/* Dynamic Props Section */}
       <div className="toolbar-section-group">
-        {allProps.length > 0 && (
-          <span className="toolbar-section-label">Props</span>
-        )}
-        {allProps.map(prop => {
+        <span className="toolbar-section-label">Props</span>
+        {allProps.filter(prop => {
+          const propNameLower = prop.name.toLowerCase()
+          return propNameLower !== 'elevation' && propNameLower !== 'alternative-layer' && propNameLower !== 'alt-layer'
+        }).map(prop => {
           const Icon = getPropIcon(prop)
           // Use prop name as key instead of cssVar since we have unique prop names now
           const propKey = prop.name
-          const isDefault = isPropUsingDefault(prop)
           return (
             <div key={propKey} className="toolbar-icon-wrapper">
               <button
@@ -552,7 +487,7 @@ export default function ComponentToolbar({
                 title={toSentenceCase(prop.name)}
                 aria-label={toSentenceCase(prop.name)}
               >
-                <Icon className="toolbar-icon" style={isDefault ? { color: '#ff0000' } : undefined} />
+                <Icon className="toolbar-icon" />
               </button>
               {openPropControl === propKey && iconRefs.current.get(propKey) && (
                 <PropControl
@@ -567,145 +502,83 @@ export default function ComponentToolbar({
             </div>
           )
         })}
-      </div>
-      {allProps.length > 0 && <div className="toolbar-separator" />}
-
-      {/* Component-Level Props Section (Elevation and Alternative Layer) */}
-      <div className="toolbar-section-group">
-        {/* Elevation Control */}
+        
+        {/* Elevation Control - Special Prop */}
         <div className="toolbar-icon-wrapper">
           <button
             ref={elevationButtonRef}
-            className={`toolbar-icon-button ${openElevationPanel ? 'active' : ''}`}
+            className={`toolbar-icon-button ${openPropControl === 'elevation' ? 'active' : ''}`}
             onClick={() => {
-              setOpenElevationPanel(!openElevationPanel)
-              setOpenDropdown(null)
-              setOpenPropControl(null)
+              if (openPropControl === 'elevation') {
+                setOpenPropControl(null)
+              } else {
+                setOpenDropdown(null)
+                setOpenPropControl('elevation')
+              }
             }}
             title="Elevation"
             aria-label="Elevation"
           >
             {(() => {
-              const iconName = (propIconMapping as Record<string, string>).elevation || 'layers'
-              const ElevationIcon = iconNameToReactComponent(iconName)
+              const ElevationIcon = iconNameToReactComponent('copy-simple')
               return ElevationIcon ? <ElevationIcon className="toolbar-icon" /> : null
             })()}
           </button>
-          {openElevationPanel && elevationButtonRef.current && (
+          {openPropControl === 'elevation' && elevationButtonRef.current && (
             <div
               ref={elevationPanelRef}
-              className="toolbar-popover"
+              className="prop-control"
               style={{
                 position: 'absolute',
                 top: elevationButtonRef.current.offsetHeight + 8,
                 left: 0,
                 zIndex: 1000,
-                background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
-                border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
-                borderRadius: `var(--recursica-brand-${mode}-layer-layer-1-property-border-radius)`,
-                padding: '12px',
-                minWidth: '200px',
-                boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-2-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-2-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color, rgba(0, 0, 0, 0.1))`,
               }}
             >
-              <TokenSlider
-                label="Elevation"
-                tokens={elevationOptions}
-                currentToken={currentElevation}
-                onChange={handleElevationChange}
-                getTokenLabel={(token) => {
-                  const opt = elevationOptions.find((o) => o.name === token.name)
-                  return opt?.label || token.label || token.name
-                }}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Component Alternative Layer Dropdown */}
-        <div className="toolbar-icon-wrapper" ref={altLayerButtonRef}>
-          <button
-            className={`toolbar-icon-button ${openDropdown === 'componentAltLayer' ? 'active' : ''}`}
-            onClick={() => {
-              if (openDropdown === 'componentAltLayer') {
-                setOpenDropdown(null)
-              } else {
-                setOpenPropControl(null)
-                setOpenElevationPanel(false)
-                setOpenDropdown('componentAltLayer')
-              }
-            }}
-            title="Component Alt Layer"
-            aria-label="Component Alt Layer"
-          >
-            {(() => {
-              const iconName = (propIconMapping as Record<string, string>)['alt-layer'] || 'layers'
-              const AltLayerIcon = iconNameToReactComponent(iconName)
-              const CaretDownIcon = iconNameToReactComponent('chevron-down')
-              return (
-                <>
-                  {AltLayerIcon && <AltLayerIcon className="toolbar-icon" />}
-                  {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${openDropdown === 'componentAltLayer' ? 'flipped' : ''}`} />}
-                </>
-              )
-            })()}
-          </button>
-          {openDropdown === 'componentAltLayer' && altLayerButtonRef.current && (
-            <div className="dropdown-menu" style={{
-              position: 'absolute',
-              top: altLayerButtonRef.current.offsetHeight + 8,
-              left: 0,
-              zIndex: 1000,
-            }}>
-              {[
-                { key: null, label: 'None' },
-                { key: 'high-contrast', label: 'High Contrast' },
-                { key: 'primary-color', label: 'Primary Color' },
-                { key: 'alert', label: 'Alert' },
-                { key: 'success', label: 'Success' },
-                { key: 'warning', label: 'Warning' },
-                { key: 'floating', label: 'Floating' },
-              ].map(altLayer => (
+              <div className="prop-control-header">
+                <span className="prop-control-title">Elevation</span>
                 <button
-                  key={altLayer.key || 'none'}
-                  className={`dropdown-item ${currentAlternativeLayer === altLayer.key ? 'selected' : ''}`}
-                  onClick={() => {
-                    handleComponentAlternativeLayerChange(altLayer.key)
-                    setOpenDropdown(null)
-                  }}
+                  className="prop-control-close"
+                  onClick={() => setOpenPropControl(null)}
+                  aria-label="Close"
                 >
-                  <span
-                    className="alt-layer-swatch"
-                    style={{ 
-                      backgroundColor: altLayer.key 
-                        ? (readCssVar(`--recursica-brand-${mode}-layer-layer-alternative-${altLayer.key}-property-surface`) || '#ffffff')
-                        : (readCssVar(`--recursica-brand-${mode}-layer-layer-0-property-surface`) || '#ffffff')
-                    }}
-                  />
-                  {altLayer.label}
+                  {(() => {
+                    const CloseIcon = iconNameToReactComponent('x-mark')
+                    return CloseIcon ? <CloseIcon className="prop-control-close-icon" /> : null
+                  })()}
                 </button>
-              ))}
+              </div>
+              <div className="prop-control-body">
+                <TokenSlider
+                  label="Elevation"
+                  tokens={elevationOptions}
+                  currentToken={currentElevation}
+                  onChange={handleElevationChange}
+                  getTokenLabel={(token) => {
+                    const opt = elevationOptions.find((o) => o.name === token.name)
+                    return opt?.label || token.label || token.name
+                  }}
+                />
+              </div>
             </div>
           )}
         </div>
-      </div>
-      <div className="toolbar-separator" />
 
-      {/* Reset Section */}
-      <div className="toolbar-section-group">
-        <button
-          className="toolbar-icon-button toolbar-reset-button"
-          onClick={handleReset}
-          title="Reset to defaults"
-          aria-label="Reset to defaults"
-        >
-          {(() => {
-            const iconName = (propIconMapping as Record<string, string>).reset
-            const ResetIcon = iconName ? iconNameToReactComponent(iconName) : null
-            return ResetIcon ? <ResetIcon className="toolbar-icon" /> : null
-          })()}
-        </button>
       </div>
+
+      {/* Reset Button */}
+      <button
+        className="toolbar-icon-button toolbar-reset-button"
+        onClick={handleReset}
+        title="Reset to defaults"
+        aria-label="Reset to defaults"
+      >
+        {(() => {
+          const iconName = (propIconMapping as Record<string, string>).reset
+          const ResetIcon = iconName ? iconNameToReactComponent(iconName) : null
+          return ResetIcon ? <ResetIcon className="toolbar-icon" /> : null
+        })()}
+      </button>
     </div>
   )
 }

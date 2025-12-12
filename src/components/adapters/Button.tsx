@@ -227,9 +227,31 @@ function getButtonStyles(
     styles.cursor = 'pointer'
   }
   
+  // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
+  let elevationToApply: string | undefined = elevation
+  
+  if (hasComponentAlternativeLayer) {
+    // Read elevation from alt layer's property
+    const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+    const altLayerElevation = readCssVar(altLayerElevationVar)
+    if (altLayerElevation) {
+      // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
+      const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+      if (match) {
+        elevationToApply = match[1]
+      } else if (/^elevation-\d+$/.test(altLayerElevation)) {
+        elevationToApply = altLayerElevation
+      }
+    }
+    // If alt layer doesn't have elevation, fall back to component-level elevation
+    if (!elevationToApply) {
+      elevationToApply = elevation
+    }
+  }
+  
   // Apply elevation if set (and not elevation-0)
-  if (elevation && elevation !== 'elevation-0') {
-    const elevationMatch = elevation.match(/elevation-(\d+)/)
+  if (elevationToApply && elevationToApply !== 'elevation-0') {
+    const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
     if (elevationMatch) {
       const elevationLevel = elevationMatch[1]
       // Build box-shadow from elevation CSS variables

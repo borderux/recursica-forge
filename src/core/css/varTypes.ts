@@ -51,6 +51,14 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
     if (trimmed.includes('var(--recursica-tokens-') || trimmed.includes('var(--tokens-')) {
       return { valid: true }
     }
+    // Special case: border-thickness can use direct pixel values (0-20px)
+    // This allows users to set border thickness directly without requiring tokens
+    if (cssVarName.includes('border-thickness')) {
+      // Allow pixel values like "0px", "2px", "20px", etc.
+      if (/^\d+px$/.test(trimmed)) {
+        return { valid: true }
+      }
+    }
     // Reject hardcoded values
     return {
       valid: false,
