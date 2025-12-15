@@ -62,6 +62,12 @@ export default function ComponentToolbar({
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
+  // Close any open dropdowns and prop controls when component changes
+  useEffect(() => {
+    setOpenDropdown(null)
+    setOpenPropControl(null)
+  }, [componentName])
+
   // Get all unique props (one icon per prop name, regardless of variants or layers)
   // Show both non-variant props and variant props (both color and size), but only one icon per prop name
   // When editing a variant prop, it will edit for the selected variant and layer

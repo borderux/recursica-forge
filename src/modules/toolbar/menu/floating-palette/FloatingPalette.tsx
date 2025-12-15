@@ -107,19 +107,7 @@ export default function FloatingPalette({
     }
   }, [isDragging, dragStart, draggable])
 
-  // Handle click outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node) && anchorElement && !anchorElement.contains(event.target as Node)) {
-        onClose()
-      }
-    }
-
-    if (position) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [position, anchorElement, onClose])
+  // Removed click-outside handler - palette can only be closed via the X button
 
   if (!position) {
     return null

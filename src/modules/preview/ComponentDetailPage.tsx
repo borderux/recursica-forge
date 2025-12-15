@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useMemo, useState, useEffect } from 'react'
+import { useParams, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { getComponentSections } from './componentSections'
@@ -12,6 +12,7 @@ import ComponentDebugTable from './ComponentDebugTable'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
+  const location = useLocation()
   const { mode } = useThemeMode()
   const { theme } = useVars()
   const { debugMode } = useDebugMode()
@@ -40,6 +41,11 @@ export default function ComponentDetailPage() {
   const [selectedAltLayer, setSelectedAltLayer] = useState<string | null>(null)
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
+
+  // Close any open prop controls when navigating to a different component or route
+  useEffect(() => {
+    setOpenPropControl(null)
+  }, [componentName, location.pathname])
 
   // Get layer label for display
   const layerLabel = useMemo(() => {
