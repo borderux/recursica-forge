@@ -447,8 +447,10 @@ export default function DimensionTokenSelector({
     
     // Update CSS vars directly - no global state management, just set CSS vars
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+    const newValue = `var(${token.name})`
     cssVars.forEach(cssVar => {
-      updateCssVar(cssVar, `var(${token.name})`)
+      console.log(`[Toolbar] Setting CSS var: ${cssVar} = ${newValue}`)
+      updateCssVar(cssVar, newValue)
     })
   }
   
@@ -459,8 +461,10 @@ export default function DimensionTokenSelector({
     
     // Update CSS vars directly with pixel value
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+    const newValue = `${value}px`
     cssVars.forEach(cssVar => {
-      updateCssVar(cssVar, `${value}px`)
+      console.log(`[Toolbar] Setting CSS var: ${cssVar} = ${newValue}`)
+      updateCssVar(cssVar, newValue)
     })
   }
 

@@ -28,7 +28,7 @@ function buildThemeIndex(theme: JsonLike) {
 export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLabel): Record<string, string> {
   const themeIndex = buildThemeIndex(theme)
   const tokenIndex = buildTokenIndex(tokens)
-  const levels = ['900','800','700','600','500','400','300','200','100','050']
+  const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
   // Derive palette keys from Brand JSON (exclude 'core'); do NOT synthesize extra palettes
   const palettes = (() => {
     try {

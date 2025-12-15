@@ -247,7 +247,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                               : `--recursica-${cssVar}`
 
                           // Set the target CSS variable to reference the selected palette CSS variable
-                          updateCssVar(prefixedTarget, `var(${paletteCssVar})`, tokensJson)
+                          const newValue = `var(${paletteCssVar})`
+                          console.log(`[Toolbar] Setting CSS var: ${prefixedTarget} = ${newValue}`)
+                          updateCssVar(prefixedTarget, newValue, tokensJson)
                         })
                         
                         // Trigger a custom event to notify that CSS vars were updated
