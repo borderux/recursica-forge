@@ -1231,13 +1231,16 @@ class VarsStore {
       // This prevents recomputes from overwriting user changes
       // Check all UIKit CSS variables in the DOM and preserve any that differ from generated
       Object.keys(uikitVars).forEach((cssVar) => {
-        const existingValue = readCssVar(cssVar)
+        // Check inline style directly (user overrides are always inline)
+        const inlineValue = typeof document !== 'undefined' 
+          ? document.documentElement.style.getPropertyValue(cssVar).trim()
+          : ''
         const generatedValue = uikitVars[cssVar]
         
-        // Preserve if it exists in DOM and is different from generated (user customization)
+        // Preserve if there's an inline override and it differs from generated (user customization)
         // This ensures user changes via ComponentToolbar persist across recomputes
-        if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
-          uikitVars[cssVar] = existingValue
+        if (inlineValue !== '' && inlineValue !== generatedValue) {
+          uikitVars[cssVar] = inlineValue
         }
       })
       

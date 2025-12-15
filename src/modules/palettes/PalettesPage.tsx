@@ -1,5 +1,5 @@
 import '../theme/index.css'
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import PaletteGrid from './PaletteGrid'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -10,6 +10,7 @@ import { readCssVar } from '../../core/css/readCssVar'
 import { contrastRatio } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { updateCssVar } from '../../core/css/updateCssVar'
 
 type PaletteEntry = { key: string; title: string; defaultLevel: number; initialFamily?: string }
 
@@ -165,15 +166,151 @@ function CoreInteractiveSwatch({
   )
 }
 
+// Helper functions for AA compliance checking
+function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null
+  }
+  const fg = hexToRgb(fgHex)
+  const bg = hexToRgb(bgHex)
+  if (!fg || !bg) return fgHex
+  const a = Math.max(0, Math.min(1, opacity))
+  const r = Math.round(a * fg.r + (1 - a) * bg.r)
+  const g = Math.round(a * fg.g + (1 - a) * bg.g)
+  const b = Math.round(a * fg.b + (1 - a) * bg.b)
+  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
+}
+
+function readCssVarResolved(cssVar: string): string | null {
+  const value = readCssVar(cssVar)
+  if (!value) return null
+  const varMatch = value.match(/var\s*\(\s*(--[^)]+)\s*\)/)
+  if (varMatch) {
+    return readCssVarResolved(varMatch[1])
+  }
+  if (/^#?[0-9a-f]{6}$/i.test(value.trim())) {
+    const h = value.trim().toLowerCase()
+    return h.startsWith('#') ? h : `#${h}`
+  }
+  return value
+}
+
+function readCssVarNumber(cssVar: string): number {
+  const value = readCssVar(cssVar)
+  if (!value) return 1
+  const num = parseFloat(value)
+  return isNaN(num) ? 1 : Math.max(0, Math.min(1, num))
+}
+
 export default function PalettesPage() {
   const { tokens: tokensJson, theme: themeJson, palettes: palettesState, setPalettes, setTheme } = useVars()
   const { mode } = useThemeMode()
+  const hasCheckedAA = useRef<string | null>(null)
   
   const allFamilies = useMemo(() => {
     const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))
     fams.delete('translucent')
     return Array.from(fams).sort()
   }, [tokensJson])
+  
+  // One-time AA compliance check on mount and when mode changes
+  useEffect(() => {
+    if (hasCheckedAA.current === mode || !tokensJson) return
+    hasCheckedAA.current = mode
+    
+    // Wait a bit for CSS vars to be initialized
+    setTimeout(() => {
+      const headerLevels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
+      const modeLower = mode.toLowerCase()
+      const AA = 4.5
+      
+      // Get core colors
+      const coreBlackVar = `--recursica-brand-${modeLower}-palettes-core-black`
+      const coreWhiteVar = `--recursica-brand-${modeLower}-palettes-core-white`
+      const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
+      const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
+      const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
+      const normalizedWhite = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
+      
+      // Get emphasis opacity values
+      const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-high`)
+      const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-low`)
+      
+      // Get token index for resolving CSS vars
+      const tokenIndex = buildTokenIndex(tokensJson)
+      
+      // Check all palettes (including neutral and palette-1)
+      const allPaletteKeys = ['neutral', 'palette-1', ...palettesState.dynamic.map(p => p.key)]
+      
+      allPaletteKeys.forEach((paletteKey) => {
+        headerLevels.forEach((lvl) => {
+          const toneCssVar = `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-tone`
+          const onToneCssVar = `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
+          
+          const toneValue = readCssVar(toneCssVar)
+          if (!toneValue) return
+          
+          // Resolve tone to hex
+          const toneHex = resolveCssVarToHex(toneValue, tokenIndex)
+          if (!toneHex) return
+          
+          // Check both core colors with opacity blending
+          const whiteHighBlended = blendHexOver(normalizedWhite, toneHex, highEmphasisOpacity)
+          const whiteLowBlended = blendHexOver(normalizedWhite, toneHex, lowEmphasisOpacity)
+          const blackHighBlended = blendHexOver(normalizedBlack, toneHex, highEmphasisOpacity)
+          const blackLowBlended = blendHexOver(normalizedBlack, toneHex, lowEmphasisOpacity)
+          
+          const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
+          const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
+          const blackHighContrast = contrastRatio(toneHex, blackHighBlended)
+          const blackLowContrast = contrastRatio(toneHex, blackLowBlended)
+          
+          const whitePassesHigh = whiteHighContrast >= AA
+          const whitePassesLow = whiteLowContrast >= AA
+          const whitePassesBoth = whitePassesHigh && whitePassesLow
+          
+          const blackPassesHigh = blackHighContrast >= AA
+          const blackPassesLow = blackLowContrast >= AA
+          const blackPassesBoth = blackPassesHigh && blackPassesLow
+          
+          // Determine best on-tone color based on AA compliance
+          let onToneCore: 'white' | 'black' | null = null
+          if (whitePassesBoth && blackPassesBoth) {
+            // Both pass - choose based on contrast
+            onToneCore = whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+          } else if (whitePassesBoth) {
+            onToneCore = 'white'
+          } else if (blackPassesBoth) {
+            onToneCore = 'black'
+          } else if (whitePassesLow || blackPassesLow) {
+            // At least one passes low emphasis
+            onToneCore = whitePassesLow ? 'white' : 'black'
+          } else if (whitePassesHigh || blackPassesHigh) {
+            // At least one passes high emphasis
+            onToneCore = whitePassesHigh ? 'white' : 'black'
+          } else {
+            // Neither passes - choose based on baseline contrast
+            const whiteBaseContrast = contrastRatio(toneHex, normalizedWhite)
+            const blackBaseContrast = contrastRatio(toneHex, normalizedBlack)
+            onToneCore = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+          }
+          
+          // Update CSS variable with verified on-tone (if we determined one)
+          if (onToneCore) {
+            updateCssVar(
+              onToneCssVar,
+              `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
+            )
+          }
+        })
+      })
+    }, 100)
+  }, [mode, tokensJson, palettesState.dynamic])
   
   const palettes = palettesState.dynamic
   const writePalettes = (next: PaletteEntry[]) => setPalettes({ ...palettesState, dynamic: next })

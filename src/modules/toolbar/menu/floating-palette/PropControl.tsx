@@ -23,68 +23,43 @@ export default function PropControl({
   onClose,
 }: PropControlProps) {
   // Helper function to get CSS vars for a given prop
+  // Simply finds the CSS var that matches the current selected variants and layer
   const getCssVarsForProp = (propToCheck: ComponentProp): string[] => {
-    const vars: string[] = []
-
-    if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
-      // For variant-specific props, find the CSS var for the selected variant and layer
-      const selectedVariant = selectedVariants[propToCheck.variantProp]
-      if (selectedVariant) {
-        // For color props, we also need to match the selected layer
-        if (propToCheck.category === 'color') {
-          // Find the CSS var that matches both the selected variant AND selected layer
-          const structure = parseComponentStructure(componentName)
-          structure.props.forEach(p => {
-            if (p.name === propToCheck.name && p.variantProp === propToCheck.variantProp && p.category === 'color') {
-              // Check if this prop matches the selected variant and layer
-              const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-              const layerInPath = p.path.find(pathPart => pathPart === selectedLayer)
-              if (variantInPath && layerInPath) {
-                vars.push(p.cssVar)
-              }
-            }
-          })
-          // If no matching vars found for color props, try to construct the CSS var name
-          if (vars.length === 0) {
-            // Try to use the prop's CSS var as-is (it might already be correct)
-            vars.push(propToCheck.cssVar)
-          }
-        } else {
-          // For size props, find the CSS var that matches the selected variant
-          // First try to replace variant in the CSS var name
-          const variantInVar = propToCheck.cssVar.match(/-variant-([^-]+)-/)?.[1]
-          if (variantInVar && variantInVar !== selectedVariant) {
-            const updatedCssVar = propToCheck.cssVar.replace(`-variant-${variantInVar}-`, `-variant-${selectedVariant}-`)
-            vars.push(updatedCssVar)
-          } else if (variantInVar && variantInVar === selectedVariant) {
-            // Already matches selected variant
-            vars.push(propToCheck.cssVar)
-          } else {
-            // Fallback: try to find the prop in the structure with the selected variant
-            const structure = parseComponentStructure(componentName)
-            structure.props.forEach(p => {
-              if (p.name === propToCheck.name && p.variantProp === propToCheck.variantProp) {
-                const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-                if (variantInPath) {
-                  vars.push(p.cssVar)
-                }
-              }
-            })
-          }
+    const structure = parseComponentStructure(componentName)
+    
+    // Find the prop that matches:
+    // 1. Same prop name
+    // 2. Same category
+    // 3. Selected variant (if variant-specific)
+    // 4. Selected layer (if color prop with layer)
+    const matchingProp = structure.props.find(p => {
+      // Must match prop name and category
+      if (p.name !== propToCheck.name || p.category !== propToCheck.category) {
+        return false
+      }
+      
+      // If variant-specific, must match selected variant
+      if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
+        const selectedVariant = selectedVariants[propToCheck.variantProp]
+        if (!selectedVariant) return false
+        
+        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+        if (!variantInPath) return false
+      }
+      
+      // If color prop, must match selected layer (if prop has a layer in path)
+      if (propToCheck.category === 'color') {
+        const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
+        if (layerInPath) {
+          if (layerInPath !== selectedLayer) return false
         }
       }
-    } else {
-      // For non-variant props, update the prop's CSS var directly
-      // These props apply to all variants
-      vars.push(propToCheck.cssVar)
-    }
-
-    // If no vars found, use the prop's CSS var as fallback
-    if (vars.length === 0) {
-      vars.push(propToCheck.cssVar)
-    }
-
-    return vars
+      
+      return true
+    })
+    
+    // Return the matching prop's CSS var, or fallback to the prop's own CSS var
+    return matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]
   }
 
   // Get CSS vars for base prop

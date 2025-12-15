@@ -460,9 +460,8 @@ export function buildUIKitVars(
             vars[key] = resolved
             changed = true
           } else if (!resolved) {
-            // Log unresolved references for debugging (but don't break the build)
-            // These will be caught by the CSS var audit
-            console.warn(`[UIKit] Could not resolve reference: ${trimmed} for CSS var: ${key}`)
+            // Unresolved references will be caught by the CSS var audit
+            // Silently skip - these are expected for some references that may not be resolvable
           }
         }
         

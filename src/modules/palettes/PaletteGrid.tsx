@@ -260,7 +260,14 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     // Don't dispatch paletteVarsChanged here - CSS vars are managed by PaletteColorSelector
     // This prevents unnecessary re-renders of other palettes
   }, [mode, overrideVersion])
+  // Track last primary level to only update when user explicitly changes it
+  const lastPrimaryLevel = useRef<string | null>(null)
+  const lastMode = useRef<string | null>(null)
+  
   useEffect(() => {
+    // Only update when primary level or mode actually changes (user action), not on every render
+    if (lastPrimaryLevel.current === primaryLevelStr && lastMode.current === mode) return
+    
     const lvl = primaryLevelStr
     try {
       // Reference the level-specific brand vars directly so primary is not hardcoded
@@ -282,10 +289,15 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         )
       }
       
-      // Notify dependents that primary-level derived vars changed
-      try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}
+      // Only notify if this is a user-initiated change (primary level or mode changed)
+      if (lastPrimaryLevel.current !== null || lastMode.current !== null) {
+        try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}
+      }
+      
+      lastPrimaryLevel.current = primaryLevelStr
+      lastMode.current = mode
     } catch {}
-  }, [primaryLevelStr, selectedFamily, overrideVersion, mode, paletteKey])
+  }, [primaryLevelStr, mode, paletteKey]) // Removed selectedFamily and overrideVersion from dependencies
   return (
     <div className="palette-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>

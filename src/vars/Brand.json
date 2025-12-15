@@ -401,7 +401,7 @@
                 "interactive": {
                   "tone": {
                     "$type": "color",
-                    "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
+                    "$value": "{brand.themes.light.palettes.core-colors.black}"
                   },
                   "tone-hover": {
                     "$type": "color",
@@ -708,10 +708,10 @@
               "color": {
                 "$type": "color",
                 "tone": {
-                  "$value": "{tokens.color.salmon.400}"
+                  "$value": "{tokens.color.salmon.500}"
                 },
                 "on-tone": {
-                  "$value": "{brand.themes.light.palettes.black}"
+                  "$value": "{brand.themes.light.palettes.white}"
                 }
               }
             },
@@ -1511,13 +1511,13 @@
                 "text": {
                   "color": {
                     "$type": "color",
-                    "$value": "{brand.themes.dark.palettes.core-colors.black}"
+                    "$value": "{brand.themes.dark.palettes.neutral.050.color.tone}"
                   }
                 },
                 "interactive": {
                   "color": {
                     "$type": "color",
-                    "$value": "{brand.themes.dark.palettes.core-colors.black}"
+                    "$value": "{brand.themes.dark.palettes.neutral.050.color.tone}"
                   },
                   "hover-color": {
                     "$type": "color",
@@ -1571,13 +1571,13 @@
                 "text": {
                   "color": {
                     "$type": "color",
-                    "$value": "{brand.themes.dark.palettes.core-colors.black}"
+                    "$value": "{brand.themes.dark.palettes.neutral.050.color.tone}"
                   }
                 },
                 "interactive": {
                   "color": {
                     "$type": "color",
-                    "$value": "{brand.themes.dark.palettes.core-colors.black}"
+                    "$value": "{brand.themes.dark.palettes.neutral.050.color.tone}"
                   },
                   "hover-color": {
                     "$type": "color",

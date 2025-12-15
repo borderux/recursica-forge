@@ -87,6 +87,7 @@ export class AAComplianceWatcher {
   private paletteFamilyChangedHandler: ((ev: CustomEvent) => void) | null = null
   private paletteDeletedHandler: ((ev: CustomEvent) => void) | null = null
   private isFixing: boolean = false
+  private isUpdating: boolean = false // Prevent loops when AA compliance updates CSS vars
 
   constructor(tokens: JsonLike, theme: JsonLike) {
     this.tokens = tokens
@@ -118,26 +119,25 @@ export class AAComplianceWatcher {
   }
 
   private setupWatcher() {
-    // Watch for CSS variable changes using MutationObserver
-    this.observer = new MutationObserver(() => {
-      this.checkForChanges()
-    })
-
-    // Observe changes to document.documentElement.style
-    this.observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-      subtree: false
-    })
-
-    // Also poll computed styles periodically (for changes not caught by MutationObserver)
-    this.startPolling()
-    
+    // Don't watch DOM mutations - only respond to explicit user actions
     // Listen for palette family changes and deletions
     this.paletteFamilyChangedHandler = this.handlePaletteFamilyChanged.bind(this) as any
     this.paletteDeletedHandler = this.handlePaletteDeleted.bind(this) as any
     window.addEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler)
     window.addEventListener('paletteDeleted', this.paletteDeletedHandler)
+    
+    // Listen for explicit events that should trigger AA compliance checks
+    // Only trigger on user-initiated changes, not automatic updates
+    window.addEventListener('paletteVarsChanged', () => {
+      if (!this.isUpdating) {
+        this.checkForChanges()
+      }
+    })
+    window.addEventListener('tokenOverridesChanged', () => {
+      if (!this.isUpdating) {
+        this.checkForChanges()
+      }
+    })
   }
   
   private handlePaletteDeleted(ev: CustomEvent) {
@@ -213,17 +213,8 @@ export class AAComplianceWatcher {
     return affected
   }
 
-  private startPolling() {
-    // Poll every 100ms to catch changes
-    const poll = () => {
-      this.checkForChanges()
-      this.checkTimeout = window.setTimeout(poll, 100)
-    }
-    poll()
-  }
-
   private checkForChanges() {
-    // Debounce rapid changes
+    // Debounce rapid changes - only check when actually triggered by events
     if (this.checkTimeout !== null) {
       clearTimeout(this.checkTimeout)
     }
@@ -233,14 +224,25 @@ export class AAComplianceWatcher {
   }
 
   private performChecks() {
-    // Check palette on-tone vars
-    this.checkPaletteOnToneVars()
+    // Prevent loops - if we're already updating, skip
+    if (this.isUpdating) return
     
-    // Check layer element colors
-    this.checkLayerElementColors()
-    
-    // Check core colors and update alternative layers
-    this.checkCoreColors()
+    this.isUpdating = true
+    try {
+      // Check palette on-tone vars
+      this.checkPaletteOnToneVars()
+      
+      // Check layer element colors
+      this.checkLayerElementColors()
+      
+      // Check core colors and update alternative layers
+      this.checkCoreColors()
+    } finally {
+      // Reset flag after a short delay to allow CSS var updates to complete
+      setTimeout(() => {
+        this.isUpdating = false
+      }, 100)
+    }
   }
 
   /**
@@ -958,10 +960,6 @@ export class AAComplianceWatcher {
    * Cleanup watcher
    */
   destroy() {
-    if (this.observer) {
-      this.observer.disconnect()
-      this.observer = null
-    }
     if (this.checkTimeout !== null) {
       clearTimeout(this.checkTimeout)
       this.checkTimeout = null
@@ -971,6 +969,10 @@ export class AAComplianceWatcher {
     }
     if (this.paletteDeletedHandler) {
       window.removeEventListener('paletteDeleted', this.paletteDeletedHandler)
+    }
+    if (this.observer) {
+      this.observer.disconnect()
+      this.observer = null
     }
     this.watchedVars.clear()
     this.lastValues.clear()
