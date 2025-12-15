@@ -87,9 +87,10 @@ export function getComponentCssVar(
     const colorVariantMatch = property.match(/^([a-z]+)-(.+)$/)
     if (colorVariantMatch) {
       const [, variantName, propName] = colorVariantMatch
-      // Known color variants: solid, text, outline
+      // Known color variants: solid, text, outline (for Button)
+      // Toast variants: default, success, error
       // If it matches a known variant pattern, insert "variant" segment
-      const knownVariants = ['solid', 'text', 'outline']
+      const knownVariants = ['solid', 'text', 'outline', 'default', 'success', 'error']
       if (knownVariants.includes(variantName)) {
         parts.push('variant', variantName, propName)
       } else {

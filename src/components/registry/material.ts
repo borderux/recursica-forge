@@ -16,5 +16,8 @@ registerComponent('material', 'Tabs', () => import('../adapters/material/Tabs/Ta
 // Switch
 registerComponent('material', 'Switch', () => import('../adapters/material/Switch/Switch'))
 
+// Toast
+registerComponent('material', 'Toast', () => import('../adapters/material/Toast/Toast'))
+
 // Add more components as they're implemented
 
