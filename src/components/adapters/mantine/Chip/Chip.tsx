@@ -77,7 +77,8 @@ export default function Chip({
       size="xs"
       radius="xl"
       variant="transparent"
-      onClick={(e: React.MouseEvent) => {
+      disabled={disabled}
+      onClick={disabled ? undefined : (e: React.MouseEvent) => {
         e.stopPropagation()
         onDelete(e)
       }}
@@ -93,6 +94,8 @@ export default function Chip({
   // Merge library-specific props
   const mantineProps = {
     size: mantineSize,
+    disabled,
+    'data-disabled': disabled ? true : undefined,
     onClick: disabled ? undefined : onClick,
     // Use native leftSection prop for icon - CSS will handle sizing and spacing
     leftSection: icon ? icon : undefined,
