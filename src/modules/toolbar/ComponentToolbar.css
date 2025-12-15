@@ -90,7 +90,8 @@
   font-weight: var(--recursica-brand-typography-caption-font-weight);
   letter-spacing: var(--recursica-brand-typography-caption-font-letter-spacing);
   line-height: var(--recursica-brand-typography-caption-line-height);
-  color: var(--recursica-brand-light-layer-layer-2-property-element-text-low-emphasis);
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  opacity: var(--recursica-brand-light-layer-layer-2-property-element-text-high-emphasis);
   white-space: nowrap;
   margin-right: var(--recursica-brand-dimensions-sm, 8px);
 }

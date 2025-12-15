@@ -54,19 +54,42 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       return getComponentCssVar('Switch', 'size', 'label-switch-gap', undefined)
     }, [])
     
+    // Build layer text color CSS variables
+    const layerTextColorVars = React.useMemo(() => {
+      const isAlternativeLayer = layer.startsWith('layer-alternative-')
+      const layerBase = isAlternativeLayer
+        ? `--recursica-brand-${mode}-layer-layer-alternative-${layer.replace('layer-alternative-', '')}-property`
+        : `--recursica-brand-${mode}-layer-${layer}-property`
+      
+      return {
+        textColor: `${layerBase}-element-text-color`,
+        highEmphasis: `${layerBase}-element-text-high-emphasis`,
+        lowEmphasis: `${layerBase}-element-text-low-emphasis`,
+      }
+    }, [layer, mode])
+    
     return (
       <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
           <Switch checked={checked1} onChange={setChecked1} layer={layer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
-          <span>On</span>
+          <span style={{
+            color: `var(${layerTextColorVars.textColor})`,
+            opacity: `var(${layerTextColorVars.highEmphasis})`,
+          }}>On</span>
         </label>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
           <Switch checked={checked2} onChange={setChecked2} layer={layer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
-          <span>Off</span>
+          <span style={{
+            color: `var(${layerTextColorVars.textColor})`,
+            opacity: `var(${layerTextColorVars.highEmphasis})`,
+          }}>Off</span>
         </label>
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)`, opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
           <Switch checked={checked3} onChange={setChecked3} disabled layer={layer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
-          <span>Disabled</span>
+          <span style={{
+            color: `var(${layerTextColorVars.textColor})`,
+            opacity: `var(${layerTextColorVars.lowEmphasis})`,
+          }}>Disabled</span>
         </label>
       </div>
     )
