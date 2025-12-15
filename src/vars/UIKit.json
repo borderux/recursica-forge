@@ -767,43 +767,37 @@
             "border-radius": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.border-radius.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.border-radius.sm}"
               }
             },
             "horizontal-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.sm}"
               }
             },
             "vertical-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.default}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.default}"
               }
             },
             "icon-text-gap": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.sm}"
               }
             },
             "icon": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.icon.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.icon.sm}"
               }
             },
             "max-width": {
               "$type": "dimension",
               "$value": {
-                "value": 200,
-                "unit": "px"
+                "value": 200
               }
             }
           },
@@ -811,43 +805,37 @@
             "border-radius": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.border-radius.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.border-radius.sm}"
               }
             },
             "horizontal-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.sm}"
               }
             },
             "vertical-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.default}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.default}"
               }
             },
             "icon-text-gap": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.sm}"
               }
             },
             "icon": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.icon.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.icon.sm}"
               }
             },
             "max-width": {
               "$type": "dimension",
               "$value": {
-                "value": 200,
-                "unit": "px"
+                "value": 200
               }
             }
           },
@@ -855,43 +843,37 @@
             "border-radius": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.border-radius.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.border-radius.sm}"
               }
             },
             "horizontal-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.sm}"
               }
             },
             "vertical-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.default}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.default}"
               }
             },
             "icon-text-gap": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.sm}"
               }
             },
             "icon": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.icon.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.icon.sm}"
               }
             },
             "max-width": {
               "$type": "dimension",
               "$value": {
-                "value": 200,
-                "unit": "px"
+                "value": 200
               }
             }
           },
@@ -899,43 +881,37 @@
             "border-radius": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.border-radius.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.border-radius.sm}"
               }
             },
             "horizontal-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.sm}"
               }
             },
             "vertical-padding": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.default}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.default}"
               }
             },
             "icon-text-gap": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.general.sm}"
               }
             },
             "icon": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.icon.sm}",
-                "unit": "px"
+                "value": "{brand.dimensions.icon.sm}"
               }
             },
             "max-width": {
               "$type": "dimension",
               "$value": {
-                "value": 200,
-                "unit": "px"
+                "value": 200
               }
             }
           }
