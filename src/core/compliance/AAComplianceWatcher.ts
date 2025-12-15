@@ -94,10 +94,8 @@ export class AAComplianceWatcher {
     this.theme = theme
     this.tokenIndex = buildTokenIndex(tokens)
     this.setupWatcher()
-    // Run startup validation after a short delay to ensure CSS vars are set
-    setTimeout(() => {
-      this.validateAllCompliance()
-    }, 100)
+    // Don't run validation on init - let JSON values be set first
+    // Only run checks when user makes explicit changes
   }
 
   /**
@@ -255,12 +253,16 @@ export class AAComplianceWatcher {
     this.watchedVars.add(toneVar)
     this.watchedVars.add(onToneVar)
     
-    // Initial check
-    this.updatePaletteOnTone(paletteKey, level, mode)
+    // Record initial value but don't update - let JSON values be set first
+    const initialValue = readCssVar(toneVar)
+    if (initialValue !== undefined) {
+      this.lastValues.set(toneVar, initialValue)
+    }
   }
 
   private checkPaletteOnToneVars() {
-    // Check all watched palette tone vars
+    // Only check watched palette tone vars that have actually changed (user action)
+    // Don't update on initialization - let JSON values be set first
     for (const varName of this.watchedVars) {
       if (varName.includes('-tone') && !varName.includes('-on-tone')) {
         const match = varName.match(/--recursica-brand-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
@@ -269,9 +271,13 @@ export class AAComplianceWatcher {
           const currentValue = readCssVar(varName)
           const lastValue = this.lastValues.get(varName)
           
-          if (currentValue !== lastValue) {
+          // Only update if the value actually changed (user action), not on first initialization
+          if (currentValue !== lastValue && lastValue !== undefined) {
             this.lastValues.set(varName, currentValue)
             this.updatePaletteOnTone(paletteKey, level, mode as 'light' | 'dark')
+          } else if (lastValue === undefined) {
+            // First time seeing this var - just record it, don't update
+            this.lastValues.set(varName, currentValue)
           }
         }
       }
@@ -929,24 +935,13 @@ export class AAComplianceWatcher {
       }
       
       // Auto-fix errors by triggering updates (only if not already fixing to prevent loops)
+      // Only fix when there are actual user changes, not on initialization
       if (errors.length > 0 && !this.isFixing) {
         this.isFixing = true
         this.updateAllLayers()
-        // Re-check palette on-tones - proactively fix all palettes
+        // Only check palette on-tones for watched vars that actually changed
+        // Don't proactively update all palettes - let JSON values be set first
         this.checkPaletteOnToneVars()
-        // Also proactively update all palette on-tones to ensure they're correct
-        try {
-          const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
-          const themes = root?.themes || root
-          const lightPal: any = themes?.light?.palettes || {}
-          const levels = ['900', '800', '700', '600', '500', '400', '300', '200', '100', '050']
-          Object.keys(lightPal).forEach((paletteKey) => {
-            if (paletteKey === 'core' || paletteKey === 'core-colors' || paletteKey === 'neutral') return
-            levels.forEach((level) => {
-              this.updatePaletteOnTone(paletteKey, level, 'light')
-            })
-          })
-        } catch {}
         
         // Reset fixing flag after a delay to allow CSS vars to update
         setTimeout(() => {
