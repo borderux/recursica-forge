@@ -97,7 +97,7 @@ export default function Switch({
         '--switch-track-checked': `var(${trackSelectedVar})`,
         '--switch-track-unchecked': `var(${trackUnselectedVar})`,
         '--switch-border-radius': `var(${borderRadiusVar})`,
-        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
+        '--switch-elevation': elevationBoxShadow || 'none',
         ...style,
       }}
       {...mantine}

@@ -145,7 +145,7 @@ export default function Switch({
         '--recursica-toggle-track-checked': trackSelectedColor,
         '--recursica-toggle-track-unchecked': trackUnselectedColor,
         '--recursica-toggle-border-radius': borderRadiusValue,
-        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
+        '--recursica-toggle-elevation': elevationBoxShadow || 'none',
         ...style,
       }}
     >

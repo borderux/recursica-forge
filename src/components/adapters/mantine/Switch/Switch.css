@@ -24,6 +24,7 @@
 .mantine-Switch-track {
   background-color: var(--switch-track-unchecked, var(--mantine-color-gray-3)) !important;
   border-radius: var(--switch-border-radius, 999px) !important;
+  box-shadow: var(--switch-elevation, none) !important;
 }
 
 .mantine-Switch-input:checked + .mantine-Switch-track {
