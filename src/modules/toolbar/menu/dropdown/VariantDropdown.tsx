@@ -1,16 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import propIconMapping from './propIconMapping.json'
-import { iconNameToReactComponent } from './iconUtils'
+import { toSentenceCase } from '../../utils/componentToolbarUtils'
+import propIconMapping from '../../utils/propIconMapping.json'
+import { iconNameToReactComponent } from '../../../components/iconUtils'
 import './Dropdown.css'
 
-interface LayerDropdownProps {
+interface VariantDropdownProps {
+  propName: string
+  variants: string[]
   selected: string
-  onSelect: (layer: string) => void
+  onSelect: (variant: string) => void
   open?: boolean
   onOpenChange?: (isOpen: boolean) => void
 }
 
-export default function LayerDropdown({ selected, onSelect, open: controlledOpen, onOpenChange }: LayerDropdownProps) {
+export default function VariantDropdown({ propName, variants, selected, onSelect, open: controlledOpen, onOpenChange }: VariantDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const ref = useRef<HTMLDivElement>(null)
@@ -43,11 +46,20 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
     }
   }, [controlledOpen])
 
-  const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+  // Get icon for variant prop type from mapping
+  const getIcon = () => {
+    const mappingKey = `variant-${propName}`
+    const iconName = (propIconMapping as Record<string, string>)[mappingKey]
+    if (iconName) {
+      const IconComponent = iconNameToReactComponent(iconName)
+      if (IconComponent) {
+        return <IconComponent className="toolbar-icon" />
+      }
+    }
+    return null
+  }
 
-  // Get icon from mapping
-  const iconName = (propIconMapping as Record<string, string>).layer
-  const LayerIcon = iconName ? iconNameToReactComponent(iconName) : null
+  const icon = getIcon()
   const CaretDownIcon = iconNameToReactComponent('chevron-down')
 
   return (
@@ -55,28 +67,33 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
       <button
         className={`toolbar-icon-button ${open ? 'active' : ''}`}
         onClick={() => setOpen(!open)}
-        title="Layer"
-        aria-label="Layer"
+        title={`${toSentenceCase(propName)} variant`}
+        aria-label={`${toSentenceCase(propName)} variant`}
       >
-        {LayerIcon && <LayerIcon className="toolbar-icon" />}
+        {icon}
         {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />}
       </button>
       {open && (
         <div className="dropdown-menu">
-          {layers.map(layer => (
-            <button
-              key={layer}
-              className={`dropdown-item ${selected === layer ? 'selected' : ''}`}
-              onClick={() => {
-                onSelect(layer)
-                setOpen(false)
-              }}
-            >
-              {layer.charAt(0).toUpperCase() + layer.slice(1).replace('-', ' ')}
-            </button>
-          ))}
+          {variants.map(variant => {
+            const isSelected = selected === variant
+            return (
+              <button
+                key={variant}
+                className={`dropdown-item ${isSelected ? 'selected' : ''}`}
+                onClick={() => {
+                  onSelect(variant)
+                  setOpen(false)
+                }}
+                aria-selected={isSelected}
+              >
+                {toSentenceCase(variant)}
+              </button>
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
+

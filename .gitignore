@@ -22,3 +22,6 @@ pnpm-debug.log*
 .env
 .env.*.local
 *.local
+
+# Audit files in adapters
+**/adapters/**/*.audit.md

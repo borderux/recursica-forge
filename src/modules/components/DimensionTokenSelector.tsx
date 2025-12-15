@@ -3,7 +3,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { toSentenceCase } from './componentToolbarUtils'
+import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
 import TokenSlider from '../forms/TokenSlider'
 
 interface DimensionTokenSelectorProps {
@@ -416,7 +416,7 @@ export default function DimensionTokenSelector({
       setIsPixelMode(true)
       const pxValue = extractPixelValue(currentValue)
       // Determine max pixel value based on prop name
-      const maxPixelValue = propName.toLowerCase() === 'content-max-width' ? 500 : 200
+      const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
       setPixelValue(Math.max(0, Math.min(maxPixelValue, pxValue))) // Clamp to 0-maxPixelValue
     }
   }, [targetCssVar, dimensionTokens, propName])
@@ -465,8 +465,8 @@ export default function DimensionTokenSelector({
   }
 
   // Determine max pixel value based on prop name
-  // content-max-width can go up to 500px, others default to 200px
-  const maxPixelValue = propName.toLowerCase() === 'content-max-width' ? 500 : 200
+  // max-width can go up to 500px, others default to 200px
+  const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
 
   // Render pixel slider for raw pixel values
   if (isPixelMode) {

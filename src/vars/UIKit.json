@@ -619,7 +619,7 @@
             "unit": "px"
           }
         },
-        "content-max-width": {
+        "max-width": {
           "$type": "dimension",
           "$value": {
             "value": 500,

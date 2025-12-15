@@ -2,8 +2,8 @@
  * Utilities for parsing component structure from UIKit.json
  */
 
-import uikitJson from '../../vars/UIKit.json'
-import { toCssVarName } from '../../components/utils/cssVarNames'
+import uikitJson from '../../../vars/UIKit.json'
+import { toCssVarName } from '../../../components/utils/cssVarNames'
 
 export interface ComponentVariant {
   propName: string // e.g., "color", "size"

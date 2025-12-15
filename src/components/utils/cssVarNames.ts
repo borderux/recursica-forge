@@ -50,7 +50,7 @@ export function getComponentCssVar(
 ): string {
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
-  const componentLevelProperties = ['font-size', 'border-radius', 'content-max-width', 'elevation', 'alternative-layer']
+  const componentLevelProperties = ['font-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer']
   
   // Check if this is a component-level property (not under size/color category)
   if (componentLevelProperties.includes(property.toLowerCase())) {

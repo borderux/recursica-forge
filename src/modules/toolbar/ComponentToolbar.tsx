@@ -6,21 +6,22 @@
  */
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { parseComponentStructure, toSentenceCase, ComponentProp } from './componentToolbarUtils'
+import { parseComponentStructure, toSentenceCase, ComponentProp } from './utils/componentToolbarUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
-import VariantDropdown from './VariantDropdown'
-import LayerDropdown from './LayerDropdown'
-import AltLayerDropdown from './AltLayerDropdown'
-import PropControl from './PropControl'
+import VariantDropdown from './menu/dropdown/VariantDropdown'
+import LayerDropdown from './menu/dropdown/LayerDropdown'
+import AltLayerDropdown from './menu/dropdown/AltLayerDropdown'
+import PropControl from './menu/floating-palette/PropControl'
+import ElevationControl from './menu/floating-palette/ElevationControl'
+import MenuIcon from './menu/MenuIcon'
 import TokenSlider from '../forms/TokenSlider'
 import { getComponentLevelCssVar } from '../../components/utils/cssVarNames'
 import { readCssVar } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
-import propIconMapping from './propIconMapping.json'
-import { iconNameToReactComponent } from './iconUtils'
+import propIconMapping from './utils/propIconMapping.json'
+import { iconNameToReactComponent } from '../components/iconUtils'
 import './ComponentToolbar.css'
-import './PropControl.css'
 
 export interface ComponentToolbarProps {
   componentName: string
@@ -51,27 +52,6 @@ export default function ComponentToolbar({
   const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer', 'altLayer'
   const iconRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
   const elevationButtonRef = useRef<HTMLButtonElement>(null)
-  const elevationPanelRef = useRef<HTMLDivElement>(null)
-
-  // Handle click outside for elevation panel
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        openPropControl === 'elevation' &&
-        elevationButtonRef.current &&
-        elevationPanelRef.current &&
-        !elevationButtonRef.current.contains(event.target as Node) &&
-        !elevationPanelRef.current.contains(event.target as Node)
-      ) {
-        setOpenPropControl(null)
-      }
-    }
-
-    if (openPropControl === 'elevation') {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [openPropControl])
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
@@ -218,7 +198,7 @@ export default function ComponentToolbar({
           'width': 1,
           'min-width': 2,
           'max-width': 3,
-          'content-max-width': 4,
+          'max-width': 3,
         }
         return { category: 3, order: widthOrder[name] || 99 }
       }
@@ -361,6 +341,9 @@ export default function ComponentToolbar({
     // Also reset elevation
     const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
     document.documentElement.style.removeProperty(elevationVar)
+    
+    // Reset elevation state in parent component to default (elevation-0)
+    onElevationChange?.('elevation-0')
 
     // Force a re-render by triggering a custom event
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
@@ -467,7 +450,7 @@ export default function ComponentToolbar({
           const propKey = prop.name
           return (
             <div key={propKey} className="toolbar-icon-wrapper">
-              <button
+              <MenuIcon
                 ref={(el) => {
                   if (el) {
                     iconRefs.current.set(propKey, el)
@@ -475,7 +458,8 @@ export default function ComponentToolbar({
                     iconRefs.current.delete(propKey)
                   }
                 }}
-                className={`toolbar-icon-button ${openPropControl === propKey ? 'active' : ''}`}
+                icon={Icon}
+                active={openPropControl === propKey}
                 onClick={() => {
                   if (openPropControl === propKey) {
                     setOpenPropControl(null)
@@ -485,10 +469,7 @@ export default function ComponentToolbar({
                   }
                 }}
                 title={toSentenceCase(prop.name)}
-                aria-label={toSentenceCase(prop.name)}
-              >
-                <Icon className="toolbar-icon" />
-              </button>
+              />
               {openPropControl === propKey && iconRefs.current.get(propKey) && (
                 <PropControl
                   prop={prop}
@@ -505,9 +486,10 @@ export default function ComponentToolbar({
         
         {/* Elevation Control - Special Prop */}
         <div className="toolbar-icon-wrapper">
-          <button
+          <MenuIcon
             ref={elevationButtonRef}
-            className={`toolbar-icon-button ${openPropControl === 'elevation' ? 'active' : ''}`}
+            icon={iconNameToReactComponent('copy-simple')}
+            active={openPropControl === 'elevation'}
             onClick={() => {
               if (openPropControl === 'elevation') {
                 setOpenPropControl(null)
@@ -517,68 +499,30 @@ export default function ComponentToolbar({
               }
             }}
             title="Elevation"
-            aria-label="Elevation"
-          >
-            {(() => {
-              const ElevationIcon = iconNameToReactComponent('copy-simple')
-              return ElevationIcon ? <ElevationIcon className="toolbar-icon" /> : null
-            })()}
-          </button>
+          />
           {openPropControl === 'elevation' && elevationButtonRef.current && (
-            <div
-              ref={elevationPanelRef}
-              className="prop-control"
-              style={{
-                position: 'absolute',
-                top: elevationButtonRef.current.offsetHeight + 8,
-                left: 0,
-                zIndex: 1000,
-              }}
-            >
-              <div className="prop-control-header">
-                <span className="prop-control-title">Elevation</span>
-                <button
-                  className="prop-control-close"
-                  onClick={() => setOpenPropControl(null)}
-                  aria-label="Close"
-                >
-                  {(() => {
-                    const CloseIcon = iconNameToReactComponent('x-mark')
-                    return CloseIcon ? <CloseIcon className="prop-control-close-icon" /> : null
-                  })()}
-                </button>
-              </div>
-              <div className="prop-control-body">
-                <TokenSlider
-                  label="Elevation"
-                  tokens={elevationOptions}
-                  currentToken={currentElevation}
-                  onChange={handleElevationChange}
-                  getTokenLabel={(token) => {
-                    const opt = elevationOptions.find((o) => o.name === token.name)
-                    return opt?.label || token.label || token.name
-                  }}
-                />
-              </div>
-            </div>
+            <ElevationControl
+              anchorElement={elevationButtonRef.current}
+              elevationOptions={elevationOptions}
+              currentElevation={currentElevation}
+              onElevationChange={handleElevationChange}
+              onClose={() => setOpenPropControl(null)}
+            />
           )}
         </div>
 
       </div>
 
       {/* Reset Button */}
-      <button
-        className="toolbar-icon-button toolbar-reset-button"
+      <MenuIcon
+        icon={(() => {
+          const iconName = (propIconMapping as Record<string, string>).reset
+          return iconName ? iconNameToReactComponent(iconName) : null
+        })()}
         onClick={handleReset}
         title="Reset to defaults"
-        aria-label="Reset to defaults"
-      >
-        {(() => {
-          const iconName = (propIconMapping as Record<string, string>).reset
-          const ResetIcon = iconName ? iconNameToReactComponent(iconName) : null
-          return ResetIcon ? <ResetIcon className="toolbar-icon" /> : null
-        })()}
-      </button>
+        className="toolbar-reset-button"
+      />
     </div>
   )
 }
