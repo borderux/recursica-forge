@@ -33,6 +33,7 @@ export interface ComponentToolbarProps {
   onLayerChange: (layer: string) => void
   onAltLayerChange: (altLayer: string | null) => void
   onElevationChange?: (elevation: string) => void
+  onPropControlChange?: (propName: string | null) => void
 }
 
 export default function ComponentToolbar({
@@ -45,10 +46,16 @@ export default function ComponentToolbar({
   onLayerChange,
   onAltLayerChange,
   onElevationChange,
+  onPropControlChange,
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
   const { theme: themeJson } = useVars()
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
+
+  // Notify parent when prop control opens/closes
+  useEffect(() => {
+    onPropControlChange?.(openPropControl)
+  }, [openPropControl, onPropControlChange])
   const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer', 'altLayer'
   const iconRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
   const elevationButtonRef = useRef<HTMLButtonElement>(null)

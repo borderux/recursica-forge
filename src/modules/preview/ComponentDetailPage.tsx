@@ -7,11 +7,14 @@ import { ComponentToolbar } from '../toolbar'
 import ButtonPreview from '../components/ButtonPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { useDebugMode } from './PreviewPage'
+import ComponentDebugTable from './ComponentDebugTable'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
   const { mode } = useThemeMode()
   const { theme } = useVars()
+  const { debugMode } = useDebugMode()
 
   // Convert slug to component name
   const componentName = useMemo(() => {
@@ -36,6 +39,7 @@ export default function ComponentDetailPage() {
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
   const [selectedAltLayer, setSelectedAltLayer] = useState<string | null>(null)
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
+  const [openPropControl, setOpenPropControl] = useState<string | null>(null)
 
   // Get layer label for display
   const layerLabel = useMemo(() => {
@@ -236,6 +240,7 @@ export default function ComponentDetailPage() {
               onLayerChange={setSelectedLayer}
               onAltLayerChange={setSelectedAltLayer}
               onElevationChange={setComponentElevation}
+              onPropControlChange={setOpenPropControl}
             />
           </div>
         </div>
@@ -304,6 +309,17 @@ export default function ComponentDetailPage() {
           {captionText}
         </div>
       </div>
+
+      {/* Debug Table - Show when debug mode is enabled */}
+      {debugMode && component && (
+        <ComponentDebugTable 
+          componentName={component.name}
+          openPropControl={openPropControl}
+          selectedVariants={selectedVariants}
+          selectedLayer={selectedLayer}
+          selectedAltLayer={selectedAltLayer}
+        />
+      )}
     </div>
   )
 }

@@ -1,9 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, createContext, useContext } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { ComponentsSidebar } from './ComponentsSidebar'
 
+const DebugModeContext = createContext<{ debugMode: boolean; setDebugMode: (value: boolean) => void } | undefined>(undefined)
+
+export function useDebugMode() {
+  const context = useContext(DebugModeContext)
+  if (!context) throw new Error('useDebugMode must be used within PreviewPage')
+  return context
+}
+
 export default function PreviewPage() {
   const [showUnmapped, setShowUnmapped] = useState(false)
+  const [debugMode, setDebugMode] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -16,11 +25,18 @@ export default function PreviewPage() {
   }, [location.pathname, navigate])
 
   return (
-    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
-      <ComponentsSidebar showUnmapped={showUnmapped} onShowUnmappedChange={setShowUnmapped} />
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <Outlet />
+    <DebugModeContext.Provider value={{ debugMode, setDebugMode }}>
+      <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+        <ComponentsSidebar 
+          showUnmapped={showUnmapped} 
+          onShowUnmappedChange={setShowUnmapped}
+          debugMode={debugMode}
+          onDebugModeChange={setDebugMode}
+        />
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <Outlet />
+        </div>
       </div>
-    </div>
+    </DebugModeContext.Provider>
   )
 }
