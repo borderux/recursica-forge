@@ -62,6 +62,11 @@ export default function ComponentToolbar({
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
+  // Filter variants to only show those with more than one option
+  const visibleVariants = useMemo(() => {
+    return structure.variants.filter(variant => variant.variants.length > 1)
+  }, [structure.variants])
+
   // Close any open dropdowns and prop controls when component changes
   useEffect(() => {
     setOpenDropdown(null)
@@ -385,33 +390,33 @@ export default function ComponentToolbar({
 
   return (
     <div className="component-toolbar" data-layer="layer-1">
-      {/* Dynamic Variants Section */}
-      <div className="toolbar-section-group">
-        {structure.variants.length > 0 && (
+      {/* Dynamic Variants Section - Only show if there are variants with more than one option */}
+      {visibleVariants.length > 0 && (
+        <div className="toolbar-section-group">
           <span className="toolbar-section-label">Variants</span>
-        )}
-        {structure.variants.map(variant => (
-          <VariantDropdown
-            key={variant.propName}
-            propName={variant.propName}
-            variants={variant.variants}
-            selected={selectedVariants[variant.propName] || variant.variants[0]}
-            onSelect={(variantName) => {
-              onVariantChange(variant.propName, variantName)
-              setOpenDropdown(null)
-            }}
-            open={openDropdown === `variant-${variant.propName}`}
-            onOpenChange={(isOpen) => {
-              if (isOpen) {
-                setOpenPropControl(null) // Close any open palette
-                setOpenDropdown(`variant-${variant.propName}`)
-              } else {
+          {visibleVariants.map(variant => (
+            <VariantDropdown
+              key={variant.propName}
+              propName={variant.propName}
+              variants={variant.variants}
+              selected={selectedVariants[variant.propName] || variant.variants[0]}
+              onSelect={(variantName) => {
+                onVariantChange(variant.propName, variantName)
                 setOpenDropdown(null)
-              }
-            }}
-          />
-        ))}
-      </div>
+              }}
+              open={openDropdown === `variant-${variant.propName}`}
+              onOpenChange={(isOpen) => {
+                if (isOpen) {
+                  setOpenPropControl(null) // Close any open palette
+                  setOpenDropdown(`variant-${variant.propName}`)
+                } else {
+                  setOpenDropdown(null)
+                }
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Consistent Layers Section */}
       <div className="toolbar-section-group">

@@ -8,7 +8,9 @@
 import { Toggle } from '@carbon/react'
 import { useEffect, useRef } from 'react'
 import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
-import { toCssVarName } from '../../../utils/cssVarNames'
+import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../../../core/css/readCssVar'
 import './Switch.css'
 
 export default function Switch({
@@ -18,25 +20,79 @@ export default function Switch({
   layer = 'layer-0',
   colorVariant = 'default',
   sizeVariant = 'default',
+  elevation,
+  alternativeLayer,
   className,
   style,
   carbon,
   ...props
 }: AdapterSwitchProps) {
+  const { mode } = useThemeMode()
   const toggleRef = useRef<HTMLDivElement>(null)
   
-  // Build UIKit CSS var names - these already include the layer in the path
-  // e.g., --recursica-ui-kit-components-switch-color-layer-0-variant-default-thumb
-  const thumbVar = toCssVarName(['components', 'switch', 'color', layer, 'variant', colorVariant, 'thumb'].join('.'))
-  const trackSelectedVar = toCssVarName(['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-selected'].join('.'))
-  const trackUnselectedVar = toCssVarName(['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-unselected'].join('.'))
-  const borderRadiusVar = toCssVarName(['components', 'switch', 'size', 'variant', sizeVariant, 'border-radius'].join('.'))
+  // Use getComponentCssVar to build CSS var names - matches what toolbar uses
+  const thumbVar = getComponentCssVar('Switch', 'color', `${colorVariant}-thumb`, layer)
+  const trackSelectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-selected`, layer)
+  const trackUnselectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-unselected`, layer)
+  const borderRadiusVar = getComponentCssVar('Switch', 'size', 'border-radius', undefined)
+  const elevationVar = getComponentCssVar('Switch', 'size', 'elevation', undefined)
   
   // Use CSS variables directly - they already point to the correct layer-specific values from UIKit.json
   const thumbColor = `var(${thumbVar})`
   const trackSelectedColor = `var(${trackSelectedVar})`
   const trackUnselectedColor = `var(${trackUnselectedVar})`
   const borderRadiusValue = `var(${borderRadiusVar})`
+  
+  // Check if component has alternative-layer prop set (overrides layer-based alt layer)
+  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+  
+  // Determine elevation to apply - prioritize prop, then UIKit.json, then alt layer
+  const elevationBoxShadow = (() => {
+    let elevationToApply: string | undefined = elevation
+    
+    // First, check if UIKit.json has an elevation set
+    if (!elevationToApply && elevationVar) {
+      const uikitElevation = readCssVar(elevationVar)
+      if (uikitElevation) {
+        // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
+        const match = uikitElevation.match(/elevations\.(elevation-\d+)/)
+        if (match) {
+          elevationToApply = match[1]
+        } else if (/^elevation-\d+$/.test(uikitElevation)) {
+          elevationToApply = uikitElevation
+        }
+      }
+    }
+    
+    // Check alt layer elevation if alt-layer is set
+    if (hasComponentAlternativeLayer) {
+      // Read elevation from alt layer's property
+      const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+      const altLayerElevation = readCssVar(altLayerElevationVar)
+      if (altLayerElevation) {
+        // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
+        const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+        if (match) {
+          elevationToApply = match[1]
+        } else if (/^elevation-\d+$/.test(altLayerElevation)) {
+          elevationToApply = altLayerElevation
+        }
+      }
+      // If alt layer doesn't have elevation, fall back to component-level elevation
+      if (!elevationToApply) {
+        elevationToApply = elevation
+      }
+    }
+    
+    if (elevationToApply && elevationToApply !== 'elevation-0') {
+      const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
+      if (elevationMatch) {
+        const elevationLevel = elevationMatch[1]
+        return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+      }
+    }
+    return undefined
+  })()
   
   // Prevent label from being clickable - handle clicks only on toggle elements
   useEffect(() => {
@@ -89,6 +145,8 @@ export default function Switch({
         '--recursica-toggle-track-checked': trackSelectedColor,
         '--recursica-toggle-track-unchecked': trackUnselectedColor,
         '--recursica-toggle-border-radius': borderRadiusValue,
+        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
+        ...style,
       }}
     >
       <Toggle
@@ -98,7 +156,6 @@ export default function Switch({
         labelText=""
         hideLabel={true}
         className={className}
-        style={style}
         {...carbon}
         {...props}
       />

@@ -439,19 +439,77 @@ Components support two special component-level props that are stored as separate
      - When set (and not `"elevation-0"`), applies box-shadow using elevation CSS variables
      - Format: `var(--recursica-brand-{mode}-elevations-elevation-{level}-x-axis) var(--recursica-brand-{mode}-elevations-elevation-{level}-y-axis) var(--recursica-brand-{mode}-elevations-elevation-{level}-blur) var(--recursica-brand-{mode}-elevations-elevation-{level}-spread) var(--recursica-brand-{mode}-elevations-elevation-{level}-shadow-color)`
      - If `elevation-0`, no box-shadow is applied
+   - Priority Order (highest to lowest):
+     1. **Prop value** (`elevation` prop passed directly)
+     2. **UIKit.json value** (read from `--recursica-ui-kit-components-{component}-elevation` CSS variable)
+     3. **Alternative layer elevation** (if `alternativeLayer` is set, read from `--recursica-brand-{mode}-layer-layer-alternative-{altLayer}-property-elevation`)
    - Implementation:
      ```typescript
      // In adapter component
      elevation?: string
      
      // In library implementation
-     if (elevation && elevation !== 'elevation-0') {
-       const elevationMatch = elevation.match(/elevation-(\d+)/)
-       if (elevationMatch) {
-         const elevationLevel = elevationMatch[1]
-         styles.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+     import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+     import { readCssVar } from '../../../../core/css/readCssVar'
+     import { getComponentCssVar } from '../../../utils/cssVarNames'
+     
+     const { mode } = useThemeMode()
+     const elevationVar = getComponentCssVar('ComponentName', 'size', 'elevation', undefined)
+     const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+     
+     // Determine elevation to apply - prioritize prop, then UIKit.json, then alt layer
+     const elevationBoxShadow = (() => {
+       let elevationToApply: string | undefined = elevation
+       
+       // First, check if UIKit.json has an elevation set
+       if (!elevationToApply && elevationVar) {
+         const uikitElevation = readCssVar(elevationVar)
+         if (uikitElevation) {
+           // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
+           const match = uikitElevation.match(/elevations\.(elevation-\d+)/)
+           if (match) {
+             elevationToApply = match[1]
+           } else if (/^elevation-\d+$/.test(uikitElevation)) {
+             elevationToApply = uikitElevation
+           }
+         }
        }
-     }
+       
+       // Check alt layer elevation if alt-layer is set
+       if (hasComponentAlternativeLayer) {
+         // Read elevation from alt layer's property
+         const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+         const altLayerElevation = readCssVar(altLayerElevationVar)
+         if (altLayerElevation) {
+           // Parse elevation value
+           const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+           if (match) {
+             elevationToApply = match[1]
+           } else if (/^elevation-\d+$/.test(altLayerElevation)) {
+             elevationToApply = altLayerElevation
+           }
+         }
+         // If alt layer doesn't have elevation, fall back to component-level elevation
+         if (!elevationToApply) {
+           elevationToApply = elevation
+         }
+       }
+       
+       if (elevationToApply && elevationToApply !== 'elevation-0') {
+         const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
+         if (elevationMatch) {
+           const elevationLevel = elevationMatch[1]
+           return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+         }
+       }
+       return undefined
+     })()
+     
+     // Apply to component style
+     style={{
+       ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
+       // ... other styles
+     }}
      ```
 
 2. **Alternative Layer** (`alternativeLayer` prop)
@@ -463,28 +521,42 @@ Components support two special component-level props that are stored as separate
      - Uses alternative layer's properties: `--recursica-brand-{mode}-layer-layer-alternative-{altLayer}-property-*`
      - Disables toolbar icons for overridden props (handled by toolbar)
      - If `null` or `"none"`, behaves as normal (uses layer prop)
+     - **Also affects elevation**: If alternative layer has an elevation property, it takes priority over component-level elevation (unless elevation prop is explicitly set)
    - Implementation:
      ```typescript
      // In adapter component
      alternativeLayer?: string | null
      
      // In library implementation
+     import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+     import { readCssVar } from '../../../../core/css/readCssVar'
+     
+     const { mode } = useThemeMode()
      const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+     
      if (hasComponentAlternativeLayer) {
        const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
        // Override all color/surface props with alt layer properties
        bgVar = `${layerBase}-element-interactive-tone`
        textVar = `${layerBase}-element-interactive-on-tone`
        // ... etc
+       
+       // Also check for alt layer elevation (used in elevation logic above)
+       const altLayerElevationVar = `${layerBase}-elevation`
+       const altLayerElevation = readCssVar(altLayerElevationVar)
+       // ... parse and use in elevation logic
      }
      ```
 
 **Important Notes:**
 - These props use **separate CSS variables** specific to the component (not shared with other components)
 - The CSS variable names follow the pattern: `--recursica-ui-kit-components-{component}-{property}`
-- Use `getComponentLevelCssVar(componentName, 'elevation')` and `getComponentLevelCssVar(componentName, 'alternative-layer')` to generate the CSS variable names
+- Use `getComponentCssVar(componentName, 'size', 'elevation', undefined)` to get the elevation CSS variable (elevation is a component-level property)
+- Use `getComponentLevelCssVar(componentName, 'alternative-layer')` to get the alternative-layer CSS variable
 - The toolbar provides controls for these props in a separate section (after dynamic props, before reset button)
 - When `alternativeLayer` is set, it overrides all surface/color props, so those toolbar icons should be disabled
+- **Elevation priority**: Prop > UIKit.json > Alternative Layer elevation > No elevation
+- **Alternative layer elevation**: If an alternative layer is set and has an elevation property, it will be used unless an elevation prop is explicitly provided
 
 ### Library CSS Variables
 

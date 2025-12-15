@@ -9,6 +9,7 @@ import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
 import ComponentDebugTable from './ComponentDebugTable'
+import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
@@ -32,20 +33,37 @@ export default function ComponentDetailPage() {
     return sections.find(s => s.name === componentName)
   }, [componentName, sections])
 
+  // Get component structure to determine initial variants
+  const componentStructure = useMemo(() => {
+    if (!componentName) return null
+    return parseComponentStructure(componentName)
+  }, [componentName])
+
+  // Initialize variants to first option for each variant prop
+  const getInitialVariants = useMemo(() => {
+    const initial: Record<string, string> = {}
+    if (componentStructure) {
+      componentStructure.variants.forEach(variant => {
+        if (variant.variants.length > 0) {
+          initial[variant.propName] = variant.variants[0]
+        }
+      })
+    }
+    return initial
+  }, [componentStructure])
+
   // Toolbar state
-  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({
-    color: 'solid',
-    size: 'default',
-  })
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
   const [selectedAltLayer, setSelectedAltLayer] = useState<string | null>(null)
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
 
-  // Close any open prop controls when navigating to a different component or route
+  // Reset variants to first option when component changes
   useEffect(() => {
+    setSelectedVariants(getInitialVariants)
     setOpenPropControl(null)
-  }, [componentName, location.pathname])
+  }, [componentName, location.pathname, getInitialVariants])
 
   // Get layer label for display
   const layerLabel = useMemo(() => {

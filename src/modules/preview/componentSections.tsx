@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
-import { toCssVarName } from '../../components/utils/cssVarNames'
+import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3' | 'layer-alternative-high-contrast' | 'layer-alternative-primary-color' | 'layer-alternative-alert' | 'layer-alternative-warning' | 'layer-alternative-success'
 
@@ -48,11 +48,11 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     const [checked2, setChecked2] = React.useState(false)
     const [checked3, setChecked3] = React.useState(false)
     
-    // Get the label-switch-gap CSS var
+    // Get the label-switch-gap CSS var - it's at the component level, not under size/variant
+    // Use getComponentCssVar with any category since it will detect component-level properties
     const labelSwitchGapVar = React.useMemo(() => {
-      const path = ['components', 'switch', 'size', 'variant', sizeVariant, 'label-switch-gap']
-      return toCssVarName(path.join('.'))
-    }, [sizeVariant])
+      return getComponentCssVar('Switch', 'size', 'label-switch-gap', undefined)
+    }, [])
     
     return (
       <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
