@@ -5,7 +5,6 @@
  */
 
 import { Switch as MaterialSwitch } from '@mui/material'
-import { useEffect, useState } from 'react'
 import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -49,42 +48,6 @@ export default function Switch({
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
   
-  // Force re-render when CSS vars change
-  const [updateCounter, setUpdateCounter] = useState(0)
-  
-  useEffect(() => {
-    const handleCssVarUpdate = (e: CustomEvent) => {
-      const updatedVars = (e.detail as any)?.cssVars || []
-      // Check if any of our CSS vars were updated (exact match or partial match for Switch-related vars)
-      const allOurVars = [
-        thumbSelectedVar, thumbUnselectedVar, trackSelectedVar, trackUnselectedVar,
-        trackBorderRadiusVar, thumbBorderRadiusVar,
-        thumbHeightVar, thumbWidthVar, trackWidthVar, trackInnerPaddingVar,
-        thumbIconSizeVar, thumbIconSelectedVar, thumbIconUnselectedVar,
-        thumbElevationVar, trackElevationVar,
-        '--recursica-ui-kit-components-switch-thumb-bg-selected',
-        '--recursica-ui-kit-components-switch-thumb-bg-unselected',
-        '--recursica-ui-kit-components-switch-track-checked',
-        '--recursica-ui-kit-components-switch-track-unchecked',
-      ]
-      if (updatedVars.some((v: string) => {
-        // Exact match
-        if (allOurVars.includes(v)) return true
-        // Partial match for Switch color vars (thumb-selected, thumb-unselected, track-selected, track-unselected)
-        if (v.includes('switch') && (
-          v.includes('thumb-selected') || v.includes('thumb-unselected') ||
-          v.includes('track-selected') || v.includes('track-unselected') ||
-          v.includes('thumb-bg-selected') || v.includes('thumb-bg-unselected') ||
-          v.includes('track-checked') || v.includes('track-unchecked')
-        )) return true
-        return false
-      })) {
-        setUpdateCounter(prev => prev + 1)
-      }
-    }
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-  }, [thumbSelectedVar, thumbUnselectedVar, trackSelectedVar, trackUnselectedVar, trackBorderRadiusVar, thumbBorderRadiusVar, thumbHeightVar, thumbWidthVar, trackWidthVar, trackInnerPaddingVar, thumbIconSizeVar, thumbIconSelectedVar, thumbIconUnselectedVar, thumbElevationVar, trackElevationVar])
   
   // Override track-selected to use alternative layer's interactive color when alt layer is set
   if (hasComponentAlternativeLayer) {
@@ -176,9 +139,6 @@ export default function Switch({
   // Calculate track height: thumb height + 2 * track inner padding
   const trackHeight = `calc(var(${thumbHeightVar}) + 2 * var(${trackInnerPaddingVar}))`
   
-  // Use updateCounter to force re-render when CSS vars change (even though we don't use it in render)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _ = updateCounter
   
   return (
     <MaterialSwitch

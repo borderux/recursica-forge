@@ -7,7 +7,7 @@
 
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { Switch } from '../tokens/font/Switch'
+import { Switch } from '../../components/adapters/Switch'
 import { useMemo, useEffect } from 'react'
 import uikitJson from '../../vars/UIKit.json'
 import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
@@ -232,14 +232,17 @@ export function ComponentsSidebar({
           <Switch
             checked={showUnmapped}
             onChange={onShowUnmappedChange}
+            layer="layer-0"
           />
-          <label style={{
-            color: `var(${layer1Base}-element-text-color)`,
-            opacity: `var(${layer1Base}-element-text-low-emphasis)`,
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            cursor: 'pointer',
-            flex: 1,
-          }}>
+          <label 
+            onClick={() => onShowUnmappedChange(!showUnmapped)}
+            style={{
+              color: `var(${layer1Base}-element-text-color)`,
+              opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              cursor: 'pointer',
+              flex: 1,
+            }}>
             Show unmapped ({unmappedCount})
           </label>
         </div>
@@ -251,14 +254,17 @@ export function ComponentsSidebar({
           <Switch
             checked={debugMode}
             onChange={onDebugModeChange}
+            layer="layer-0"
           />
-          <label style={{
-            color: `var(${layer1Base}-element-text-color)`,
-            opacity: `var(${layer1Base}-element-text-low-emphasis)`,
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            cursor: 'pointer',
-            flex: 1,
-          }}>
+          <label 
+            onClick={() => onDebugModeChange(!debugMode)}
+            style={{
+              color: `var(${layer1Base}-element-text-color)`,
+              opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              cursor: 'pointer',
+              flex: 1,
+            }}>
             Debug mode
           </label>
         </div>
