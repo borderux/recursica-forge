@@ -502,7 +502,7 @@ export default function ComponentToolbar({
         <span className="toolbar-section-label">Props</span>
         {allProps.filter(prop => {
           const propNameLower = prop.name.toLowerCase()
-          return propNameLower !== 'elevation' && propNameLower !== 'alternative-layer' && propNameLower !== 'alt-layer'
+          return propNameLower !== 'elevation' && propNameLower !== 'alternative-layer' && propNameLower !== 'alt-layer' && propNameLower !== 'track-elevation' && propNameLower !== 'thumb-elevation'
         }).map(prop => {
           const Icon = getPropIcon(prop)
           // Use prop name as key instead of cssVar since we have unique prop names now
@@ -565,6 +565,7 @@ export default function ComponentToolbar({
               elevationOptions={elevationOptions}
               currentElevation={currentElevation}
               onElevationChange={handleElevationChange}
+              componentName={componentName}
               onClose={() => setOpenPropControl(null)}
             />
           )}

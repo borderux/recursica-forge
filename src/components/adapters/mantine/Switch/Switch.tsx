@@ -5,6 +5,7 @@
  */
 
 import { Switch as MantineSwitch } from '@mantine/core'
+import { useEffect, useState } from 'react'
 import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -47,6 +48,20 @@ export default function Switch({
   const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
+  
+  // Force re-render when CSS vars change
+  const [updateCounter, setUpdateCounter] = useState(0)
+  
+  useEffect(() => {
+    const handleCssVarUpdate = (e: CustomEvent) => {
+      const updatedVars = (e.detail as any)?.cssVars || []
+      if (updatedVars.some((v: string) => v === thumbHeightVar || v === thumbWidthVar || v === thumbBorderRadiusVar || v === thumbIconSizeVar)) {
+        setUpdateCounter(prev => prev + 1)
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+  }, [thumbHeightVar, thumbWidthVar, thumbBorderRadiusVar, thumbIconSizeVar])
   
   // Override track-selected to use alternative layer's interactive color when alt layer is set
   if (hasComponentAlternativeLayer) {
@@ -132,6 +147,10 @@ export default function Switch({
   // Calculate track height: thumb height + 2 * track inner padding
   const trackHeight = `calc(var(${thumbHeightVar}, 20px) + 2 * var(${trackInnerPaddingVar}, 8px))`
   
+  // Use updateCounter to force re-render when CSS vars change (even though we don't use it in render)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _ = updateCounter
+  
   return (
     <MantineSwitch
       checked={checked}
@@ -140,6 +159,7 @@ export default function Switch({
       thumbIcon={checked ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : null) : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : null)}
       className={className}
       style={{
+        // Recursica CSS variables (used by our CSS overrides)
         '--recursica-ui-kit-components-switch-thumb-bg-selected': `var(${thumbSelectedVar})`,
         '--recursica-ui-kit-components-switch-thumb-bg-unselected': `var(${thumbUnselectedVar})`,
         '--recursica-ui-kit-components-switch-track-checked': `var(${trackSelectedVar})`,
@@ -154,6 +174,10 @@ export default function Switch({
         '--recursica-ui-kit-components-switch-thumb-icon-size': `var(${thumbIconSizeVar}, 12px)`,
         '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
         '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
+        // Mantine internal CSS variables (for Mantine's internal calculations)
+        '--switch-thumb-size': `var(${thumbWidthVar}, 20px)`,
+        '--switch-width': `var(${trackWidthVar}, 48px)`,
+        '--switch-track-label-padding': `var(${trackInnerPaddingVar}, 8px)`,
         width: `var(${trackWidthVar}, 48px)`,
         ...style,
       }}

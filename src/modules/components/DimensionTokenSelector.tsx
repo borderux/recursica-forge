@@ -450,6 +450,10 @@ export default function DimensionTokenSelector({
     cssVars.forEach(cssVar => {
       updateCssVar(cssVar, `var(${token.name})`)
     })
+    // Dispatch event to notify components of CSS var updates
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars }
+    }))
   }
   
   // Handle pixel slider changes
@@ -462,6 +466,10 @@ export default function DimensionTokenSelector({
     cssVars.forEach(cssVar => {
       updateCssVar(cssVar, `${value}px`)
     })
+    // Dispatch event to notify components of CSS var updates
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars }
+    }))
   }
 
   // Determine max pixel value based on prop name

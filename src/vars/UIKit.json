@@ -775,7 +775,7 @@
         "track-width": {
           "$type": "dimension",
           "$value": {
-            "value": 48,
+            "value": 64,
             "unit": "px"
           }
         },

@@ -5,6 +5,7 @@
  */
 
 import { Switch as MaterialSwitch } from '@mui/material'
+import { useEffect, useState } from 'react'
 import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -47,6 +48,20 @@ export default function Switch({
   const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
+  
+  // Force re-render when CSS vars change
+  const [updateCounter, setUpdateCounter] = useState(0)
+  
+  useEffect(() => {
+    const handleCssVarUpdate = (e: CustomEvent) => {
+      const updatedVars = (e.detail as any)?.cssVars || []
+      if (updatedVars.some((v: string) => v === thumbHeightVar || v === thumbWidthVar || v === thumbBorderRadiusVar || v === thumbIconSizeVar)) {
+        setUpdateCounter(prev => prev + 1)
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+  }, [thumbHeightVar, thumbWidthVar, thumbBorderRadiusVar, thumbIconSizeVar])
   
   // Override track-selected to use alternative layer's interactive color when alt layer is set
   if (hasComponentAlternativeLayer) {
@@ -137,6 +152,10 @@ export default function Switch({
   
   // Calculate track height: thumb height + 2 * track inner padding
   const trackHeight = `calc(var(${thumbHeightVar}, 20px) + 2 * var(${trackInnerPaddingVar}, 8px))`
+  
+  // Use updateCounter to force re-render when CSS vars change (even though we don't use it in render)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _ = updateCounter
   
   return (
     <MaterialSwitch

@@ -362,46 +362,6 @@ export default function PropControl({
               })()}
             </div>
           )}
-          {thumbElevationProp && (
-            <div style={{ marginTop: thumbIconSizeProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
-              {(() => {
-                const cssVars = getCssVarsForProp(thumbElevationProp)
-                const primaryVar = cssVars[0] || thumbElevationProp.cssVar
-                const currentElevation = (() => {
-                  const value = readCssVar(primaryVar)
-                  if (value) {
-                    const match = value.match(/elevations\.(elevation-\d+)/)
-                    if (match) return match[1]
-                    if (/^elevation-\d+$/.test(value)) return value
-                  }
-                  return 'elevation-0'
-                })()
-                
-                return (
-                  <TokenSlider
-                    label="Thumb Elevation"
-                    tokens={elevationOptions.map(opt => ({ name: opt.name, label: opt.label }))}
-                    currentToken={currentElevation}
-                    onChange={(elevationName) => {
-                      const allVars = [primaryVar, ...cssVars]
-                      allVars.forEach(cssVar => {
-                        if (cssVar) {
-                          updateCssVar(cssVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
-                        }
-                      })
-                      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-                        detail: { cssVars: allVars }
-                      }))
-                    }}
-                    getTokenLabel={(token) => {
-                      const opt = elevationOptions.find((o) => o.name === token.name)
-                      return opt?.label || token.label || token.name
-                    }}
-                  />
-                )
-              })()}
-            </div>
-          )}
         </>
       )
     }
