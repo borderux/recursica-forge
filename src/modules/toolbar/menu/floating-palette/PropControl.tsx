@@ -224,9 +224,9 @@ export default function PropControl({
       const thumbHeightProp = prop.thumbProps.get('thumb-height')
       const thumbWidthProp = prop.thumbProps.get('thumb-width')
       const thumbBorderRadiusProp = prop.thumbProps.get('thumb-border-radius')
-      const thumbIconSelectedProp = prop.thumbProps.get('thumb-icon-selected')
-      const thumbIconUnselectedProp = prop.thumbProps.get('thumb-icon-unselected')
-      const thumbIconSizeProp = prop.thumbProps.get('thumb-icon-size')
+      // const thumbIconSelectedProp = prop.thumbProps.get('thumb-icon-selected')
+      // const thumbIconUnselectedProp = prop.thumbProps.get('thumb-icon-unselected')
+      // const thumbIconSizeProp = prop.thumbProps.get('thumb-icon-size')
       const thumbElevationProp = prop.thumbProps.get('thumb-elevation')
       
       return (
@@ -265,8 +265,8 @@ export default function PropControl({
             </div>
           )}
           
-          {/* Thumb Icons */}
-          {thumbIconSelectedProp && (
+          {/* Thumb Icons - COMMENTED OUT FOR NOW */}
+          {/* {thumbIconSelectedProp && (
             <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(thumbIconSelectedProp)
@@ -295,11 +295,11 @@ export default function PropControl({
                 )
               })()}
             </div>
-          )}
+          )} */}
           
           {/* Thumb Dimensions */}
           {thumbHeightProp && (
-            <div style={{ marginTop: thumbIconUnselectedProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+            <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(thumbHeightProp)
                 const primaryVar = cssVars[0] || thumbHeightProp.cssVar
@@ -346,7 +346,8 @@ export default function PropControl({
               })()}
             </div>
           )}
-          {thumbIconSizeProp && (
+          {/* Thumb Icon Size - COMMENTED OUT FOR NOW */}
+          {/* {thumbIconSizeProp && (
             <div style={{ marginTop: thumbBorderRadiusProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(thumbIconSizeProp)
@@ -361,7 +362,7 @@ export default function PropControl({
                 )
               })()}
             </div>
-          )}
+          )} */}
         </>
       )
     }

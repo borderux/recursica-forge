@@ -55,14 +55,30 @@ export default function Switch({
   useEffect(() => {
     const handleCssVarUpdate = (e: CustomEvent) => {
       const updatedVars = (e.detail as any)?.cssVars || []
-      // Check if any of our CSS vars were updated
-      if (updatedVars.some((v: string) =>
-        v === thumbSelectedVar || v === thumbUnselectedVar || v === trackSelectedVar || v === trackUnselectedVar ||
-        v === trackBorderRadiusVar || v === thumbBorderRadiusVar ||
-        v === thumbHeightVar || v === thumbWidthVar || v === trackWidthVar || v === trackInnerPaddingVar ||
-        v === thumbIconSizeVar || v === thumbIconSelectedVar || v === thumbIconUnselectedVar ||
-        v === thumbElevationVar || v === trackElevationVar
-      )) {
+      // Check if any of our CSS vars were updated (exact match or partial match for Switch-related vars)
+      const allOurVars = [
+        thumbSelectedVar, thumbUnselectedVar, trackSelectedVar, trackUnselectedVar,
+        trackBorderRadiusVar, thumbBorderRadiusVar,
+        thumbHeightVar, thumbWidthVar, trackWidthVar, trackInnerPaddingVar,
+        thumbIconSizeVar, thumbIconSelectedVar, thumbIconUnselectedVar,
+        thumbElevationVar, trackElevationVar,
+        '--recursica-ui-kit-components-switch-thumb-bg-selected',
+        '--recursica-ui-kit-components-switch-thumb-bg-unselected',
+        '--recursica-ui-kit-components-switch-track-checked',
+        '--recursica-ui-kit-components-switch-track-unchecked',
+      ]
+      if (updatedVars.some((v: string) => {
+        // Exact match
+        if (allOurVars.includes(v)) return true
+        // Partial match for Switch color vars (thumb-selected, thumb-unselected, track-selected, track-unselected)
+        if (v.includes('switch') && (
+          v.includes('thumb-selected') || v.includes('thumb-unselected') ||
+          v.includes('track-selected') || v.includes('track-unselected') ||
+          v.includes('thumb-bg-selected') || v.includes('thumb-bg-unselected') ||
+          v.includes('track-checked') || v.includes('track-unchecked')
+        )) return true
+        return false
+      })) {
         setUpdateCounter(prev => prev + 1)
       }
     }

@@ -78,7 +78,8 @@ export default function ComponentToolbar({
   // When editing a variant prop, it will edit for the selected variant and layer
     // Combine props with "-hover" suffix into the base prop
     // Combine track-selected and track-unselected into "track" prop
-    // Combine thumb-selected, thumb-unselected, thumb-height, thumb-width, thumb-border-radius, thumb-icon-selected, thumb-icon-unselected, thumb-icon-size into "thumb" prop
+    // Combine thumb-selected, thumb-unselected, thumb-height, thumb-width, thumb-border-radius into "thumb" prop
+    // NOTE: thumb-icon-selected, thumb-icon-unselected, thumb-icon-size are commented out for now
     const allProps = useMemo(() => {
       const propsMap = new Map<string, ComponentProp>()
       const seenProps = new Set<string>()
