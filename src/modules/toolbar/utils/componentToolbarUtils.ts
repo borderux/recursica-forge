@@ -2,8 +2,8 @@
  * Utilities for parsing component structure from UIKit.json
  */
 
-import uikitJson from '../../vars/UIKit.json'
-import { toCssVarName } from '../../components/utils/cssVarNames'
+import uikitJson from '../../../vars/UIKit.json'
+import { toCssVarName } from '../../../components/utils/cssVarNames'
 
 export interface ComponentVariant {
   propName: string // e.g., "color", "size"
@@ -21,6 +21,7 @@ export interface ComponentProp {
   hoverProp?: ComponentProp // If there's a corresponding "-hover" prop, reference it here
   trackSelectedProp?: ComponentProp // For combined "track" prop, reference to track-selected
   trackUnselectedProp?: ComponentProp // For combined "track" prop, reference to track-unselected
+  thumbProps?: Map<string, ComponentProp> // For combined "thumb" prop, map of all thumb-related props
 }
 
 export interface ComponentStructure {

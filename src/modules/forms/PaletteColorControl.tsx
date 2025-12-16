@@ -377,8 +377,8 @@ export default function PaletteColorControl({
     // Use the same resolveCssVarToHex function as ButtonPreview
     // This function handles var() references recursively, including layer variables
     // that reference palette variables
-    const currentHex = resolveCssVarToHex(currentColorValue, tokenIndex)
-    const contrastHex = resolveCssVarToHex(contrastColorValue, tokenIndex)
+    const currentHex = resolveCssVarToHex(currentColorValue, tokenIndex as any)
+    const contrastHex = resolveCssVarToHex(contrastColorValue, tokenIndex as any)
     
     if (!currentHex || !contrastHex) {
       return null

@@ -6,21 +6,22 @@
  */
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { parseComponentStructure, toSentenceCase, ComponentProp } from './componentToolbarUtils'
+import { parseComponentStructure, toSentenceCase, ComponentProp } from './utils/componentToolbarUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
-import VariantDropdown from './VariantDropdown'
-import LayerDropdown from './LayerDropdown'
-import AltLayerDropdown from './AltLayerDropdown'
-import PropControl from './PropControl'
+import VariantDropdown from './menu/dropdown/VariantDropdown'
+import LayerDropdown from './menu/dropdown/LayerDropdown'
+import AltLayerDropdown from './menu/dropdown/AltLayerDropdown'
+import PropControl from './menu/floating-palette/PropControl'
+import ElevationControl from './menu/floating-palette/ElevationControl'
+import MenuIcon from './menu/MenuIcon'
 import TokenSlider from '../forms/TokenSlider'
 import { getComponentLevelCssVar } from '../../components/utils/cssVarNames'
 import { readCssVar } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
-import propIconMapping from './propIconMapping.json'
-import { iconNameToReactComponent } from './iconUtils'
+import propIconMapping from './utils/propIconMapping.json'
+import { iconNameToReactComponent } from '../components/iconUtils'
 import './ComponentToolbar.css'
-import './PropControl.css'
 
 export interface ComponentToolbarProps {
   componentName: string
@@ -32,6 +33,7 @@ export interface ComponentToolbarProps {
   onLayerChange: (layer: string) => void
   onAltLayerChange: (altLayer: string | null) => void
   onElevationChange?: (elevation: string) => void
+  onPropControlChange?: (propName: string | null) => void
 }
 
 export default function ComponentToolbar({
@@ -44,66 +46,78 @@ export default function ComponentToolbar({
   onLayerChange,
   onAltLayerChange,
   onElevationChange,
+  onPropControlChange,
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
   const { theme: themeJson } = useVars()
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
+
+  // Notify parent when prop control opens/closes
+  useEffect(() => {
+    onPropControlChange?.(openPropControl)
+  }, [openPropControl, onPropControlChange])
   const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer', 'altLayer'
   const iconRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
   const elevationButtonRef = useRef<HTMLButtonElement>(null)
-  const elevationPanelRef = useRef<HTMLDivElement>(null)
-
-  // Handle click outside for elevation panel
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        openPropControl === 'elevation' &&
-        elevationButtonRef.current &&
-        elevationPanelRef.current &&
-        !elevationButtonRef.current.contains(event.target as Node) &&
-        !elevationPanelRef.current.contains(event.target as Node)
-      ) {
-        setOpenPropControl(null)
-      }
-    }
-
-    if (openPropControl === 'elevation') {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [openPropControl])
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+
+  // Filter variants to only show those with more than one option
+  const visibleVariants = useMemo(() => {
+    return structure.variants.filter(variant => variant.variants.length > 1)
+  }, [structure.variants])
+
+  // Close any open dropdowns and prop controls when component changes
+  useEffect(() => {
+    setOpenDropdown(null)
+    setOpenPropControl(null)
+  }, [componentName])
 
   // Get all unique props (one icon per prop name, regardless of variants or layers)
   // Show both non-variant props and variant props (both color and size), but only one icon per prop name
   // When editing a variant prop, it will edit for the selected variant and layer
-  // Combine props with "-hover" suffix into the base prop
-  // Combine track-selected and track-unselected into "track" prop
-  const allProps = useMemo(() => {
-    const propsMap = new Map<string, ComponentProp>()
-    const seenProps = new Set<string>()
-    const hoverPropsMap = new Map<string, ComponentProp>() // Map of base name -> hover prop
-    let firstTrackSelected: ComponentProp | undefined
-    let firstTrackUnselected: ComponentProp | undefined
+    // Combine props with "-hover" suffix into the base prop
+    // Combine track-selected and track-unselected into "track" prop
+    // Combine thumb-selected, thumb-unselected, thumb-height, thumb-width, thumb-border-radius into "thumb" prop
+    // NOTE: thumb-icon-selected, thumb-icon-unselected, thumb-icon-size are commented out for now
+    const allProps = useMemo(() => {
+      const propsMap = new Map<string, ComponentProp>()
+      const seenProps = new Set<string>()
+      const hoverPropsMap = new Map<string, ComponentProp>() // Map of base name -> hover prop
+      let firstTrackSelected: ComponentProp | undefined
+      let firstTrackUnselected: ComponentProp | undefined
+      const thumbPropsMap = new Map<string, ComponentProp>() // Map of thumb property name -> prop
+      const trackPropsMap = new Map<string, ComponentProp>() // Map of track property name -> prop
 
-    // First pass: collect all props and identify hover props and track props
-    structure.props.forEach(prop => {
-      const propNameLower = prop.name.toLowerCase()
-      
-      // Check if this is a hover prop
-      if (propNameLower.endsWith('-hover')) {
-        const baseName = propNameLower.slice(0, -6) // Remove "-hover"
-        hoverPropsMap.set(baseName, prop)
-      }
-      
-      // Check if this is a track prop (track-selected or track-unselected)
-      if (propNameLower === 'track-selected' && !firstTrackSelected) {
-        firstTrackSelected = prop
-      } else if (propNameLower === 'track-unselected' && !firstTrackUnselected) {
-        firstTrackUnselected = prop
-      }
-    })
+      // First pass: collect all props and identify hover props, track props, and thumb props
+      structure.props.forEach(prop => {
+        const propNameLower = prop.name.toLowerCase()
+        
+        // Check if this is a hover prop
+        if (propNameLower.endsWith('-hover')) {
+          const baseName = propNameLower.slice(0, -6) // Remove "-hover"
+          hoverPropsMap.set(baseName, prop)
+        }
+        
+        // Check if this is a track prop (track-selected or track-unselected)
+        if (propNameLower === 'track-selected' && !firstTrackSelected) {
+          firstTrackSelected = prop
+        } else if (propNameLower === 'track-unselected' && !firstTrackUnselected) {
+          firstTrackUnselected = prop
+        }
+        
+        // Check if this is a track-related prop (track-width, track-inner-padding, track-border-radius)
+        if (propNameLower === 'track-width' || propNameLower === 'track-inner-padding' || propNameLower === 'track-border-radius') {
+          trackPropsMap.set(propNameLower, prop)
+        }
+        
+        // Check if this is a thumb prop
+        if (propNameLower.startsWith('thumb-')) {
+          thumbPropsMap.set(propNameLower, prop)
+        } else if (propNameLower === 'thumb') {
+          thumbPropsMap.set('thumb', prop)
+        }
+      })
 
     // Second pass: combine props with their hover variants and track variants
     structure.props.forEach(prop => {
@@ -114,8 +128,13 @@ export default function ComponentToolbar({
         return
       }
       
-      // Skip track-selected and track-unselected (they'll be combined into "track")
-      if (propNameLower === 'track-selected' || propNameLower === 'track-unselected') {
+      // Skip track-selected, track-unselected, track-width, track-inner-padding, and track-border-radius (they'll be combined into "track")
+      if (propNameLower === 'track-selected' || propNameLower === 'track-unselected' || propNameLower === 'track-width' || propNameLower === 'track-inner-padding' || propNameLower === 'track-border-radius') {
+        return
+      }
+      
+      // Skip thumb props (they'll be combined into "thumb")
+      if (propNameLower.startsWith('thumb-') || propNameLower === 'thumb') {
         return
       }
 
@@ -154,24 +173,45 @@ export default function ComponentToolbar({
       propsMap.set(key, prop)
     })
     
-    // Third pass: create a combined "track" prop from track-selected and track-unselected
-    if (firstTrackSelected || firstTrackUnselected) {
-      // Use track-selected as the base prop, or track-unselected if track-selected doesn't exist
-      const baseTrackProp = firstTrackSelected || firstTrackUnselected!
+    // Third pass: create a combined "track" prop from track-selected, track-unselected, track-width, and track-inner-padding
+    if (firstTrackSelected || firstTrackUnselected || trackPropsMap.size > 0) {
+      // Use track-selected as the base prop, or track-unselected if track-selected doesn't exist, or first track prop
+      const baseTrackProp = firstTrackSelected || firstTrackUnselected || Array.from(trackPropsMap.values())[0] || structure.props.find(p => p.name.toLowerCase() === 'track')
       
-      // Create a new prop that represents "track" with both variants
-      // PropControl will use getCssVarsForProp to find the right CSS vars based on selectedVariants and selectedLayer
-      const combinedTrackProp: ComponentProp = {
-        ...baseTrackProp,
-        name: 'track',
-        trackSelectedProp: firstTrackSelected,
-        trackUnselectedProp: firstTrackUnselected,
+      if (baseTrackProp) {
+        // Create a new prop that represents "track" with all track-related properties
+        const combinedTrackProp: ComponentProp = {
+          ...baseTrackProp,
+          name: 'track',
+          trackSelectedProp: firstTrackSelected,
+          trackUnselectedProp: firstTrackUnselected,
+          thumbProps: trackPropsMap.size > 0 ? trackPropsMap : undefined, // Reuse thumbProps field for track props
+        }
+        
+        // Use "track" as the key - only one track icon
+        if (!seenProps.has('track')) {
+          propsMap.set('track', combinedTrackProp)
+          seenProps.add('track')
+        }
+      }
+    }
+    
+    // Fourth pass: create a combined "thumb" prop from all thumb-related props
+    if (thumbPropsMap.size > 0) {
+      // Use thumb-selected as the base prop, or first thumb prop if thumb-selected doesn't exist
+      const baseThumbProp = thumbPropsMap.get('thumb-selected') || thumbPropsMap.get('thumb') || Array.from(thumbPropsMap.values())[0]
+      
+      // Create a new prop that represents "thumb" with all thumb-related properties
+      const combinedThumbProp: ComponentProp = {
+        ...baseThumbProp,
+        name: 'thumb',
+        thumbProps: thumbPropsMap,
       }
       
-      // Use "track" as the key - only one track icon
-      if (!seenProps.has('track')) {
-        propsMap.set('track', combinedTrackProp)
-        seenProps.add('track')
+      // Use "thumb" as the key - only one thumb icon
+      if (!seenProps.has('thumb')) {
+        propsMap.set('thumb', combinedThumbProp)
+        seenProps.add('thumb')
       }
     }
 
@@ -218,7 +258,7 @@ export default function ComponentToolbar({
           'width': 1,
           'min-width': 2,
           'max-width': 3,
-          'content-max-width': 4,
+          'max-width': 3,
         }
         return { category: 3, order: widthOrder[name] || 99 }
       }
@@ -361,6 +401,9 @@ export default function ComponentToolbar({
     // Also reset elevation
     const elevationVar = getComponentLevelCssVar(componentName as any, 'elevation')
     document.documentElement.style.removeProperty(elevationVar)
+    
+    // Reset elevation state in parent component to default (elevation-0)
+    onElevationChange?.('elevation-0')
 
     // Force a re-render by triggering a custom event
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
@@ -389,33 +432,33 @@ export default function ComponentToolbar({
 
   return (
     <div className="component-toolbar" data-layer="layer-1">
-      {/* Dynamic Variants Section */}
-      <div className="toolbar-section-group">
-        {structure.variants.length > 0 && (
+      {/* Dynamic Variants Section - Only show if there are variants with more than one option */}
+      {visibleVariants.length > 0 && (
+        <div className="toolbar-section-group">
           <span className="toolbar-section-label">Variants</span>
-        )}
-        {structure.variants.map(variant => (
-          <VariantDropdown
-            key={variant.propName}
-            propName={variant.propName}
-            variants={variant.variants}
-            selected={selectedVariants[variant.propName] || variant.variants[0]}
-            onSelect={(variantName) => {
-              onVariantChange(variant.propName, variantName)
-              setOpenDropdown(null)
-            }}
-            open={openDropdown === `variant-${variant.propName}`}
-            onOpenChange={(isOpen) => {
-              if (isOpen) {
-                setOpenPropControl(null) // Close any open palette
-                setOpenDropdown(`variant-${variant.propName}`)
-              } else {
+          {visibleVariants.map(variant => (
+            <VariantDropdown
+              key={variant.propName}
+              propName={variant.propName}
+              variants={variant.variants}
+              selected={selectedVariants[variant.propName] || variant.variants[0]}
+              onSelect={(variantName) => {
+                onVariantChange(variant.propName, variantName)
                 setOpenDropdown(null)
-              }
-            }}
-          />
-        ))}
-      </div>
+              }}
+              open={openDropdown === `variant-${variant.propName}`}
+              onOpenChange={(isOpen) => {
+                if (isOpen) {
+                  setOpenPropControl(null) // Close any open palette
+                  setOpenDropdown(`variant-${variant.propName}`)
+                } else {
+                  setOpenDropdown(null)
+                }
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Consistent Layers Section */}
       <div className="toolbar-section-group">
@@ -460,14 +503,14 @@ export default function ComponentToolbar({
         <span className="toolbar-section-label">Props</span>
         {allProps.filter(prop => {
           const propNameLower = prop.name.toLowerCase()
-          return propNameLower !== 'elevation' && propNameLower !== 'alternative-layer' && propNameLower !== 'alt-layer'
+          return propNameLower !== 'elevation' && propNameLower !== 'alternative-layer' && propNameLower !== 'alt-layer' && propNameLower !== 'track-elevation' && propNameLower !== 'thumb-elevation'
         }).map(prop => {
           const Icon = getPropIcon(prop)
           // Use prop name as key instead of cssVar since we have unique prop names now
           const propKey = prop.name
           return (
             <div key={propKey} className="toolbar-icon-wrapper">
-              <button
+              <MenuIcon
                 ref={(el) => {
                   if (el) {
                     iconRefs.current.set(propKey, el)
@@ -475,7 +518,8 @@ export default function ComponentToolbar({
                     iconRefs.current.delete(propKey)
                   }
                 }}
-                className={`toolbar-icon-button ${openPropControl === propKey ? 'active' : ''}`}
+                icon={Icon}
+                active={openPropControl === propKey}
                 onClick={() => {
                   if (openPropControl === propKey) {
                     setOpenPropControl(null)
@@ -485,10 +529,7 @@ export default function ComponentToolbar({
                   }
                 }}
                 title={toSentenceCase(prop.name)}
-                aria-label={toSentenceCase(prop.name)}
-              >
-                <Icon className="toolbar-icon" />
-              </button>
+              />
               {openPropControl === propKey && iconRefs.current.get(propKey) && (
                 <PropControl
                   prop={prop}
@@ -505,9 +546,10 @@ export default function ComponentToolbar({
         
         {/* Elevation Control - Special Prop */}
         <div className="toolbar-icon-wrapper">
-          <button
+          <MenuIcon
             ref={elevationButtonRef}
-            className={`toolbar-icon-button ${openPropControl === 'elevation' ? 'active' : ''}`}
+            icon={iconNameToReactComponent('copy-simple')}
+            active={openPropControl === 'elevation'}
             onClick={() => {
               if (openPropControl === 'elevation') {
                 setOpenPropControl(null)
@@ -517,68 +559,31 @@ export default function ComponentToolbar({
               }
             }}
             title="Elevation"
-            aria-label="Elevation"
-          >
-            {(() => {
-              const ElevationIcon = iconNameToReactComponent('copy-simple')
-              return ElevationIcon ? <ElevationIcon className="toolbar-icon" /> : null
-            })()}
-          </button>
+          />
           {openPropControl === 'elevation' && elevationButtonRef.current && (
-            <div
-              ref={elevationPanelRef}
-              className="prop-control"
-              style={{
-                position: 'absolute',
-                top: elevationButtonRef.current.offsetHeight + 8,
-                left: 0,
-                zIndex: 1000,
-              }}
-            >
-              <div className="prop-control-header">
-                <span className="prop-control-title">Elevation</span>
-                <button
-                  className="prop-control-close"
-                  onClick={() => setOpenPropControl(null)}
-                  aria-label="Close"
-                >
-                  {(() => {
-                    const CloseIcon = iconNameToReactComponent('x-mark')
-                    return CloseIcon ? <CloseIcon className="prop-control-close-icon" /> : null
-                  })()}
-                </button>
-              </div>
-              <div className="prop-control-body">
-                <TokenSlider
-                  label="Elevation"
-                  tokens={elevationOptions}
-                  currentToken={currentElevation}
-                  onChange={handleElevationChange}
-                  getTokenLabel={(token) => {
-                    const opt = elevationOptions.find((o) => o.name === token.name)
-                    return opt?.label || token.label || token.name
-                  }}
-                />
-              </div>
-            </div>
+            <ElevationControl
+              anchorElement={elevationButtonRef.current}
+              elevationOptions={elevationOptions}
+              currentElevation={currentElevation}
+              onElevationChange={handleElevationChange}
+              componentName={componentName}
+              onClose={() => setOpenPropControl(null)}
+            />
           )}
         </div>
 
       </div>
 
       {/* Reset Button */}
-      <button
-        className="toolbar-icon-button toolbar-reset-button"
+      <MenuIcon
+        icon={(() => {
+          const iconName = (propIconMapping as Record<string, string>).reset
+          return iconName ? iconNameToReactComponent(iconName) : null
+        })()}
         onClick={handleReset}
         title="Reset to defaults"
-        aria-label="Reset to defaults"
-      >
-        {(() => {
-          const iconName = (propIconMapping as Record<string, string>).reset
-          const ResetIcon = iconName ? iconNameToReactComponent(iconName) : null
-          return ResetIcon ? <ResetIcon className="toolbar-icon" /> : null
-        })()}
-      </button>
+        className="toolbar-reset-button"
+      />
     </div>
   )
 }

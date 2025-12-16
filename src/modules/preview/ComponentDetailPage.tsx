@@ -1,17 +1,22 @@
-import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useMemo, useState, useEffect } from 'react'
+import { useParams, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { getComponentSections } from './componentSections'
-import ComponentToolbar from '../components/ComponentToolbar'
+import { ComponentToolbar } from '../toolbar'
 import ButtonPreview from '../components/ButtonPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { useDebugMode } from './PreviewPage'
+import ComponentDebugTable from './ComponentDebugTable'
+import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
+  const location = useLocation()
   const { mode } = useThemeMode()
   const { theme } = useVars()
+  const { debugMode } = useDebugMode()
 
   // Convert slug to component name
   const componentName = useMemo(() => {
@@ -28,14 +33,37 @@ export default function ComponentDetailPage() {
     return sections.find(s => s.name === componentName)
   }, [componentName, sections])
 
+  // Get component structure to determine initial variants
+  const componentStructure = useMemo(() => {
+    if (!componentName) return null
+    return parseComponentStructure(componentName)
+  }, [componentName])
+
+  // Initialize variants to first option for each variant prop
+  const getInitialVariants = useMemo(() => {
+    const initial: Record<string, string> = {}
+    if (componentStructure) {
+      componentStructure.variants.forEach(variant => {
+        if (variant.variants.length > 0) {
+          initial[variant.propName] = variant.variants[0]
+        }
+      })
+    }
+    return initial
+  }, [componentStructure])
+
   // Toolbar state
-  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({
-    color: 'solid',
-    size: 'default',
-  })
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
   const [selectedAltLayer, setSelectedAltLayer] = useState<string | null>(null)
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
+  const [openPropControl, setOpenPropControl] = useState<string | null>(null)
+
+  // Reset variants to first option when component changes
+  useEffect(() => {
+    setSelectedVariants(getInitialVariants)
+    setOpenPropControl(null)
+  }, [componentName, location.pathname, getInitialVariants])
 
   // Get layer label for display
   const layerLabel = useMemo(() => {
@@ -236,6 +264,7 @@ export default function ComponentDetailPage() {
               onLayerChange={setSelectedLayer}
               onAltLayerChange={setSelectedAltLayer}
               onElevationChange={setComponentElevation}
+              onPropControlChange={setOpenPropControl}
             />
           </div>
         </div>
@@ -304,6 +333,17 @@ export default function ComponentDetailPage() {
           {captionText}
         </div>
       </div>
+
+      {/* Debug Table - Show when debug mode is enabled */}
+      {debugMode && component && (
+        <ComponentDebugTable 
+          componentName={component.name}
+          openPropControl={openPropControl}
+          selectedVariants={selectedVariants}
+          selectedLayer={selectedLayer}
+          selectedAltLayer={selectedAltLayer}
+        />
+      )}
     </div>
   )
 }

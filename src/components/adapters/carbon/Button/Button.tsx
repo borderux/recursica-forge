@@ -79,7 +79,7 @@ export default function Button({
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
-  const contentMaxWidthVar = getComponentCssVar('Button', 'size', 'content-max-width', undefined)
+  const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
   
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
@@ -125,7 +125,7 @@ export default function Button({
       '--button-color': isAlternativeLayer ? `var(${buttonColorVar})` : `var(${buttonColorVar})`,
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
-      '--button-content-max-width': `var(${contentMaxWidthVar})`,
+      '--button-max-width': `var(${maxWidthVar})`,
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Carbon's default disabled styles to keep colors unchanged
       ...(disabled && {

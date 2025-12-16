@@ -7,12 +7,22 @@
 
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { Switch } from '../tokens/font/Switch'
+import { Switch } from '../../components/adapters/Switch'
 import { useMemo, useEffect } from 'react'
 import uikitJson from '../../vars/UIKit.json'
 import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 
-export function ComponentsSidebar({ showUnmapped, onShowUnmappedChange }: { showUnmapped: boolean; onShowUnmappedChange: (show: boolean) => void }) {
+export function ComponentsSidebar({ 
+  showUnmapped, 
+  onShowUnmappedChange,
+  debugMode,
+  onDebugModeChange,
+}: { 
+  showUnmapped: boolean
+  onShowUnmappedChange: (show: boolean) => void
+  debugMode: boolean
+  onDebugModeChange: (show: boolean) => void
+}) {
   const location = useLocation()
   const navigate = useNavigate()
   const { mode } = useThemeMode()
@@ -201,7 +211,7 @@ export function ComponentsSidebar({ showUnmapped, onShowUnmappedChange }: { show
         })}
       </nav>
       
-      {/* Show Unmapped Components Switch */}
+      {/* Show Unmapped Components Switch and Debug Mode */}
       <div
         style={{
           display: 'flex',
@@ -222,15 +232,40 @@ export function ComponentsSidebar({ showUnmapped, onShowUnmappedChange }: { show
           <Switch
             checked={showUnmapped}
             onChange={onShowUnmappedChange}
+            layer="layer-0"
           />
-          <label style={{
-            color: `var(${layer1Base}-element-text-color)`,
-            opacity: `var(${layer1Base}-element-text-low-emphasis)`,
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            cursor: 'pointer',
-            flex: 1,
-          }}>
+          <label 
+            onClick={() => onShowUnmappedChange(!showUnmapped)}
+            style={{
+              color: `var(${layer1Base}-element-text-color)`,
+              opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              cursor: 'pointer',
+              flex: 1,
+            }}>
             Show unmapped ({unmappedCount})
+          </label>
+        </div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--recursica-brand-dimensions-spacer-default)',
+        }}>
+          <Switch
+            checked={debugMode}
+            onChange={onDebugModeChange}
+            layer="layer-0"
+          />
+          <label 
+            onClick={() => onDebugModeChange(!debugMode)}
+            style={{
+              color: `var(${layer1Base}-element-text-color)`,
+              opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              cursor: 'pointer',
+              flex: 1,
+            }}>
+            Debug mode
           </label>
         </div>
       </div>
