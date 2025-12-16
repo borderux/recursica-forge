@@ -50,7 +50,7 @@ export function getComponentCssVar(
 ): string {
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
-  const componentLevelProperties = ['font-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap']
+  const componentLevelProperties = ['font-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-inner-padding']
   
   // Check if this is a component-level property (not under size/color category)
   if (componentLevelProperties.includes(property.toLowerCase())) {

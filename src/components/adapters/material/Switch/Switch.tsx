@@ -9,6 +9,7 @@ import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
+import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Switch.css'
 
 export default function Switch({
@@ -27,22 +28,56 @@ export default function Switch({
 }: AdapterSwitchProps) {
   const { mode } = useThemeMode()
   
-  // Use getComponentCssVar to build CSS var names - matches what toolbar uses
-  const thumbVar = getComponentCssVar('Switch', 'color', `${colorVariant}-thumb`, layer)
-  const trackSelectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-selected`, layer)
-  const trackUnselectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-unselected`, layer)
-  const borderRadiusVar = getComponentCssVar('Switch', 'size', 'border-radius', undefined)
-  const elevationVar = getComponentCssVar('Switch', 'size', 'elevation', undefined)
-  
-  // Use CSS variables directly - they already point to the correct layer-specific values from UIKit.json
-  const thumbColor = `var(${thumbVar})`
-  const trackSelectedColor = `var(${trackSelectedVar})`
-  const trackUnselectedColor = `var(${trackUnselectedVar})`
-  
   // Check if component has alternative-layer prop set (overrides layer-based alt layer)
   const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
   
-  // Determine elevation to apply - prioritize prop, then UIKit.json, then alt layer
+  // Use getComponentCssVar to build CSS var names - matches what toolbar uses
+  const thumbSelectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-thumb-selected`, layer)
+  const thumbUnselectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-thumb-unselected`, layer)
+  let trackSelectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-selected`, layer)
+  const trackUnselectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-unselected`, layer)
+  const trackBorderRadiusVar = getComponentCssVar('Switch', 'size', 'track-border-radius', undefined)
+  const thumbBorderRadiusVar = getComponentCssVar('Switch', 'size', 'thumb-border-radius', undefined)
+  const thumbHeightVar = getComponentCssVar('Switch', 'size', 'thumb-height', undefined)
+  const thumbWidthVar = getComponentCssVar('Switch', 'size', 'thumb-width', undefined)
+  const trackWidthVar = getComponentCssVar('Switch', 'size', 'track-width', undefined)
+  const trackInnerPaddingVar = getComponentCssVar('Switch', 'size', 'track-inner-padding', undefined)
+  const thumbIconSizeVar = getComponentCssVar('Switch', 'size', 'thumb-icon-size', undefined)
+  const thumbIconSelectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-selected', undefined)
+  const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
+  const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
+  const elevationVar = getComponentCssVar('Switch', 'size', 'elevation', undefined)
+  
+  // Override track-selected to use alternative layer's interactive color when alt layer is set
+  if (hasComponentAlternativeLayer) {
+    trackSelectedVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-element-interactive-tone`
+  }
+  
+  // Use CSS variables directly - they already point to the correct layer-specific values from UIKit.json
+  const thumbSelectedColor = `var(${thumbSelectedVar})`
+  const thumbUnselectedColor = `var(${thumbUnselectedVar})`
+  const trackSelectedColor = `var(${trackSelectedVar})`
+  const trackUnselectedColor = `var(${trackUnselectedVar})`
+  
+  // Get icon names from CSS variables
+  const thumbIconSelectedName = readCssVar(thumbIconSelectedVar) || ''
+  const thumbIconUnselectedName = readCssVar(thumbIconUnselectedVar) || ''
+  const ThumbIconSelected = thumbIconSelectedName ? iconNameToReactComponent(thumbIconSelectedName) : null
+  const ThumbIconUnselected = thumbIconUnselectedName ? iconNameToReactComponent(thumbIconUnselectedName) : null
+  
+  // Helper function to get elevation box shadow from elevation value
+  const getElevationBoxShadow = (elevationValue: string | undefined): string | undefined => {
+    if (!elevationValue || elevationValue === 'elevation-0') return undefined
+    
+    const elevationMatch = elevationValue.match(/elevation-(\d+)/)
+    if (elevationMatch) {
+      const elevationLevel = elevationMatch[1]
+      return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+    }
+    return undefined
+  }
+  
+  // Determine track elevation to apply - prioritize prop, then UIKit.json, then alt layer
   const elevationBoxShadow = (() => {
     let elevationToApply: string | undefined = elevation
     
@@ -80,15 +115,28 @@ export default function Switch({
       }
     }
     
-    if (elevationToApply && elevationToApply !== 'elevation-0') {
-      const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
-      if (elevationMatch) {
-        const elevationLevel = elevationMatch[1]
-        return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+    return getElevationBoxShadow(elevationToApply)
+  })()
+  
+  // Determine thumb elevation from UIKit.json
+  const thumbElevationBoxShadow = (() => {
+    if (!thumbElevationVar) return undefined
+    
+    const thumbElevation = readCssVar(thumbElevationVar)
+    if (thumbElevation) {
+      // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
+      const match = thumbElevation.match(/elevations\.(elevation-\d+)/)
+      if (match) {
+        return getElevationBoxShadow(match[1])
+      } else if (/^elevation-\d+$/.test(thumbElevation)) {
+        return getElevationBoxShadow(thumbElevation)
       }
     }
     return undefined
   })()
+  
+  // Calculate track height: thumb height + 2 * track inner padding
+  const trackHeight = `calc(var(${thumbHeightVar}, 20px) + 2 * var(${trackInnerPaddingVar}, 8px))`
   
   return (
     <MaterialSwitch
@@ -96,11 +144,30 @@ export default function Switch({
       onChange={(e) => onChange(e.target.checked)}
       disabled={disabled}
       className={className}
+      icon={ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : undefined}
+      checkedIcon={ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : undefined}
       sx={{
+        width: `var(${trackWidthVar}, 48px)`,
         '& .MuiSwitch-switchBase': {
+          // Position switchBase relative to track's content area (respecting padding)
+          left: `var(${trackInnerPaddingVar}, 8px) !important`,
+          right: 'auto !important',
+          // Unchecked: thumb at left edge of content area (already at padding position)
+          transform: 'translateX(0) !important',
           '& .MuiSwitch-thumb': {
-            backgroundColor: `${thumbColor} !important`,
+            backgroundColor: `${thumbUnselectedColor} !important`,
             opacity: '1 !important',
+            width: `var(${thumbWidthVar}, 20px)`,
+            height: `var(${thumbHeightVar}, 20px)`,
+            borderRadius: `var(${thumbBorderRadiusVar}, 999px)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : {}),
+            '& > *': {
+              width: `var(${thumbIconSizeVar}, 12px)`,
+              height: `var(${thumbIconSizeVar}, 12px)`,
+            },
           },
           '&.Mui-checked': {
             '& + .MuiSwitch-track': {
@@ -108,15 +175,22 @@ export default function Switch({
               opacity: '1 !important',
             },
             '& .MuiSwitch-thumb': {
-              backgroundColor: `${thumbColor} !important`,
+              backgroundColor: `${thumbSelectedColor} !important`,
               opacity: '1 !important',
             },
+            // Right-align the thumb when checked: use right positioning instead of transform
+            left: 'auto !important',
+            right: `var(${trackInnerPaddingVar}, 8px) !important`,
+            transform: 'translateX(0) !important',
           },
         },
         '& .MuiSwitch-track': {
           backgroundColor: `${trackUnselectedColor} !important`,
           opacity: '1 !important',
-          borderRadius: `var(${borderRadiusVar}, 999px)`,
+          borderRadius: `var(${trackBorderRadiusVar}, 999px)`,
+          width: `var(${trackWidthVar}, 48px)`,
+          height: trackHeight,
+          padding: `var(${trackInnerPaddingVar}, 8px)`,
           ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         },
         ...style,

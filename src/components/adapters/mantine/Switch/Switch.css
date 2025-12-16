@@ -4,9 +4,27 @@
  * Overrides Mantine Switch styles to use Recursica CSS variables
  */
 
-/* Override thumb background */
+/* Position thumb relative to track's content area (respecting padding) */
 .mantine-Switch-thumb {
-  background: var(--switch-thumb-bg, var(--mantine-color-white)) !important;
+  background: var(--switch-thumb-bg-unselected, var(--mantine-color-white)) !important;
+  width: var(--switch-thumb-width, 20px) !important;
+  height: var(--switch-thumb-height, 20px) !important;
+  border-radius: var(--switch-thumb-border-radius, 999px) !important;
+  box-shadow: var(--switch-thumb-elevation, none) !important;
+  position: absolute !important;
+  /* Unchecked: position at left edge of content area */
+  left: var(--switch-track-inner-padding, 8px) !important;
+  right: auto !important;
+  transform: translateX(0) !important;
+}
+
+.mantine-Switch-input:checked + .mantine-Switch-track + .mantine-Switch-thumb,
+.mantine-Switch-input:checked ~ .mantine-Switch-thumb {
+  background: var(--switch-thumb-bg-selected, var(--mantine-color-white)) !important;
+  /* Checked: position at right edge of content area */
+  left: auto !important;
+  right: var(--switch-track-inner-padding, 8px) !important;
+  transform: translateX(0) !important;
 }
 
 /* Remove the blue dot in the center of the thumb */
@@ -23,8 +41,12 @@
 /* Override track colors */
 .mantine-Switch-track {
   background-color: var(--switch-track-unchecked, var(--mantine-color-gray-3)) !important;
-  border-radius: var(--switch-border-radius, 999px) !important;
+  border-radius: var(--switch-track-border-radius, 999px) !important;
   box-shadow: var(--switch-elevation, none) !important;
+  width: var(--switch-track-width, 48px) !important;
+  height: var(--switch-track-height, 36px) !important;
+  padding: var(--switch-track-inner-padding, 8px) !important;
+  box-sizing: border-box !important;
 }
 
 .mantine-Switch-input:checked + .mantine-Switch-track {

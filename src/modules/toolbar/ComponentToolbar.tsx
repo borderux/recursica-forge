@@ -76,32 +76,47 @@ export default function ComponentToolbar({
   // Get all unique props (one icon per prop name, regardless of variants or layers)
   // Show both non-variant props and variant props (both color and size), but only one icon per prop name
   // When editing a variant prop, it will edit for the selected variant and layer
-  // Combine props with "-hover" suffix into the base prop
-  // Combine track-selected and track-unselected into "track" prop
-  const allProps = useMemo(() => {
-    const propsMap = new Map<string, ComponentProp>()
-    const seenProps = new Set<string>()
-    const hoverPropsMap = new Map<string, ComponentProp>() // Map of base name -> hover prop
-    let firstTrackSelected: ComponentProp | undefined
-    let firstTrackUnselected: ComponentProp | undefined
+    // Combine props with "-hover" suffix into the base prop
+    // Combine track-selected and track-unselected into "track" prop
+    // Combine thumb-selected, thumb-unselected, thumb-height, thumb-width, thumb-border-radius, thumb-icon-selected, thumb-icon-unselected, thumb-icon-size into "thumb" prop
+    const allProps = useMemo(() => {
+      const propsMap = new Map<string, ComponentProp>()
+      const seenProps = new Set<string>()
+      const hoverPropsMap = new Map<string, ComponentProp>() // Map of base name -> hover prop
+      let firstTrackSelected: ComponentProp | undefined
+      let firstTrackUnselected: ComponentProp | undefined
+      const thumbPropsMap = new Map<string, ComponentProp>() // Map of thumb property name -> prop
+      const trackPropsMap = new Map<string, ComponentProp>() // Map of track property name -> prop
 
-    // First pass: collect all props and identify hover props and track props
-    structure.props.forEach(prop => {
-      const propNameLower = prop.name.toLowerCase()
-      
-      // Check if this is a hover prop
-      if (propNameLower.endsWith('-hover')) {
-        const baseName = propNameLower.slice(0, -6) // Remove "-hover"
-        hoverPropsMap.set(baseName, prop)
-      }
-      
-      // Check if this is a track prop (track-selected or track-unselected)
-      if (propNameLower === 'track-selected' && !firstTrackSelected) {
-        firstTrackSelected = prop
-      } else if (propNameLower === 'track-unselected' && !firstTrackUnselected) {
-        firstTrackUnselected = prop
-      }
-    })
+      // First pass: collect all props and identify hover props, track props, and thumb props
+      structure.props.forEach(prop => {
+        const propNameLower = prop.name.toLowerCase()
+        
+        // Check if this is a hover prop
+        if (propNameLower.endsWith('-hover')) {
+          const baseName = propNameLower.slice(0, -6) // Remove "-hover"
+          hoverPropsMap.set(baseName, prop)
+        }
+        
+        // Check if this is a track prop (track-selected or track-unselected)
+        if (propNameLower === 'track-selected' && !firstTrackSelected) {
+          firstTrackSelected = prop
+        } else if (propNameLower === 'track-unselected' && !firstTrackUnselected) {
+          firstTrackUnselected = prop
+        }
+        
+        // Check if this is a track-related prop (track-width, track-inner-padding, track-border-radius)
+        if (propNameLower === 'track-width' || propNameLower === 'track-inner-padding' || propNameLower === 'track-border-radius') {
+          trackPropsMap.set(propNameLower, prop)
+        }
+        
+        // Check if this is a thumb prop
+        if (propNameLower.startsWith('thumb-')) {
+          thumbPropsMap.set(propNameLower, prop)
+        } else if (propNameLower === 'thumb') {
+          thumbPropsMap.set('thumb', prop)
+        }
+      })
 
     // Second pass: combine props with their hover variants and track variants
     structure.props.forEach(prop => {
@@ -112,8 +127,13 @@ export default function ComponentToolbar({
         return
       }
       
-      // Skip track-selected and track-unselected (they'll be combined into "track")
-      if (propNameLower === 'track-selected' || propNameLower === 'track-unselected') {
+      // Skip track-selected, track-unselected, track-width, track-inner-padding, and track-border-radius (they'll be combined into "track")
+      if (propNameLower === 'track-selected' || propNameLower === 'track-unselected' || propNameLower === 'track-width' || propNameLower === 'track-inner-padding' || propNameLower === 'track-border-radius') {
+        return
+      }
+      
+      // Skip thumb props (they'll be combined into "thumb")
+      if (propNameLower.startsWith('thumb-') || propNameLower === 'thumb') {
         return
       }
 
@@ -152,24 +172,45 @@ export default function ComponentToolbar({
       propsMap.set(key, prop)
     })
     
-    // Third pass: create a combined "track" prop from track-selected and track-unselected
-    if (firstTrackSelected || firstTrackUnselected) {
-      // Use track-selected as the base prop, or track-unselected if track-selected doesn't exist
-      const baseTrackProp = firstTrackSelected || firstTrackUnselected!
+    // Third pass: create a combined "track" prop from track-selected, track-unselected, track-width, and track-inner-padding
+    if (firstTrackSelected || firstTrackUnselected || trackPropsMap.size > 0) {
+      // Use track-selected as the base prop, or track-unselected if track-selected doesn't exist, or first track prop
+      const baseTrackProp = firstTrackSelected || firstTrackUnselected || Array.from(trackPropsMap.values())[0] || structure.props.find(p => p.name.toLowerCase() === 'track')
       
-      // Create a new prop that represents "track" with both variants
-      // PropControl will use getCssVarsForProp to find the right CSS vars based on selectedVariants and selectedLayer
-      const combinedTrackProp: ComponentProp = {
-        ...baseTrackProp,
-        name: 'track',
-        trackSelectedProp: firstTrackSelected,
-        trackUnselectedProp: firstTrackUnselected,
+      if (baseTrackProp) {
+        // Create a new prop that represents "track" with all track-related properties
+        const combinedTrackProp: ComponentProp = {
+          ...baseTrackProp,
+          name: 'track',
+          trackSelectedProp: firstTrackSelected,
+          trackUnselectedProp: firstTrackUnselected,
+          thumbProps: trackPropsMap.size > 0 ? trackPropsMap : undefined, // Reuse thumbProps field for track props
+        }
+        
+        // Use "track" as the key - only one track icon
+        if (!seenProps.has('track')) {
+          propsMap.set('track', combinedTrackProp)
+          seenProps.add('track')
+        }
+      }
+    }
+    
+    // Fourth pass: create a combined "thumb" prop from all thumb-related props
+    if (thumbPropsMap.size > 0) {
+      // Use thumb-selected as the base prop, or first thumb prop if thumb-selected doesn't exist
+      const baseThumbProp = thumbPropsMap.get('thumb-selected') || thumbPropsMap.get('thumb') || Array.from(thumbPropsMap.values())[0]
+      
+      // Create a new prop that represents "thumb" with all thumb-related properties
+      const combinedThumbProp: ComponentProp = {
+        ...baseThumbProp,
+        name: 'thumb',
+        thumbProps: thumbPropsMap,
       }
       
-      // Use "track" as the key - only one track icon
-      if (!seenProps.has('track')) {
-        propsMap.set('track', combinedTrackProp)
-        seenProps.add('track')
+      // Use "thumb" as the key - only one thumb icon
+      if (!seenProps.has('thumb')) {
+        propsMap.set('thumb', combinedThumbProp)
+        seenProps.add('thumb')
       }
     }
 
