@@ -24,20 +24,19 @@
   border-radius: var(--recursica-ui-kit-components-switch-thumb-border-radius) !important;
   box-shadow: var(--recursica-ui-kit-components-switch-thumb-elevation) !important;
   position: absolute !important;
-  /* Unchecked: position at left edge of content area */
+  /* Always position at left edge, use transform to move when checked */
   left: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
-  right: auto !important;
   top: 50% !important;
   transform: translateY(-50%) translateX(0) !important;
+  transition: transform 0.1s ease, background 0.1s ease !important;
 }
 
 .mantine-Switch-input:checked + .mantine-Switch-track + .mantine-Switch-thumb,
-.mantine-Switch-input:checked ~ .mantine-Switch-thumb {
+.mantine-Switch-input:checked ~ .mantine-Switch-thumb,
+.mantine-Switch-root:has(.mantine-Switch-input:checked) .mantine-Switch-thumb {
   background: var(--recursica-ui-kit-components-switch-thumb-bg-selected) !important;
-  /* Checked: position at right edge of content area */
-  left: auto !important;
-  right: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
-  transform: translateY(-50%) translateX(0) !important;
+  /* Checked: move thumb to right edge using transform */
+  transform: translateY(-50%) translateX(calc(var(--switch-width) - var(--recursica-ui-kit-components-switch-thumb-width) - 2 * var(--recursica-ui-kit-components-switch-track-inner-padding))) !important;
 }
 
 /* Remove the blue dot in the center of the thumb */
