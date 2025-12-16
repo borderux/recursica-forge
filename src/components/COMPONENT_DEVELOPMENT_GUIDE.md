@@ -81,22 +81,38 @@ src/components/adapters/
 
 The adapter component provides a unified interface that works across all libraries.
 
-#### Requirements:
+#### Key Pattern:
 
 1. **Define Unified Props Interface**
    ```typescript
    export type {ComponentName}Props = {
-     // Unified props that work across all libraries
      children?: React.ReactNode
      variant?: 'solid' | 'outline' | 'text'  // Example
      size?: 'default' | 'small'              // Example
      layer?: ComponentLayer
+     elevation?: string                      // e.g., "elevation-0", "elevation-1"
+     alternativeLayer?: string | null        // e.g., "high-contrast", "none", null
      disabled?: boolean
      // ... other unified props
    } & LibrarySpecificProps
    ```
 
-2. **Use Component Registry**
+2. **Read Component-Level CSS Variables**
+   The adapter reads `elevation` and `alternative-layer` from CSS variables that the toolbar sets:
+   ```typescript
+   import { getComponentLevelCssVar } from '../utils/cssVarNames'
+   import { readCssVar } from '../../core/css/readCssVar'
+   
+   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+   const alternativeLayerVar = getComponentLevelCssVar('Button', 'alternative-layer')
+   
+   const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+   const componentAlternativeLayer = alternativeLayer !== undefined 
+     ? alternativeLayer 
+     : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
+   ```
+
+3. **Use Component Registry**
    ```typescript
    import { useComponent } from '../hooks/useComponent'
    
@@ -104,63 +120,109 @@ The adapter component provides a unified interface that works across all librari
      const Component = useComponent('{ComponentName}')
      
      if (!Component) {
-       // Fallback to native HTML element
-       return <native-element {...props} />
+       // Fallback to native HTML element with styles
+       return <native-element style={getFallbackStyles(...)} />
      }
      
      return (
        <Suspense fallback={<loading-state />}>
-         <Component {...mappedProps} />
+         <Component {...props} elevation={componentElevation} alternativeLayer={componentAlternativeLayer} />
        </Suspense>
      )
    }
    ```
 
-3. **Map Unified Props to Library Props**
-   - Create a mapping function that converts unified props to library-specific props
-   - Handle library-specific props via `mantine`, `material`, `carbon` props
-
-4. **Use CSS Variables**
-   - Use `getComponentCssVar()` from `../utils/cssVarNames` for component CSS variables
-   - Use `--recursica-brand-*` variables for brand tokens
-   - All CSS variables from JSON files must be namespaced with `--recursica-*`
+4. **Pass Props to Library Implementation**
+   - Pass all unified props including `elevation` and `alternativeLayer` to library implementations
+   - Library implementations handle the actual styling using CSS variables
 
 ### Step 2: Create Library Implementations (Parallel Development)
 
-Create implementations for each library simultaneously. Each library implementation should:
+Create implementations for each library simultaneously. Each library implementation follows this pattern:
 
-1. **Import the Library Component**
+1. **Import Dependencies**
    ```typescript
    import { {ComponentName} as Library{ComponentName} } from '@library/package'
+   import { getComponentCssVar } from '../../../utils/cssVarNames'
+   import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+   import { readCssVar } from '../../../../core/css/readCssVar'
+   import './{ComponentName}.css'
    ```
 
-2. **Map Unified Props to Library Props**
+2. **Build CSS Variable Names Using `getComponentCssVar`**
+   This utility builds CSS variable names that match what the toolbar uses:
    ```typescript
-   // Map unified variant to library variant
-   const libraryVariant = variant === 'solid' ? 'filled' : 'outline'
+   // Pattern: getComponentCssVar(componentName, category, property, layer?)
+   const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+   const textVar = getComponentCssVar('Button', 'color', 'solid-text', layer)
+   const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+   const iconSizeVar = getComponentCssVar('Button', 'size', 'default-icon', undefined)
    ```
 
-3. **Use CSS Variables with Library Fallbacks**
+3. **Handle Alternative Layers**
+   When `alternativeLayer` is set, override colors with alternative layer properties:
+   ```typescript
+   const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+   
+   if (hasComponentAlternativeLayer) {
+     const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+     bgVar = `${layerBase}-element-interactive-tone`
+     textVar = `${layerBase}-element-interactive-on-tone`
+   } else {
+     // Use standard UIKit.json colors
+     bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+     textVar = getComponentCssVar('Button', 'color', 'solid-text', layer)
+   }
+   ```
+
+4. **Set CSS Custom Properties on Style Prop**
+   Set CSS custom properties that the CSS file will use:
    ```typescript
    style={{
-     // Use Recursica CSS vars with library vars as fallback
-     backgroundColor: `var(--recursica-ui-kit-components-{component}-color-..., var(--library-default-color))`,
-     // ... other styles
-   }}
-   ```
-
-4. **Set CSS Custom Properties for CSS File**
-   ```typescript
-   style={{
-     '--component-icon-size': icon ? `var(${iconSizeVar})` : '0px',
-     '--component-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+     // Reference UIKit CSS vars directly (toolbar updates these)
+     '--button-bg': `var(${bgVar})`,
+     '--button-color': `var(${textVar})`,
+     '--button-height': `var(${heightVar})`,
+     '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+     '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
      // ... other custom properties
    }}
    ```
 
-5. **Import CSS File**
+5. **Handle Elevation**
+   Elevation logic prioritizes: prop > UIKit.json > alternative layer:
    ```typescript
-   import './{ComponentName}.css'
+   let elevationToApply = elevation
+   
+   if (hasComponentAlternativeLayer) {
+     const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+     const altLayerElevation = readCssVar(altLayerElevationVar)
+     if (altLayerElevation) {
+       const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+       elevationToApply = match ? match[1] : elevation
+     }
+   }
+   
+   if (elevationToApply && elevationToApply !== 'elevation-0') {
+     const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
+     if (elevationMatch) {
+       const level = elevationMatch[1]
+       style.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${level}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+     }
+   }
+   ```
+
+6. **Map Unified Props to Library Props**
+   ```typescript
+   const libraryVariant = variant === 'solid' ? 'filled' : variant === 'outline' ? 'outline' : 'subtle'
+   const librarySize = size === 'small' ? 'xs' : 'md'
+   
+   return <LibraryComponent 
+     variant={libraryVariant}
+     size={librarySize}
+     style={style}
+     {...librarySpecificProps}
+   />
    ```
 
 ### Step 3: Create CSS Override Files
@@ -375,188 +437,191 @@ import { Button } from '../../components/adapters/Button'
 
 ## CSS Variable Guidelines
 
-### Naming Convention
+### How CSS Variables Work
 
-All CSS variables from JSON files must be namespaced with `--recursica-*`:
+The component system uses a **two-layer CSS variable system**:
 
-- **Component Variables**: `--recursica-ui-kit-components-{component}-{category}-{property}`
-- **Component-Level Props**: `--recursica-ui-kit-components-{component}-{property}` (e.g., `elevation`, `alternative-layer`)
-- **Brand Variables**: `--recursica-brand-{mode}-{category}-{property}`
-- **Token Variables**: `--recursica-tokens-{category}-{property}`
+1. **UIKit CSS Variables** (set by toolbar, read by components)
+   - Pattern: `--recursica-ui-kit-components-{component}-{category}-{layer?}-{property}`
+   - Built using: `getComponentCssVar(componentName, category, property, layer?)`
+   - Example: `--recursica-ui-kit-components-button-color-layer-0-variant-solid-background`
 
-### Using CSS Variables
+2. **Component-Level CSS Variables** (component-specific props)
+   - Pattern: `--recursica-ui-kit-components-{component}-{property}`
+   - Built using: `getComponentLevelCssVar(componentName, property)`
+   - Examples: `elevation`, `alternative-layer`
 
-#### ✅ Correct: Recursica vars with library fallback
+3. **Component Custom Properties** (set by component, used by CSS file)
+   - Pattern: `--{component}-{property}` (scoped to component instance)
+   - Example: `--button-bg`, `--button-icon-size`
+
+### CSS Variable Flow
+
+```
+Toolbar → Updates UIKit CSS vars → Component reads vars → Component sets custom properties → CSS file uses custom properties
+```
+
+1. **Toolbar** uses `getComponentCssVar()` to build CSS var names and updates them via `updateCssVar()`
+2. **Component** uses `getComponentCssVar()` to build the same CSS var names and references them
+3. **Component** sets CSS custom properties on `style` prop (e.g., `--button-bg: var(${bgVar})`)
+4. **CSS File** uses those custom properties to override library styles
+
+### Using CSS Variables in Components
+
+#### ✅ Correct: Build CSS var names with `getComponentCssVar`
 
 ```typescript
+// This matches what the toolbar uses
+const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+
 style={{
-  backgroundColor: `var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background, var(--mantine-color-blue-6))`,
+  // Reference the UIKit CSS var (toolbar updates this)
+  '--button-bg': `var(${bgVar})`,
+  '--button-height': `var(${heightVar})`,
 }}
 ```
 
+#### ✅ Correct: Use component-level CSS vars for special props
+
+```typescript
+// In adapter component
+const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+const alternativeLayerVar = getComponentLevelCssVar('Button', 'alternative-layer')
+
+const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+const componentAlternativeLayer = alternativeLayer !== undefined 
+  ? alternativeLayer 
+  : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
+```
+
+#### ✅ Correct: CSS file uses component custom properties
+
 ```css
-.component-root {
-  background-color: var(--recursica-ui-kit-components-button-color-..., var(--mantine-color-blue-6)) !important;
+/* Button.css - uses custom properties set in TSX */
+.mantine-Button-root {
+  background-color: var(--button-bg) !important;
+  height: var(--button-height) !important;
 }
-```
 
-#### ❌ Incorrect: Direct library variable modification
-
-```typescript
-// Don't modify library variables directly
-style={{
-  '--mantine-color-blue-6': '#ff0000',  // ❌ Don't do this
-}}
-```
-
-#### ✅ Correct: Component-level custom properties
-
-```typescript
-// Set component-level custom properties (scoped to component)
-style={{
-  '--button-icon-size': `var(${iconSizeVar})`,
-  '--button-icon-text-gap': `var(${iconGapVar})`,
-}}
-```
-
-```css
-/* Reference component-level custom properties */
-.button-icon {
+.mantine-Button-leftSection {
   width: var(--button-icon-size, 0px) !important;
-  margin-right: var(--button-icon-text-gap, 0px) !important;
+  margin-inline-end: var(--button-icon-text-gap, 0px) !important;
 }
+```
+
+#### ❌ Incorrect: Don't build CSS var names manually
+
+```typescript
+// ❌ Don't do this - use getComponentCssVar instead
+const bgVar = `--recursica-ui-kit-components-button-color-layer-0-variant-solid-background`
+```
+
+#### ❌ Incorrect: Don't modify library CSS variables directly
+
+```typescript
+// ❌ Don't do this
+style={{
+  '--mantine-color-blue-6': '#ff0000',
+}}
 ```
 
 ### Component-Level Props (Elevation and Alternative Layer)
 
-Components support two special component-level props that are stored as separate CSS variables:
+Components support two special props that are stored as component-level CSS variables and controlled by the toolbar:
 
 1. **Elevation** (`elevation` prop)
    - Type: `string | undefined` (e.g., `"elevation-0"`, `"elevation-1"`, etc.)
    - CSS Variable: `--recursica-ui-kit-components-{component}-elevation`
-   - Initial Value: From `UIKit.json` (e.g., `{brand.themes.light.elevations.elevation-1}`)
-   - Behavior:
-     - When set (and not `"elevation-0"`), applies box-shadow using elevation CSS variables
-     - Format: `var(--recursica-brand-{mode}-elevations-elevation-{level}-x-axis) var(--recursica-brand-{mode}-elevations-elevation-{level}-y-axis) var(--recursica-brand-{mode}-elevations-elevation-{level}-blur) var(--recursica-brand-{mode}-elevations-elevation-{level}-spread) var(--recursica-brand-{mode}-elevations-elevation-{level}-shadow-color)`
-     - If `elevation-0`, no box-shadow is applied
-   - Priority Order (highest to lowest):
-     1. **Prop value** (`elevation` prop passed directly)
-     2. **UIKit.json value** (read from `--recursica-ui-kit-components-{component}-elevation` CSS variable)
-     3. **Alternative layer elevation** (if `alternativeLayer` is set, read from `--recursica-brand-{mode}-layer-layer-alternative-{altLayer}-property-elevation`)
+   - Priority: **Prop** > **UIKit.json** > **Alternative Layer elevation** > **No elevation**
    - Implementation:
      ```typescript
-     // In adapter component
-     elevation?: string
+     // In adapter: read from CSS var if prop not provided
+     const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+     const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
      
-     // In library implementation
-     import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-     import { readCssVar } from '../../../../core/css/readCssVar'
-     import { getComponentCssVar } from '../../../utils/cssVarNames'
+     // In library implementation: apply elevation box-shadow
+     let elevationToApply = elevation
      
-     const { mode } = useThemeMode()
-     const elevationVar = getComponentCssVar('ComponentName', 'size', 'elevation', undefined)
-     const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
-     
-     // Determine elevation to apply - prioritize prop, then UIKit.json, then alt layer
-     const elevationBoxShadow = (() => {
-       let elevationToApply: string | undefined = elevation
-       
-       // First, check if UIKit.json has an elevation set
-       if (!elevationToApply && elevationVar) {
-         const uikitElevation = readCssVar(elevationVar)
-         if (uikitElevation) {
-           // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
-           const match = uikitElevation.match(/elevations\.(elevation-\d+)/)
-           if (match) {
-             elevationToApply = match[1]
-           } else if (/^elevation-\d+$/.test(uikitElevation)) {
-             elevationToApply = uikitElevation
-           }
-         }
+     // Check alternative layer elevation if alt-layer is set
+     if (hasComponentAlternativeLayer) {
+       const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+       const altLayerElevation = readCssVar(altLayerElevationVar)
+       if (altLayerElevation) {
+         const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+         elevationToApply = match ? match[1] : elevation
        }
-       
-       // Check alt layer elevation if alt-layer is set
-       if (hasComponentAlternativeLayer) {
-         // Read elevation from alt layer's property
-         const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
-         const altLayerElevation = readCssVar(altLayerElevationVar)
-         if (altLayerElevation) {
-           // Parse elevation value
-           const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
-           if (match) {
-             elevationToApply = match[1]
-           } else if (/^elevation-\d+$/.test(altLayerElevation)) {
-             elevationToApply = altLayerElevation
-           }
-         }
-         // If alt layer doesn't have elevation, fall back to component-level elevation
-         if (!elevationToApply) {
-           elevationToApply = elevation
-         }
-       }
-       
-       if (elevationToApply && elevationToApply !== 'elevation-0') {
-         const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
-         if (elevationMatch) {
-           const elevationLevel = elevationMatch[1]
-           return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-         }
-       }
-       return undefined
-     })()
+     }
      
-     // Apply to component style
-     style={{
-       ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
-       // ... other styles
-     }}
+     // Apply box-shadow if elevation is set
+     if (elevationToApply && elevationToApply !== 'elevation-0') {
+       const match = elevationToApply.match(/elevation-(\d+)/)
+       if (match) {
+         const level = match[1]
+         style.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${level}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+       }
+     }
      ```
 
 2. **Alternative Layer** (`alternativeLayer` prop)
    - Type: `string | null | undefined` (e.g., `"high-contrast"`, `"alert"`, `null`, `"none"`)
    - CSS Variable: `--recursica-ui-kit-components-{component}-alternative-layer`
-   - Initial Value: From `UIKit.json` (typically `null` or `"none"`)
-   - Behavior:
-     - When set (not `null` and not `"none"`), overrides all surface and color props for that component
-     - Uses alternative layer's properties: `--recursica-brand-{mode}-layer-layer-alternative-{altLayer}-property-*`
-     - Disables toolbar icons for overridden props (handled by toolbar)
-     - If `null` or `"none"`, behaves as normal (uses layer prop)
-     - **Also affects elevation**: If alternative layer has an elevation property, it takes priority over component-level elevation (unless elevation prop is explicitly set)
+   - Behavior: When set (not `null` and not `"none"`), overrides all color/surface props with alternative layer properties
    - Implementation:
      ```typescript
-     // In adapter component
-     alternativeLayer?: string | null
+     // In adapter: read from CSS var if prop not provided
+     const alternativeLayerVar = getComponentLevelCssVar('Button', 'alternative-layer')
+     const componentAlternativeLayer = alternativeLayer !== undefined 
+       ? alternativeLayer 
+       : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
      
-     // In library implementation
-     import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-     import { readCssVar } from '../../../../core/css/readCssVar'
-     
-     const { mode } = useThemeMode()
+     // In library implementation: override colors when alt layer is set
      const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
      
      if (hasComponentAlternativeLayer) {
        const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
-       // Override all color/surface props with alt layer properties
        bgVar = `${layerBase}-element-interactive-tone`
        textVar = `${layerBase}-element-interactive-on-tone`
-       // ... etc
-       
-       // Also check for alt layer elevation (used in elevation logic above)
-       const altLayerElevationVar = `${layerBase}-elevation`
-       const altLayerElevation = readCssVar(altLayerElevationVar)
-       // ... parse and use in elevation logic
+       // Override all color props with alt layer properties
+     } else {
+       // Use standard UIKit.json colors
+       bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+       textVar = getComponentCssVar('Button', 'color', 'solid-text', layer)
      }
      ```
 
-**Important Notes:**
-- These props use **separate CSS variables** specific to the component (not shared with other components)
-- The CSS variable names follow the pattern: `--recursica-ui-kit-components-{component}-{property}`
-- Use `getComponentCssVar(componentName, 'size', 'elevation', undefined)` to get the elevation CSS variable (elevation is a component-level property)
-- Use `getComponentLevelCssVar(componentName, 'alternative-layer')` to get the alternative-layer CSS variable
-- The toolbar provides controls for these props in a separate section (after dynamic props, before reset button)
-- When `alternativeLayer` is set, it overrides all surface/color props, so those toolbar icons should be disabled
-- **Elevation priority**: Prop > UIKit.json > Alternative Layer elevation > No elevation
-- **Alternative layer elevation**: If an alternative layer is set and has an elevation property, it will be used unless an elevation prop is explicitly provided
+**Key Points:**
+- Use `getComponentLevelCssVar(componentName, 'elevation')` and `getComponentLevelCssVar(componentName, 'alternative-layer')` to get these CSS variable names
+- The toolbar sets these CSS variables, and components read them if props aren't provided
+- When `alternativeLayer` is set, it overrides all color/surface props, so toolbar disables those prop icons
+
+### How Components Connect to the Toolbar
+
+The toolbar and components use the **same utilities** to build CSS variable names, ensuring they stay in sync:
+
+1. **Toolbar builds CSS var names** using `getComponentCssVar()` and `getComponentLevelCssVar()`
+2. **Toolbar updates CSS vars** using `updateCssVar()` (writes to DOM)
+3. **Components build the same CSS var names** using the same utilities
+4. **Components reference those CSS vars** in their styles
+5. **When toolbar updates a CSS var, components automatically reflect the change**
+
+**Example Flow:**
+```typescript
+// Toolbar (ComponentToolbar.tsx)
+const bgVar = getComponentCssVar('Button', 'color', 'solid-background', selectedLayer)
+updateCssVar(bgVar, newValue) // Updates DOM CSS variable
+
+// Component (Button.tsx)
+const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+style={{ '--button-bg': `var(${bgVar})` }} // References the same CSS variable
+
+// CSS File (Button.css)
+.mantine-Button-root {
+  background-color: var(--button-bg) !important; // Uses component custom property
+}
+```
+
+**Key Insight:** Components don't need to know about the toolbar - they just reference CSS variables that the toolbar updates. This creates a clean separation of concerns.
 
 ### Library CSS Variables
 
