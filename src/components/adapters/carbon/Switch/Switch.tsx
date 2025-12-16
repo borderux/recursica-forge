@@ -57,13 +57,20 @@ export default function Switch({
   useEffect(() => {
     const handleCssVarUpdate = (e: CustomEvent) => {
       const updatedVars = (e.detail as any)?.cssVars || []
-      if (updatedVars.some((v: string) => v === thumbHeightVar || v === thumbWidthVar || v === thumbBorderRadiusVar || v === thumbIconSizeVar)) {
+      // Check if any of our CSS vars were updated
+      if (updatedVars.some((v: string) =>
+        v === thumbSelectedVar || v === thumbUnselectedVar || v === trackSelectedVar || v === trackUnselectedVar ||
+        v === trackBorderRadiusVar || v === thumbBorderRadiusVar ||
+        v === thumbHeightVar || v === thumbWidthVar || v === trackWidthVar || v === trackInnerPaddingVar ||
+        v === thumbIconSizeVar || v === thumbIconSelectedVar || v === thumbIconUnselectedVar ||
+        v === thumbElevationVar || v === trackElevationVar
+      )) {
         setUpdateCounter(prev => prev + 1)
       }
     }
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
     return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-  }, [thumbHeightVar, thumbWidthVar, thumbBorderRadiusVar, thumbIconSizeVar])
+  }, [thumbSelectedVar, thumbUnselectedVar, trackSelectedVar, trackUnselectedVar, trackBorderRadiusVar, thumbBorderRadiusVar, thumbHeightVar, thumbWidthVar, trackWidthVar, trackInnerPaddingVar, thumbIconSizeVar, thumbIconSelectedVar, thumbIconUnselectedVar, thumbElevationVar, trackElevationVar])
   
   // Override track-selected to use alternative layer's interactive color when alt layer is set
   if (hasComponentAlternativeLayer) {
@@ -154,7 +161,7 @@ export default function Switch({
   })()
   
   // Calculate track height: thumb height + 2 * track inner padding
-  const trackHeight = `calc(var(${thumbHeightVar}, 20px) + 2 * var(${trackInnerPaddingVar}, 8px))`
+  const trackHeight = `calc(var(${thumbHeightVar}) + 2 * var(${trackInnerPaddingVar}))`
   
   // Prevent label from being clickable - handle clicks only on toggle elements
   useEffect(() => {
@@ -207,21 +214,17 @@ export default function Switch({
       ref={toggleRef}
       className="recursica-carbon-toggle-wrapper"
       style={{
+        // Color wrapper vars (layer/variant-specific, need per-instance resolution)
         '--recursica-ui-kit-components-switch-thumb-bg-selected': thumbSelectedColor,
         '--recursica-ui-kit-components-switch-thumb-bg-unselected': thumbUnselectedColor,
         '--recursica-ui-kit-components-switch-track-checked': trackSelectedColor,
         '--recursica-ui-kit-components-switch-track-unchecked': trackUnselectedColor,
-        '--recursica-ui-kit-components-switch-track-border-radius': trackBorderRadiusValue,
-        '--recursica-ui-kit-components-switch-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
-        '--recursica-ui-kit-components-switch-thumb-height': `var(${thumbHeightVar}, 20px)`,
-        '--recursica-ui-kit-components-switch-thumb-width': `var(${thumbWidthVar}, 20px)`,
-        '--recursica-ui-kit-components-switch-track-width': `var(${trackWidthVar}, 48px)`,
+        // Component-level properties are already on :root from UIKit.json - don't create circular refs
+        // Only set computed values that depend on them
         '--recursica-ui-kit-components-switch-track-height': trackHeight,
-        '--recursica-ui-kit-components-switch-track-inner-padding': `var(${trackInnerPaddingVar}, 8px)`,
-        '--recursica-ui-kit-components-switch-thumb-icon-size': `var(${thumbIconSizeVar}, 12px)`,
         '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
         '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
-        width: `var(${trackWidthVar}, 48px)`,
+        width: `var(${trackWidthVar})`,
         ...style,
       }}
     >

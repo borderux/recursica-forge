@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Switch.css'
 
@@ -55,13 +55,20 @@ export default function Switch({
   useEffect(() => {
     const handleCssVarUpdate = (e: CustomEvent) => {
       const updatedVars = (e.detail as any)?.cssVars || []
-      if (updatedVars.some((v: string) => v === thumbHeightVar || v === thumbWidthVar || v === thumbBorderRadiusVar || v === thumbIconSizeVar)) {
+      // Check if any of our CSS vars were updated
+      if (updatedVars.some((v: string) =>
+        v === thumbSelectedVar || v === thumbUnselectedVar || v === trackSelectedVar || v === trackUnselectedVar ||
+        v === trackBorderRadiusVar || v === thumbBorderRadiusVar ||
+        v === thumbHeightVar || v === thumbWidthVar || v === trackWidthVar || v === trackInnerPaddingVar ||
+        v === thumbIconSizeVar || v === thumbIconSelectedVar || v === thumbIconUnselectedVar ||
+        v === thumbElevationVar || v === trackElevationVar
+      )) {
         setUpdateCounter(prev => prev + 1)
       }
     }
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
     return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-  }, [thumbHeightVar, thumbWidthVar, thumbBorderRadiusVar, thumbIconSizeVar])
+  }, [thumbSelectedVar, thumbUnselectedVar, trackSelectedVar, trackUnselectedVar, trackBorderRadiusVar, thumbBorderRadiusVar, thumbHeightVar, thumbWidthVar, trackWidthVar, trackInnerPaddingVar, thumbIconSizeVar, thumbIconSelectedVar, thumbIconUnselectedVar, thumbElevationVar, trackElevationVar])
   
   // Override track-selected to use alternative layer's interactive color when alt layer is set
   if (hasComponentAlternativeLayer) {
@@ -145,7 +152,10 @@ export default function Switch({
   })()
   
   // Calculate track height: thumb height + 2 * track inner padding
-  const trackHeight = `calc(var(${thumbHeightVar}, 20px) + 2 * var(${trackInnerPaddingVar}, 8px))`
+  const trackHeight = `calc(var(${thumbHeightVar}) + 2 * var(${trackInnerPaddingVar}))`
+  
+  // Read resolved values for Mantine internal variables to avoid undefined references
+  const thumbBorderRadiusValue = readCssVarResolved(thumbBorderRadiusVar) || readCssVar(thumbBorderRadiusVar) || '0px'
   
   // Use updateCounter to force re-render when CSS vars change (even though we don't use it in render)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -156,29 +166,26 @@ export default function Switch({
       checked={checked}
       onChange={(e) => onChange(e.currentTarget.checked)}
       disabled={disabled}
-      thumbIcon={checked ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : null) : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : null)}
+      thumbIcon={checked ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})` }} /> : null) : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})` }} /> : null)}
       className={className}
       style={{
         // Recursica CSS variables (used by our CSS overrides)
+        // For color vars (layer/variant-specific), create wrapper vars that reference UIKit vars
         '--recursica-ui-kit-components-switch-thumb-bg-selected': `var(${thumbSelectedVar})`,
         '--recursica-ui-kit-components-switch-thumb-bg-unselected': `var(${thumbUnselectedVar})`,
         '--recursica-ui-kit-components-switch-track-checked': `var(${trackSelectedVar})`,
         '--recursica-ui-kit-components-switch-track-unchecked': `var(${trackUnselectedVar})`,
-        '--recursica-ui-kit-components-switch-track-border-radius': `var(${trackBorderRadiusVar})`,
-        '--recursica-ui-kit-components-switch-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
-        '--recursica-ui-kit-components-switch-thumb-height': `var(${thumbHeightVar}, 20px)`,
-        '--recursica-ui-kit-components-switch-thumb-width': `var(${thumbWidthVar}, 20px)`,
-        '--recursica-ui-kit-components-switch-track-width': `var(${trackWidthVar}, 48px)`,
+        // For component-level properties, don't create wrapper vars (they're already on :root from UIKit.json)
+        // Just set computed values that depend on them
         '--recursica-ui-kit-components-switch-track-height': trackHeight,
-        '--recursica-ui-kit-components-switch-track-inner-padding': `var(${trackInnerPaddingVar}, 8px)`,
-        '--recursica-ui-kit-components-switch-thumb-icon-size': `var(${thumbIconSizeVar}, 12px)`,
         '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
         '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
-        // Mantine internal CSS variables (for Mantine's internal calculations)
-        '--switch-thumb-size': `var(${thumbWidthVar}, 20px)`,
-        '--switch-width': `var(${trackWidthVar}, 48px)`,
-        '--switch-track-label-padding': `var(${trackInnerPaddingVar}, 8px)`,
-        width: `var(${trackWidthVar}, 48px)`,
+        // Override Mantine's internal CSS variables directly with UIKit variables
+        '--switch-thumb-size': `var(${thumbWidthVar})`,
+        '--switch-width': `var(${trackWidthVar})`,
+        '--switch-track-label-padding': `var(${trackInnerPaddingVar})`,
+        '--switch-radius': thumbBorderRadiusValue,
+        width: `var(${trackWidthVar})`,
         ...style,
       }}
       {...mantine}

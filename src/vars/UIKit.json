@@ -754,14 +754,14 @@
         "thumb-border-radius": {
           "$type": "dimension",
           "$value": {
-            "value": "{brand.dimensions.border-radius.md}",
+            "value": "{brand.dimensions.border-radius.lg}",
             "unit": "px"
           }
         },
         "track-border-radius": {
           "$type": "dimension",
           "$value": {
-            "value": "{brand.dimensions.border-radius.default}",
+            "value": "{brand.dimensions.border-radius.lg}",
             "unit": "px"
           }
         },

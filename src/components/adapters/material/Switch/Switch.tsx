@@ -55,13 +55,20 @@ export default function Switch({
   useEffect(() => {
     const handleCssVarUpdate = (e: CustomEvent) => {
       const updatedVars = (e.detail as any)?.cssVars || []
-      if (updatedVars.some((v: string) => v === thumbHeightVar || v === thumbWidthVar || v === thumbBorderRadiusVar || v === thumbIconSizeVar)) {
+      // Check if any of our CSS vars were updated
+      if (updatedVars.some((v: string) =>
+        v === thumbSelectedVar || v === thumbUnselectedVar || v === trackSelectedVar || v === trackUnselectedVar ||
+        v === trackBorderRadiusVar || v === thumbBorderRadiusVar ||
+        v === thumbHeightVar || v === thumbWidthVar || v === trackWidthVar || v === trackInnerPaddingVar ||
+        v === thumbIconSizeVar || v === thumbIconSelectedVar || v === thumbIconUnselectedVar ||
+        v === thumbElevationVar || v === trackElevationVar
+      )) {
         setUpdateCounter(prev => prev + 1)
       }
     }
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
     return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-  }, [thumbHeightVar, thumbWidthVar, thumbBorderRadiusVar, thumbIconSizeVar])
+  }, [thumbSelectedVar, thumbUnselectedVar, trackSelectedVar, trackUnselectedVar, trackBorderRadiusVar, thumbBorderRadiusVar, thumbHeightVar, thumbWidthVar, trackWidthVar, trackInnerPaddingVar, thumbIconSizeVar, thumbIconSelectedVar, thumbIconUnselectedVar, thumbElevationVar, trackElevationVar])
   
   // Override track-selected to use alternative layer's interactive color when alt layer is set
   if (hasComponentAlternativeLayer) {
@@ -151,7 +158,7 @@ export default function Switch({
   })()
   
   // Calculate track height: thumb height + 2 * track inner padding
-  const trackHeight = `calc(var(${thumbHeightVar}, 20px) + 2 * var(${trackInnerPaddingVar}, 8px))`
+  const trackHeight = `calc(var(${thumbHeightVar}) + 2 * var(${trackInnerPaddingVar}))`
   
   // Use updateCounter to force re-render when CSS vars change (even though we don't use it in render)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -163,29 +170,29 @@ export default function Switch({
       onChange={(e) => onChange(e.target.checked)}
       disabled={disabled}
       className={className}
-      icon={ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : undefined}
-      checkedIcon={ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : undefined}
+      icon={ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})` }} /> : undefined}
+      checkedIcon={ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})` }} /> : undefined}
       sx={{
-        width: `var(${trackWidthVar}, 48px)`,
+        width: `var(${trackWidthVar})`,
         '& .MuiSwitch-switchBase': {
           // Position switchBase relative to track's content area (respecting padding)
-          left: `var(${trackInnerPaddingVar}, 8px) !important`,
+          left: `var(${trackInnerPaddingVar}) !important`,
           right: 'auto !important',
           // Unchecked: thumb at left edge of content area (already at padding position)
           transform: 'translateX(0) !important',
           '& .MuiSwitch-thumb': {
             backgroundColor: `${thumbUnselectedColor} !important`,
             opacity: '1 !important',
-            width: `var(${thumbWidthVar}, 20px)`,
-            height: `var(${thumbHeightVar}, 20px)`,
-            borderRadius: `var(${thumbBorderRadiusVar}, 999px)`,
+            width: `var(${thumbWidthVar})`,
+            height: `var(${thumbHeightVar})`,
+            borderRadius: `var(${thumbBorderRadiusVar})`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : {}),
             '& > *': {
-              width: `var(${thumbIconSizeVar}, 12px)`,
-              height: `var(${thumbIconSizeVar}, 12px)`,
+              width: `var(${thumbIconSizeVar})`,
+              height: `var(${thumbIconSizeVar})`,
             },
           },
           '&.Mui-checked': {
@@ -199,17 +206,17 @@ export default function Switch({
             },
             // Right-align the thumb when checked: use right positioning instead of transform
             left: 'auto !important',
-            right: `var(${trackInnerPaddingVar}, 8px) !important`,
+            right: `var(${trackInnerPaddingVar}) !important`,
             transform: 'translateX(0) !important',
           },
         },
         '& .MuiSwitch-track': {
           backgroundColor: `${trackUnselectedColor} !important`,
           opacity: '1 !important',
-          borderRadius: `var(${trackBorderRadiusVar}, 999px)`,
-          width: `var(${trackWidthVar}, 48px)`,
+          borderRadius: `var(${trackBorderRadiusVar})`,
+          width: `var(${trackWidthVar})`,
           height: trackHeight,
-          padding: `var(${trackInnerPaddingVar}, 8px)`,
+          padding: `var(${trackInnerPaddingVar})`,
           ...(trackElevationBoxShadow ? { boxShadow: trackElevationBoxShadow } : {}),
         },
         ...style,
