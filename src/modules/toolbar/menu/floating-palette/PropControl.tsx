@@ -4,7 +4,7 @@ import { readCssVar } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
-import IconPicker from '../../../components/IconPicker'
+import IconInput from '../../../components/IconInput'
 import TokenSlider from '../../../forms/TokenSlider'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
@@ -272,7 +272,7 @@ export default function PropControl({
                 const cssVars = getCssVarsForProp(thumbIconSelectedProp)
                 const primaryVar = cssVars[0] || thumbIconSelectedProp.cssVar
                 return (
-                  <IconPicker
+                  <IconInput
                     targetCssVar={primaryVar}
                     targetCssVars={cssVars.length > 1 ? cssVars : undefined}
                     label="Thumb Icon Selected"
@@ -287,7 +287,7 @@ export default function PropControl({
                 const cssVars = getCssVarsForProp(thumbIconUnselectedProp)
                 const primaryVar = cssVars[0] || thumbIconUnselectedProp.cssVar
                 return (
-                  <IconPicker
+                  <IconInput
                     targetCssVar={primaryVar}
                     targetCssVars={cssVars.length > 1 ? cssVars : undefined}
                     label="Thumb Icon Unselected"

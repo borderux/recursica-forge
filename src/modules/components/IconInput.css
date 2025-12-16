@@ -1,0 +1,65 @@
+.icon-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--recursica-brand-dimensions-md);
+  padding: var(--recursica-brand-dimensions-md);
+}
+
+.icon-input-label {
+  font-size: var(--recursica-brand-typography-body-small-font-size);
+  font-weight: var(--recursica-brand-typography-body-small-font-weight);
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  opacity: var(--recursica-brand-light-layer-layer-2-property-element-text-high-emphasis);
+}
+
+.icon-input-label-link {
+  color: var(--recursica-brand-light-layer-layer-2-property-element-interactive-tone);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.icon-input-label-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.icon-input-container {
+  display: flex;
+  gap: var(--recursica-brand-dimensions-sm);
+  align-items: center;
+}
+
+.icon-input-field {
+  flex: 1;
+  padding: var(--recursica-brand-dimensions-sm);
+  border: 1px solid var(--recursica-brand-light-layer-layer-2-property-element-border-color);
+  border-radius: var(--recursica-brand-dimensions-border-radius-default);
+  font-size: var(--recursica-brand-typography-body-small-font-size);
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  opacity: var(--recursica-brand-light-layer-layer-2-property-element-text-high-emphasis);
+  background: var(--recursica-brand-light-layer-layer-1-property-surface);
+}
+
+.icon-input-field:focus {
+  outline: none;
+  border-color: var(--recursica-brand-light-layer-layer-2-property-element-interactive-tone);
+}
+
+.icon-input-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--recursica-brand-dimensions-sm);
+  background: var(--recursica-brand-light-layer-layer-1-property-surface);
+  border-radius: var(--recursica-brand-dimensions-border-radius-default);
+  min-width: 40px;
+  min-height: 40px;
+  flex-shrink: 0;
+}
+
+.icon-input-preview-name {
+  font-size: var(--recursica-brand-typography-body-small-font-size);
+  color: var(--recursica-brand-light-layer-layer-2-property-element-text-color);
+  opacity: var(--recursica-brand-light-layer-layer-2-property-element-text-high-emphasis);
+}
+

@@ -46,7 +46,7 @@ export default function Switch({
   const thumbIconSelectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-selected', undefined)
   const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
-  const elevationVar = getComponentCssVar('Switch', 'size', 'elevation', undefined)
+  const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
   
   // Override track-selected to use alternative layer's interactive color when alt layer is set
   if (hasComponentAlternativeLayer) {
@@ -78,12 +78,12 @@ export default function Switch({
   }
   
   // Determine track elevation to apply - prioritize prop, then UIKit.json, then alt layer
-  const elevationBoxShadow = (() => {
+  const trackElevationBoxShadow = (() => {
     let elevationToApply: string | undefined = elevation
     
-    // First, check if UIKit.json has an elevation set
-    if (!elevationToApply && elevationVar) {
-      const uikitElevation = readCssVar(elevationVar)
+    // First, check if UIKit.json has a track-elevation set
+    if (!elevationToApply && trackElevationVar) {
+      const uikitElevation = readCssVar(trackElevationVar)
       if (uikitElevation) {
         // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
         const match = uikitElevation.match(/elevations\.(elevation-\d+)/)
@@ -191,7 +191,7 @@ export default function Switch({
           width: `var(${trackWidthVar}, 48px)`,
           height: trackHeight,
           padding: `var(${trackInnerPaddingVar}, 8px)`,
-          ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
+          ...(trackElevationBoxShadow ? { boxShadow: trackElevationBoxShadow } : {}),
         },
         ...style,
       }}

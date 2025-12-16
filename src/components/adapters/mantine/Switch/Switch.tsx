@@ -46,7 +46,7 @@ export default function Switch({
   const thumbIconSelectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-selected', undefined)
   const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
-  const elevationVar = getComponentCssVar('Switch', 'size', 'elevation', undefined)
+  const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
   
   // Override track-selected to use alternative layer's interactive color when alt layer is set
   if (hasComponentAlternativeLayer) {
@@ -72,12 +72,12 @@ export default function Switch({
   }
   
   // Determine track elevation to apply - prioritize prop, then UIKit.json, then alt layer
-  const elevationBoxShadow = (() => {
+  const trackElevationBoxShadow = (() => {
     let elevationToApply: string | undefined = elevation
     
-    // First, check if UIKit.json has an elevation set
-    if (!elevationToApply && elevationVar) {
-      const uikitElevation = readCssVar(elevationVar)
+    // First, check if UIKit.json has a track-elevation set
+    if (!elevationToApply && trackElevationVar) {
+      const uikitElevation = readCssVar(trackElevationVar)
       if (uikitElevation) {
         // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
         const match = uikitElevation.match(/elevations\.(elevation-\d+)/)
@@ -140,20 +140,20 @@ export default function Switch({
       thumbIcon={checked ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : null) : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar}, 12px)`, height: `var(${thumbIconSizeVar}, 12px)` }} /> : null)}
       className={className}
       style={{
-        '--switch-thumb-bg-selected': `var(${thumbSelectedVar})`,
-        '--switch-thumb-bg-unselected': `var(${thumbUnselectedVar})`,
-        '--switch-track-checked': `var(${trackSelectedVar})`,
-        '--switch-track-unchecked': `var(${trackUnselectedVar})`,
-        '--switch-track-border-radius': `var(${trackBorderRadiusVar})`,
-        '--switch-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
-        '--switch-thumb-height': `var(${thumbHeightVar}, 20px)`,
-        '--switch-thumb-width': `var(${thumbWidthVar}, 20px)`,
-        '--switch-track-width': `var(${trackWidthVar}, 48px)`,
-        '--switch-track-height': trackHeight,
-        '--switch-track-inner-padding': `var(${trackInnerPaddingVar}, 8px)`,
-        '--switch-thumb-icon-size': `var(${thumbIconSizeVar}, 12px)`,
-        '--switch-thumb-elevation': thumbElevationBoxShadow || 'none',
-        '--switch-elevation': elevationBoxShadow || 'none',
+        '--recursica-ui-kit-components-switch-thumb-bg-selected': `var(${thumbSelectedVar})`,
+        '--recursica-ui-kit-components-switch-thumb-bg-unselected': `var(${thumbUnselectedVar})`,
+        '--recursica-ui-kit-components-switch-track-checked': `var(${trackSelectedVar})`,
+        '--recursica-ui-kit-components-switch-track-unchecked': `var(${trackUnselectedVar})`,
+        '--recursica-ui-kit-components-switch-track-border-radius': `var(${trackBorderRadiusVar})`,
+        '--recursica-ui-kit-components-switch-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
+        '--recursica-ui-kit-components-switch-thumb-height': `var(${thumbHeightVar}, 20px)`,
+        '--recursica-ui-kit-components-switch-thumb-width': `var(${thumbWidthVar}, 20px)`,
+        '--recursica-ui-kit-components-switch-track-width': `var(${trackWidthVar}, 48px)`,
+        '--recursica-ui-kit-components-switch-track-height': trackHeight,
+        '--recursica-ui-kit-components-switch-track-inner-padding': `var(${trackInnerPaddingVar}, 8px)`,
+        '--recursica-ui-kit-components-switch-thumb-icon-size': `var(${thumbIconSizeVar}, 12px)`,
+        '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
+        '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
         width: `var(${trackWidthVar}, 48px)`,
         ...style,
       }}

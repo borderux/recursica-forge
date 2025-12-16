@@ -49,7 +49,7 @@ export default function Switch({
   const thumbIconSelectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-selected', undefined)
   const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
-  const elevationVar = getComponentCssVar('Switch', 'size', 'elevation', undefined)
+  const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
   
   // Override track-selected to use alternative layer's interactive color when alt layer is set
   if (hasComponentAlternativeLayer) {
@@ -82,12 +82,12 @@ export default function Switch({
   }
   
   // Determine track elevation to apply - prioritize prop, then UIKit.json, then alt layer
-  const elevationBoxShadow = (() => {
+  const trackElevationBoxShadow = (() => {
     let elevationToApply: string | undefined = elevation
     
-    // First, check if UIKit.json has an elevation set
-    if (!elevationToApply && elevationVar) {
-      const uikitElevation = readCssVar(elevationVar)
+    // First, check if UIKit.json has a track-elevation set
+    if (!elevationToApply && trackElevationVar) {
+      const uikitElevation = readCssVar(trackElevationVar)
       if (uikitElevation) {
         // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
         const match = uikitElevation.match(/elevations\.(elevation-\d+)/)
@@ -189,20 +189,20 @@ export default function Switch({
       ref={toggleRef}
       className="recursica-carbon-toggle-wrapper"
       style={{
-        '--recursica-toggle-thumb-bg-selected': thumbSelectedColor,
-        '--recursica-toggle-thumb-bg-unselected': thumbUnselectedColor,
-        '--recursica-toggle-track-checked': trackSelectedColor,
-        '--recursica-toggle-track-unchecked': trackUnselectedColor,
-        '--recursica-toggle-track-border-radius': trackBorderRadiusValue,
-        '--recursica-toggle-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
-        '--recursica-toggle-thumb-height': `var(${thumbHeightVar}, 20px)`,
-        '--recursica-toggle-thumb-width': `var(${thumbWidthVar}, 20px)`,
-        '--recursica-toggle-track-width': `var(${trackWidthVar}, 48px)`,
-        '--recursica-toggle-track-height': trackHeight,
-        '--recursica-toggle-track-inner-padding': `var(${trackInnerPaddingVar}, 8px)`,
-        '--recursica-toggle-thumb-icon-size': `var(${thumbIconSizeVar}, 12px)`,
-        '--recursica-toggle-thumb-elevation': thumbElevationBoxShadow || 'none',
-        '--recursica-toggle-elevation': elevationBoxShadow || 'none',
+        '--recursica-ui-kit-components-switch-thumb-bg-selected': thumbSelectedColor,
+        '--recursica-ui-kit-components-switch-thumb-bg-unselected': thumbUnselectedColor,
+        '--recursica-ui-kit-components-switch-track-checked': trackSelectedColor,
+        '--recursica-ui-kit-components-switch-track-unchecked': trackUnselectedColor,
+        '--recursica-ui-kit-components-switch-track-border-radius': trackBorderRadiusValue,
+        '--recursica-ui-kit-components-switch-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
+        '--recursica-ui-kit-components-switch-thumb-height': `var(${thumbHeightVar}, 20px)`,
+        '--recursica-ui-kit-components-switch-thumb-width': `var(${thumbWidthVar}, 20px)`,
+        '--recursica-ui-kit-components-switch-track-width': `var(${trackWidthVar}, 48px)`,
+        '--recursica-ui-kit-components-switch-track-height': trackHeight,
+        '--recursica-ui-kit-components-switch-track-inner-padding': `var(${trackInnerPaddingVar}, 8px)`,
+        '--recursica-ui-kit-components-switch-thumb-icon-size': `var(${thumbIconSizeVar}, 12px)`,
+        '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
+        '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
         width: `var(${trackWidthVar}, 48px)`,
         ...style,
       }}

@@ -52,18 +52,18 @@ export function Switch({
     const trackSelectedVar = toCssVarName(['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-selected'].join('.'))
     const trackUnselectedVar = toCssVarName(['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-unselected'].join('.'))
     const borderRadiusVar = toCssVarName(['components', 'switch', 'size', 'variant', sizeVariant, 'border-radius'].join('.'))
-    const elevationVar = getComponentCssVar('Switch', 'size', 'elevation', undefined)
+    const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
     
     // Check if component has alternative-layer prop set (overrides layer-based alt layer)
     const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
     
-    // Determine elevation to apply - prioritize prop, then UIKit.json, then alt layer
-    const elevationBoxShadow = (() => {
+    // Determine track elevation to apply - prioritize prop, then UIKit.json, then alt layer
+    const trackElevationBoxShadow = (() => {
       let elevationToApply: string | undefined = elevation
       
-      // First, check if UIKit.json has an elevation set
-      if (!elevationToApply && elevationVar) {
-        const uikitElevation = readCssVar(elevationVar)
+      // First, check if UIKit.json has a track-elevation set
+      if (!elevationToApply && trackElevationVar) {
+        const uikitElevation = readCssVar(trackElevationVar)
         if (uikitElevation) {
           // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
           const match = uikitElevation.match(/elevations\.(elevation-\d+)/)
@@ -126,7 +126,7 @@ export function Switch({
           transition: 'background-color 0.2s',
           padding: '2px',
           outline: 'none',
-          ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
+          ...(trackElevationBoxShadow ? { boxShadow: trackElevationBoxShadow } : {}),
           ...style,
         }}
         onKeyDown={(e) => {
