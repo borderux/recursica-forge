@@ -92,14 +92,14 @@ describe('Button CSS Variables', () => {
       expect(iconGap).toBeTruthy()
     })
 
-    it('sets --button-content-max-width', () => {
+    it('sets --button-max-width', () => {
       const { container } = renderWithProviders(<Button>Test</Button>)
       const button = container.querySelector('button')
       expect(button).toBeInTheDocument()
 
-      // Check that content max width CSS variable is set
-      const contentMaxWidth = button?.style.getPropertyValue('--button-content-max-width')
-      expect(contentMaxWidth).toBeTruthy()
+      // Check that max width CSS variable is set
+      const maxWidth = button?.style.getPropertyValue('--button-max-width')
+      expect(maxWidth).toBeTruthy()
     })
   })
 

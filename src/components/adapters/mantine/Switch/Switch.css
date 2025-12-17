@@ -4,9 +4,37 @@
  * Overrides Mantine Switch styles to use Recursica CSS variables
  */
 
-/* Override thumb background */
+/* Ensure root container is positioned for absolute thumb positioning */
+.mantine-Switch-root {
+  position: relative !important;
+  /* Mantine's internal CSS variables are set directly in the component's style prop */
+  /* These reference UIKit variables which are on :root and update automatically */
+}
+
+/* Position thumb relative to track's content area (respecting padding) */
 .mantine-Switch-thumb {
-  background: var(--switch-thumb-bg, var(--mantine-color-white)) !important;
+  /* Use wrapper variables that are set in component's style prop - these reference UIKit vars directly */
+  background: var(--recursica-ui-kit-components-switch-thumb-bg-unselected) !important;
+  /* Use UIKit variables directly (they're on :root from UIKit.json) */
+  width: var(--recursica-ui-kit-components-switch-thumb-width) !important;
+  height: var(--recursica-ui-kit-components-switch-thumb-height) !important;
+  border-radius: var(--recursica-ui-kit-components-switch-thumb-border-radius) !important;
+  box-shadow: var(--recursica-ui-kit-components-switch-thumb-elevation) !important;
+  position: absolute !important;
+  /* Always position at left edge, use transform to move when checked */
+  left: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
+  top: 50% !important;
+  transform: translateY(-50%) translateX(0) !important;
+  transition: transform 0.1s ease, background 0.1s ease !important;
+}
+
+.mantine-Switch-input:checked + .mantine-Switch-track + .mantine-Switch-thumb,
+.mantine-Switch-input:checked ~ .mantine-Switch-thumb,
+.mantine-Switch-root:has(.mantine-Switch-input:checked) .mantine-Switch-thumb {
+  /* Use wrapper variable that references UIKit var - will update automatically when UIKit var changes */
+  background: var(--recursica-ui-kit-components-switch-thumb-bg-selected) !important;
+  /* Checked: move thumb to right edge using transform */
+  transform: translateY(-50%) translateX(calc(var(--switch-width) - var(--recursica-ui-kit-components-switch-thumb-width) - 2 * var(--recursica-ui-kit-components-switch-track-inner-padding))) !important;
 }
 
 /* Remove the blue dot in the center of the thumb */
@@ -22,12 +50,21 @@
 
 /* Override track colors */
 .mantine-Switch-track {
-  background-color: var(--switch-track-unchecked, var(--mantine-color-gray-3)) !important;
-  border-radius: var(--switch-border-radius, 999px) !important;
+  /* Use wrapper variable that references UIKit var - will update automatically when UIKit var changes */
+  background-color: var(--recursica-ui-kit-components-switch-track-unchecked) !important;
+  /* Use UIKit variables directly (they're on :root from UIKit.json) */
+  border-radius: var(--recursica-ui-kit-components-switch-track-border-radius) !important;
+  box-shadow: var(--recursica-ui-kit-components-switch-track-elevation) !important;
+  width: var(--switch-width) !important;
+  height: var(--recursica-ui-kit-components-switch-track-height) !important;
+  padding: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
+  box-sizing: border-box !important;
+  position: relative !important;
 }
 
 .mantine-Switch-input:checked + .mantine-Switch-track {
-  background-color: var(--switch-track-checked, var(--mantine-color-blue-6)) !important;
+  /* Use wrapper variable that references UIKit var - will update automatically when UIKit var changes */
+  background-color: var(--recursica-ui-kit-components-switch-track-checked) !important;
 }
 
 /* Override disabled state */

@@ -356,10 +356,8 @@ export default function PaletteColorSelector({
       }
     })
     
-    // Dispatch event to trigger UI re-render for AA compliance indicators
-    try {
-      window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
-    } catch {}
+    // Don't dispatch paletteVarsChanged here - it will be dispatched by the explicit user action that triggered this
+    // (e.g., when user changes family via dropdown)
     
     // Also update theme JSON for both modes to persist the new on-tone values
     // Use verified on-tone values for current mode, recalculate for other mode
@@ -490,8 +488,11 @@ export default function PaletteColorSelector({
   // Set CSS vars only on mount and when mode changes (not when selectedFamily changes from theme)
   // Use a ref to track if we've initialized to avoid unnecessary updates
   const hasInitialized = useRef(false)
+  const lastMode = useRef<string | null>(null)
   useEffect(() => {
+    // Only initialize once or when mode changes, not on every selectedFamily change
     if (!selectedFamily) return
+    if (hasInitialized.current && lastMode.current === mode) return
     
     const rootEl = document.documentElement
     const modeLower = mode.toLowerCase()
@@ -516,8 +517,9 @@ export default function PaletteColorSelector({
       }
     })
     hasInitialized.current = true
-    // Only depend on mode and paletteKey, not selectedFamily - CSS vars are set via updatePaletteForFamily
-  }, [mode, paletteKey, headerLevels, getTokenValueByName, getTokenLevelForPaletteLevel, selectedFamily])
+    lastMode.current = mode
+    // Only depend on mode and paletteKey - CSS vars are set via updatePaletteForFamily when user changes family
+  }, [mode, paletteKey, headerLevels, getTokenValueByName, getTokenLevelForPaletteLevel])
 
   // Update theme JSON and CSS variables when family changes
   const updatePaletteForFamily = (family: string) => {
@@ -608,6 +610,11 @@ export default function PaletteColorSelector({
       // Update theme AFTER CSS vars are set to minimize flicker
       // Other palettes will re-render but CSS vars are already correct
       setTheme(themeCopy)
+      
+      // Dispatch event to notify that palette vars changed (user-initiated action)
+      try {
+        window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
+      } catch {}
       
       // Call optional callback
       onFamilyChange?.(family)

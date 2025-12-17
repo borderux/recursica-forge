@@ -22,7 +22,7 @@
 /* Use Recursica CSS variables with Carbon variables as fallbacks */
 .cds--btn {
   /* Set max-width on button root to constrain content */
-  max-width: calc(var(--button-content-max-width, var(--recursica-ui-kit-components-button-content-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  max-width: calc(var(--button-max-width, var(--recursica-ui-kit-components-button-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
   /* Use Recursica CSS vars with Carbon vars as fallbacks - don't modify Carbon vars directly */
   background-color: var(--button-bg, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background, var(--cds-button-primary))) !important;
   color: var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-text, var(--cds-button-text-primary))) !important;
@@ -39,7 +39,7 @@
 
 /* For text-only buttons (no icon), use full content max width and center */
 .cds--btn:not(:has(> svg)) {
-  max-width: var(--button-content-max-width, var(--recursica-ui-kit-components-button-content-max-width)) !important;
+  max-width: var(--button-max-width, var(--recursica-ui-kit-components-button-max-width)) !important;
   justify-content: center !important;
 }
 

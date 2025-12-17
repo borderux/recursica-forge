@@ -96,7 +96,7 @@ export default function Button({
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
-  const contentMaxWidthVar = getComponentCssVar('Button', 'size', 'content-max-width', undefined)
+  const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
   
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
@@ -161,7 +161,7 @@ export default function Button({
       // Always set it, even for icon-only buttons, so CSS can use it
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Set content max width CSS variable for CSS file override
-      '--button-content-max-width': `var(${contentMaxWidthVar})`,
+      '--button-max-width': `var(${maxWidthVar})`,
       // For outline buttons, override Mantine's border color CSS variable
       // Mantine uses: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-blue-outline)
       // We override to use our recursica CSS var

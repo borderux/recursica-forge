@@ -31,6 +31,7 @@ import {
   ArrowsVertical,
   CaretDoubleRight,
   CaretDown,
+  Check,
   Columns,
   CopySimple,
   CornersOut,
@@ -38,6 +39,7 @@ import {
   DiamondsFour,
   Download,
   Equals,
+  FadersHorizontal,
   FileSvg,
   FileText,
   FrameCorners,
@@ -54,6 +56,7 @@ import {
   Resize,
   Scales,
   SignOut,
+  SlidersHorizontal,
   SplitHorizontal,
   Stack,
   Sun,
@@ -148,6 +151,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'arrows-out-line-vertical': ArrowsOutLineVertical,
   'angle': Angle,
   'file-svg': FileSvg,
+  'check': Check,
+  'sliders-horizontal': SlidersHorizontal,
+  'faders-horizontal': FadersHorizontal,
 }
 
 /**

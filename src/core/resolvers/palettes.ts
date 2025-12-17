@@ -28,7 +28,7 @@ function buildThemeIndex(theme: JsonLike) {
 export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLabel): Record<string, string> {
   const themeIndex = buildThemeIndex(theme)
   const tokenIndex = buildTokenIndex(tokens)
-  const levels = ['900','800','700','600','500','400','300','200','100','050']
+  const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
   // Derive palette keys from Brand JSON (exclude 'core'); do NOT synthesize extra palettes
   const palettes = (() => {
     try {
@@ -165,8 +165,10 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       }
     })()
     
-    // Use defined levels if available, otherwise fall back to standard levels
-    const levelsToProcess = paletteLevels.length > 0 ? paletteLevels : levels
+    // Always use standard levels to ensure all levels (including 050) are processed
+    // This ensures CSS vars are created for all standard levels even if JSON doesn't define them
+    // We'll still check JSON for tone/on-tone values, but create CSS vars for all levels
+    const levelsToProcess = levels
     
     levelsToProcess.forEach((lvl) => {
       // Map 'default' to 'primary' for CSS variable names (Brand.json uses 'default', CSS uses 'primary')
@@ -190,14 +192,11 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         }
       }
       
-      // Skip if no tone value is defined in theme
-      if (!toneRaw) return
-      
       const scope = `--recursica-brand-${mode.toLowerCase()}-palettes-${pk}-${cssLevel}`
       
       // Parse tone from JSON - simple brace reference parsing
       let toneVar: string | null = null
-      if (typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
+      if (toneRaw && typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
         const inner = toneRaw.slice(1, -1).trim()
         // Match token references like tokens.color.{family}.{level}
         // Handle levels: 000, 050, 100-900, 1000 (explicitly match these patterns)
@@ -227,16 +226,20 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       }
       
       // If parsing failed, try resolving the theme reference (but this should rarely be needed)
-      if (!toneVar) {
+      if (!toneVar && toneRaw) {
         const tone = resolveThemeRef({ collection: 'Theme', name: toneName })
         if (typeof tone === 'string' && tone.startsWith('var(')) {
           toneVar = tone
         }
       }
       
-      // Only emit if we successfully resolved a tone
+      // Emit tone if we successfully resolved it
       if (toneVar) {
         vars[`${scope}-tone`] = toneVar
+      }
+      
+      // Always process on-tone, even if tone wasn't found (some levels might only have on-tone defined)
+      {
         
         // Map on-tone to core color reference (black/white)
         // If theme JSON specifies on-tone, use it; otherwise default to black

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { readCssVar } from '../../core/css/readCssVar'
-import propIconMapping from './propIconMapping.json'
-import { iconNameToReactComponent } from './iconUtils'
+import { readCssVar } from '../../../../core/css/readCssVar'
+import propIconMapping from '../../utils/propIconMapping.json'
+import { iconNameToReactComponent } from '../../../components/iconUtils'
 import './Dropdown.css'
 
 interface AltLayerDropdownProps {
@@ -129,3 +129,4 @@ export default function AltLayerDropdown({ selected, onSelect, mode, open: contr
     </div>
   )
 }
+

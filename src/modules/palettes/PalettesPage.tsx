@@ -175,6 +175,8 @@ export default function PalettesPage() {
     return Array.from(fams).sort()
   }, [tokensJson])
   
+  // Removed automatic AA compliance check - let JSON values be set first
+  
   const palettes = palettesState.dynamic
   const writePalettes = (next: PaletteEntry[]) => setPalettes({ ...palettesState, dynamic: next })
   
@@ -366,24 +368,19 @@ export default function PalettesPage() {
                           if ((window as any).openPicker) {
                             (window as any).openPicker(e.currentTarget, `--recursica-brand-${modeVar}-state-overlay-color`)
                           }
-                          // Open opacity picker after a short delay, positioned to the right of the color token picker
-                          setTimeout(() => {
-                            if ((window as any).openOpacityPicker) {
-                              // Create a temporary element positioned to the right of where the palette picker would be
-                              const tempEl = document.createElement('div')
-                              tempEl.style.position = 'fixed'
-                              tempEl.style.top = `${rect.bottom + 8}px`
-                              tempEl.style.left = `${Math.min(rect.left + 450, window.innerWidth - 400)}px`
-                              tempEl.style.width = '1px'
-                              tempEl.style.height = '1px'
-                              document.body.appendChild(tempEl)
-                              ;(window as any).openOpacityPicker(tempEl, `--recursica-brand-${modeVar}-state-overlay-opacity`)
-                              // Clean up temporary element after picker opens
-                              setTimeout(() => {
-                                document.body.removeChild(tempEl)
-                              }, 100)
-                            }
-                          }, 100)
+                          // Open opacity picker immediately, positioned to the right of the color token picker
+                          if ((window as any).openOpacityPicker) {
+                            // Create a temporary element positioned to the right of where the palette picker would be
+                            const tempEl = document.createElement('div')
+                            tempEl.style.position = 'fixed'
+                            tempEl.style.top = `${rect.bottom + 8}px`
+                            tempEl.style.left = `${Math.min(rect.left + 450, window.innerWidth - 400)}px`
+                            tempEl.style.width = '1px'
+                            tempEl.style.height = '1px'
+                            document.body.appendChild(tempEl)
+                            ;(window as any).openOpacityPicker(tempEl, `--recursica-brand-${modeVar}-state-overlay-opacity`)
+                            // The picker component will handle cleanup of the temporary element
+                          }
                         }}>
                           <div style={{ width: '100%', height: '100%', minHeight: '30px', background: `var(--recursica-brand-${modeVar}-state-overlay-color)`, opacity: `var(--recursica-brand-${modeVar}-state-overlay-opacity)` }} />
                         </td>

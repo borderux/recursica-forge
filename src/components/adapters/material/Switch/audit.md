@@ -74,7 +74,70 @@ Where:
 
 ### Variables Set in TSX (sx prop)
 
-Material UI Switch does not use component-level CSS variables. Instead, it uses Recursica CSS variables directly in the `sx` prop, which Material UI converts to inline styles.
+Material UI Switch does not use component-level CSS variables for colors/sizes. Instead, it uses Recursica CSS variables directly in the `sx` prop, which Material UI converts to inline styles.
+
+### Elevation and Alternative Layer Support
+
+The Switch component supports elevation and alternative layer props:
+
+#### Elevation Implementation
+
+- **Prop**: `elevation?: string` (e.g., `"elevation-0"`, `"elevation-1"`, etc.)
+- **CSS Variable**: `--recursica-ui-kit-components-switch-elevation` (read via `getComponentCssVar('Switch', 'size', 'elevation', undefined)`)
+- **Priority Order**:
+  1. Prop value (`elevation` prop)
+  2. UIKit.json value (from CSS variable)
+  3. Alternative layer elevation (if `alternativeLayer` is set)
+- **Implementation**:
+  ```typescript
+  const elevationVar = getComponentCssVar('Switch', 'size', 'elevation', undefined)
+  const elevationBoxShadow = (() => {
+    let elevationToApply: string | undefined = elevation
+    
+    // Check UIKit.json elevation
+    if (!elevationToApply && elevationVar) {
+      const uikitElevation = readCssVar(elevationVar)
+      // Parse and use...
+    }
+    
+    // Check alt layer elevation
+    if (hasComponentAlternativeLayer) {
+      const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+      const altLayerElevation = readCssVar(altLayerElevationVar)
+      // Parse and use...
+    }
+    
+    // Build box-shadow if elevation is set and not elevation-0
+    if (elevationToApply && elevationToApply !== 'elevation-0') {
+      // Return box-shadow string using elevation CSS variables
+    }
+    return undefined
+  })()
+  
+  // Applied to track in sx prop:
+  '& .MuiSwitch-track': {
+    ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
+  }
+  ```
+
+#### Alternative Layer Implementation
+
+- **Prop**: `alternativeLayer?: string | null` (e.g., `"high-contrast"`, `"alert"`, `null`, `"none"`)
+- **CSS Variable**: `--recursica-ui-kit-components-switch-alternative-layer`
+- **Behavior**: When set (not `null` and not `"none"`), overrides all color props with alternative layer properties
+- **Implementation**:
+  ```typescript
+  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+  
+  if (hasComponentAlternativeLayer) {
+    // Override color CSS variables with alt layer properties
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+    // Use alt layer properties for colors
+    // Also check for alt layer elevation
+  }
+  ```
+
+**Note**: Currently, Material UI Switch applies elevation to the track element via the `sx` prop. Alternative layer support would override color CSS variables but is not currently implemented in the Material UI Switch component.
 
 ## CSS Variable Fallback Chain
 

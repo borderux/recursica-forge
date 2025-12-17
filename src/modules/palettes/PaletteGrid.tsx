@@ -12,6 +12,7 @@ import {
 } from './PaletteScale'
 import PaletteColorSelector from './PaletteColorSelector'
 import { updateCssVar } from '../../core/css/updateCssVar'
+import { readCssVar } from '../../core/css/readCssVar'
 import { readOverrides } from '../theme/tokenOverrides'
 
 type PaletteGridProps = {
@@ -237,30 +238,103 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
   }, [paletteKey, primaryLevelStr, mode])
   const [hoverLevelStr, setHoverLevelStr] = useState<string | null>(null)
   const applyThemeMappingsFromJson = (modeLabel: 'Light' | 'Dark') => {
+    // Don't run during reset - recomputeAndApplyAll handles everything
+    if (isResettingRef.current) return
+    
     const levels = headerLevels
+    const modeLower = modeLabel.toLowerCase()
     levels.forEach((lvl) => {
-      const onToneName = `palette/${paletteKey}/${lvl}/on-tone`
-      const onTone = resolveThemeRef((themeIndex as any)[`${modeLabel}::${onToneName}`]?.value ?? { collection: 'Theme', name: onToneName }, modeLabel)
-      // map on-tone to core brand vars (white/black) rather than raw hex
-      if (typeof onTone === 'string') {
-        const s = String(onTone).trim().toLowerCase()
-        const coreRef = (s === '#ffffff' || s === 'white')
-          ? `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-white)`
-          : (s === '#000000' || s === 'black')
-          ? `var(--recursica-brand-${modeLabel.toLowerCase()}-palettes-core-black)`
-          : undefined
+      const onToneCssVar = `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
+      
+      // Only set if the CSS var isn't already set (don't override values from buildPaletteVars)
+      const existingValue = readCssVar(onToneCssVar)
+      if (existingValue && existingValue.trim() !== '') {
+        // Already set, don't override
+        return
+      }
+      
+      // Try both 'palettes' and 'palette' path formats
+      const onToneNamePlural = `palettes/${paletteKey}/${lvl}/on-tone`
+      const onToneNameSingular = `palette/${paletteKey}/${lvl}/on-tone`
+      const onToneRaw = (themeIndex as any)[`${modeLabel}::${onToneNamePlural}`]?.value 
+        || (themeIndex as any)[`${modeLabel}::${onToneNameSingular}`]?.value
+      
+      if (typeof onToneRaw === 'string') {
+        const s = onToneRaw.trim().toLowerCase()
+        let coreRef: string | undefined
+        
+        // Handle direct hex values
+        if (s === '#ffffff' || s === 'white') {
+          coreRef = `var(--recursica-brand-${modeLower}-palettes-core-white)`
+        } else if (s === '#000000' || s === 'black') {
+          coreRef = `var(--recursica-brand-${modeLower}-palettes-core-black)`
+        }
+        // Handle JSON references like {brand.themes.light.palettes.core-colors.white}
+        else if (s.includes('core-colors.white') || s.includes('core.white') || s.includes('.white}')) {
+          coreRef = `var(--recursica-brand-${modeLower}-palettes-core-white)`
+        } else if (s.includes('core-colors.black') || s.includes('core.black') || s.includes('.black}')) {
+          coreRef = `var(--recursica-brand-${modeLower}-palettes-core-black)`
+        }
+        // Try to resolve as theme reference (handles var() references)
+        else {
+          // Try both path formats
+          const resolved = resolveThemeRef({ collection: 'Theme', name: onToneNamePlural }, modeLabel)
+            || resolveThemeRef({ collection: 'Theme', name: onToneNameSingular }, modeLabel)
+          if (typeof resolved === 'string') {
+            // If it's already a var() reference, use it directly
+            if (resolved.startsWith('var(')) {
+              coreRef = resolved
+            }
+            // If it resolved to a hex or color name, map it
+            else {
+              const resolvedLower = resolved.trim().toLowerCase()
+              if (resolvedLower === '#ffffff' || resolvedLower === 'white') {
+                coreRef = `var(--recursica-brand-${modeLower}-palettes-core-white)`
+              } else if (resolvedLower === '#000000' || resolvedLower === 'black') {
+                coreRef = `var(--recursica-brand-${modeLower}-palettes-core-black)`
+              }
+            }
+          }
+        }
+        
         if (coreRef) {
-          updateCssVar(`--recursica-brand-${modeLabel.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`, coreRef)
+          updateCssVar(onToneCssVar, coreRef)
         }
       }
     })
   }
+  const isResettingRef = useRef(false)
   useEffect(() => {
+    // Listen for reset events to prevent applyThemeMappingsFromJson from running during reset
+    const handleReset = () => {
+      isResettingRef.current = true
+      // Reset flag after a delay to allow recomputeAndApplyAll to complete
+      setTimeout(() => {
+        isResettingRef.current = false
+      }, 200)
+    }
+    window.addEventListener('paletteReset', handleReset as any)
+    return () => window.removeEventListener('paletteReset', handleReset as any)
+  }, [])
+  
+  useEffect(() => {
+    // Skip if reset is in progress - recomputeAndApplyAll already sets everything from JSON
+    if (isResettingRef.current) return
+    
+    // Apply theme mappings from JSON only for levels that aren't already set
+    // This ensures all levels (including 050) are set from JSON, even if buildPaletteVars didn't process them
     applyThemeMappingsFromJson(mode)
     // Don't dispatch paletteVarsChanged here - CSS vars are managed by PaletteColorSelector
     // This prevents unnecessary re-renders of other palettes
   }, [mode, overrideVersion])
+  // Track last primary level to only update when user explicitly changes it
+  const lastPrimaryLevel = useRef<string | null>(null)
+  const lastMode = useRef<string | null>(null)
+  
   useEffect(() => {
+    // Only update when primary level or mode actually changes (user action), not on every render
+    if (lastPrimaryLevel.current === primaryLevelStr && lastMode.current === mode) return
+    
     const lvl = primaryLevelStr
     try {
       // Reference the level-specific brand vars directly so primary is not hardcoded
@@ -282,10 +356,15 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         )
       }
       
-      // Notify dependents that primary-level derived vars changed
-      try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}
+      // Only notify if this is a user-initiated change (primary level or mode changed)
+      if (lastPrimaryLevel.current !== null || lastMode.current !== null) {
+        try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}
+      }
+      
+      lastPrimaryLevel.current = primaryLevelStr
+      lastMode.current = mode
     } catch {}
-  }, [primaryLevelStr, selectedFamily, overrideVersion, mode, paletteKey])
+  }, [primaryLevelStr, mode, paletteKey]) // Removed selectedFamily and overrideVersion from dependencies
   return (
     <div className="palette-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>

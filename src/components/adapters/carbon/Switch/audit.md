@@ -84,6 +84,69 @@ Where:
 
 **Note**: Carbon uses `--recursica-toggle-*` naming convention (not `--switch-*`) to match Carbon's "Toggle" component naming.
 
+### Elevation and Alternative Layer Support
+
+The Switch component supports elevation and alternative layer props:
+
+#### Elevation Implementation
+
+- **Prop**: `elevation?: string` (e.g., `"elevation-0"`, `"elevation-1"`, etc.)
+- **CSS Variable**: `--recursica-ui-kit-components-switch-elevation` (read via `getComponentCssVar('Switch', 'size', 'elevation', undefined)`)
+- **Priority Order**:
+  1. Prop value (`elevation` prop)
+  2. UIKit.json value (from CSS variable)
+  3. Alternative layer elevation (if `alternativeLayer` is set)
+- **Implementation**:
+  ```typescript
+  const elevationVar = getComponentCssVar('Switch', 'size', 'elevation', undefined)
+  const elevationBoxShadow = (() => {
+    let elevationToApply: string | undefined = elevation
+    
+    // Check UIKit.json elevation
+    if (!elevationToApply && elevationVar) {
+      const uikitElevation = readCssVar(elevationVar)
+      // Parse and use...
+    }
+    
+    // Check alt layer elevation
+    if (hasComponentAlternativeLayer) {
+      const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+      const altLayerElevation = readCssVar(altLayerElevationVar)
+      // Parse and use...
+    }
+    
+    // Build box-shadow if elevation is set and not elevation-0
+    if (elevationToApply && elevationToApply !== 'elevation-0') {
+      // Return box-shadow string using elevation CSS variables
+    }
+    return undefined
+  })()
+  
+  // Applied to wrapper div style prop:
+  style={{
+    ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
+  }}
+  ```
+
+#### Alternative Layer Implementation
+
+- **Prop**: `alternativeLayer?: string | null` (e.g., `"high-contrast"`, `"alert"`, `null`, `"none"`)
+- **CSS Variable**: `--recursica-ui-kit-components-switch-alternative-layer`
+- **Behavior**: When set (not `null` and not `"none"`), overrides all color props with alternative layer properties
+- **Implementation**:
+  ```typescript
+  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+  
+  if (hasComponentAlternativeLayer) {
+    // Override color CSS variables with alt layer properties
+    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+    // Use alt layer properties for colors
+    // Also check for alt layer elevation
+  }
+  ```
+
+**Note**: Currently, Carbon Switch applies elevation to the wrapper div (`.recursica-carbon-toggle-wrapper`) via the `style` prop. Alternative layer support would override color CSS variables but is not currently implemented in the Carbon Switch component.
+
 ### Variables Used in CSS
 
 All component-level variables are used in CSS with Carbon CSS variables as fallbacks:

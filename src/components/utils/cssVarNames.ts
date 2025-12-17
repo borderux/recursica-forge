@@ -50,7 +50,7 @@ export function getComponentCssVar(
 ): string {
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
-  const componentLevelProperties = ['font-size', 'border-radius', 'content-max-width', 'elevation', 'alternative-layer']
+  const componentLevelProperties = ['font-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding']
   
   // Check if this is a component-level property (not under size/color category)
   if (componentLevelProperties.includes(property.toLowerCase())) {
@@ -87,9 +87,9 @@ export function getComponentCssVar(
     const colorVariantMatch = property.match(/^([a-z]+)-(.+)$/)
     if (colorVariantMatch) {
       const [, variantName, propName] = colorVariantMatch
-      // Known color variants: solid, text, outline
+      // Known color variants: solid, text, outline, default
       // If it matches a known variant pattern, insert "variant" segment
-      const knownVariants = ['solid', 'text', 'outline']
+      const knownVariants = ['solid', 'text', 'outline', 'default']
       if (knownVariants.includes(variantName)) {
         parts.push('variant', variantName, propName)
       } else {
