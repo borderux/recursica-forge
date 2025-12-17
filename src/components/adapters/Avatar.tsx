@@ -17,7 +17,7 @@ export type AvatarProps = {
   src?: string
   alt?: string
   fallback?: React.ReactNode // e.g., initials or icon
-  colorVariant?: 'primary-text' | 'primary-icon' | 'ghost-text' | 'ghost-icon' | 'image'
+  colorVariant?: 'text' | 'text-solid' | 'text-ghost' | 'icon' | 'icon-solid' | 'icon-ghost' | 'image'
   sizeVariant?: 'small' | 'default' | 'large'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
@@ -31,7 +31,7 @@ export function Avatar({
   src,
   alt,
   fallback,
-  colorVariant = 'ghost-text',
+  colorVariant = 'text-ghost',
   sizeVariant = 'default',
   layer = 'layer-0',
   elevation,
@@ -63,8 +63,9 @@ export function Avatar({
       return fallback
     }
     
-    // Check if variant is an icon variant (primary-icon or ghost-icon)
-    if (colorVariant?.endsWith('-icon')) {
+    // Check if variant is an icon variant (icon, icon-solid, or icon-ghost)
+    // For nested variants, check if it starts with "icon" (with or without secondary variant)
+    if (colorVariant?.startsWith('icon')) {
       const UserIcon = iconNameToReactComponent('user')
       if (UserIcon) {
         return <UserIcon style={{ width: '100%', height: '100%' }} />

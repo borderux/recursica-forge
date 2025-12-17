@@ -4,6 +4,7 @@ import { readCssVar } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
+import TypeStyleSelector from '../../../components/TypeStyleSelector'
 import IconInput from '../../../components/IconInput'
 import TokenSlider from '../../../forms/TokenSlider'
 import { useVars } from '../../../vars/VarsContext'
@@ -181,6 +182,17 @@ export default function PropControl({
           currentValueCssVar={validPrimaryVar}
           label={label}
           contrastColorCssVar={contrastColorVar}
+        />
+      )
+    }
+
+    if (propToRender.type === 'typography') {
+      // For typography props (like text-size), use type style selector
+      return (
+        <TypeStyleSelector
+          targetCssVar={primaryVar}
+          targetCssVars={cssVars}
+          label={label}
         />
       )
     }
@@ -363,6 +375,71 @@ export default function PropControl({
               })()}
             </div>
           )} */}
+        </>
+      )
+    }
+    
+    // If this is a combined "border" prop, render border-size, border-radius, and border-color
+    if (prop.name.toLowerCase() === 'border' && prop.borderProps && prop.borderProps.size > 0) {
+      const borderSizeProp = prop.borderProps.get('border-size')
+      const borderRadiusProp = prop.borderProps.get('border-radius')
+      const borderColorProp = prop.borderProps.get('border-color')
+      
+      return (
+        <>
+          {/* Border Size */}
+          {borderSizeProp && (
+            <>
+              {(() => {
+                const cssVars = getCssVarsForProp(borderSizeProp)
+                const primaryVar = cssVars[0] || borderSizeProp.cssVar
+                return (
+                  <DimensionTokenSelector
+                    targetCssVar={primaryVar}
+                    targetCssVars={cssVars.length > 1 ? cssVars : undefined}
+                    label="Border Size"
+                    propName={borderSizeProp.name}
+                  />
+                )
+              })()}
+            </>
+          )}
+          
+          {/* Border Radius */}
+          {borderRadiusProp && (
+            <div style={{ marginTop: borderSizeProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+              {(() => {
+                const cssVars = getCssVarsForProp(borderRadiusProp)
+                const primaryVar = cssVars[0] || borderRadiusProp.cssVar
+                return (
+                  <DimensionTokenSelector
+                    targetCssVar={primaryVar}
+                    targetCssVars={cssVars.length > 1 ? cssVars : undefined}
+                    label="Border Radius"
+                    propName={borderRadiusProp.name}
+                  />
+                )
+              })()}
+            </div>
+          )}
+          
+          {/* Border Color */}
+          {borderColorProp && (
+            <div style={{ marginTop: borderRadiusProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+              {(() => {
+                const cssVars = getCssVarsForProp(borderColorProp)
+                const primaryVar = cssVars[0] || borderColorProp.cssVar
+                return (
+                  <PaletteColorControl
+                    targetCssVar={primaryVar}
+                    targetCssVars={cssVars.length > 1 ? cssVars : undefined}
+                    currentValueCssVar={primaryVar}
+                    label="Border Color"
+                  />
+                )
+              })()}
+            </div>
+          )}
         </>
       )
     }

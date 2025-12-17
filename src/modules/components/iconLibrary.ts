@@ -32,6 +32,8 @@ import {
   CaretDoubleRight,
   CaretDown,
   Check,
+  CircleHalf,
+  CircleHalfTilt,
   Columns,
   CopySimple,
   CornersOut,
@@ -156,6 +158,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'sliders-horizontal': SlidersHorizontal,
   'faders-horizontal': FadersHorizontal,
   'user': User,
+  'circle-half': CircleHalf,
+  'circle-half-tilt': CircleHalfTilt,
+  'border': FrameCorners,
 }
 
 /**

@@ -14,7 +14,19 @@ export default function AvatarPreview({
   selectedAltLayer,
   componentElevation,
 }: AvatarPreviewProps) {
-  const colorVariant = selectedVariants.color || 'ghost-text'
+  // Combine style variants if both are selected
+  // Primary style: text, icon, image
+  // Secondary style: solid, ghost (only for text and icon)
+  const primaryStyle = selectedVariants.style || 'text'
+  const secondaryStyle = selectedVariants['style-secondary'] || 'ghost'
+  
+  // Build combined variant string
+  let colorVariant: string
+  if (primaryStyle === 'image') {
+    colorVariant = 'image'
+  } else {
+    colorVariant = `${primaryStyle}-${secondaryStyle}`
+  }
   const sizeVariant = selectedVariants.size || 'default'
 
   // Determine the actual layer to use
@@ -28,7 +40,7 @@ export default function AvatarPreview({
   // If variant is an icon variant and no fallback is provided, the Avatar component
   // will automatically use the "user" icon from Phosphor
   // If variant is "image", the Avatar component will automatically use the placeholder image
-  const fallback = colorVariant?.endsWith('-icon') || colorVariant === 'image' ? undefined : 'AB'
+  const fallback = colorVariant?.startsWith('icon') || colorVariant === 'image' ? undefined : 'AB'
 
   return (
     <div style={{
@@ -38,7 +50,7 @@ export default function AvatarPreview({
       padding: 24,
     }}>
       <Avatar
-        colorVariant={colorVariant as 'primary-text' | 'primary-icon' | 'ghost-text' | 'ghost-icon' | 'image'}
+        colorVariant={colorVariant as any}
         sizeVariant={sizeVariant as 'small' | 'default' | 'large'}
         layer={actualLayer}
         elevation={componentElevation}

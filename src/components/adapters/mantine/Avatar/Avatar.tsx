@@ -6,16 +6,16 @@
 
 import { Avatar as MantineAvatar } from '@mantine/core'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
 import './Avatar.css'
 
 export default function Avatar({
   src,
   alt,
   fallback,
-  colorVariant = 'ghost-text',
+  colorVariant = 'text-ghost',
   sizeVariant = 'default',
   layer = 'layer-0',
   elevation,
@@ -28,72 +28,23 @@ export default function Avatar({
 }: AdapterAvatarProps) {
   const { mode } = useThemeMode()
   
-  // Check if component has alternative-layer prop set (overrides layer-based alt layer)
-  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
-  const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
+  // Get color CSS variables using shared utility
+  const { bgVar, borderVar, labelVar } = getComponentColorVars({
+    componentName: 'Avatar',
+    colorVariant,
+    layer,
+    mode,
+    alternativeLayer,
+    src,
+    imageError: false,
+  })
   
-  // Build CSS variable names for colors
-  let bgVar: string
-  let borderVar: string
-  let labelVar: string
-  
-  // Extract base variant (primary or ghost) from colorVariant (e.g., "primary-icon" -> "primary")
-  const baseVariant = colorVariant?.startsWith('primary') ? 'primary' : 
-                      colorVariant?.startsWith('ghost') ? 'ghost' : 'ghost'
-  
-  if (hasComponentAlternativeLayer) {
-    // Component has alternative-layer prop set - use that alt layer's properties
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
-    
-    if (baseVariant === 'primary') {
-      bgVar = `${layerBase}-surface`
-      borderVar = `${layerBase}-element-text-color`
-      labelVar = `${layerBase}-element-text-color`
-    } else {
-      // ghost variant
-      bgVar = `${layerBase}-surface`
-      borderVar = `${layerBase}-property-border-color`
-      labelVar = `${layerBase}-element-text-color`
-    }
-  } else if (layer.startsWith('layer-alternative-')) {
-    const altKey = layer.replace('layer-alternative-', '')
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
-    
-    if (baseVariant === 'primary') {
-      bgVar = `${layerBase}-surface`
-      borderVar = `${layerBase}-element-text-color`
-      labelVar = `${layerBase}-element-text-color`
-    } else {
-      // ghost variant
-      bgVar = `${layerBase}-surface`
-      borderVar = `${layerBase}-property-border-color`
-      labelVar = `${layerBase}-element-text-color`
-    }
-  } else {
-    // Use UIKit.json avatar colors for standard layers
-    // Pattern: {variant}-{property} (e.g., "primary-icon-background", "ghost-text-background")
-    // This matches UIKit.json structure: variant.primary-icon.background
-    bgVar = getComponentCssVar('Avatar', 'color', `${colorVariant}-background`, layer)
-    borderVar = getComponentCssVar('Avatar', 'color', `${colorVariant}-border`, layer)
-    labelVar = getComponentCssVar('Avatar', 'color', `${colorVariant}-label`, layer)
-    
-    // For images, use border-image instead of variant border
-    const borderImageVar = getComponentCssVar('Avatar', 'color', 'border-image', layer)
-    // Use border-image when src is provided, or when variant is "image"
-    if (src || colorVariant === 'image') {
-      borderVar = borderImageVar
-    }
-  }
-  
-  // Get size CSS variables
+  // Get size and other CSS variables
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
-  const iconSizeVar = getComponentCssVar('Avatar', 'size', 'icon', undefined)
+  const textSizeVar = getComponentLevelCssVar('Avatar', 'text-size')
   
   // Map unified size to Mantine size
   const mantineSize = sizeVariant === 'small' ? 'xs' : sizeVariant === 'default' ? 'md' : 'lg'
-  
-  // Determine border radius based on shape
-  const borderRadius = shape === 'circle' ? '50%' : '0px'
   
   // Handle elevation
   let elevationBoxShadow: string | undefined
@@ -105,26 +56,21 @@ export default function Avatar({
     }
   }
   
-  // Get color references (wrap in var() if not already wrapped)
-  const bgRef = isAlternativeLayer ? `var(${bgVar})` : `var(${bgVar})`
-  const borderRef = isAlternativeLayer ? `var(${borderVar})` : `var(${borderVar})`
-  const labelRef = isAlternativeLayer ? `var(${labelVar})` : `var(${labelVar})`
-  
   return (
     <MantineAvatar
       src={src}
       alt={alt}
       size={mantineSize}
-      radius={shape === 'circle' ? 'xl' : 'xs'}
       className={className}
       style={{
-        // Set CSS custom properties for CSS file to use
-        ['--avatar-bg' as string]: bgRef,
-        ['--avatar-border' as string]: borderRef,
-        ['--avatar-label' as string]: labelRef,
-        ['--avatar-size' as string]: `var(${sizeVar})`,
-        ['--avatar-icon-size' as string]: `var(${iconSizeVar})`,
-        ['--avatar-border-radius' as string]: borderRadius,
+        // Set CSS custom properties that reference the UIKit CSS vars directly
+        '--avatar-bg': `var(${bgVar})`,
+        '--avatar-border': `var(${borderVar})`,
+        '--avatar-label': `var(${labelVar})`,
+        '--avatar-size': `var(${sizeVar})`,
+        '--avatar-text-size': `var(${textSizeVar})`,
+        // Only set non-CSS-variable styles here (like borderRadius for circle shape)
+        ...(shape === 'circle' ? { borderRadius: '50%' } : {}),
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...style,
       } as React.CSSProperties}

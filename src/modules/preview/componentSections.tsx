@@ -125,7 +125,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         return (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <Avatar
-              colorVariant="ghost-text"
+              colorVariant="text-ghost"
               sizeVariant="default"
               layer={layer as any}
               shape="circle"

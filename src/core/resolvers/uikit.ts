@@ -416,6 +416,13 @@ function traverseUIKit(
         }
       } else {
         // Handle other types (number, string, color, etc.)
+        
+        // For color type, null values should be interpreted as transparent
+        if (type === 'color' && (val === null || val === undefined)) {
+          vars[cssVarName] = 'transparent'
+          return
+        }
+        
         // Try to resolve token references
         // Pass vars map so UIKit self-references can check if the referenced var exists
         const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars)

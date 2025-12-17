@@ -88,8 +88,9 @@ export default function ComponentToolbar({
       let firstTrackUnselected: ComponentProp | undefined
       const thumbPropsMap = new Map<string, ComponentProp>() // Map of thumb property name -> prop
       const trackPropsMap = new Map<string, ComponentProp>() // Map of track property name -> prop
+      const borderPropsMap = new Map<string, ComponentProp>() // Map of border property name -> prop
 
-      // First pass: collect all props and identify hover props, track props, and thumb props
+      // First pass: collect all props and identify hover props, track props, thumb props, and border props
       structure.props.forEach(prop => {
         const propNameLower = prop.name.toLowerCase()
         
@@ -111,11 +112,31 @@ export default function ComponentToolbar({
           trackPropsMap.set(propNameLower, prop)
         }
         
-        // Check if this is a thumb prop
+        // Check if this is a thumb prop (including color props like thumb-selected, thumb-unselected)
         if (propNameLower.startsWith('thumb-')) {
           thumbPropsMap.set(propNameLower, prop)
         } else if (propNameLower === 'thumb') {
           thumbPropsMap.set('thumb', prop)
+        }
+        
+        // Also check for thumb-selected and thumb-unselected specifically (they might be color props)
+        if (propNameLower === 'thumb-selected' && !thumbPropsMap.has('thumb-selected')) {
+          thumbPropsMap.set('thumb-selected', prop)
+        } else if (propNameLower === 'thumb-unselected' && !thumbPropsMap.has('thumb-unselected')) {
+          thumbPropsMap.set('thumb-unselected', prop)
+        }
+        
+        // Check if this is a border-related prop (border-size, border-radius, border-color, or border in color category)
+        if (propNameLower === 'border-size' || propNameLower === 'border-radius') {
+          borderPropsMap.set(propNameLower, prop)
+        } else if (propNameLower === 'border' && prop.category === 'color') {
+          // border-color is stored as "border" in the color category
+          // Store with a unique key that includes the path to handle variant-specific border-color props
+          // Use "border-color" as the base key, but if there are multiple, we'll use the first one
+          // The PropControl will use getCssVarsForProp to get the correct variant-specific one
+          if (!borderPropsMap.has('border-color')) {
+            borderPropsMap.set('border-color', prop)
+          }
         }
       })
 
@@ -135,6 +156,11 @@ export default function ComponentToolbar({
       
       // Skip thumb props (they'll be combined into "thumb")
       if (propNameLower.startsWith('thumb-') || propNameLower === 'thumb') {
+        return
+      }
+      
+      // Skip border-related props (they'll be combined into "border")
+      if (propNameLower === 'border-size' || propNameLower === 'border-radius' || (propNameLower === 'border' && prop.category === 'color')) {
         return
       }
 
@@ -183,6 +209,8 @@ export default function ComponentToolbar({
         const combinedTrackProp: ComponentProp = {
           ...baseTrackProp,
           name: 'track',
+          isVariantSpecific: false, // Combined props are not variant-specific
+          variantProp: undefined, // Combined props are not variant-specific
           trackSelectedProp: firstTrackSelected,
           trackUnselectedProp: firstTrackUnselected,
           thumbProps: trackPropsMap.size > 0 ? trackPropsMap : undefined, // Reuse thumbProps field for track props
@@ -196,15 +224,50 @@ export default function ComponentToolbar({
       }
     }
     
-    // Fourth pass: create a combined "thumb" prop from all thumb-related props
+    // Fourth pass: create a combined "border" prop from all border-related props
+    if (borderPropsMap.size > 0) {
+      // Use border-size as the base prop, or border-radius, or border-color
+      const baseBorderProp = 
+        borderPropsMap.get('border-size') || 
+        borderPropsMap.get('border-radius') || 
+        borderPropsMap.get('border-color') ||
+        Array.from(borderPropsMap.values())[0]
+      
+      if (baseBorderProp) {
+        // Create a new prop that represents "border" with all border-related properties
+        const combinedBorderProp: ComponentProp = {
+          ...baseBorderProp,
+          name: 'border',
+          isVariantSpecific: false, // Combined props are not variant-specific
+          variantProp: undefined, // Combined props are not variant-specific
+          borderProps: borderPropsMap,
+        }
+        
+        // Use "border" as the key - only one border icon
+        if (!seenProps.has('border')) {
+          propsMap.set('border', combinedBorderProp)
+          seenProps.add('border')
+        }
+      }
+    }
+    
+    // Fifth pass: create a combined "thumb" prop from all thumb-related props
     if (thumbPropsMap.size > 0) {
-      // Use thumb-selected as the base prop, or first thumb prop if thumb-selected doesn't exist
-      const baseThumbProp = thumbPropsMap.get('thumb-selected') || thumbPropsMap.get('thumb') || Array.from(thumbPropsMap.values())[0]
+      // Use thumb-selected as the base prop, or thumb-unselected, or first thumb prop if thumb-selected doesn't exist
+      // Prefer non-variant-specific props as base, but fall back to variant-specific if needed
+      const nonVariantThumbProps = Array.from(thumbPropsMap.values()).filter(p => !p.isVariantSpecific)
+      const baseThumbProp = 
+        thumbPropsMap.get('thumb-selected') || 
+        thumbPropsMap.get('thumb-unselected') ||
+        thumbPropsMap.get('thumb') || 
+        (nonVariantThumbProps.length > 0 ? nonVariantThumbProps[0] : Array.from(thumbPropsMap.values())[0])
       
       // Create a new prop that represents "thumb" with all thumb-related properties
       const combinedThumbProp: ComponentProp = {
         ...baseThumbProp,
         name: 'thumb',
+        isVariantSpecific: false, // Combined props are not variant-specific
+        variantProp: undefined, // Combined props are not variant-specific
         thumbProps: thumbPropsMap,
       }
       
@@ -215,11 +278,101 @@ export default function ComponentToolbar({
       }
     }
 
-    // Filter out font-size for Button component (it's controlled by theme typography)
+    // Filter props based on selected variants and layer
     const filteredProps = Array.from(propsMap.values()).filter(prop => {
+      // Filter out font-size for Button component (it's controlled by theme typography)
       if (componentName.toLowerCase() === 'button' && prop.name.toLowerCase() === 'font-size') {
         return false
       }
+      
+      // Combined props (thumb, track, border) should never be filtered out - they handle their own variant logic internally
+      if (prop.name.toLowerCase() === 'thumb' || prop.name.toLowerCase() === 'track' || prop.name.toLowerCase() === 'border') {
+        return true
+      }
+      
+      // Filter variant-specific props that don't match selected variants
+      if (prop.isVariantSpecific && prop.variantProp) {
+        const selectedVariant = selectedVariants[prop.variantProp]
+        if (!selectedVariant) {
+          // If no variant is selected for this prop type, exclude variant-specific props
+          return false
+        }
+        
+        // Check if this prop belongs to the selected variant
+        // For nested variants (like Avatar's style and style-secondary), we need to check all variant levels
+        const variantInPath = prop.path.find(pathPart => pathPart === selectedVariant)
+        
+        if (!variantInPath) {
+          // The primary variant is not in the path, check if any selected variant matches
+          // This handles cases where we might have multiple variant levels
+          const allSelectedVariants = Object.values(selectedVariants)
+          const hasAnySelectedVariant = allSelectedVariants.some(v => prop.path.includes(v))
+          
+          if (!hasAnySelectedVariant) {
+            return false
+          }
+          
+          // For nested variants, if we have multiple selected variants, check if they're all in the path
+          // This ensures props only show when all relevant variants are selected
+          // Example: text-size should only show when size variant is selected (not color variants)
+          if (allSelectedVariants.length > 1) {
+            // Check if the prop's category matches the variant prop
+            // Size props should match size variants, color props should match color/style variants
+            if (prop.category === 'size' && prop.variantProp !== 'size') {
+              // Size props should only match size variants
+              const sizeVariant = selectedVariants['size']
+              if (sizeVariant && !prop.path.includes(sizeVariant)) {
+                return false
+              }
+            } else if (prop.category === 'color' && (prop.variantProp === 'style' || prop.variantProp === 'style-secondary')) {
+              // Color props with style variant should match both style and style-secondary if selected
+              const styleVariant = selectedVariants['style']
+              const styleSecondary = selectedVariants['style-secondary']
+              
+              // Always check that the first-level variant (style) is in the path
+              if (styleVariant && !prop.path.includes(styleVariant)) {
+                return false
+              }
+              
+              // If style-secondary is selected and the style is text or icon, check for secondary variant
+              // This applies to both style and style-secondary props (nested props need both levels)
+              if (styleSecondary && (styleVariant === 'text' || styleVariant === 'icon')) {
+                if (!prop.path.includes(styleSecondary)) {
+                  return false
+                }
+              }
+            }
+          }
+        } else {
+          // Primary variant is in path, but for nested variants we may need to check secondary
+          // For Avatar: if style="text" and style-secondary="solid", ensure both are in path
+          if ((prop.variantProp === 'style' || prop.variantProp === 'style-secondary') && prop.category === 'color') {
+            const styleSecondary = selectedVariants['style-secondary']
+            const styleVariant = selectedVariants['style']
+            
+            // For nested props (style-secondary), also check that the first-level variant is in path
+            if (prop.variantProp === 'style-secondary' && styleVariant && !prop.path.includes(styleVariant)) {
+              return false
+            }
+            
+            // If style-secondary is selected and style is text or icon, both must be in path
+            if (styleSecondary && (styleVariant === 'text' || styleVariant === 'icon')) {
+              if (!prop.path.includes(styleSecondary)) {
+                return false
+              }
+            }
+          }
+        }
+      }
+      
+      // For color props, check if layer matches (if prop has a layer in path)
+      if (prop.category === 'color' && prop.path.some(p => p.startsWith('layer-'))) {
+        const layerInPath = prop.path.find(p => p.startsWith('layer-'))
+        if (layerInPath && layerInPath !== selectedLayer) {
+          return false
+        }
+      }
+      
       return true
     })
 
@@ -304,7 +457,10 @@ export default function ComponentToolbar({
         return { category: 7, order: 1 }
       }
       
-      // Category 8: Borders
+      // Category 8: Borders (border prop is combined, so it should appear here)
+      if (name === 'border') {
+        return { category: 8, order: 1 }
+      }
       if (name.includes('border')) {
         const borderOrder: Record<string, number> = {
           'border-width': 1,
@@ -506,6 +662,13 @@ export default function ComponentToolbar({
           return propNameLower !== 'elevation' && propNameLower !== 'alternative-layer' && propNameLower !== 'alt-layer' && propNameLower !== 'track-elevation' && propNameLower !== 'thumb-elevation'
         }).map(prop => {
           const Icon = getPropIcon(prop)
+          
+          // Ensure all props have an icon - if not, log a warning and skip rendering
+          if (!Icon) {
+            console.warn(`ComponentToolbar: Prop "${prop.name}" does not have an icon and will not be rendered. Add it to propIconMapping.json or ensure it's handled in a floating panel.`)
+            return null
+          }
+          
           // Use prop name as key instead of cssVar since we have unique prop names now
           const propKey = prop.name
           return (
@@ -542,7 +705,7 @@ export default function ComponentToolbar({
               )}
             </div>
           )
-        })}
+        }).filter(Boolean)}
         
         {/* Elevation Control - Special Prop */}
         <div className="toolbar-icon-wrapper">
