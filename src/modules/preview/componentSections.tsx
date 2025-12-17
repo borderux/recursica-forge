@@ -1,6 +1,7 @@
 import React from 'react'
 import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
+import { Avatar } from '../../components/adapters/Avatar'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3' | 'layer-alternative-high-contrast' | 'layer-alternative-primary-color' | 'layer-alternative-alert' | 'layer-alternative-warning' | 'layer-alternative-success'
@@ -115,12 +116,24 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Avatar',
       url: `${base}/avatar`,
-      render: (_selectedLayers) => (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--palette-neutral-300-tone)' }} />
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--palette-neutral-300-tone)' }} />
-        </div>
-      ),
+      render: (selectedLayers) => {
+        const layer = selectedLayers.has('layer-alternative-primary-color') 
+          ? 'layer-alternative-primary-color' 
+          : selectedLayers.has('layer-alternative-high-contrast')
+          ? 'layer-alternative-high-contrast'
+          : Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <Avatar
+              colorVariant="ghost-text"
+              sizeVariant="default"
+              layer={layer as any}
+              shape="circle"
+              fallback="AB"
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Badge',
@@ -491,7 +504,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <ol style={{ display: 'flex', gap: 12, listStyle: 'none', padding: 0 }}>
           {['One', 'Two', 'Three'].map((s, i) => (
             <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'var(--palette-neutral-300-tone)', color: `var(--recursica-brand-${mode}-palettes-core-white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)` : `var(--recursica-brand-${mode}-palettes-neutral-300-tone)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
               <span>{s}</span>
             </li>
           ))}

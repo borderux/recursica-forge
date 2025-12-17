@@ -64,6 +64,7 @@ import {
   TextAa,
   Trash,
   Upload,
+  User,
   X,
 } from '@phosphor-icons/react'
 
@@ -154,6 +155,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'check': Check,
   'sliders-horizontal': SlidersHorizontal,
   'faders-horizontal': FadersHorizontal,
+  'user': User,
 }
 
 /**

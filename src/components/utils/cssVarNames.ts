@@ -68,14 +68,19 @@ export function getComponentCssVar(
   }
   
   // For size category, check if property contains variant name (e.g., "default-height", "small-height")
+  // Or if property is just a variant name (e.g., "default", "small", "large") - used by Avatar
   // If it does, we need to insert "variant" into the path
   if (category === 'size') {
-    const variantMatch = property.match(/^(default|small)-(.+)$/)
+    const variantMatch = property.match(/^(default|small|large)-(.+)$/)
     if (variantMatch) {
       const [, variantName, propName] = variantMatch
       parts.push('variant', variantName, propName)
+    } else if (/^(default|small|large)$/.test(property)) {
+      // Property is just a variant name (e.g., "default", "small", "large")
+      // UIKit.json structure: size.variant.default (direct dimension value)
+      parts.push('variant', property)
     } else {
-      // Non-variant size property (shouldn't happen for size category, but handle gracefully)
+      // Non-variant size property (e.g., "icon", "border-radius", "font-size")
       const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
       parts.push(normalizedProperty)
     }
@@ -87,9 +92,9 @@ export function getComponentCssVar(
     const colorVariantMatch = property.match(/^([a-z]+)-(.+)$/)
     if (colorVariantMatch) {
       const [, variantName, propName] = colorVariantMatch
-      // Known color variants: solid, text, outline, default
+      // Known color variants: solid, text, outline, default, primary, ghost
       // If it matches a known variant pattern, insert "variant" segment
-      const knownVariants = ['solid', 'text', 'outline', 'default']
+      const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost']
       if (knownVariants.includes(variantName)) {
         parts.push('variant', variantName, propName)
       } else {

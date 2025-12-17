@@ -1,0 +1,24 @@
+/**
+ * Material UI Avatar CSS Overrides
+ * 
+ * Overrides Material UI Avatar styles using Recursica CSS variables.
+ */
+
+/* Override avatar styles */
+.MuiAvatar-root {
+  background-color: var(--avatar-bg, var(--recursica-ui-kit-components-avatar-color-layer-0-variant-ghost-background)) !important;
+  border: 1px solid var(--avatar-border, var(--recursica-ui-kit-components-avatar-color-layer-0-variant-ghost-border)) !important;
+  color: var(--avatar-label, var(--recursica-ui-kit-components-avatar-color-layer-0-variant-ghost-label)) !important;
+  width: var(--avatar-size, var(--recursica-ui-kit-components-avatar-size-variant-default)) !important;
+  height: var(--avatar-size, var(--recursica-ui-kit-components-avatar-size-variant-default)) !important;
+  border-radius: var(--avatar-border-radius) !important;
+  font-size: var(--avatar-icon-size, var(--recursica-ui-kit-components-avatar-icon-size)) !important;
+}
+
+/* Override avatar image */
+.MuiAvatar-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+

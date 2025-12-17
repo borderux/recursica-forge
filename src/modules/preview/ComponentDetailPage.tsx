@@ -5,6 +5,7 @@ import { useVars } from '../vars/VarsContext'
 import { getComponentSections } from './componentSections'
 import { ComponentToolbar } from '../toolbar'
 import ButtonPreview from '../components/ButtonPreview'
+import AvatarPreview from '../components/AvatarPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -303,6 +304,13 @@ export default function ComponentDetailPage() {
           {/* Component Preview */}
           {component.name === 'Button' ? (
             <ButtonPreview
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+              selectedAltLayer={selectedAltLayer}
+              componentElevation={componentElevation}
+            />
+          ) : component.name === 'Avatar' ? (
+            <AvatarPreview
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
               selectedAltLayer={selectedAltLayer}
