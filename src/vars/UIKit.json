@@ -451,11 +451,11 @@
               "layer-0": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-0.property.surface}"
+                  "$value": null
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-0.property.surface}"
+                  "$value": null
                 },
                 "text": {
                   "$type": "color",
@@ -469,11 +469,11 @@
               "layer-1": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                  "$value": null
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                  "$value": null
                 },
                 "text": {
                   "$type": "color",
@@ -487,11 +487,11 @@
               "layer-2": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-2.property.surface}"
+                  "$value": null
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-2.property.surface}"
+                  "$value": null
                 },
                 "text": {
                   "$type": "color",
@@ -505,11 +505,11 @@
               "layer-3": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-3.property.surface}"
+                  "$value": null
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-3.property.surface}"
+                  "$value": null
                 },
                 "text": {
                   "$type": "color",
@@ -848,7 +848,7 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                      "$value": null
                     },
                     "border": {
                       "$type": "color",
@@ -862,7 +862,7 @@
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                      "$value": null
                     },
                     "border": {
                       "$type": "color",
@@ -876,7 +876,7 @@
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-2.property.surface}"
+                      "$value": null
                     },
                     "border": {
                       "$type": "color",
@@ -890,7 +890,7 @@
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-3.property.surface}"
+                      "$value": null
                     },
                     "border": {
                       "$type": "color",
@@ -972,7 +972,7 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                      "$value": null
                     },
                     "border": {
                       "$type": "color",
@@ -986,7 +986,7 @@
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-1.property.surface}"
+                      "$value": null
                     },
                     "border": {
                       "$type": "color",
@@ -1000,7 +1000,7 @@
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-2.property.surface}"
+                      "$value": null
                     },
                     "border": {
                       "$type": "color",
@@ -1014,7 +1014,7 @@
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-3.property.surface}"
+                      "$value": null
                     },
                     "border": {
                       "$type": "color",

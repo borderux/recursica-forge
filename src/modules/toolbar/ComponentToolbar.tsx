@@ -170,7 +170,10 @@ export default function ComponentToolbar({
       // Skip if we've already seen this prop name
       if (seenProps.has(key)) {
         // If we already have this prop, prefer non-variant over variant-specific
+        // OR prefer the one that matches the selected variant
         const existing = propsMap.get(key)!
+        
+        // If new prop is non-variant and existing is variant-specific, use new one
         if (!prop.isVariantSpecific && existing.isVariantSpecific) {
           // Check if there's a hover prop for this base prop
           const hoverProp = hoverPropsMap.get(key)
@@ -178,6 +181,27 @@ export default function ComponentToolbar({
             prop.hoverProp = hoverProp
           }
           propsMap.set(key, prop)
+        } else if (prop.isVariantSpecific && existing.isVariantSpecific) {
+          // Both are variant-specific - prefer the one that matches selected variant
+          const existingMatches = existing.variantProp && selectedVariants[existing.variantProp] && 
+                                  existing.path.includes(selectedVariants[existing.variantProp])
+          const newMatches = prop.variantProp && selectedVariants[prop.variantProp] && 
+                            prop.path.includes(selectedVariants[prop.variantProp])
+          
+          if (newMatches && !existingMatches) {
+            // New prop matches selected variant, existing doesn't - use new one
+            const hoverProp = hoverPropsMap.get(key)
+            if (hoverProp) {
+              prop.hoverProp = hoverProp
+            }
+            propsMap.set(key, prop)
+          } else {
+            // Keep existing, but attach hover prop if it exists
+            const hoverProp = hoverPropsMap.get(key)
+            if (hoverProp && !existing.hoverProp) {
+              existing.hoverProp = hoverProp
+            }
+          }
         } else {
           // Attach hover prop to existing prop if it exists
           const hoverProp = hoverPropsMap.get(key)
@@ -504,7 +528,7 @@ export default function ComponentToolbar({
       // Fallback to alphabetical
       return a.name.localeCompare(b.name)
     })
-  }, [structure.props, componentName])
+  }, [structure.props, componentName, selectedVariants])
 
   // Get elevation options from brand theme
   const elevationOptions = useMemo(() => {

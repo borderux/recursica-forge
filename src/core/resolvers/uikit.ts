@@ -418,6 +418,7 @@ function traverseUIKit(
         // Handle other types (number, string, color, etc.)
         
         // For color type, null values should be interpreted as transparent
+        // This explicitly sets the color to transparent to override any default library component colors
         if (type === 'color' && (val === null || val === undefined)) {
           vars[cssVarName] = 'transparent'
           return
