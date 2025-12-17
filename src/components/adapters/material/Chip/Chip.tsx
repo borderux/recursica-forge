@@ -33,9 +33,6 @@ export default function Chip({
   // Map unified size to Material size
   const materialSize = size === 'small' ? 'small' : 'medium'
   
-  // Determine size prefix for CSS variables
-  const sizePrefix = size === 'small' ? 'small' : 'default'
-  
   // Check if component has alternative-layer prop set
   const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
   const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
@@ -62,13 +59,14 @@ export default function Chip({
     chipBorderVar = getComponentCssVar('Chip', 'color', `${variant}-border`, layer)
   }
   
-  // Get size CSS variables
-  const iconSizeVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-icon`, undefined)
-  const iconGapVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-icon-text-gap`, undefined)
-  const heightVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-height`, undefined)
-  const minWidthVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-min-width`, undefined)
-  const paddingVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-horizontal-padding`, undefined)
-  const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', undefined)
+  // Get size CSS variables - Chip size properties are nested by layer, not by size variant
+  // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
+  // Properties that exist: border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon, max-width
+  // Properties that don't exist: height, min-width (use fallbacks)
+  const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
+  const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
+  const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
+  const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
   // Merge library-specific props
   const materialProps = {
@@ -83,11 +81,9 @@ export default function Chip({
       backgroundColor: isAlternativeLayer ? chipBgVar : `var(${chipBgVar})`,
       color: isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
       borderColor: isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
-      height: `var(${heightVar})`,
-      minWidth: `var(${minWidthVar})`,
-      paddingLeft: `var(${paddingVar})`,
-      paddingRight: `var(${paddingVar})`,
-      borderRadius: `var(${borderRadiusVar})`,
+      paddingLeft: `var(${paddingVar}, 12px)`,
+      paddingRight: `var(${paddingVar}, 12px)`,
+      borderRadius: `var(${borderRadiusVar}, 16px)`,
       ...(elevation && elevation !== 'elevation-0' ? (() => {
         const elevationMatch = elevation.match(/elevation-(\d+)/)
         if (elevationMatch) {
@@ -106,6 +102,8 @@ export default function Chip({
     style: {
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      '--chip-height': size === 'small' ? '24px' : '32px',
+      '--chip-min-width': size === 'small' ? '24px' : '32px',
       ...style,
     },
     ...material,

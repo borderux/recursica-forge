@@ -15,10 +15,10 @@
 }
 
 /* Disabled state */
+/* Note: Opacity is now set dynamically in the component's style prop based on theme mode */
 .recursica-chip-root[data-disabled],
 .mantine-Badge-root[data-disabled] {
   cursor: not-allowed !important;
-  opacity: var(--recursica-brand-light-state-disabled, 0.5) !important;
 }
 
 /* Icon styling - use native leftSection */

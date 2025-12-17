@@ -46,6 +46,8 @@ This document audits the Chip component implementation for Material UI, identify
 ```css
 .MuiChip-root {
   border: 1px solid var(--chip-border, var(--mui-palette-divider)) !important;
+  height: var(--chip-height, 32px) !important;
+  min-width: var(--chip-min-width, 32px) !important;
 }
 ```
 
@@ -65,6 +67,8 @@ sx: {
 style: {
   '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
   '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+  '--chip-height': size === 'small' ? '24px' : '32px',
+  '--chip-min-width': size === 'small' ? '24px' : '32px',
 }
 ```
 
@@ -76,8 +80,10 @@ style: {
 |---------|---------|---------|---------|
 | `--chip-icon-size` | Icon width/height | `0px` (when no icon) | CSS |
 | `--chip-icon-text-gap` | Gap between icon and text | `0px` (when no icon) | CSS |
+| `--chip-height` | Chip height | `32px` (default) or `24px` (small) | CSS |
+| `--chip-min-width` | Chip minimum width | `32px` (default) or `24px` (small) | CSS |
 
-**Note**: Material UI uses the `sx` prop for most styling, which directly references Recursica CSS variables. Component-level CSS variables are only used for icon sizing and spacing, which are handled via CSS overrides.
+**Note**: Material UI uses the `sx` prop for most styling, which directly references Recursica CSS variables. Component-level CSS variables are used for icon sizing, spacing, height, and min-width, which are handled via CSS overrides.
 
 ### Variables Used in CSS
 
@@ -158,24 +164,25 @@ Browser default
 
 1. **Icon Styling** - Moved to CSS using native `.MuiChip-icon` class
 2. **Cursor Styles** - Moved to CSS with `.Mui-disabled` selector
+3. **Height and Min-Width** - Moved to CSS using component-level CSS variables (`--chip-height`, `--chip-min-width`)
 
 ### Remaining TSX Styles (Acceptable)
 
-1. **SX Prop Styles** (Lines 82-104 in Chip.tsx)
+1. **SX Prop Styles** (Lines 80-100 in Chip.tsx)
    - **Current**: Styles applied via Material UI's `sx` prop
    - **Reason**: Material UI's primary styling mechanism, supports CSS variables natively
    - **Impact**: None - this is the correct pattern for Material UI
    - **Recommendation**: Keep as is (correct implementation per Material UI patterns and guide)
 
-2. **Elevation Box Shadow** (Lines 91-100 in Chip.tsx)
+2. **Elevation Box Shadow** (Lines 87-96 in Chip.tsx)
    - **Current**: Dynamic box-shadow calculated and applied in `sx` prop
    - **Reason**: Complex dynamic calculation based on elevation level (5 separate CSS variables)
    - **Impact**: Minimal - logic is complex and dynamic
    - **Recommendation**: Keep in TSX (acceptable for dynamic calculations per guide)
 
-3. **Component-Level CSS Variables** (Lines 106-109 in Chip.tsx)
-   - **Current**: CSS custom properties set in TSX style prop for icon sizing
-   - **Reason**: These are dynamic values that need to be set per component instance
+3. **Component-Level CSS Variables** (Lines 102-107 in Chip.tsx)
+   - **Current**: CSS custom properties set in TSX style prop for icon sizing, height, and min-width
+   - **Reason**: These are dynamic values that need to be set per component instance based on props
    - **Impact**: None - this is the correct pattern per guide
    - **Recommendation**: Keep as is (correct implementation)
 
@@ -261,6 +268,22 @@ Screenshots should be captured for each test case to ensure visual consistency w
 6. ✅ Material UI `sx` prop used appropriately
 7. ✅ All styling follows guide requirements
 
-## Issues Found
+## Issues Found and Fixed
 
-None. The implementation follows all guide requirements.
+### Fixed: Hardcoded Height and Min-Width Values
+
+**Issue**: Material UI Chip was using hardcoded `height` and `minWidth` values in the `sx` prop instead of CSS variables.
+
+**Location**: `src/components/adapters/material/Chip/Chip.tsx` (lines 84-85)
+
+**Fix Applied**:
+- Moved height and min-width to component-level CSS variables (`--chip-height`, `--chip-min-width`)
+- Set these variables in the `style` prop based on size prop
+- Added CSS rules in `Chip.css` to use these variables
+- This matches the pattern used in Mantine and Carbon implementations
+
+**Status**: ✅ Fixed
+
+## Current Status
+
+The implementation now follows all guide requirements. All styling uses CSS variables with proper fallbacks, and component-level custom properties are properly scoped.

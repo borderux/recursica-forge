@@ -34,9 +34,6 @@ export default function Chip({
   // Map unified size to Mantine size
   const mantineSize = size === 'small' ? 'xs' : 'md'
   
-  // Determine size prefix for CSS variables
-  const sizePrefix = size === 'small' ? 'small' : 'default'
-  
   // Check if component has alternative-layer prop set
   const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
   const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
@@ -63,13 +60,14 @@ export default function Chip({
     chipBorderVar = getComponentCssVar('Chip', 'color', `${variant}-border`, layer)
   }
   
-  // Get size CSS variables
-  const iconSizeVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-icon`, undefined)
-  const iconGapVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-icon-text-gap`, undefined)
-  const heightVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-height`, undefined)
-  const minWidthVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-min-width`, undefined)
-  const paddingVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-horizontal-padding`, undefined)
-  const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', undefined)
+  // Get size CSS variables - Chip size properties are nested by layer, not by size variant
+  // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
+  // Properties that exist: border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon, max-width
+  // Properties that don't exist: height, min-width (use fallbacks)
+  const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
+  const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
+  const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
+  const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
   // Handle delete functionality - use ActionIcon in rightSection
   const deleteIcon = deletable && onDelete ? (
@@ -121,10 +119,14 @@ export default function Chip({
       '--chip-border': isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
-      '--chip-height': `var(${heightVar})`,
-      '--chip-min-width': `var(${minWidthVar})`,
-      '--chip-padding-x': `var(${paddingVar})`,
-      '--chip-border-radius': `var(${borderRadiusVar})`,
+      '--chip-height': size === 'small' ? '24px' : '32px',
+      '--chip-min-width': size === 'small' ? '24px' : '32px',
+      '--chip-padding-x': `var(${paddingVar}, 12px)`,
+      '--chip-border-radius': `var(${borderRadiusVar}, 16px)`,
+      // Set disabled opacity dynamically based on mode (Bug 2 fix)
+      ...(disabled && {
+        opacity: `var(--recursica-brand-${mode}-state-disabled, 0.5)`,
+      }),
       ...(elevation && elevation !== 'elevation-0' ? (() => {
         const elevationMatch = elevation.match(/elevation-(\d+)/)
         if (elevationMatch) {

@@ -60,9 +60,9 @@ export function Chip({
   
   if (!Component) {
     // Fallback to native element if component not available
-    const sizePrefix = size === 'small' ? 'small' : 'default'
-    const iconSizeVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-icon`, undefined)
-    const iconGapVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+    // Chip size properties are nested by layer, not by size variant
+    const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
+    const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
     
     return (
       <div
@@ -175,12 +175,13 @@ function getChipStyles(
     borderVar = getComponentCssVar('Chip', 'color', `${variant}-border`, layer)
   }
   
-  // Get size CSS variables
-  const sizePrefix = size === 'small' ? 'small' : 'default'
-  const heightVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-height`, undefined)
-  const minWidthVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-min-width`, undefined)
-  const paddingVar = getComponentCssVar('Chip', 'size', `${sizePrefix}-horizontal-padding`, undefined)
-  const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', undefined)
+  // Get size CSS variables - Chip size properties are nested by layer, not by size variant
+  // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
+  // Properties that exist: border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon, max-width
+  // Properties that don't exist: height, min-width (use fallbacks)
+  const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
+  const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
+  const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   
   // Apply color styles
   styles.backgroundColor = `var(${bgVar})`
@@ -188,11 +189,13 @@ function getChipStyles(
   styles.border = `1px solid var(${borderVar})`
   
   // Apply size styles
-  styles.height = heightVar ? `var(${heightVar})` : (size === 'small' ? '24px' : '32px')
-  styles.minWidth = minWidthVar ? `var(${minWidthVar})` : (size === 'small' ? '24px' : '32px')
-  styles.paddingLeft = paddingVar ? `var(${paddingVar})` : '12px'
-  styles.paddingRight = paddingVar ? `var(${paddingVar})` : '12px'
-  styles.borderRadius = borderRadiusVar ? `var(${borderRadiusVar})` : '16px'
+  // Height and min-width don't exist in UIKit.json, so use fallbacks
+  // Height can be calculated from vertical-padding if available, otherwise use fallback
+  styles.height = size === 'small' ? '24px' : '32px'
+  styles.minWidth = size === 'small' ? '24px' : '32px'
+  styles.paddingLeft = `var(${paddingVar}, 12px)`
+  styles.paddingRight = `var(${paddingVar}, 12px)`
+  styles.borderRadius = `var(${borderRadiusVar}, 16px)`
   
   // Apply disabled styles
   if (disabled) {
