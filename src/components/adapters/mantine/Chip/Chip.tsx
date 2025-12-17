@@ -68,6 +68,9 @@ export default function Chip({
   const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
+  // Destructure adapter-specific props to avoid passing them to the component
+  const { material, carbon, ...restProps } = props
+  
   // Handle delete functionality - use ActionIcon in rightSection
   const deleteIcon = deletable && onDelete ? (
     <ActionIcon
@@ -139,7 +142,7 @@ export default function Chip({
       ...style,
     },
     ...mantine,
-    ...props,
+    ...restProps,
   }
   
   // Use native children prop - CSS will handle icon and delete button styling

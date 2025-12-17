@@ -1,0 +1,13 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "greensheen"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "dist",
+    "build",
+    "*.tsbuildinfo"
+  ]
+}
