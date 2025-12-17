@@ -8,7 +8,6 @@ import { Chip as MaterialChip } from '@mui/material'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
 import './Chip.css'
 
 export default function Chip({
@@ -68,6 +67,9 @@ export default function Chip({
   const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
+  // Destructure adapter-specific props to avoid passing them to the component
+  const { mantine, carbon, ...restProps } = props
+  
   // Merge library-specific props
   const materialProps = {
     size: materialSize,
@@ -107,9 +109,9 @@ export default function Chip({
       ...style,
     },
     ...material,
-    ...props,
+    ...restProps,
   }
   
-  return <MaterialChip {...materialProps} label={children} />
+  return <MaterialChip {...(materialProps as any)} label={children} />
 }
 

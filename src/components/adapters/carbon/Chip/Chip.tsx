@@ -9,7 +9,6 @@ import { Tag } from '@carbon/react'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
 import './Chip.css'
 
 export default function Chip({
@@ -69,6 +68,9 @@ export default function Chip({
   const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
+  // Destructure adapter-specific props to avoid passing them to the component
+  const { mantine, material, ...restProps } = props
+  
   // Merge library-specific props
   const carbonProps = {
     size: carbonSize,
@@ -102,10 +104,10 @@ export default function Chip({
       ...style,
     },
     ...carbon,
-    ...props,
+    ...restProps,
   }
   
   // Use native children prop - CSS will handle icon styling
-  return <Tag {...carbonProps}>{children}</Tag>
+  return <Tag {...(carbonProps as any)}>{children}</Tag>
 }
 

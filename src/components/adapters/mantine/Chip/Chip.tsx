@@ -9,7 +9,6 @@ import { Badge, ActionIcon } from '@mantine/core'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
 import './Chip.css'
 
 export default function Chip({

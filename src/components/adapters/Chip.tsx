@@ -181,7 +181,6 @@ function getChipStyles(
   // Properties that don't exist: height, min-width (use fallbacks)
   const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
-  const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   
   // Apply color styles
   styles.backgroundColor = `var(${bgVar})`
