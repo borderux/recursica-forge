@@ -1,9 +1,9 @@
 /* Material UI Toast CSS Overrides */
 
 .recursica-toast {
-  padding: var(--toast-vertical-padding, var(--recursica-ui-kit-components-toast-size-variant-default-vertical-padding)) var(--toast-horizontal-padding, var(--recursica-ui-kit-components-toast-size-variant-default-horizontal-padding)) !important;
-  min-width: var(--toast-min-width, var(--recursica-ui-kit-components-toast-size-variant-default-min-width)) !important;
-  max-width: var(--toast-max-width, var(--recursica-ui-kit-components-toast-size-variant-default-max-width)) !important;
+  padding: var(--toast-vertical-padding, var(--recursica-ui-kit-components-toast-size-vertical-padding)) var(--toast-horizontal-padding, var(--recursica-ui-kit-components-toast-size-horizontal-padding)) !important;
+  min-width: var(--toast-min-width, var(--recursica-ui-kit-components-toast-size-min-width)) !important;
+  max-width: var(--toast-max-width, var(--recursica-ui-kit-components-toast-size-max-width)) !important;
   background-color: var(--toast-bg, var(--recursica-ui-kit-components-toast-color-layer-0-variant-default-background)) !important;
   color: var(--toast-text, var(--recursica-ui-kit-components-toast-color-layer-0-variant-default-text)) !important;
   border-radius: 8px !important;
@@ -12,14 +12,14 @@
 .recursica-toast-content {
   display: flex !important;
   align-items: center !important;
-  gap: var(--toast-spacing, var(--recursica-ui-kit-components-toast-size-variant-default-spacing)) !important;
+  gap: var(--toast-spacing, var(--recursica-ui-kit-components-toast-size-spacing)) !important;
   width: 100% !important;
 }
 
 .recursica-toast-icon {
   display: inline-flex !important;
-  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-variant-default-icon)) !important;
-  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-variant-default-icon)) !important;
+  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-icon)) !important;
+  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-icon)) !important;
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;

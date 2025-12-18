@@ -1,0 +1,70 @@
+{
+  "variants": {
+    "color": {
+      "icon": "diamonds-four",
+      "label": "Style"
+    }
+  },
+  "props": {
+    "background": {
+      "icon": "paint-bucket",
+      "label": "Background",
+      "visible": true
+    },
+    "text": {
+      "icon": "text-aa",
+      "label": "Text",
+      "visible": true
+    },
+    "button": {
+      "icon": "cursor-click",
+      "label": "Button",
+      "visible": true
+    },
+    "padding": {
+      "icon": "arrows-pointing-out",
+      "label": "Padding",
+      "visible": true,
+      "group": {
+        "vertical-padding": {
+          "label": "Vertical",
+          "visible": true
+        },
+        "horizontal-padding": {
+          "label": "Horizontal",
+          "visible": true
+        }
+      }
+    },
+    "width": {
+      "icon": "arrows-left-right",
+      "label": "Width",
+      "visible": true,
+      "group": {
+        "min-width": {
+          "label": "Minimum",
+          "visible": true
+        },
+        "max-width": {
+          "label": "Maximum",
+          "visible": true
+        }
+      }
+    },
+    "spacing": {
+      "icon": "split-horizontal",
+      "label": "Spacing",
+      "visible": true
+    },
+    "icon": {
+      "icon": "diamond",
+      "label": "Icon Size",
+      "visible": true
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "visible": true
+    }
+  }
+}

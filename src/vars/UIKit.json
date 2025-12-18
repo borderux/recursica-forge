@@ -794,54 +794,53 @@
             }
           }
         },
-
-        "vertical-padding": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.general.default}",
-            "unit": "px"
-          }
-        },
-        "horizontal-padding": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.general.lg}",
-            "unit": "px"
-          }
-        },
-        "spacing": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.general.md}",
-            "unit": "px"
-          }
-        },
-        "min-width": {
-          "$type": "dimension",
-          "$value": {
-            "value": 384,
-            "unit": "px"
-          }
-        },
-        "max-width": {
-          "$type": "dimension",
-          "$value": {
-            "value": 624,
-            "unit": "px"
-          }
-        },
-        "icon": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.icon.default}",
-            "unit": "px"
+        "size": {
+          "vertical-padding": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.default}",
+              "unit": "px"
+            }
+          },
+          "horizontal-padding": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.lg}",
+              "unit": "px"
+            }
+          },
+          "spacing": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.md}",
+              "unit": "px"
+            }
+          },
+          "min-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 384,
+              "unit": "px"
+            }
+          },
+          "max-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 624,
+              "unit": "px"
+            }
+          },
+          "icon": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.icon.default}",
+              "unit": "px"
+            }
           }
         },
         "elevation": {
           "$type": "elevation",
-          "$value": {
-            "value": "{brand.dimensions.elevation.elevation-3}"
-          }
+          "$value": "{brand.themes.light.elevations.elevation-3}"
         }
       },
       "switch": {
