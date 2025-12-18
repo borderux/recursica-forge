@@ -328,14 +328,10 @@ export default function ComponentDetailPage() {
               componentName={component.name}
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
-              selectedAltLayer={selectedAltLayer}
-              componentElevation={componentElevation}
               onVariantChange={(prop, variant) => {
                 setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
               }}
               onLayerChange={setSelectedLayer}
-              onAltLayerChange={setSelectedAltLayer}
-              onElevationChange={setComponentElevation}
               onPropControlChange={setOpenPropControl}
             />
           </div>

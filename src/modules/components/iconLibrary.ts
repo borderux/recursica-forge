@@ -60,6 +60,7 @@ import {
   SignOut,
   SlidersHorizontal,
   SplitHorizontal,
+  Square,
   Stack,
   Sun,
   Swap,
@@ -161,6 +162,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'circle-half': CircleHalf,
   'circle-half-tilt': CircleHalfTilt,
   'border': FrameCorners,
+  'square': Square,
 }
 
 /**

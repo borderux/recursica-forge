@@ -11,7 +11,8 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
-    "watch:icons": "node scripts/watch-icon-mapping.mjs"
+    "watch:icons": "node scripts/watch-icon-mapping.mjs",
+    "watch:toolbar-icons": "node scripts/watch-toolbar-icons.mjs"
   },
   "dependencies": {
     "@carbon/react": "^1.93.0",

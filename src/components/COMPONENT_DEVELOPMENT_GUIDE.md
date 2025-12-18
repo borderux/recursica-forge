@@ -379,7 +379,237 @@ registerComponent('carbon', '{ComponentName}', () => import('../adapters/carbon/
 
 See [Testing Requirements](#testing-requirements) section below.
 
-### Step 6: Create Audit Documentation
+### Step 6: Create Toolbar Configuration
+
+**File**: `src/modules/toolbar/configs/{ComponentName}.toolbar.json`
+
+Each component needs a toolbar configuration file that defines:
+- **Icons**: Which icon to display for each prop in the toolbar
+- **Labels**: Display labels for props in the toolbar
+- **Floating Palette Labels**: Titles for the floating palette when editing a prop
+- **Grouped Props**: Props that should be grouped together under a single icon (e.g., border-size, border-radius, border-color → "border")
+
+#### Config File Structure
+
+```json
+{
+  "props": {
+    "prop-name": {
+      "icon": "icon-name",
+      "label": "Display Label",
+      "floatingPaletteLabel": "Floating Palette Title",
+      "groupedProps": ["prop1", "prop2"]
+    }
+  }
+}
+```
+
+#### Key Fields
+
+1. **`icon`** (required): The Phosphor icon name to display in the toolbar
+   - Use kebab-case icon names (e.g., `"paint-bucket"`, `"text-aa"`, `"frame-corners"`)
+   - See available icons in `src/modules/components/iconLibrary.ts`
+
+2. **`label`** (required): The display label shown in the toolbar tooltip
+   - Should be user-friendly (e.g., `"Background"`, `"Horizontal Padding"`)
+
+3. **`floatingPaletteLabel`** (required): The title shown in the floating palette when editing
+   - Should be descriptive (e.g., `"Background Color"`, `"Border Settings"`)
+
+4. **`groupedProps`** (optional): Array of prop names that are grouped under this icon
+   - Used for props like "border" that combine multiple properties
+   - Example: `"border"` prop with `groupedProps: ["border-size", "border-radius", "border-color"]`
+
+#### Mapping UIKit.json Keys to Props
+
+The prop names in the config file should match the keys in `UIKit.json`:
+
+**UIKit.json Structure:**
+```json
+{
+  "ui-kit": {
+    "components": {
+      "button": {
+        "variant": { ... },
+        "size": {
+          "variant": {
+            "default": {
+              "horizontal-padding": { "$type": "dimension", ... }
+            }
+          }
+        },
+        "border-radius": { "$type": "dimension", ... }
+      }
+    }
+  }
+}
+```
+
+**Toolbar Config:**
+```json
+{
+  "props": {
+    "horizontal-padding": {
+      "icon": "arrows-left-right",
+      "label": "Horizontal Padding",
+      "floatingPaletteLabel": "Horizontal Padding"
+    },
+    "border-radius": {
+      "icon": "corners-out",
+      "label": "Border Radius",
+      "floatingPaletteLabel": "Border Radius"
+    }
+  }
+}
+```
+
+#### Example: Button Toolbar Config
+
+```json
+{
+  "props": {
+    "background": {
+      "icon": "paint-bucket",
+      "label": "Background",
+      "floatingPaletteLabel": "Background Color"
+    },
+    "text": {
+      "icon": "text-aa",
+      "label": "Text",
+      "floatingPaletteLabel": "Text Color"
+    },
+    "border": {
+      "icon": "frame-corners",
+      "label": "Border",
+      "floatingPaletteLabel": "Border Settings",
+      "groupedProps": ["border-size", "border-radius", "border-color"]
+    },
+    "horizontal-padding": {
+      "icon": "arrows-left-right",
+      "label": "Horizontal Padding",
+      "floatingPaletteLabel": "Horizontal Padding"
+    }
+  }
+}
+```
+
+#### Registering the Config File
+
+After creating the config file, register it in `src/modules/toolbar/utils/loadToolbarConfig.ts`:
+
+```typescript
+import {ComponentName}Config from '../configs/{ComponentName}.toolbar.json'
+
+export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
+  const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+  
+  switch (componentKey) {
+    case 'button':
+      return ButtonConfig as ToolbarConfig
+    case '{componentname}':  // Add your component here
+      return {ComponentName}Config as ToolbarConfig
+    default:
+      return null
+  }
+}
+```
+
+#### Common Icon Mappings
+
+| Prop Type | Suggested Icon | Example Props |
+|-----------|---------------|---------------|
+| Colors | `paint-bucket` | `background`, `text`, `border-color` |
+| Text | `text-aa` | `text`, `text-color`, `text-hover` |
+| Dimensions | `arrows-up-down`, `arrows-left-right`, `arrows-pointing-out` | `height`, `width`, `padding` |
+| Borders | `frame-corners`, `corners-out` | `border`, `border-radius` |
+| Icons | `frame-corners` | `icon`, `icon-size` |
+| Gaps/Spacing | `split-horizontal` | `icon-text-gap`, `label-switch-gap` |
+| Typography | `bars-arrow-up`, `scale` | `font-size`, `font-weight` |
+
+#### Grouped Props Example
+
+For props that combine multiple properties (like "border"), define the parent prop with `groupedProps`:
+
+```json
+{
+  "props": {
+    "border": {
+      "icon": "frame-corners",
+      "label": "Border",
+      "floatingPaletteLabel": "Border Settings",
+      "groupedProps": ["border-size", "border-radius", "border-color"]
+    },
+    "border-size": {
+      "icon": "frame-corners",
+      "label": "Border Size",
+      "floatingPaletteLabel": "Border Size"
+    },
+    "border-radius": {
+      "icon": "corners-out",
+      "label": "Border Radius",
+      "floatingPaletteLabel": "Border Radius"
+    },
+    "border-color": {
+      "icon": "square-2-stack",
+      "label": "Border Color",
+      "floatingPaletteLabel": "Border Color"
+    }
+  }
+}
+```
+
+**Note**: The grouped props (`border-size`, `border-radius`, `border-color`) still need their own entries in the config, but they won't appear as separate icons in the toolbar - they'll be accessible through the parent "border" icon's floating palette.
+
+#### Variant-Specific Props
+
+Props that are variant-specific (e.g., `size.variant.default.height`) should use the base prop name without the variant prefix:
+
+```json
+{
+  "props": {
+    "height": {
+      "icon": "arrows-up-down",
+      "label": "Height",
+      "floatingPaletteLabel": "Height"
+    },
+    "horizontal-padding": {
+      "icon": "arrows-left-right",
+      "label": "Horizontal Padding",
+      "floatingPaletteLabel": "Horizontal Padding"
+    }
+  }
+}
+```
+
+The toolbar automatically handles variant-specific props based on the selected variant.
+
+#### Testing Your Config
+
+After creating the config file:
+
+1. **Check that props appear in toolbar**: All props defined in your config should appear as icons in the toolbar
+2. **Verify icons display correctly**: Icons should render properly (check browser console for warnings)
+3. **Test labels**: Hover over icons to verify tooltips show correct labels
+4. **Test floating palettes**: Click icons to verify floating palette titles are correct
+5. **Test grouped props**: If using grouped props, verify they appear in the parent prop's floating palette
+
+#### Troubleshooting
+
+- **Prop not appearing in toolbar**: 
+  - Check that the prop name in config matches the UIKit.json key exactly (case-sensitive)
+  - Verify the prop is registered in `loadToolbarConfig.ts`
+  - Check browser console for warnings about missing icons
+
+- **Icon not displaying**:
+  - Verify the icon name exists in Phosphor Icons
+  - Check `src/modules/components/iconLibrary.ts` to see available icons
+  - Use kebab-case for icon names
+
+- **Wrong label displayed**:
+  - Verify the `label` field in config matches what you expect
+  - Check that the prop name in config matches the UIKit.json key
+
+### Step 7: Create Audit Documentation
 
 **IMPORTANT**: Audits are **library-specific** and must be created for **each library separately**.
 
@@ -392,7 +622,7 @@ Create an audit document for each library implementation:
 
 See [Component Audit](#component-audit) section below for details.
 
-### Step 7: Replace Existing Uses
+### Step 8: Replace Existing Uses
 
 **IMPORTANT**: After creating a component, replace all existing uses throughout the application.
 
@@ -1339,6 +1569,9 @@ After creating a new component, complete this checklist:
 - [ ] CSS override files created for all libraries
 - [ ] Components registered in registry files
 - [ ] Component name added to `ComponentName` type union
+- [ ] Toolbar config file created at `src/modules/toolbar/configs/{ComponentName}.toolbar.json`
+- [ ] Toolbar config registered in `loadToolbarConfig.ts`
+- [ ] All UIKit.json props have icons, labels, and floating palette labels defined
 
 ### CSS Variables
 

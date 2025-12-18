@@ -1,0 +1,112 @@
+{
+  "variants": {
+    "color": {
+      "icon": "diamonds-four",
+      "label": "Style"
+    },
+    "size": {
+      "icon": "resize",
+      "label": "Size"
+    }
+  },
+  "props": {
+    "background": {
+      "icon": "paint-bucket",
+      "label": "Background",
+      "visible": true,
+      "group": {
+        "background": {
+          "icon": "paint-bucket",
+          "label": "Background",
+          "visible": true
+        },
+        "background-hover": {
+          "icon": "paint-bucket",
+          "label": "Background Hover",
+          "visible": true
+        }
+      }
+    },
+    "text": {
+      "icon": "text-aa",
+      "label": "Text",
+      "visible": true,
+      "group": {
+        "text": {
+          "icon": "text-aa",
+          "label": "Text",
+          "visible": true
+        },
+        "text-hover": {
+          "icon": "text-aa",
+          "label": "Text Hover",
+          "visible": true
+        }
+      }
+    },
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "visible": true,
+      "group": {
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Corner Radius",
+          "visible": true
+        },
+        "border-color": {
+          "label": "Color",
+          "visible": true
+        }
+      }
+    },
+    "font-size": {
+      "icon": "text-aa",
+      "label": "Font Size",
+      "visible": true
+    },
+    "height": {
+      "icon": "arrows-up-down",
+      "label": "Height",
+      "visible": true
+    },
+    "width": {
+      "icon": "arrows-left-right",
+      "label": "Width",
+      "visible": true,
+      "group": {
+        "min-width": {
+          "label": "Minimum",
+          "visible": true
+        },
+        "max-width": {
+          "label": "Maximum",
+          "visible": true
+        }
+      }
+    },
+    "icon": {
+      "icon": "diamond",
+      "label": "Icon Size",
+      "visible": true
+    },
+    "spacing": {
+      "icon": "split-horizontal",
+      "label": "Spacing",
+      "visible": true,
+      "group": {
+        "icon-text-gap": {
+          "label": "Gap between Icon and Text",
+          "visible": true
+        },
+        "horizontal-padding": {
+          "label": "Horizontal Padding",
+          "visible": true
+        }
+      }
+    }
+  }
+}

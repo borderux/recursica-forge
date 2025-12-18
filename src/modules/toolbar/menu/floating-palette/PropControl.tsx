@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
+import { getPropLabel, getPropVisible, getGroupedProps, getGroupedPropConfig } from '../../utils/loadToolbarConfig'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
@@ -91,10 +92,6 @@ export default function PropControl({
   // Get CSS vars for base prop
   const baseCssVars = getCssVarsForProp(prop)
   const primaryCssVar = baseCssVars[0] || prop.cssVar
-  
-  // Get CSS vars for hover prop if it exists
-  const hoverCssVars = prop.hoverProp ? getCssVarsForProp(prop.hoverProp) : []
-  const hoverPrimaryCssVar = hoverCssVars[0] || prop.hoverProp?.cssVar
 
   // Helper to determine contrast color CSS var based on prop name
   const getContrastColorVar = (propToRender: ComponentProp): string | undefined => {
@@ -210,6 +207,41 @@ export default function PropControl({
           targetCssVars={[...cssVars, ...additionalCssVars]}
           label={label}
           propName={propToRender.name}
+        />
+      )
+    }
+
+    if (propToRender.type === 'elevation') {
+      // For elevation props, use TokenSlider with elevation options
+      const currentElevation = (() => {
+        const value = readCssVar(primaryVar)
+        if (value) {
+          // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-1}"
+          const match = value.match(/elevations\.(elevation-\d+)/)
+          if (match) return match[1]
+          // Or could be direct value like "elevation-1"
+          if (/^elevation-\d+$/.test(value)) return value
+        }
+        return 'elevation-0' // Default
+      })()
+
+      const handleElevationChange = (elevationName: string) => {
+        updateCssVar(primaryVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [primaryVar] }
+        }))
+      }
+
+      return (
+        <TokenSlider
+          label={label}
+          tokens={elevationOptions.map(opt => ({ name: opt.name, label: opt.label }))}
+          currentToken={currentElevation}
+          onChange={handleElevationChange}
+          getTokenLabel={(token) => {
+            const opt = elevationOptions.find((o) => o.name === token.name)
+            return opt?.label || token.label || token.name
+          }}
         />
       )
     }
@@ -379,67 +411,48 @@ export default function PropControl({
       )
     }
     
-    // If this is a combined "border" prop, render border-size, border-radius, and border-color
-    if (prop.name.toLowerCase() === 'border' && prop.borderProps && prop.borderProps.size > 0) {
-      const borderSizeProp = prop.borderProps.get('border-size')
-      const borderRadiusProp = prop.borderProps.get('border-radius')
-      const borderColorProp = prop.borderProps.get('border-color')
+    // Check if this prop has a group in the toolbar config
+    const groupedPropsConfig = getGroupedProps(componentName, prop.name)
+    
+    // If this is a grouped prop (border, width, etc.), render all grouped properties
+    if (groupedPropsConfig && prop.borderProps && prop.borderProps.size > 0) {
+      const groupedPropEntries = Object.entries(groupedPropsConfig)
       
       return (
         <>
-          {/* Border Size */}
-          {borderSizeProp && (
-            <>
-              {(() => {
-                const cssVars = getCssVarsForProp(borderSizeProp)
-                const primaryVar = cssVars[0] || borderSizeProp.cssVar
-                return (
-                  <DimensionTokenSelector
-                    targetCssVar={primaryVar}
-                    targetCssVars={cssVars.length > 1 ? cssVars : undefined}
-                    label="Border Size"
-                    propName={borderSizeProp.name}
-                  />
-                )
-              })()}
-            </>
-          )}
-          
-          {/* Border Radius */}
-          {borderRadiusProp && (
-            <div style={{ marginTop: borderSizeProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
-              {(() => {
-                const cssVars = getCssVarsForProp(borderRadiusProp)
-                const primaryVar = cssVars[0] || borderRadiusProp.cssVar
-                return (
-                  <DimensionTokenSelector
-                    targetCssVar={primaryVar}
-                    targetCssVars={cssVars.length > 1 ? cssVars : undefined}
-                    label="Border Radius"
-                    propName={borderRadiusProp.name}
-                  />
-                )
-              })()}
-            </div>
-          )}
-          
-          {/* Border Color */}
-          {borderColorProp && (
-            <div style={{ marginTop: borderRadiusProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
-              {(() => {
-                const cssVars = getCssVarsForProp(borderColorProp)
-                const primaryVar = cssVars[0] || borderColorProp.cssVar
-                return (
-                  <PaletteColorControl
-                    targetCssVar={primaryVar}
-                    targetCssVars={cssVars.length > 1 ? cssVars : undefined}
-                    currentValueCssVar={primaryVar}
-                    label="Border Color"
-                  />
-                )
-              })()}
-            </div>
-          )}
+          {groupedPropEntries.map(([groupedPropName, groupedPropConfig], index) => {
+            // Check if this grouped prop is visible (defaults to true if not specified)
+            if (groupedPropConfig.visible === false) {
+              return null
+            }
+            
+            // Try to find the grouped prop in the borderProps map (keys are lowercase)
+            const groupedPropKey = groupedPropName.toLowerCase()
+            let groupedProp = prop.borderProps!.get(groupedPropKey)
+            
+            // Special case: border-color is stored as "border" in the color category
+            if (!groupedProp && groupedPropKey === 'border-color') {
+              groupedProp = prop.borderProps!.get('border')
+            }
+            
+            if (!groupedProp) {
+              console.warn(`PropControl: Grouped prop "${groupedPropName}" not found in borderProps map. Available keys:`, Array.from(prop.borderProps!.keys()))
+              return null
+            }
+            
+            const cssVars = getCssVarsForProp(groupedProp)
+            const primaryVar = cssVars[0] || groupedProp.cssVar
+            const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
+            
+            return (
+              <div 
+                key={groupedPropName}
+                style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-md)' : 0 }}
+              >
+                {renderControl(groupedProp, cssVars, primaryVar, label)}
+              </div>
+            )
+          })}
         </>
       )
     }
@@ -541,20 +554,7 @@ export default function PropControl({
       )
     }
     
-    // If there's a hover prop, render both controls with spacing
-    if (prop.hoverProp) {
-      const hoverLabel = `${baseLabel} (Hover)`
-      return (
-        <>
-          {renderControl(prop, baseCssVars, primaryCssVar, baseLabel)}
-          <div style={{ marginTop: 'var(--recursica-brand-dimensions-md)' }}>
-            {renderControl(prop.hoverProp, hoverCssVars, hoverPrimaryCssVar || prop.hoverProp.cssVar, hoverLabel)}
-          </div>
-        </>
-      )
-    }
-    
-    // Otherwise, just render the base control
+    // Render the base control (hover props are now handled via config grouping)
     return renderControl(prop, baseCssVars, primaryCssVar, baseLabel)
   }
 
@@ -565,7 +565,7 @@ export default function PropControl({
   return (
     <FloatingPalette
       anchorElement={anchorElement}
-      title={toSentenceCase(prop.name)}
+      title={getPropLabel(componentName, prop.name) || toSentenceCase(prop.name)}
       onClose={onClose}
     >
       {renderControls()}

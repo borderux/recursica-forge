@@ -244,8 +244,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
 export function getComponentCssVarsForVariants(
   componentName: string,
   selectedVariants: Record<string, string>, // e.g., { color: "solid", size: "default" }
-  layer: string, // e.g., "layer-0"
-  altLayer: string | null // e.g., "high-contrast" or null
+  layer: string // e.g., "layer-0"
 ): Array<{ cssVar: string; value: string; type: string; prop: ComponentProp }> {
   const structure = parseComponentStructure(componentName)
   const vars: Array<{ cssVar: string; value: string; type: string; prop: ComponentProp }> = []
