@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { toSentenceCase } from '../../utils/componentToolbarUtils'
-import propIconMapping from '../../utils/propIconMapping.json'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
+import { getVariantIcon, getVariantLabel } from '../../utils/loadToolbarConfig'
 import './Dropdown.css'
 
 interface VariantDropdownProps {
+  componentName: string
   propName: string
   variants: string[]
   selected: string
@@ -13,7 +14,7 @@ interface VariantDropdownProps {
   onOpenChange?: (isOpen: boolean) => void
 }
 
-export default function VariantDropdown({ propName, variants, selected, onSelect, open: controlledOpen, onOpenChange }: VariantDropdownProps) {
+export default function VariantDropdown({ componentName, propName, variants, selected, onSelect, open: controlledOpen, onOpenChange }: VariantDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const ref = useRef<HTMLDivElement>(null)
@@ -46,10 +47,9 @@ export default function VariantDropdown({ propName, variants, selected, onSelect
     }
   }, [controlledOpen])
 
-  // Get icon for variant prop type from mapping
+  // Get icon for variant prop type from toolbar config
   const getIcon = () => {
-    const mappingKey = `variant-${propName}`
-    const iconName = (propIconMapping as Record<string, string>)[mappingKey]
+    const iconName = getVariantIcon(componentName, propName)
     if (iconName) {
       const IconComponent = iconNameToReactComponent(iconName)
       if (IconComponent) {
@@ -61,14 +61,15 @@ export default function VariantDropdown({ propName, variants, selected, onSelect
 
   const icon = getIcon()
   const CaretDownIcon = iconNameToReactComponent('chevron-down')
+  const variantLabel = getVariantLabel(componentName, propName) || `${toSentenceCase(propName)} variant`
 
   return (
     <div className="dropdown-container" ref={ref}>
       <button
         className={`toolbar-icon-button ${open ? 'active' : ''}`}
         onClick={() => setOpen(!open)}
-        title={`${toSentenceCase(propName)} variant`}
-        aria-label={`${toSentenceCase(propName)} variant`}
+        title={variantLabel}
+        aria-label={variantLabel}
       >
         {icon}
         {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />}

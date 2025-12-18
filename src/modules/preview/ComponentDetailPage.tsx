@@ -5,6 +5,7 @@ import { useVars } from '../vars/VarsContext'
 import { getComponentSections } from './componentSections'
 import { ComponentToolbar } from '../toolbar'
 import ButtonPreview from '../components/ButtonPreview'
+import AvatarPreview from '../components/AvatarPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -243,30 +244,17 @@ export default function ComponentDetailPage() {
         alignItems: 'center',
         gap: 'var(--recursica-brand-dimensions-spacer-lg)',
       }}>
-        {/* Toolbar - Always at top, max-width hugs content */}
+        {/* Caption - Above preview showing variant and layer info */}
         <div style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'center',
+          textAlign: 'center',
+          fontFamily: 'var(--recursica-brand-typography-caption-font-family)',
+          fontSize: 'var(--recursica-brand-typography-caption-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-caption-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
+          color: `var(${layer0Base}-element-text-low-emphasis)`,
         }}>
-          <div style={{
-            maxWidth: 'fit-content',
-          }}>
-            <ComponentToolbar
-              componentName={component.name}
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              selectedAltLayer={selectedAltLayer}
-              componentElevation={componentElevation}
-              onVariantChange={(prop, variant) => {
-                setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
-              }}
-              onLayerChange={setSelectedLayer}
-              onAltLayerChange={setSelectedAltLayer}
-              onElevationChange={setComponentElevation}
-              onPropControlChange={setOpenPropControl}
-            />
-          </div>
+          {captionText}
         </div>
 
         {/* Preview Section - Centered both vertically and horizontally */}
@@ -308,6 +296,13 @@ export default function ComponentDetailPage() {
               selectedAltLayer={selectedAltLayer}
               componentElevation={componentElevation}
             />
+          ) : component.name === 'Avatar' ? (
+            <AvatarPreview
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+              selectedAltLayer={selectedAltLayer}
+              componentElevation={componentElevation}
+            />
           ) : (
             <div style={{
               minHeight: 200,
@@ -320,17 +315,26 @@ export default function ComponentDetailPage() {
           )}
         </div>
 
-        {/* Caption - Bottom center showing variant and layer info */}
+        {/* Toolbar - Below preview, max-width hugs content */}
         <div style={{
-          textAlign: 'center',
-          fontFamily: 'var(--recursica-brand-typography-caption-font-family)',
-          fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-caption-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
-          color: `var(${layer0Base}-element-text-low-emphasis)`,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
         }}>
-          {captionText}
+          <div style={{
+            maxWidth: 'fit-content',
+          }}>
+            <ComponentToolbar
+              componentName={component.name}
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+              onVariantChange={(prop, variant) => {
+                setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
+              }}
+              onLayerChange={setSelectedLayer}
+              onPropControlChange={setOpenPropControl}
+            />
+          </div>
         </div>
       </div>
 

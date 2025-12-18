@@ -16,5 +16,8 @@ registerComponent('carbon', 'Tabs', () => import('../adapters/carbon/Tabs/Tabs')
 // Switch
 registerComponent('carbon', 'Switch', () => import('../adapters/carbon/Switch/Switch'))
 
+// Avatar
+registerComponent('carbon', 'Avatar', () => import('../adapters/carbon/Avatar/Avatar'))
+
 // Add more components as they're implemented
 

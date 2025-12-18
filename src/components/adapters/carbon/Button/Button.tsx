@@ -84,6 +84,13 @@ export default function Button({
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
   
+  // Read the actual background color value to check if it's transparent
+  // If it's transparent, set it directly to override library defaults
+  const bgColorValue = readCssVar(buttonBgVar)
+  const backgroundColorValue = bgColorValue === 'transparent' 
+    ? 'transparent' 
+    : (isAlternativeLayer ? `var(${buttonBgVar})` : `var(${buttonBgVar})`)
+  
   // Merge library-specific props
   const carbonProps = {
     kind: carbonKind as 'primary' | 'secondary' | 'danger' | 'ghost' | 'danger--primary' | 'danger--ghost' | 'danger--tertiary' | 'tertiary',
@@ -94,8 +101,8 @@ export default function Button({
     className,
     style: {
       // Use CSS variables for theming - supports both standard and alternative layers
-      // Use Recursica CSS vars directly - CSS file will handle Carbon fallbacks
-      backgroundColor: isAlternativeLayer ? `var(${buttonBgVar})` : `var(${buttonBgVar})`,
+      // If the value is transparent, set it directly to override library defaults
+      backgroundColor: backgroundColorValue,
       color: isAlternativeLayer ? `var(${buttonColorVar})` : `var(${buttonColorVar})`,
       fontSize: `var(${fontSizeVar})`,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',

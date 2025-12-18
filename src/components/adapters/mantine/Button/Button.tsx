@@ -151,7 +151,17 @@ export default function Button({
     style: {
       // Use CSS variables for theming - supports both standard and alternative layers
       // getComponentCssVar returns CSS variable names, so wrap in var() for standard layers
-      '--button-bg': isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar})`,
+      // Read the actual background color value - if it's transparent, set it directly to override library defaults
+      ...(() => {
+        const bgColorValue = readCssVar(buttonBgVar)
+        if (bgColorValue === 'transparent') {
+          return { 
+            backgroundColor: 'transparent',
+            '--button-bg': 'transparent'
+          }
+        }
+        return { '--button-bg': isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar})` }
+      })(),
       '--button-hover': isAlternativeLayer ? buttonHoverVar : `var(${buttonHoverVar})`,
       // Set button color without fallback to Mantine colors
       '--button-color': buttonColorRef,

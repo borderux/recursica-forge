@@ -145,6 +145,30 @@ function resolveTokenRef(
       return `var(--recursica-brand-${mode}-layer-layer-${layerNum}-property-element-${elementPath})`
     }
     
+    // Layer-alternative property references: layers.layer-alternative.primary-color.property.surface
+    // Pattern: --recursica-brand-light-layer-layer-alternative-primary-color-property-surface
+    const layerAltPropertyMatch = /^layers?\.layer-alternative\.([a-z0-9-]+)\.property\.(.+)$/i.exec(path)
+    if (layerAltPropertyMatch) {
+      const altKey = layerAltPropertyMatch[1]
+      const prop = layerAltPropertyMatch[2].replace(/\./g, '-')
+      return `var(--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-${prop})`
+    }
+    
+    // Layer-alternative element references: layers.layer-alternative.primary-color.element.text.color
+    // Pattern: --recursica-brand-light-layer-layer-alternative-primary-color-property-element-text-color
+    const layerAltElementMatch = /^layers?\.layer-alternative\.([a-z0-9-]+)\.element\.(.+)$/i.exec(path)
+    if (layerAltElementMatch) {
+      const altKey = layerAltElementMatch[1]
+      let elementPath = layerAltElementMatch[2].replace(/\./g, '-')
+      
+      // Special handling: element.interactive should map to element.interactive-color
+      if (elementPath === 'interactive') {
+        elementPath = 'interactive-color'
+      }
+      
+      return `var(--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-element-${elementPath})`
+    }
+    
     // Palette core-colors references with state: palettes.core-colors.interactive.default.tone
     // Handle: palettes.core-colors.{color}.{state}.{tone|on-tone}
     // Note: For core-colors, "default" stays as "default" (not mapped to "primary" like regular palettes)
@@ -209,6 +233,14 @@ function resolveTokenRef(
     if (dimensionMatch) {
       const dimPath = dimensionMatch[1].replace(/\./g, '-')
       return `var(--recursica-brand-dimensions-${dimPath})`
+    }
+    
+    // Elevations references: elevations.elevation-0 or elevations.elevation-1
+    // Pattern: --recursica-brand-light-elevations-elevation-0
+    const elevationMatch = /^elevations?\.(elevation-\d+)$/i.exec(path)
+    if (elevationMatch) {
+      const elevationKey = elevationMatch[1]
+      return `var(--recursica-brand-${mode}-elevations-${elevationKey})`
     }
     
     // State references: state.disabled
@@ -352,8 +384,46 @@ function traverseUIKit(
             }
           }
         }
+      } else if (type === 'elevation' && typeof val === 'string') {
+        // Handle elevation type: extract elevation name from reference
+        // e.g., {brand.themes.light.elevations.elevation-0} -> elevation-0
+        const trimmed = val.trim()
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+          const inner = trimmed.slice(1, -1).trim()
+          // Normalize spaces to dots
+          const normalized = inner
+            .replace(/\s*\.\s*/g, '.')
+            .replace(/\s+/g, '.')
+            .replace(/\.+/g, '.')
+            .replace(/^\.|\.$/g, '')
+          
+          // Extract elevation name from pattern: brand.themes.light.elevations.elevation-0
+          const elevationMatch = /elevations?\.(elevation-\d+)$/i.exec(normalized)
+          if (elevationMatch) {
+            vars[cssVarName] = elevationMatch[1] // Just the elevation name like "elevation-0"
+          } else {
+            // Try to resolve as a regular token reference
+            const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars)
+            if (resolved) {
+              vars[cssVarName] = resolved
+            } else {
+              vars[cssVarName] = val.trim()
+            }
+          }
+        } else {
+          // Not a brace reference, use as-is
+          vars[cssVarName] = trimmed
+        }
       } else {
         // Handle other types (number, string, color, etc.)
+        
+        // For color type, null values should be interpreted as transparent
+        // This explicitly sets the color to transparent to override any default library component colors
+        if (type === 'color' && (val === null || val === undefined)) {
+          vars[cssVarName] = 'transparent'
+          return
+        }
+        
         // Try to resolve token references
         // Pass vars map so UIKit self-references can check if the referenced var exists
         const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars)
