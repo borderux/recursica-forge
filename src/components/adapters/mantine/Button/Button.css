@@ -139,9 +139,9 @@
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   display: block !important;
-  /* maxWidth is calculated: content-max-width minus icon size and gap */
-  /* When icon size is 0px (text-only), this simplifies to just content-max-width */
-  max-width: calc(var(--button-content-max-width, var(--recursica-ui-kit-components-button-content-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  /* maxWidth is calculated: max-width minus icon size and gap */
+  /* When icon size is 0px (text-only), this simplifies to just max-width */
+  max-width: calc(var(--button-max-width, var(--recursica-ui-kit-components-button-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
 }
 
 /* When icon exists, we need to center the icon+text group, not expand the label */

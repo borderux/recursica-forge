@@ -1,7 +1,8 @@
 import React from 'react'
 import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
-import { toCssVarName } from '../../components/utils/cssVarNames'
+import { Avatar } from '../../components/adapters/Avatar'
+import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3' | 'layer-alternative-high-contrast' | 'layer-alternative-primary-color' | 'layer-alternative-alert' | 'layer-alternative-warning' | 'layer-alternative-success'
 
@@ -48,25 +49,48 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     const [checked2, setChecked2] = React.useState(false)
     const [checked3, setChecked3] = React.useState(false)
     
-    // Get the label-switch-gap CSS var
+    // Get the label-switch-gap CSS var - it's at the component level, not under size/variant
+    // Use getComponentCssVar with any category since it will detect component-level properties
     const labelSwitchGapVar = React.useMemo(() => {
-      const path = ['components', 'switch', 'size', 'variant', sizeVariant, 'label-switch-gap']
-      return toCssVarName(path.join('.'))
-    }, [sizeVariant])
+      return getComponentCssVar('Switch', 'size', 'label-switch-gap', undefined)
+    }, [])
+    
+    // Build layer text color CSS variables
+    const layerTextColorVars = React.useMemo(() => {
+      const isAlternativeLayer = layer.startsWith('layer-alternative-')
+      const layerBase = isAlternativeLayer
+        ? `--recursica-brand-${mode}-layer-layer-alternative-${layer.replace('layer-alternative-', '')}-property`
+        : `--recursica-brand-${mode}-layer-${layer}-property`
+      
+      return {
+        textColor: `${layerBase}-element-text-color`,
+        highEmphasis: `${layerBase}-element-text-high-emphasis`,
+        lowEmphasis: `${layerBase}-element-text-low-emphasis`,
+      }
+    }, [layer, mode])
     
     return (
       <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
           <Switch checked={checked1} onChange={setChecked1} layer={layer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
-          <span>On</span>
+          <span style={{
+            color: `var(${layerTextColorVars.textColor})`,
+            opacity: `var(${layerTextColorVars.highEmphasis})`,
+          }}>On</span>
         </label>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
           <Switch checked={checked2} onChange={setChecked2} layer={layer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
-          <span>Off</span>
+          <span style={{
+            color: `var(${layerTextColorVars.textColor})`,
+            opacity: `var(${layerTextColorVars.highEmphasis})`,
+          }}>Off</span>
         </label>
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)`, opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
           <Switch checked={checked3} onChange={setChecked3} disabled layer={layer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
-          <span>Disabled</span>
+          <span style={{
+            color: `var(${layerTextColorVars.textColor})`,
+            opacity: `var(${layerTextColorVars.lowEmphasis})`,
+          }}>Disabled</span>
         </label>
       </div>
     )
@@ -92,12 +116,24 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Avatar',
       url: `${base}/avatar`,
-      render: (_selectedLayers) => (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--palette-neutral-300-tone)' }} />
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--palette-neutral-300-tone)' }} />
-        </div>
-      ),
+      render: (selectedLayers) => {
+        const layer = selectedLayers.has('layer-alternative-primary-color') 
+          ? 'layer-alternative-primary-color' 
+          : selectedLayers.has('layer-alternative-high-contrast')
+          ? 'layer-alternative-high-contrast'
+          : Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <Avatar
+              colorVariant="text-ghost"
+              sizeVariant="default"
+              layer={layer as any}
+              shape="circle"
+              fallback="AB"
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Badge',
@@ -468,7 +504,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <ol style={{ display: 'flex', gap: 12, listStyle: 'none', padding: 0 }}>
           {['One', 'Two', 'Three'].map((s, i) => (
             <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : 'var(--palette-neutral-300-tone)', color: `var(--recursica-brand-${mode}-palettes-core-white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)` : `var(--recursica-brand-${mode}-palettes-neutral-300-tone)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
               <span>{s}</span>
             </li>
           ))}

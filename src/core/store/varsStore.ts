@@ -4,7 +4,7 @@ import { buildLayerVars } from '../resolvers/layers'
 import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
 import { buildUIKitVars } from '../resolvers/uikit'
 import { buildDimensionVars } from '../resolvers/dimensions'
-import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
+import { applyCssVars, type CssVarMap } from '../css/apply'
 import { findTokenByHex } from '../css/tokenRefs'
 import { computeBundleVersion } from './versioning'
 import { readCssVar } from '../css/readCssVar'
@@ -303,14 +303,8 @@ class VarsStore {
       // Watch core colors (alert, warning, success, interactive) to update alternative layers
       this.aaWatcher?.watchCoreColors()
       
-      // Run startup validation after CSS vars are applied
-      // The watcher will run its own validation, but we also ensure it runs after a delay
-      setTimeout(() => {
-        if (this.aaWatcher) {
-          // Force a full compliance check
-          this.aaWatcher.updateAllLayers()
-        }
-      }, 200)
+      // Don't run startup validation - let JSON values be set first
+      // AA compliance checks will only run when user makes explicit changes
     })
   }
 
@@ -529,63 +523,8 @@ class VarsStore {
   }
 
   resetAll() {
-    // Clear all CSS variables from DOM first
-    clearAllCssVars()
-    
-    const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
-    // Sort font token objects when resetting to maintain consistent order
-    const sortedTokens = sortFontTokenObjects(tokensImport as any)
-    if (this.lsAvailable) {
-      writeLSJson(STORAGE_KEYS.tokens, sortedTokens)
-      writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
-      writeLSJson(STORAGE_KEYS.uikit, uikitImport)
-      writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
-      // Ensure elevation storage is cleared so stale values aren't reapplied by the UI
-      try { localStorage.removeItem(STORAGE_KEYS.elevation) } catch {}
-      try {
-        const colors: any = (tokensImport as any)?.tokens?.color || {}
-        const names: Record<string, string> = {}
-        Object.keys(colors).forEach((fam) => { if (fam !== 'translucent') names[fam] = toTitleCase(fam) })
-        writeLSJson('family-friendly-names', names)
-      } catch {}
-      localStorage.setItem(STORAGE_KEYS.version, computeBundleVersion(tokensImport, themeImport, uikitImport))
-    }
-    // Remove legacy palette primary level keys
-    try {
-      const toRemove: string[] = []
-      for (let i = 0; i < localStorage.length; i += 1) {
-        const k = localStorage.key(i) || ''
-        if (k.startsWith('palette-primary-level:')) toRemove.push(k)
-      }
-      toRemove.forEach((k) => { try { localStorage.removeItem(k) } catch {} })
-    } catch {}
-    // Clear elevation-related keys so pages reseed from JSON
-    try {
-      ['elevation-controls','shadow-color-control','elevation-color-tokens','elevation-alpha-tokens','elevation-palette-selections','elevation-directions','offset-x-direction','offset-y-direction']
-        .forEach((k) => { try { localStorage.removeItem(k) } catch {} })
-    } catch {}
-    // Clear custom fonts and their @font-face rules
-    try {
-      // Use dynamic import to avoid circular dependencies
-      import('../../modules/type/fontUtils').then(({ clearCustomFonts }) => {
-        clearCustomFonts()
-      }).catch(() => {})
-    } catch {}
-    this.state = { tokens: sortedTokens, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any), version: (this.state.version || 0) + 1 }
-    // Persist freshly initialized elevation defaults so future reads are consistent
-    if (this.lsAvailable) {
-      try { writeLSJson(STORAGE_KEYS.elevation, this.state.elevation) } catch {}
-    }
-    this.emit()
-    this.recomputeAndApplyAll()
-    // Update AA watcher with new tokens/theme and check alternative layers
-    if (this.aaWatcher) {
-      this.aaWatcher.updateTokensAndTheme(sortedTokens, normalizedTheme as any)
-      // Force check all alternative layers after reset
-      this.aaWatcher.checkAllAlternativeLayers()
-    }
-    // Notify legacy listeners so UI components can force refresh where needed
-    try { window.dispatchEvent(new CustomEvent('paletteReset')) } catch {}
+    // Simply reload the page to reset everything
+    window.location.reload()
   }
 
   private initElevationState(theme: any): ElevationState {
@@ -1034,10 +973,28 @@ class VarsStore {
     // Palettes - generate for both modes
     const paletteVarsLight = buildPaletteVars(this.state.tokens, this.state.theme, 'Light')
     const paletteVarsDark = buildPaletteVars(this.state.tokens, this.state.theme, 'Dark')
-    Object.assign(allVars, paletteVarsLight)
-    Object.assign(allVars, paletteVarsDark)
-    // Combine palette vars for passing to buildLayerVars (so it can look up on-tone values during initialization)
+    
+    // Preserve palette on-tone CSS variables that were set directly by the user
+    // This prevents recomputes from overwriting user changes
     const allPaletteVars = { ...paletteVarsLight, ...paletteVarsDark }
+    Object.keys(allPaletteVars).forEach((cssVar) => {
+      // Only check on-tone vars (not tone vars, as those can change)
+      if (cssVar.includes('-on-tone')) {
+        // Check inline style directly (user overrides are always inline)
+        const inlineValue = typeof document !== 'undefined' 
+          ? document.documentElement.style.getPropertyValue(cssVar).trim()
+          : ''
+        const generatedValue = allPaletteVars[cssVar]
+        
+        // Preserve if there's an inline override and it differs from generated (user customization)
+        if (inlineValue !== '' && inlineValue !== generatedValue) {
+          allPaletteVars[cssVar] = inlineValue
+        }
+      }
+    })
+    
+    Object.assign(allVars, allPaletteVars)
+    // allPaletteVars already defined above with preserved values
     // Layers (from Brand) - generate for both modes
     const layerVarsLight = buildLayerVars(this.state.tokens, this.state.theme, 'light', undefined, allPaletteVars)
     const layerVarsDark = buildLayerVars(this.state.tokens, this.state.theme, 'dark', undefined, allPaletteVars)
@@ -1229,15 +1186,17 @@ class VarsStore {
       
       // Preserve UIKit CSS variables that were set directly by the user (e.g., via ComponentToolbar)
       // This prevents recomputes from overwriting user changes
-      // Check all UIKit CSS variables in the DOM and preserve any that differ from generated
       Object.keys(uikitVars).forEach((cssVar) => {
-        const existingValue = readCssVar(cssVar)
+        // Check inline style directly (user overrides are always inline)
+        const inlineValue = typeof document !== 'undefined' 
+          ? document.documentElement.style.getPropertyValue(cssVar).trim()
+          : ''
         const generatedValue = uikitVars[cssVar]
         
-        // Preserve if it exists in DOM and is different from generated (user customization)
+        // Preserve if there's an inline override and it differs from generated (user customization)
         // This ensures user changes via ComponentToolbar persist across recomputes
-        if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
-          uikitVars[cssVar] = existingValue
+        if (inlineValue !== '' && inlineValue !== generatedValue) {
+          uikitVars[cssVar] = inlineValue
         }
       })
       
@@ -1248,7 +1207,6 @@ class VarsStore {
     
     // Preserve typography CSS variables that were set directly by the user (e.g., via TypeStylePanel)
     // This prevents font-loaded events and recomputes from overwriting user changes
-    // Check all typography CSS variables in the DOM and preserve any that differ from generated
     Object.keys(typeVars).forEach((cssVar) => {
       const existingValue = readCssVar(cssVar)
       const generatedValue = typeVars[cssVar]

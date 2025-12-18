@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import propIconMapping from './propIconMapping.json'
-import { iconNameToReactComponent } from './iconUtils'
+import { iconNameToReactComponent } from '../../../components/iconUtils'
 import './Dropdown.css'
 
 interface LayerDropdownProps {
@@ -45,9 +44,8 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
 
   const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
 
-  // Get icon from mapping
-  const iconName = (propIconMapping as Record<string, string>).layer
-  const LayerIcon = iconName ? iconNameToReactComponent(iconName) : null
+  // Layer icon (hardcoded since it's system-level, not component-specific)
+  const LayerIcon = iconNameToReactComponent('square-3-stack-3d')
   const CaretDownIcon = iconNameToReactComponent('chevron-down')
 
   return (
@@ -80,3 +78,4 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
     </div>
   )
 }
+

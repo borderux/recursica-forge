@@ -1,17 +1,23 @@
-import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useMemo, useState, useEffect } from 'react'
+import { useParams, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { getComponentSections } from './componentSections'
-import ComponentToolbar from '../components/ComponentToolbar'
+import { ComponentToolbar } from '../toolbar'
 import ButtonPreview from '../components/ButtonPreview'
+import AvatarPreview from '../components/AvatarPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { useDebugMode } from './PreviewPage'
+import ComponentDebugTable from './ComponentDebugTable'
+import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
+  const location = useLocation()
   const { mode } = useThemeMode()
   const { theme } = useVars()
+  const { debugMode } = useDebugMode()
 
   // Convert slug to component name
   const componentName = useMemo(() => {
@@ -28,14 +34,37 @@ export default function ComponentDetailPage() {
     return sections.find(s => s.name === componentName)
   }, [componentName, sections])
 
+  // Get component structure to determine initial variants
+  const componentStructure = useMemo(() => {
+    if (!componentName) return null
+    return parseComponentStructure(componentName)
+  }, [componentName])
+
+  // Initialize variants to first option for each variant prop
+  const getInitialVariants = useMemo(() => {
+    const initial: Record<string, string> = {}
+    if (componentStructure) {
+      componentStructure.variants.forEach(variant => {
+        if (variant.variants.length > 0) {
+          initial[variant.propName] = variant.variants[0]
+        }
+      })
+    }
+    return initial
+  }, [componentStructure])
+
   // Toolbar state
-  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({
-    color: 'solid',
-    size: 'default',
-  })
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
   const [selectedAltLayer, setSelectedAltLayer] = useState<string | null>(null)
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
+  const [openPropControl, setOpenPropControl] = useState<string | null>(null)
+
+  // Reset variants to first option when component changes
+  useEffect(() => {
+    setSelectedVariants(getInitialVariants)
+    setOpenPropControl(null)
+  }, [componentName, location.pathname, getInitialVariants])
 
   // Get layer label for display
   const layerLabel = useMemo(() => {
@@ -215,29 +244,17 @@ export default function ComponentDetailPage() {
         alignItems: 'center',
         gap: 'var(--recursica-brand-dimensions-spacer-lg)',
       }}>
-        {/* Toolbar - Always at top, max-width hugs content */}
+        {/* Caption - Above preview showing variant and layer info */}
         <div style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'center',
+          textAlign: 'center',
+          fontFamily: 'var(--recursica-brand-typography-caption-font-family)',
+          fontSize: 'var(--recursica-brand-typography-caption-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-caption-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
+          color: `var(${layer0Base}-element-text-low-emphasis)`,
         }}>
-          <div style={{
-            maxWidth: 'fit-content',
-          }}>
-            <ComponentToolbar
-              componentName={component.name}
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              selectedAltLayer={selectedAltLayer}
-              componentElevation={componentElevation}
-              onVariantChange={(prop, variant) => {
-                setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
-              }}
-              onLayerChange={setSelectedLayer}
-              onAltLayerChange={setSelectedAltLayer}
-              onElevationChange={setComponentElevation}
-            />
-          </div>
+          {captionText}
         </div>
 
         {/* Preview Section - Centered both vertically and horizontally */}
@@ -279,6 +296,13 @@ export default function ComponentDetailPage() {
               selectedAltLayer={selectedAltLayer}
               componentElevation={componentElevation}
             />
+          ) : component.name === 'Avatar' ? (
+            <AvatarPreview
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+              selectedAltLayer={selectedAltLayer}
+              componentElevation={componentElevation}
+            />
           ) : (
             <div style={{
               minHeight: 200,
@@ -291,19 +315,39 @@ export default function ComponentDetailPage() {
           )}
         </div>
 
-        {/* Caption - Bottom center showing variant and layer info */}
+        {/* Toolbar - Below preview, max-width hugs content */}
         <div style={{
-          textAlign: 'center',
-          fontFamily: 'var(--recursica-brand-typography-caption-font-family)',
-          fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-caption-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
-          color: `var(${layer0Base}-element-text-low-emphasis)`,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
         }}>
-          {captionText}
+          <div style={{
+            maxWidth: 'fit-content',
+          }}>
+            <ComponentToolbar
+              componentName={component.name}
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+              onVariantChange={(prop, variant) => {
+                setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
+              }}
+              onLayerChange={setSelectedLayer}
+              onPropControlChange={setOpenPropControl}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Debug Table - Show when debug mode is enabled */}
+      {debugMode && component && (
+        <ComponentDebugTable 
+          componentName={component.name}
+          openPropControl={openPropControl}
+          selectedVariants={selectedVariants}
+          selectedLayer={selectedLayer}
+          selectedAltLayer={selectedAltLayer}
+        />
+      )}
     </div>
   )
 }

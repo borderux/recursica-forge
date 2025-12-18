@@ -82,15 +82,6 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         const overrideKey = `font/${category}/${short}`
         const overrideValue = effectiveOverrides[overrideKey]
         
-        // For font families/typefaces, only create CSS variable if it exists in overrides
-        // This ensures deleted font families don't reappear
-        if (category === 'family' || category === 'typeface') {
-          if (overrideValue === undefined || overrideValue === null) {
-            // Not in overrides, skip creating CSS variable
-            return
-          }
-        }
-        
         // Use override value if it exists, otherwise use token value
         let valueStr: string | undefined = undefined
         if (overrideValue !== undefined && overrideValue !== null && String(overrideValue).trim()) {
@@ -106,6 +97,19 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
             const unit: any = (raw as any).unit
             if (typeof val === 'number') valueStr = unit ? `${val}${unit}` : (unitHint ? `${val}${unitHint}` : String(val))
             else if (typeof val === 'string') valueStr = unit ? `${val}${unit}` : String(val)
+          }
+        }
+        
+        // For font families/typefaces, skip if:
+        // 1. Explicitly deleted (in deletedFamilies)
+        // 2. Override is explicitly null/empty (user deleted it)
+        // 3. No value found (neither override nor token has a value)
+        if (category === 'family' || category === 'typeface') {
+          if (overrideValue === null || (overrideValue !== undefined && String(overrideValue).trim() === '')) {
+            return
+          }
+          if (!valueStr) {
+            return
           }
         }
         if (typeof valueStr === 'string' && valueStr) {

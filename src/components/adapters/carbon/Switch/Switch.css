@@ -60,16 +60,67 @@
 
 /* Override thumb background - use wrapper class for scoping */
 .recursica-carbon-toggle-wrapper .cds--toggle__thumb {
-  background: var(--recursica-toggle-thumb-bg, var(--cds-icon-01)) !important;
+  background: var(--recursica-ui-kit-components-switch-thumb-bg-unselected) !important;
   opacity: 1 !important;
+  /* Use UIKit variables directly (they're on :root from UIKit.json) */
+  width: var(--recursica-ui-kit-components-switch-thumb-width) !important;
+  height: var(--recursica-ui-kit-components-switch-thumb-height) !important;
+  border-radius: var(--recursica-ui-kit-components-switch-thumb-border-radius) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: absolute !important;
+  box-shadow: var(--recursica-ui-kit-components-switch-thumb-elevation) !important;
+  /* Unchecked: position at left edge of content area */
+  left: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
+  right: auto !important;
+  transform: translateX(0) !important;
+  transition: left 0.2s ease, right 0.2s ease !important;
+}
+
+.recursica-carbon-toggle-wrapper .cds--toggle__input:checked + .cds--toggle__track + .cds--toggle__thumb,
+.recursica-carbon-toggle-wrapper .cds--toggle__input:checked ~ .cds--toggle__thumb {
+  background: var(--recursica-ui-kit-components-switch-thumb-bg-selected) !important;
+  /* Checked: position at right edge of content area */
+  left: auto !important;
+  right: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
+  transform: translateX(0) !important;
+}
+
+/* Position icons inside thumb - use ::before and ::after pseudo-elements */
+.recursica-carbon-toggle-wrapper .cds--toggle__thumb::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--recursica-ui-kit-components-switch-thumb-icon-size);
+  height: var(--recursica-ui-kit-components-switch-thumb-icon-size);
+  background-image: var(--recursica-ui-kit-components-switch-thumb-icon-unselected-svg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.recursica-carbon-toggle-wrapper .cds--toggle__input:checked + .cds--toggle__track + .cds--toggle__thumb::before,
+.recursica-carbon-toggle-wrapper .cds--toggle__input:checked ~ .cds--toggle__thumb::before {
+  background-image: var(--recursica-ui-kit-components-switch-thumb-icon-selected-svg);
 }
 
 /* Override track colors - use wrapper class for scoping */
 .recursica-carbon-toggle-wrapper .cds--toggle__track {
-  background-color: var(--recursica-toggle-track-unchecked, var(--cds-toggle-off)) !important;
-  border-radius: var(--recursica-toggle-border-radius, 999px) !important;
+  background-color: var(--recursica-ui-kit-components-switch-track-unchecked) !important;
+  /* Use UIKit variables directly (they're on :root from UIKit.json) */
+  border-radius: var(--recursica-ui-kit-components-switch-track-border-radius) !important;
   opacity: 1 !important;
   cursor: pointer;
+  box-shadow: var(--recursica-ui-kit-components-switch-track-elevation) !important;
+  width: var(--recursica-ui-kit-components-switch-track-width) !important;
+  height: var(--recursica-ui-kit-components-switch-track-height) !important;
+  padding: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
+  box-sizing: border-box !important;
 }
 
 /* Make the toggle input clickable */
@@ -79,7 +130,7 @@
 
 /* Override checked state */
 .recursica-carbon-toggle-wrapper .cds--toggle__input:checked + .cds--toggle__track {
-  background-color: var(--recursica-toggle-track-checked, var(--cds-toggle-on)) !important;
+  background-color: var(--recursica-ui-kit-components-switch-track-checked) !important;
   opacity: 1 !important;
 }
 

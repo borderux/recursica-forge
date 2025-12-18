@@ -79,7 +79,7 @@ export default function Button({
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
-  const contentMaxWidthVar = getComponentCssVar('Button', 'size', 'content-max-width', undefined)
+  const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
   
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
@@ -96,7 +96,13 @@ export default function Button({
     startIcon: icon && !isIconOnly ? icon : undefined,
     sx: {
       // Use CSS variables for theming - supports both standard and alternative layers
-      backgroundColor: `var(${buttonBgVar})`,
+      // Read the actual background color value - if it's transparent, set it directly to override library defaults
+      ...(() => {
+        const bgColorValue = readCssVar(buttonBgVar)
+        return {
+          backgroundColor: bgColorValue === 'transparent' ? 'transparent' : `var(${buttonBgVar})`
+        }
+      })(),
       color: `var(${buttonColorVar})`,
       // For outline, use the outline-text CSS var for border color and ensure border is set
       ...(variant === 'outline' ? {
@@ -124,7 +130,7 @@ export default function Button({
       // Set CSS custom properties for CSS file overrides
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
-      '--button-content-max-width': `var(${contentMaxWidthVar})`,
+      '--button-max-width': `var(${maxWidthVar})`,
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Material UI's default disabled styles to keep colors unchanged
       ...(disabled && {

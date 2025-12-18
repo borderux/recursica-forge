@@ -81,22 +81,38 @@ src/components/adapters/
 
 The adapter component provides a unified interface that works across all libraries.
 
-#### Requirements:
+#### Key Pattern:
 
 1. **Define Unified Props Interface**
    ```typescript
    export type {ComponentName}Props = {
-     // Unified props that work across all libraries
      children?: React.ReactNode
      variant?: 'solid' | 'outline' | 'text'  // Example
      size?: 'default' | 'small'              // Example
      layer?: ComponentLayer
+     elevation?: string                      // e.g., "elevation-0", "elevation-1"
+     alternativeLayer?: string | null        // e.g., "high-contrast", "none", null
      disabled?: boolean
      // ... other unified props
    } & LibrarySpecificProps
    ```
 
-2. **Use Component Registry**
+2. **Read Component-Level CSS Variables**
+   The adapter reads `elevation` and `alternative-layer` from CSS variables that the toolbar sets:
+   ```typescript
+   import { getComponentLevelCssVar } from '../utils/cssVarNames'
+   import { readCssVar } from '../../core/css/readCssVar'
+   
+   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+   const alternativeLayerVar = getComponentLevelCssVar('Button', 'alternative-layer')
+   
+   const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+   const componentAlternativeLayer = alternativeLayer !== undefined 
+     ? alternativeLayer 
+     : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
+   ```
+
+3. **Use Component Registry**
    ```typescript
    import { useComponent } from '../hooks/useComponent'
    
@@ -104,63 +120,109 @@ The adapter component provides a unified interface that works across all librari
      const Component = useComponent('{ComponentName}')
      
      if (!Component) {
-       // Fallback to native HTML element
-       return <native-element {...props} />
+       // Fallback to native HTML element with styles
+       return <native-element style={getFallbackStyles(...)} />
      }
      
      return (
        <Suspense fallback={<loading-state />}>
-         <Component {...mappedProps} />
+         <Component {...props} elevation={componentElevation} alternativeLayer={componentAlternativeLayer} />
        </Suspense>
      )
    }
    ```
 
-3. **Map Unified Props to Library Props**
-   - Create a mapping function that converts unified props to library-specific props
-   - Handle library-specific props via `mantine`, `material`, `carbon` props
-
-4. **Use CSS Variables**
-   - Use `getComponentCssVar()` from `../utils/cssVarNames` for component CSS variables
-   - Use `--recursica-brand-*` variables for brand tokens
-   - All CSS variables from JSON files must be namespaced with `--recursica-*`
+4. **Pass Props to Library Implementation**
+   - Pass all unified props including `elevation` and `alternativeLayer` to library implementations
+   - Library implementations handle the actual styling using CSS variables
 
 ### Step 2: Create Library Implementations (Parallel Development)
 
-Create implementations for each library simultaneously. Each library implementation should:
+Create implementations for each library simultaneously. Each library implementation follows this pattern:
 
-1. **Import the Library Component**
+1. **Import Dependencies**
    ```typescript
    import { {ComponentName} as Library{ComponentName} } from '@library/package'
+   import { getComponentCssVar } from '../../../utils/cssVarNames'
+   import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+   import { readCssVar } from '../../../../core/css/readCssVar'
+   import './{ComponentName}.css'
    ```
 
-2. **Map Unified Props to Library Props**
+2. **Build CSS Variable Names Using `getComponentCssVar`**
+   This utility builds CSS variable names that match what the toolbar uses:
    ```typescript
-   // Map unified variant to library variant
-   const libraryVariant = variant === 'solid' ? 'filled' : 'outline'
+   // Pattern: getComponentCssVar(componentName, category, property, layer?)
+   const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+   const textVar = getComponentCssVar('Button', 'color', 'solid-text', layer)
+   const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+   const iconSizeVar = getComponentCssVar('Button', 'size', 'default-icon', undefined)
    ```
 
-3. **Use CSS Variables with Library Fallbacks**
+3. **Handle Alternative Layers**
+   When `alternativeLayer` is set, override colors with alternative layer properties:
+   ```typescript
+   const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+   
+   if (hasComponentAlternativeLayer) {
+     const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+     bgVar = `${layerBase}-element-interactive-tone`
+     textVar = `${layerBase}-element-interactive-on-tone`
+   } else {
+     // Use standard UIKit.json colors
+     bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+     textVar = getComponentCssVar('Button', 'color', 'solid-text', layer)
+   }
+   ```
+
+4. **Set CSS Custom Properties on Style Prop**
+   Set CSS custom properties that the CSS file will use:
    ```typescript
    style={{
-     // Use Recursica CSS vars with library vars as fallback
-     backgroundColor: `var(--recursica-ui-kit-components-{component}-color-..., var(--library-default-color))`,
-     // ... other styles
-   }}
-   ```
-
-4. **Set CSS Custom Properties for CSS File**
-   ```typescript
-   style={{
-     '--component-icon-size': icon ? `var(${iconSizeVar})` : '0px',
-     '--component-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+     // Reference UIKit CSS vars directly (toolbar updates these)
+     '--button-bg': `var(${bgVar})`,
+     '--button-color': `var(${textVar})`,
+     '--button-height': `var(${heightVar})`,
+     '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+     '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
      // ... other custom properties
    }}
    ```
 
-5. **Import CSS File**
+5. **Handle Elevation**
+   Elevation logic prioritizes: prop > UIKit.json > alternative layer:
    ```typescript
-   import './{ComponentName}.css'
+   let elevationToApply = elevation
+   
+   if (hasComponentAlternativeLayer) {
+     const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+     const altLayerElevation = readCssVar(altLayerElevationVar)
+     if (altLayerElevation) {
+       const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+       elevationToApply = match ? match[1] : elevation
+     }
+   }
+   
+   if (elevationToApply && elevationToApply !== 'elevation-0') {
+     const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
+     if (elevationMatch) {
+       const level = elevationMatch[1]
+       style.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${level}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+     }
+   }
+   ```
+
+6. **Map Unified Props to Library Props**
+   ```typescript
+   const libraryVariant = variant === 'solid' ? 'filled' : variant === 'outline' ? 'outline' : 'subtle'
+   const librarySize = size === 'small' ? 'xs' : 'md'
+   
+   return <LibraryComponent 
+     variant={libraryVariant}
+     size={librarySize}
+     style={style}
+     {...librarySpecificProps}
+   />
    ```
 
 ### Step 3: Create CSS Override Files
@@ -317,7 +379,244 @@ registerComponent('carbon', '{ComponentName}', () => import('../adapters/carbon/
 
 See [Testing Requirements](#testing-requirements) section below.
 
-### Step 6: Create Audit Documentation
+### Step 6: Create Toolbar Configuration
+
+**File**: `src/modules/toolbar/configs/{ComponentName}.toolbar.json`
+
+Each component needs a toolbar configuration file that defines:
+- **Icons**: Which icon to display for each prop in the toolbar
+- **Labels**: Display labels for props in the toolbar
+- **Floating Palette Labels**: Titles for the floating palette when editing a prop
+- **Grouped Props**: Props that should be grouped together under a single icon (e.g., border-size, border-radius, border-color → "border")
+
+#### Config File Structure
+
+```json
+{
+  "props": {
+    "prop-name": {
+      "icon": "icon-name",
+      "label": "Display Label",
+      "floatingPaletteLabel": "Floating Palette Title",
+      "groupedProps": ["prop1", "prop2"]
+    }
+  }
+}
+```
+
+#### Key Fields
+
+1. **`icon`** (required): The Phosphor icon name to display in the toolbar
+   - Use kebab-case icon names (e.g., `"paint-bucket"`, `"text-aa"`, `"frame-corners"`)
+   - See available icons in `src/modules/components/iconLibrary.ts`
+
+2. **`label`** (required): The display label shown in the toolbar tooltip
+   - Should be user-friendly (e.g., `"Background"`, `"Horizontal Padding"`)
+
+3. **`floatingPaletteLabel`** (required): The title shown in the floating palette when editing
+   - Should be descriptive (e.g., `"Background Color"`, `"Border Settings"`)
+
+4. **`groupedProps`** (optional): Array of prop names that are grouped under this icon
+   - Used for props like "border" that combine multiple properties
+   - Example: `"border"` prop with `groupedProps: ["border-size", "border-radius", "border-color"]`
+
+#### Mapping UIKit.json Keys to Props
+
+The prop names in the config file should match the keys in `UIKit.json`:
+
+**UIKit.json Structure:**
+```json
+{
+  "ui-kit": {
+    "components": {
+      "button": {
+        "variant": { ... },
+        "size": {
+          "variant": {
+            "default": {
+              "horizontal-padding": { "$type": "dimension", ... }
+            }
+          }
+        },
+        "border-radius": { "$type": "dimension", ... }
+      }
+    }
+  }
+}
+```
+
+**Toolbar Config:**
+```json
+{
+  "props": {
+    "horizontal-padding": {
+      "icon": "arrows-left-right",
+      "label": "Horizontal Padding",
+      "floatingPaletteLabel": "Horizontal Padding"
+    },
+    "border-radius": {
+      "icon": "corners-out",
+      "label": "Border Radius",
+      "floatingPaletteLabel": "Border Radius"
+    }
+  }
+}
+```
+
+#### Example: Button Toolbar Config
+
+```json
+{
+  "props": {
+    "background": {
+      "icon": "paint-bucket",
+      "label": "Background",
+      "floatingPaletteLabel": "Background Color"
+    },
+    "text": {
+      "icon": "text-aa",
+      "label": "Text",
+      "floatingPaletteLabel": "Text Color"
+    },
+    "border": {
+      "icon": "frame-corners",
+      "label": "Border",
+      "floatingPaletteLabel": "Border Settings",
+      "groupedProps": ["border-size", "border-radius", "border-color"]
+    },
+    "horizontal-padding": {
+      "icon": "arrows-left-right",
+      "label": "Horizontal Padding",
+      "floatingPaletteLabel": "Horizontal Padding"
+    }
+  }
+}
+```
+
+#### Registering the Config File
+
+After creating the config file, register it in `src/modules/toolbar/utils/loadToolbarConfig.ts`:
+
+```typescript
+import {ComponentName}Config from '../configs/{ComponentName}.toolbar.json'
+
+export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
+  const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+  
+  switch (componentKey) {
+    case 'button':
+      return ButtonConfig as ToolbarConfig
+    case '{componentname}':  // Add your component here
+      return {ComponentName}Config as ToolbarConfig
+    default:
+      return null
+  }
+}
+```
+
+#### Common Icon Mappings
+
+| Prop Type | Suggested Icon | Example Props |
+|-----------|---------------|---------------|
+| Colors | `paint-bucket` | `background`, `text`, `border-color` |
+| Text | `text-aa` | `text`, `text-color`, `text-hover` |
+| Dimensions | `arrows-up-down`, `arrows-left-right`, `arrows-pointing-out` | `height`, `width`, `padding` |
+| Borders | `frame-corners`, `corners-out` | `border`, `border-radius` |
+| Icons | `frame-corners` | `icon`, `icon-size` |
+| Gaps/Spacing | `split-horizontal` | `icon-text-gap`, `label-switch-gap` |
+| Typography | `bars-arrow-up`, `scale` | `font-size`, `font-weight` |
+
+#### Grouped Props Example
+
+For props that combine multiple properties (like "border"), define the parent prop with a `group` object:
+
+```json
+{
+  "props": {
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "visible": true,
+      "group": {
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Corner Radius",
+          "visible": true
+        },
+        "border-color": {
+          "label": "Color",
+          "visible": true
+        }
+      }
+    }
+  }
+}
+```
+
+**Important Notes**:
+- Grouped props do NOT have icons (they appear in the parent prop's floating palette)
+- Grouped props do NOT need separate entries in the `props` object
+- Grouped prop names must match `UIKit.json` prop names exactly
+- The parent prop (e.g., `border`) appears as a single icon in the toolbar
+
+**Note**: Grouped props do NOT need separate entries in the config - they only appear in the parent prop's `group` object. They won't appear as separate icons in the toolbar - they'll be accessible through the parent prop's floating palette.
+
+#### Variant-Specific Props
+
+Props that are variant-specific (e.g., `size.variant.default.height`) should use the base prop name without the variant prefix. The toolbar automatically handles variant-specific props based on the selected variant:
+
+```json
+{
+  "props": {
+    "height": {
+      "icon": "arrows-up-down",
+      "label": "Height",
+      "visible": true
+    },
+    "horizontal-padding": {
+      "icon": "arrows-left-right",
+      "label": "Horizontal Padding",
+      "visible": true
+    }
+  }
+}
+```
+
+The toolbar automatically:
+- Filters props based on selected variants
+- Shows only props relevant to the current variant selection
+- Handles nested variants (e.g., Avatar's `style` and `style-secondary`)
+
+#### Testing Your Config
+
+After creating the config file:
+
+1. **Check that props appear in toolbar**: All props defined in your config should appear as icons in the toolbar
+2. **Verify icons display correctly**: Icons should render properly (check browser console for warnings)
+3. **Test labels**: Hover over icons to verify tooltips show correct labels
+4. **Test floating palettes**: Click icons to verify floating palette titles are correct
+5. **Test grouped props**: If using grouped props, verify they appear in the parent prop's floating palette
+
+#### Troubleshooting
+
+- **Prop not appearing in toolbar**: 
+  - Check that the prop name in config matches the UIKit.json key exactly (case-sensitive)
+  - Verify the prop is registered in `loadToolbarConfig.ts`
+  - Check browser console for warnings about missing icons
+
+- **Icon not displaying**:
+  - Verify the icon name exists in Phosphor Icons
+  - Check `src/modules/components/iconLibrary.ts` to see available icons
+  - Use kebab-case for icon names
+
+- **Wrong label displayed**:
+  - Verify the `label` field in config matches what you expect
+  - Check that the prop name in config matches the UIKit.json key
+
+### Step 7: Create Audit Documentation
 
 **IMPORTANT**: Audits are **library-specific** and must be created for **each library separately**.
 
@@ -330,7 +629,7 @@ Create an audit document for each library implementation:
 
 See [Component Audit](#component-audit) section below for details.
 
-### Step 7: Replace Existing Uses
+### Step 8: Replace Existing Uses
 
 **IMPORTANT**: After creating a component, replace all existing uses throughout the application.
 
@@ -375,81 +674,128 @@ import { Button } from '../../components/adapters/Button'
 
 ## CSS Variable Guidelines
 
-### Naming Convention
+### How CSS Variables Work
 
-All CSS variables from JSON files must be namespaced with `--recursica-*`:
+The component system uses a **two-layer CSS variable system**:
 
-- **Component Variables**: `--recursica-ui-kit-components-{component}-{category}-{property}`
-- **Component-Level Props**: `--recursica-ui-kit-components-{component}-{property}` (e.g., `elevation`, `alternative-layer`)
-- **Brand Variables**: `--recursica-brand-{mode}-{category}-{property}`
-- **Token Variables**: `--recursica-tokens-{category}-{property}`
+1. **UIKit CSS Variables** (set by toolbar, read by components)
+   - Pattern: `--recursica-ui-kit-components-{component}-{category}-{layer?}-{property}`
+   - Built using: `getComponentCssVar(componentName, category, property, layer?)`
+   - Example: `--recursica-ui-kit-components-button-color-layer-0-variant-solid-background`
 
-### Using CSS Variables
+2. **Component-Level CSS Variables** (component-specific props)
+   - Pattern: `--recursica-ui-kit-components-{component}-{property}`
+   - Built using: `getComponentLevelCssVar(componentName, property)`
+   - Examples: `elevation`, `alternative-layer`
 
-#### ✅ Correct: Recursica vars with library fallback
+3. **Component Custom Properties** (set by component, used by CSS file)
+   - Pattern: `--{component}-{property}` (scoped to component instance)
+   - Example: `--button-bg`, `--button-icon-size`
+
+### CSS Variable Flow
+
+```
+Toolbar → Updates UIKit CSS vars → Component reads vars → Component sets custom properties → CSS file uses custom properties
+```
+
+1. **Toolbar** uses `getComponentCssVar()` to build CSS var names and updates them via `updateCssVar()`
+2. **Component** uses `getComponentCssVar()` to build the same CSS var names and references them
+3. **Component** sets CSS custom properties on `style` prop (e.g., `--button-bg: var(${bgVar})`)
+4. **CSS File** uses those custom properties to override library styles
+
+### Using CSS Variables in Components
+
+#### ✅ Correct: Build CSS var names with `getComponentCssVar`
 
 ```typescript
+// This matches what the toolbar uses
+const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+
 style={{
-  backgroundColor: `var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background, var(--mantine-color-blue-6))`,
+  // Reference the UIKit CSS var (toolbar updates this)
+  '--button-bg': `var(${bgVar})`,
+  '--button-height': `var(${heightVar})`,
 }}
 ```
 
+#### ✅ Correct: Use component-level CSS vars for special props
+
+```typescript
+// In adapter component
+const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+const alternativeLayerVar = getComponentLevelCssVar('Button', 'alternative-layer')
+
+const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+const componentAlternativeLayer = alternativeLayer !== undefined 
+  ? alternativeLayer 
+  : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
+```
+
+#### ✅ Correct: CSS file uses component custom properties
+
 ```css
-.component-root {
-  background-color: var(--recursica-ui-kit-components-button-color-..., var(--mantine-color-blue-6)) !important;
+/* Button.css - uses custom properties set in TSX */
+.mantine-Button-root {
+  background-color: var(--button-bg) !important;
+  height: var(--button-height) !important;
 }
-```
 
-#### ❌ Incorrect: Direct library variable modification
-
-```typescript
-// Don't modify library variables directly
-style={{
-  '--mantine-color-blue-6': '#ff0000',  // ❌ Don't do this
-}}
-```
-
-#### ✅ Correct: Component-level custom properties
-
-```typescript
-// Set component-level custom properties (scoped to component)
-style={{
-  '--button-icon-size': `var(${iconSizeVar})`,
-  '--button-icon-text-gap': `var(${iconGapVar})`,
-}}
-```
-
-```css
-/* Reference component-level custom properties */
-.button-icon {
+.mantine-Button-leftSection {
   width: var(--button-icon-size, 0px) !important;
-  margin-right: var(--button-icon-text-gap, 0px) !important;
+  margin-inline-end: var(--button-icon-text-gap, 0px) !important;
 }
+```
+
+#### ❌ Incorrect: Don't build CSS var names manually
+
+```typescript
+// ❌ Don't do this - use getComponentCssVar instead
+const bgVar = `--recursica-ui-kit-components-button-color-layer-0-variant-solid-background`
+```
+
+#### ❌ Incorrect: Don't modify library CSS variables directly
+
+```typescript
+// ❌ Don't do this
+style={{
+  '--mantine-color-blue-6': '#ff0000',
+}}
 ```
 
 ### Component-Level Props (Elevation and Alternative Layer)
 
-Components support two special component-level props that are stored as separate CSS variables:
+Components support two special props that are stored as component-level CSS variables and controlled by the toolbar:
 
 1. **Elevation** (`elevation` prop)
    - Type: `string | undefined` (e.g., `"elevation-0"`, `"elevation-1"`, etc.)
    - CSS Variable: `--recursica-ui-kit-components-{component}-elevation`
-   - Initial Value: From `UIKit.json` (e.g., `{brand.themes.light.elevations.elevation-1}`)
-   - Behavior:
-     - When set (and not `"elevation-0"`), applies box-shadow using elevation CSS variables
-     - Format: `var(--recursica-brand-{mode}-elevations-elevation-{level}-x-axis) var(--recursica-brand-{mode}-elevations-elevation-{level}-y-axis) var(--recursica-brand-{mode}-elevations-elevation-{level}-blur) var(--recursica-brand-{mode}-elevations-elevation-{level}-spread) var(--recursica-brand-{mode}-elevations-elevation-{level}-shadow-color)`
-     - If `elevation-0`, no box-shadow is applied
+   - Priority: **Prop** > **UIKit.json** > **Alternative Layer elevation** > **No elevation**
    - Implementation:
      ```typescript
-     // In adapter component
-     elevation?: string
+     // In adapter: read from CSS var if prop not provided
+     const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+     const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
      
-     // In library implementation
-     if (elevation && elevation !== 'elevation-0') {
-       const elevationMatch = elevation.match(/elevation-(\d+)/)
-       if (elevationMatch) {
-         const elevationLevel = elevationMatch[1]
-         styles.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+     // In library implementation: apply elevation box-shadow
+     let elevationToApply = elevation
+     
+     // Check alternative layer elevation if alt-layer is set
+     if (hasComponentAlternativeLayer) {
+       const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+       const altLayerElevation = readCssVar(altLayerElevationVar)
+       if (altLayerElevation) {
+         const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
+         elevationToApply = match ? match[1] : elevation
+       }
+     }
+     
+     // Apply box-shadow if elevation is set
+     if (elevationToApply && elevationToApply !== 'elevation-0') {
+       const match = elevationToApply.match(/elevation-(\d+)/)
+       if (match) {
+         const level = match[1]
+         style.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${level}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
        }
      }
      ```
@@ -457,34 +803,62 @@ Components support two special component-level props that are stored as separate
 2. **Alternative Layer** (`alternativeLayer` prop)
    - Type: `string | null | undefined` (e.g., `"high-contrast"`, `"alert"`, `null`, `"none"`)
    - CSS Variable: `--recursica-ui-kit-components-{component}-alternative-layer`
-   - Initial Value: From `UIKit.json` (typically `null` or `"none"`)
-   - Behavior:
-     - When set (not `null` and not `"none"`), overrides all surface and color props for that component
-     - Uses alternative layer's properties: `--recursica-brand-{mode}-layer-layer-alternative-{altLayer}-property-*`
-     - Disables toolbar icons for overridden props (handled by toolbar)
-     - If `null` or `"none"`, behaves as normal (uses layer prop)
+   - Behavior: When set (not `null` and not `"none"`), overrides all color/surface props with alternative layer properties
    - Implementation:
      ```typescript
-     // In adapter component
-     alternativeLayer?: string | null
+     // In adapter: read from CSS var if prop not provided
+     const alternativeLayerVar = getComponentLevelCssVar('Button', 'alternative-layer')
+     const componentAlternativeLayer = alternativeLayer !== undefined 
+       ? alternativeLayer 
+       : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
      
-     // In library implementation
+     // In library implementation: override colors when alt layer is set
      const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
+     
      if (hasComponentAlternativeLayer) {
        const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
-       // Override all color/surface props with alt layer properties
        bgVar = `${layerBase}-element-interactive-tone`
        textVar = `${layerBase}-element-interactive-on-tone`
-       // ... etc
+       // Override all color props with alt layer properties
+     } else {
+       // Use standard UIKit.json colors
+       bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+       textVar = getComponentCssVar('Button', 'color', 'solid-text', layer)
      }
      ```
 
-**Important Notes:**
-- These props use **separate CSS variables** specific to the component (not shared with other components)
-- The CSS variable names follow the pattern: `--recursica-ui-kit-components-{component}-{property}`
-- Use `getComponentLevelCssVar(componentName, 'elevation')` and `getComponentLevelCssVar(componentName, 'alternative-layer')` to generate the CSS variable names
-- The toolbar provides controls for these props in a separate section (after dynamic props, before reset button)
-- When `alternativeLayer` is set, it overrides all surface/color props, so those toolbar icons should be disabled
+**Key Points:**
+- Use `getComponentLevelCssVar(componentName, 'elevation')` and `getComponentLevelCssVar(componentName, 'alternative-layer')` to get these CSS variable names
+- The toolbar sets these CSS variables, and components read them if props aren't provided
+- When `alternativeLayer` is set, it overrides all color/surface props, so toolbar disables those prop icons
+
+### How Components Connect to the Toolbar
+
+The toolbar and components use the **same utilities** to build CSS variable names, ensuring they stay in sync:
+
+1. **Toolbar builds CSS var names** using `getComponentCssVar()` and `getComponentLevelCssVar()`
+2. **Toolbar updates CSS vars** using `updateCssVar()` (writes to DOM)
+3. **Components build the same CSS var names** using the same utilities
+4. **Components reference those CSS vars** in their styles
+5. **When toolbar updates a CSS var, components automatically reflect the change**
+
+**Example Flow:**
+```typescript
+// Toolbar (ComponentToolbar.tsx)
+const bgVar = getComponentCssVar('Button', 'color', 'solid-background', selectedLayer)
+updateCssVar(bgVar, newValue) // Updates DOM CSS variable
+
+// Component (Button.tsx)
+const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+style={{ '--button-bg': `var(${bgVar})` }} // References the same CSS variable
+
+// CSS File (Button.css)
+.mantine-Button-root {
+  background-color: var(--button-bg) !important; // Uses component custom property
+}
+```
+
+**Key Insight:** Components don't need to know about the toolbar - they just reference CSS variables that the toolbar updates. This creates a clean separation of concerns.
 
 ### Library CSS Variables
 
@@ -765,6 +1139,146 @@ Each library implementation must include its own audit document that identifies:
 2. **Recursica CSS Variables Overriding Library Vars** (how Recursica vars override library vars)
 3. **Uncovered Library CSS Variables** (library vars not overridden by Recursica)
 4. **CSS Variable Fallback Chain** (Recursica → Library → Browser default)
+5. **Toolbar Config Validation** (schema validation and prop coverage) - **REQUIRED**
+
+### Schema Validation Step
+
+Before completing the audit, validate your toolbar configuration:
+
+#### 1. Validate JSON Schema
+
+```bash
+# Validate toolbar config JSON structure
+node -e "
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync('src/modules/toolbar/configs/Button.toolbar.json', 'utf8'));
+
+// Check required fields
+if (!config.props) throw new Error('Missing required field: props');
+if (config.variants && typeof config.variants !== 'object') throw new Error('variants must be an object');
+
+// Validate each prop
+for (const [propName, propConfig] of Object.entries(config.props)) {
+  if (!propConfig.icon) throw new Error(\`Prop \${propName} missing required field: icon\`);
+  if (!propConfig.label) throw new Error(\`Prop \${propName} missing required field: label\`);
+  if (propConfig.group) {
+    for (const [groupName, groupConfig] of Object.entries(propConfig.group)) {
+      if (!groupConfig.label) throw new Error(\`Grouped prop \${groupName} missing required field: label\`);
+    }
+  }
+}
+
+console.log('✓ Toolbar config schema is valid');
+"
+```
+
+#### 2. Validate Prop Coverage
+
+Ensure all root-level props from `UIKit.json` are represented in the toolbar config:
+
+```bash
+# Compare UIKit.json props with toolbar config
+node -e "
+const fs = require('fs');
+const uikit = JSON.parse(fs.readFileSync('src/vars/UIKit.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync('src/modules/toolbar/configs/Button.toolbar.json', 'utf8'));
+
+function extractRootProps(obj, prefix = []) {
+  const props = new Set();
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === 'variant' || key === 'size') continue;
+    if (value && typeof value === 'object' && !value.\$type && !value.\$value) {
+      if (key !== 'variant' && key !== 'size') {
+        continue;
+      }
+    } else if (value && (value.\$type || value.value)) {
+      props.add(key);
+    }
+  }
+  return Array.from(props);
+}
+
+function getConfigProps(config) {
+  const props = new Set();
+  if (config.props) {
+    for (const [key, value] of Object.entries(config.props)) {
+      props.add(key);
+      if (value.group) {
+        for (const groupKey of Object.keys(value.group)) {
+          props.add(groupKey);
+        }
+      }
+    }
+  }
+  return Array.from(props);
+}
+
+const component = uikit['ui-kit'].components.button;
+const rootProps = extractRootProps(component);
+const configProps = getConfigProps(config);
+const missing = rootProps.filter(p => !configProps.includes(p));
+
+if (missing.length > 0) {
+  console.error('✗ Missing props in toolbar config:', missing.join(', '));
+  process.exit(1);
+} else {
+  console.log('✓ All root props are represented in toolbar config');
+}
+"
+```
+
+#### 3. Validate Icon Names
+
+Ensure all icon names are valid Phosphor Icons:
+
+```bash
+# Check that all icons exist in iconLibrary
+node -e "
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync('src/modules/toolbar/configs/Button.toolbar.json', 'utf8'));
+const iconLibrary = fs.readFileSync('src/modules/components/iconLibrary.ts', 'utf8');
+
+function getAllIcons(config) {
+  const icons = new Set();
+  if (config.variants) {
+    for (const variant of Object.values(config.variants)) {
+      if (variant.icon) icons.add(variant.icon);
+    }
+  }
+  if (config.props) {
+    for (const prop of Object.values(config.props)) {
+      if (prop.icon) icons.add(prop.icon);
+    }
+  }
+  return Array.from(icons);
+}
+
+const icons = getAllIcons(config);
+const missing = icons.filter(icon => !iconLibrary.includes(icon));
+
+if (missing.length > 0) {
+  console.error('✗ Icons not found in iconLibrary:', missing.join(', '));
+  console.log('Note: Icons should be automatically imported by Vite plugin when config is saved');
+  process.exit(1);
+} else {
+  console.log('✓ All icons are valid');
+}
+"
+```
+
+#### 4. Add Validation to Audit Document
+
+Include validation results in your audit document:
+
+```markdown
+## Toolbar Config Validation
+
+- [x] JSON schema is valid
+- [x] All root props from UIKit.json are represented
+- [x] All icon names are valid Phosphor Icons
+- [x] All grouped props match UIKit.json prop names
+- [x] Variant props are correctly configured
+```
 
 ### Audit File Location
 
@@ -793,6 +1307,54 @@ src/components/adapters/
 - ❌ Global audit reports at the adapter root level
 - ❌ Combined audit files covering multiple libraries
 - ❌ Audit files outside the library's component folder
+
+### Toolbar Config Validation (Required in Audit)
+
+**IMPORTANT**: Every component audit must include a **Toolbar Config Validation** section that verifies the toolbar configuration is complete and correct.
+
+#### Required Validation Checks
+
+1. **Schema Compliance**: The toolbar config JSON follows the correct schema structure
+2. **Prop Coverage**: All root-level props from `UIKit.json` are represented in the toolbar config
+3. **Icon Validity**: All icon names are valid Phosphor Icons and are imported
+4. **Group Integrity**: All grouped props match actual prop names from `UIKit.json`
+5. **Variant Alignment**: Variant props are correctly configured to match `UIKit.json` structure
+
+#### Example Audit Section Template
+
+Include this section in every audit document:
+
+```markdown
+## Toolbar Config Validation
+
+### Schema Validation
+- [x] JSON structure is valid
+- [x] All required fields present (icon, label, visible)
+- [x] Group structure is correct (no icons in grouped props)
+- [x] Variant structure is correct
+
+### Prop Coverage
+- [x] All root props from UIKit.json are represented:
+  - [x] `font-size`
+  - [x] `border-radius`
+  - [x] `elevation`
+  - [x] `max-width`
+- [x] Variant props are correctly grouped:
+  - [x] `background` and `background-hover` grouped
+  - [x] `text` and `text-hover` grouped
+
+### Icon Validation
+- [x] All icons are valid Phosphor Icons
+- [x] Icons are automatically imported (verified in iconLibrary.ts)
+- [x] No missing icon warnings in browser console
+
+### Notes
+- Size variant props (height, icon, etc.) are handled automatically via size variant selection
+- Color variant props are filtered based on selected color variant
+- Grouped props appear in parent prop's floating palette (no separate icons)
+```
+
+**Validation Script**: Use the validation scripts provided in the [Schema Validation Step](#schema-validation-step) section above to automate these checks.
 
 ### Audit File Template
 
@@ -1202,6 +1764,9 @@ After creating a new component, complete this checklist:
 - [ ] CSS override files created for all libraries
 - [ ] Components registered in registry files
 - [ ] Component name added to `ComponentName` type union
+- [ ] Toolbar config file created at `src/modules/toolbar/configs/{ComponentName}.toolbar.json`
+- [ ] Toolbar config registered in `loadToolbarConfig.ts`
+- [ ] All UIKit.json props have icons, labels, and floating palette labels defined
 
 ### CSS Variables
 

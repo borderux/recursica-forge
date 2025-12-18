@@ -3,7 +3,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { toSentenceCase } from './componentToolbarUtils'
+import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
 import TokenSlider from '../forms/TokenSlider'
 
 interface DimensionTokenSelectorProps {
@@ -19,8 +19,31 @@ export default function DimensionTokenSelector({
   label,
   propName,
 }: DimensionTokenSelectorProps) {
-  const { theme, tokens } = useVars()
+  const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
+
+  // Helper to extract dimension category from CSS var value
+  const getDimensionCategory = useCallback((cssVarValue: string): string | null => {
+    if (!cssVarValue) return null
+    
+    // Check if it's a brand dimension reference
+    // Pattern: var(--recursica-brand-dimensions-{category}-{size})
+    const brandMatch = cssVarValue.match(/--recursica-brand-dimensions-([^-]+)/)
+    if (brandMatch) {
+      return brandMatch[1] // Returns 'icon', 'general', 'spacer', etc.
+    }
+    
+    // Check if it resolves to a brand dimension reference
+    const resolved = readCssVarResolved(targetCssVar)
+    if (resolved) {
+      const resolvedBrandMatch = resolved.match(/--recursica-brand-dimensions-([^-]+)/)
+      if (resolvedBrandMatch) {
+        return resolvedBrandMatch[1]
+      }
+    }
+    
+    return null
+  }, [targetCssVar])
 
   // Get available dimension tokens from theme JSON structure and convert to Token format
   const dimensionTokens = useMemo(() => {
@@ -29,9 +52,13 @@ export default function DimensionTokenSelector({
     try {
       const propNameLower = propName.toLowerCase()
       
+      // Get current dimension category from the CSS var value
+      const currentValue = readCssVar(targetCssVar)
+      const currentCategory = currentValue ? getDimensionCategory(currentValue) : null
+      
       // For font-size prop, only collect font size tokens from tokens.font.size
       if (propNameLower === 'font-size') {
-        const tokensRoot: any = (tokens as any)?.tokens || {}
+        const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
         const fontSizes = tokensRoot?.font?.size || {}
         
         // Collect font size tokens (2xs, xs, sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl)
@@ -190,6 +217,118 @@ export default function DimensionTokenSelector({
         })
       }
       
+      // For track-inner-padding or label-switch-gap, only collect general dimensions (default, sm, md, lg, xl)
+      if (propNameLower === 'track-inner-padding' || propNameLower === 'label-switch-gap') {
+        const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+        const dimensions = root?.dimensions || {}
+        const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
+        
+        // Collect general dimensions
+        if (dimensions.general && typeof dimensions.general === 'object') {
+          generalDims.forEach(dim => {
+            if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
+              const cssVar = `--recursica-brand-dimensions-general-${dim}`
+              const cssValue = readCssVar(cssVar)
+              if (cssValue) {
+                options.push({
+                  label: toSentenceCase(dim),
+                  cssVar,
+                  value: `var(${cssVar})`,
+                })
+              }
+            }
+          })
+        }
+        
+        // Convert to Token format with numeric values for sorting
+        const generalTokens = options.map(opt => {
+          const resolvedValue = readCssVarResolved(opt.cssVar)
+          let numericValue: number | undefined
+          
+          if (resolvedValue) {
+            const match = resolvedValue.match(/^(-?\d+(?:\.\d+)?)/)
+            if (match) {
+              numericValue = parseFloat(match[1])
+            }
+          }
+          
+          return {
+            name: opt.cssVar,
+            value: numericValue,
+            label: opt.label,
+          }
+        })
+        
+        // Sort by numeric value (smallest to largest, 0 to largest)
+        return generalTokens.sort((a, b) => {
+          if (a.value !== undefined && b.value !== undefined) {
+            return a.value - b.value
+          }
+          if (a.value !== undefined) return -1
+          if (b.value !== undefined) return 1
+          return (a.label || a.name).localeCompare(b.label || a.name)
+        })
+      }
+      
+      // For thumb-border-radius or track-border-radius, only collect border-radius dimensions
+      if (propNameLower === 'thumb-border-radius' || propNameLower === 'track-border-radius' || propNameLower === 'border-radius') {
+        const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+        const dimensions = root?.dimensions || {}
+        const borderRadius = dimensions['border-radius'] || {}
+        
+        // Collect border-radius dimensions (none, sm, default, lg, xl)
+        Object.keys(borderRadius).forEach(radiusKey => {
+          const radiusValue = borderRadius[radiusKey]
+          if (radiusValue && typeof radiusValue === 'object' && '$value' in radiusValue) {
+            const cssVar = `--recursica-brand-dimensions-border-radius-${radiusKey}`
+            const cssValue = readCssVar(cssVar)
+            
+            // Only add if the CSS var exists (has been generated)
+            if (cssValue) {
+              options.push({
+                label: toSentenceCase(radiusKey),
+                cssVar,
+                value: `var(${cssVar})`,
+              })
+            }
+          }
+        })
+        
+        // Convert to Token format with numeric values for sorting
+        const borderRadiusTokens = options.map(opt => {
+          const resolvedValue = readCssVarResolved(opt.cssVar)
+          let numericValue: number | undefined
+          
+          if (resolvedValue) {
+            const match = resolvedValue.match(/^(-?\d+(?:\.\d+)?)/)
+            if (match) {
+              numericValue = parseFloat(match[1])
+            }
+          }
+          
+          return {
+            name: opt.cssVar,
+            value: numericValue,
+            label: opt.label,
+          }
+        })
+        
+        // Sort by numeric value (smallest to largest, 0 to largest)
+        // Put "none" first if it exists (value 0)
+        return borderRadiusTokens.sort((a, b) => {
+          // Handle "none" specially - it should be first
+          if (a.label.toLowerCase() === 'none') return -1
+          if (b.label.toLowerCase() === 'none') return 1
+          
+          if (a.value !== undefined && b.value !== undefined) {
+            return a.value - b.value
+          }
+          if (a.value !== undefined) return -1
+          if (b.value !== undefined) return 1
+          return (a.label || a.name).localeCompare(b.label || a.name)
+        })
+      }
+      
       // For other props, collect dimension tokens from theme
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const dimensions = root?.dimensions || {}
@@ -225,15 +364,16 @@ export default function DimensionTokenSelector({
       }
       
       // First, check if this prop name matches a dimension category (e.g., "border-radius")
-      // For border-radius, only collect border-radius specific dimensions
-      if (propNameLower === 'border-radius' && dimensions['border-radius'] && typeof dimensions['border-radius'] === 'object') {
-        collectDimensions(dimensions['border-radius'], ['border-radius'])
-      } else if (dimensions[propNameLower] && typeof dimensions[propNameLower] === 'object') {
+      // Skip border-radius, thumb-border-radius, track-border-radius, track-inner-padding, label-switch-gap, icon, and thumb-icon-size since they're handled above
+      if (propNameLower !== 'border-radius' && propNameLower !== 'thumb-border-radius' && propNameLower !== 'track-border-radius' && 
+          propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size' &&
+          dimensions[propNameLower] && typeof dimensions[propNameLower] === 'object') {
         collectDimensions(dimensions[propNameLower], [propNameLower])
       }
       
-      // For non-border-radius, non-horizontal-padding, and non-icon props, also collect general dimensions (default, sm, md, lg, xl) from the "general" node
-      if (propNameLower !== 'border-radius' && propNameLower !== 'horizontal-padding' && propNameLower !== 'icon') {
+      // For non-border-radius, non-horizontal-padding, non-track-inner-padding, non-label-switch-gap, and non-icon props, also collect general dimensions (default, sm, md, lg, xl) from the "general" node
+      if (propNameLower !== 'border-radius' && propNameLower !== 'thumb-border-radius' && propNameLower !== 'track-border-radius' &&
+          propNameLower !== 'horizontal-padding' && propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size') {
         const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
         if (dimensions.general && typeof dimensions.general === 'object') {
           generalDims.forEach(dim => {
@@ -253,8 +393,9 @@ export default function DimensionTokenSelector({
       }
       
       // Also collect all nested dimensions (like icon.default, spacer.sm, etc.)
-      // But skip this for border-radius, horizontal-padding, and icon since we only want specific tokens
-      if (propNameLower !== 'border-radius' && propNameLower !== 'horizontal-padding' && propNameLower !== 'icon') {
+      // But skip this for border-radius, thumb-border-radius, track-border-radius, horizontal-padding, track-inner-padding, label-switch-gap, icon, and thumb-icon-size since we only want specific tokens
+      if (propNameLower !== 'border-radius' && propNameLower !== 'thumb-border-radius' && propNameLower !== 'track-border-radius' &&
+          propNameLower !== 'horizontal-padding' && propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size') {
         collectDimensions(dimensions, [])
       }
       
@@ -266,8 +407,18 @@ export default function DimensionTokenSelector({
         const cssVarParts = cssVarName.split('-')
         const firstPart = cssVarParts[0]
         
-        // For border-radius prop, only keep border-radius specific tokens
-        if (propNameLower === 'border-radius') {
+        // If we have a current category, only show tokens from that category
+        if (currentCategory) {
+          // Check if this token belongs to the current category
+          // e.g., if currentCategory is 'icon', only show 'icon-*' tokens
+          // e.g., if currentCategory is 'general', only show 'general-*' tokens
+          if (firstPart !== currentCategory) {
+            return false
+          }
+        }
+        
+        // For border-radius, thumb-border-radius, or track-border-radius props, only keep border-radius specific tokens
+        if (propNameLower === 'border-radius' || propNameLower === 'thumb-border-radius' || propNameLower === 'track-border-radius') {
           // Only keep tokens that start with "border-radius-"
           return firstPart === 'border' && cssVarParts[1] === 'radius'
         }
@@ -278,8 +429,8 @@ export default function DimensionTokenSelector({
           return firstPart === 'spacer'
         }
         
-        // For icon prop, only keep icon tokens
-        if (propNameLower === 'icon') {
+        // For icon or thumb-icon-size prop, only keep icon tokens
+        if (propNameLower === 'icon' || propNameLower === 'thumb-icon-size') {
           // Only keep tokens that start with "icon-"
           return firstPart === 'icon'
         }
@@ -364,7 +515,7 @@ export default function DimensionTokenSelector({
       if (b.value !== undefined) return 1
       return (a.label || a.name).localeCompare(b.label || b.name)
     })
-  }, [theme, tokens, propName])
+  }, [theme, tokensFromVars, propName, mode, targetCssVar, getDimensionCategory])
 
   // Track slider position in local state - initialized from CSS var once, then controlled by user
   const [selectedToken, setSelectedToken] = useState<string | undefined>(undefined)
@@ -402,12 +553,28 @@ export default function DimensionTokenSelector({
       setIsPixelMode(false)
       if (dimensionTokens.length === 0) return
       
+      // Resolve the current value to see what it actually points to
+      const resolvedValue = readCssVarResolved(targetCssVar)
+      
       const matchingToken = dimensionTokens.find(token => {
-        // Exact match
+        // Exact match with var() wrapper
         if (currentValue === `var(${token.name})` || currentValue === token.name) return true
+        
+        // Check resolved value matches token name
+        if (resolvedValue && (resolvedValue === `var(${token.name})` || resolvedValue === token.name)) return true
+        
         // Check if current value contains the CSS var reference
-        const varName = token.name.replace('--recursica-brand-dimensions-', '').replace('--recursica-tokens-size-', '')
-        return currentValue.includes(varName) || currentValue.includes(token.name)
+        const varName = token.name.replace('--recursica-brand-dimensions-', '').replace('--recursica-tokens-size-', '').replace('--recursica-tokens-font-size-', '')
+        if (currentValue.includes(varName) || currentValue.includes(token.name)) return true
+        
+        // Check if resolved value contains the token name
+        if (resolvedValue && (resolvedValue.includes(varName) || resolvedValue.includes(token.name))) return true
+        
+        // Try to match by resolving the token and comparing resolved values
+        const tokenResolved = readCssVarResolved(token.name)
+        if (resolvedValue && tokenResolved && resolvedValue === tokenResolved) return true
+        
+        return false
       })
       
       setSelectedToken(matchingToken?.name)
@@ -416,7 +583,7 @@ export default function DimensionTokenSelector({
       setIsPixelMode(true)
       const pxValue = extractPixelValue(currentValue)
       // Determine max pixel value based on prop name
-      const maxPixelValue = propName.toLowerCase() === 'content-max-width' ? 500 : 200
+      const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
       setPixelValue(Math.max(0, Math.min(maxPixelValue, pxValue))) // Clamp to 0-maxPixelValue
     }
   }, [targetCssVar, dimensionTokens, propName])
@@ -450,6 +617,10 @@ export default function DimensionTokenSelector({
     cssVars.forEach(cssVar => {
       updateCssVar(cssVar, `var(${token.name})`)
     })
+    // Dispatch event to notify components of CSS var updates
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars }
+    }))
   }
   
   // Handle pixel slider changes
@@ -462,11 +633,15 @@ export default function DimensionTokenSelector({
     cssVars.forEach(cssVar => {
       updateCssVar(cssVar, `${value}px`)
     })
+    // Dispatch event to notify components of CSS var updates
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars }
+    }))
   }
 
   // Determine max pixel value based on prop name
-  // content-max-width can go up to 500px, others default to 200px
-  const maxPixelValue = propName.toLowerCase() === 'content-max-width' ? 500 : 200
+  // max-width can go up to 500px, others default to 200px
+  const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
 
   // Render pixel slider for raw pixel values
   if (isPixelMode) {

@@ -710,11 +710,9 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     applyForLayer(alts[altKey], `alternative-${altKey}`)
   })
 
-  // Report layers missing palette surface references
+  // Report layers missing palette surface references (silently via event only)
   if (missingPaletteSurfaces.length > 0) {
     try {
-      // eslint-disable-next-line no-console
-      console.warn('[layers] Surfaces missing palette tone refs:', missingPaletteSurfaces)
       window.dispatchEvent(new CustomEvent('missingLayerPaletteRefs', { detail: { layers: missingPaletteSurfaces.slice() } }))
     } catch {}
   }

@@ -319,7 +319,38 @@ background-color: var(--button-bg, var(--recursica-ui-kit-components-button-colo
    - **Impact**: Minimal - simple properties
    - **Status**: Low priority but easy win
 
+## Toolbar Config Validation
+
+### Schema Validation
+- [x] JSON structure is valid
+- [x] All required fields present (icon, label, visible)
+- [x] Group structure is correct (no icons in grouped props)
+- [x] Variant structure is correct
+
+### Prop Coverage
+- [x] All root props from UIKit.json are represented:
+  - [x] `font-size`
+  - [x] `border-radius`
+  - [x] `elevation`
+  - [x] `max-width`
+- [x] Variant props are correctly grouped:
+  - [x] `background` and `background-hover` grouped
+  - [x] `text` and `text-hover` grouped
+  - [x] `border` (grouped: border-size, border-radius, border-color)
+  - [x] `width` (grouped: min-width, max-width)
+  - [x] `spacing` (grouped: icon-text-gap, horizontal-padding)
+
+### Icon Validation
+- [x] All icons are valid Phosphor Icons
+- [x] Icons are automatically imported (verified in iconLibrary.ts)
+- [x] No missing icon warnings in browser console
+
+### Notes
+- Size variant props (height, icon, min-width, horizontal-padding, icon-text-gap) are handled automatically via size variant selection
+- Color variant props (background, background-hover, text, text-hover) are filtered based on selected color variant
+- Grouped props appear in parent prop's floating palette (no separate icons)
+
 ## Last Updated
 
-2025-12-12
+2025-01-27
 

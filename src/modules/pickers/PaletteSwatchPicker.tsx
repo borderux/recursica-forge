@@ -250,6 +250,13 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                           updateCssVar(prefixedTarget, `var(${paletteCssVar})`, tokensJson)
                         })
                         
+                        // Trigger a custom event to notify that CSS vars were updated
+                        try {
+                          window.dispatchEvent(new CustomEvent('cssVarsUpdated', { 
+                            detail: { cssVars: cssVarsToUpdate, paletteCssVar } 
+                          }))
+                        } catch {}
+                        
                         // Persist to theme JSON if this is an overlay color
                         const isOverlayColor = cssVarsToUpdate.some(cssVar => cssVar.includes('state-overlay-color'))
                         if (isOverlayColor && setTheme && themeJson) {

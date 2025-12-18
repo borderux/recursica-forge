@@ -119,7 +119,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
         const isSizeGroup = category === 'size' && 
           subcategory !== 'border-radius' && 
           subcategory !== 'border-radius-no-text' && 
-          subcategory !== 'content-max-width'
+          subcategory !== 'max-width'
         
         if (isLayerGroup || isSizeGroup) {
           if (!grouped[category]) grouped[category] = {}

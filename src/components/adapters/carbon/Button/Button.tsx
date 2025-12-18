@@ -79,10 +79,17 @@ export default function Button({
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
-  const contentMaxWidthVar = getComponentCssVar('Button', 'size', 'content-max-width', undefined)
+  const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
   
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
+  
+  // Read the actual background color value to check if it's transparent
+  // If it's transparent, set it directly to override library defaults
+  const bgColorValue = readCssVar(buttonBgVar)
+  const backgroundColorValue = bgColorValue === 'transparent' 
+    ? 'transparent' 
+    : (isAlternativeLayer ? `var(${buttonBgVar})` : `var(${buttonBgVar})`)
   
   // Merge library-specific props
   const carbonProps = {
@@ -94,8 +101,8 @@ export default function Button({
     className,
     style: {
       // Use CSS variables for theming - supports both standard and alternative layers
-      // Use Recursica CSS vars directly - CSS file will handle Carbon fallbacks
-      backgroundColor: isAlternativeLayer ? `var(${buttonBgVar})` : `var(${buttonBgVar})`,
+      // If the value is transparent, set it directly to override library defaults
+      backgroundColor: backgroundColorValue,
       color: isAlternativeLayer ? `var(${buttonColorVar})` : `var(${buttonColorVar})`,
       fontSize: `var(${fontSizeVar})`,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
@@ -125,7 +132,7 @@ export default function Button({
       '--button-color': isAlternativeLayer ? `var(${buttonColorVar})` : `var(${buttonColorVar})`,
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
-      '--button-content-max-width': `var(${contentMaxWidthVar})`,
+      '--button-max-width': `var(${maxWidthVar})`,
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Carbon's default disabled styles to keep colors unchanged
       ...(disabled && {
