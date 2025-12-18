@@ -430,9 +430,12 @@ export default function PropControl({
             const groupedPropKey = groupedPropName.toLowerCase()
             let groupedProp = prop.borderProps!.get(groupedPropKey)
             
-            // Special case: border-color is stored as "border" in the color category
+            // Special case mappings: toolbar config names -> UIKit.json property names
             if (!groupedProp && groupedPropKey === 'border-color') {
               groupedProp = prop.borderProps!.get('border')
+            }
+            if (!groupedProp && groupedPropKey === 'text-color') {
+              groupedProp = prop.borderProps!.get('text')
             }
             
             if (!groupedProp) {

@@ -83,13 +83,24 @@ function resolveTokenRef(
   }
   
   // Handle brand-level typography references: {brand.typography.button.font-size} (no mode needed)
+  // Note: Typography style references like {brand.typography.caption} should NOT be resolved here
+  // because they don't have a single CSS variable - they have multiple properties (font-size, font-weight, etc.)
+  // Components use typographyUtils to extract the style name and get individual property CSS variables
+  // Only resolve if it's a specific property like {brand.typography.caption.font-size}
   if (/^brand\.typography\./i.test(inner)) {
     const parts = inner.split('.').filter(Boolean)
     if (parts.length >= 2 && parts[1].toLowerCase() === 'typography') {
-      // parts: ['brand', 'typography', 'button', 'font-size']
-      // We want: --recursica-brand-typography-button-font-size
-      const typoPath = parts.slice(2).join('-') // Skip 'brand' and 'typography'
-      return `var(--recursica-brand-typography-${typoPath})`
+      // Check if this is a specific property (e.g., caption.font-size) or just a style name (e.g., caption)
+      if (parts.length > 3) {
+        // This is a specific property like {brand.typography.caption.font-size}
+        // parts: ['brand', 'typography', 'caption', 'font-size']
+        // We want: --recursica-brand-typography-caption-font-size
+        const typoPath = parts.slice(2).join('-') // Skip 'brand' and 'typography'
+        return `var(--recursica-brand-typography-${typoPath})`
+      }
+      // Otherwise, it's just a style name like {brand.typography.caption}
+      // Don't resolve it - return null so it's preserved as-is
+      return null
     }
   }
   
@@ -213,10 +224,18 @@ function resolveTokenRef(
       return `var(--recursica-brand-${mode}-palettes-${paletteKey}-primary-tone)`
     }
     
-    // Palette alert/warning/success: palette.alert (legacy format)
-    const paletteCoreMatch = /^palettes?\.(alert|warning|success)$/i.exec(path)
+    // Palette core colors: palettes.core.white or palettes.core.black
+    // These map to palettes.core-colors.white/black
+    const paletteCoreMatch = /^palettes?\.core\.(white|black)$/i.exec(path)
     if (paletteCoreMatch) {
-      const [, coreColor] = paletteCoreMatch
+      const [, color] = paletteCoreMatch
+      return `var(--recursica-brand-${mode}-palettes-core-${color})`
+    }
+    
+    // Palette alert/warning/success: palette.alert (legacy format)
+    const paletteCoreLegacyMatch = /^palettes?\.(alert|warning|success)$/i.exec(path)
+    if (paletteCoreLegacyMatch) {
+      const [, coreColor] = paletteCoreLegacyMatch
       return `var(--recursica-brand-${mode}-palettes-core-${coreColor})`
     }
     
@@ -348,6 +367,19 @@ function traverseUIKit(
       const type = (value as any).$type
       
       const cssVarName = toCssVarName(currentPath.join('.'))
+      
+      // Handle typography type: {brand.typography.caption}
+      // Typography styles don't have a single CSS variable - they have multiple properties
+      // (font-size, font-weight, etc.). We should NOT create a CSS variable that references
+      // the typography style name directly. Instead, components should use the typography
+      // utility functions to get the individual property CSS variables.
+      if (type === 'typography' && typeof val === 'string') {
+        // Don't create a CSS variable for typography type - it's handled differently
+        // Components use typographyUtils to extract the style name and get individual properties
+        // Just preserve the raw value for components to read
+        vars[cssVarName] = val.trim()
+        return
+      }
       
       // Handle dimension type: { value: number | string, unit: string }
       if (type === 'dimension' && val && typeof val === 'object' && 'value' in val && 'unit' in val) {

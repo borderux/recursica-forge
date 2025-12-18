@@ -174,10 +174,13 @@ export default function ComponentToolbar({
           // Also add any props from the group config that might not have been found yet
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
             if (!groupedProps.has(groupedPropName.toLowerCase())) {
-              // Special case: border-color is stored as "border" in the color category
+              // Special case mappings: toolbar config names -> UIKit.json property names
               let groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropName.toLowerCase())
               if (!groupedProp && groupedPropName.toLowerCase() === 'border-color') {
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'color')
+              }
+              if (!groupedProp && groupedPropName.toLowerCase() === 'text-color') {
+                groupedProp = structure.props.find(p => p.name.toLowerCase() === 'text' && p.category === 'color')
               }
               if (groupedProp) {
                 groupedProps.set(groupedPropName.toLowerCase(), groupedProp)
