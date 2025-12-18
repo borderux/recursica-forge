@@ -92,16 +92,18 @@ export function Chip({
         {children}
         {deletable && onDelete && (
           <button
-            onClick={(e) => {
+            disabled={disabled}
+            onClick={disabled ? undefined : (e) => {
               e.stopPropagation()
               onDelete(e)
             }}
             style={{
               background: 'none',
               border: 'none',
-              cursor: 'pointer',
+              cursor: disabled ? 'not-allowed' : 'pointer',
               padding: 0,
               marginLeft: '4px',
+              opacity: disabled ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : undefined,
             }}
           >
             ×

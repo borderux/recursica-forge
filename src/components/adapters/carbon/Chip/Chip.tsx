@@ -76,7 +76,7 @@ export default function Chip({
     size: carbonSize,
     disabled,
     onClick: disabled ? undefined : onClick,
-    onClose: deletable && onDelete ? onDelete : undefined,
+    onClose: deletable && onDelete && !disabled ? onDelete : undefined,
     // Use native renderIcon prop - CSS will handle sizing and spacing
     renderIcon: icon ? () => icon : undefined,
     className,
@@ -91,6 +91,10 @@ export default function Chip({
       '--chip-min-width': size === 'small' ? '24px' : '32px',
       '--chip-padding-x': `var(${paddingVar}, 12px)`,
       '--chip-border-radius': `var(${borderRadiusVar}, 16px)`,
+      // Set disabled opacity dynamically based on mode
+      ...(disabled && {
+        opacity: `var(--recursica-brand-${mode}-state-disabled, 0.5)`,
+      }),
       ...(elevation && elevation !== 'elevation-0' ? (() => {
         const elevationMatch = elevation.match(/elevation-(\d+)/)
         if (elevationMatch) {
