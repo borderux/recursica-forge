@@ -57,12 +57,12 @@ export function Toast({
     // Fallback to native div if component not available
     const bgVar = getComponentCssVar('Toast', 'color', `${variant}-background`, layer)
     const textVar = getComponentCssVar('Toast', 'color', `${variant}-text`, layer)
-    const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'vertical-padding', undefined)
-    const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'horizontal-padding', undefined)
-    const minWidthVar = getComponentCssVar('Toast', 'size', 'min-width', undefined)
-    const maxWidthVar = getComponentCssVar('Toast', 'size', 'max-width', undefined)
-    const iconVar = getComponentCssVar('Toast', 'size', 'icon', undefined)
-    const spacingVar = getComponentCssVar('Toast', 'size', 'spacing', undefined)
+    const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'default-vertical-padding', undefined)
+    const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'default-horizontal-padding', undefined)
+    const minWidthVar = getComponentCssVar('Toast', 'size', 'default-min-width', undefined)
+    const maxWidthVar = getComponentCssVar('Toast', 'size', 'default-max-width', undefined)
+    const iconVar = getComponentCssVar('Toast', 'size', 'default-icon', undefined)
+    const spacingVar = getComponentCssVar('Toast', 'size', 'default-spacing', undefined)
     
     return (
       <div

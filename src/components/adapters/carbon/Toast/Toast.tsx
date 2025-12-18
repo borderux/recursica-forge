@@ -62,12 +62,12 @@ export default function Toast({
   }
   
   // Get size CSS variables
-  const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'vertical-padding', undefined)
-  const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'horizontal-padding', undefined)
-  const minWidthVar = getComponentCssVar('Toast', 'size', 'min-width', undefined)
-  const maxWidthVar = getComponentCssVar('Toast', 'size', 'max-width', undefined)
-  const iconVar = getComponentCssVar('Toast', 'size', 'icon', undefined)
-  const spacingVar = getComponentCssVar('Toast', 'size', 'spacing', undefined)
+  const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'default-vertical-padding', undefined)
+  const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'default-horizontal-padding', undefined)
+  const minWidthVar = getComponentCssVar('Toast', 'size', 'default-min-width', undefined)
+  const maxWidthVar = getComponentCssVar('Toast', 'size', 'default-max-width', undefined)
+  const iconVar = getComponentCssVar('Toast', 'size', 'default-icon', undefined)
+  const spacingVar = getComponentCssVar('Toast', 'size', 'default-spacing', undefined)
   
   // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
   let elevationToApply: string | undefined = elevation

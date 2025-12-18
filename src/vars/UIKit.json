@@ -628,10 +628,10 @@
         }
       },
       "toast": {
-        "color": {
-          "layer-0": {
-            "variant": {
-              "default": {
+        "variant": {
+          "default": {
+            "color": {
+              "layer-0": {
                 "background": {
                   "$type": "color",
                   "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
@@ -641,7 +641,41 @@
                   "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
                 }
               },
-              "success": {
+              "layer-1": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
+                }
+              },
+              "layer-2": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
+                }
+              },
+              "layer-3": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
+                }
+              }
+            }
+          },
+          "success": {
+            "color": {
+              "layer-0": {
                 "background": {
                   "$type": "color",
                   "$value": "{brand.themes.light.layers.layer-alternative.success.property.surface}"
@@ -655,7 +689,53 @@
                   "$value": "{brand.themes.light.layers.layer-alternative.success.element.text.color}"
                 }
               },
-              "error": {
+              "layer-1": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.success.property.surface}"
+                },
+                "button": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.interactive.tone}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.text.color}"
+                }
+              },
+              "layer-2": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.success.property.surface}"
+                },
+                "button": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.interactive.tone}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.text.color}"
+                }
+              },
+              "layer-3": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.success.property.surface}"
+                },
+                "button": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.interactive.tone}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.text.color}"
+                }
+              }
+            }
+          },
+          "error": {
+            "color": {
+              "layer-0": {
                 "background": {
                   "$type": "color",
                   "$value": "{brand.themes.light.layers.layer-alternative.alert.property.surface}"
@@ -668,36 +748,8 @@
                   "$type": "color",
                   "$value": "{brand.themes.light.layers.layer-alternative.alert.element.text.color}"
                 }
-              }
-            }
-          },
-          "layer-1": {
-            "variant": {
-              "default": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
-                }
               },
-              "success": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.success.property.surface}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.interactive.tone}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.text.color}"
-                }
-              },
-              "error": {
+              "layer-1": {
                 "background": {
                   "$type": "color",
                   "$value": "{brand.themes.light.layers.layer-alternative.alert.property.surface}"
@@ -710,36 +762,8 @@
                   "$type": "color",
                   "$value": "{brand.themes.light.layers.layer-alternative.alert.element.text.color}"
                 }
-              }
-            }
-          },
-          "layer-2": {
-            "variant": {
-              "default": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
-                }
               },
-              "success": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.success.property.surface}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.interactive.tone}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.text.color}"
-                }
-              },
-              "error": {
+              "layer-2": {
                 "background": {
                   "$type": "color",
                   "$value": "{brand.themes.light.layers.layer-alternative.alert.property.surface}"
@@ -752,36 +776,8 @@
                   "$type": "color",
                   "$value": "{brand.themes.light.layers.layer-alternative.alert.element.text.color}"
                 }
-              }
-            }
-          },
-          "layer-3": {
-            "variant": {
-              "default": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
-                }
               },
-              "success": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.success.property.surface}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.interactive.tone}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.success.element.text.color}"
-                }
-              },
-              "error": {
+              "layer-3": {
                 "background": {
                   "$type": "color",
                   "$value": "{brand.themes.light.layers.layer-alternative.alert.property.surface}"
@@ -798,56 +794,55 @@
             }
           }
         },
-        "size": {
-                "vertical-padding": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.general.default}",
-                    "unit": "px"
-                  }
-                },
-                "horizontal-padding": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.general.lg}",
-                    "unit": "px"
-                  }
-                },
-                "spacing": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.general.md}",
-                    "unit": "px"
-                  }
-                },
-                "min-width": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": 384,
-                    "unit": "px"
-                  }
-                },
-                "max-width": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": 624,
-                    "unit": "px"
-                  }
-                },
-                "icon": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.icon.default}",
-                    "unit": "px"
-                  }
-                }
+
+        "vertical-padding": {
+          "$type": "dimension",
+          "$value": {
+            "value": "{brand.dimensions.general.default}",
+            "unit": "px"
+          }
+        },
+        "horizontal-padding": {
+          "$type": "dimension",
+          "$value": {
+            "value": "{brand.dimensions.general.lg}",
+            "unit": "px"
+          }
+        },
+        "spacing": {
+          "$type": "dimension",
+          "$value": {
+            "value": "{brand.dimensions.general.md}",
+            "unit": "px"
+          }
+        },
+        "min-width": {
+          "$type": "dimension",
+          "$value": {
+            "value": 384,
+            "unit": "px"
+          }
+        },
+        "max-width": {
+          "$type": "dimension",
+          "$value": {
+            "value": 624,
+            "unit": "px"
+          }
+        },
+        "icon": {
+          "$type": "dimension",
+          "$value": {
+            "value": "{brand.dimensions.icon.default}",
+            "unit": "px"
+          }
         },
         "elevation": {
-            "$type": "elevation",
-            "$value": {
-              "value": "{brand.dimensions.elevation.elevation-3}"
-            }
+          "$type": "elevation",
+          "$value": {
+            "value": "{brand.dimensions.elevation.elevation-3}"
           }
+        }
       },
       "switch": {
         "variant": {
