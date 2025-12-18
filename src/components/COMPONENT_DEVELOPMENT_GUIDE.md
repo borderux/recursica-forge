@@ -528,41 +528,45 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
 
 #### Grouped Props Example
 
-For props that combine multiple properties (like "border"), define the parent prop with `groupedProps`:
+For props that combine multiple properties (like "border"), define the parent prop with a `group` object:
 
 ```json
 {
   "props": {
     "border": {
-      "icon": "frame-corners",
+      "icon": "square",
       "label": "Border",
-      "floatingPaletteLabel": "Border Settings",
-      "groupedProps": ["border-size", "border-radius", "border-color"]
-    },
-    "border-size": {
-      "icon": "frame-corners",
-      "label": "Border Size",
-      "floatingPaletteLabel": "Border Size"
-    },
-    "border-radius": {
-      "icon": "corners-out",
-      "label": "Border Radius",
-      "floatingPaletteLabel": "Border Radius"
-    },
-    "border-color": {
-      "icon": "square-2-stack",
-      "label": "Border Color",
-      "floatingPaletteLabel": "Border Color"
+      "visible": true,
+      "group": {
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Corner Radius",
+          "visible": true
+        },
+        "border-color": {
+          "label": "Color",
+          "visible": true
+        }
+      }
     }
   }
 }
 ```
 
-**Note**: The grouped props (`border-size`, `border-radius`, `border-color`) still need their own entries in the config, but they won't appear as separate icons in the toolbar - they'll be accessible through the parent "border" icon's floating palette.
+**Important Notes**:
+- Grouped props do NOT have icons (they appear in the parent prop's floating palette)
+- Grouped props do NOT need separate entries in the `props` object
+- Grouped prop names must match `UIKit.json` prop names exactly
+- The parent prop (e.g., `border`) appears as a single icon in the toolbar
+
+**Note**: Grouped props do NOT need separate entries in the config - they only appear in the parent prop's `group` object. They won't appear as separate icons in the toolbar - they'll be accessible through the parent prop's floating palette.
 
 #### Variant-Specific Props
 
-Props that are variant-specific (e.g., `size.variant.default.height`) should use the base prop name without the variant prefix:
+Props that are variant-specific (e.g., `size.variant.default.height`) should use the base prop name without the variant prefix. The toolbar automatically handles variant-specific props based on the selected variant:
 
 ```json
 {
@@ -570,18 +574,21 @@ Props that are variant-specific (e.g., `size.variant.default.height`) should use
     "height": {
       "icon": "arrows-up-down",
       "label": "Height",
-      "floatingPaletteLabel": "Height"
+      "visible": true
     },
     "horizontal-padding": {
       "icon": "arrows-left-right",
       "label": "Horizontal Padding",
-      "floatingPaletteLabel": "Horizontal Padding"
+      "visible": true
     }
   }
 }
 ```
 
-The toolbar automatically handles variant-specific props based on the selected variant.
+The toolbar automatically:
+- Filters props based on selected variants
+- Shows only props relevant to the current variant selection
+- Handles nested variants (e.g., Avatar's `style` and `style-secondary`)
 
 #### Testing Your Config
 
@@ -1132,6 +1139,146 @@ Each library implementation must include its own audit document that identifies:
 2. **Recursica CSS Variables Overriding Library Vars** (how Recursica vars override library vars)
 3. **Uncovered Library CSS Variables** (library vars not overridden by Recursica)
 4. **CSS Variable Fallback Chain** (Recursica → Library → Browser default)
+5. **Toolbar Config Validation** (schema validation and prop coverage) - **REQUIRED**
+
+### Schema Validation Step
+
+Before completing the audit, validate your toolbar configuration:
+
+#### 1. Validate JSON Schema
+
+```bash
+# Validate toolbar config JSON structure
+node -e "
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync('src/modules/toolbar/configs/Button.toolbar.json', 'utf8'));
+
+// Check required fields
+if (!config.props) throw new Error('Missing required field: props');
+if (config.variants && typeof config.variants !== 'object') throw new Error('variants must be an object');
+
+// Validate each prop
+for (const [propName, propConfig] of Object.entries(config.props)) {
+  if (!propConfig.icon) throw new Error(\`Prop \${propName} missing required field: icon\`);
+  if (!propConfig.label) throw new Error(\`Prop \${propName} missing required field: label\`);
+  if (propConfig.group) {
+    for (const [groupName, groupConfig] of Object.entries(propConfig.group)) {
+      if (!groupConfig.label) throw new Error(\`Grouped prop \${groupName} missing required field: label\`);
+    }
+  }
+}
+
+console.log('✓ Toolbar config schema is valid');
+"
+```
+
+#### 2. Validate Prop Coverage
+
+Ensure all root-level props from `UIKit.json` are represented in the toolbar config:
+
+```bash
+# Compare UIKit.json props with toolbar config
+node -e "
+const fs = require('fs');
+const uikit = JSON.parse(fs.readFileSync('src/vars/UIKit.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync('src/modules/toolbar/configs/Button.toolbar.json', 'utf8'));
+
+function extractRootProps(obj, prefix = []) {
+  const props = new Set();
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === 'variant' || key === 'size') continue;
+    if (value && typeof value === 'object' && !value.\$type && !value.\$value) {
+      if (key !== 'variant' && key !== 'size') {
+        continue;
+      }
+    } else if (value && (value.\$type || value.value)) {
+      props.add(key);
+    }
+  }
+  return Array.from(props);
+}
+
+function getConfigProps(config) {
+  const props = new Set();
+  if (config.props) {
+    for (const [key, value] of Object.entries(config.props)) {
+      props.add(key);
+      if (value.group) {
+        for (const groupKey of Object.keys(value.group)) {
+          props.add(groupKey);
+        }
+      }
+    }
+  }
+  return Array.from(props);
+}
+
+const component = uikit['ui-kit'].components.button;
+const rootProps = extractRootProps(component);
+const configProps = getConfigProps(config);
+const missing = rootProps.filter(p => !configProps.includes(p));
+
+if (missing.length > 0) {
+  console.error('✗ Missing props in toolbar config:', missing.join(', '));
+  process.exit(1);
+} else {
+  console.log('✓ All root props are represented in toolbar config');
+}
+"
+```
+
+#### 3. Validate Icon Names
+
+Ensure all icon names are valid Phosphor Icons:
+
+```bash
+# Check that all icons exist in iconLibrary
+node -e "
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync('src/modules/toolbar/configs/Button.toolbar.json', 'utf8'));
+const iconLibrary = fs.readFileSync('src/modules/components/iconLibrary.ts', 'utf8');
+
+function getAllIcons(config) {
+  const icons = new Set();
+  if (config.variants) {
+    for (const variant of Object.values(config.variants)) {
+      if (variant.icon) icons.add(variant.icon);
+    }
+  }
+  if (config.props) {
+    for (const prop of Object.values(config.props)) {
+      if (prop.icon) icons.add(prop.icon);
+    }
+  }
+  return Array.from(icons);
+}
+
+const icons = getAllIcons(config);
+const missing = icons.filter(icon => !iconLibrary.includes(icon));
+
+if (missing.length > 0) {
+  console.error('✗ Icons not found in iconLibrary:', missing.join(', '));
+  console.log('Note: Icons should be automatically imported by Vite plugin when config is saved');
+  process.exit(1);
+} else {
+  console.log('✓ All icons are valid');
+}
+"
+```
+
+#### 4. Add Validation to Audit Document
+
+Include validation results in your audit document:
+
+```markdown
+## Toolbar Config Validation
+
+- [x] JSON schema is valid
+- [x] All root props from UIKit.json are represented
+- [x] All icon names are valid Phosphor Icons
+- [x] All grouped props match UIKit.json prop names
+- [x] Variant props are correctly configured
+```
 
 ### Audit File Location
 
@@ -1160,6 +1307,54 @@ src/components/adapters/
 - ❌ Global audit reports at the adapter root level
 - ❌ Combined audit files covering multiple libraries
 - ❌ Audit files outside the library's component folder
+
+### Toolbar Config Validation (Required in Audit)
+
+**IMPORTANT**: Every component audit must include a **Toolbar Config Validation** section that verifies the toolbar configuration is complete and correct.
+
+#### Required Validation Checks
+
+1. **Schema Compliance**: The toolbar config JSON follows the correct schema structure
+2. **Prop Coverage**: All root-level props from `UIKit.json` are represented in the toolbar config
+3. **Icon Validity**: All icon names are valid Phosphor Icons and are imported
+4. **Group Integrity**: All grouped props match actual prop names from `UIKit.json`
+5. **Variant Alignment**: Variant props are correctly configured to match `UIKit.json` structure
+
+#### Example Audit Section Template
+
+Include this section in every audit document:
+
+```markdown
+## Toolbar Config Validation
+
+### Schema Validation
+- [x] JSON structure is valid
+- [x] All required fields present (icon, label, visible)
+- [x] Group structure is correct (no icons in grouped props)
+- [x] Variant structure is correct
+
+### Prop Coverage
+- [x] All root props from UIKit.json are represented:
+  - [x] `font-size`
+  - [x] `border-radius`
+  - [x] `elevation`
+  - [x] `max-width`
+- [x] Variant props are correctly grouped:
+  - [x] `background` and `background-hover` grouped
+  - [x] `text` and `text-hover` grouped
+
+### Icon Validation
+- [x] All icons are valid Phosphor Icons
+- [x] Icons are automatically imported (verified in iconLibrary.ts)
+- [x] No missing icon warnings in browser console
+
+### Notes
+- Size variant props (height, icon, etc.) are handled automatically via size variant selection
+- Color variant props are filtered based on selected color variant
+- Grouped props appear in parent prop's floating palette (no separate icons)
+```
+
+**Validation Script**: Use the validation scripts provided in the [Schema Validation Step](#schema-validation-step) section above to automate these checks.
 
 ### Audit File Template
 
