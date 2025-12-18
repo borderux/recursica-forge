@@ -844,12 +844,33 @@ class VarsStore {
                   return `var(--recursica-tokens-color-${family}-${level})`
                 }
               }
-              // Match pattern: brand.themes.{mode}.palettes.white or brand.themes.{mode}.palettes.black
-              const brandMatch = new RegExp(`^brand\\.themes\\.(light|dark)\\.palettes\\.(white|black)$`, 'i').exec(inner)
+              // Match pattern: brand.themes.{mode}.palettes.core-colors.{color}.{property}
+              const coreColorPropertyMatch = /^brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z]+)\.(tone|on-tone|interactive)$/i.exec(inner)
+              if (coreColorPropertyMatch) {
+                const [, refMode, color, property] = coreColorPropertyMatch
+                const modeMatch = refMode.toLowerCase()
+                const colorName = color.toLowerCase()
+                const propName = property.toLowerCase()
+                return `var(--recursica-brand-${modeMatch}-palettes-core-${colorName}-${propName})`
+              }
+              // Match pattern: brand.themes.{mode}.palettes.core-colors.interactive.default.tone
+              const interactiveToneMatch = /^brand\.themes\.(light|dark)\.palettes\.core-colors\.interactive\.(default|hover)\.(tone|on-tone)$/i.exec(inner)
+              if (interactiveToneMatch) {
+                const [, refMode, state, type] = interactiveToneMatch
+                const modeMatch = refMode.toLowerCase()
+                const stateName = state.toLowerCase()
+                const typeName = type.toLowerCase().replace(/-/g, '-')
+                return `var(--recursica-brand-${modeMatch}-palettes-core-interactive-${stateName}-${typeName})`
+              }
+              // Match pattern: brand.themes.{mode}.palettes.core-colors.{color} or brand.themes.{mode}.palettes.{color}
+              const brandMatch = new RegExp(`^brand\\.themes\\.(light|dark)\\.palettes\\.(?:core-colors\\.)?([a-z]+)$`, 'i').exec(inner)
               if (brandMatch) {
                 const modeMatch = brandMatch[1].toLowerCase()
                 const color = brandMatch[2].toLowerCase()
-                return `var(--recursica-brand-${modeMatch}-palettes-core-${color})`
+                // Check if it's a core color
+                if (['black', 'white', 'alert', 'warning', 'success', 'interactive'].includes(color)) {
+                  return `var(--recursica-brand-${modeMatch}-palettes-core-${color})`
+                }
               }
             }
           }
@@ -900,8 +921,38 @@ class VarsStore {
                 colors[`--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone`] = hoverOnToneRef
               }
             }
+          } else if (coreValue && typeof coreValue === 'object' && !coreValue.$value) {
+            // Handle new structure: each core color has tone, on-tone, and interactive
+            const tone = coreValue.tone?.$value || coreValue.tone
+            const onTone = coreValue['on-tone']?.$value || coreValue['on-tone']
+            const interactive = coreValue.interactive?.$value || coreValue.interactive
+            
+            // Main tone var (backward compatibility)
+            if (tone) {
+              tokenRef = resolveTokenRef(tone)
+            }
+            
+            // Generate additional CSS vars for new structure
+            if (tone) {
+              const toneRef = resolveTokenRef(tone)
+              if (toneRef) {
+                colors[`--recursica-brand-${mode}-palettes-core-${colorName}-tone`] = toneRef
+              }
+            }
+            if (onTone) {
+              const onToneRef = resolveTokenRef(onTone)
+              if (onToneRef) {
+                colors[`--recursica-brand-${mode}-palettes-core-${colorName}-on-tone`] = onToneRef
+              }
+            }
+            if (interactive) {
+              const interactiveRef = resolveTokenRef(interactive)
+              if (interactiveRef) {
+                colors[`--recursica-brand-${mode}-palettes-core-${colorName}-interactive`] = interactiveRef
+              }
+            }
           } else {
-            // Handle simple string values for other core colors
+            // Handle simple string values for backward compatibility
             tokenRef = resolveTokenRef(coreValue)
           }
           
