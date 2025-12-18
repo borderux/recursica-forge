@@ -271,7 +271,45 @@ None. The implementation follows all guidelines correctly.
 - Disabled state uses opacity override
 - Files are organized in `mantine/Switch/` folder matching the component guide structure
 
+## Toolbar Config Validation
+
+### Schema Validation
+- [x] JSON structure is valid
+- [x] All required fields present (icon, label, visible)
+- [x] Group structure is correct (no icons in grouped props)
+- [x] Variant structure is correct
+
+### Prop Coverage
+- [x] All root props from UIKit.json are represented:
+  - [x] `thumb-height`
+  - [x] `thumb-width`
+  - [x] `track-inner-padding`
+  - [x] `label-switch-gap`
+  - [x] `thumb-border-radius`
+  - [x] `track-border-radius`
+  - [x] `thumb-icon-size`
+  - [x] `track-width`
+  - [x] `thumb-icon-selected`
+  - [x] `thumb-icon-unselected`
+  - [x] `thumb-elevation`
+  - [x] `track-elevation`
+- [x] Variant props are correctly grouped:
+  - [x] `thumb` (grouped: thumb-selected, thumb-unselected, thumb-height, thumb-width, thumb-border-radius)
+  - [x] `track` (grouped: track-selected, track-unselected, track-width, track-inner-padding, track-border-radius)
+  - [x] `thumb-icon` (grouped: thumb-icon-size, thumb-icon-selected, thumb-icon-unselected)
+  - [x] `elevation` (grouped: thumb-elevation, track-elevation)
+
+### Icon Validation
+- [x] All icons are valid Phosphor Icons
+- [x] Icons are automatically imported (verified in iconLibrary.ts)
+- [x] No missing icon warnings in browser console
+
+### Notes
+- Color variant props (thumb-selected, thumb-unselected, track-selected, track-unselected) are filtered based on selected color variant
+- Grouped props appear in parent prop's floating palette (no separate icons)
+- Thumb-icon group is set to `visible: false` by default
+
 ## Last Updated
 
-2025-12-12
+2025-01-27
 
