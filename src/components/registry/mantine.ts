@@ -16,8 +16,8 @@ registerComponent('mantine', 'Tabs', () => import('../adapters/mantine/Tabs/Tabs
 // Switch
 registerComponent('mantine', 'Switch', () => import('../adapters/mantine/Switch/Switch'))
 
-// Chip
-registerComponent('mantine', 'Chip', () => import('../adapters/mantine/Chip/Chip'))
+// Avatar
+registerComponent('mantine', 'Avatar', () => import('../adapters/mantine/Avatar/Avatar'))
 
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))

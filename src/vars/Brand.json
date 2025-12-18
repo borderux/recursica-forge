@@ -2399,10 +2399,6 @@
         }
       },
       "border-radius": {
-        "xl": {
-          "$type": "number",
-          "$value": "{tokens.size.3x}"
-        },
         "none": {
           "$type": "number",
           "$value": "{tokens.size.none}"
@@ -2418,6 +2414,14 @@
         "lg": {
           "$type": "number",
           "$value": "{tokens.size.2x}"
+        },
+        "xl": {
+          "$type": "number",
+          "$value": "{tokens.size.3x}"
+        },
+        "2xl": {
+          "$type": "number",
+          "$value": "{tokens.size.4x}"
         }
       },
       "general": {
@@ -2440,6 +2444,10 @@
         "xl": {
           "$type": "number",
           "$value": "{tokens.size.3x}"
+        },
+        "2xl": {
+          "$type": "number",
+          "$value": "{tokens.size.4x}"
         }
       }
     },

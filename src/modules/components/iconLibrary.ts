@@ -32,6 +32,8 @@ import {
   CaretDoubleRight,
   CaretDown,
   Check,
+  CircleHalf,
+  CircleHalfTilt,
   Columns,
   CopySimple,
   CornersOut,
@@ -58,12 +60,14 @@ import {
   SignOut,
   SlidersHorizontal,
   SplitHorizontal,
+  Square,
   Stack,
   Sun,
   Swap,
   TextAa,
   Trash,
   Upload,
+  User,
   X,
 } from '@phosphor-icons/react'
 
@@ -154,6 +158,11 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'check': Check,
   'sliders-horizontal': SlidersHorizontal,
   'faders-horizontal': FadersHorizontal,
+  'user': User,
+  'circle-half': CircleHalf,
+  'circle-half-tilt': CircleHalfTilt,
+  'border': FrameCorners,
+  'square': Square,
 }
 
 /**

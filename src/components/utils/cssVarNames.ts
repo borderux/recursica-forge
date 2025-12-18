@@ -50,7 +50,7 @@ export function getComponentCssVar(
 ): string {
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
-  const componentLevelProperties = ['font-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding']
+  const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
   
   // Check if this is a component-level property (not under size/color category)
   if (componentLevelProperties.includes(property.toLowerCase())) {
@@ -60,47 +60,79 @@ export function getComponentCssVar(
     return toCssVarName(parts.join('.'))
   }
   
-  const parts = ['components', component.toLowerCase(), category]
+  const parts = ['components', component.toLowerCase()]
   
-  // For color category, layer comes before the property
-  if (category === 'color' && layer) {
-    parts.push(layer)
-  }
-  
-  // For size category, check if property contains variant name (e.g., "default-height", "small-height")
-  // If it does, we need to insert "variant" into the path
+  // For size category, use the old structure: size.variant.default.height
   if (category === 'size') {
-    const variantMatch = property.match(/^(default|small)-(.+)$/)
+    parts.push(category)
+    const variantMatch = property.match(/^(default|small|large)-(.+)$/)
     if (variantMatch) {
       const [, variantName, propName] = variantMatch
       parts.push('variant', variantName, propName)
+    } else if (/^(default|small|large)$/.test(property)) {
+      // Property is just a variant name (e.g., "default", "small", "large")
+      // UIKit.json structure: size.variant.default (direct dimension value)
+      parts.push('variant', property)
     } else {
-      // Non-variant size property (shouldn't happen for size category, but handle gracefully)
+      // Non-variant size property (e.g., "icon", "border-radius", "font-size")
       const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
       parts.push(normalizedProperty)
     }
   } else {
-    // For color category, check if property contains variant name (e.g., "solid-text", "outline-background")
-    // Color variants are now nested under "variant" nodes in UIKit.json
-    // If it does, we need to insert "variant" into the path
-    // Pattern: {variant-name}-{property-name} where variant-name is a word and property-name follows
-    const colorVariantMatch = property.match(/^([a-z]+)-(.+)$/)
-    if (colorVariantMatch) {
-      const [, variantName, propName] = colorVariantMatch
-      // Known color variants: solid, text, outline, default
-      // If it matches a known variant pattern, insert "variant" segment
-      const knownVariants = ['solid', 'text', 'outline', 'default']
-      if (knownVariants.includes(variantName)) {
-        parts.push('variant', variantName, propName)
-      } else {
-        // Unknown variant pattern - treat as regular property
-        const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-        parts.push(normalizedProperty)
+    // For color category, use NEW STRUCTURE: variant.{variant-name}.color.{layer}.{property}
+    // For nested variants (Avatar): variant.text.variant.solid.color.layer-0.background
+    // For single variants (Button/Switch): variant.solid.color.layer-0.background
+    
+    // Check for nested variants (e.g., "text-solid-background" for Avatar)
+    const nestedVariantMatch = property.match(/^(text|icon)-(solid|ghost)-(.+)$/)
+    if (nestedVariantMatch) {
+      // NEW STRUCTURE: variant.{primary-variant}.variant.{secondary-variant}.color.{layer}.{property}
+      const [, primaryVariant, secondaryVariant, propName] = nestedVariantMatch
+      parts.push('variant', primaryVariant, 'variant', secondaryVariant, 'color')
+      if (layer) {
+        parts.push(layer)
       }
+      parts.push(propName)
     } else {
-      // Non-variant color property
-  const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-  parts.push(normalizedProperty)
+      // Check for image variant (e.g., "image-background")
+      const imageVariantMatch = property.match(/^image-(.+)$/)
+      if (imageVariantMatch) {
+        const [, propName] = imageVariantMatch
+        parts.push('variant', 'image', 'color')
+        if (layer) {
+          parts.push(layer)
+        }
+        parts.push(propName)
+      } else {
+        // Single-level variant (e.g., "solid-background", "outline-text", "default-thumb-selected")
+        // Check if property starts with a known variant name followed by a hyphen
+        const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost']
+        let variantName: string | null = null
+        let propName: string | null = null
+        
+        // Try to match known variants at the start of the property
+        for (const variant of knownVariants) {
+          if (property.startsWith(`${variant}-`)) {
+            variantName = variant
+            propName = property.substring(variant.length + 1) // +1 for the hyphen
+            break
+          }
+        }
+        
+        if (variantName && propName) {
+          // Use new structure: variant.{name}.color.{layer}.{property}
+          parts.push('variant', variantName, 'color')
+          if (layer) {
+            parts.push(layer)
+          }
+          parts.push(propName)
+        } else {
+          // Non-variant color property (legacy support)
+          parts.push(category)
+          const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+          parts.push(normalizedProperty)
+        }
+      }
     }
   }
   

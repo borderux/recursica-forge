@@ -25,5 +25,5 @@ debug.log
 .env.*.local
 *.local
 
-# Audit files in adapters
-**/adapters/**/*.audit.md
+# Audit files
+*.audit.md

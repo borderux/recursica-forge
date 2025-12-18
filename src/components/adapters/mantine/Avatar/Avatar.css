@@ -1,0 +1,34 @@
+/**
+ * Mantine Avatar CSS Overrides
+ * 
+ * Overrides Mantine Avatar styles using Recursica CSS variables.
+ */
+
+/* Override avatar background color */
+.mantine-Avatar-root {
+  box-sizing: content-box !important;
+  background-color: var(--avatar-bg) !important;
+  border: var(--recursica-ui-kit-components-avatar-border-size) solid var(--avatar-border) !important;
+  width: var(--avatar-size) !important;
+  height: var(--avatar-size) !important;
+  padding: var(--recursica-ui-kit-components-avatar-padding) !important;
+  border-radius: var(--recursica-ui-kit-components-avatar-border-radius) !important;
+}
+
+/* Override avatar image */
+.mantine-Avatar-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit !important;
+}
+
+/* Override avatar placeholder/fallback text */
+.mantine-Avatar-placeholder {
+  color: var(--avatar-label) !important;
+  font-size: var(--recursica-ui-kit-components-avatar-text-size) !important;
+  border-radius: inherit !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+

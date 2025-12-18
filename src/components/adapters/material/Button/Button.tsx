@@ -96,7 +96,13 @@ export default function Button({
     startIcon: icon && !isIconOnly ? icon : undefined,
     sx: {
       // Use CSS variables for theming - supports both standard and alternative layers
-      backgroundColor: `var(${buttonBgVar})`,
+      // Read the actual background color value - if it's transparent, set it directly to override library defaults
+      ...(() => {
+        const bgColorValue = readCssVar(buttonBgVar)
+        return {
+          backgroundColor: bgColorValue === 'transparent' ? 'transparent' : `var(${buttonBgVar})`
+        }
+      })(),
       color: `var(${buttonColorVar})`,
       // For outline, use the outline-text CSS var for border color and ensure border is set
       ...(variant === 'outline' ? {

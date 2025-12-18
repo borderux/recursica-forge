@@ -22,12 +22,39 @@ export default function DimensionTokenSelector({
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
 
+  // Helper to extract dimension category from CSS var value
+  const getDimensionCategory = useCallback((cssVarValue: string): string | null => {
+    if (!cssVarValue) return null
+    
+    // Check if it's a brand dimension reference
+    // Pattern: var(--recursica-brand-dimensions-{category}-{size})
+    const brandMatch = cssVarValue.match(/--recursica-brand-dimensions-([^-]+)/)
+    if (brandMatch) {
+      return brandMatch[1] // Returns 'icon', 'general', 'spacer', etc.
+    }
+    
+    // Check if it resolves to a brand dimension reference
+    const resolved = readCssVarResolved(targetCssVar)
+    if (resolved) {
+      const resolvedBrandMatch = resolved.match(/--recursica-brand-dimensions-([^-]+)/)
+      if (resolvedBrandMatch) {
+        return resolvedBrandMatch[1]
+      }
+    }
+    
+    return null
+  }, [targetCssVar])
+
   // Get available dimension tokens from theme JSON structure and convert to Token format
   const dimensionTokens = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: string }> = []
     
     try {
       const propNameLower = propName.toLowerCase()
+      
+      // Get current dimension category from the CSS var value
+      const currentValue = readCssVar(targetCssVar)
+      const currentCategory = currentValue ? getDimensionCategory(currentValue) : null
       
       // For font-size prop, only collect font size tokens from tokens.font.size
       if (propNameLower === 'font-size') {
@@ -380,6 +407,16 @@ export default function DimensionTokenSelector({
         const cssVarParts = cssVarName.split('-')
         const firstPart = cssVarParts[0]
         
+        // If we have a current category, only show tokens from that category
+        if (currentCategory) {
+          // Check if this token belongs to the current category
+          // e.g., if currentCategory is 'icon', only show 'icon-*' tokens
+          // e.g., if currentCategory is 'general', only show 'general-*' tokens
+          if (firstPart !== currentCategory) {
+            return false
+          }
+        }
+        
         // For border-radius, thumb-border-radius, or track-border-radius props, only keep border-radius specific tokens
         if (propNameLower === 'border-radius' || propNameLower === 'thumb-border-radius' || propNameLower === 'track-border-radius') {
           // Only keep tokens that start with "border-radius-"
@@ -478,7 +515,7 @@ export default function DimensionTokenSelector({
       if (b.value !== undefined) return 1
       return (a.label || a.name).localeCompare(b.label || b.name)
     })
-  }, [theme, tokensFromVars, propName, mode])
+  }, [theme, tokensFromVars, propName, mode, targetCssVar, getDimensionCategory])
 
   // Track slider position in local state - initialized from CSS var once, then controlled by user
   const [selectedToken, setSelectedToken] = useState<string | undefined>(undefined)
