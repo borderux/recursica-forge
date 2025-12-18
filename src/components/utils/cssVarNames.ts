@@ -50,7 +50,7 @@ export function getComponentCssVar(
 ): string {
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
-  const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
+  const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size', 'horizontal-padding', 'vertical-padding', 'icon-text-gap', 'icon']
   
   // Check if this is a component-level property (not under size/color category)
   if (componentLevelProperties.includes(property.toLowerCase())) {
@@ -106,7 +106,7 @@ export function getComponentCssVar(
       } else {
         // Single-level variant (e.g., "solid-background", "outline-text", "default-thumb-selected")
         // Check if property starts with a known variant name followed by a hyphen
-        const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost']
+        const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost', 'unselected', 'selected', 'error']
         let variantName: string | null = null
         let propName: string | null = null
         

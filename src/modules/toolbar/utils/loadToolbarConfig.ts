@@ -5,6 +5,7 @@
 import ButtonConfig from '../configs/Button.toolbar.json'
 import SwitchConfig from '../configs/Switch.toolbar.json'
 import AvatarConfig from '../configs/Avatar.toolbar.json'
+import ChipConfig from '../configs/Chip.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -40,6 +41,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return SwitchConfig as ToolbarConfig
       case 'avatar':
         return AvatarConfig as ToolbarConfig
+      case 'chip':
+        return ChipConfig as ToolbarConfig
       default:
         return null
     }

@@ -2,6 +2,7 @@ import React from 'react'
 import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
 import { Avatar } from '../../components/adapters/Avatar'
+import { Chip } from '../../components/adapters/Chip'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3' | 'layer-alternative-high-contrast' | 'layer-alternative-primary-color' | 'layer-alternative-alert' | 'layer-alternative-warning' | 'layer-alternative-success'
@@ -372,15 +373,18 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Chip',
       url: `${base}/chip`,
-      render: (_selectedLayers) => (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
-          <span style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
-          <span style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
-          <span style={{ background: `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 10px' }}>Primary</span>
-          <span style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
-        </div>
-      ),
+      render: (selectedLayers) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Chip variant="unselected" layer={layer as any}>Default Chip</Chip>
+            <Chip variant="unselected" layer={layer as any} onClick={() => {}}>Clickable</Chip>
+            <Chip variant="unselected" layer={layer as any} deletable onDelete={() => {}}>Deletable</Chip>
+            <Chip variant="selected" layer={layer as any}>Selected</Chip>
+            <Chip variant="unselected" layer={layer as any} disabled>Disabled</Chip>
+          </div>
+        )
+      },
     },
     {
       name: 'Divider',

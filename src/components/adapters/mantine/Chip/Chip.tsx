@@ -62,10 +62,10 @@ export default function Chip({
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant
   // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
   // Properties that exist: border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon, max-width
-  // Properties that don't exist: height, min-width (use fallbacks)
   const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
   const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
-  const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
+  const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
+  const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
   // Handle delete functionality - use ActionIcon in rightSection
@@ -118,10 +118,9 @@ export default function Chip({
       '--chip-border': isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
-      '--chip-height': size === 'small' ? '24px' : '32px',
-      '--chip-min-width': size === 'small' ? '24px' : '32px',
-      '--chip-padding-x': `var(${paddingVar}, 12px)`,
-      '--chip-border-radius': `var(${borderRadiusVar}, 16px)`,
+      '--chip-padding-x': `var(${horizontalPaddingVar})`,
+      '--chip-padding-y': `var(${verticalPaddingVar})`,
+      '--chip-border-radius': `var(${borderRadiusVar})`,
       // Set disabled opacity dynamically based on mode (Bug 2 fix)
       ...(disabled && {
         opacity: `var(--recursica-brand-${mode}-state-disabled, 0.5)`,

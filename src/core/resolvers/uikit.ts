@@ -350,7 +350,7 @@ function traverseUIKit(
       const cssVarName = toCssVarName(currentPath.join('.'))
       
       // Handle dimension type: { value: number | string, unit: string }
-      if (type === 'dimension' && val && typeof val === 'object' && 'value' in val && 'unit' in val) {
+      if (type === 'dimension' && val && typeof val === 'object' && 'value' in val) {
         const dimValue = val.value
         const unit = val.unit || 'px'
         

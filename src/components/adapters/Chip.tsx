@@ -72,7 +72,7 @@ export function Chip({
           ...getChipStyles(variant, size, layer, disabled, componentElevation, componentAlternativeLayer, mode),
           display: 'inline-flex',
           alignItems: 'center',
-          gap: icon ? `var(${iconGapVar})` : 0,
+          gap: icon && children ? `var(${iconGapVar})` : 0,
           cursor: disabled ? 'not-allowed' : onClick ? 'pointer' : 'default',
           ...style,
         }}
@@ -180,8 +180,8 @@ function getChipStyles(
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant
   // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
   // Properties that exist: border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon, max-width
-  // Properties that don't exist: height, min-width (use fallbacks)
-  const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
+  const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
+  const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
   // Apply color styles
@@ -189,14 +189,12 @@ function getChipStyles(
   styles.color = `var(${textVar})`
   styles.border = `1px solid var(${borderVar})`
   
-  // Apply size styles
-  // Height and min-width don't exist in UIKit.json, so use fallbacks
-  // Height can be calculated from vertical-padding if available, otherwise use fallback
-  styles.height = size === 'small' ? '24px' : '32px'
-  styles.minWidth = size === 'small' ? '24px' : '32px'
-  styles.paddingLeft = `var(${paddingVar}, 12px)`
-  styles.paddingRight = `var(${paddingVar}, 12px)`
-  styles.borderRadius = `var(${borderRadiusVar}, 16px)`
+  // Apply size styles - height and width are derived from content and padding
+  styles.paddingLeft = `var(${horizontalPaddingVar})`
+  styles.paddingRight = `var(${horizontalPaddingVar})`
+  styles.paddingTop = `var(${verticalPaddingVar})`
+  styles.paddingBottom = `var(${verticalPaddingVar})`
+  styles.borderRadius = `var(${borderRadiusVar})`
   
   // Apply disabled styles
   if (disabled) {

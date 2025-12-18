@@ -61,10 +61,10 @@ export default function Chip({
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant
   // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
   // Properties that exist: border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon, max-width
-  // Properties that don't exist: height, min-width (use fallbacks)
   const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
   const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
-  const paddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
+  const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
+  const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
   // Destructure adapter-specific props to avoid passing them to the component
@@ -83,9 +83,11 @@ export default function Chip({
       backgroundColor: isAlternativeLayer ? chipBgVar : `var(${chipBgVar})`,
       color: isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
       borderColor: isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
-      paddingLeft: `var(${paddingVar}, 12px)`,
-      paddingRight: `var(${paddingVar}, 12px)`,
-      borderRadius: `var(${borderRadiusVar}, 16px)`,
+      paddingLeft: `var(${horizontalPaddingVar})`,
+      paddingRight: `var(${horizontalPaddingVar})`,
+      paddingTop: `var(${verticalPaddingVar})`,
+      paddingBottom: `var(${verticalPaddingVar})`,
+      borderRadius: `var(${borderRadiusVar})`,
       ...(elevation && elevation !== 'elevation-0' ? (() => {
         const elevationMatch = elevation.match(/elevation-(\d+)/)
         if (elevationMatch) {
@@ -104,8 +106,6 @@ export default function Chip({
     style: {
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
-      '--chip-height': size === 'small' ? '24px' : '32px',
-      '--chip-min-width': size === 'small' ? '24px' : '32px',
       ...style,
     },
     ...material,
