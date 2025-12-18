@@ -50,7 +50,7 @@ export function getComponentCssVar(
 ): string {
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
-  const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
+  const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'padding-horizontal', 'padding-vertical', 'border-size']
   
   // Check if this is a component-level property (not under size/color category)
   if (componentLevelProperties.includes(property.toLowerCase())) {
@@ -104,14 +104,17 @@ export function getComponentCssVar(
         }
         parts.push(propName)
       } else {
-        // Single-level variant (e.g., "solid-background", "outline-text", "default-thumb-selected")
+        // Single-level variant (e.g., "solid-background", "outline-text", "default-thumb-selected", "primary-color-background")
         // Check if property starts with a known variant name followed by a hyphen
-        const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost']
+        // Note: Variant names can be hyphenated (e.g., "primary-color")
+        const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost', 'primary-color', 'warning', 'success', 'alert']
         let variantName: string | null = null
         let propName: string | null = null
         
-        // Try to match known variants at the start of the property
-        for (const variant of knownVariants) {
+        // Try to match known variants at the start of the property (longest match first)
+        // Sort by length descending to match "primary-color" before "primary"
+        const sortedVariants = knownVariants.sort((a, b) => b.length - a.length)
+        for (const variant of sortedVariants) {
           if (property.startsWith(`${variant}-`)) {
             variantName = variant
             propName = property.substring(variant.length + 1) // +1 for the hyphen

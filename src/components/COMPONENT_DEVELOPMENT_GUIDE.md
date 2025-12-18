@@ -495,23 +495,65 @@ The prop names in the config file should match the keys in `UIKit.json`:
 
 #### Registering the Config File
 
-After creating the config file, register it in `src/modules/toolbar/utils/loadToolbarConfig.ts`:
+**CRITICAL STEP**: After creating the config file, you **must** register it in `src/modules/toolbar/utils/loadToolbarConfig.ts`. If you skip this step, the toolbar will not load your component's config and props/variants will not appear.
+
+1. **Import the config file** at the top of `loadToolbarConfig.ts`:
 
 ```typescript
-import {ComponentName}Config from '../configs/{ComponentName}.toolbar.json'
+import ButtonConfig from '../configs/Button.toolbar.json'
+import SwitchConfig from '../configs/Switch.toolbar.json'
+import AvatarConfig from '../configs/Avatar.toolbar.json'
+import BadgeConfig from '../configs/Badge.toolbar.json'  // Add your component here
+```
 
+2. **Add a case in the switch statement**:
+
+```typescript
 export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
-  const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
-  
-  switch (componentKey) {
-    case 'button':
-      return ButtonConfig as ToolbarConfig
-    case '{componentname}':  // Add your component here
-      return {ComponentName}Config as ToolbarConfig
-    default:
-      return null
+  try {
+    const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+    
+    switch (componentKey) {
+      case 'button':
+        return ButtonConfig as ToolbarConfig
+      case 'switch':
+        return SwitchConfig as ToolbarConfig
+      case 'avatar':
+        return AvatarConfig as ToolbarConfig
+      case 'badge':  // Add your component here (use kebab-case)
+        return BadgeConfig as ToolbarConfig
+      default:
+        return null
+    }
+  } catch (error) {
+    console.warn(`Failed to load toolbar config for ${componentName}:`, error)
+    return null
   }
 }
+```
+
+**Important Notes**:
+- The `componentKey` is the component name converted to kebab-case (e.g., `"Button"` → `"button"`, `"MyComponent"` → `"my-component"`)
+- The case in the switch statement must match the kebab-case version of your component name
+- If the component name doesn't match, the toolbar will return `null` and no props/variants will appear
+
+#### Verifying Registration
+
+After registering your config, verify it works:
+
+1. **Check the import**: Ensure the import statement is correct and the file path is valid
+2. **Check the case**: Verify the case in the switch statement matches your component's kebab-case name
+3. **Test in browser**: Navigate to your component's detail page and verify:
+   - Variants appear in the toolbar (if defined in config)
+   - Props appear as icons in the toolbar
+   - Icons display correctly (no console warnings)
+   - Clicking props opens the floating palette
+4. **Check browser console**: Look for any errors or warnings about missing configs
+
+**Quick Test Command**:
+```bash
+# Verify your component is in the switch statement
+grep -A 5 "case.*badge" src/modules/toolbar/utils/loadToolbarConfig.ts
 ```
 
 #### Common Icon Mappings
@@ -592,19 +634,29 @@ The toolbar automatically:
 
 #### Testing Your Config
 
-After creating the config file:
+After creating the config file and registering it in `loadToolbarConfig.ts`:
 
-1. **Check that props appear in toolbar**: All props defined in your config should appear as icons in the toolbar
-2. **Verify icons display correctly**: Icons should render properly (check browser console for warnings)
-3. **Test labels**: Hover over icons to verify tooltips show correct labels
-4. **Test floating palettes**: Click icons to verify floating palette titles are correct
-5. **Test grouped props**: If using grouped props, verify they appear in the parent prop's floating palette
+1. **Verify registration**: Check that the component is imported and added to the switch statement in `loadToolbarConfig.ts`
+2. **Check that props appear in toolbar**: All props defined in your config should appear as icons in the toolbar
+3. **Check that variants appear**: All variants defined in your config should appear as dropdowns in the toolbar
+4. **Verify icons display correctly**: Icons should render properly (check browser console for warnings)
+5. **Test labels**: Hover over icons to verify tooltips show correct labels
+6. **Test floating palettes**: Click icons to verify floating palette titles are correct
+7. **Test grouped props**: If using grouped props, verify they appear in the parent prop's floating palette
+8. **Test variant filtering**: Change variants and verify props are filtered correctly
 
 #### Troubleshooting
 
+- **Props/variants not appearing in toolbar**: 
+  - **CRITICAL**: Verify the component is registered in `loadToolbarConfig.ts` (import statement AND switch case)
+  - Check that the component name in the switch case matches the kebab-case version (e.g., `"badge"` for `"Badge"`)
+  - Verify the import path is correct and the JSON file exists
+  - Check browser console for errors about failed config loading
+  - Test by navigating to the component's detail page and checking if toolbar loads
+
 - **Prop not appearing in toolbar**: 
   - Check that the prop name in config matches the UIKit.json key exactly (case-sensitive)
-  - Verify the prop is registered in `loadToolbarConfig.ts`
+  - Verify the prop is defined in the toolbar config JSON file
   - Check browser console for warnings about missing icons
 
 - **Icon not displaying**:
@@ -1227,7 +1279,47 @@ if (missing.length > 0) {
 "
 ```
 
-#### 3. Validate Icon Names
+#### 3. Validate Config Registration
+
+**CRITICAL**: Verify the component is registered in `loadToolbarConfig.ts`:
+
+```bash
+# Check that component is imported and registered
+node -e "
+const fs = require('fs');
+const componentName = 'Badge'; // Replace with your component name
+const componentKey = componentName.toLowerCase().replace(/\s+/g, '-');
+const loadToolbarConfig = fs.readFileSync('src/modules/toolbar/utils/loadToolbarConfig.ts', 'utf8');
+
+// Check for import
+const importPattern = new RegExp(\`import.*\${componentName}Config.*from.*configs/\${componentName}\\.toolbar\\.json\`, 'i');
+if (!importPattern.test(loadToolbarConfig)) {
+  console.error(\`✗ Component config not imported: \${componentName}Config\`);
+  console.error('  Add: import \${componentName}Config from \\'../configs/\${componentName}.toolbar.json\\'');
+  process.exit(1);
+}
+
+// Check for switch case
+const casePattern = new RegExp(\`case\\s+['\\"]\${componentKey}['\\"]:\`, 'i');
+if (!casePattern.test(loadToolbarConfig)) {
+  console.error(\`✗ Component not registered in switch statement: case '\${componentKey}'\`);
+  console.error(\`  Add: case '\${componentKey}': return \${componentName}Config as ToolbarConfig\`);
+  process.exit(1);
+}
+
+console.log(\`✓ Component '\${componentName}' is properly registered in loadToolbarConfig.ts\`);
+"
+```
+
+**Manual Verification Steps**:
+1. Open `src/modules/toolbar/utils/loadToolbarConfig.ts`
+2. Verify the import statement exists: `import {ComponentName}Config from '../configs/{ComponentName}.toolbar.json'`
+3. Verify the switch case exists: `case '{component-key}': return {ComponentName}Config as ToolbarConfig`
+4. Navigate to the component's detail page in the browser
+5. Verify props and variants appear in the toolbar
+6. Check browser console for any errors about missing configs
+
+#### 4. Validate Icon Names
 
 Ensure all icon names are valid Phosphor Icons:
 
@@ -1266,18 +1358,34 @@ if (missing.length > 0) {
 "
 ```
 
-#### 4. Add Validation to Audit Document
+#### 5. Add Validation to Audit Document
 
 Include validation results in your audit document:
 
 ```markdown
 ## Toolbar Config Validation
 
-- [x] JSON schema is valid
+### Schema Validation
+- [x] JSON structure is valid
+- [x] All required fields present (icon, label, visible)
+- [x] Group structure is correct (no icons in grouped props)
+- [x] Variant structure is correct
+
+### Config Registration
+- [x] Component config imported in `loadToolbarConfig.ts`
+- [x] Component registered in switch statement with correct kebab-case key
+- [x] Props and variants appear in toolbar when navigating to component page
+- [x] No console errors about missing configs
+
+### Prop Coverage
 - [x] All root props from UIKit.json are represented
-- [x] All icon names are valid Phosphor Icons
-- [x] All grouped props match UIKit.json prop names
-- [x] Variant props are correctly configured
+- [x] Variant props are correctly grouped
+- [x] Grouped props match UIKit.json prop names exactly
+
+### Icon Validation
+- [x] All icons are valid Phosphor Icons
+- [x] Icons are automatically imported (verified in iconLibrary.ts)
+- [x] No missing icon warnings in browser console
 ```
 
 ### Audit File Location
@@ -1314,8 +1422,14 @@ src/components/adapters/
 
 #### Required Validation Checks
 
-1. **Schema Compliance**: The toolbar config JSON follows the correct schema structure
-2. **Prop Coverage**: All root-level props from `UIKit.json` are represented in the toolbar config
+1. **Config Registration** (CRITICAL): The component is properly registered in `loadToolbarConfig.ts`
+   - Import statement exists for the component's config file
+   - Switch case exists with the correct kebab-case component name
+   - Props and variants appear in the toolbar when navigating to the component page
+   - No console errors about missing configs
+
+2. **Schema Compliance**: The toolbar config JSON follows the correct schema structure
+3. **Prop Coverage**: All root-level props from `UIKit.json` are represented in the toolbar config
 3. **Icon Validity**: All icon names are valid Phosphor Icons and are imported
 4. **Group Integrity**: All grouped props match actual prop names from `UIKit.json`
 5. **Variant Alignment**: Variant props are correctly configured to match `UIKit.json` structure
@@ -1765,8 +1879,10 @@ After creating a new component, complete this checklist:
 - [ ] Components registered in registry files
 - [ ] Component name added to `ComponentName` type union
 - [ ] Toolbar config file created at `src/modules/toolbar/configs/{ComponentName}.toolbar.json`
-- [ ] Toolbar config registered in `loadToolbarConfig.ts`
-- [ ] All UIKit.json props have icons, labels, and floating palette labels defined
+- [ ] Toolbar config imported in `loadToolbarConfig.ts` (import statement added)
+- [ ] Toolbar config registered in `loadToolbarConfig.ts` (switch case added with correct kebab-case key)
+- [ ] Toolbar config registration verified (props and variants appear in toolbar, no console errors)
+- [ ] All UIKit.json props have icons, labels, and visible properties defined
 
 ### CSS Variables
 

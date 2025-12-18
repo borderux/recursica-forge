@@ -1,0 +1,51 @@
+{
+  "variants": {
+    "color": {
+      "icon": "diamonds-four",
+      "label": "Color"
+    }
+  },
+  "props": {
+    "background": {
+      "icon": "paint-bucket",
+      "label": "Background",
+      "visible": true
+    },
+    "text": {
+      "icon": "text-aa",
+      "label": "Text",
+      "visible": true,
+      "group": {
+        "text-color": {
+          "label": "Color",
+          "visible": true
+        },
+        "text-size": {
+          "label": "Font Size",
+          "visible": true
+        }
+      }
+    },
+    "padding": {
+      "icon": "arrows-out",
+      "label": "Padding",
+      "visible": true,
+      "group": {
+        "padding-horizontal": {
+          "label": "Horizontal",
+          "visible": true
+        },
+        "padding-vertical": {
+          "label": "Vertical",
+          "visible": true
+        }
+      }
+    },
+    "border-radius": {
+      "icon": "corners-out",
+      "label": "Border Radius",
+      "visible": true
+    }
+  }
+}
+

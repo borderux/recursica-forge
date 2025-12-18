@@ -6,6 +6,7 @@ import { getComponentSections } from './componentSections'
 import { ComponentToolbar } from '../toolbar'
 import ButtonPreview from '../components/ButtonPreview'
 import AvatarPreview from '../components/AvatarPreview'
+import BadgePreview from '../components/BadgePreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -298,6 +299,13 @@ export default function ComponentDetailPage() {
             />
           ) : component.name === 'Avatar' ? (
             <AvatarPreview
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+              selectedAltLayer={selectedAltLayer}
+              componentElevation={componentElevation}
+            />
+          ) : component.name === 'Badge' ? (
+            <BadgePreview
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
               selectedAltLayer={selectedAltLayer}
