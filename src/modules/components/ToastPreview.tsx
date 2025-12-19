@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 import { Toast } from '../../components/adapters/Toast'
+import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from './iconUtils'
+import { getComponentCssVar } from '../../components/utils/cssVarNames'
 
 interface ToastPreviewProps {
   selectedVariants: Record<string, string> // e.g., { color: "default" }
@@ -24,6 +26,14 @@ export default function ToastPreview({
     }
     return selectedLayer as any
   }, [selectedAltLayer, selectedLayer])
+
+  // Get toast button color for success/error variants
+  const toastButtonColorVar = useMemo(() => {
+    if (colorVariant === 'success' || colorVariant === 'error') {
+      return getComponentCssVar('Toast', 'color', `${colorVariant}-button`, actualLayer)
+    }
+    return null
+  }, [colorVariant, actualLayer])
 
   // Icon components for success and error variants
   const CheckIcon = iconNameToReactComponent('check')
@@ -78,7 +88,27 @@ export default function ToastPreview({
         elevation={componentElevation}
         alternativeLayer={selectedAltLayer}
         icon={colorVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : colorVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
-        action={<button style={{ padding: '4px 8px', borderRadius: 4, border: 'none', cursor: 'pointer' }}>Action</button>}
+        action={
+          <Button
+            variant="text"
+            size="small"
+            layer={actualLayer}
+            alternativeLayer={selectedAltLayer}
+            onClick={() => {}}
+            style={{
+              backgroundColor: 'transparent',
+              '--button-bg': 'transparent',
+              ...(toastButtonColorVar
+                ? {
+                    color: `var(${toastButtonColorVar})`,
+                    '--button-color': `var(${toastButtonColorVar})`,
+                  }
+                : {}),
+            } as React.CSSProperties}
+          >
+            Action
+          </Button>
+        }
         onClose={() => {}}
       >
         Toast with action button
