@@ -46,6 +46,23 @@ export function updateCssVar(
   
   // Apply the update
   root.style.setProperty(cssVarName, trimmedValue)
+  
+  // Dispatch a custom event to notify listeners of the CSS variable change
+  // This ensures reactive hooks can update immediately
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('cssvarchange', {
+      detail: { cssVarName, value: trimmedValue }
+    }))
+  }
+  
+  // Debug logging for border-size updates
+  if (cssVarName.includes('border-size')) {
+    console.log(`updateCssVar: Set ${cssVarName} = ${trimmedValue} on documentElement`)
+    // Verify it was set
+    const verify = root.style.getPropertyValue(cssVarName)
+    console.log(`updateCssVar: Verified ${cssVarName} = ${verify}`)
+  }
+  
   return true
 }
 

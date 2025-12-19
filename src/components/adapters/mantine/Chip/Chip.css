@@ -1,9 +1,16 @@
 /* Override Mantine Badge styles to use Recursica CSS variables */
+/* Target Mantine Badge with multiple selectors to ensure we catch all variations */
 .recursica-chip-root,
-.mantine-Badge-root {
+.mantine-Badge-root,
+[class*="mantine-Badge-root"],
+[class*="Badge-root"],
+.mantine-Badge-root[class*="mantine-Badge"] {
   background-color: var(--chip-bg, var(--mantine-color-gray-1)) !important;
   color: var(--chip-color, var(--mantine-color-gray-9)) !important;
-  border: var(--chip-border-size, 1px) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
+  /* Border uses global CSS variable directly - this is reactive and updates in real time */
+  /* CRITICAL: CSS variables in stylesheets are reactive - they update when the variable on documentElement changes */
+  /* Use border shorthand to ensure all properties are set together */
+  border: var(--recursica-ui-kit-components-chip-border-size, 1px) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
   padding-left: var(--chip-padding-x) !important;
   padding-right: var(--chip-padding-x) !important;
   padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, 8px)) !important;

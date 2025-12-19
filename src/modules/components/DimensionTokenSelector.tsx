@@ -614,8 +614,17 @@ export default function DimensionTokenSelector({
     
     // Update CSS vars directly - no global state management, just set CSS vars
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+    if (propName === 'border-size') {
+      console.log(`DimensionTokenSelector: Updating border-size. targetCssVar: ${targetCssVar}, cssVars:`, cssVars, `token: ${token.name}, value: var(${token.name})`)
+    }
     cssVars.forEach(cssVar => {
       updateCssVar(cssVar, `var(${token.name})`)
+      if (propName === 'border-size') {
+        console.log(`DimensionTokenSelector: Updated ${cssVar} to var(${token.name})`)
+        // Verify it was set
+        const verify = readCssVar(cssVar)
+        console.log(`DimensionTokenSelector: Verified ${cssVar} = ${verify}`)
+      }
     })
     // Dispatch event to notify components of CSS var updates
     window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
@@ -630,8 +639,17 @@ export default function DimensionTokenSelector({
     
     // Update CSS vars directly with pixel value
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+    if (propName === 'border-size') {
+      console.log(`DimensionTokenSelector: Updating border-size to ${value}px. targetCssVar: ${targetCssVar}, cssVars:`, cssVars)
+    }
     cssVars.forEach(cssVar => {
       updateCssVar(cssVar, `${value}px`)
+      if (propName === 'border-size') {
+        console.log(`DimensionTokenSelector: Updated ${cssVar} to ${value}px`)
+        // Verify it was set
+        const verify = readCssVar(cssVar)
+        console.log(`DimensionTokenSelector: Verified ${cssVar} = ${verify}`)
+      }
     })
     // Dispatch event to notify components of CSS var updates
     window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
@@ -640,8 +658,10 @@ export default function DimensionTokenSelector({
   }
 
   // Determine max pixel value based on prop name
-  // max-width can go up to 500px, others default to 200px
-  const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
+  // max-width can go up to 500px, border-size should be much smaller (10px), others default to 200px
+  const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 
+    : propName.toLowerCase() === 'border-size' ? 10 
+    : 200
 
   // Render pixel slider for raw pixel values
   if (isPixelMode) {

@@ -464,6 +464,18 @@ export default function PropControl({
             const primaryVar = cssVars[0] || groupedProp.cssVar
             const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
             
+            // Debug logging for border-size
+            if (componentName === 'Chip' && groupedPropName === 'border-size') {
+              console.log(`PropControl: Rendering border-size control.`, {
+                groupedPropName,
+                groupedPropCssVar: groupedProp.cssVar,
+                cssVars,
+                primaryVar,
+                propCategory: groupedProp.category,
+                propPath: groupedProp.path
+              })
+            }
+            
             return (
               <div 
                 key={groupedPropName}
