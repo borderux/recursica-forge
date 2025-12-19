@@ -347,15 +347,6 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         `var(--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone)`
       )
       
-      // If this is palette-1, update the alt layer surface for this mode
-      if (paletteKey === 'palette-1') {
-        const altLayerSurfaceKey = `--recursica-brand-${mode.toLowerCase()}-layer-layer-alternative-primary-color-property-surface`
-        updateCssVar(
-          altLayerSurfaceKey,
-          `var(--recursica-brand-${mode.toLowerCase()}-palettes-palette-1-primary-tone)`
-        )
-      }
-      
       // Only notify if this is a user-initiated change (primary level or mode changed)
       if (lastPrimaryLevel.current !== null || lastMode.current !== null) {
         try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}

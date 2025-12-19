@@ -94,12 +94,21 @@ h3 {
 .palette-box {
   text-align: center;
   height: 50px;
+  position: relative;
 }
 .palette-dot {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   margin: 0 auto;
+}
+/* Vertically center dots in core colors table only */
+.color-palettes .palette-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
 }
 .color-palettes .palette-label.default {
   border: 5px solid var(--scale-black);
@@ -156,20 +165,8 @@ h3 {
   font-size: 0.875rem;
 }
 
-/* --- Alternative Layers --- */
 .card {
   border-radius: 8px;
-}
-.alt-layers-wrapper {
-  display: flex;
-  flex-wrap: nowrap; /* Keep all alternative layers on one row */
-  gap: 24px;
-  overflow: visible;
-}
-.alt-layer-card {
-  padding: 24px;
-  flex: 1 0 0; /* Evenly distribute across one row */
-  min-width: 0;
 }
 
 /* --- Elevation --- */
@@ -295,9 +292,6 @@ h3 {
 @media (max-width: 768px) {
   .container-padding {
     padding: 16px; /* 1rem */
-  }
-  .alt-layer-card {
-    flex: 1 1 100%; /* Single column on mobile */
   }
   .elevation-grid {
     flex-wrap: wrap;

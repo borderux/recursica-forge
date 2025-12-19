@@ -166,39 +166,6 @@ export function checkAACompliance(): ComplianceIssue[] {
     }
   }
   
-  // Check alternative layers
-  const altLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color', 'floating']
-  for (const mode of ['light', 'dark'] as const) {
-    altLayers.forEach((altKey) => {
-      const surfaceVar = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-surface`
-      const textColorVar = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-element-text-color`
-      
-      const surfaceValue = readCssVar(surfaceVar)
-      const textColorValue = readCssVar(textColorVar)
-      
-      if (!surfaceValue || !textColorValue) return
-      
-      const surfaceHex = resolveCssVarToHex(surfaceValue, tokenIndex as any)
-      const textColorHex = resolveCssVarToHex(textColorValue, tokenIndex as any)
-      
-      if (!surfaceHex || !textColorHex) return
-      
-      const ratio = contrastRatio(surfaceHex, textColorHex)
-      
-      if (ratio < AA_THRESHOLD) {
-        issues.push({
-          type: 'layer-text',
-          mode,
-          location: `Alternative layer ${altKey}`,
-          toneHex: surfaceHex,
-          onToneHex: textColorHex,
-          contrastRatio: ratio,
-          message: `Alternative layer ${altKey} (${mode}): Text color contrast ratio ${ratio.toFixed(2)} < ${AA_THRESHOLD}`
-        })
-      }
-    })
-  }
-  
   return issues
 }
 
