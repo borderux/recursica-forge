@@ -90,7 +90,7 @@ export function ColorPickerOverlay({
   return createPortal(
     <div
       ref={overlayRef}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 20000, background: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-surface, var(--recursica-brand-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-element-text-color, var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness, var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, var(--recursica-brand-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-radius, var(--recursica-brand-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-padding, var(--recursica-brand-${mode}-layer-layer-3-property-padding))`, display: 'grid', gap: 10, width: 300 }}
+      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 20000, background: `var(--recursica-brand-${mode}-layer-layer-3-property-surface, var(--recursica-brand-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-${mode}-layer-layer-3-property-padding, var(--recursica-brand-${mode}-layer-layer-3-property-padding))`, display: 'grid', gap: 10, width: 300 }}
     >
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'move' }}
@@ -166,7 +166,7 @@ export function ColorPickerOverlay({
               onChange(normalized, cascadeDown, cascadeUp)
             }
           }}
-          style={{ flex: 1, fontSize: 13, padding: '6px 8px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, rgba(0,0,0,0.1))`, borderRadius: 6 }}
+          style={{ flex: 1, fontSize: 13, padding: '6px 8px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`, borderRadius: 6 }}
         />
         <button
           title="Name this color"
@@ -176,7 +176,7 @@ export function ColorPickerOverlay({
             const hex = hsvToHex(hsvState.h, hsvState.s, hsvState.v)
             onNameFromHex(family, hex)
           }}
-          style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, rgba(0,0,0,0.1))`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px' }}
+          style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '6px 8px' }}
         >🏷️</button>
       </div>
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>

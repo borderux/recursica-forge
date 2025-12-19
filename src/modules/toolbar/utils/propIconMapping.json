@@ -47,7 +47,6 @@
   "variant-style": "diamonds-four",
   "variant-style-secondary": "circle-half",
   "layer": "square-3-stack-3d",
-  "alt-layer": "swap",
   "reset": "arrow-path",
   "elevation": "copy-simple"
 }

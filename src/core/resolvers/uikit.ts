@@ -156,30 +156,6 @@ function resolveTokenRef(
       return `var(--recursica-brand-${mode}-layer-layer-${layerNum}-property-element-${elementPath})`
     }
     
-    // Layer-alternative property references: layers.layer-alternative.primary-color.property.surface
-    // Pattern: --recursica-brand-light-layer-layer-alternative-primary-color-property-surface
-    const layerAltPropertyMatch = /^layers?\.layer-alternative\.([a-z0-9-]+)\.property\.(.+)$/i.exec(path)
-    if (layerAltPropertyMatch) {
-      const altKey = layerAltPropertyMatch[1]
-      const prop = layerAltPropertyMatch[2].replace(/\./g, '-')
-      return `var(--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-${prop})`
-    }
-    
-    // Layer-alternative element references: layers.layer-alternative.primary-color.element.text.color
-    // Pattern: --recursica-brand-light-layer-layer-alternative-primary-color-property-element-text-color
-    const layerAltElementMatch = /^layers?\.layer-alternative\.([a-z0-9-]+)\.element\.(.+)$/i.exec(path)
-    if (layerAltElementMatch) {
-      const altKey = layerAltElementMatch[1]
-      let elementPath = layerAltElementMatch[2].replace(/\./g, '-')
-      
-      // Special handling: element.interactive should map to element.interactive-color
-      if (elementPath === 'interactive') {
-        elementPath = 'interactive-color'
-      }
-      
-      return `var(--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-element-${elementPath})`
-    }
-    
     // Palette core-colors references with state: palettes.core-colors.interactive.default.tone
     // Handle: palettes.core-colors.{color}.{state}.{tone|on-tone}
     // Note: For core-colors, "default" stays as "default" (not mapped to "primary" like regular palettes)

@@ -57,7 +57,6 @@ export default function ComponentDetailPage() {
   // Toolbar state
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
-  const [selectedAltLayer, setSelectedAltLayer] = useState<string | null>(null)
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
 
@@ -69,14 +68,8 @@ export default function ComponentDetailPage() {
 
   // Get layer label for display
   const layerLabel = useMemo(() => {
-    if (selectedAltLayer) {
-      return selectedAltLayer
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-    }
     return selectedLayer.replace('layer-', 'Layer ').replace(/\b\w/g, l => l.toUpperCase())
-  }, [selectedLayer, selectedAltLayer])
+  }, [selectedLayer])
 
   // Get size variant label
   const sizeLabel = useMemo(() => {
@@ -102,17 +95,8 @@ export default function ComponentDetailPage() {
     const layerNum = selectedLayer.replace('layer-', '')
     parts.push(`Layer ${layerNum}`)
     
-    // Add alt layer if present
-    if (selectedAltLayer) {
-      const altLayerLabel = selectedAltLayer
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-      parts.push(altLayerLabel)
-    }
-    
     return parts.join(' / ')
-  }, [selectedVariants, selectedLayer, selectedAltLayer])
+  }, [selectedVariants, selectedLayer])
 
   if (!component) {
     return (
@@ -128,9 +112,6 @@ export default function ComponentDetailPage() {
   // Get the layer number for building CSS variable paths
   const layerNum = selectedLayer.replace('layer-', '')
   const baseLayerBase = `--recursica-brand-${mode}-layer-layer-${layerNum}-property`
-  const altLayerBase = selectedAltLayer
-    ? `--recursica-brand-${mode}-layer-layer-alternative-${selectedAltLayer}-property`
-    : null
 
   // Get elevation level from layer property (if it exists)
   // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}
@@ -143,20 +124,7 @@ export default function ComponentDetailPage() {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const themes = root?.themes || root
       
-      // First, check if alt layer has its own elevation (e.g., floating)
-      if (selectedAltLayer) {
-        const altLayerSpec: any = themes?.[mode]?.layers?.['layer-alternative']?.[selectedAltLayer] || themes?.[mode]?.layer?.['layer-alternative']?.[selectedAltLayer] || root?.[mode]?.layers?.['layer-alternative']?.[selectedAltLayer] || root?.[mode]?.layer?.['layer-alternative']?.[selectedAltLayer] || {}
-        const v: any = altLayerSpec?.property?.elevation?.$value
-        if (typeof v === 'string') {
-          // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
-          const m = v.match(/elevations\.(elevation-(\d+))/i)
-          if (m) {
-            elevationLevel = m[2]
-          }
-        }
-      }
-      
-      // If alt layer doesn't have elevation, check base layer
+      // Check base layer elevation
       if (elevationLevel === null) {
         // Layer 0 typically doesn't have elevation, layers 1-3 do
         if (layerNum === '0') {
@@ -182,7 +150,7 @@ export default function ComponentDetailPage() {
     // Build elevation box-shadow from elevation CSS variables
     // Format: x-axis y-axis blur spread shadow-color
     return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-  }, [mode, layerNum, selectedAltLayer, theme])
+  }, [mode, layerNum, theme])
 
   return (
     <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-xl)' }}>
@@ -268,22 +236,14 @@ export default function ComponentDetailPage() {
           alignItems: 'center',
           justifyContent: 'center',
           gap: 'var(--recursica-brand-dimensions-spacer-md)',
-          // Apply layer properties with fallback to base layer when alt layer is selected
-          background: altLayerBase 
-            ? `var(${altLayerBase}-surface, var(${baseLayerBase}-surface))`
-            : `var(${baseLayerBase}-surface)`,
-          padding: altLayerBase
-            ? `var(${altLayerBase}-padding, var(${baseLayerBase}-padding))`
-            : `var(${baseLayerBase}-padding)`,
+          // Apply layer properties
+          background: `var(${baseLayerBase}-surface)`,
+          padding: `var(${baseLayerBase}-padding)`,
           border: layerNum !== '0' 
-            ? (altLayerBase
-                ? `var(${altLayerBase}-border-thickness, var(${baseLayerBase}-border-thickness, 1px)) solid var(${altLayerBase}-border-color, var(${baseLayerBase}-border-color))`
-                : `var(${baseLayerBase}-border-thickness, 1px) solid var(${baseLayerBase}-border-color)`)
+            ? `var(${baseLayerBase}-border-thickness, 1px) solid var(${baseLayerBase}-border-color)`
             : 'none',
           borderRadius: layerNum !== '0'
-            ? (altLayerBase
-                ? `var(${altLayerBase}-border-radius, var(${baseLayerBase}-border-radius))`
-                : `var(${baseLayerBase}-border-radius)`)
+            ? `var(${baseLayerBase}-border-radius)`
             : undefined,
           boxShadow: elevationBoxShadow,
           width: '100%',
@@ -294,14 +254,12 @@ export default function ComponentDetailPage() {
             <ButtonPreview
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
-              selectedAltLayer={selectedAltLayer}
               componentElevation={componentElevation}
             />
           ) : component.name === 'Avatar' ? (
             <AvatarPreview
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
-              selectedAltLayer={selectedAltLayer}
               componentElevation={componentElevation}
             />
           ) : component.name === 'Badge' ? (
@@ -318,7 +276,7 @@ export default function ComponentDetailPage() {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              {component.render(new Set([selectedAltLayer ? `layer-alternative-${selectedAltLayer}` as any : selectedLayer as any]))}
+              {component.render(new Set([selectedLayer as any]))}
             </div>
           )}
         </div>
@@ -353,7 +311,6 @@ export default function ComponentDetailPage() {
           openPropControl={openPropControl}
           selectedVariants={selectedVariants}
           selectedLayer={selectedLayer}
-          selectedAltLayer={selectedAltLayer}
         />
       )}
     </div>

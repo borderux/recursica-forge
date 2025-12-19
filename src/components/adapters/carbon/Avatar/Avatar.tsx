@@ -20,7 +20,6 @@ export default function Avatar({
   sizeVariant = 'default',
   layer = 'layer-0',
   elevation,
-  alternativeLayer,
   shape = 'circle',
   className,
   style,
@@ -36,7 +35,6 @@ export default function Avatar({
     colorVariant,
     layer,
     mode,
-    alternativeLayer,
     src,
     imageError,
   })

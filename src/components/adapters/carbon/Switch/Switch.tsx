@@ -22,7 +22,6 @@ export default function Switch({
   colorVariant = 'default',
   sizeVariant = 'default',
   elevation,
-  alternativeLayer,
   className,
   style,
   carbon,
@@ -31,13 +30,10 @@ export default function Switch({
   const { mode } = useThemeMode()
   const toggleRef = useRef<HTMLDivElement>(null)
   
-  // Check if component has alternative-layer prop set (overrides layer-based alt layer)
-  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
-  
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
   const thumbSelectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-thumb-selected`, layer)
   const thumbUnselectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-thumb-unselected`, layer)
-  let trackSelectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-selected`, layer)
+  const trackSelectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-selected`, layer)
   const trackUnselectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-unselected`, layer)
   const trackBorderRadiusVar = getComponentCssVar('Switch', 'size', 'track-border-radius', undefined)
   const thumbBorderRadiusVar = getComponentCssVar('Switch', 'size', 'thumb-border-radius', undefined)
@@ -50,12 +46,6 @@ export default function Switch({
   const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
-  
-  
-  // Override track-selected to use alternative layer's interactive color when alt layer is set
-  if (hasComponentAlternativeLayer) {
-    trackSelectedVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-element-interactive-tone`
-  }
   
   // Use CSS variables directly - they already point to the correct layer-specific values from UIKit.json
   const thumbSelectedColor = `var(${thumbSelectedVar})`
@@ -82,11 +72,11 @@ export default function Switch({
     return undefined
   }
   
-  // Determine track elevation to apply - prioritize prop, then UIKit.json, then alt layer
+  // Determine track elevation to apply - prioritize prop, then UIKit.json
   const trackElevationBoxShadow = (() => {
     let elevationToApply: string | undefined = elevation
     
-    // First, check if UIKit.json has a track-elevation set
+    // Check if UIKit.json has a track-elevation set
     if (!elevationToApply && trackElevationVar) {
       const uikitElevation = readCssVar(trackElevationVar)
       if (uikitElevation) {
@@ -97,26 +87,6 @@ export default function Switch({
         } else if (/^elevation-\d+$/.test(uikitElevation)) {
           elevationToApply = uikitElevation
         }
-      }
-    }
-    
-    // Check alt layer elevation if alt-layer is set
-    if (hasComponentAlternativeLayer) {
-      // Read elevation from alt layer's property
-      const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
-      const altLayerElevation = readCssVar(altLayerElevationVar)
-      if (altLayerElevation) {
-        // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
-        const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
-        if (match) {
-          elevationToApply = match[1]
-        } else if (/^elevation-\d+$/.test(altLayerElevation)) {
-          elevationToApply = altLayerElevation
-        }
-      }
-      // If alt layer doesn't have elevation, fall back to component-level elevation
-      if (!elevationToApply) {
-        elevationToApply = elevation
       }
     }
     
