@@ -33,32 +33,43 @@
 
 /* Icon styling - use native leftSection */
 /* CRITICAL: Ensure icon container always has a size when icon exists */
-.recursica-chip-left-section,
+/* Use very specific selectors to override Mantine defaults */
+.recursica-chip-root .recursica-chip-left-section,
+.recursica-chip-root .mantine-Badge-leftSection,
+.mantine-Badge-root .recursica-chip-left-section,
 .mantine-Badge-root .mantine-Badge-leftSection,
+.recursica-chip-left-section,
+[class*="mantine-Badge-root"] .mantine-Badge-leftSection,
 .mantine-Badge-leftSection {
-  /* Use CSS variable with fallback - ensure minimum 16px */
-  width: var(--chip-icon-size, 16px) !important;
-  height: var(--chip-icon-size, 16px) !important;
-  min-width: 16px !important;
-  min-height: 16px !important;
-  max-width: 32px !important;
-  max-height: 32px !important;
+  /* Icon size - use CSS variable with fallback to UIKit variable */
+  /* Force exact size - no growth allowed - use fixed pixel fallback */
+  width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  min-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  min-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  max-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  max-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
   margin-inline-end: var(--chip-icon-text-gap, 8px) !important;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
+  flex-basis: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  overflow: visible !important;
+  overflow: hidden !important;
   box-sizing: border-box !important;
   visibility: visible !important;
   opacity: 1 !important;
-  /* Ensure it's not hidden by parent */
   position: relative !important;
 }
 
-.recursica-chip-left-section svg,
+/* SVG inside icon container - must respect container size */
+.recursica-chip-root .recursica-chip-left-section svg,
+.recursica-chip-root .mantine-Badge-leftSection svg,
+.mantine-Badge-root .recursica-chip-left-section svg,
 .mantine-Badge-root .mantine-Badge-leftSection svg,
+.recursica-chip-left-section svg,
+[class*="mantine-Badge-root"] .mantine-Badge-leftSection svg,
 .mantine-Badge-leftSection svg {
   width: 100% !important;
   height: 100% !important;
@@ -67,6 +78,10 @@
   flex-shrink: 0 !important;
   display: block !important;
   box-sizing: border-box !important;
+  /* Ensure SVG respects container bounds */
+  object-fit: contain !important;
+  /* Prevent SVG from expanding beyond container */
+  overflow: hidden !important;
 }
 
 /* Delete button styling - use native rightSection */

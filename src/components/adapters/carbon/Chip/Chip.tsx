@@ -61,8 +61,9 @@ export default function Chip({
   
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant
   // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
-  // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon
-  const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
+  // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap
+  // Icon is a component-level property (not layer-specific)
+  const iconSizeVar = getComponentLevelCssVar('Chip', 'icon')
   const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
   const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)

@@ -10,8 +10,8 @@
 
 /* Icon styling - use native icon prop */
 .MuiChip-root .MuiChip-icon {
-  width: var(--chip-icon-size, 0px) !important;
-  height: var(--chip-icon-size, 0px) !important;
+  width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
   margin-right: var(--chip-icon-text-gap, 0px) !important;
   flex-shrink: 0 !important;
   display: inline-flex !important;

@@ -64,8 +64,9 @@ export default function Chip({
   
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant
   // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
-  // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon
-  const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
+  // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap
+  // Icon is a component-level property (not layer-specific)
+  const iconSizeVar = getComponentLevelCssVar('Chip', 'icon')
   const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
   
   // Debug icon size variable
@@ -216,11 +217,30 @@ export default function Chip({
     disabled,
     'data-disabled': disabled ? true : undefined,
     onClick: disabled ? undefined : onClick,
-    // Use native leftSection prop for icon - CSS will handle sizing and spacing
+    // Use native leftSection prop for icon - wrap in container with explicit sizing
     // Ensure icon is always passed when provided
     leftSection: icon ? (() => {
       console.log('🔵 Chip: Passing icon to leftSection:', icon)
-      return icon
+      // Wrap icon in a span with explicit size constraints
+      return (
+        <span style={{
+          width: `var(${iconSizeVar}, 16px)`,
+          height: `var(${iconSizeVar}, 16px)`,
+          minWidth: `var(${iconSizeVar}, 16px)`,
+          minHeight: `var(${iconSizeVar}, 16px)`,
+          maxWidth: `var(${iconSizeVar}, 16px)`,
+          maxHeight: `var(${iconSizeVar}, 16px)`,
+          flexShrink: 0,
+          flexGrow: 0,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          boxSizing: 'border-box',
+        }}>
+          {icon}
+        </span>
+      )
     })() : undefined,
     // Use native rightSection prop for delete button - CSS will handle styling
     rightSection: deleteIcon,
@@ -241,15 +261,17 @@ export default function Chip({
         ...mantine?.styles?.root,
       },
       leftSection: {
-        // Ensure icon container is properly sized - use explicit pixel values to guarantee visibility
-        width: icon ? '16px' : undefined,
-        height: icon ? '16px' : undefined,
-        minWidth: icon ? '16px' : undefined,
-        minHeight: icon ? '16px' : undefined,
-        maxWidth: icon ? '32px' : undefined,
-        maxHeight: icon ? '32px' : undefined,
+        // Use UIKit variable directly with explicit constraints to prevent expansion
+        width: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+        height: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+        minWidth: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+        minHeight: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+        maxWidth: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+        maxHeight: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+        flexBasis: icon ? `var(${iconSizeVar}, 16px)` : undefined,
         flexShrink: 0,
-        overflow: 'visible',
+        flexGrow: 0,
+        overflow: 'hidden',
         display: icon ? 'inline-flex' : undefined,
         alignItems: 'center',
         justifyContent: 'center',
@@ -262,9 +284,7 @@ export default function Chip({
       '--chip-bg': isAlternativeLayer ? chipBgVar : `var(${chipBgVar})`,
       '--chip-color': isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
       '--chip-border': isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
-      // Ensure icon size is set - use the CSS variable if icon exists, otherwise 0px
-      // If the CSS variable doesn't resolve, the CSS fallback (16px) will be used
-      // Always set to at least 16px when icon exists to ensure visibility
+      // Set icon size CSS variable - use UIKit variable directly with fallback
       '--chip-icon-size': icon ? `var(${iconSizeVar}, 16px)` : '0px',
       '--chip-icon-text-gap': icon && children ? `var(${iconGapVar}, 8px)` : '0px',
       '--chip-padding-x': `var(${horizontalPaddingVar})`,

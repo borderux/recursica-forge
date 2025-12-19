@@ -60,8 +60,9 @@ export default function Chip({
   
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant
   // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
-  // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon
-  const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
+  // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap
+  // Icon is a component-level property (not layer-specific)
+  const iconSizeVar = getComponentLevelCssVar('Chip', 'icon')
   const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
   const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
@@ -103,6 +104,9 @@ export default function Chip({
       fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
       textTransform: 'none',
+      // Set CSS custom properties for CSS file
+      '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
       // Use Button's min-width, max-width, and height vars (same as Button component)
       minWidth: `var(${minWidthVar})`,
       maxWidth: `var(${maxWidthVar})`,

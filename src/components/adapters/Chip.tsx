@@ -63,7 +63,8 @@ export function Chip({
   if (!Component) {
     // Fallback to native element if component not available
     // Chip size properties are nested by layer, not by size variant
-    const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
+    // Icon is a component-level property (not layer-specific)
+    const iconSizeVar = getComponentLevelCssVar('Chip', 'icon')
     const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
     
     return (
