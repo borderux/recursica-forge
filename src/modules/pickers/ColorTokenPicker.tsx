@@ -4,8 +4,7 @@ import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
-import { InteractiveHoverModal } from './InteractiveHoverModal'
-import { updateInteractiveColor } from './interactiveColorUpdater'
+import { updateInteractiveColor, updateCoreColorInteractiveOnTones } from './interactiveColorUpdater'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { hexToCssVarRef, getSteppedColor, resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { pickAAOnTone } from '../theme/contrastUtil'
@@ -18,8 +17,6 @@ export default function ColorTokenPicker() {
   const [targetVar, setTargetVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
-  const [showHoverModal, setShowHoverModal] = useState(false)
-  const [pendingInteractiveHex, setPendingInteractiveHex] = useState<string | null>(null)
   const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
   
   // Close picker when mode changes
@@ -27,8 +24,6 @@ export default function ColorTokenPicker() {
     const handleCloseAll = () => {
       setAnchor(null)
       setTargetVar(null)
-      setShowHoverModal(false)
-      setPendingInteractiveHex(null)
     }
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
@@ -311,11 +306,137 @@ export default function ColorTokenPicker() {
       
       if (tokenHex && /^#?[0-9a-f]{6}$/i.test(tokenHex)) {
         const normalizedHex = tokenHex.startsWith('#') ? tokenHex.toLowerCase() : `#${tokenHex.toLowerCase()}`
-        // Show modal instead of directly updating
-        setPendingInteractiveHex(normalizedHex)
-        setShowHoverModal(true)
+        
+        // Directly update interactive color with 'keep' option (keep current hover)
+        if (!setTheme || !themeJson || !tokensJson) {
+          // Fallback: just update CSS vars if we can't update theme
+          updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode)
+          setAnchor(null)
+          setTargetVar(null)
+          // Trigger AA compliance check for core colors
+          setTimeout(() => {
+            try {
+              window.dispatchEvent(new CustomEvent('recheckCoreColorInteractiveOnTones'))
+            } catch {}
+          }, 10)
+          return
+        }
+        
+        try {
+          // Build token index to find which token matches the hex
+          const tokenIndex = buildTokenIndex(tokensJson)
+          
+          // Determine default tone token reference
+          const defaultToneRef = hexToCssVarRef(normalizedHex, tokensJson)
+          
+          // Keep current hover color
+          const currentHover = readCssVar(`--recursica-brand-${mode}-palettes-core-interactive-hover-tone`)
+          let hoverHex: string
+          if (currentHover && !currentHover.startsWith('var(')) {
+            hoverHex = currentHover
+          } else {
+            hoverHex = resolveCssVarToHex(`var(--recursica-brand-${mode}-palettes-core-interactive-hover-tone)`, tokenIndex) || normalizedHex
+          }
+          const hoverToneRef = hexToCssVarRef(hoverHex, tokensJson)
+          
+          // Determine on-tone colors
+          const defaultOnTone = pickAAOnTone(normalizedHex)
+          const hoverOnTone = pickAAOnTone(hoverHex)
+          const defaultOnToneCore = defaultOnTone === '#ffffff' ? 'white' : 'black'
+          const hoverOnToneCore = hoverOnTone === '#ffffff' ? 'white' : 'black'
+          
+          // Extract token names from CSS var references
+          const extractTokenFromCssVarRef = (cssVarRef: string | null): string | null => {
+            if (!cssVarRef || !cssVarRef.startsWith('var(')) return null
+            const match = cssVarRef.match(/var\(--recursica-tokens-color-([a-z0-9_-]+)-(\d{3,4})\)/)
+            if (match) {
+              const family = match[1]
+              const level = match[2]
+              const normalizedLevel = level === '000' ? '000' : level === '1000' ? '1000' : String(Number(level))
+              return `color/${family}/${normalizedLevel}`
+            }
+            return null
+          }
+          
+          const defaultToken = extractTokenFromCssVarRef(defaultToneRef)
+          const hoverToken = extractTokenFromCssVarRef(hoverToneRef)
+          
+          // Update theme JSON FIRST (before updating CSS vars) to prevent flicker
+          const themeCopy = JSON.parse(JSON.stringify(themeJson))
+          const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+          const themes = root?.themes || root
+          
+          if (!themes[mode]) themes[mode] = {}
+          if (!themes[mode].palettes) themes[mode].palettes = {}
+          if (!themes[mode].palettes['core-colors']) themes[mode].palettes['core-colors'] = {}
+          if (!themes[mode].palettes['core-colors'].$value) themes[mode].palettes['core-colors'].$value = {}
+          
+          const coreColors = themes[mode].palettes['core-colors'].$value
+          if (!coreColors.interactive) {
+            coreColors.interactive = { default: {}, hover: {} }
+          }
+          
+          // Update tone colors in theme JSON
+          if (defaultToken) {
+            const tokenParts = defaultToken.split('/')
+            const tokenRef = `{tokens.color.${tokenParts[1]}.${tokenParts[2]}}`
+            if (!coreColors.interactive.default) coreColors.interactive.default = {}
+            if (!coreColors.interactive.default.tone) coreColors.interactive.default.tone = {}
+            coreColors.interactive.default.tone.$value = tokenRef
+          }
+          
+          if (hoverToken) {
+            const tokenParts = hoverToken.split('/')
+            const tokenRef = `{tokens.color.${tokenParts[1]}.${tokenParts[2]}}`
+            if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
+            if (!coreColors.interactive.hover.tone) coreColors.interactive.hover.tone = {}
+            coreColors.interactive.hover.tone.$value = tokenRef
+          }
+          
+          // Update on-tone colors in theme JSON
+          if (!coreColors.interactive.default) coreColors.interactive.default = {}
+          coreColors.interactive.default['on-tone'] = {
+            $value: `{brand.themes.${mode}.palettes.core-colors.${defaultOnToneCore}}`
+          }
+          
+          if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
+          coreColors.interactive.hover['on-tone'] = {
+            $value: `{brand.themes.${mode}.palettes.core-colors.${hoverOnToneCore}}`
+          }
+          
+          // Update theme JSON synchronously BEFORE updating CSS vars
+          setTheme(themeCopy)
+          
+          // Now update CSS vars - this will match what's in theme JSON, preventing flicker
+          updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode)
+          
+          // Update core color interactive on-tone values for AA compliance
+          if (setTheme && themeJson) {
+            updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeJson, setTheme, mode)
+          }
+          
+          // Trigger AA compliance check for core colors
+          setTimeout(() => {
+            try {
+              window.dispatchEvent(new CustomEvent('recheckCoreColorInteractiveOnTones'))
+            } catch {}
+          }, 10)
+        } catch (err) {
+          console.error('Failed to update interactive color:', err)
+          // Fallback: just update CSS vars
+          updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode)
+          if (setTheme && themeJson) {
+            updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeJson, setTheme, mode)
+          }
+          setTimeout(() => {
+            try {
+              window.dispatchEvent(new CustomEvent('recheckCoreColorInteractiveOnTones'))
+            } catch {}
+          }, 10)
+        }
+        
         setAnchor(null)
-        // Don't clear targetVar yet - we'll use it in the modal callback
+        setTargetVar(null)
         return
       }
     }
@@ -351,129 +472,6 @@ export default function ColorTokenPicker() {
     setTargetVar(null)
   }
 
-  const handleHoverModalSelect = (option: 'keep' | 'darker' | 'lighter') => {
-    if (!pendingInteractiveHex) return
-    
-    // First, determine what the token references will be after updateInteractiveColor runs
-    // We need to predict what tokens will be used so we can update theme JSON first
-    if (!setTheme || !themeJson || !tokensJson) {
-      // Fallback: just update CSS vars if we can't update theme
-      updateInteractiveColor(pendingInteractiveHex, option, tokensJson)
-      setShowHoverModal(false)
-      setPendingInteractiveHex(null)
-      setTargetVar(null)
-      return
-    }
-    
-    try {
-      // Build token index to find which token matches the hex
-      const tokenIndex = buildTokenIndex(tokensJson)
-      
-      const normalizedHex = pendingInteractiveHex.startsWith('#') ? pendingInteractiveHex.toLowerCase() : `#${pendingInteractiveHex.toLowerCase()}`
-      
-      // Determine default tone token reference
-      const defaultToneRef = hexToCssVarRef(normalizedHex, tokensJson)
-      
-      // Determine hover tone token reference
-      let hoverHex: string
-      if (option === 'keep') {
-        // Keep current hover color - read it now
-        const currentHover = readCssVar(`--recursica-brand-${mode}-palettes-core-interactive-hover-tone`)
-        if (currentHover && !currentHover.startsWith('var(')) {
-          hoverHex = currentHover
-        } else {
-          hoverHex = resolveCssVarToHex(`var(--recursica-brand-${mode}-palettes-core-interactive-hover-tone)`, tokenIndex) || normalizedHex
-        }
-      } else {
-        hoverHex = getSteppedColor(normalizedHex, option, tokensJson) || normalizedHex
-      }
-      const hoverToneRef = hexToCssVarRef(hoverHex, tokensJson)
-      
-      // Determine on-tone colors (only on-tone changes, not tone)
-      const defaultOnTone = pickAAOnTone(normalizedHex)
-      const hoverOnTone = pickAAOnTone(hoverHex)
-      const defaultOnToneCore = defaultOnTone === '#ffffff' ? 'white' : 'black'
-      const hoverOnToneCore = hoverOnTone === '#ffffff' ? 'white' : 'black'
-      
-      // Extract token names from CSS var references
-      const extractTokenFromCssVarRef = (cssVarRef: string | null): string | null => {
-        if (!cssVarRef || !cssVarRef.startsWith('var(')) return null
-        const match = cssVarRef.match(/var\(--recursica-tokens-color-([a-z0-9_-]+)-(\d{3,4})\)/)
-        if (match) {
-          const family = match[1]
-          const level = match[2]
-          const normalizedLevel = level === '000' ? '000' : level === '1000' ? '1000' : String(Number(level))
-          return `color/${family}/${normalizedLevel}`
-        }
-        return null
-      }
-      
-      const defaultToken = extractTokenFromCssVarRef(defaultToneRef)
-      const hoverToken = extractTokenFromCssVarRef(hoverToneRef)
-      
-      // Update theme JSON FIRST (before updating CSS vars) to prevent flicker
-      const themeCopy = JSON.parse(JSON.stringify(themeJson))
-      const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-      const themes = root?.themes || root
-      
-      if (!themes[mode]) themes[mode] = {}
-      if (!themes[mode].palettes) themes[mode].palettes = {}
-      if (!themes[mode].palettes['core-colors']) themes[mode].palettes['core-colors'] = {}
-      if (!themes[mode].palettes['core-colors'].$value) themes[mode].palettes['core-colors'].$value = {}
-      
-      const coreColors = themes[mode].palettes['core-colors'].$value
-      if (!coreColors.interactive) {
-        coreColors.interactive = { default: {}, hover: {} }
-      }
-      
-      // Update tone colors in theme JSON
-      if (defaultToken) {
-        const tokenParts = defaultToken.split('/')
-        const tokenRef = `{tokens.color.${tokenParts[1]}.${tokenParts[2]}}`
-        if (!coreColors.interactive.default) coreColors.interactive.default = {}
-        if (!coreColors.interactive.default.tone) coreColors.interactive.default.tone = {}
-        coreColors.interactive.default.tone.$value = tokenRef
-      }
-      
-      if (hoverToken) {
-        const tokenParts = hoverToken.split('/')
-        const tokenRef = `{tokens.color.${tokenParts[1]}.${tokenParts[2]}}`
-        if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
-        if (!coreColors.interactive.hover.tone) coreColors.interactive.hover.tone = {}
-        coreColors.interactive.hover.tone.$value = tokenRef
-      }
-      
-      // Update on-tone colors in theme JSON (only on-tone, not tone)
-      if (!coreColors.interactive.default) coreColors.interactive.default = {}
-      coreColors.interactive.default['on-tone'] = {
-        $value: `{brand.themes.${mode}.palettes.core-colors.${defaultOnToneCore}}`
-      }
-      
-      if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
-      coreColors.interactive.hover['on-tone'] = {
-        $value: `{brand.themes.${mode}.palettes.core-colors.${hoverOnToneCore}}`
-      }
-      
-      // Update theme JSON synchronously BEFORE updating CSS vars
-      setTheme(themeCopy)
-      
-      // Now update CSS vars - this will match what's in theme JSON, preventing flicker
-      updateInteractiveColor(pendingInteractiveHex, option, tokensJson)
-      
-      // Trigger AA compliance check
-      try {
-        window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
-      } catch {}
-    } catch (err) {
-      console.error('Failed to update interactive color:', err)
-      // Fallback: just update CSS vars
-    updateInteractiveColor(pendingInteractiveHex, option, tokensJson)
-    }
-    
-    setShowHoverModal(false)
-    setPendingInteractiveHex(null)
-    setTargetVar(null)
-  }
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
   const getFriendly = (family: string) => {
@@ -588,17 +586,6 @@ export default function ColorTokenPicker() {
           document.body
         )
       )}
-      
-      <InteractiveHoverModal
-        open={showHoverModal}
-        newInteractiveHex={pendingInteractiveHex || `var(--recursica-brand-${mode}-palettes-core-black)`}
-        onClose={() => {
-          setShowHoverModal(false)
-          setPendingInteractiveHex(null)
-          setTargetVar(null)
-        }}
-        onSelect={handleHoverModalSelect}
-      />
     </>
   )
 }

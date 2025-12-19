@@ -513,7 +513,7 @@
           },
           "hover": {
             "$type": "number",
-            "$value": "{tokens.opacity.ghost}"
+            "$value": "{tokens.opacity.mist}"
           },
           "overlay": {
             "color": {
@@ -1659,7 +1659,7 @@
           },
           "hover": {
             "$type": "number",
-            "$value": "{tokens.opacity.ghost}"
+            "$value": "{tokens.opacity.mist}"
           },
           "overlay": {
             "color": {
