@@ -48,7 +48,19 @@ export function Toast({
   const elevationVar = getComponentLevelCssVar('Toast', 'elevation')
   const alternativeLayerVar = getComponentLevelCssVar('Toast', 'alternative-layer')
   
-  const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+  // Parse elevation value from CSS var - could be a brand reference like "{brand.themes.light.elevations.elevation-3}"
+  const elevationFromVar = readCssVar(elevationVar)
+  let parsedElevation: string | undefined = elevation
+  if (!parsedElevation && elevationFromVar) {
+    // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-3}"
+    const match = elevationFromVar.match(/elevations\.(elevation-\d+)/)
+    if (match) {
+      parsedElevation = match[1]
+    } else if (/^elevation-\d+$/.test(elevationFromVar)) {
+      parsedElevation = elevationFromVar
+    }
+  }
+  const componentElevation = parsedElevation
   const componentAlternativeLayer = alternativeLayer !== undefined 
     ? alternativeLayer 
     : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
@@ -63,6 +75,16 @@ export function Toast({
     const maxWidthVar = getComponentCssVar('Toast', 'size', 'max-width', undefined)
     const iconVar = getComponentCssVar('Toast', 'size', 'icon', undefined)
     const spacingVar = getComponentCssVar('Toast', 'size', 'spacing', undefined)
+    
+    // Build box-shadow from elevation if set (and not elevation-0)
+    let boxShadow: string | undefined
+    if (componentElevation && componentElevation !== 'elevation-0') {
+      const elevationMatch = componentElevation.match(/elevation-(\d+)/)
+      if (elevationMatch) {
+        const elevationLevel = elevationMatch[1]
+        boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+      }
+    }
     
     return (
       <div
@@ -80,6 +102,7 @@ export function Toast({
           display: 'flex',
           alignItems: 'center',
           gap: icon || action ? `var(${spacingVar})` : 0,
+          ...(boxShadow && { boxShadow }),
           ...style,
         }}
       >
