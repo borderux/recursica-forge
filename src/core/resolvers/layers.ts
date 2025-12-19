@@ -321,7 +321,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     const bradRaw = spec?.property?.['border-radius']
     const bradSizeKey = parseSizeTokenRef(bradRaw)
     const brad = resolveRef(bradRaw)
-    const isAlt = typeof prefix === 'string' && /^alternative-/.test(prefix)
     if (surfPalette) {
       // Use palette tone var directly (no CSS var reading during resolution)
       const toneVarName = buildPaletteVar(surfPalette.paletteKey, surfPalette.level, 'tone')
@@ -330,12 +329,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       const surfVarRef = coerceToVarRef(surfRaw)
       if (surfVarRef) {
         result[`${brandBase}surface`] = surfVarRef
-      } else if (surf != null && typeof surf === 'string' && !isAlt) {
+      } else if (surf != null && typeof surf === 'string') {
         // If surface is a hex string, record as missing palette (should be in JSON)
         if (/^#?[0-9a-f]{6}$/i.test(surf.trim())) {
           missingPaletteSurfaces.push(String(prefix))
         }
-      } else if (!isAlt && surf != null) {
+      } else if (surf != null) {
         // Record missing palette surface for visibility
         missingPaletteSurfaces.push(String(prefix))
       }
