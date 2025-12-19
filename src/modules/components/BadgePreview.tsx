@@ -3,23 +3,16 @@ import { Badge } from '../../components/adapters/Badge'
 interface BadgePreviewProps {
   selectedVariants: Record<string, string> // e.g., { color: "primary-color" }
   selectedLayer: string // e.g., "layer-0"
-  selectedAltLayer: string | null // e.g., "high-contrast" or null
   componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
 }
 
 export default function BadgePreview({
   selectedVariants,
   selectedLayer,
-  selectedAltLayer,
   componentElevation,
 }: BadgePreviewProps) {
   const colorVariant = selectedVariants.color || 'primary-color'
   const sizeVariant = selectedVariants.size as 'small' | 'default' | 'large' | undefined
-  
-  // Determine the actual layer to use
-  const actualLayer = selectedAltLayer
-    ? (`layer-alternative-${selectedAltLayer}` as any)
-    : (selectedLayer as any)
 
   // Show all variants in the preview
   const variants: Array<'primary-color' | 'warning' | 'success' | 'alert'> = [
@@ -43,7 +36,7 @@ export default function BadgePreview({
           key={variant}
           variant={variant}
           size={sizeVariant}
-          layer={actualLayer}
+          layer={selectedLayer as any}
           elevation={componentElevation}
         >
           {variant === 'primary-color' ? 'New' : variant.charAt(0).toUpperCase() + variant.slice(1)}
