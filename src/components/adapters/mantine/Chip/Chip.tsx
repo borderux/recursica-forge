@@ -30,7 +30,7 @@ export default function Chip({
   mantine,
   ...props
 }: AdapterChipProps) {
-  console.log('🔵 Chip component RENDERING', { variant, size, layer })
+  console.log('🔵 Chip component RENDERING', { variant, size, layer, hasIcon: !!icon })
   const { mode } = useThemeMode()
   
   // Map unified size to Mantine size
@@ -67,6 +67,11 @@ export default function Chip({
   // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon
   const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
   const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
+  
+  // Debug icon size variable
+  if (icon) {
+    console.log('🔵 Chip icon vars:', { iconSizeVar, iconGapVar, icon })
+  }
   const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   const borderSizeVar = getComponentCssVar('Chip', 'size', 'border-size', layer)
@@ -209,7 +214,11 @@ export default function Chip({
     'data-disabled': disabled ? true : undefined,
     onClick: disabled ? undefined : onClick,
     // Use native leftSection prop for icon - CSS will handle sizing and spacing
-    leftSection: icon ? icon : undefined,
+    // Ensure icon is always passed when provided
+    leftSection: icon ? (() => {
+      console.log('🔵 Chip: Passing icon to leftSection:', icon)
+      return icon
+    })() : undefined,
     // Use native rightSection prop for delete button - CSS will handle styling
     rightSection: deleteIcon,
     className,
@@ -228,6 +237,21 @@ export default function Chip({
         borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
         ...mantine?.styles?.root,
       },
+      leftSection: {
+        // Ensure icon container is properly sized - use explicit pixel values to guarantee visibility
+        width: icon ? '16px' : undefined,
+        height: icon ? '16px' : undefined,
+        minWidth: icon ? '16px' : undefined,
+        minHeight: icon ? '16px' : undefined,
+        maxWidth: icon ? '32px' : undefined,
+        maxHeight: icon ? '32px' : undefined,
+        flexShrink: 0,
+        overflow: 'visible',
+        display: icon ? 'inline-flex' : undefined,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...mantine?.styles?.leftSection,
+      },
       ...mantine?.styles,
     },
     style: {
@@ -235,8 +259,11 @@ export default function Chip({
       '--chip-bg': isAlternativeLayer ? chipBgVar : `var(${chipBgVar})`,
       '--chip-color': isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
       '--chip-border': isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
-      '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
-      '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      // Ensure icon size is set - use the CSS variable if icon exists, otherwise 0px
+      // If the CSS variable doesn't resolve, the CSS fallback (16px) will be used
+      // Always set to at least 16px when icon exists to ensure visibility
+      '--chip-icon-size': icon ? `var(${iconSizeVar}, 16px)` : '0px',
+      '--chip-icon-text-gap': icon && children ? `var(${iconGapVar}, 8px)` : '0px',
       '--chip-padding-x': `var(${horizontalPaddingVar})`,
       '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,
