@@ -840,7 +840,7 @@
         },
         "elevation": {
           "$type": "elevation",
-          "$value": "{brand.themes.light.elevations.elevation-3}"
+          "$value": "{brand.themes.light.elevations.elevation-1}"
         }
       },
       "switch": {
