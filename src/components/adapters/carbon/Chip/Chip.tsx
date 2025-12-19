@@ -7,7 +7,7 @@
 
 import { Tag } from '@carbon/react'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
-import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Chip.css'
 
@@ -69,6 +69,9 @@ export default function Chip({
   const borderSizeVar = getComponentCssVar('Chip', 'size', 'border-size', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
+  // Get text styling CSS variables - font-size is at component level (not under size)
+  const fontSizeVar = getComponentLevelCssVar('Chip', 'font-size')
+  
   // Use Button's max-width and height vars (same as Button component)
   // Use Chip's own min-width so toolbar can control it
   const sizePrefix = size === 'small' ? 'small' : 'default'
@@ -99,6 +102,10 @@ export default function Chip({
       '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,
       '--chip-border-radius': `var(${borderRadiusVar})`,
+      '--chip-font-size': fontSizeVar ? `var(${fontSizeVar})` : undefined,
+      fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
+      fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      textTransform: 'none',
       // Use Button's min-width, max-width, and height vars (same as Button component)
       minWidth: `var(${minWidthVar})`,
       height: `var(${heightVar})`,

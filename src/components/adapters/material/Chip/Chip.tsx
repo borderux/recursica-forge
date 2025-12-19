@@ -6,7 +6,7 @@
 
 import { Chip as MaterialChip } from '@mui/material'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
-import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Chip.css'
 
@@ -68,6 +68,9 @@ export default function Chip({
   const borderSizeVar = getComponentCssVar('Chip', 'size', 'border-size', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
+  // Get text styling CSS variables - font-size is at component level (not under size)
+  const fontSizeVar = getComponentLevelCssVar('Chip', 'font-size')
+  
   // Use Button's max-width and height vars (same as Button component)
   // Use Chip's own min-width so toolbar can control it
   const sizePrefix = size === 'small' ? 'small' : 'default'
@@ -97,6 +100,9 @@ export default function Chip({
       paddingTop: `var(${verticalPaddingVar})`,
       paddingBottom: `var(${verticalPaddingVar})`,
       borderRadius: `var(${borderRadiusVar})`,
+      fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
+      fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      textTransform: 'none',
       // Use Button's min-width, max-width, and height vars (same as Button component)
       minWidth: `var(${minWidthVar})`,
       maxWidth: `var(${maxWidthVar})`,

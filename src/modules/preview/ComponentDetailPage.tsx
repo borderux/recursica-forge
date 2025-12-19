@@ -57,12 +57,14 @@ export default function ComponentDetailPage() {
   // Toolbar state
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
+  const [selectedAltLayer, setSelectedAltLayer] = useState<string | null>(null)
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
   const [openPropControl, setOpenPropControl] = useState<string | null>(null)
 
   // Reset variants to first option when component changes
   useEffect(() => {
     setSelectedVariants(getInitialVariants)
+    setSelectedAltLayer(null)
     setOpenPropControl(null)
   }, [componentName, location.pathname, getInitialVariants])
 

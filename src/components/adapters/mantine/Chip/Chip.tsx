@@ -8,7 +8,7 @@
 import React from 'react'
 import { Badge, ActionIcon } from '@mantine/core'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
-import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Chip.css'
@@ -76,6 +76,9 @@ export default function Chip({
   const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   const borderSizeVar = getComponentCssVar('Chip', 'size', 'border-size', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
+  
+  // Get text styling CSS variables - font-size is at component level (not under size)
+  const fontSizeVar = getComponentLevelCssVar('Chip', 'font-size')
   
   // CSS variables in stylesheets ARE reactive - they update automatically when the variable on documentElement changes
   // However, we also set it directly on elements as a fallback and to ensure immediate updates
@@ -268,6 +271,10 @@ export default function Chip({
       '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,
       '--chip-border-radius': `var(${borderRadiusVar})`,
+      '--chip-font-size': fontSizeVar ? `var(${fontSizeVar})` : undefined,
+      fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
+      fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      textTransform: 'none',
       borderStyle: 'solid',
       // Use Button's min-width, max-width, and height vars (same as Button component)
       minWidth: `var(${minWidthVar})`,

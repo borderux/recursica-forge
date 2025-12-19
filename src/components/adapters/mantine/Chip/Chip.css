@@ -16,6 +16,9 @@
   padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, 8px)) !important;
   padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, 8px)) !important;
   border-radius: var(--chip-border-radius, 16px) !important;
+  font-size: var(--chip-font-size, var(--recursica-ui-kit-components-chip-font-size, 16px)) !important;
+  font-weight: var(--recursica-brand-typography-button-font-weight) !important;
+  text-transform: none !important;
   display: inline-flex !important;
   align-items: center !important;
   cursor: pointer !important;

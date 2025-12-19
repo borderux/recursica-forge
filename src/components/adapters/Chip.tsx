@@ -187,10 +187,18 @@ function getChipStyles(
   const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
   
+  // Get text styling CSS variables - font-size is at component level (not under size)
+  const fontSizeVar = getComponentLevelCssVar('Chip', 'font-size')
+  
   // Apply color styles
   styles.backgroundColor = `var(${bgVar})`
   styles.color = `var(${textVar})`
   styles.border = `1px solid var(${borderVar})`
+  
+  // Apply text styles - Chip font-size references button typography, so use button font-weight
+  styles.fontSize = fontSizeVar ? `var(${fontSizeVar})` : undefined
+  styles.fontWeight = 'var(--recursica-brand-typography-button-font-weight)'
+  styles.textTransform = 'none' // Ensure text is not uppercase
   
   // Apply size styles - height and width are derived from content and padding
   styles.paddingLeft = `var(${horizontalPaddingVar})`
