@@ -13,20 +13,19 @@ export default function BadgePreview({
   selectedAltLayer,
   componentElevation,
 }: BadgePreviewProps) {
-  const colorVariant = selectedVariants.color || 'primary-color'
+  const colorVariant = (selectedVariants.color || 'primary-color') as 'primary-color' | 'warning' | 'success' | 'alert'
+  const sizeVariant = (selectedVariants.size || 'large') as 'small' | 'large'
   
   // Determine the actual layer to use
   const actualLayer = selectedAltLayer
     ? (`layer-alternative-${selectedAltLayer}` as any)
     : (selectedLayer as any)
 
-  // Show all variants in the preview
-  const variants: Array<'primary-color' | 'warning' | 'success' | 'alert'> = [
-    'primary-color',
-    'warning',
-    'success',
-    'alert',
-  ]
+  // Format variant name for display
+  const getVariantLabel = (variant: string): string => {
+    if (variant === 'primary-color') return 'Primary'
+    return variant.charAt(0).toUpperCase() + variant.slice(1)
+  }
 
   return (
     <div style={{
@@ -35,18 +34,28 @@ export default function BadgePreview({
       justifyContent: 'center',
       gap: 'var(--recursica-brand-dimensions-spacer-md)',
       flexWrap: 'wrap',
-      padding: 24,
+      paddingLeft: 24,
+      paddingRight: 24,
     }}>
-      {variants.map((variant) => (
-        <Badge
-          key={variant}
-          variant={variant}
-          layer={actualLayer}
-          elevation={componentElevation}
-        >
-          {variant === 'primary-color' ? 'New' : variant.charAt(0).toUpperCase() + variant.slice(1)}
-        </Badge>
-      ))}
+      {/* Badge with variant name */}
+      <Badge
+        variant={colorVariant}
+        size={sizeVariant}
+        layer={actualLayer}
+        elevation={componentElevation}
+      >
+        {getVariantLabel(colorVariant)}
+      </Badge>
+      
+      {/* Badge with numeric value */}
+      <Badge
+        variant={colorVariant}
+        size={sizeVariant}
+        layer={actualLayer}
+        elevation={componentElevation}
+      >
+        10
+      </Badge>
     </div>
   )
 }

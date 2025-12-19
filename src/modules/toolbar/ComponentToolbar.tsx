@@ -139,6 +139,7 @@ export default function ComponentToolbar({
           propsMap.set(key, prop)
         } else if (prop.isVariantSpecific && existing.isVariantSpecific) {
           // Both are variant-specific - prefer the one that matches selected variant
+          // For size props, we need to check if the size variant is in the path
           const existingMatches = existing.variantProp && selectedVariants[existing.variantProp] && 
                                   existing.path.includes(selectedVariants[existing.variantProp])
           const newMatches = prop.variantProp && selectedVariants[prop.variantProp] && 
@@ -147,6 +148,17 @@ export default function ComponentToolbar({
           if (newMatches && !existingMatches) {
             // New prop matches selected variant, existing doesn't - use new one
             propsMap.set(key, prop)
+          } else if (!newMatches && existingMatches) {
+            // Existing matches, new doesn't - keep existing
+            // (do nothing, existing is already in map)
+          } else if (newMatches && existingMatches) {
+            // Both match - this shouldn't happen, but if it does, prefer the one with exact path match
+            // For size variants, ensure we're using the exact variant match
+            const existingVariantInPath = existing.path.find(p => p === selectedVariants[existing.variantProp!])
+            const newVariantInPath = prop.path.find(p => p === selectedVariants[prop.variantProp!])
+            if (newVariantInPath && !existingVariantInPath) {
+              propsMap.set(key, prop)
+            }
           }
           // Otherwise keep existing
         }
@@ -231,6 +243,13 @@ export default function ComponentToolbar({
         // Check if this prop belongs to the selected variant
         // For nested variants (like Avatar's style and style-secondary), we need to check all variant levels
         const variantInPath = prop.path.find(pathPart => pathPart === selectedVariant)
+        
+        // For size props, ensure exact match with selected size variant
+        if (prop.category === 'size' && prop.variantProp === 'size') {
+          if (!variantInPath) {
+            return false
+          }
+        }
         
         if (!variantInPath) {
           // The primary variant is not in the path, check if any selected variant matches

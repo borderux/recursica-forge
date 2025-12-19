@@ -15,6 +15,7 @@ import './Badge.css'
 export default function Badge({
   children,
   variant = 'primary-color',
+  size = 'large',
   layer = 'layer-0',
   className,
   style,
@@ -26,6 +27,12 @@ export default function Badge({
   // Get CSS variables
   const bgVar = getComponentCssVar('Badge', 'color', `${variant}-background`, layer)
   const textVar = getComponentCssVar('Badge', 'color', `${variant}-text`, layer)
+  
+  // Get size-specific height
+  const sizePrefix = size === 'small' ? 'small' : 'large'
+  const heightVar = getComponentCssVar('Badge', 'size', `${sizePrefix}-height`, undefined)
+  // Min-height is fixed: 16px for small, 24px for large
+  const minHeight = size === 'small' ? '16px' : '24px'
   
   // For typography type properties, we need to extract the typography style name
   // The UIKit.json has: { "$type": "typography", "$value": "{brand.typography.caption}" }
@@ -65,6 +72,10 @@ export default function Badge({
         // The CSS file will use these to style the badge
         '--badge-bg': `var(${bgVar})`,
         '--badge-text': `var(${textVar})`,
+        // Set height from size variant (editable via toolbar)
+        height: heightVar ? `var(${heightVar})` : (size === 'small' ? '16px' : '24px'),
+        // Set fixed min-height based on size variant (not editable)
+        minHeight,
         // Set all typography CSS variables
         ...(typographyVars ? {
           '--badge-font-family': `var(${typographyVars['font-family']})`,

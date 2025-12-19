@@ -200,6 +200,13 @@ export default function PropControl({
         ? ['--recursica-brand-typography-button-font-size']
         : []
       
+      // For Badge height prop, set minimum based on selected size variant
+      let minPixelValue = 0
+      if (componentName.toLowerCase() === 'badge' && propToRender.name.toLowerCase() === 'height') {
+        const sizeVariant = selectedVariants.size || 'large'
+        minPixelValue = sizeVariant === 'small' ? 16 : 24
+      }
+      
       // For dimension props, use dimension token selector (only theme values)
       return (
         <DimensionTokenSelector
@@ -207,6 +214,7 @@ export default function PropControl({
           targetCssVars={[...cssVars, ...additionalCssVars]}
           label={label}
           propName={propToRender.name}
+          minPixelValue={minPixelValue}
         />
       )
     }

@@ -15,6 +15,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 export type BadgeProps = {
   children?: React.ReactNode
   variant?: 'primary-color' | 'warning' | 'success' | 'alert'
+  size?: 'small' | 'large'
   layer?: ComponentLayer
   className?: string
   style?: React.CSSProperties
@@ -23,6 +24,7 @@ export type BadgeProps = {
 export function Badge({
   children,
   variant = 'primary-color',
+  size = 'large',
   layer = 'layer-0',
   className,
   style,
@@ -42,6 +44,12 @@ export function Badge({
     const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
     const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
     
+    // Get size-specific height
+    const sizePrefix = size === 'small' ? 'small' : 'large'
+    const heightVar = getComponentCssVar('Badge', 'size', `${sizePrefix}-height`, undefined)
+    // Min-height is fixed: 16px for small, 24px for large
+    const minHeight = size === 'small' ? '16px' : '24px'
+    
     return (
       <span
         className={className}
@@ -51,6 +59,8 @@ export function Badge({
           fontSize: `var(${textSizeVar})`,
           padding: `var(${paddingVerticalVar}) var(${paddingHorizontalVar})`,
           borderRadius: `var(${borderRadiusVar})`,
+          height: heightVar ? `var(${heightVar})` : (size === 'small' ? '16px' : '24px'),
+          minHeight,
           display: 'inline-block',
           ...style,
         } as React.CSSProperties}
@@ -64,6 +74,7 @@ export function Badge({
     <Suspense fallback={<span>{children}</span>}>
       <Component
         variant={variant}
+        size={size}
         layer={layer}
         className={className}
         style={style}
