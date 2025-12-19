@@ -634,41 +634,41 @@
               "layer-0": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
+                  "$value": "{brand.themes.light.palettes.neutral.050.color.tone}"
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
+                  "$value": "{brand.themes.light.palettes.neutral.050.color.on-tone}"
                 }
               },
               "layer-1": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
+                  "$value": "{brand.themes.light.palettes.neutral.050.color.tone}"
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
+                  "$value": "{brand.themes.light.palettes.neutral.050.color.on-tone}"
                 }
               },
               "layer-2": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
+                  "$value": "{brand.themes.light.palettes.neutral.050.color.tone}"
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
+                  "$value": "{brand.themes.light.palettes.neutral.050.color.on-tone}"
                 }
               },
               "layer-3": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.property.surface}"
+                  "$value": "{brand.themes.light.palettes.neutral.050.color.tone}"
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-alternative.floating.element.text.color}"
+                  "$value": "{brand.themes.light.palettes.neutral.050.color.on-tone}"
                 }
               }
             }
