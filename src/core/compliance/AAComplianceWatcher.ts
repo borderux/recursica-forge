@@ -742,6 +742,32 @@ export class AAComplianceWatcher {
   }
 
   /**
+   * Force update all palette on-tone variables for AA compliance (call after reset)
+   */
+  checkAllPaletteOnTones() {
+    // Get all palettes from theme and check all their on-tone variables
+    try {
+      const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
+      const themes = root?.themes || root
+      const levels = ['900','800','700','600','500','400','300','200','100','050']
+      
+      // Check both light and dark modes
+      for (const mode of ['light', 'dark'] as const) {
+        const pal: any = themes?.[mode]?.palettes || {}
+        Object.keys(pal).forEach((paletteKey) => {
+          if (paletteKey === 'core' || paletteKey === 'core-colors') return
+          levels.forEach((level) => {
+            // Force update on-tone for this palette/level combination
+            this.updatePaletteOnTone(paletteKey, level, mode)
+          })
+        })
+      }
+    } catch (err) {
+      console.error('Error checking all palette on-tone variables:', err)
+    }
+  }
+
+  /**
    * Validate all color combinations for AA compliance on startup
    */
   validateAllCompliance(): void {

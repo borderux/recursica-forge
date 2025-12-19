@@ -523,8 +523,43 @@ class VarsStore {
   }
 
   resetAll() {
-    // Simply reload the page to reset everything
-    window.location.reload()
+    // Clear all CSS variables first
+    import('../css/apply').then(({ clearAllCssVars }) => {
+      clearAllCssVars()
+      
+      // Reset state from original JSON imports
+      const sortedTokens = sortFontTokenObjects(tokensImport as any)
+      const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
+      
+      // Reset localStorage to original values
+      if (this.lsAvailable) {
+        writeLSJson(STORAGE_KEYS.tokens, tokensImport)
+        writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
+        writeLSJson(STORAGE_KEYS.uikit, uikitImport)
+        writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
+        writeLSJson(STORAGE_KEYS.elevation, this.initElevationState(normalizedTheme as any))
+      }
+      
+      // Reset state
+      this.state = {
+        tokens: sortedTokens,
+        theme: normalizedTheme as any,
+        uikit: uikitImport as any,
+        palettes: migratePaletteLocalKeys(),
+        elevation: this.initElevationState(normalizedTheme as any),
+        version: (this.state?.version || 0) + 1
+      }
+      
+      // Recompute and apply all CSS variables from clean state
+      this.recomputeAndApplyAll()
+      
+      // Update AA watcher with new state and force check all palette on-tone variables
+      if (this.aaWatcher) {
+        this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
+        // Force check all palette on-tone variables after reset to ensure AA compliance
+        this.aaWatcher.checkAllPaletteOnTones()
+      }
+    })
   }
 
   private initElevationState(theme: any): ElevationState {
