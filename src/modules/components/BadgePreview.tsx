@@ -14,7 +14,7 @@ export default function BadgePreview({
   componentElevation,
 }: BadgePreviewProps) {
   const colorVariant = selectedVariants.color || 'primary-color'
-  const sizeVariant = selectedVariants.size as 'small' | 'large' | undefined
+  const sizeVariant = selectedVariants.size as 'small' | 'default' | 'large' | undefined
   
   // Determine the actual layer to use
   const actualLayer = selectedAltLayer

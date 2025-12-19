@@ -15,7 +15,7 @@ import './Badge.css'
 export default function Badge({
   children,
   variant = 'primary-color',
-  size,
+  size = 'default',
   layer = 'layer-0',
   className,
   style,
@@ -27,6 +27,9 @@ export default function Badge({
   // Get CSS variables
   const bgVar = getComponentCssVar('Badge', 'color', `${variant}-background`, layer)
   const textVar = getComponentCssVar('Badge', 'color', `${variant}-text`, layer)
+  
+  // Get size variant CSS variable for min-height
+  const minHeightVar = getComponentCssVar('Badge', 'size', `${size}-min-height`, undefined)
   
   // For typography type properties, we need to extract the typography style name
   // The UIKit.json has: { "$type": "typography", "$value": "{brand.typography.caption}" }
@@ -58,14 +61,11 @@ export default function Badge({
   const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
   const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
   
-  // Get size-specific min-height if size is provided
-  const minHeightVar = size ? getComponentCssVar('Badge', 'size', `${size}-min-height`, undefined) : undefined
-  
   return (
     <span
       className={`cds--badge ${className || ''}`}
       style={{
-        // Set component-level CSS custom properties for colors
+        // Set component-level CSS custom properties for colors only
         '--badge-bg': `var(${bgVar})`,
         '--badge-text': `var(${textVar})`,
         // Set all typography CSS variables
@@ -76,11 +76,10 @@ export default function Badge({
           '--badge-letter-spacing': `var(${typographyVars['font-letter-spacing']})`,
           '--badge-line-height': `var(${typographyVars['line-height']})`,
         } : {}),
-        // Set dimension CSS custom properties for CSS file
-        '--badge-min-height': minHeightVar ? `var(${minHeightVar})` : undefined,
-        '--badge-padding-horizontal': `var(${paddingHorizontalVar})`,
-        '--badge-padding-vertical': `var(${paddingVerticalVar})`,
-        '--badge-border-radius': `var(${borderRadiusVar})`,
+        // Apply size variant min-height
+        minHeight: minHeightVar ? `var(${minHeightVar})` : undefined,
+        // Only set non-CSS-variable styles here (like display)
+        display: 'inline-block',
         ...style,
       } as React.CSSProperties}
       {...carbon}

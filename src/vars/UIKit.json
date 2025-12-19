@@ -1319,6 +1319,15 @@
                 }
               }
             },
+            "default": {
+              "min-height": {
+                "$type": "dimension",
+                "$value": {
+                  "value": 20,
+                  "unit": "px"
+                }
+              }
+            },
             "large": {
               "min-height": {
                 "$type": "dimension",

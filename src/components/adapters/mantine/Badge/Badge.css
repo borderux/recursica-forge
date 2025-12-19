@@ -1,7 +1,7 @@
 /**
  * Mantine Badge Styles
  * 
- * Uses CSS custom properties set in TSX for theming.
+ * Uses CSS variables from UIKit.json for theming.
  */
 
 .mantine-badge {
@@ -12,11 +12,7 @@
   font-weight: var(--badge-font-weight) !important;
   letter-spacing: var(--badge-letter-spacing) !important;
   line-height: var(--badge-line-height) !important;
-  padding: var(--badge-padding-vertical, var(--recursica-ui-kit-components-badge-padding-vertical)) var(--badge-padding-horizontal, var(--recursica-ui-kit-components-badge-padding-horizontal)) !important;
-  border-radius: var(--badge-border-radius, var(--recursica-ui-kit-components-badge-border-radius)) !important;
-  min-height: var(--badge-min-height) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  box-sizing: border-box !important;
+  padding: var(--recursica-ui-kit-components-badge-padding-vertical) var(--recursica-ui-kit-components-badge-padding-horizontal) !important;
+  border-radius: var(--recursica-ui-kit-components-badge-border-radius) !important;
 }
 

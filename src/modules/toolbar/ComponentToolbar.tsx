@@ -176,49 +176,6 @@ export default function ComponentToolbar({
             if (!groupedProps.has(groupedPropName.toLowerCase())) {
               // Special case mappings: toolbar config names -> UIKit.json property names
               let groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropName.toLowerCase())
-              
-              // Special handling for variant-specific props with variant prefix in config name
-              // e.g., "small-min-height" should match prop "min-height" under variant "small"
-              if (!groupedProp && (groupedPropName.toLowerCase().includes('-min-height') || groupedPropName.toLowerCase().includes('-height'))) {
-                const variantMatch = groupedPropName.toLowerCase().match(/^(small|large|default)-(.+)$/)
-                if (variantMatch) {
-                  const [, variantName, basePropName] = variantMatch
-                  // Find prop with base name that has the variant in its path
-                  // Path structure: ['size', 'variant', 'small', 'min-height'] or ['size', 'variant', 'large', 'min-height']
-                  groupedProp = structure.props.find(p => {
-                    const nameMatches = p.name.toLowerCase() === basePropName.toLowerCase()
-                    const isVariantSpecific = p.isVariantSpecific
-                    const variantPropMatches = p.variantProp === 'size'
-                    const pathHasVariant = p.path.includes(variantName)
-                    
-                    return nameMatches && isVariantSpecific && variantPropMatches && pathHasVariant
-                  })
-                  if (groupedProp) {
-                    // Use the variant-prefixed name as the key
-                    groupedProps.set(groupedPropName.toLowerCase(), groupedProp)
-                    console.log(`ComponentToolbar: Found grouped prop "${groupedPropName}" -> prop "${basePropName}" with variant "${variantName}"`, groupedProp)
-                  } else {
-                    // Debug: log if prop not found
-                    console.warn(`ComponentToolbar: Could not find grouped prop "${groupedPropName}" for component "${componentName}". Looking for prop "${basePropName}" with variant "${variantName}" in size category.`)
-                    const heightProps = structure.props.filter(p => {
-                      const name = p.name.toLowerCase()
-                      return name.includes('height') || name.includes('min-height')
-                    })
-                    console.warn(`ComponentToolbar: Available height-related props:`, heightProps.map(p => ({ 
-                      name: p.name, 
-                      path: p.path, 
-                      variantProp: p.variantProp, 
-                      isVariantSpecific: p.isVariantSpecific, 
-                      category: p.category 
-                    })))
-                  }
-                  // Don't continue - let it fall through to add the prop if found
-                  if (groupedProp) {
-                    continue
-                  }
-                }
-              }
-              
               if (!groupedProp && groupedPropName.toLowerCase() === 'border-color') {
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'color')
               }
@@ -240,7 +197,6 @@ export default function ComponentToolbar({
               const combinedProp: ComponentProp = {
                 ...baseProp,
                 name: parentPropName,
-                category: baseProp.category || 'root',
                 isVariantSpecific: false,
                 variantProp: undefined,
                 borderProps: groupedProps, // Reuse borderProps field for grouped props
@@ -250,31 +206,8 @@ export default function ComponentToolbar({
               if (!seenProps.has(parentPropName.toLowerCase())) {
                 propsMap.set(parentPropName.toLowerCase(), combinedProp)
                 seenProps.add(parentPropName.toLowerCase())
-                console.log(`ComponentToolbar: Created grouped prop "${parentPropName}" with ${groupedProps.size} grouped props:`, Array.from(groupedProps.keys()))
               }
             }
-          } else if (parentPropConfig.group && Object.keys(parentPropConfig.group).length > 0) {
-            // Debug: log if no grouped props were found but group config exists
-            console.warn(`ComponentToolbar: No grouped props found for "${parentPropName}" in component "${componentName}". Group config:`, Object.keys(parentPropConfig.group))
-            // Also log all available props for debugging
-            const heightRelatedProps = structure.props.filter(p => {
-              const name = p.name.toLowerCase()
-              return name.includes('height') || name.includes('min-height')
-            })
-            console.log(`ComponentToolbar: Height-related props for "${componentName}":`, heightRelatedProps.map(p => ({
-              name: p.name,
-              path: p.path,
-              variantProp: p.variantProp,
-              isVariantSpecific: p.isVariantSpecific,
-              category: p.category
-            })))
-            console.log(`ComponentToolbar: All props for "${componentName}":`, structure.props.map(p => ({
-              name: p.name,
-              path: p.path,
-              variantProp: p.variantProp,
-              isVariantSpecific: p.isVariantSpecific,
-              category: p.category
-            })))
           }
         }
       }

@@ -49,21 +49,6 @@
       "icon": "corners-out",
       "label": "Border Radius",
       "visible": true
-    },
-    "min-height": {
-      "icon": "arrows-up-down",
-      "label": "Min Height",
-      "visible": true,
-      "group": {
-        "small-min-height": {
-          "label": "Small Min Height",
-          "visible": true
-        },
-        "large-min-height": {
-          "label": "Large Min Height",
-          "visible": true
-        }
-      }
     }
   }
 }
