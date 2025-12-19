@@ -155,7 +155,16 @@ function resolveTokenRef(
       return `var(--recursica-brand-${mode}-palettes-core-${coreColor}-${state}-${type})`
     }
     
-    // Palette core-colors references: palettes.core-colors.alert (check this AFTER state pattern)
+    // Palette core-colors references with property: palettes.core-colors.success.tone, palettes.core-colors.alert.interactive
+    // Handle: palettes.core-colors.{color}.{tone|on-tone|interactive}
+    const paletteCoreColorsPropertyMatch = /^palettes?\.core-colors?\.([a-z0-9-]+)\.(tone|on-tone|interactive)$/i.exec(path)
+    if (paletteCoreColorsPropertyMatch) {
+      const [, coreColor, property] = paletteCoreColorsPropertyMatch
+      // Map property names: tone -> tone, on-tone -> on-tone, interactive -> interactive
+      return `var(--recursica-brand-${mode}-palettes-core-${coreColor}-${property})`
+    }
+    
+    // Palette core-colors references: palettes.core-colors.alert (check this AFTER property pattern)
     const paletteCoreColorsMatch = /^palettes?\.core-colors?\.(alert|warning|success|interactive|black|white)$/i.exec(path)
     if (paletteCoreColorsMatch) {
       const [, coreColor] = paletteCoreColorsMatch

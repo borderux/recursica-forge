@@ -7,7 +7,7 @@ import { getComponentCssVar } from '../../components/utils/cssVarNames'
 interface ToastPreviewProps {
   selectedVariants: Record<string, string> // e.g., { color: "default" }
   selectedLayer: string // e.g., "layer-0"
-  selectedAltLayer: string | null // e.g., "high-contrast" or null
+  selectedAltLayer?: string | null // e.g., "high-contrast" or null (deprecated, no longer used)
   componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
 }
 
@@ -19,13 +19,8 @@ export default function ToastPreview({
 }: ToastPreviewProps) {
   const colorVariant = (selectedVariants.color || 'default') as 'default' | 'success' | 'error'
 
-  // Determine the actual layer to use
-  const actualLayer = useMemo(() => {
-    if (selectedAltLayer) {
-      return `layer-alternative-${selectedAltLayer}` as any
-    }
-    return selectedLayer as any
-  }, [selectedAltLayer, selectedLayer])
+  // Use selectedLayer directly (no alt-layer support)
+  const actualLayer = selectedLayer as any
 
   // Get toast button color for success/error variants
   const toastButtonColorVar = useMemo(() => {
@@ -52,7 +47,6 @@ export default function ToastPreview({
         variant="default"
         layer={actualLayer}
         elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
       >
         Default toast message
       </Toast>
@@ -62,7 +56,6 @@ export default function ToastPreview({
         variant="success"
         layer={actualLayer}
         elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
         icon={CheckIcon ? <CheckIcon /> : <span>✓</span>}
         onClose={() => {}}
       >
@@ -74,7 +67,6 @@ export default function ToastPreview({
         variant="error"
         layer={actualLayer}
         elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
         icon={XIcon ? <XIcon /> : <span>✕</span>}
         onClose={() => {}}
       >
@@ -86,14 +78,12 @@ export default function ToastPreview({
         variant={colorVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
         icon={colorVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : colorVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
         action={
           <Button
             variant="text"
             size="small"
             layer={actualLayer}
-            alternativeLayer={selectedAltLayer}
             onClick={() => {}}
             style={{
               backgroundColor: 'transparent',
