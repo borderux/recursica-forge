@@ -706,10 +706,10 @@ export default function DimensionTokenSelector({
               style={{
                 width: 60,
                 padding: '4px 8px',
-                border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness, var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, var(--recursica-brand-${mode}-layer-layer-3-property-border-color))`,
-                borderRadius: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-radius, var(--recursica-brand-${mode}-layer-layer-3-property-border-radius))`,
-                background: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-surface, var(--recursica-brand-${mode}-layer-layer-3-property-surface))`,
-                color: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-element-text-color, var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color))`,
+                border: `var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-${mode}-layer-layer-3-property-border-color))`,
+                borderRadius: `var(--recursica-brand-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-${mode}-layer-layer-3-property-border-radius))`,
+                background: `var(--recursica-brand-${mode}-layer-layer-3-property-surface, var(--recursica-brand-${mode}-layer-layer-3-property-surface))`,
+                color: `var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color))`,
                 fontSize: 12,
                 textAlign: 'right',
               }}

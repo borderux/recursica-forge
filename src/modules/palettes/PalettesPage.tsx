@@ -13,6 +13,137 @@ import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 type PaletteEntry = { key: string; title: string; defaultLevel: number; initialFamily?: string }
 
+// Component for interactive row cell with AA compliance checking
+function CoreInteractiveCell({
+  toneCssVar,
+  interactiveCssVar,
+  pickerCssVar,
+}: {
+  toneCssVar: string
+  interactiveCssVar: string
+  pickerCssVar: string
+}) {
+  const { tokens: tokensJson } = useVars()
+  const { mode } = useThemeMode()
+  const [isHovered, setIsHovered] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const AA = 4.5
+
+  // Listen for CSS var changes to trigger re-render
+  useEffect(() => {
+    const handleVarsChanged = () => {
+      setRefreshKey(k => k + 1)
+    }
+    
+    window.addEventListener('paletteVarsChanged', handleVarsChanged)
+    window.addEventListener('recheckCoreColorInteractiveOnTones', handleVarsChanged)
+    return () => {
+      window.removeEventListener('paletteVarsChanged', handleVarsChanged)
+      window.removeEventListener('recheckCoreColorInteractiveOnTones', handleVarsChanged)
+    }
+  }, [])
+
+  // Check AA compliance
+  const aaStatus = useMemo(() => {
+    if (!tokensJson) return null
+    
+    const toneValue = readCssVar(toneCssVar)
+    const interactiveValue = readCssVar(interactiveCssVar)
+    
+    if (!toneValue || !interactiveValue) return null
+    
+    const tokenIndex = buildTokenIndex(tokensJson)
+    const toneHex = resolveCssVarToHex(toneValue, tokenIndex)
+    const interactiveHex = resolveCssVarToHex(interactiveValue, tokenIndex)
+    
+    if (!toneHex || !interactiveHex) return null
+    
+    const currentRatio = contrastRatio(toneHex, interactiveHex)
+    const passesAA = currentRatio >= AA
+    
+    return {
+      passesAA,
+      currentRatio,
+      toneHex,
+      interactiveHex,
+    }
+  }, [toneCssVar, interactiveCssVar, tokensJson, refreshKey])
+
+  const showAAWarning = aaStatus ? !aaStatus.passesAA : false
+
+  return (
+    <td>
+      <div 
+        className="palette-box" 
+        style={{ 
+          backgroundColor: `var(${toneCssVar})`, 
+          cursor: 'pointer',
+          position: 'relative'
+        }} 
+        onClick={(e) => (window as any).openPicker?.(e.currentTarget, pickerCssVar)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {showAAWarning ? (
+          <div 
+            style={{ 
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              color: `var(${interactiveCssVar})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            ✕
+          </div>
+        ) : (
+          <div 
+            className="palette-dot"
+            style={{ 
+              backgroundColor: `var(${interactiveCssVar})`,
+            }} 
+          />
+        )}
+        
+        {showAAWarning && isHovered && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginTop: '4px',
+              padding: '8px 12px',
+              backgroundColor: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
+              border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+              borderRadius: '6px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              zIndex: 1000,
+              minWidth: '200px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
+              AA Compliance Issue
+            </div>
+            <div style={{ marginBottom: '8px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)` }}>
+              Interactive color contrast ratio {aaStatus?.currentRatio.toFixed(2)}:1 {'<'} 4.5:1
+            </div>
+          </div>
+        )}
+      </div>
+    </td>
+  )
+}
+
 // Component for core interactive swatch with AA compliance checking
 function CoreInteractiveSwatch({
   toneCssVar,
@@ -302,47 +433,7 @@ export default function PalettesPage() {
         </div>
 
         <div className="section" style={{ display: 'grid', gap: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0 }}>Core</h3>
-          <button type="button" onClick={addPalette} disabled={!canAddPalette} style={{ padding: '6px 10px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: canAddPalette ? 'pointer' : 'not-allowed', opacity: canAddPalette ? 1 : `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>Add Palette</button>
-          </div>
-
-          <table className="color-swatches">
-            <thead>
-              <tr>
-                <th>Black</th>
-                <th>White</th>
-                <th>Alert</th>
-                <th>Warn</th>
-                <th>Success</th>
-                <th>Interactive</th>
-                <th>Interactive (hover)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="swatch-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-black)`, cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-black`)} />
-                <td className="swatch-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-white)`, cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-white`)} />
-                <td className="swatch-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-alert)`, cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-alert`)} />
-                <td className="swatch-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-warning)`, cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-warning`)} />
-                <td className="swatch-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-success)`, cursor: 'pointer' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-success`)} />
-                <CoreInteractiveSwatch
-                  toneCssVar={`--recursica-brand-${mode}-palettes-core-interactive-default-tone`}
-                  onToneCssVar={`--recursica-brand-${mode}-palettes-core-interactive-default-on-tone`}
-                  fallbackToneCssVar={`--recursica-brand-${mode}-palettes-core-interactive`}
-                  pickerCssVar={`--recursica-brand-${mode}-palettes-core-interactive-default-tone`}
-                />
-                <CoreInteractiveSwatch
-                  toneCssVar={`--recursica-brand-${mode}-palettes-core-interactive-hover-tone`}
-                  onToneCssVar={`--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone`}
-                  pickerCssVar={`--recursica-brand-${mode}-palettes-core-interactive-hover-tone`}
-                />
-              </tr>
-              {/* Removed hex values row under swatches per request */}
-            </tbody>
-          </table>
-
-          <div style={{ marginTop: 24 }}>
+          <div style={{ marginTop: 0 }}>
             <h3 style={{ margin: '0 0 12px 0' }}>Opacity</h3>
             <table className="color-swatches">
               <thead>
@@ -350,6 +441,7 @@ export default function PalettesPage() {
                   <th>Overlay</th>
                   <th>High Emphasis</th>
                   <th>Low Emphasis</th>
+                  <th>Hover</th>
                   <th>Disabled</th>
                 </tr>
               </thead>
@@ -390,8 +482,65 @@ export default function PalettesPage() {
                         <td className="swatch-box text-emphasis" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-text-emphasis-low`)}>
                           <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-text-emphasis-low)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
                         </td>
-                        <td className="swatch-box disabled" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-opacity-disabled`)}>
-                          <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-opacity-disabled)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
+                        <td className="swatch-box hover" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer', padding: '8px' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-state-hover`)}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
+                            {/* Interactive background with black hover overlay */}
+                            <div style={{ 
+                              flex: 1, 
+                              background: `var(--recursica-brand-${modeVar}-palettes-core-interactive-default-tone)`,
+                              position: 'relative',
+                              borderRadius: '4px',
+                              minHeight: '20px'
+                            }}>
+                              <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: `var(--recursica-brand-${modeVar}-palettes-core-black)`,
+                                opacity: `var(--recursica-brand-${modeVar}-state-hover)`,
+                                borderRadius: '4px'
+                              }} />
+                            </div>
+                            {/* Text / Icons in interactive color with hover opacity */}
+                            <div style={{ 
+                              flex: 1, 
+                              background: `var(--recursica-brand-${modeVar}-palettes-core-white)`,
+                              position: 'relative',
+                              borderRadius: '4px',
+                              minHeight: '20px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              isolation: 'isolate'
+                            }}>
+                              <p aria-hidden style={{ 
+                                margin: 0, 
+                                fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, 
+                                fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, 
+                                fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, 
+                                letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, 
+                                lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, 
+                                color: `var(--recursica-brand-${modeVar}-palettes-core-interactive-default-tone)`,
+                                position: 'relative',
+                                zIndex: 1,
+                                whiteSpace: 'nowrap' 
+                              }}>
+                                Text / Icons
+                              </p>
+                              <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: `var(--recursica-brand-${modeVar}-palettes-core-black)`,
+                                opacity: `var(--recursica-brand-${modeVar}-state-hover)`,
+                                borderRadius: '4px',
+                                mixBlendMode: 'darken',
+                                pointerEvents: 'none',
+                                zIndex: 0
+                              }} />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="swatch-box disabled" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-state-disabled`)}>
+                          <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-state-disabled)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
                         </td>
                       </>
                     )
@@ -399,6 +548,128 @@ export default function PalettesPage() {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0 }}>Core</h3>
+          <button type="button" onClick={addPalette} disabled={!canAddPalette} style={{ padding: '6px 10px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: canAddPalette ? 'pointer' : 'not-allowed', opacity: canAddPalette ? 1 : `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>Add Palette</button>
+          </div>
+
+          <div className="palette-container">
+            <table className="color-palettes" style={{ tableLayout: 'fixed', width: '100%' }}>
+            <thead>
+              <tr>
+                  <th style={{ width: 80 }}></th>
+                <th>Black</th>
+                <th>White</th>
+                <th>Alert</th>
+                <th>Warn</th>
+                <th>Success</th>
+                <th>Interactive</th>
+              </tr>
+            </thead>
+            <tbody>
+                <tr className="high-emphasis">
+                  <td>High</td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-black-tone, var(--recursica-brand-${mode}-palettes-core-black))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-black-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-black-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-high, 1)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-white-tone, var(--recursica-brand-${mode}-palettes-core-white))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-white-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-white-on-tone, var(--recursica-brand-${mode}-palettes-core-black))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-high, 1)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-alert-tone, var(--recursica-brand-${mode}-palettes-core-alert))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-alert-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-alert-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-high, 1)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-warning-tone, var(--recursica-brand-${mode}-palettes-core-warning))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-warning-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-warning-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-high, 1)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-success-tone, var(--recursica-brand-${mode}-palettes-core-success))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-success-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-success-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-high, 1)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone, var(--recursica-brand-${mode}-palettes-core-interactive))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-interactive-default-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-interactive-default-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-high, 1)` }} />
+                    </div>
+                  </td>
+                </tr>
+                <tr className="low-emphasis">
+                  <td>Low</td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-black-tone, var(--recursica-brand-${mode}-palettes-core-black))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-black-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-black-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-low, 0.6)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-white-tone, var(--recursica-brand-${mode}-palettes-core-white))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-white-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-white-on-tone, var(--recursica-brand-${mode}-palettes-core-black))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-low, 0.6)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-alert-tone, var(--recursica-brand-${mode}-palettes-core-alert))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-alert-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-alert-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-low, 0.6)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-warning-tone, var(--recursica-brand-${mode}-palettes-core-warning))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-warning-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-warning-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-low, 0.6)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-success-tone, var(--recursica-brand-${mode}-palettes-core-success))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-success-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-success-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-low, 0.6)` }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone, var(--recursica-brand-${mode}-palettes-core-interactive))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-interactive-default-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-interactive-default-on-tone, var(--recursica-brand-${mode}-palettes-core-white))`, opacity: `var(--recursica-brand-${mode}-text-emphasis-low, 0.6)` }} />
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Interactive</td>
+                  <CoreInteractiveCell
+                    toneCssVar={`--recursica-brand-${mode}-palettes-core-black-tone`}
+                    interactiveCssVar={`--recursica-brand-${mode}-palettes-core-black-interactive`}
+                    pickerCssVar={`--recursica-brand-${mode}-palettes-core-black-tone`}
+                  />
+                  <CoreInteractiveCell
+                    toneCssVar={`--recursica-brand-${mode}-palettes-core-white-tone`}
+                    interactiveCssVar={`--recursica-brand-${mode}-palettes-core-white-interactive`}
+                    pickerCssVar={`--recursica-brand-${mode}-palettes-core-white-tone`}
+                  />
+                  <CoreInteractiveCell
+                    toneCssVar={`--recursica-brand-${mode}-palettes-core-alert-tone`}
+                    interactiveCssVar={`--recursica-brand-${mode}-palettes-core-alert-interactive`}
+                    pickerCssVar={`--recursica-brand-${mode}-palettes-core-alert-tone`}
+                  />
+                  <CoreInteractiveCell
+                    toneCssVar={`--recursica-brand-${mode}-palettes-core-warning-tone`}
+                    interactiveCssVar={`--recursica-brand-${mode}-palettes-core-warning-interactive`}
+                    pickerCssVar={`--recursica-brand-${mode}-palettes-core-warning-tone`}
+                  />
+                  <CoreInteractiveCell
+                    toneCssVar={`--recursica-brand-${mode}-palettes-core-success-tone`}
+                    interactiveCssVar={`--recursica-brand-${mode}-palettes-core-success-interactive`}
+                    pickerCssVar={`--recursica-brand-${mode}-palettes-core-success-tone`}
+                  />
+                  <td>
+                    <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone, var(--recursica-brand-${mode}-palettes-core-interactive))`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-${mode}-palettes-core-interactive-default-tone`)}>
+                      <div className="palette-dot" style={{ backgroundColor: `var(--recursica-brand-${mode}-palettes-core-interactive-default-on-tone, var(--recursica-brand-${mode}-palettes-core-white))` }} />
+                    </div>
+                  </td>
+              </tr>
+            </tbody>
+          </table>
           </div>
 
           {palettes.map((p) => (

@@ -146,13 +146,6 @@ describe('Button Component (Adapter)', () => {
       expect(button).toBeInTheDocument()
     })
 
-    it('applies alternative layer', () => {
-      const { container } = renderWithProviders(
-        <Button layer="layer-alternative-high-contrast">Alt Layer</Button>
-      )
-      const button = container.querySelector('button')
-      expect(button).toBeInTheDocument()
-    })
   })
 
   describe('Fallback Behavior', () => {

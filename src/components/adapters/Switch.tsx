@@ -20,7 +20,6 @@ export type SwitchProps = {
   colorVariant?: string
   sizeVariant?: string
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  alternativeLayer?: string | null // e.g., "high-contrast", "none", null
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -33,7 +32,6 @@ export function Switch({
   colorVariant = 'default',
   sizeVariant = 'default',
   elevation,
-  alternativeLayer,
   className,
   style,
   mantine,
@@ -54,14 +52,11 @@ export function Switch({
     const borderRadiusVar = toCssVarName(['components', 'switch', 'size', 'variant', sizeVariant, 'border-radius'].join('.'))
     const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
     
-    // Check if component has alternative-layer prop set (overrides layer-based alt layer)
-    const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
-    
-    // Determine track elevation to apply - prioritize prop, then UIKit.json, then alt layer
+    // Determine track elevation to apply - prioritize prop, then UIKit.json
     const trackElevationBoxShadow = (() => {
       let elevationToApply: string | undefined = elevation
       
-      // First, check if UIKit.json has a track-elevation set
+      // Check if UIKit.json has a track-elevation set
       if (!elevationToApply && trackElevationVar) {
         const uikitElevation = readCssVar(trackElevationVar)
         if (uikitElevation) {
@@ -72,26 +67,6 @@ export function Switch({
           } else if (/^elevation-\d+$/.test(uikitElevation)) {
             elevationToApply = uikitElevation
           }
-        }
-      }
-      
-      // Check alt layer elevation if alt-layer is set
-      if (hasComponentAlternativeLayer) {
-        // Read elevation from alt layer's property
-        const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
-        const altLayerElevation = readCssVar(altLayerElevationVar)
-        if (altLayerElevation) {
-          // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
-          const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
-          if (match) {
-            elevationToApply = match[1]
-          } else if (/^elevation-\d+$/.test(altLayerElevation)) {
-            elevationToApply = altLayerElevation
-          }
-        }
-        // If alt layer doesn't have elevation, fall back to component-level elevation
-        if (!elevationToApply) {
-          elevationToApply = elevation
         }
       }
       
@@ -165,7 +140,6 @@ export function Switch({
         colorVariant={colorVariant}
         sizeVariant={sizeVariant}
         elevation={elevation}
-        alternativeLayer={alternativeLayer}
         className={className}
         style={style}
         mantine={mantine}

@@ -5,7 +5,7 @@ import { Avatar } from '../../components/adapters/Avatar'
 import { Chip } from '../../components/adapters/Chip'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 
-type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3' | 'layer-alternative-high-contrast' | 'layer-alternative-primary-color' | 'layer-alternative-alert' | 'layer-alternative-warning' | 'layer-alternative-success'
+type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 
 export type Section = {
   name: string
@@ -13,28 +13,14 @@ export type Section = {
   render: (selectedLayers: Set<LayerOption>) => JSX.Element
 }
 
-// Sort layers: standard layers 0-3 first, then alternative layers
+// Sort layers: standard layers 0-3
 export function sortLayers(layers: LayerOption[]): LayerOption[] {
   const standardLayers: LayerOption[] = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
-  const alternativeLayers: LayerOption[] = [
-    'layer-alternative-high-contrast',
-    'layer-alternative-primary-color',
-    'layer-alternative-alert',
-    'layer-alternative-warning',
-    'layer-alternative-success'
-  ]
   
   const sorted: LayerOption[] = []
   
   // Add standard layers in order
   for (const layer of standardLayers) {
-    if (layers.includes(layer)) {
-      sorted.push(layer)
-    }
-  }
-  
-  // Add alternative layers in order
-  for (const layer of alternativeLayers) {
     if (layers.includes(layer)) {
       sorted.push(layer)
     }
@@ -58,10 +44,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     
     // Build layer text color CSS variables
     const layerTextColorVars = React.useMemo(() => {
-      const isAlternativeLayer = layer.startsWith('layer-alternative-')
-      const layerBase = isAlternativeLayer
-        ? `--recursica-brand-${mode}-layer-layer-alternative-${layer.replace('layer-alternative-', '')}-property`
-        : `--recursica-brand-${mode}-layer-${layer}-property`
+      const layerBase = `--recursica-brand-${mode}-layer-${layer}-property`
       
       return {
         textColor: `${layerBase}-element-text-color`,
@@ -118,11 +101,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Avatar',
       url: `${base}/avatar`,
       render: (selectedLayers) => {
-        const layer = selectedLayers.has('layer-alternative-primary-color') 
-          ? 'layer-alternative-primary-color' 
-          : selectedLayers.has('layer-alternative-high-contrast')
-          ? 'layer-alternative-high-contrast'
-          : Array.from(selectedLayers)[0] || 'layer-0'
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
         return (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <Avatar
@@ -141,9 +120,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/badge`,
       render: (_selectedLayers) => (
         <div style={{ display: 'flex', gap: 8 }}>
-          <span style={{ background: `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
-          <span style={{ background: `var(--recursica-brand-${mode}-layer-layer-alternative-warning-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
-          <span style={{ background: `var(--recursica-brand-${mode}-layer-layer-alternative-success-property-element-interactive-color)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
+          <span style={{ background: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
+          <span style={{ background: `var(--recursica-brand-${mode}-palettes-core-warning)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
+          <span style={{ background: `var(--recursica-brand-${mode}-palettes-core-success)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
         </div>
       ),
     },
@@ -172,10 +151,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <div style={{ display: 'grid', gap: 16 }}>
             {layers.map((layer) => {
               // Build CSS variable names for this layer's text color with high emphasis
-              const isAlternativeLayer = layer.startsWith('layer-alternative-')
-              const layerBase = isAlternativeLayer
-                ? `--recursica-brand-${mode}-layer-layer-alternative-${layer.replace('layer-alternative-', '')}-property`
-                : `--recursica-brand-${mode}-layer-${layer}-property`
+              const layerBase = `--recursica-brand-${mode}-layer-${layer}-property`
               const textColorVar = `${layerBase}-element-text-color`
               const highEmphasisVar = `${layerBase}-element-text-high-emphasis`
               
@@ -310,7 +286,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/loader`,
       render: (_selectedLayers) => (
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <div style={{ width: 16, height: 16, border: `2px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderTopColor: `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <div style={{ width: 16, height: 16, border: `2px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderTopColor: `var(--recursica-brand-${mode}-layer-palettes-core-interactive-default-tone)`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
           <style>
             {`@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }`}
           </style>
@@ -433,7 +409,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <button>{'<'}</button>
           {[1, 2, 3, 4, 5].map((p) => (
-            <button key={p} style={{ padding: '4px 8px', borderRadius: 6, background: p === 2 ? 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' : undefined, color: p === 2 ? `var(--recursica-brand-${mode}-palettes-core-white)` : undefined }}>{p}</button>
+            <button key={p} style={{ padding: '4px 8px', borderRadius: 6, background: p === 2 ? 'var(--layer-palettes-core-interactive-default-tone)' : undefined, color: p === 2 ? `var(--recursica-brand-${mode}-palettes-core-white)` : undefined }}>{p}</button>
           ))}
           <button>{'>'}</button>
         </div>
@@ -488,7 +464,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/segmented-control`,
       render: (_selectedLayers) => (
         <div style={{ display: 'inline-flex', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, overflow: 'hidden' }}>
-          <button style={{ padding: '6px 10px', background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: `var(--recursica-brand-${mode}-palettes-core-white)`, border: 0 }}>First</button>
+          <button style={{ padding: '6px 10px', background: 'var(--layer-palettes-core-interactive-default-tone)', color: `var(--recursica-brand-${mode}-palettes-core-white)`, border: 0 }}>First</button>
           <button style={{ padding: '6px 10px', border: 0 }}>Second</button>
           <button style={{ padding: '6px 10px', border: 0 }}>Third</button>
         </div>
@@ -508,7 +484,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <ol style={{ display: 'flex', gap: 12, listStyle: 'none', padding: 0 }}>
           {['One', 'Two', 'Three'].map((s, i) => (
             <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? `var(--recursica-brand-${mode}-layer-layer-alternative-primary-color-property-element-interactive-color)` : `var(--recursica-brand-${mode}-palettes-neutral-300-tone)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? `var(--recursica-brand-${mode}-layer-palettes-core-interactive-default-tone)` : `var(--recursica-brand-${mode}-palettes-neutral-300-tone)`, color: `var(--recursica-brand-${mode}-palettes-core-white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
               <span>{s}</span>
             </li>
           ))}
@@ -533,7 +509,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/tabs`,
       render: (_selectedLayers) => (
         <div style={{ display: 'flex', gap: 6 }}>
-          <button style={{ padding: '6px 10px', borderRadius: 999, background: 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)', color: `var(--recursica-brand-${mode}-palettes-core-white)`, border: 0 }}>Active</button>
+          <button style={{ padding: '6px 10px', borderRadius: 999, background: 'var(--layer-palettes-core-interactive-default-tone)', color: `var(--recursica-brand-${mode}-palettes-core-white)`, border: 0 }}>Active</button>
           <button style={{ padding: '6px 10px', borderRadius: 999 }}>Default</button>
           <button style={{ padding: '6px 10px', borderRadius: 999, opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>Disabled</button>
         </div>
@@ -567,7 +543,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {[['08:00', 'Start'], ['10:30', 'Checkpoint'], ['13:00', 'Finish']].map(([t, l], i) => (
             <li key={t} style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: i === 2 ? 'var(--layer-layer-alternative-success-property-element-interactive-color)' : 'var(--layer-layer-alternative-primary-color-property-element-interactive-color)' }} />
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: i === 2 ? 'var(--layer-palettes-core-success)' : 'var(--layer-palettes-core-interactive-default-tone)' }} />
               <span style={{ width: 60, opacity: 0.7 }}>{t}</span>
               <span>{l}</span>
             </li>
@@ -579,7 +555,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Toast',
       url: `${base}/toast`,
       render: (_selectedLayers) => (
-        <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', padding: 12, borderRadius: 8, background: 'var(--layer-layer-alternative-success-property-surface)' }}>Success toast</div>
+        <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', padding: 12, borderRadius: 8, background: 'var(--layer-layer-layer-3-property-surface)' }}>Success toast</div>
       ),
     },
     {

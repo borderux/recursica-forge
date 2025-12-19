@@ -996,57 +996,57 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.property.surface}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.property.surface}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.property.surface}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.property.surface}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     }
                   }
                 }
@@ -1120,57 +1120,57 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.property.surface}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.property.surface}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.property.surface}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.property.surface}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.tone}"
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.themes.light.layers.layer-alternative.primary-color.element.text.color}"
+                      "$value": "{brand.themes.light.palettes.core-colors.interactive.default.on-tone}"
                     }
                   }
                 }

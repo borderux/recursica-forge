@@ -162,15 +162,11 @@ export function getFormCssVar(
 }
 
 /**
- * Generates CSS variable name for component-level properties (elevation, alternative-layer, etc.)
+ * Generates CSS variable name for component-level properties (elevation, etc.)
  * 
  * @example
  * getComponentLevelCssVar('Button', 'elevation')
  * => '--recursica-ui-kit-components-button-elevation'
- * 
- * @example
- * getComponentLevelCssVar('Button', 'alternative-layer')
- * => '--recursica-ui-kit-components-button-alternative-layer'
  */
 export function getComponentLevelCssVar(
   component: ComponentName,
