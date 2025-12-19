@@ -60,12 +60,20 @@ export default function Chip({
   
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant
   // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
-  // Properties that exist: border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon, max-width
+  // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon
   const iconSizeVar = getComponentCssVar('Chip', 'size', 'icon', layer)
   const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
   const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
+  const borderSizeVar = getComponentCssVar('Chip', 'size', 'border-size', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
+  
+  // Use Button's max-width and height vars (same as Button component)
+  // Use Chip's own min-width so toolbar can control it
+  const sizePrefix = size === 'small' ? 'small' : 'default'
+  const minWidthVar = getComponentCssVar('Chip', 'size', 'min-width', undefined) || getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
+  const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
+  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   
   // Destructure adapter-specific props to avoid passing them to the component
   const { mantine, carbon, ...restProps } = props
@@ -83,11 +91,16 @@ export default function Chip({
       backgroundColor: isAlternativeLayer ? chipBgVar : `var(${chipBgVar})`,
       color: isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
       borderColor: isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
+      borderWidth: `var(${borderSizeVar})`,
       paddingLeft: `var(${horizontalPaddingVar})`,
       paddingRight: `var(${horizontalPaddingVar})`,
       paddingTop: `var(${verticalPaddingVar})`,
       paddingBottom: `var(${verticalPaddingVar})`,
       borderRadius: `var(${borderRadiusVar})`,
+      // Use Button's min-width, max-width, and height vars (same as Button component)
+      minWidth: `var(${minWidthVar})`,
+      maxWidth: `var(${maxWidthVar})`,
+      height: `var(${heightVar})`,
       ...(elevation && elevation !== 'elevation-0' ? (() => {
         const elevationMatch = elevation.match(/elevation-(\d+)/)
         if (elevationMatch) {
@@ -106,6 +119,11 @@ export default function Chip({
     style: {
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      '--chip-border-size': `var(${borderSizeVar})`,
+      // Use Button's min-width, max-width, and height vars (same as Button component)
+      '--chip-min-width': `var(${minWidthVar})`,
+      '--chip-max-width': `var(${maxWidthVar})`,
+      '--chip-height': `var(${heightVar})`,
       ...style,
     },
     ...material,

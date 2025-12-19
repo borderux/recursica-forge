@@ -35,12 +35,29 @@ if (typeof window !== 'undefined') {
       event.preventDefault()
       return false
     }
+    // Suppress CSP violations from browser extensions (harmless)
+    if (event.message?.includes('Content Security Policy') ||
+        event.message?.includes('violates the following Content Security Policy')) {
+      event.preventDefault()
+      return false
+    }
+    // Suppress chunk loading errors caused by CSP violations
+    if (event.message?.includes('Loading chunk') && 
+        event.message?.includes('failed')) {
+      event.preventDefault()
+      return false
+    }
   })
   
   // Also catch unhandled promise rejections from extensions
   window.addEventListener('unhandledrejection', (event) => {
     if (event.reason?.message?.includes('message channel closed') ||
         event.reason?.message?.includes('asynchronous response')) {
+      event.preventDefault()
+    }
+    // Suppress chunk loading errors from CSP violations
+    if (event.reason?.message?.includes('Loading chunk') ||
+        event.reason?.message?.includes('ChunkLoadError')) {
       event.preventDefault()
     }
   })

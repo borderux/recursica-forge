@@ -83,26 +83,63 @@ export default function ComponentToolbar({
     const seenProps = new Set<string>()
     const groupedPropsMap = new Map<string, Map<string, ComponentProp>>() // Map of parent prop name -> map of grouped prop names -> props
 
+    // Debug: Log all discovered props for Chip
+    if (componentName === 'Chip') {
+      console.log('ComponentToolbar: All discovered props for Chip:', 
+        structure.props.map(p => `${p.name} (${p.category})`))
+      console.log('ComponentToolbar: Looking for border-size, border-radius, min-width:', 
+        structure.props.filter(p => 
+          ['border-size', 'border-radius', 'min-width'].includes(p.name.toLowerCase())
+        ).map(p => `${p.name} (${p.category})`)
+      )
+    }
+    
     // First pass: collect all props and identify which ones are grouped
     structure.props.forEach(prop => {
       const propNameLower = prop.name.toLowerCase()
       
       // Check if this prop is part of a group in the config (but not if it's the parent prop itself)
       let groupedParent: string | null = null
+      let matchedGroupKey: string | null = null
       if (toolbarConfig?.props) {
         for (const [key, propConfig] of Object.entries(toolbarConfig.props)) {
-          if (propConfig.group && propConfig.group[propNameLower]) {
-            groupedParent = key
-            break
+          if (propConfig.group) {
+            // Check if this prop name matches any key in the group config
+            // The group config keys might be hyphenated (border-size) or match exactly
+            const groupKeys = Object.keys(propConfig.group)
+            for (const groupKey of groupKeys) {
+              const groupKeyLower = groupKey.toLowerCase()
+              // Exact match
+              if (groupKeyLower === propNameLower) {
+                groupedParent = key
+                matchedGroupKey = groupKey
+                if (componentName === 'Chip' && (propNameLower === 'border-size' || propNameLower === 'border-radius')) {
+                  console.log(`ComponentToolbar: First pass - Matched ${propNameLower} to group ${key} with groupKey ${groupKey}`)
+                }
+                break
+              }
+              // Special case: border-color might be stored as "border" in color category
+              if (groupKeyLower === 'border-color' && propNameLower === 'border' && prop.category === 'color') {
+                groupedParent = key
+                matchedGroupKey = groupKey
+                break
+              }
+            }
+            if (groupedParent) break
           }
         }
       }
       if (groupedParent && groupedParent.toLowerCase() !== propNameLower) {
         // This prop is grouped under another prop
-        if (!groupedPropsMap.has(groupedParent)) {
-          groupedPropsMap.set(groupedParent, new Map())
+        if (!groupedPropsMap.has(groupedParent.toLowerCase())) {
+          groupedPropsMap.set(groupedParent.toLowerCase(), new Map())
         }
-        groupedPropsMap.get(groupedParent)!.set(propNameLower, prop)
+        // Use the matched group key name (e.g., "border-size", "border-radius", "border-color")
+        const mapKey = matchedGroupKey ? matchedGroupKey.toLowerCase() : propNameLower
+        groupedPropsMap.get(groupedParent.toLowerCase())!.set(mapKey, prop)
+        if (componentName === 'Chip' && (propNameLower === 'border-size' || propNameLower === 'border-radius')) {
+          console.log(`ComponentToolbar: First pass - Added ${propNameLower} to ${groupedParent} group with mapKey ${mapKey}`)
+        }
         return // Skip adding to main props for now
       }
     })
@@ -163,6 +200,7 @@ export default function ComponentToolbar({
     if (toolbarConfig?.props) {
       for (const [parentPropName, parentPropConfig] of Object.entries(toolbarConfig.props)) {
         if (parentPropConfig.group) {
+          // Start with props already collected in first pass
           const groupedProps = groupedPropsMap.get(parentPropName.toLowerCase()) || new Map()
           
           // Also check if the parent prop itself is in the structure (it might be in its own group)
@@ -173,16 +211,99 @@ export default function ComponentToolbar({
           
           // Also add any props from the group config that might not have been found yet
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
-            if (!groupedProps.has(groupedPropName.toLowerCase())) {
-              // Special case: border-color is stored as "border" in the color category
-              let groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropName.toLowerCase())
-              if (!groupedProp && groupedPropName.toLowerCase() === 'border-color') {
-                groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'color')
-              }
-              if (groupedProp) {
-                groupedProps.set(groupedPropName.toLowerCase(), groupedProp)
-              }
+            const groupedPropKey = groupedPropName.toLowerCase()
+            
+            // Skip if already in the map (from first pass)
+            if (groupedProps.has(groupedPropKey)) {
+              continue
             }
+            
+            let groupedProp: ComponentProp | undefined
+            
+            // First, check if it was already collected in first pass (shouldn't happen, but just in case)
+            groupedProp = groupedProps.get(groupedPropKey)
+            
+              // If not found, search in structure.props
+              if (!groupedProp) {
+                // Try exact name match first (any category) - this should catch most cases
+                groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
+                if (componentName === 'Chip' && (groupedPropKey === 'border-size' || groupedPropKey === 'border-radius') && !groupedProp) {
+                  console.log(`ComponentToolbar: Third pass - Exact match failed for ${groupedPropKey}, trying alternative search...`)
+                  // Try with root category explicitly
+                  groupedProp = structure.props.find(p => 
+                    p.name.toLowerCase() === groupedPropKey && 
+                    (p.category === 'root' || p.category === '' || !p.category || p.category === undefined)
+                  )
+                  if (groupedProp) {
+                    console.log(`ComponentToolbar: Third pass - Found ${groupedPropKey} with root category filter:`, groupedProp.name, groupedProp.category)
+                  }
+                }
+                
+                // Special case: border-color is stored as "border" in the color category
+                if (!groupedProp && groupedPropKey === 'border-color') {
+                  groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'color')
+                }
+                
+                // For border-size and border-radius, they're at top level (root category)
+                // Try multiple search strategies to ensure we find them
+                if (!groupedProp && (groupedPropKey === 'border-size' || groupedPropKey === 'border-radius')) {
+                  // Strategy 1: Try root category explicitly (they're at top level)
+                  groupedProp = structure.props.find(p => 
+                    p.name.toLowerCase() === groupedPropKey && 
+                    (p.category === 'root' || p.category === '' || !p.category || p.category === undefined)
+                  )
+                  // Strategy 2: Try any category (fallback)
+                  if (!groupedProp) {
+                    groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
+                  }
+                }
+                
+                // For min-width and max-width, they might be at top level or in size category
+                if (!groupedProp && (groupedPropKey === 'min-width' || groupedPropKey === 'max-width')) {
+                  // Try root category first (top level)
+                  groupedProp = structure.props.find(p => 
+                    p.name.toLowerCase() === groupedPropKey && 
+                    (p.category === 'root' || p.category === '' || !p.category || p.category === undefined)
+                  )
+                  // Try size category
+                  if (!groupedProp) {
+                    groupedProp = structure.props.find(p => 
+                      p.name.toLowerCase() === groupedPropKey && 
+                      p.category === 'size'
+                    )
+                  }
+                  // Final fallback: any category
+                  if (!groupedProp) {
+                    groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
+                  }
+                }
+              }
+            
+            if (groupedProp) {
+              groupedProps.set(groupedPropKey, groupedProp)
+              if (componentName === 'Chip' && (groupedPropKey === 'border-size' || groupedPropKey === 'border-radius')) {
+                console.log(`ComponentToolbar: Third pass - Found and added grouped prop "${groupedPropName}" (${groupedPropKey}) for "${parentPropName}":`, groupedProp.name, groupedProp.category)
+              } else if (componentName === 'Chip' && groupedPropKey === 'border-color') {
+                console.log(`ComponentToolbar: Found grouped prop "${groupedPropName}" (${groupedPropKey}) for "${parentPropName}":`, groupedProp.name, groupedProp.category)
+              }
+              } else {
+                // Debug: log all available props to help diagnose
+                const allBorderProps = structure.props.filter(p => 
+                  p.name.toLowerCase().includes('border') || 
+                  (groupedPropKey.includes('border') && p.category === 'color' && p.name.toLowerCase() === 'border')
+                )
+                const allSizeProps = structure.props.filter(p => p.category === 'size')
+                const exactMatches = structure.props.filter(p => p.name.toLowerCase() === groupedPropKey)
+                console.warn(`ComponentToolbar: Could not find grouped prop "${groupedPropName}" for "${parentPropName}".`, 
+                  `\n  Searched in ${structure.props.length} props.`,
+                  `\n  Looking for: "${groupedPropKey}"`,
+                  `\n  Exact name matches:`, exactMatches.map(p => `${p.name} (${p.category})`),
+                  `\n  Border-related props:`, allBorderProps.map(p => `${p.name} (${p.category})`),
+                  `\n  Size props:`, allSizeProps.map(p => `${p.name}`),
+                  `\n  All props with "border" in name:`, structure.props.filter(p => p.name.toLowerCase().includes('border')).map(p => `${p.name} (${p.category})`),
+                  `\n  Root category props:`, structure.props.filter(p => p.category === 'root' || !p.category).map(p => `${p.name} (${p.category})`),
+                  `\n  First 20 all props:`, structure.props.slice(0, 20).map(p => `${p.name} (${p.category})`))
+              }
           }
           
           if (groupedProps.size > 0) {
@@ -198,11 +319,16 @@ export default function ComponentToolbar({
                 variantProp: undefined,
                 borderProps: groupedProps, // Reuse borderProps field for grouped props
               }
+              if (componentName === 'Chip' && parentPropName.toLowerCase() === 'border') {
+                console.log(`ComponentToolbar: Created combined border prop with ${groupedProps.size} grouped props. Keys:`, Array.from(groupedProps.keys()))
+              }
               
               // Use parent prop name as the key
-              if (!seenProps.has(parentPropName.toLowerCase())) {
-                propsMap.set(parentPropName.toLowerCase(), combinedProp)
-                seenProps.add(parentPropName.toLowerCase())
+              // Always replace any existing prop with this name (combined props take precedence)
+              propsMap.set(parentPropName.toLowerCase(), combinedProp)
+              seenProps.add(parentPropName.toLowerCase())
+              if (componentName === 'Chip' && parentPropName.toLowerCase() === 'border') {
+                console.log(`ComponentToolbar: Third pass - Replaced border prop in propsMap with combined prop. Has borderProps: ${!!combinedProp.borderProps}, size: ${combinedProp.borderProps?.size || 0}`)
               }
             }
           }
@@ -456,6 +582,9 @@ export default function ComponentToolbar({
           
           // Use prop name as key instead of cssVar since we have unique prop names now
           const propKey = prop.name
+          if (componentName === 'Chip' && propKey.toLowerCase() === 'border') {
+            console.log(`ComponentToolbar: Rendering border prop button. Prop has borderProps: ${!!prop.borderProps}, size: ${prop.borderProps?.size || 0}`)
+          }
           return (
             <div key={propKey} className="toolbar-icon-wrapper">
               <MenuIcon
@@ -469,6 +598,9 @@ export default function ComponentToolbar({
                 icon={Icon}
                 active={openPropControl === propKey}
                 onClick={() => {
+                  if (componentName === 'Chip' && propKey.toLowerCase() === 'border') {
+                    console.log(`ComponentToolbar: Border button clicked. Prop has borderProps: ${!!prop.borderProps}, size: ${prop.borderProps?.size || 0}, keys:`, prop.borderProps ? Array.from(prop.borderProps.keys()) : [])
+                  }
                   if (openPropControl === propKey) {
                     setOpenPropControl(null)
                   } else {

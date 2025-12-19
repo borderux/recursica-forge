@@ -1,6 +1,6 @@
 /* Override Material UI Chip styles to use Recursica CSS variables */
 .MuiChip-root {
-  border: 1px solid var(--chip-border, var(--mui-palette-divider)) !important;
+  border: var(--chip-border-size, 1px) solid var(--chip-border, var(--mui-palette-divider)) !important;
   cursor: pointer !important;
 }
 

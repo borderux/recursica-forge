@@ -21,16 +21,19 @@
       "label": "Border",
       "visible": true,
       "group": {
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Corner Radius",
+          "visible": true
+        },
         "border-color": {
           "label": "Color",
           "visible": true
         }
       }
-    },
-    "border-radius": {
-      "icon": "corners-out",
-      "label": "Border Radius",
-      "visible": true
     },
 
 
@@ -59,10 +62,25 @@
       "label": "Icon Size",
       "visible": true
     },
-    "max-width": {
-      "icon": "arrows-pointing-out",
-      "label": "Max Width",
+    "height": {
+      "icon": "arrows-up-down",
+      "label": "Height",
       "visible": true
+    },
+    "width": {
+      "icon": "arrows-left-right",
+      "label": "Width",
+      "visible": true,
+      "group": {
+        "min-width": {
+          "label": "Minimum",
+          "visible": true
+        },
+        "max-width": {
+          "label": "Maximum",
+          "visible": true
+        }
+      }
     }
   }
 }

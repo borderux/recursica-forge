@@ -3,11 +3,11 @@
 .mantine-Badge-root {
   background-color: var(--chip-bg, var(--mantine-color-gray-1)) !important;
   color: var(--chip-color, var(--mantine-color-gray-9)) !important;
-  border: 1px solid var(--chip-border, var(--mantine-color-gray-3)) !important;
-  padding-left: var(--chip-padding-x, 12px) !important;
-  padding-right: var(--chip-padding-x, 12px) !important;
-  padding-top: var(--chip-padding-y, 8px) !important;
-  padding-bottom: var(--chip-padding-y, 8px) !important;
+  border: var(--chip-border-size, 1px) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
+  padding-left: var(--chip-padding-x) !important;
+  padding-right: var(--chip-padding-x) !important;
+  padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, 8px)) !important;
+  padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, 8px)) !important;
   border-radius: var(--chip-border-radius, 16px) !important;
   display: inline-flex !important;
   align-items: center !important;

@@ -179,7 +179,8 @@ function getChipStyles(
   
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant
   // UIKit.json structure: chip.size.layer-0.border-radius, chip.size.layer-0.horizontal-padding, etc.
-  // Properties that exist: border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon, max-width
+  // Properties that exist: border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon
+  // Note: min-width and max-width are inherited from Button component (see adapter implementations)
   const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   const borderRadiusVar = getComponentCssVar('Chip', 'size', 'border-radius', layer)
