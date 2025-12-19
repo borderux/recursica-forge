@@ -50,10 +50,15 @@ export function getComponentCssVar(
 ): string {
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
+  // Exception: max-width is under size for Toast component, so treat it as size-level for Toast
   const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
   
   // Check if this is a component-level property (not under size/color category)
-  if (componentLevelProperties.includes(property.toLowerCase())) {
+  // Exception: For Toast, max-width is under size, so don't treat it as component-level when category is 'size'
+  const isComponentLevel = componentLevelProperties.includes(property.toLowerCase()) && 
+    !(component.toLowerCase() === 'toast' && category === 'size' && property.toLowerCase() === 'max-width')
+  
+  if (isComponentLevel) {
     const parts = ['components', component.toLowerCase()]
     const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
     parts.push(normalizedProperty)
