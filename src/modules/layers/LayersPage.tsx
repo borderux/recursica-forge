@@ -19,7 +19,6 @@ export default function LayersPage() {
     const handleCloseAll = () => {
       setSelectedLayerLevels(new Set())
       setSelectedLevels(new Set())
-      setSelectedAltLayer(null)
     }
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)

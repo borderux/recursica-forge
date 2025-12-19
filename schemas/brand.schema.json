@@ -42,7 +42,7 @@
         "layers": {
           "type": "object",
           "patternProperties": {
-            "^layer-\\d+$|^layer-alternative$": {
+            "^layer-\\d+$": {
               "$ref": "#/definitions/layer"
             }
           }

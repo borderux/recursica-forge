@@ -4,14 +4,12 @@ import { Avatar } from '../../components/adapters/Avatar'
 interface AvatarPreviewProps {
   selectedVariants: Record<string, string> // e.g., { color: "ghost", size: "default" }
   selectedLayer: string // e.g., "layer-0"
-  selectedAltLayer: string | null // e.g., "high-contrast" or null
   componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
 }
 
 export default function AvatarPreview({
   selectedVariants,
   selectedLayer,
-  selectedAltLayer,
   componentElevation,
 }: AvatarPreviewProps) {
   // Combine style variants if both are selected
@@ -29,13 +27,8 @@ export default function AvatarPreview({
   }
   const sizeVariant = selectedVariants.size || 'default'
 
-  // Determine the actual layer to use
-  const actualLayer = useMemo(() => {
-    if (selectedAltLayer) {
-      return `layer-alternative-${selectedAltLayer}` as any
-    }
-    return selectedLayer as any
-  }, [selectedAltLayer, selectedLayer])
+  // Use the selected layer
+  const actualLayer = selectedLayer as any
 
   // If variant is an icon variant and no fallback is provided, the Avatar component
   // will automatically use the "user" icon from Phosphor
@@ -54,7 +47,6 @@ export default function AvatarPreview({
         sizeVariant={sizeVariant as 'small' | 'default' | 'large'}
         layer={actualLayer}
         elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
         shape="circle"
         fallback={fallback}
       />

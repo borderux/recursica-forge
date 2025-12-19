@@ -21,7 +21,6 @@ export type AvatarProps = {
   sizeVariant?: 'small' | 'default' | 'large'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  alternativeLayer?: string | null // e.g., "high-contrast", "none", null
   shape?: 'circle' | 'square'
   className?: string
   style?: React.CSSProperties
@@ -35,7 +34,6 @@ export function Avatar({
   sizeVariant = 'default',
   layer = 'layer-0',
   elevation,
-  alternativeLayer,
   shape = 'circle',
   className,
   style,
@@ -46,15 +44,10 @@ export function Avatar({
   const Component = useComponent('Avatar')
   const { mode } = useThemeMode()
   
-  // Get elevation and alternative-layer from CSS vars if not provided as props
+  // Get elevation from CSS vars if not provided as props
   // These are set by the toolbar and initialized from UIKit.json
   const elevationVar = getComponentLevelCssVar('Avatar', 'elevation')
-  const alternativeLayerVar = getComponentLevelCssVar('Avatar', 'alternative-layer')
-  
   const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
-  const componentAlternativeLayer = alternativeLayer !== undefined 
-    ? alternativeLayer 
-    : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
   
   // If variant includes "icon" and no fallback is provided, use the "user" icon from Phosphor
   // If variant is "image" and no src is provided, use the placeholder image
@@ -134,7 +127,6 @@ export function Avatar({
         sizeVariant={sizeVariant}
         layer={layer}
         elevation={componentElevation}
-        alternativeLayer={componentAlternativeLayer}
         shape={shape}
         className={className}
         style={style}

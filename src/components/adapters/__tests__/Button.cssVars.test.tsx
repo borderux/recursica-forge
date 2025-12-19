@@ -117,17 +117,6 @@ describe('Button CSS Variables', () => {
       expect(button).toBeInTheDocument()
     })
 
-    it('uses alternative layer CSS variables when provided', () => {
-      const { container } = renderWithProviders(
-        <Button variant="solid" layer="layer-alternative-high-contrast">Test</Button>
-      )
-      const button = container.querySelector('button')
-      expect(button).toBeInTheDocument()
-
-      // Alternative layers use brand CSS variables
-      const styles = window.getComputedStyle(button!)
-      expect(styles).toBeDefined()
-    })
   })
 
   describe('Variant-Specific CSS Variables', () => {

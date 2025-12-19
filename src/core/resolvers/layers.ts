@@ -303,19 +303,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     if (surfRaw && typeof surfRaw === 'object' && typeof (surfRaw as any)['$value'] === 'string') {
       surfRaw = (surfRaw as any)['$value']
     }
-    // If alternative layer has no explicit surface, synthesize from core palette for correct AA evaluation
-    const altMatch = typeof prefix === 'string' ? /^alternative\-(.+)$/.exec(prefix) : null
-    if (!surfRaw && altMatch) {
-      const key = altMatch[1]
-      if (key === 'alert') surfRaw = `var(--recursica-brand-${mode}-palettes-core-alert, var(--palette-alert))`
-      else if (key === 'warning') surfRaw = `var(--recursica-brand-${mode}-palettes-core-warning, var(--palette-warning))`
-      else if (key === 'success') surfRaw = `var(--recursica-brand-${mode}-palettes-core-success, var(--palette-success))`
-      else if (key === 'high-contrast') surfRaw = `var(--recursica-brand-${mode}-palettes-core-black)`
-      else if (key === 'primary-color') {
-        // Use palette-1 primary tone directly - this will be parsed by parsePaletteToneRef
-        surfRaw = `var(--recursica-brand-${mode}-palettes-palette-1-primary-tone)`
-      }
-    }
     const surfPalette = parsePaletteToneRef(surfRaw)
     const surf = resolveRef(surfRaw)
     const padRaw = spec?.property?.padding
@@ -703,11 +690,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
   ;['0','1','2','3','4'].forEach((lvl) => {
     const key = `layer-${lvl}`
     if (layersData && Object.prototype.hasOwnProperty.call(layersData, key)) applyForLayer(layersData[key], lvl)
-  })
-
-  const alts: any = layersData?.['layer-alternative'] || {}
-  Object.keys(alts).forEach((altKey) => {
-    applyForLayer(alts[altKey], `alternative-${altKey}`)
   })
 
   // Report layers missing palette surface references (silently via event only)
