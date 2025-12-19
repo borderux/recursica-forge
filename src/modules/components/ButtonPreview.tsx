@@ -12,14 +12,12 @@ import './ButtonPreview.css'
 interface ButtonPreviewProps {
   selectedVariants: Record<string, string> // e.g., { color: "solid", size: "default" }
   selectedLayer: string // e.g., "layer-0"
-  selectedAltLayer: string | null // e.g., "high-contrast" or null
   componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
 }
 
 export default function ButtonPreview({
   selectedVariants,
   selectedLayer,
-  selectedAltLayer,
   componentElevation,
 }: ButtonPreviewProps) {
   const { mode } = useThemeMode()
@@ -28,37 +26,23 @@ export default function ButtonPreview({
   const colorVariant = selectedVariants.color || 'solid'
   const sizeVariant = selectedVariants.size || 'default'
 
-  // Determine the actual layer to use
-  const actualLayer = useMemo(() => {
-    if (selectedAltLayer) {
-      return `layer-alternative-${selectedAltLayer}` as any
-    }
-    return selectedLayer as any
-  }, [selectedAltLayer, selectedLayer])
+  // Use the selected layer
+  const actualLayer = selectedLayer as any
 
   // Get background color for contrast checking
   const bgColor = useMemo(() => {
-    if (selectedAltLayer) {
-      const surfaceVar = `--recursica-brand-${mode}-layer-layer-alternative-${selectedAltLayer}-property-surface`
-      const surfaceValue = readCssVar(surfaceVar)
-      if (surfaceValue) {
-        const tokenIndex = buildTokenIndex(tokens || {})
-        return resolveCssVarToHex(surfaceValue, tokenIndex)
-      }
-    } else {
-      const surfaceVar = `--recursica-brand-${mode}-layer-layer-${selectedLayer.replace('layer-', '')}-property-surface`
-      const surfaceValue = readCssVar(surfaceVar)
-      if (surfaceValue) {
-        const tokenIndex = buildTokenIndex(tokens || {})
-        return resolveCssVarToHex(surfaceValue, tokenIndex)
-      }
+    const surfaceVar = `--recursica-brand-${mode}-layer-layer-${selectedLayer.replace('layer-', '')}-property-surface`
+    const surfaceValue = readCssVar(surfaceVar)
+    if (surfaceValue) {
+      const tokenIndex = buildTokenIndex(tokens || {})
+      return resolveCssVarToHex(surfaceValue, tokenIndex)
     }
     return null
-  }, [selectedAltLayer, selectedLayer, mode, tokens])
+  }, [selectedLayer, mode, tokens])
 
   // Check contrast for the selected variant
   const contrastWarning = useMemo(() => {
-    if (!selectedAltLayer || !bgColor) return null
+    if (!bgColor) return null
 
     // Get button text color for the selected variant
     const textVar = getComponentCssVar('Button', 'color', `${colorVariant}-text`, selectedLayer)
@@ -83,7 +67,7 @@ export default function ButtonPreview({
     }
 
     return null
-  }, [selectedAltLayer, bgColor, colorVariant, selectedLayer, tokens])
+  }, [bgColor, colorVariant, selectedLayer, tokens])
 
   // Get icon size and gap CSS variables for proper sizing
   const sizePrefix = sizeVariant === 'small' ? 'small' : 'default'
@@ -130,7 +114,7 @@ export default function ButtonPreview({
         <div className="button-preview-warning">
           ⚠️ WCAG AA contrast warning: {contrastWarning.ratio}:1 (requires 4.5:1)
           <br />
-          Using {colorVariant} variant on {selectedAltLayer} background is not recommended.
+          Using {colorVariant} variant on {selectedLayer} background may not meet contrast requirements.
         </div>
       )}
       <div className="button-preview-row">

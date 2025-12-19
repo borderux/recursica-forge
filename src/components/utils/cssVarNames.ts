@@ -50,8 +50,7 @@ export function getComponentCssVar(
 ): string {
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
-  // Exception: max-width is under size for Toast component, so treat it as size-level for Toast
-  const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'alternative-layer', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
+  const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
   
   // Check if this is a component-level property (not under size/color category)
   // Exception: For Toast, max-width is under size, so don't treat it as component-level when category is 'size'
@@ -167,15 +166,11 @@ export function getFormCssVar(
 }
 
 /**
- * Generates CSS variable name for component-level properties (elevation, alternative-layer, etc.)
+ * Generates CSS variable name for component-level properties (elevation, etc.)
  * 
  * @example
  * getComponentLevelCssVar('Button', 'elevation')
  * => '--recursica-ui-kit-components-button-elevation'
- * 
- * @example
- * getComponentLevelCssVar('Button', 'alternative-layer')
- * => '--recursica-ui-kit-components-button-alternative-layer'
  */
 export function getComponentLevelCssVar(
   component: ComponentName,

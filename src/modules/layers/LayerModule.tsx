@@ -7,7 +7,6 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 
 type LayerModuleProps = {
   level?: number | string
-  alternativeKey?: string
   title?: string
   className?: string
   children?: any
@@ -15,7 +14,7 @@ type LayerModuleProps = {
   isSelected?: boolean
 }
 
-export default function LayerModule({ level, alternativeKey, title, className, children, onSelect, isSelected }: LayerModuleProps) {
+export default function LayerModule({ level, title, className, children, onSelect, isSelected }: LayerModuleProps) {
   const { tokens, theme } = useVars()
   const { mode } = useThemeMode()
   const [version, setVersion] = useState(0)
@@ -34,19 +33,11 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       } catch {}
     }
   }, [])
-  const isAlternative = typeof alternativeKey === 'string' && alternativeKey.length > 0
   const layerId = level != null ? String(level) : '0'
-  const legacyBase = isAlternative ? `--layer-layer-alternative-${alternativeKey}-property-` : `--layer-layer-${layerId}-property-`
-  const brandBase = isAlternative ? `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-` : `--recursica-brand-${mode}-layer-layer-${layerId}-property-`
-  const includeBorder = !isAlternative && !(layerId === '0')
-  const paletteBackground = isAlternative
-    ? alternativeKey === 'alert' ? `var(--recursica-brand-${mode}-palettes-core-alert, var(--palette-alert))`
-      : alternativeKey === 'warning' ? `var(--recursica-brand-${mode}-palettes-core-warning, var(--palette-warning))`
-      : alternativeKey === 'success' ? `var(--recursica-brand-${mode}-palettes-core-success, var(--palette-success))`
-      : alternativeKey === 'high-contrast' ? null // Use CSS variable from JSON instead of hardcoded fallback
-      : alternativeKey === 'primary-color' ? `var(--recursica-brand-${mode}-palettes-palette-1-primary-tone)`
-      : null
-    : null
+  const legacyBase = `--layer-layer-${layerId}-property-`
+  const brandBase = `--recursica-brand-${mode}-layer-layer-${layerId}-property-`
+  const includeBorder = !(layerId === '0')
+  const paletteBackground = null
 
   const getTokenValue = (name: string): any => {
     try {
@@ -87,19 +78,6 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
       const themes = root?.themes || root
       
-      // Check for alternative layer elevation first
-      if (isAlternative && alternativeKey) {
-        const altLayerSpec: any = themes?.[mode]?.layers?.['layer-alternative']?.[alternativeKey] || themes?.[mode]?.layer?.['layer-alternative']?.[alternativeKey] || root?.[mode]?.layers?.['layer-alternative']?.[alternativeKey] || root?.[mode]?.layer?.['layer-alternative']?.[alternativeKey] || {}
-        const v: any = altLayerSpec?.property?.elevation?.$value
-        if (typeof v === 'string') {
-          // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
-          const m = v.match(/elevations\.(elevation-(\d+))/i)
-          if (m) return m[2]
-        }
-        // If no elevation in alt layer, fall back to layer-0 (no elevation)
-        return '0'
-      }
-      
       // For regular layers
       const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerId}`] || themes?.[mode]?.layer?.[`layer-${layerId}`] || root?.[mode]?.layers?.[`layer-${layerId}`] || root?.[mode]?.layer?.[`layer-${layerId}`] || {}
       const v: any = layerSpec?.property?.elevation?.$value
@@ -110,7 +88,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       }
     } catch {}
     return String(layerId)
-  }, [theme, layerId, mode, isAlternative, alternativeKey])
+  }, [theme, layerId, mode])
   const cssVarBoxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-color-gray-1000))`
 
   type Style = React.CSSProperties
@@ -211,8 +189,8 @@ export default function LayerModule({ level, alternativeKey, title, className, c
       style={containerStyle}
       onClick={(e) => { if (onSelect) { e.stopPropagation(); onSelect() } }}
     >
-      <div className="layer-content" style={isAlternative ? { height: '100%' } : undefined}>
-        <div className="layer-text-samples" style={isAlternative ? { display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } : undefined}>
+      <div className="layer-content">
+        <div className="layer-text-samples">
           {onSelect ? (
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }} onClick={(e) => e.stopPropagation()}>
               <input
@@ -227,30 +205,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
           ) : (
             title ? <h3 style={{ ...(headingStyle as any), fontWeight: 700 }}>{title}</h3> : null
           )}
-          {isAlternative ? (
-            <div>
-              <p style={{
-                ...(bodyStyle as any),
-                color: (`var(${brandBase}element-text-color)` as any),
-                opacity: (`var(${brandBase}element-text-high-emphasis)` as any)
-              }}>High Emphasis Text / Icon</p>
-              <p style={{
-                ...(bodyStyle as any),
-                color: (`var(${brandBase}element-text-color)` as any),
-                opacity: (`var(${brandBase}element-text-low-emphasis)` as any)
-              }}>Low Emphasis Text / Icon</p>
-              <p style={{
-                ...(bodyStyle as any),
-                color: (`var(${brandBase}element-interactive-color)` as any),
-                opacity: `var(${brandBase}element-interactive-high-emphasis)` as any
-              }}>Interactive (Link / Button)</p>
-              <p style={{
-                ...(bodyStyle as any),
-                color: (`var(${brandBase}element-interactive-color)` as any),
-                opacity: (`var(--recursica-brand-${mode}-state-disabled)` as any)
-              }}>Disabled Interactive</p>
-            </div>
-          ) : (
+          {
             <>
               <p style={{
                 ...(bodyStyle as any),
@@ -276,7 +231,7 @@ export default function LayerModule({ level, alternativeKey, title, className, c
               <p style={{ color: (`var(${brandBase}element-text-warning)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Warning</p>
               <p style={{ color: (`var(${brandBase}element-text-success)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Success</p>
             </>
-          )}
+          }
         </div>
         {children ? (
           <div style={{ display: 'grid', gap: 12 }}>
