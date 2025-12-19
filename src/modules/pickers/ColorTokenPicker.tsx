@@ -614,7 +614,7 @@ export default function ColorTokenPicker() {
     <>
       {anchor && targetVar && (
         createPortal(
-          <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-surface, var(--recursica-brand-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-element-text-color, var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness, var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, var(--recursica-brand-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-radius, var(--recursica-brand-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-padding, var(--recursica-brand-${mode}-layer-layer-3-property-padding))`, zIndex: 20000 }}>
+          <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: `var(--recursica-brand-${mode}-layer-layer-3-property-surface)`, color: `var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color)`, border: `var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-${mode}-layer-layer-3-property-border-color)`, borderRadius: `var(--recursica-brand-${mode}-layer-layer-3-property-border-radius)`, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-${mode}-layer-layer-3-property-padding)`, zIndex: 20000 }}>
             <div
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
               onMouseDown={(e) => {
@@ -663,7 +663,7 @@ export default function ColorTokenPicker() {
                             height: swatch, 
                             background: tokenCssVar ? `var(${tokenCssVar})` : it.value, 
                             cursor: 'pointer', 
-                            border: `1px solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color)`, 
+                            border: `1px solid var(--recursica-brand-${mode}-layer-layer-3-property-border-color)`, 
                             flex: '0 0 auto' 
                           }}
                         >

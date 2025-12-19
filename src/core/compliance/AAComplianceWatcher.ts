@@ -151,8 +151,6 @@ export class AAComplianceWatcher {
       affectedLayers.forEach(({ type, key, mode }) => {
         if (type === 'regular') {
           this.updateLayerElementColors(key as number, mode)
-        } else {
-          this.updateAlternativeLayerElementColors(key as string, mode)
         }
       })
     }
@@ -170,18 +168,16 @@ export class AAComplianceWatcher {
     affectedLayers.forEach(({ type, key, mode }) => {
       if (type === 'regular') {
         this.updateLayerElementColors(key as number, mode)
-      } else {
-        this.updateAlternativeLayerElementColors(key as string, mode)
       }
     })
   }
   
   /**
-   * Finds which layers (0-3 and alt) reference a given palette key
+   * Finds which layers (0-3) reference a given palette key
    * Checks both light and dark modes
    */
-  private findLayersUsingPalette(paletteKey: string): Array<{ type: 'regular' | 'alt'; key: number | string; mode: 'light' | 'dark' }> {
-    const affected: Array<{ type: 'regular' | 'alt'; key: number | string; mode: 'light' | 'dark' }> = []
+  private findLayersUsingPalette(paletteKey: string): Array<{ type: 'regular'; key: number; mode: 'light' | 'dark' }> {
+    const affected: Array<{ type: 'regular'; key: number; mode: 'light' | 'dark' }> = []
     
     // Check regular layers 0-3 for both modes
     for (const mode of ['light', 'dark'] as const) {
@@ -191,19 +187,6 @@ export class AAComplianceWatcher {
         
         if (surfaceValue && surfaceValue.includes(`palettes-${paletteKey}`)) {
           affected.push({ type: 'regular', key: layer, mode })
-        }
-      }
-    }
-    
-    // Check alternative layers for both modes
-    const altLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color', 'floating']
-    for (const mode of ['light', 'dark'] as const) {
-      for (const altKey of altLayers) {
-        const surfaceVar = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-surface`
-        const surfaceValue = readCssVar(surfaceVar)
-        
-        if (surfaceValue && surfaceValue.includes(`palettes-${paletteKey}`)) {
-          affected.push({ type: 'alt', key: altKey, mode })
         }
       }
     }
@@ -233,7 +216,7 @@ export class AAComplianceWatcher {
       // Check layer element colors
       this.checkLayerElementColors()
       
-      // Check core colors and update alternative layers
+      // Check core colors
       this.checkCoreColors()
     } finally {
       // Reset flag after a short delay to allow CSS var updates to complete
@@ -346,28 +329,7 @@ export class AAComplianceWatcher {
   }
 
   /**
-   * Watch an alternative layer's surface color
-   * Watches both light and dark modes
-   */
-  watchAlternativeLayerSurface(alternativeKey: string) {
-    // Watch both light and dark modes
-    for (const mode of ['light', 'dark'] as const) {
-      const surfaceVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-surface`
-      this.watchedVars.add(surfaceVar)
-      
-      // Initialize last value to track changes
-      const currentValue = readCssVar(surfaceVar)
-      if (currentValue) {
-        this.lastValues.set(surfaceVar, currentValue)
-      }
-      
-      // Initial check
-      this.updateAlternativeLayerElementColors(alternativeKey, mode)
-    }
-  }
-
-  /**
-   * Watch core colors (alert, warning, success, interactive) and update alternative layers when they change
+   * Watch core colors (alert, warning, success, interactive)
    * Watches both light and dark modes
    */
   watchCoreColors() {
@@ -394,7 +356,7 @@ export class AAComplianceWatcher {
         if (currentValue !== lastValue) {
           this.lastValues.set(coreColorVar, currentValue)
           
-          // Core color changes affect ALL layers (0-3 and alt) for this mode
+          // Core color changes affect ALL layers (0-3) for this mode
           this.updateAllLayers(mode)
         }
       })
@@ -415,20 +377,14 @@ export class AAComplianceWatcher {
             this.lastValues.set(varName, currentValue)
           }
           
-          // Extract mode, layer number or alternative key from var name
+          // Extract mode and layer number from var name
           // Pattern: --recursica-brand-{mode}-layer-layer-{number}-property-surface
-          // Pattern: --recursica-brand-{mode}-layer-layer-alternative-{key}-property-surface
           const layerMatch = varName.match(/--recursica-brand-(light|dark)-layer-layer-(\d+)-property-surface/)
-          const altMatch = varName.match(/--recursica-brand-(light|dark)-layer-layer-alternative-([a-z-]+)-property-surface/)
           
           if (layerMatch) {
             const mode = layerMatch[1] as 'light' | 'dark'
             const layerNumber = parseInt(layerMatch[2], 10)
             this.updateLayerElementColors(layerNumber, mode)
-          } else if (altMatch) {
-            const mode = altMatch[1] as 'light' | 'dark'
-            const alternativeKey = altMatch[2]
-            this.updateAlternativeLayerElementColors(alternativeKey, mode)
           }
         }
       }
@@ -510,72 +466,6 @@ export class AAComplianceWatcher {
     })
   }
 
-  private updateAlternativeLayerElementColors(alternativeKey: string, mode: 'light' | 'dark' = 'light') {
-    const surfaceCssVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-surface`
-    const surfaceValue = readCssVar(surfaceCssVar)
-    
-    if (!surfaceValue) return
-    
-    const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
-    if (!surfaceHex) return
-    
-    const brandBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeKey}-property-`
-    
-    // Update each element type (same as regular layers)
-    const elements = [
-      {
-        name: 'text-color',
-        colorVar: `${brandBase}element-text-color`,
-        opacityVar: `${brandBase}element-text-high-emphasis`,
-        coreToken: null
-      },
-      {
-        name: 'interactive-tone',
-        colorVar: `${brandBase}element-interactive-tone`,
-        opacityVar: `${brandBase}element-interactive-high-emphasis`,
-        coreToken: parseCoreTokenRef('interactive', this.theme, mode)
-      },
-      {
-        name: 'interactive-tone-hover',
-        colorVar: `${brandBase}element-interactive-tone-hover`,
-        opacityVar: `${brandBase}element-interactive-high-emphasis`,
-        coreToken: parseCoreTokenRef('interactive', this.theme, mode)
-      },
-      {
-        name: 'interactive-on-tone',
-        colorVar: `${brandBase}element-interactive-on-tone`,
-        opacityVar: `${brandBase}element-interactive-high-emphasis`,
-        coreToken: parseCoreTokenRef('interactive', this.theme, mode)
-      },
-      {
-        name: 'interactive-on-tone-hover',
-        colorVar: `${brandBase}element-interactive-on-tone-hover`,
-        opacityVar: `${brandBase}element-interactive-high-emphasis`,
-        coreToken: parseCoreTokenRef('interactive', this.theme, mode)
-      },
-      // Legacy support: keep old 'interactive-color' for backward compatibility
-      {
-        name: 'interactive-color',
-        colorVar: `${brandBase}element-interactive-color`,
-        opacityVar: `${brandBase}element-interactive-high-emphasis`,
-        coreToken: parseCoreTokenRef('interactive', this.theme, mode)
-      }
-    ]
-    
-    // Only add status colors for status alternative layers (alert, warning, success)
-    if (alternativeKey === 'alert' || alternativeKey === 'warning' || alternativeKey === 'success') {
-      elements.push({
-        name: alternativeKey,
-        colorVar: `${brandBase}element-text-${alternativeKey}`,
-        opacityVar: `${brandBase}element-text-high-emphasis`,
-        coreToken: parseCoreTokenRef(alternativeKey, this.theme)
-      })
-    }
-    
-    elements.forEach((element) => {
-      this.updateElementColor(element.name, surfaceHex, element.colorVar, element.opacityVar, element.coreToken, mode)
-    })
-  }
 
   private updateElementColor(
     elementName: string,
@@ -714,7 +604,7 @@ export class AAComplianceWatcher {
   }
 
   /**
-   * Update all layers (0-3 and alt) - used when core colors change
+   * Update all layers (0-3) - used when core colors change
    */
   updateAllLayers(mode?: 'light' | 'dark') {
     // Update both modes if mode not specified, otherwise just the specified mode
@@ -725,20 +615,7 @@ export class AAComplianceWatcher {
       for (let layer = 0; layer <= 3; layer++) {
         this.updateLayerElementColors(layer, m)
       }
-      
-      // Update alternative layers
-      const alternativeLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color', 'floating']
-      alternativeLayers.forEach((layerKey) => {
-        this.updateAlternativeLayerElementColors(layerKey, m)
-      })
     }
-  }
-
-  /**
-   * Force AA compliance check for all alternative layers (call after reset)
-   */
-  checkAllAlternativeLayers() {
-    this.updateAllLayers()
   }
 
   /**
@@ -858,56 +735,6 @@ export class AAComplianceWatcher {
           }
         }
       }
-    }
-    
-    // Validate alternative layers for both light and dark modes
-    const altLayers = ['alert', 'warning', 'success', 'high-contrast', 'primary-color', 'floating']
-    for (const mode of ['light', 'dark'] as const) {
-      altLayers.forEach((altKey) => {
-        const surfaceVar = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-surface`
-        const surfaceValue = readCssVar(surfaceVar)
-        
-        if (!surfaceValue) return
-        
-        const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
-        if (!surfaceHex) return
-        
-        const brandBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-`
-        
-        // Check text color
-        const textColorVar = `${brandBase}element-text-color`
-        const textColorValue = readCssVar(textColorVar)
-        if (textColorValue) {
-          const textColorHex = resolveCssVarToHex(textColorValue, this.tokenIndex)
-          if (textColorHex) {
-            const ratio = contrastRatio(surfaceHex, textColorHex)
-            if (ratio < AA) {
-              issues.push({
-                type: 'alt-layer-text',
-                message: `Alternative layer ${altKey} (${mode}): Text color contrast ratio ${ratio.toFixed(2)} < ${AA}`,
-                severity: 'error'
-              })
-            }
-          }
-        }
-        
-        // Check interactive colors
-        const interactiveVar = `${brandBase}element-interactive-color`
-        const interactiveValue = readCssVar(interactiveVar)
-        if (interactiveValue) {
-          const interactiveHex = resolveCssVarToHex(interactiveValue, this.tokenIndex)
-          if (interactiveHex) {
-            const ratio = contrastRatio(surfaceHex, interactiveHex)
-            if (ratio < AA) {
-              issues.push({
-                type: 'alt-layer-interactive',
-                message: `Alternative layer ${altKey} (${mode}): Interactive color contrast ratio ${ratio.toFixed(2)} < ${AA}`,
-                severity: 'error'
-              })
-            }
-          }
-        }
-      })
     }
     
     // Validate palette on-tone combinations

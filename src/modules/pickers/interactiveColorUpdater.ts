@@ -55,28 +55,6 @@ function updateLayerInteractiveColors(interactiveHex: string, tokens: JsonLike, 
     updateCssVar(interactiveVar, cssVarRef, tokens)
   }
   
-  // Update alternative layers
-  const altLayers = ['primary-color', 'success', 'warning', 'alert', 'high-contrast']
-  for (const altKey of altLayers) {
-    const surfaceVar = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-surface`
-    const interactiveVar = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property-element-interactive-color`
-    
-    const surfaceHex = resolveCssVarToHex(`var(${surfaceVar})`, tokenIndex) || '#ffffff'
-    const contrast = contrastRatio(surfaceHex, interactiveHex)
-    
-    // Determine the best color to use for this alternative layer
-    let colorHex = interactiveHex
-    
-    if (contrast < AA) {
-      // Need to find a darker/lighter version that meets AA
-      // For colored backgrounds, try darker first (usually better contrast)
-      colorHex = stepUntilAACompliant(interactiveHex, surfaceHex, 'darker', tokens)
-    }
-    
-    // Update the CSS var - prefer token reference if available, otherwise use hex
-    const cssVarRef = hexToCssVarRef(colorHex, tokens)
-    updateCssVar(interactiveVar, cssVarRef, tokens)
-  }
 }
 
 export function updateInteractiveColor(
