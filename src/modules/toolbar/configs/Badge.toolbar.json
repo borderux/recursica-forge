@@ -38,6 +38,10 @@
         "padding-horizontal": {
           "label": "Horizontal",
           "visible": true
+        },
+        "padding-vertical": {
+          "label": "Vertical",
+          "visible": true
         }
       }
     },
@@ -46,10 +50,20 @@
       "label": "Border Radius",
       "visible": true
     },
-    "height": {
+    "min-height": {
       "icon": "arrows-up-down",
-      "label": "Height",
-      "visible": true
+      "label": "Min Height",
+      "visible": true,
+      "group": {
+        "small-min-height": {
+          "label": "Small Min Height",
+          "visible": true
+        },
+        "large-min-height": {
+          "label": "Large Min Height",
+          "visible": true
+        }
+      }
     }
   }
 }

@@ -9,7 +9,6 @@ import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type BadgeProps = {
@@ -24,7 +23,7 @@ export type BadgeProps = {
 export function Badge({
   children,
   variant = 'primary-color',
-  size = 'large',
+  size,
   layer = 'layer-0',
   className,
   style,
@@ -44,24 +43,30 @@ export function Badge({
     const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
     const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
     
-    // Get size-specific height
-    const sizePrefix = size === 'small' ? 'small' : 'large'
-    const heightVar = getComponentCssVar('Badge', 'size', `${sizePrefix}-height`, undefined)
-    // Min-height is fixed: 16px for small, 24px for large
-    const minHeight = size === 'small' ? '16px' : '24px'
+    // Get size-specific min-height if size is provided
+    const minHeightVar = size ? getComponentCssVar('Badge', 'size', `${size}-min-height`, undefined) : undefined
     
     return (
       <span
         className={className}
         style={{
+          // Set CSS custom properties for CSS to use
+          '--badge-bg': `var(${bgVar})`,
+          '--badge-text': `var(${textVar})`,
+          '--badge-font-size': `var(${textSizeVar})`,
+          '--badge-padding-horizontal': `var(${paddingHorizontalVar})`,
+          '--badge-padding-vertical': `var(${paddingVerticalVar})`,
+          '--badge-border-radius': `var(${borderRadiusVar})`,
+          '--badge-min-height': minHeightVar ? `var(${minHeightVar})` : undefined,
+          // Fallback styles for native implementation
           backgroundColor: `var(${bgVar})`,
           color: `var(${textVar})`,
           fontSize: `var(${textSizeVar})`,
           padding: `var(${paddingVerticalVar}) var(${paddingHorizontalVar})`,
           borderRadius: `var(${borderRadiusVar})`,
-          height: heightVar ? `var(${heightVar})` : (size === 'small' ? '16px' : '24px'),
-          minHeight,
-          display: 'inline-block',
+          display: 'inline-flex',
+          alignItems: 'center',
+          minHeight: minHeightVar ? `var(${minHeightVar})` : undefined,
           ...style,
         } as React.CSSProperties}
       >

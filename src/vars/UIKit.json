@@ -1311,13 +1311,6 @@
         "size": {
           "variant": {
             "small": {
-              "height": {
-                "$type": "dimension",
-                "$value": {
-                  "value": 16,
-                  "unit": "px"
-                }
-              },
               "min-height": {
                 "$type": "dimension",
                 "$value": {
@@ -1327,13 +1320,6 @@
               }
             },
             "large": {
-              "height": {
-                "$type": "dimension",
-                "$value": {
-                  "value": 24,
-                  "unit": "px"
-                }
-              },
               "min-height": {
                 "$type": "dimension",
                 "$value": {
@@ -1349,6 +1335,13 @@
           "$value": "{brand.typography.caption}"
         },
         "padding-horizontal": {
+          "$type": "dimension",
+          "$value": {
+            "value": "{brand.dimensions.general.sm}",
+            "unit": "px"
+          }
+        },
+        "padding-vertical": {
           "$type": "dimension",
           "$value": {
             "value": "{brand.dimensions.general.sm}",

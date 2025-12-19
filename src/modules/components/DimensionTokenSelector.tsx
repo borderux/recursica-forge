@@ -11,7 +11,6 @@ interface DimensionTokenSelectorProps {
   targetCssVars?: string[]
   label: string
   propName: string // e.g., "border-radius", "font-size", "height"
-  minPixelValue?: number // Minimum value for pixel mode slider (default: 0)
 }
 
 export default function DimensionTokenSelector({
@@ -19,7 +18,6 @@ export default function DimensionTokenSelector({
   targetCssVars = [],
   label,
   propName,
-  minPixelValue = 0,
 }: DimensionTokenSelectorProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
@@ -544,7 +542,7 @@ export default function DimensionTokenSelector({
     const currentValue = readCssVar(targetCssVar)
     if (!currentValue) {
       setSelectedToken(undefined)
-      setPixelValue(minPixelValue)
+      setPixelValue(0)
       setIsPixelMode(false)
       return
     }
@@ -586,9 +584,9 @@ export default function DimensionTokenSelector({
       const pxValue = extractPixelValue(currentValue)
       // Determine max pixel value based on prop name
       const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
-      setPixelValue(Math.max(minPixelValue, Math.min(maxPixelValue, pxValue))) // Clamp to minPixelValue-maxPixelValue
+      setPixelValue(Math.max(0, Math.min(maxPixelValue, pxValue))) // Clamp to 0-maxPixelValue
     }
-  }, [targetCssVar, dimensionTokens, propName, minPixelValue])
+  }, [targetCssVar, dimensionTokens, propName])
   
   // Read initial value when component mounts or targetCssVar changes
   useEffect(() => {
@@ -627,16 +625,13 @@ export default function DimensionTokenSelector({
   
   // Handle pixel slider changes
   const handlePixelChange = (value: number) => {
-    // Clamp value to minPixelValue
-    const clampedValue = Math.max(minPixelValue, value)
-    
     // Update local state so slider position updates immediately
-    setPixelValue(clampedValue)
+    setPixelValue(value)
     
     // Update CSS vars directly with pixel value
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
     cssVars.forEach(cssVar => {
-      updateCssVar(cssVar, `${clampedValue}px`)
+      updateCssVar(cssVar, `${value}px`)
     })
     // Dispatch event to notify components of CSS var updates
     window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
@@ -659,7 +654,7 @@ export default function DimensionTokenSelector({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input
               type="range"
-              min={minPixelValue}
+              min={0}
               max={maxPixelValue}
               step={1}
               value={pixelValue}
@@ -668,22 +663,22 @@ export default function DimensionTokenSelector({
             />
             <input
               type="number"
-              min={minPixelValue}
+              min={0}
               max={maxPixelValue}
               step={1}
               value={pixelValue}
               onChange={(e) => {
                 const value = Number(e.target.value)
                 if (!isNaN(value)) {
-                  const clampedValue = Math.max(minPixelValue, Math.min(maxPixelValue, value))
+                  const clampedValue = Math.max(0, Math.min(maxPixelValue, value))
                   handlePixelChange(clampedValue)
                 }
               }}
               onBlur={(e) => {
                 // Ensure value is valid on blur
                 const value = Number(e.target.value)
-                if (isNaN(value) || value < minPixelValue) {
-                  handlePixelChange(minPixelValue)
+                if (isNaN(value) || value < 0) {
+                  handlePixelChange(0)
                 } else if (value > maxPixelValue) {
                   handlePixelChange(maxPixelValue)
                 }

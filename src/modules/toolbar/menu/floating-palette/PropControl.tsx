@@ -200,13 +200,6 @@ export default function PropControl({
         ? ['--recursica-brand-typography-button-font-size']
         : []
       
-      // For Badge height prop, set minimum based on selected size variant
-      let minPixelValue = 0
-      if (componentName.toLowerCase() === 'badge' && propToRender.name.toLowerCase() === 'height') {
-        const sizeVariant = selectedVariants.size || 'large'
-        minPixelValue = sizeVariant === 'small' ? 16 : 24
-      }
-      
       // For dimension props, use dimension token selector (only theme values)
       return (
         <DimensionTokenSelector
@@ -214,7 +207,6 @@ export default function PropControl({
           targetCssVars={[...cssVars, ...additionalCssVars]}
           label={label}
           propName={propToRender.name}
-          minPixelValue={minPixelValue}
         />
       )
     }
@@ -444,6 +436,13 @@ export default function PropControl({
             }
             if (!groupedProp && groupedPropKey === 'text-color') {
               groupedProp = prop.borderProps!.get('text')
+            }
+            // Special handling for variant-specific props with variant prefix in config name
+            // e.g., "small-min-height" should match prop stored with that key
+            if (!groupedProp && (groupedPropKey.includes('-min-height') || groupedPropKey.includes('-height'))) {
+              // The grouped prop should already be stored with the variant-prefixed key
+              // from ComponentToolbar.tsx, so just try to get it directly
+              groupedProp = prop.borderProps!.get(groupedPropKey)
             }
             
             if (!groupedProp) {
