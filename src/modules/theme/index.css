@@ -94,12 +94,21 @@ h3 {
 .palette-box {
   text-align: center;
   height: 50px;
+  position: relative;
 }
 .palette-dot {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   margin: 0 auto;
+}
+/* Vertically center dots in core colors table only */
+.color-palettes .palette-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
 }
 .color-palettes .palette-label.default {
   border: 5px solid var(--scale-black);
