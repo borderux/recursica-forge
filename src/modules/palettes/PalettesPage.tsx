@@ -482,8 +482,62 @@ export default function PalettesPage() {
                         <td className="swatch-box text-emphasis" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-text-emphasis-low`)}>
                           <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-text-emphasis-low)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
                         </td>
-                        <td className="swatch-box hover" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-state-hover`)}>
-                          <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-state-hover)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
+                        <td className="swatch-box hover" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer', padding: '8px' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-state-hover`)}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
+                            {/* Interactive background with black hover overlay */}
+                            <div style={{ 
+                              flex: 1, 
+                              background: `var(--recursica-brand-${modeVar}-palettes-core-interactive-default-tone)`,
+                              position: 'relative',
+                              borderRadius: '4px',
+                              minHeight: '20px'
+                            }}>
+                              <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: `var(--recursica-brand-${modeVar}-palettes-core-black)`,
+                                opacity: `var(--recursica-brand-${modeVar}-state-hover)`,
+                                borderRadius: '4px'
+                              }} />
+                            </div>
+                            {/* Text / Icons in interactive color with hover opacity */}
+                            <div style={{ 
+                              flex: 1, 
+                              background: `var(--recursica-brand-${modeVar}-palettes-core-white)`,
+                              position: 'relative',
+                              borderRadius: '4px',
+                              minHeight: '20px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              isolation: 'isolate'
+                            }}>
+                              <p aria-hidden style={{ 
+                                margin: 0, 
+                                fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, 
+                                fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, 
+                                fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, 
+                                letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, 
+                                lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, 
+                                color: `var(--recursica-brand-${modeVar}-palettes-core-interactive-default-tone)`,
+                                position: 'relative',
+                                zIndex: 1,
+                                whiteSpace: 'nowrap' 
+                              }}>
+                                Text / Icons
+                              </p>
+                              <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: `var(--recursica-brand-${modeVar}-palettes-core-black)`,
+                                opacity: `var(--recursica-brand-${modeVar}-state-hover)`,
+                                borderRadius: '4px',
+                                mixBlendMode: 'darken',
+                                pointerEvents: 'none',
+                                zIndex: 0
+                              }} />
+                            </div>
+                          </div>
                         </td>
                         <td className="swatch-box disabled" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-state-disabled`)}>
                           <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-state-disabled)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
