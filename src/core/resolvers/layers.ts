@@ -593,7 +593,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     const ihover = resolveRef(ihoverRaw)
     
     // Resolve all interactive properties - prefer new names, fall back to old names
-    // Note: text-hover is also used in some alternative layers (e.g., high-contrast) as an alias for on-tone-hover
     const itoneVar = coerceToVarRef(itoneRaw) || coerceToVarRef(ibgRaw)
     const itoneHoverVar = coerceToVarRef(itoneHoverRaw) || coerceToVarRef(ibgHoverRaw)
     const ionToneVar = coerceToVarRef(ionToneRaw) || coerceToVarRef(itextRaw)

@@ -65,7 +65,7 @@ export default function Button({
     // Use Material's native startIcon prop - CSS will handle sizing and spacing
     startIcon: icon && !isIconOnly ? icon : undefined,
     sx: {
-      // Use CSS variables for theming - supports both standard and alternative layers
+      // Use CSS variables for theming
       // Read the actual background color value - if it's transparent, set it directly to override library defaults
       ...(() => {
         const bgColorValue = readCssVar(buttonBgVar)

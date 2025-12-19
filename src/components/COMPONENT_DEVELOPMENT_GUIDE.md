@@ -734,14 +734,14 @@ style={{
 }}
 ```
 
-### Component-Level Props (Elevation and Alternative Layer)
+### Component-Level Props (Elevation)
 
-Components support two special props that are stored as component-level CSS variables and controlled by the toolbar:
+Components support elevation as a special prop that is stored as a component-level CSS variable and controlled by the toolbar:
 
 1. **Elevation** (`elevation` prop)
    - Type: `string | undefined` (e.g., `"elevation-0"`, `"elevation-1"`, etc.)
    - CSS Variable: `--recursica-ui-kit-components-{component}-elevation`
-   - Priority: **Prop** > **UIKit.json** > **Alternative Layer elevation** > **No elevation**
+   - Priority: **Prop** > **UIKit.json** > **No elevation**
    - Implementation:
      ```typescript
      // In adapter: read from CSS var if prop not provided
