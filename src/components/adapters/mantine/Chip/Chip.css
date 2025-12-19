@@ -40,7 +40,10 @@
 .mantine-Badge-root .mantine-Badge-leftSection,
 .recursica-chip-left-section,
 [class*="mantine-Badge-root"] .mantine-Badge-leftSection,
-.mantine-Badge-leftSection {
+.mantine-Badge-leftSection,
+/* Even more specific selectors to ensure we override Mantine's inline styles */
+.mantine-Badge-root[class*="mantine-Badge"] .mantine-Badge-leftSection,
+[class*="mantine-Badge-root"][class*="mantine-Badge"] .mantine-Badge-leftSection {
   /* Icon size - use CSS variable with fallback to UIKit variable */
   /* Force exact size - no growth allowed - use fixed pixel fallback */
   width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
@@ -49,7 +52,10 @@
   min-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
   max-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
   max-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
-  margin-inline-end: var(--chip-icon-text-gap, 8px) !important;
+  /* Read UIKit variable directly for real-time updates - CSS variables in stylesheets are reactive */
+  /* When toolbar updates --recursica-ui-kit-components-chip-icon-text-gap on documentElement, this updates automatically */
+  /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-icon-text-gap */
+  margin-inline-end: var(--recursica-ui-kit-components-chip-icon-text-gap, 8px) !important;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
   flex-basis: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;

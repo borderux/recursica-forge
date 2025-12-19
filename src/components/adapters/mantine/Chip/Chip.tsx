@@ -10,7 +10,6 @@ import { Badge, ActionIcon } from '@mantine/core'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { useCssVar } from '../../../hooks/useCssVar'
 import './Chip.css'
 
 export default function Chip({
@@ -67,7 +66,9 @@ export default function Chip({
   // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap
   // Icon is a component-level property (not layer-specific)
   const iconSizeVar = getComponentLevelCssVar('Chip', 'icon')
-  const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
+  // icon-text-gap is at component level (not under size) in UIKit.json
+  // getComponentCssVar treats it as component-level, which matches toolbar's parseComponentStructure
+  const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
   
   // Debug icon size variable
   if (icon) {
@@ -255,6 +256,8 @@ export default function Chip({
       root: {
         // Set CSS custom properties in styles.root to ensure they're applied to the root element
         '--chip-border-size': `var(${borderSizeVar})`,
+        // Set icon-text-gap CSS variable on root element so it's available for CSS to read
+        '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
         // Border will be set directly via DOM manipulation for real-time updates
         borderStyle: 'solid',
         borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
@@ -275,6 +278,7 @@ export default function Chip({
         display: icon ? 'inline-flex' : undefined,
         alignItems: 'center',
         justifyContent: 'center',
+        // Don't set margin-inline-end here - let CSS handle it (same approach as Button)
         ...mantine?.styles?.leftSection,
       },
       ...mantine?.styles,
@@ -286,7 +290,9 @@ export default function Chip({
       '--chip-border': isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
       // Set icon size CSS variable - use UIKit variable directly with fallback
       '--chip-icon-size': icon ? `var(${iconSizeVar}, 16px)` : '0px',
-      '--chip-icon-text-gap': icon && children ? `var(${iconGapVar}, 8px)` : '0px',
+      // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
+      // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
+      '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
       '--chip-padding-x': `var(${horizontalPaddingVar})`,
       '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,

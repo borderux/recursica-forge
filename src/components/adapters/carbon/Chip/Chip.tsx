@@ -64,7 +64,9 @@ export default function Chip({
   // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap
   // Icon is a component-level property (not layer-specific)
   const iconSizeVar = getComponentLevelCssVar('Chip', 'icon')
-  const iconGapVar = getComponentCssVar('Chip', 'size', 'icon-text-gap', layer)
+  // icon-text-gap is at component level (not under size) in UIKit.json
+  // getComponentCssVar treats it as component-level, which matches toolbar's parseComponentStructure
+  const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
   const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   const borderSizeVar = getComponentCssVar('Chip', 'size', 'border-size', layer)
@@ -98,7 +100,7 @@ export default function Chip({
       '--chip-color': isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
       '--chip-border': isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
-      '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      // Don't set --chip-icon-text-gap here - let CSS use UIKit variable directly for real-time updates
       '--chip-padding-x': `var(${horizontalPaddingVar})`,
       '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,

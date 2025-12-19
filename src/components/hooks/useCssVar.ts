@@ -90,15 +90,17 @@ export function useCssVar(varName: string, fallback?: string): string {
     }
     window.addEventListener('cssvarchange', handleVarChange as EventListener)
     
-    // Also add a polling fallback for border-size to ensure we catch changes
+    // Also add a polling fallback for border-size and icon-text-gap to ensure we catch changes
     let pollInterval: number | undefined
-    if (varName.includes('border-size')) {
+    if (varName.includes('border-size') || varName.includes('icon-text-gap')) {
       pollInterval = window.setInterval(() => {
         const root = document.documentElement
         const currentValue = root.style.getPropertyValue(varName).trim()
         const stateValue = value
         if (currentValue !== stateValue && currentValue) {
-          console.log(`useCssVar: Polling detected change: "${stateValue}" -> "${currentValue}"`)
+          if (varName.includes('icon-text-gap')) {
+            console.log(`useCssVar: Polling detected icon-text-gap change: "${stateValue}" -> "${currentValue}"`)
+          }
           updateValue()
         }
       }, 100) // Poll every 100ms
