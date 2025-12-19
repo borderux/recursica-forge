@@ -432,6 +432,7 @@ export default function PalettesPage() {
                   <th>Overlay</th>
                   <th>High Emphasis</th>
                   <th>Low Emphasis</th>
+                  <th>Hover</th>
                   <th>Disabled</th>
                 </tr>
               </thead>
@@ -472,8 +473,11 @@ export default function PalettesPage() {
                         <td className="swatch-box text-emphasis" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-text-emphasis-low`)}>
                           <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-text-emphasis-low)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
                         </td>
-                        <td className="swatch-box disabled" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-opacity-disabled`)}>
-                          <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-opacity-disabled)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
+                        <td className="swatch-box hover" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-state-hover`)}>
+                          <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-state-hover)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
+                        </td>
+                        <td className="swatch-box disabled" style={{ position: 'relative', background: layer0Surface, cursor: 'pointer' }} onClick={(e) => (window as any).openOpacityPicker?.(e.currentTarget, `--recursica-brand-${modeVar}-state-disabled`)}>
+                          <p aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', margin: 0, fontFamily: `var(--recursica-brand-typography-body-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`, fontSize: `var(--recursica-brand-typography-body-font-size, 16px)`, fontWeight: `var(--recursica-brand-typography-body-font-weight, 400)`, letterSpacing: `var(--recursica-brand-typography-body-font-letter-spacing, 0)`, lineHeight: `var(--recursica-brand-typography-body-line-height, normal)`, color: layer0TextColor, opacity: `var(--recursica-brand-${modeVar}-state-disabled)`, whiteSpace: 'nowrap' }}>Text / Icons</p>
                         </td>
                       </>
                     )

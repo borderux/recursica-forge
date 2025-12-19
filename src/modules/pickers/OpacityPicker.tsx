@@ -67,12 +67,14 @@ export default function OpacityPicker() {
     // Update the target CSS variable to reference the opacity token
     updateCssVar(targetCssVar, `var(${opacityCssVar})`)
     
-    // Persist to theme JSON if this is a text-emphasis opacity or overlay opacity
+    // Persist to theme JSON if this is a text-emphasis opacity, hover opacity, disabled opacity, or overlay opacity
     const isEmphasisOpacity = targetCssVar.includes('text-emphasis-high') || 
                                targetCssVar.includes('text-emphasis-low')
+    const isHoverOpacity = targetCssVar.includes('state-hover')
+    const isDisabledOpacity = targetCssVar.includes('state-disabled')
     const isOverlayOpacity = targetCssVar.includes('state-overlay-opacity')
     
-    if ((isEmphasisOpacity || isOverlayOpacity) && setTheme && themeJson) {
+    if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && setTheme && themeJson) {
       try {
         const themeCopy = JSON.parse(JSON.stringify(themeJson))
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -93,6 +95,28 @@ export default function OpacityPicker() {
           
           // Update the opacity reference in theme JSON
           themes[modeKey]['text-emphasis'][emphasisKey] = {
+            $value: `{tokens.opacity.${tokenKey}}`
+          }
+        } else if (isHoverOpacity) {
+          // Handle hover opacity
+          // Ensure state structure exists
+          if (!themes[modeKey]) themes[modeKey] = {}
+          if (!themes[modeKey].state) themes[modeKey].state = {}
+          
+          // Update the hover opacity reference in theme JSON
+          themes[modeKey].state.hover = {
+            $type: 'number',
+            $value: `{tokens.opacity.${tokenKey}}`
+          }
+        } else if (isDisabledOpacity) {
+          // Handle disabled opacity
+          // Ensure state structure exists
+          if (!themes[modeKey]) themes[modeKey] = {}
+          if (!themes[modeKey].state) themes[modeKey].state = {}
+          
+          // Update the disabled opacity reference in theme JSON
+          themes[modeKey].state.disabled = {
+            $type: 'number',
             $value: `{tokens.opacity.${tokenKey}}`
           }
         } else if (isOverlayOpacity) {

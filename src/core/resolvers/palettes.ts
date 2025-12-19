@@ -137,9 +137,11 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const themes = root?.themes || root
     const state: any = (mode === 'Light' ? themes?.light?.state : themes?.dark?.state) || {}
     const disabled = getOpacityVar(state?.disabled)
+    const hover = getOpacityVar(state?.hover)
     const overlayOpacity = getOpacityVar(state?.overlay?.opacity)
     const overlayColor = getColorVar(state?.overlay?.color)
     vars[`--recursica-brand-${modeLower}-state-disabled`] = disabled
+    vars[`--recursica-brand-${modeLower}-state-hover`] = hover
     vars[`--recursica-brand-${modeLower}-state-overlay-opacity`] = overlayOpacity
     vars[`--recursica-brand-${modeLower}-state-overlay-color`] = overlayColor
   } catch {}

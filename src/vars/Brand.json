@@ -511,6 +511,10 @@
             "$type": "number",
             "$value": "{tokens.opacity.ghost}"
           },
+          "hover": {
+            "$type": "number",
+            "$value": "{tokens.opacity.ghost}"
+          },
           "overlay": {
             "color": {
               "$type": "color",
@@ -1651,6 +1655,10 @@
         },
         "state": {
           "disabled": {
+            "$type": "number",
+            "$value": "{tokens.opacity.ghost}"
+          },
+          "hover": {
             "$type": "number",
             "$value": "{tokens.opacity.ghost}"
           },
