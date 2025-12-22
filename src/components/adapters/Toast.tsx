@@ -81,6 +81,7 @@ export function Toast({
     const maxWidthVar = getComponentCssVar('Toast', 'size', 'max-width', undefined)
     const iconVar = getComponentCssVar('Toast', 'size', 'icon', undefined)
     const spacingVar = getComponentCssVar('Toast', 'size', 'spacing', undefined)
+    const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
     
     // Build box-shadow from elevation if set (and not elevation-0)
     let boxShadow: string | undefined
@@ -133,7 +134,7 @@ export function Toast({
             </span>
           </>
         )}
-        <span style={{ flex: 1 }}>{children}</span>
+        <span style={{ flex: 1, fontSize: `var(${textSizeVar})` }}>{children}</span>
         {action && <span style={{ flexShrink: 0 }}>{action}</span>}
         {onClose && (
           <Button

@@ -14,7 +14,17 @@
     "text": {
       "icon": "text-aa",
       "label": "Text",
-      "visible": true
+      "visible": true,
+      "group": {
+        "text": {
+          "label": "Color",
+          "visible": true
+        },
+        "text-size": {
+          "label": "Size",
+          "visible": true
+        }
+      }
     },
     "button": {
       "icon": "cursor-click",

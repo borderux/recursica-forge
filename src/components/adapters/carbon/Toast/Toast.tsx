@@ -7,7 +7,7 @@
 
 import React from 'react'
 import type { ToastProps as AdapterToastProps } from '../../Toast'
-import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { Button } from '../../Button'
@@ -72,6 +72,7 @@ export default function Toast({
   const maxWidthVar = getComponentCssVar('Toast', 'size', 'max-width', undefined)
   const iconVar = getComponentCssVar('Toast', 'size', 'icon', undefined)
   const spacingVar = getComponentCssVar('Toast', 'size', 'spacing', undefined)
+  const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
   
   // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
   let elevationToApply: string | undefined = elevation
@@ -118,6 +119,7 @@ export default function Toast({
       '--toast-max-width': `var(${maxWidthVar})`,
       '--toast-icon-size': icon ? `var(${iconVar})` : '0px',
       '--toast-spacing': icon || action ? `var(${spacingVar})` : '0px',
+      '--toast-text-size': `var(${textSizeVar})`,
       backgroundColor: isAlternativeLayer ? toastBgVar : `var(${toastBgVar})`,
       color: isAlternativeLayer ? toastTextVar : `var(${toastTextVar})`,
       ...(boxShadow && { boxShadow }),

@@ -838,6 +838,10 @@
             }
           }
         },
+        "text-size": {
+          "$type": "typography",
+          "$value": "{brand.typography.body.font-size}"
+        },
         "elevation": {
           "$type": "elevation",
           "$value": "{brand.themes.light.elevations.elevation-1}"
