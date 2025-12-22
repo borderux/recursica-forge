@@ -11,6 +11,8 @@ import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarName
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import { Button } from './Button'
+import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 
 export type ToastProps = {
   children?: React.ReactNode
@@ -67,8 +69,12 @@ export function Toast({
   
   if (!Component) {
     // Fallback to native div if component not available
+    const CloseIcon = iconNameToReactComponent('x-mark')
     const bgVar = getComponentCssVar('Toast', 'color', `${variant}-background`, layer)
     const textVar = getComponentCssVar('Toast', 'color', `${variant}-text`, layer)
+    const buttonVar = (variant === 'success' || variant === 'error')
+      ? getComponentCssVar('Toast', 'color', `${variant}-button`, layer)
+      : null
     const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'vertical-padding', undefined)
     const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'horizontal-padding', undefined)
     const minWidthVar = getComponentCssVar('Toast', 'size', 'min-width', undefined)
@@ -130,19 +136,29 @@ export function Toast({
         <span style={{ flex: 1 }}>{children}</span>
         {action && <span style={{ flexShrink: 0 }}>{action}</span>}
         {onClose && (
-          <button
+          <Button
+            variant="text"
+            size="small"
+            layer={layer}
             onClick={onClose}
             style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
+              backgroundColor: 'transparent',
+              '--button-bg': 'transparent',
+              minWidth: 'auto',
+              width: 'auto',
+              height: 'auto',
               padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-            }}
+              flexShrink: 0,
+              ...(buttonVar
+                ? {
+                    color: `var(${buttonVar})`,
+                    '--button-color': `var(${buttonVar})`,
+                  }
+                : {}),
+            } as React.CSSProperties}
           >
-            ×
-          </button>
+            {CloseIcon ? <CloseIcon /> : '×'}
+          </Button>
         )}
       </div>
     )

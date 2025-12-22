@@ -5,10 +5,13 @@
  * Uses a simple div-based approach for maximum flexibility.
  */
 
+import React from 'react'
 import type { ToastProps as AdapterToastProps } from '../../Toast'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
+import { Button } from '../../Button'
+import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Toast.css'
 
 export default function Toast({
@@ -26,6 +29,7 @@ export default function Toast({
   ...props
 }: AdapterToastProps) {
   const { mode } = useThemeMode()
+  const CloseIcon = iconNameToReactComponent('x-mark')
   
   // Check if component has alternative-layer prop set (overrides layer-based alt layer)
   const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
@@ -136,15 +140,29 @@ export default function Toast({
           <span className="recursica-toast-action">{action}</span>
         )}
         {onClose && (
-          <button
-            className="recursica-toast-close"
+          <Button
+            variant="text"
+            size="small"
+            layer={layer}
             onClick={onClose}
             style={{
-              backgroundColor: toastButtonVar ? (isAlternativeLayer ? toastButtonVar : `var(${toastButtonVar})`) : 'transparent',
-            }}
+              backgroundColor: 'transparent',
+              '--button-bg': 'transparent',
+              minWidth: 'auto',
+              width: 'auto',
+              height: 'auto',
+              padding: 0,
+              flexShrink: 0,
+              ...(toastButtonVar
+                ? {
+                    color: isAlternativeLayer ? toastButtonVar : `var(${toastButtonVar})`,
+                    '--button-color': isAlternativeLayer ? toastButtonVar : `var(${toastButtonVar})`,
+                  }
+                : {}),
+            } as React.CSSProperties}
           >
-            ×
-          </button>
+            {CloseIcon ? <CloseIcon /> : '×'}
+          </Button>
         )}
       </div>
     </div>
