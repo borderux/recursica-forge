@@ -26,6 +26,8 @@
 .recursica-toast-icon svg {
   width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-icon)) !important;
   height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-icon)) !important;
+  color: var(--toast-text, var(--recursica-ui-kit-components-toast-color-layer-0-variant-default-text)) !important;
+  fill: currentColor !important;
 }
 
 .recursica-toast-message {

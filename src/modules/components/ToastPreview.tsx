@@ -30,7 +30,8 @@ export default function ToastPreview({
     return null
   }, [colorVariant, actualLayer])
 
-  // Icon components for success and error variants
+  // Icon components for all variants
+  const InfoIcon = iconNameToReactComponent('info')
   const CheckIcon = iconNameToReactComponent('check')
   const XIcon = iconNameToReactComponent('x-mark')
 
@@ -47,6 +48,7 @@ export default function ToastPreview({
         variant="default"
         layer={actualLayer}
         elevation={componentElevation}
+        icon={InfoIcon ? <InfoIcon /> : <span>ℹ</span>}
       >
         Default toast message
       </Toast>
@@ -78,7 +80,7 @@ export default function ToastPreview({
         variant={colorVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        icon={colorVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : colorVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
+        icon={colorVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : colorVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : colorVariant === 'default' ? (InfoIcon ? <InfoIcon /> : <span>ℹ</span>) : undefined}
         action={
           <Button
             variant="text"
