@@ -62,6 +62,7 @@ export default function Badge({
   const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
   const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
   const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
+  const heightVar = getComponentLevelCssVar('Badge', 'height')
   
   return (
     <Chip
@@ -80,8 +81,9 @@ export default function Badge({
           '--badge-letter-spacing': `var(${typographyVars['font-letter-spacing']})`,
           '--badge-line-height': `var(${typographyVars['line-height']})`,
         } : {}),
-        // Apply size variant min-height
-        minHeight: minHeightVar ? `var(${minHeightVar})` : undefined,
+        // Use height if set, otherwise fall back to min-height from size variant
+        height: heightVar ? `var(${heightVar})` : undefined,
+        minHeight: !heightVar && minHeightVar ? `var(${minHeightVar})` : undefined,
         ...style,
       } as React.CSSProperties}
       {...material}

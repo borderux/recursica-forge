@@ -49,6 +49,11 @@
       "icon": "corners-out",
       "label": "Border Radius",
       "visible": true
+    },
+    "height": {
+      "icon": "arrows-up-down",
+      "label": "Height",
+      "visible": true
     }
   }
 }

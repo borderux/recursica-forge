@@ -1363,6 +1363,13 @@
             "value": "{brand.dimensions.border-radius.xl}",
             "unit": "px"
           }
+        },
+        "height": {
+          "$type": "dimension",
+          "$value": {
+            "value": 20,
+            "unit": "px"
+          }
         }
       }     
     }

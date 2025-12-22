@@ -43,8 +43,9 @@ export function Badge({
     const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
     const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
     const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
+    const heightVar = getComponentLevelCssVar('Badge', 'height')
     
-    // Get size variant CSS variable for min-height
+    // Get size variant CSS variable for min-height (used as fallback if height is not set)
     const minHeightVar = getComponentCssVar('Badge', 'size', `${size}-min-height`, undefined)
     
     return (
@@ -54,9 +55,11 @@ export function Badge({
           backgroundColor: `var(${bgVar})`,
           color: `var(${textVar})`,
           fontSize: `var(${textSizeVar})`,
-          padding: `var(${paddingVerticalVar}) var(${paddingHorizontalVar})`,
+          padding: `0 var(${paddingHorizontalVar})`,
           borderRadius: `var(${borderRadiusVar})`,
-          minHeight: minHeightVar ? `var(${minHeightVar})` : undefined,
+          // Use height if set, otherwise fall back to min-height from size variant
+          height: heightVar ? `var(${heightVar})` : undefined,
+          minHeight: !heightVar && minHeightVar ? `var(${minHeightVar})` : undefined,
           display: 'inline-block',
           ...style,
         } as React.CSSProperties}

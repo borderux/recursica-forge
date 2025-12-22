@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
 import { getPropLabel, getPropVisible, getGroupedProps, getGroupedPropConfig } from '../../utils/loadToolbarConfig'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
@@ -200,6 +200,21 @@ export default function PropControl({
         ? ['--recursica-brand-typography-button-font-size']
         : []
       
+      // For Badge height, get min value from size variant's min-height
+      let minPixelValue: number | undefined = undefined
+      if (propToRender.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
+        const sizeVariant = selectedVariants.size || 'default'
+        const minHeightVar = `--recursica-ui-kit-components-badge-size-variant-${sizeVariant}-min-height`
+        const minHeightValue = readCssVarResolved(minHeightVar)
+        if (minHeightValue) {
+          // Extract pixel value from resolved CSS var (e.g., "16px" -> 16)
+          const match = minHeightValue.match(/^(\d+(?:\.\d+)?)px$/)
+          if (match) {
+            minPixelValue = parseFloat(match[1])
+          }
+        }
+      }
+      
       // For dimension props, use dimension token selector (only theme values)
       return (
         <DimensionTokenSelector
@@ -207,6 +222,7 @@ export default function PropControl({
           targetCssVars={[...cssVars, ...additionalCssVars]}
           label={label}
           propName={propToRender.name}
+          minPixelValue={minPixelValue}
         />
       )
     }
