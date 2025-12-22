@@ -18,18 +18,14 @@
 
 .recursica-toast-icon {
   display: inline-flex !important;
-  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-icon)) !important;
-  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-icon)) !important;
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;
 }
 
 .recursica-toast-icon svg {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
+  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-icon)) !important;
+  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-icon)) !important;
 }
 
 .recursica-toast-message {

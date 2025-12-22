@@ -5,7 +5,7 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense } from 'react'
+import React, { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
@@ -107,16 +107,25 @@ export function Toast({
         }}
       >
         {icon && (
-          <span style={{
-            display: 'inline-flex',
-            width: `var(${iconVar})`,
-            height: `var(${iconVar})`,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            {icon}
-          </span>
+          <>
+            <style>{`
+              [data-toast-icon-wrapper] svg {
+                width: var(${iconVar}) !important;
+                height: var(${iconVar}) !important;
+              }
+            `}</style>
+            <span 
+              data-toast-icon-wrapper
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              {icon}
+            </span>
+          </>
         )}
         <span style={{ flex: 1 }}>{children}</span>
         {action && <span style={{ flexShrink: 0 }}>{action}</span>}
