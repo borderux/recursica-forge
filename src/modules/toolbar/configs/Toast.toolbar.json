@@ -53,7 +53,7 @@
     },
     "spacing": {
       "icon": "split-horizontal",
-      "label": "Spacing",
+      "label": "Gap Between Text and Actions",
       "visible": true
     },
     "icon": {

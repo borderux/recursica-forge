@@ -22,16 +22,7 @@ export default function ToastPreview({
   // Use selectedLayer directly (no alt-layer support)
   const actualLayer = selectedLayer as any
 
-  // Get toast button color for each variant
-  const successToastButtonColorVar = useMemo(() => {
-    return getComponentCssVar('Toast', 'color', 'success-button', actualLayer)
-  }, [actualLayer])
-  
-  const errorToastButtonColorVar = useMemo(() => {
-    return getComponentCssVar('Toast', 'color', 'error-button', actualLayer)
-  }, [actualLayer])
-  
-  // For the bottom toast that changes with variant selection
+  // Get toast button color for success/error variants
   const toastButtonColorVar = useMemo(() => {
     if (colorVariant === 'success' || colorVariant === 'error') {
       return getComponentCssVar('Toast', 'color', `${colorVariant}-button`, actualLayer)
@@ -58,20 +49,6 @@ export default function ToastPreview({
         layer={actualLayer}
         elevation={componentElevation}
         icon={InfoIcon ? <InfoIcon /> : <span>ℹ</span>}
-        action={
-          <Button
-            variant="text"
-            size="small"
-            layer={actualLayer}
-            onClick={() => {}}
-            style={{
-              backgroundColor: 'transparent',
-              '--button-bg': 'transparent',
-            } as React.CSSProperties}
-          >
-            Action
-          </Button>
-        }
         onClose={() => {}}
       >
         Default toast message
@@ -83,26 +60,6 @@ export default function ToastPreview({
         layer={actualLayer}
         elevation={componentElevation}
         icon={CheckIcon ? <CheckIcon /> : <span>✓</span>}
-        action={
-          <Button
-            variant="text"
-            size="small"
-            layer={actualLayer}
-            onClick={() => {}}
-            style={{
-              backgroundColor: 'transparent',
-              '--button-bg': 'transparent',
-              ...(successToastButtonColorVar
-                ? {
-                    color: `var(${successToastButtonColorVar})`,
-                    '--button-color': `var(${successToastButtonColorVar})`,
-                  }
-                : {}),
-            } as React.CSSProperties}
-          >
-            Action
-          </Button>
-        }
         onClose={() => {}}
       >
         Success toast message
@@ -114,26 +71,6 @@ export default function ToastPreview({
         layer={actualLayer}
         elevation={componentElevation}
         icon={XIcon ? <XIcon /> : <span>✕</span>}
-        action={
-          <Button
-            variant="text"
-            size="small"
-            layer={actualLayer}
-            onClick={() => {}}
-            style={{
-              backgroundColor: 'transparent',
-              '--button-bg': 'transparent',
-              ...(errorToastButtonColorVar
-                ? {
-                    color: `var(${errorToastButtonColorVar})`,
-                    '--button-color': `var(${errorToastButtonColorVar})`,
-                  }
-                : {}),
-            } as React.CSSProperties}
-          >
-            Action
-          </Button>
-        }
         onClose={() => {}}
       >
         Error toast message
