@@ -32,7 +32,7 @@ export default function ToastPreview({
 
   // Icon components for success and error variants
   const CheckIcon = iconNameToReactComponent('check')
-  const XIcon = iconNameToReactComponent('x')
+  const XIcon = iconNameToReactComponent('x-mark')
 
   return (
     <div style={{
