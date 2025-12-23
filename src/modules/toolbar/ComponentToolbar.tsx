@@ -260,27 +260,45 @@ export default function ComponentToolbar({
                 
                 // For min-width and max-width, they might be at top level or in size category
                 if (!groupedProp && (groupedPropKey === 'min-width' || groupedPropKey === 'max-width')) {
-                  // Try root category first (top level)
+                  // Try root category first (top level) - max-width is typically at root level in UIKit.json
                   groupedProp = structure.props.find(p => 
                     p.name.toLowerCase() === groupedPropKey && 
                     (p.category === 'root' || p.category === '' || !p.category || p.category === undefined)
                   )
-                  // Try size category
+                  // Try size category (for variant-specific min/max-width)
                   if (!groupedProp) {
                     groupedProp = structure.props.find(p => 
                       p.name.toLowerCase() === groupedPropKey && 
                       p.category === 'size'
                     )
                   }
-                  // Final fallback: any category
+                  // Final fallback: any category - ensure we find it even if category is unexpected
                   if (!groupedProp) {
                     groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
+                  }
+                  // Additional check: ensure the CSS variable name is correct for component-level properties
+                  // max-width should use --recursica-ui-kit-components-{component}-max-width
+                  if (groupedProp && groupedPropKey === 'max-width') {
+                    const expectedCssVar = `--recursica-ui-kit-components-${componentName.toLowerCase()}-max-width`
+                    if (groupedProp.cssVar !== expectedCssVar) {
+                      console.warn(`ComponentToolbar: max-width CSS variable mismatch. Expected: ${expectedCssVar}, Found: ${groupedProp.cssVar}`)
+                    }
                   }
                 }
               }
             
             if (groupedProp) {
               groupedProps.set(groupedPropKey, groupedProp)
+              // Debug logging for max-width to verify it's being found correctly
+              if (groupedPropKey === 'max-width') {
+                console.log(`ComponentToolbar: Found max-width prop for ${componentName}.`, {
+                  propName: groupedProp.name,
+                  category: groupedProp.category,
+                  cssVar: groupedProp.cssVar,
+                  expectedCssVar: `--recursica-ui-kit-components-${componentName.toLowerCase()}-max-width`,
+                  path: groupedProp.path
+                })
+              }
               if (componentName === 'Chip' && (groupedPropKey === 'border-size' || groupedPropKey === 'border-radius')) {
                 console.log(`ComponentToolbar: Third pass - Found and added grouped prop "${groupedPropName}" (${groupedPropKey}) for "${parentPropName}":`, groupedProp.name, groupedProp.category)
               } else if (componentName === 'Chip' && groupedPropKey === 'border-color') {

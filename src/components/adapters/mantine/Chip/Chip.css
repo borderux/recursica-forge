@@ -26,6 +26,9 @@
   display: inline-flex !important;
   align-items: center !important;
   cursor: pointer !important;
+  /* Use Button's max-width CSS variable (Chip shares Button's max-width) */
+  /* This is reactive and updates in real time when the toolbar changes Button's max-width */
+  max-width: var(--chip-max-width, var(--recursica-ui-kit-components-button-max-width)) !important;
 }
 
 /* Disabled state */

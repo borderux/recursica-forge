@@ -6,6 +6,9 @@
   height: auto !important;
   min-height: auto !important;
   max-height: none !important;
+  /* Use Button's max-width CSS variable (Chip shares Button's max-width) */
+  /* This is reactive and updates in real time when the toolbar changes Button's max-width */
+  max-width: var(--chip-max-width, var(--recursica-ui-kit-components-button-max-width)) !important;
   /* Padding is set inline in the component, but ensure it's not overridden */
   padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px))) !important;
   padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px))) !important;

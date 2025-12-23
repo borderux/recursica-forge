@@ -205,6 +205,14 @@ export default function PropControl({
         ? ['--recursica-brand-typography-button-font-size']
         : []
       
+      // For max-width prop on Chip component, also update Button's max-width CSS var
+      // Chip components use Button's max-width CSS variable, so we need to update both
+      if (propToRender.name === 'max-width' && componentName.toLowerCase() === 'chip') {
+        const buttonMaxWidthVar = '--recursica-ui-kit-components-button-max-width'
+        additionalCssVars.push(buttonMaxWidthVar)
+        console.log(`PropControl: Chip max-width - also updating Button's max-width CSS var: ${buttonMaxWidthVar}`)
+      }
+      
       // For dimension props, use dimension token selector (only theme values)
       return (
         <DimensionTokenSelector
@@ -464,9 +472,9 @@ export default function PropControl({
             const primaryVar = cssVars[0] || groupedProp.cssVar
             const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
             
-            // Debug logging for border-size
-            if (componentName === 'Chip' && groupedPropName === 'border-size') {
-              console.log(`PropControl: Rendering border-size control.`, {
+            // Debug logging for border-size and max-width
+            if (groupedPropName === 'border-size' || groupedPropName === 'max-width') {
+              console.log(`PropControl: Rendering ${groupedPropName} control for ${componentName}.`, {
                 groupedPropName,
                 groupedPropCssVar: groupedProp.cssVar,
                 cssVars,

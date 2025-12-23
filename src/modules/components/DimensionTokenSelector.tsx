@@ -639,12 +639,12 @@ export default function DimensionTokenSelector({
     
     // Update CSS vars directly with pixel value
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-    if (propName === 'border-size') {
-      console.log(`DimensionTokenSelector: Updating border-size to ${value}px. targetCssVar: ${targetCssVar}, cssVars:`, cssVars)
+    if (propName === 'border-size' || propName === 'max-width') {
+      console.log(`DimensionTokenSelector: Updating ${propName} to ${value}px. targetCssVar: ${targetCssVar}, cssVars:`, cssVars)
     }
     cssVars.forEach(cssVar => {
       updateCssVar(cssVar, `${value}px`)
-      if (propName === 'border-size') {
+      if (propName === 'border-size' || propName === 'max-width') {
         console.log(`DimensionTokenSelector: Updated ${cssVar} to ${value}px`)
         // Verify it was set
         const verify = readCssVar(cssVar)
