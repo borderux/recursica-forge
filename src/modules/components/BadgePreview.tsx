@@ -11,7 +11,7 @@ export default function BadgePreview({
   selectedLayer,
 }: BadgePreviewProps) {
   const colorVariant = (selectedVariants.color || 'primary-color') as 'primary-color' | 'warning' | 'success' | 'alert'
-  const sizeVariant = selectedVariants.size as 'small' | 'default' | 'large' | undefined
+  const sizeVariant = selectedVariants.size as 'small' | 'large' | undefined
 
   // Show only the selected color variant
   const getVariantLabel = (variant: string) => {

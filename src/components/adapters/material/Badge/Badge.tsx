@@ -17,7 +17,7 @@ import './Badge.css'
 export default function Badge({
   children,
   variant = 'primary-color',
-  size = 'default',
+  size,
   layer = 'layer-0',
   className,
   style,

@@ -15,7 +15,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 export type BadgeProps = {
   children?: React.ReactNode
   variant?: 'primary-color' | 'warning' | 'success' | 'alert'
-  size?: 'small' | 'default' | 'large'
+  size?: 'small' | 'large'
   layer?: ComponentLayer
   className?: string
   style?: React.CSSProperties
@@ -24,7 +24,7 @@ export type BadgeProps = {
 export function Badge({
   children,
   variant = 'primary-color',
-  size = 'default',
+  size,
   layer = 'layer-0',
   className,
   style,

@@ -37,7 +37,8 @@ type VarsContextValue = {
 const VarsContext = createContext<VarsContextValue | undefined>(undefined)
 
 export function VarsProvider({ children }: { children: React.ReactNode }) {
-  const store = getVarsStore()
+  // Ensure store is initialized before using it
+  const store = useMemo(() => getVarsStore(), [])
   const [state, setState] = useState(() => store.getState())
 
   useEffect(() => {

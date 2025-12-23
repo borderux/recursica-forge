@@ -96,7 +96,7 @@ export default function PropControl({
   
   // For Badge height, override to target the size variant's min-height instead of component-level height
   if (prop.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
-    const sizeVariant = selectedVariants.size || 'default'
+    const sizeVariant = selectedVariants.size || 'small'
     const minHeightVar = `--recursica-ui-kit-components-badge-size-variant-${sizeVariant}-min-height`
     primaryCssVar = minHeightVar
     cssVarsForControl = [minHeightVar]
@@ -213,7 +213,7 @@ export default function PropControl({
       // Read from JSON structure directly, not from CSS var (which can be modified)
       let minPixelValue: number | undefined = undefined
       if (propToRender.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
-        const sizeVariant = selectedVariants.size || 'default'
+        const sizeVariant = selectedVariants.size || 'small'
         try {
           // Read directly from UIKit.json structure to get the original/default value
           const uikitRoot: any = (themeJson as any)?.['ui-kit'] || (themeJson as any)
@@ -237,10 +237,9 @@ export default function PropControl({
         if (minPixelValue === undefined) {
           const defaultValues: Record<string, number> = {
             small: 16,
-            default: 20,
             large: 24,
           }
-          minPixelValue = defaultValues[sizeVariant] || 20
+          minPixelValue = defaultValues[sizeVariant] || 16
         }
       }
       
