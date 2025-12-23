@@ -44,8 +44,8 @@ export function checkAACompliance(): ComplianceIssue[] {
         if (paletteKey === 'core' || paletteKey === 'core-colors') return
         
         levels.forEach((level) => {
-          const toneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
-          const onToneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-on-tone`
+          const toneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
+          const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
           
           const toneValue = readCssVar(toneVar)
           const onToneValue = readCssVar(onToneVar)

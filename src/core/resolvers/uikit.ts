@@ -136,7 +136,7 @@ function resolveTokenRef(
     if (layerMatch) {
       const layerNum = layerMatch[1]
       const prop = layerMatch[2].replace(/\./g, '-')
-      return `var(--recursica-brand-${mode}-layer-layer-${layerNum}-property-${prop})`
+      return `var(--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property-${prop})`
     }
     
     // Layer element references: layers.layer-0.element.text.color or layers.0.element.text.color (note: "layers" is now plural)
@@ -157,7 +157,7 @@ function resolveTokenRef(
       // Handle element.interactive.hover.on-tone -> element-interactive-hover-on-tone
       // These are already handled by the replace(/\./g, '-') above, so no special case needed
       
-      return `var(--recursica-brand-${mode}-layer-layer-${layerNum}-property-element-${elementPath})`
+      return `var(--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property-element-${elementPath})`
     }
     
     // Palette core-colors references with state: palettes.core-colors.interactive.default.tone
@@ -167,7 +167,7 @@ function resolveTokenRef(
     if (paletteCoreColorsStateMatch) {
       const [, coreColor, state, type] = paletteCoreColorsStateMatch
       // Keep state as-is for core-colors (default stays default, hover stays hover)
-      return `var(--recursica-brand-${mode}-palettes-core-${coreColor}-${state}-${type})`
+      return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-${state}-${type})`
     }
     
     // Palette core-colors references with tone/on-tone (no state): palettes.core-colors.alert.tone
@@ -182,7 +182,7 @@ function resolveTokenRef(
     const paletteCoreColorsMatch = /^palettes?\.core-colors?\.(alert|warning|success|interactive|black|white)$/i.exec(path)
     if (paletteCoreColorsMatch) {
       const [, coreColor] = paletteCoreColorsMatch
-      return `var(--recursica-brand-${mode}-palettes-core-${coreColor})`
+      return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor})`
     }
     
     // Palette references with full path: palettes.neutral.100.color.tone, palettes.neutral.default.color.tone, etc.
@@ -192,7 +192,7 @@ function resolveTokenRef(
     if (paletteFlexMatch) {
       const [, paletteKey, level, type] = paletteFlexMatch
       const cssLevel = level === 'default' ? 'primary' : level
-      return `var(--recursica-brand-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
+      return `var(--recursica-brand-themes-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
     }
     
     // Palette references: palette.neutral.900.tone (legacy format without .color.)
@@ -200,7 +200,7 @@ function resolveTokenRef(
     if (paletteMatch) {
       const [, paletteKey, level, type] = paletteMatch
       const cssLevel = level === 'default' ? 'primary' : level
-      return `var(--recursica-brand-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
+      return `var(--recursica-brand-themes-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
     }
     
     // Palette references without tone/on-tone: palettes.neutral.default or palettes.palette-1.default
@@ -209,14 +209,14 @@ function resolveTokenRef(
     if (paletteDefaultMatch) {
       const [, paletteKey] = paletteDefaultMatch
       // Default to 'tone' when not specified
-      return `var(--recursica-brand-${mode}-palettes-${paletteKey}-primary-tone)`
+      return `var(--recursica-brand-themes-${mode}-palettes-${paletteKey}-primary-tone)`
     }
     
     // Palette alert/warning/success: palette.alert (legacy format)
     const paletteCoreMatch = /^palettes?\.(alert|warning|success)$/i.exec(path)
     if (paletteCoreMatch) {
       const [, coreColor] = paletteCoreMatch
-      return `var(--recursica-brand-${mode}-palettes-core-${coreColor})`
+      return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor})`
     }
     
     // Palette black/white shortcuts: palette.black or palette.white
@@ -239,21 +239,21 @@ function resolveTokenRef(
     const elevationMatch = /^elevations?\.(elevation-\d+)$/i.exec(path)
     if (elevationMatch) {
       const elevationKey = elevationMatch[1]
-      return `var(--recursica-brand-${mode}-elevations-${elevationKey})`
+      return `var(--recursica-brand-themes-${mode}-elevations-${elevationKey})`
     }
     
     // State references: state.disabled
     const stateMatch = /^state\.(.+)$/i.exec(path)
     if (stateMatch) {
       const statePath = stateMatch[1].replace(/\./g, '-')
-      return `var(--recursica-brand-${mode}-state-${statePath})`
+      return `var(--recursica-brand-themes-${mode}-state-${statePath})`
     }
     
     // Text-emphasis references: text-emphasis.low or text-emphasis.high
     const textEmphasisMatch = /^text-emphasis\.(low|high)$/i.exec(path)
     if (textEmphasisMatch) {
       const [, emphasis] = textEmphasisMatch
-      return `var(--recursica-brand-${mode}-text-emphasis-${emphasis})`
+      return `var(--recursica-brand-themes-${mode}-text-emphasis-${emphasis})`
     }
     
     // Token references: tokens.color.gray.500

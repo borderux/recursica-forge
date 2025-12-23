@@ -87,7 +87,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
     })
   }
   
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
   
@@ -252,8 +253,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 w={180}
                 styles={{
                   input: {
-                    backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface)',
-                    borderColor: 'var(--recursica-brand-light-layer-layer-1-property-border-color)',
+                    backgroundColor: `var(${layer0Base}-surface)`,
+                    borderColor: `var(${layer1Base}-border-color)`,
                   },
                 }}
               />
@@ -347,7 +348,12 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           {showSidebar && <Sidebar />}
           {showThemeSidebar && <ThemeSidebar />}
-          <main style={{ flex: 1, overflow: 'auto' }}>
+          <main style={{ 
+            flex: 1, 
+            overflow: 'auto',
+            backgroundColor: `var(${layer0Base}-surface)`,
+            color: `var(${layer0Base}-element-text-color)`,
+          }}>
             {children}
           </main>
         </div>
@@ -374,7 +380,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-            <Group gap="sm" justify="flex-end" style={{ borderTop: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', paddingTop: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+            <Group gap="sm" justify="flex-end" style={{ borderTop: `1px solid var(${layer1Base}-border-color)`, paddingTop: 'var(--recursica-brand-dimensions-spacer-md)' }}>
               <Button variant="outline" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
                 Cancel
               </Button>

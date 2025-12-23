@@ -103,7 +103,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const { AppBar, Toolbar, Select, MenuItem, Container, CssBaseline, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions, Box, Tabs, Tab } = mat
   const { ThemeProvider, createTheme } = styles
   const theme = createTheme()
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
   
@@ -420,7 +421,12 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {showSidebar && <Sidebar />}
         {showThemeSidebar && <ThemeSidebar />}
-        <main style={{ flex: 1, overflow: 'auto' }}>
+        <main style={{ 
+          flex: 1, 
+          overflow: 'auto',
+          backgroundColor: `var(${layer0Base}-surface)`,
+          color: `var(${layer0Base}-element-text-color)`,
+        }}>
           {children}
         </main>
       </div>
