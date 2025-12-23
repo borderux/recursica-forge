@@ -35,7 +35,7 @@ export default function LayerModule({ level, title, className, children, onSelec
   }, [])
   const layerId = level != null ? String(level) : '0'
   const legacyBase = `--layer-layer-${layerId}-property-`
-  const brandBase = `--recursica-brand-${mode}-layer-layer-${layerId}-property-`
+  const brandBase = `--recursica-brand-themes-${mode}-layer-layer-${layerId}-property-`
   const includeBorder = !(layerId === '0')
   const paletteBackground = null
 
@@ -89,7 +89,7 @@ export default function LayerModule({ level, title, className, children, onSelec
     } catch {}
     return String(layerId)
   }, [theme, layerId, mode])
-  const cssVarBoxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-color-gray-1000))`
+  const cssVarBoxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-color-gray-1000))`
 
   type Style = React.CSSProperties
   const pxOrUndefined = (value?: string) => {
@@ -225,7 +225,7 @@ export default function LayerModule({ level, title, className, children, onSelec
               <p style={{
                 ...(bodyStyle as any),
                 color: (`var(${brandBase}element-interactive-color)` as any),
-                opacity: (`var(--recursica-brand-${mode}-state-disabled)` as any)
+                opacity: (`var(--recursica-brand-themes-${mode}-state-disabled)` as any)
               }}>Disabled Interactive</p>
               <p style={{ color: (`var(${brandBase}element-text-alert)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Alert</p>
               <p style={{ color: (`var(${brandBase}element-text-warning)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Warning</p>

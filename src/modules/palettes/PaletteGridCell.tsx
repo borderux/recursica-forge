@@ -160,8 +160,8 @@ export function PaletteEmphasisCell({
       : 1
     
     // Also get high and low emphasis opacities to check both
-    const highEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-high`
-    const lowEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-low`
+    const highEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+    const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
     
     const highEmphasisResolved = readCssVarResolved(highEmphasisCssVar) || readCssVar(highEmphasisCssVar)
     const lowEmphasisResolved = readCssVarResolved(lowEmphasisCssVar) || readCssVar(lowEmphasisCssVar)
