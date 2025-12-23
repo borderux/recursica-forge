@@ -39,7 +39,7 @@ export default function ColorTokens() {
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
   const [showAddColorModal, setShowAddColorModal] = useState(false)
-  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-light-palettes-core-black)')
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-themes-light-palettes-core-black)')
 
   // Initialize deleted families from localStorage
   useEffect(() => {

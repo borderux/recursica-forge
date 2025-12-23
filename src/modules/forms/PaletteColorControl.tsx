@@ -85,7 +85,7 @@ export default function PaletteColorControl({
   }, [paletteKeys, themeJson])
   
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
-    return `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
+    return `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
   }
   
   // Helper to find palette swatch that matches a token hex

@@ -104,8 +104,8 @@ export class AAComplianceWatcher {
    */
   private getCurrentMode(): 'light' | 'dark' {
     // Check if dark mode layer-0 surface exists and has a value
-    const darkLayer0Surface = readCssVar('--recursica-brand-dark-layer-layer-0-property-surface')
-    const lightLayer0Surface = readCssVar('--recursica-brand-light-layer-layer-0-property-surface')
+    const darkLayer0Surface = readCssVar('--recursica-brand-themes-dark-layer-layer-0-property-surface')
+    const lightLayer0Surface = readCssVar('--recursica-brand-themes-light-layer-layer-0-property-surface')
     
     // If dark mode has a value, check if it's different from light (meaning dark mode is active)
     // For now, we'll check both modes, but typically the active mode will have non-empty values
@@ -230,8 +230,8 @@ export class AAComplianceWatcher {
    * Watch a palette tone variable and update its on-tone when it changes
    */
   watchPaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark' = 'light') {
-    const toneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
-    const onToneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-on-tone`
+    const toneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
+    const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
     
     this.watchedVars.add(toneVar)
     this.watchedVars.add(onToneVar)
@@ -248,7 +248,7 @@ export class AAComplianceWatcher {
     // Don't update on initialization - let JSON values be set first
     for (const varName of this.watchedVars) {
       if (varName.includes('-tone') && !varName.includes('-on-tone')) {
-        const match = varName.match(/--recursica-brand-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
+        const match = varName.match(/--recursica-brand-themes-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
         if (match) {
           const [, mode, paletteKey, level] = match
           const currentValue = readCssVar(varName)
@@ -268,8 +268,8 @@ export class AAComplianceWatcher {
   }
 
   private updatePaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark') {
-    const toneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
-    const onToneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-on-tone`
+    const toneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
+    const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
     
     const toneValue = readCssVar(toneVar)
     
@@ -301,8 +301,8 @@ export class AAComplianceWatcher {
     }
     
     const onToneValue = chosen === 'white'
-      ? `var(--recursica-brand-${mode}-palettes-core-white)`
-      : `var(--recursica-brand-${mode}-palettes-core-black)`
+      ? `var(--recursica-brand-themes-${mode}-palettes-core-white)`
+      : `var(--recursica-brand-themes-${mode}-palettes-core-black)`
     
     updateCssVar(onToneVar, onToneValue)
   }
@@ -748,8 +748,8 @@ export class AAComplianceWatcher {
         if (paletteKey === 'core' || paletteKey === 'core-colors' || paletteKey === 'neutral') return
         
         levels.forEach((level) => {
-          const toneVar = `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
-          const onToneVar = `--recursica-brand-light-palettes-${paletteKey}-${level}-on-tone`
+          const toneVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
+          const onToneVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-on-tone`
           
           const toneValue = readCssVar(toneVar)
           const onToneValue = readCssVar(onToneVar)

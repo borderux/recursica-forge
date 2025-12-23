@@ -48,8 +48,8 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const blackBaseContrast = contrastRatio(toneHex, black)
   
   // Get emphasis opacity values from CSS variables
-  const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-high`)
-  const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-low`)
+  const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
+  const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
   
   // Blend white and black with tone using both opacity values
   const whiteHighBlended = blendHexOver(white, toneHex, highEmphasisOpacity)
@@ -300,8 +300,8 @@ export default function PaletteColorSelector({
         const normalizedWhite = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
         
         // Get emphasis opacity values
-        const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-high`)
-        const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-low`)
+        const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
+        const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
         const AA = 4.5
         
         // Check both core colors with opacity blending
@@ -390,8 +390,8 @@ export default function PaletteColorSelector({
                 const otherNormalizedBlack = otherBlackHex.startsWith('#') ? otherBlackHex.toLowerCase() : `#${otherBlackHex.toLowerCase()}`
                 const otherNormalizedWhite = otherWhiteHex.startsWith('#') ? otherWhiteHex.toLowerCase() : `#${otherWhiteHex.toLowerCase()}`
                 
-                const otherHighEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeKeyLower}-text-emphasis-high`)
-                const otherLowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeKeyLower}-text-emphasis-low`)
+                const otherHighEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeKeyLower}-text-emphasis-high`)
+                const otherLowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeKeyLower}-text-emphasis-low`)
                 
                 const otherWhiteHighBlended = blendHexOver(otherNormalizedWhite, hex, otherHighEmphasisOpacity)
                 const otherWhiteLowBlended = blendHexOver(otherNormalizedWhite, hex, otherLowEmphasisOpacity)
@@ -504,15 +504,15 @@ export default function PaletteColorSelector({
       if (typeof hex === 'string') {
         // Set tone CSS variable - only for this specific palette
         updateCssVar(
-          `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
+          `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
           `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`
         )
         
         // Determine on-tone color considering opacity for AA compliance - only for this palette
         const onToneCore = pickOnToneWithOpacity(hex, mode)
         updateCssVar(
-          `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
-          `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
+          `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
+          `var(--recursica-brand-themes-${modeLower}-palettes-core-${onToneCore})`
         )
       }
     })
@@ -594,15 +594,15 @@ export default function PaletteColorSelector({
         if (typeof hex === 'string') {
           // Set tone CSS variable - only for this specific palette
           updateCssVar(
-            `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
+            `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
             `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`
           )
           
           // Determine on-tone color considering opacity for AA compliance - only for this palette
           const onToneCore = pickOnToneWithOpacity(hex, mode)
           updateCssVar(
-            `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
-            `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
+            `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
+            `var(--recursica-brand-themes-${modeLower}-palettes-core-${onToneCore})`
           )
         }
       })

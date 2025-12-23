@@ -406,7 +406,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
             {headerLevels.map((lvl) => {
               const toneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
               const onToneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
-              const emphasisCssVar = `--recursica-brand-${mode.toLowerCase()}-text-emphasis-high`
+              const emphasisCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-text-emphasis-high`
               return (
                 <PaletteScaleHighEmphasis
                   key={`high-${lvl}`}
@@ -430,7 +430,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
             {headerLevels.map((lvl) => {
               const toneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
               const onToneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
-              const emphasisCssVar = `--recursica-brand-${mode.toLowerCase()}-text-emphasis-low`
+              const emphasisCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-text-emphasis-low`
               return (
                 <PaletteScaleLowEmphasis
                   key={`low-${lvl}`}

@@ -149,8 +149,8 @@ describe('buildPaletteVars', () => {
   it('should generate text emphasis variables', () => {
     const vars = buildPaletteVars(mockTokens, mockTheme, 'Light')
     
-    expect(vars['--recursica-brand-light-text-emphasis-high']).toBeDefined()
-    expect(vars['--recursica-brand-light-text-emphasis-low']).toBeDefined()
+    expect(vars['--recursica-brand-themes-light-text-emphasis-high']).toBeDefined()
+    expect(vars['--recursica-brand-themes-light-text-emphasis-low']).toBeDefined()
   })
 
   it('should generate state variables', () => {

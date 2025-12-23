@@ -108,7 +108,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
   if (!carbon) return <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-lg)' }}>Loading Carbon…</div>
 
   const { Select, SelectItem, Theme, Grid, Column, ComposedModal, ModalHeader, ModalBody, ModalFooter, Toggle } = carbon
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
 
@@ -370,7 +371,12 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {showSidebar && <Sidebar />}
         {showThemeSidebar && <ThemeSidebar />}
-        <main style={{ flex: 1, overflow: 'auto' }}>
+        <main style={{ 
+          flex: 1, 
+          overflow: 'auto',
+          backgroundColor: `var(${layer0Base}-surface)`,
+          color: `var(${layer0Base}-element-text-color)`,
+        }}>
           {children}
         </main>
       </div>
