@@ -47,7 +47,8 @@ function resolveTokenRef(
   _theme: JsonLike,
   _uikit: JsonLike,
   depth = 0,
-  vars?: Record<string, string> // Optional vars map to check if UIKit self-references exist
+  vars?: Record<string, string>, // Optional vars map to check if UIKit self-references exist
+  mode: 'light' | 'dark' = 'light' // Current theme mode for resolving brand references
 ): string | null {
   if (depth > 10) return null
   
@@ -90,6 +91,20 @@ function resolveTokenRef(
       // We want: --recursica-brand-typography-button-font-size
       const typoPath = parts.slice(2).join('-') // Skip 'brand' and 'typography'
       return `var(--recursica-brand-typography-${typoPath})`
+    }
+  }
+  
+  // Handle brand references without theme: {brand.layers.*}, {brand.palettes.*}, etc.
+  // These should use the current mode from the runtime context
+  // Check if it's a brand reference that doesn't already have a theme specified
+  if (/^brand\./i.test(inner) && !/^brand\.(themes|dimensions|typography)\./i.test(inner)) {
+    // This is a brand reference without theme - inject the current mode
+    const parts = inner.split('.').filter(Boolean)
+    if (parts.length >= 2 && parts[0].toLowerCase() === 'brand') {
+      const path = parts.slice(1).join('.') // Everything after "brand"
+      // Now treat it as if it had the theme prefix: brand.themes.{mode}.{path}
+      // This will be handled by the brandThemeMatch logic below
+      inner = `brand.themes.${mode}.${path}`
     }
   }
   
@@ -308,14 +323,15 @@ function traverseUIKit(
   vars: Record<string, string>,
   tokenIndex: ReturnType<typeof buildTokenIndex>,
   theme: JsonLike,
-  uikit: JsonLike
+  uikit: JsonLike,
+  mode: 'light' | 'dark' = 'light'
 ): void {
   if (obj == null || typeof obj !== 'object') return
   
   // Skip metadata properties
   if (Array.isArray(obj)) {
     obj.forEach((item, index) => {
-      traverseUIKit(item, [...prefix, String(index)], vars, tokenIndex, theme, uikit)
+      traverseUIKit(item, [...prefix, String(index)], vars, tokenIndex, theme, uikit, mode)
     })
     return
   }
@@ -339,7 +355,7 @@ function traverseUIKit(
         const unit = val.unit || 'px'
         
         // Try to resolve token references in the value
-        const resolved = resolveTokenRef(dimValue, tokenIndex, theme, uikit, 0, vars)
+        const resolved = resolveTokenRef(dimValue, tokenIndex, theme, uikit, 0, vars, mode)
         
         if (resolved) {
           // If resolved to a CSS var, use it directly (it should already have units)
@@ -387,7 +403,7 @@ function traverseUIKit(
             vars[cssVarName] = elevationMatch[1] // Just the elevation name like "elevation-0"
           } else {
             // Try to resolve as a regular token reference
-            const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars)
+            const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
             if (resolved) {
               vars[cssVarName] = resolved
             } else {
@@ -410,7 +426,7 @@ function traverseUIKit(
         
         // Try to resolve token references
         // Pass vars map so UIKit self-references can check if the referenced var exists
-        const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars)
+        const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
         
         if (resolved) {
           vars[cssVarName] = resolved
@@ -447,7 +463,7 @@ function traverseUIKit(
       }
     } else {
       // Continue traversing
-      traverseUIKit(value, currentPath, vars, tokenIndex, theme, uikit)
+      traverseUIKit(value, currentPath, vars, tokenIndex, theme, uikit, mode)
     }
   })
 }
@@ -463,7 +479,8 @@ function traverseUIKit(
 export function buildUIKitVars(
   tokens: JsonLike,
   theme: JsonLike,
-  uikit: JsonLike
+  uikit: JsonLike,
+  mode: 'light' | 'dark' = 'light'
 ): Record<string, string> {
   const vars: Record<string, string> = {}
   const tokenIndex = buildTokenIndex(tokens)
@@ -479,15 +496,15 @@ export function buildUIKitVars(
     // Structure 1: Mode-based (0 = light, 3 = dark)
     // Process mode "0" (light mode) as the default
     const lightMode = uikitRoot['0']
-    traverseUIKit(lightMode, [], vars, tokenIndex, theme, uikit)
+    traverseUIKit(lightMode, [], vars, tokenIndex, theme, uikit, mode)
   } else if (uikitRoot?.['ui-kit']) {
     // Structure 2: Flat structure with "ui-kit" containing both "global" and "components"
     // Process "ui-kit" section (skip the "ui-kit" key in path)
     // This will traverse both "global" and "components" as siblings
-    traverseUIKit(uikitRoot['ui-kit'], [], vars, tokenIndex, theme, uikit)
+    traverseUIKit(uikitRoot['ui-kit'], [], vars, tokenIndex, theme, uikit, mode)
   } else {
     // Fallback: treat entire object as UIKit structure
-    traverseUIKit(uikitRoot, [], vars, tokenIndex, theme, uikit)
+    traverseUIKit(uikitRoot, [], vars, tokenIndex, theme, uikit, mode)
   }
   
   // Second pass: Resolve any UIKit self-references that weren't resolved in first pass
@@ -507,7 +524,7 @@ export function buildUIKitVars(
         // This includes UIKit self-references and brand/theme references that weren't resolved
         const trimmed = value.trim()
         if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-          const resolved = resolveTokenRef(value, tokenIndex, theme, uikit, 0, vars)
+          const resolved = resolveTokenRef(value, tokenIndex, theme, uikit, 0, vars, mode)
           // Update if we got a resolution and it's different from the original
           // (resolved will be a CSS var reference like "var(--recursica-...)" or null)
           if (resolved && typeof resolved === 'string' && !resolved.startsWith('{')) {
