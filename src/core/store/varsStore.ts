@@ -1148,7 +1148,7 @@ class VarsStore {
     } catch {}
     // UIKit components
     try {
-      const uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit)
+      const uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, currentMode)
       
       // Preserve UIKit CSS variables that were set directly by the user (e.g., via ComponentToolbar)
       // This prevents recomputes from overwriting user changes
