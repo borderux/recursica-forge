@@ -115,7 +115,7 @@ export function ComponentsSidebar({
     }
   }, [location.pathname, allComponents, navigate])
 
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
   
   const handleNavClick = (componentName: string) => {

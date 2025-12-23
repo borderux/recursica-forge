@@ -98,7 +98,7 @@ export function ColorScale({
     }
   }, [])
 
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>

@@ -237,6 +237,9 @@ class VarsStore {
     // Initial CSS apply (Light mode palettes + layers + typography)
     this.recomputeAndApplyAll()
 
+    // Update core color on-tone values for AA compliance on app load
+    this.updateCoreColorOnTonesForAA()
+
     // Initialize AA compliance watcher
     this.initAAWatcher()
 
@@ -264,6 +267,27 @@ class VarsStore {
     window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
     window.addEventListener('paletteFamilyChanged', onPaletteFamilyChanged as any)
     window.addEventListener('font-loaded', onFontLoaded as any)
+    
+    // Listen for token changes to update core color on-tones
+    const onTokenChanged = ((ev: CustomEvent) => {
+      const detail = ev.detail
+      if (!detail) return
+      const tokenName = detail.name
+      if (tokenName && typeof tokenName === 'string' && tokenName.startsWith('color/')) {
+        const parts = tokenName.split('/')
+        if (parts.length >= 3) {
+          const family = parts[1]
+          const level = parts[2]
+          if (this.isCoreColorToken(family, level)) {
+            // Delay to ensure CSS vars are updated first
+            setTimeout(() => {
+              this.updateCoreColorOnTonesForAA()
+            }, 100)
+          }
+        }
+      }
+    }) as EventListener
+    window.addEventListener('tokenOverridesChanged', onTokenChanged)
   }
 
   private initAAWatcher() {
@@ -503,6 +527,19 @@ class VarsStore {
       
       // Update only the affected CSS variable(s)
       this.updateSingleTokenCssVar(tokenName)
+      
+      // Update core color on-tone values if a core color token changed
+      if (category === 'color' && rest.length >= 2) {
+        const [family, level] = rest
+        // Check if this token is used by any core color
+        const isCoreColorToken = this.isCoreColorToken(family, level)
+        if (isCoreColorToken) {
+          // Delay to ensure CSS vars are updated first
+          setTimeout(() => {
+            this.updateCoreColorOnTonesForAA()
+          }, 100)
+        }
+      }
     } catch (error) {
       console.error('Failed to update token:', tokenName, error)
     }
@@ -1019,10 +1056,10 @@ class VarsStore {
         // Also preserve interactive sub-properties if they exist
         if (core['interactive'] && typeof core['interactive'] === 'object') {
           const interactiveSubVars = [
-            `--recursica-brand-${mode}-palettes-core-interactive-default-tone`,
-            `--recursica-brand-${mode}-palettes-core-interactive-default-on-tone`,
-            `--recursica-brand-${mode}-palettes-core-interactive-hover-tone`,
-            `--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone`,
+            `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`,
+            `--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`,
+            `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`,
+            `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone`,
           ]
           
           interactiveSubVars.forEach((cssVar) => {
@@ -1434,6 +1471,58 @@ class VarsStore {
       }
     }
     applyCssVars(allVars, this.state.tokens)
+  }
+
+  private isCoreColorToken(family: string, level: string): boolean {
+    try {
+      const root: any = this.state.theme?.brand ? this.state.theme.brand : this.state.theme
+      const themes = root?.themes || root
+      
+      // Check both light and dark modes
+      for (const mode of ['light', 'dark'] as const) {
+        const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']
+        if (!coreColors) continue
+        
+        const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success', 'interactive']
+        for (const colorKey of coreColorKeys) {
+          const colorDef = coreColors[colorKey]
+          if (!colorDef) continue
+          
+          // Check tone reference
+          const toneRef = colorDef.tone?.$value || colorDef.tone
+          if (toneRef && typeof toneRef === 'string' && toneRef.includes(`tokens.color.${family}.${level}`)) {
+            return true
+          }
+          
+          // Check interactive default/hover tone references
+          if (colorKey === 'interactive') {
+            const defaultToneRef = colorDef.default?.tone?.$value || colorDef.default?.tone
+            const hoverToneRef = colorDef.hover?.tone?.$value || colorDef.hover?.tone
+            if ((defaultToneRef && typeof defaultToneRef === 'string' && defaultToneRef.includes(`tokens.color.${family}.${level}`)) ||
+                (hoverToneRef && typeof hoverToneRef === 'string' && hoverToneRef.includes(`tokens.color.${family}.${level}`))) {
+              return true
+            }
+          }
+        }
+      }
+    } catch {}
+    return false
+  }
+
+  private updateCoreColorOnTonesForAA() {
+    try {
+      // Dynamically import to avoid circular dependencies
+      import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorOnTones }) => {
+        const currentMode = this.getCurrentMode()
+        updateCoreColorOnTones(this.state.tokens, this.state.theme, (theme) => {
+          this.setTheme(theme)
+        }, currentMode)
+      }).catch((err) => {
+        console.error('Failed to update core color on-tones:', err)
+      })
+    } catch (err) {
+      console.error('Failed to update core color on-tones:', err)
+    }
   }
 }
 

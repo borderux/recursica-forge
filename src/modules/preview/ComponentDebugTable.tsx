@@ -225,8 +225,8 @@ export default function ComponentDebugTable({
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
   }
 
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
 
   // Get CSS vars for the currently open prop control
   const highlightedCssVars = useMemo(() => {
@@ -421,7 +421,7 @@ export default function ComponentDebugTable({
                       padding: 0,
                       opacity: v.isChanged ? 1 : 0.5,
                       color: v.isChanged 
-                        ? `var(--recursica-brand-${mode}-layer-layer-2-property-element-interactive-tone)`
+                        ? `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-interactive-tone)`
                         : `var(${layer0Base}-element-text-low-emphasis)`,
                     }}
                   />

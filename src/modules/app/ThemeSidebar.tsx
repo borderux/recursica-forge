@@ -25,8 +25,8 @@ export function ThemeSidebar() {
   
   const currentNavItem = getCurrentNavItem()
   
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
-  const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
   
   const handleNavClick = (item: ThemeNavItem) => {
     navigate(`/theme/${item}`)

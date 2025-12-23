@@ -195,8 +195,8 @@ describe('buildPaletteVars', () => {
     const vars = buildPaletteVars(mockTokens, themeWithDefault, 'Light')
     
     // Should create primary-tone from default
-    expect(vars['--recursica-brand-light-palettes-neutral-primary-tone']).toBeDefined()
-    expect(vars['--recursica-brand-light-palettes-neutral-primary-on-tone']).toBeDefined()
+    expect(vars['--recursica-brand-themes-light-palettes-neutral-primary-tone']).toBeDefined()
+    expect(vars['--recursica-brand-themes-light-palettes-neutral-primary-on-tone']).toBeDefined()
   })
 
   it('should handle empty palettes gracefully', () => {

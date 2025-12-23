@@ -489,7 +489,13 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       const colorDef: any = coreColors?.[colorKey]
       if (colorDef?.tone) {
         const toneValue = getColorVar(colorDef.tone)
+        // Generate both -tone and base (for backward compatibility)
+        vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-tone`] = toneValue
         vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}`] = toneValue
+      }
+      if (colorDef?.['on-tone']) {
+        const onToneValue = getColorVar(colorDef['on-tone'])
+        vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-on-tone`] = onToneValue
       }
     })
   } catch {}

@@ -123,7 +123,7 @@ export default function DimensionsPage() {
   return (
     <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
       <h2 style={{ marginTop: 0 }}>Dimensions</h2>
-      <p style={{ color: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-color)`, opacity: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-low-emphasis)` }}>
+      <p style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`, opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)` }}>
         Map brand dimensions to underlying size tokens. Changes will update CSS variables throughout the application.
       </p>
 
@@ -142,13 +142,13 @@ export default function DimensionsPage() {
                   gap: 'var(--recursica-brand-dimensions-spacer-default)',
                   alignItems: 'center',
                   padding: 'var(--recursica-brand-dimensions-spacer-default)',
-                  backgroundColor: `var(--recursica-brand-${mode}-layer-layer-0-property-surface)`,
-                  border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+                  backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
+                  border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
                   borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                 }}
               >
                 <div style={{ fontWeight: 500 }}>{entry.label}</div>
-                <div style={{ fontSize: 'var(--recursica-brand-dimensions-sm)', color: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-color)`, opacity: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-low-emphasis)` }}>
+                <div style={{ fontSize: 'var(--recursica-brand-dimensions-sm)', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`, opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)` }}>
                   {entry.cssVar}
                 </div>
                 <select
@@ -161,10 +161,10 @@ export default function DimensionsPage() {
                   }}
                   style={{
                     padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-default)',
-                    border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+                    border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
                     borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-                    backgroundColor: `var(--recursica-brand-${mode}-layer-layer-0-property-surface)`,
-                    color: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-color)`,
+                    backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
+                    color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
                     fontSize: 'var(--recursica-brand-dimensions-sm)',
                   }}
                 >

@@ -23,8 +23,8 @@ export function StyledSlider({
   style,
 }: StyledSliderProps) {
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
   const blackColor = `--recursica-brand-${mode}-palettes-core-black`
   const iconSize = 'var(--recursica-brand-dimensions-icon-default)'

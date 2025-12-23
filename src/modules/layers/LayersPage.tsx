@@ -160,7 +160,7 @@ export default function LayersPage() {
         next.paletteSelections = paletteRest
 
         // Clear shadow color CSS variable to reset to default
-        const shadowColorCssVar = `--recursica-brand-${mode}-elevations-elevation-${lvl}-shadow-color`
+        const shadowColorCssVar = `--recursica-brand-themes-${mode}-elevations-elevation-${lvl}-shadow-color`
         removeCssVar(shadowColorCssVar)
 
         // Update alpha tokens
