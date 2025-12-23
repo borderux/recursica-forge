@@ -40,17 +40,6 @@ export default function ChipPreview({
         Default Chip
       </Chip>
       
-      {/* Clickable chip */}
-      <Chip
-        variant={colorVariant as 'unselected' | 'selected'}
-        size={sizeVariant as 'default' | 'small'}
-        layer={actualLayer}
-        elevation={componentElevation}
-        onClick={() => {}}
-      >
-        Clickable
-      </Chip>
-      
       {/* Deletable chip */}
       <Chip
         variant={colorVariant as 'unselected' | 'selected'}
@@ -61,16 +50,6 @@ export default function ChipPreview({
         onDelete={() => {}}
       >
         Deletable
-      </Chip>
-      
-      {/* Selected variant chip */}
-      <Chip
-        variant="selected"
-        size={sizeVariant as 'default' | 'small'}
-        layer={actualLayer}
-        elevation={componentElevation}
-      >
-        Selected
       </Chip>
       
       {/* Chip with icon */}
