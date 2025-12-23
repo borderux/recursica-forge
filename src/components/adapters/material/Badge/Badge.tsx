@@ -62,7 +62,6 @@ export default function Badge({
   const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
   const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
   const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
-  const heightVar = getComponentLevelCssVar('Badge', 'height')
   
   return (
     <Chip
@@ -81,9 +80,10 @@ export default function Badge({
           '--badge-letter-spacing': `var(${typographyVars['font-letter-spacing']})`,
           '--badge-line-height': `var(${typographyVars['line-height']})`,
         } : {}),
-        // Use height if set, otherwise fall back to min-height from size variant
-        height: heightVar ? `var(${heightVar})` : undefined,
-        minHeight: !heightVar && minHeightVar ? `var(${minHeightVar})` : undefined,
+        // Always use min-height from size variant (not component-level height)
+        // Set height to auto to override Material UI Chip's default height
+        height: 'auto',
+        minHeight: minHeightVar ? `var(${minHeightVar})` : undefined,
         ...style,
       } as React.CSSProperties}
       {...material}

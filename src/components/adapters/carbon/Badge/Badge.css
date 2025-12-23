@@ -15,5 +15,6 @@
   padding: 0 var(--recursica-ui-kit-components-badge-padding-horizontal) !important;
   border-radius: var(--recursica-ui-kit-components-badge-border-radius) !important;
   display: inline-block !important;
+  height: auto !important; /* Ensure min-height controls the height */
 }
 

@@ -14,5 +14,6 @@
   line-height: var(--badge-line-height) !important;
   padding: 0 var(--recursica-ui-kit-components-badge-padding-horizontal) !important;
   border-radius: var(--recursica-ui-kit-components-badge-border-radius) !important;
+  height: auto !important; /* Override Mantine Badge default height */
 }
 
