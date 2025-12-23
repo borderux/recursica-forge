@@ -222,23 +222,25 @@ export default function Chip({
     // Ensure icon is always passed when provided
     leftSection: icon ? (() => {
       console.log('🔵 Chip: Passing icon to leftSection:', icon)
-      // Wrap icon in a span with explicit size constraints
+      // Wrap icon in a span with explicit size constraints and class for CSS targeting
       return (
-        <span style={{
-          width: `var(${iconSizeVar}, 16px)`,
-          height: `var(${iconSizeVar}, 16px)`,
-          minWidth: `var(${iconSizeVar}, 16px)`,
-          minHeight: `var(${iconSizeVar}, 16px)`,
-          maxWidth: `var(${iconSizeVar}, 16px)`,
-          maxHeight: `var(${iconSizeVar}, 16px)`,
-          flexShrink: 0,
-          flexGrow: 0,
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-        }}>
+        <span 
+          className="recursica-chip-left-section"
+          style={{
+            width: `var(${iconSizeVar}, 16px)`,
+            height: `var(${iconSizeVar}, 16px)`,
+            minWidth: `var(${iconSizeVar}, 16px)`,
+            minHeight: `var(${iconSizeVar}, 16px)`,
+            maxWidth: `var(${iconSizeVar}, 16px)`,
+            maxHeight: `var(${iconSizeVar}, 16px)`,
+            flexShrink: 0,
+            flexGrow: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            boxSizing: 'border-box',
+          }}>
           {icon}
         </span>
       )
