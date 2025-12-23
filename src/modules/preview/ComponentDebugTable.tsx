@@ -153,13 +153,13 @@ export default function ComponentDebugTable({
   // Get resolved original values from UIKit.json
   const originalValues = useMemo(() => {
     try {
-      const resolvedVars = buildUIKitVars(tokens, theme, uikit)
+      const resolvedVars = buildUIKitVars(tokens, theme, uikit, mode)
       return resolvedVars
     } catch (error) {
       console.error('Error building UIKit vars:', error)
       return {}
     }
-  }, [tokens, theme, uikit])
+  }, [tokens, theme, uikit, mode])
 
   // Get current values and compare with originals
   const varData = useMemo(() => {
