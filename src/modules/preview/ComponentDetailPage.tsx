@@ -100,18 +100,18 @@ export default function ComponentDetailPage() {
 
   if (!component) {
     return (
-      <div style={{ padding: 24, textAlign: 'center', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-low-emphasis)` }}>
+      <div style={{ padding: 24, textAlign: 'center', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-low-emphasis)` }}>
         Component not found
       </div>
     )
   }
 
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
 
   // Get the layer number for building CSS variable paths
   const layerNum = selectedLayer.replace('layer-', '')
-  const baseLayerBase = `--recursica-brand-${mode}-layer-layer-${layerNum}-property`
+  const baseLayerBase = `--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property`
 
   // Get elevation level from layer property (if it exists)
   // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}

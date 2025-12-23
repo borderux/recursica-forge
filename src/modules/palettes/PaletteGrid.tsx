@@ -244,7 +244,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     const levels = headerLevels
     const modeLower = modeLabel.toLowerCase()
     levels.forEach((lvl) => {
-      const onToneCssVar = `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
+      const onToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
       
       // Only set if the CSS var isn't already set (don't override values from buildPaletteVars)
       const existingValue = readCssVar(onToneCssVar)
@@ -265,15 +265,15 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         
         // Handle direct hex values
         if (s === '#ffffff' || s === 'white') {
-          coreRef = `var(--recursica-brand-${modeLower}-palettes-core-white)`
+          coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
         } else if (s === '#000000' || s === 'black') {
-          coreRef = `var(--recursica-brand-${modeLower}-palettes-core-black)`
+          coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
         }
         // Handle JSON references like {brand.themes.light.palettes.core-colors.white}
         else if (s.includes('core-colors.white') || s.includes('core.white') || s.includes('.white}')) {
-          coreRef = `var(--recursica-brand-${modeLower}-palettes-core-white)`
+          coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
         } else if (s.includes('core-colors.black') || s.includes('core.black') || s.includes('.black}')) {
-          coreRef = `var(--recursica-brand-${modeLower}-palettes-core-black)`
+          coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
         }
         // Try to resolve as theme reference (handles var() references)
         else {
@@ -289,9 +289,9 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
             else {
               const resolvedLower = resolved.trim().toLowerCase()
               if (resolvedLower === '#ffffff' || resolvedLower === 'white') {
-                coreRef = `var(--recursica-brand-${modeLower}-palettes-core-white)`
+                coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
               } else if (resolvedLower === '#000000' || resolvedLower === 'black') {
-                coreRef = `var(--recursica-brand-${modeLower}-palettes-core-black)`
+                coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
               }
             }
           }
@@ -339,12 +339,12 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     try {
       // Reference the level-specific brand vars directly so primary is not hardcoded
       updateCssVar(
-        `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-primary-tone`,
-        `var(--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone)`
+        `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-primary-tone`,
+        `var(--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone)`
       )
       updateCssVar(
-        `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-primary-on-tone`,
-        `var(--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone)`
+        `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-primary-on-tone`,
+        `var(--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone)`
       )
       
       // Only notify if this is a user-initiated change (primary level or mode changed)
@@ -404,8 +404,8 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           <tr className="high-emphasis">
             <td>High</td>
             {headerLevels.map((lvl) => {
-              const toneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
-              const onToneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
+              const toneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
+              const onToneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
               const emphasisCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-text-emphasis-high`
               return (
                 <PaletteScaleHighEmphasis
@@ -428,8 +428,8 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           <tr className="low-emphasis">
             <td>Low</td>
             {headerLevels.map((lvl) => {
-              const toneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
-              const onToneCssVar = `--recursica-brand-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
+              const toneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
+              const onToneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
               const emphasisCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-text-emphasis-low`
               return (
                 <PaletteScaleLowEmphasis

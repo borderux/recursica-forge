@@ -90,11 +90,11 @@ export function CustomFontModal({
     >
       <div
         style={{
-          background: `var(--recursica-brand-${mode}-layer-layer-2-property-surface, #ffffff)`,
-          color: `var(--recursica-brand-${mode}-layer-layer-2-property-element-text-color, #111111)`,
-          border: `1px solid var(--recursica-brand-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`,
+          background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface, #ffffff)`,
+          color: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-text-color, #111111)`,
+          border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`,
           borderRadius: 12,
-          boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-${mode}-elevations-elevation-2-blur) var(--recursica-brand-${mode}-elevations-elevation-2-spread) var(--recursica-brand-${mode}-elevations-elevation-2-shadow-color)`,
+          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color)`,
           padding: 20,
           display: 'grid',
           gap: 16,
@@ -137,9 +137,9 @@ export function CustomFontModal({
               style={{
                 padding: '8px 12px',
                 borderRadius: 6,
-                border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
-                background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
-                color: `var(--recursica-brand-${mode}-layer-layer-1-property-element-text-color)`,
+                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+                background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
+                color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
                 fontSize: 14,
               }}
               autoFocus
@@ -157,9 +157,9 @@ export function CustomFontModal({
               style={{
                 padding: '8px 12px',
                 borderRadius: 6,
-                border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
-                background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
-                color: `var(--recursica-brand-${mode}-layer-layer-1-property-element-text-color)`,
+                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+                background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
+                color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
                 fontSize: 14,
                 cursor: 'pointer',
               }}
@@ -185,9 +185,9 @@ export function CustomFontModal({
                 style={{
                   padding: '8px 12px',
                   borderRadius: 6,
-                  border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
-                  background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
-                  color: `var(--recursica-brand-${mode}-layer-layer-1-property-element-text-color)`,
+                  border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+                  background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
+                  color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
                   fontSize: 14,
                 }}
               />
@@ -219,9 +219,9 @@ export function CustomFontModal({
                   style={{
                     padding: '8px 12px',
                     borderRadius: 6,
-                    border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
-                    background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
-                    color: `var(--recursica-brand-${mode}-layer-layer-1-property-element-text-color)`,
+                    border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+                    background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
+                    color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
                     fontSize: 14,
                   }}
                 />
@@ -238,9 +238,9 @@ export function CustomFontModal({
                   style={{
                     padding: '8px 12px',
                     borderRadius: 6,
-                    border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
-                    background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
-                    color: `var(--recursica-brand-${mode}-layer-layer-1-property-element-text-color)`,
+                    border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+                    background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
+                    color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
                     fontSize: 14,
                   }}
                 />
@@ -263,7 +263,7 @@ export function CustomFontModal({
             style={{
               padding: '8px 16px',
               borderRadius: 6,
-              border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
               background: 'transparent',
               cursor: 'pointer',
               fontSize: 14,
@@ -279,10 +279,10 @@ export function CustomFontModal({
               borderRadius: 6,
               border: 'none',
               background: (fontName.trim() && ((fontSourceType === 'npm' && npmPackage.trim()) || (fontSourceType === 'git' && gitRepo.trim())))
-                ? `var(--recursica-brand-${mode}-layer-layer-1-property-element-text-color)`
+                ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
                 : 'rgba(0,0,0,0.2)',
               color: (fontName.trim() && ((fontSourceType === 'npm' && npmPackage.trim()) || (fontSourceType === 'git' && gitRepo.trim())))
-                ? `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`
+                ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
                 : 'rgba(0,0,0,0.4)',
               cursor: (fontName.trim() && ((fontSourceType === 'npm' && npmPackage.trim()) || (fontSourceType === 'git' && gitRepo.trim()))) ? 'pointer' : 'not-allowed',
               fontSize: 14,

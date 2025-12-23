@@ -34,8 +34,8 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const modeLower = modeLabel.toLowerCase()
   
   // Read actual core black and white colors from CSS variables (not hardcoded)
-  const coreBlackVar = `--recursica-brand-${modeLower}-palettes-core-black`
-  const coreWhiteVar = `--recursica-brand-${modeLower}-palettes-core-white`
+  const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
+  const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
   const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
   const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
   
@@ -289,11 +289,11 @@ export default function PaletteColorSelector({
       const tokenName = `color/${familyToUse}/${tokenLevel}`
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
-        const onToneCssVar = `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
+        const onToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
         
         // Get actual core color values (read from CSS variables to get current values)
-        const coreBlackVar = `--recursica-brand-${modeLower}-palettes-core-black`
-        const coreWhiteVar = `--recursica-brand-${modeLower}-palettes-core-white`
+        const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
+        const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
         const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
         const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
         const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
@@ -348,7 +348,7 @@ export default function PaletteColorSelector({
         // Update CSS variable with verified on-tone
         updateCssVar(
           onToneCssVar,
-          `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
+          `var(--recursica-brand-themes-${modeLower}-palettes-core-${onToneCore})`
         )
         
         // Store verified value for theme JSON update
