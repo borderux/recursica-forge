@@ -2,6 +2,15 @@
 .MuiChip-root {
   border: var(--chip-border-size, 1px) solid var(--chip-border, var(--mui-palette-divider)) !important;
   cursor: pointer !important;
+  /* Override any fixed height from Material UI - let padding and content determine height */
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  /* Padding is set inline in the component, but ensure it's not overridden */
+  padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px))) !important;
+  padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px))) !important;
+  padding-left: var(--chip-padding-x, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px))) !important;
+  padding-right: var(--chip-padding-x, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px))) !important;
 }
 
 .MuiChip-root.Mui-disabled {

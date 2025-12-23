@@ -202,10 +202,11 @@ function getChipStyles(
   styles.textTransform = 'none' // Ensure text is not uppercase
   
   // Apply size styles - height and width are derived from content and padding
-  styles.paddingLeft = `var(${horizontalPaddingVar})`
-  styles.paddingRight = `var(${horizontalPaddingVar})`
-  styles.paddingTop = `var(${verticalPaddingVar})`
-  styles.paddingBottom = `var(${verticalPaddingVar})`
+  // Add fallbacks to ensure padding is always applied even if UIKit variables aren't set
+  styles.paddingLeft = `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`
+  styles.paddingRight = `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`
+  styles.paddingTop = `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`
+  styles.paddingBottom = `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`
   styles.borderRadius = `var(${borderRadiusVar})`
   
   // Apply disabled styles

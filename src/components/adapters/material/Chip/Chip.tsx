@@ -98,10 +98,10 @@ export default function Chip({
       color: isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
       borderColor: isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
       borderWidth: `var(${borderSizeVar})`,
-      paddingLeft: `var(${horizontalPaddingVar})`,
-      paddingRight: `var(${horizontalPaddingVar})`,
-      paddingTop: `var(${verticalPaddingVar})`,
-      paddingBottom: `var(${verticalPaddingVar})`,
+      paddingLeft: `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,
+      paddingRight: `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,
+      paddingTop: `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
+      paddingBottom: `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
       borderRadius: `var(${borderRadiusVar})`,
       fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
       fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
@@ -109,10 +109,10 @@ export default function Chip({
       // Set CSS custom properties for CSS file
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Don't set --chip-icon-text-gap here - let CSS use UIKit variable directly for real-time updates
-      // Use Button's min-width, max-width, and height vars (same as Button component)
+      // Use Button's min-width and max-width vars (same as Button component)
+      // Don't use fixed height - let padding and content determine height naturally
       minWidth: `var(${minWidthVar})`,
       maxWidth: `var(${maxWidthVar})`,
-      height: `var(${heightVar})`,
       ...(elevation && elevation !== 'elevation-0' ? (() => {
         const elevationMatch = elevation.match(/elevation-(\d+)/)
         if (elevationMatch) {
@@ -132,10 +132,9 @@ export default function Chip({
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Don't set --chip-icon-text-gap here - let CSS use UIKit variable directly for real-time updates
       '--chip-border-size': `var(${borderSizeVar})`,
-      // Use Button's min-width, max-width, and height vars (same as Button component)
+      // Use Button's min-width and max-width vars (same as Button component)
       '--chip-min-width': `var(${minWidthVar})`,
       '--chip-max-width': `var(${maxWidthVar})`,
-      '--chip-height': `var(${heightVar})`,
       ...style,
     },
     ...material,
