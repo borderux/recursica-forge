@@ -4,7 +4,7 @@
       "light": {
         "layers": {
           "layer-0": {
-            "elements": {
+            "element": {
               "interactive": {
                 "tone": {
                   "$type": "color",
@@ -42,7 +42,7 @@
                 }
               }
             },
-            "properties": {
+            "property": {
               "elevation": {
                 "$type": "elevation",
                 "$value": "{brand.elevations.elevation-0}"
@@ -73,7 +73,7 @@
             }
           },
           "layer-1": {
-            "properties": {
+            "property": {
               "border-thickness": {
                 "$type": "number",
                 "$value": {
@@ -102,7 +102,7 @@
                 "$value": "{tokens.size.3x}"
               }
             },
-            "elements": {
+            "element": {
               "text": {
                 "warning": {
                   "$type": "color",
@@ -142,7 +142,7 @@
             }
           },
           "layer-3": {
-            "properties": {
+            "property": {
               "elevation": {
                 "$type": "elevation",
                 "$value": "{brand.elevations.elevation-2}"
@@ -171,7 +171,7 @@
                 }
               }
             },
-            "elements": {
+            "element": {
               "text": {
                 "warning": {
                   "$type": "color",
@@ -211,7 +211,7 @@
             }
           },
           "layer-2": {
-            "elements": {
+            "element": {
               "text": {
                 "success": {
                   "$type": "color",
@@ -249,7 +249,7 @@
                 }
               }
             },
-            "properties": {
+            "property": {
               "surface": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.100.color.tone}"
@@ -280,7 +280,7 @@
             }
           }
         },
-        "states": {
+        "state": {
           "disabled": {
             "$type": "number",
             "$value": "{tokens.opacity.ghost}"
@@ -486,7 +486,7 @@
               "color": {
                 "$type": "color",
                 "tone": {
-                  "$value": "{tokens.color.salmon.400}"
+                  "$value": "{tokens.color.salmon.500}"
                 },
                 "on-tone": {
                   "$value": "{brand.palettes.white}"
@@ -774,7 +774,7 @@
                   "$value": "{tokens.color.mandarin.600}"
                 },
                 "on-tone": {
-                  "$value": "{tokens.color.mandy.900}"
+                  "$value": "{brand.palettes.core-colors.white}"
                 },
                 "interactive": {
                   "$value": "{tokens.color.mandy.900}"
@@ -992,7 +992,7 @@
       "dark": {
         "layers": {
           "layer-0": {
-            "elements": {
+            "element": {
               "interactive": {
                 "color": {
                   "$type": "color",
@@ -1022,7 +1022,7 @@
                 }
               }
             },
-            "properties": {
+            "property": {
               "elevation": {
                 "$type": "elevation",
                 "$value": "{brand.elevations.elevation-0}"
@@ -1053,7 +1053,7 @@
             }
           },
           "layer-1": {
-            "properties": {
+            "property": {
               "border-thickness": {
                 "$type": "number",
                 "$value": {
@@ -1082,7 +1082,7 @@
                 "$value": "{tokens.size.3x}"
               }
             },
-            "elements": {
+            "element": {
               "text": {
                 "warning": {
                   "$type": "color",
@@ -1114,7 +1114,7 @@
             }
           },
           "layer-3": {
-            "properties": {
+            "property": {
               "elevation": {
                 "$type": "elevation",
                 "$value": "{brand.elevations.elevation-2}"
@@ -1143,7 +1143,7 @@
                 }
               }
             },
-            "elements": {
+            "element": {
               "text": {
                 "warning": {
                   "$type": "color",
@@ -1175,7 +1175,7 @@
             }
           },
           "layer-2": {
-            "elements": {
+            "element": {
               "text": {
                 "success": {
                   "$type": "color",
@@ -1205,7 +1205,7 @@
                 }
               }
             },
-            "properties": {
+            "property": {
               "surface": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.100.color.tone}"
@@ -1236,7 +1236,7 @@
             }
           }
         },
-        "states": {
+        "state": {
           "disabled": {
             "$type": "number",
             "$value": "{tokens.opacity.ghost}"
@@ -1733,7 +1733,7 @@
                   "$value": "{tokens.color.mandarin.400}"
                 },
                 "on-tone": {
-                  "$value": "{tokens.color.mandy.900}"
+                  "$value": "{brand.palettes.core-colors.white}"
                 },
                 "interactive": {
                   "$value": "{tokens.color.mandy.800}"

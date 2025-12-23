@@ -1,5 +1,4 @@
 import type { JsonLike } from '../resolvers/tokens'
-import { buildTokenIndex } from '../resolvers/tokens'
 import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
 import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
@@ -9,7 +8,6 @@ import { applyCssVars, type CssVarMap } from '../css/apply'
 import { findTokenByHex } from '../css/tokenRefs'
 import { computeBundleVersion } from './versioning'
 import { readCssVar } from '../css/readCssVar'
-import { resolveTokenReferenceToCssVar, parseTokenReference, extractBraceContent, type TokenReferenceContext } from '../utils/tokenReferenceParser'
 import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
@@ -195,8 +193,6 @@ class VarsStore {
   private listeners: Set<Listener> = new Set()
   private lsAvailable = isLocalStorageAvailable()
   private aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
-  private isRecomputing: boolean = false
-  private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
 
   constructor() {
     const tokensRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
@@ -241,28 +237,12 @@ class VarsStore {
     // Initial CSS apply (Light mode palettes + layers + typography)
     this.recomputeAndApplyAll()
 
-    // Update core color on-tone values for AA compliance on app load
-    this.updateCoreColorOnTonesForAA()
-
     // Initialize AA compliance watcher
     this.initAAWatcher()
 
     // React to type choice changes and palette changes (centralized)
-    // Debounce palette var changes to prevent infinite loops
     const onTypeChoices = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
-    let paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
-    const onPaletteVarsChanged = () => {
-      // Debounce to prevent loops - only recompute if no other recompute is pending
-      if (paletteVarsChangedTimeout) {
-        clearTimeout(paletteVarsChangedTimeout)
-      }
-      paletteVarsChangedTimeout = setTimeout(() => {
-        // Don't bump version here - recomputeAndApplyAll doesn't change state, only CSS vars
-        // Only bump version if state actually changes (tokens, theme, etc.)
-        this.recomputeAndApplyAll()
-        paletteVarsChangedTimeout = null
-      }, 100) // Small delay to batch multiple rapid changes
-    }
+    const onPaletteVarsChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     const onPaletteFamilyChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     // Debounce font-loaded events to avoid excessive recomputation
     // Note: We still recompute to update font-family names in token CSS variables,
@@ -284,27 +264,6 @@ class VarsStore {
     window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
     window.addEventListener('paletteFamilyChanged', onPaletteFamilyChanged as any)
     window.addEventListener('font-loaded', onFontLoaded as any)
-    
-    // Listen for token changes to update core color on-tones
-    const onTokenChanged = ((ev: CustomEvent) => {
-      const detail = ev.detail
-      if (!detail) return
-      const tokenName = detail.name
-      if (tokenName && typeof tokenName === 'string' && tokenName.startsWith('color/')) {
-        const parts = tokenName.split('/')
-        if (parts.length >= 3) {
-          const family = parts[1]
-          const level = parts[2]
-          if (this.isCoreColorToken(family, level)) {
-            // Delay to ensure CSS vars are updated first
-            setTimeout(() => {
-              this.updateCoreColorOnTonesForAA()
-            }, 100)
-          }
-        }
-      }
-    }) as EventListener
-    window.addEventListener('tokenOverridesChanged', onTokenChanged)
   }
 
   private initAAWatcher() {
@@ -544,19 +503,6 @@ class VarsStore {
       
       // Update only the affected CSS variable(s)
       this.updateSingleTokenCssVar(tokenName)
-      
-      // Update core color on-tone values if a core color token changed
-      if (category === 'color' && rest.length >= 2) {
-        const [family, level] = rest
-        // Check if this token is used by any core color
-        const isCoreColorToken = this.isCoreColorToken(family, level)
-        if (isCoreColorToken) {
-          // Delay to ensure CSS vars are updated first
-          setTimeout(() => {
-            this.updateCoreColorOnTonesForAA()
-          }, 100)
-        }
-      }
     } catch (error) {
       console.error('Failed to update token:', tokenName, error)
     }
@@ -618,12 +564,10 @@ class VarsStore {
     const toSize = (ref?: any): string => {
       const s: string | undefined = typeof ref === 'string' ? ref : (ref?.['$value'] as any)
       if (!s) return 'size/none'
-      const context: TokenReferenceContext = {
-        tokenIndex: buildTokenIndex(this.state.tokens)
-      }
-      const parsed = parseTokenReference(s, context)
-      if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
-        const key = parsed.path.slice(1).join('.')
+      const inner = s.startsWith('{') ? s.slice(1, -1) : s
+      const parts = inner.split('.')
+      if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'size') {
+        const key = parts.slice(2).join('.')
         return `size/${key}`
       }
       return 'size/none'
@@ -640,102 +584,83 @@ class VarsStore {
     }
     const parseOpacity = (s?: string) => {
       if (!s) return 'opacity/veiled'
-      const context: TokenReferenceContext = {
-        tokenIndex: buildTokenIndex(this.state.tokens)
-      }
-      const parsed = parseTokenReference(s, context)
-      if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'opacity') {
-        return `opacity/${parsed.path[1]}`
-      }
+      const inner = s.startsWith('{') ? s.slice(1, -1) : s
+      const parts = inner.split('.')
+      if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'opacity' && parts[2]) return `opacity/${parts[2]}`
       return 'opacity/veiled'
     }
     const parseColorToken = (s?: string) => {
       if (!s) return 'color/gray/900'
-      const context: TokenReferenceContext = {
-        tokenIndex: buildTokenIndex(this.state.tokens)
-      }
-      const parsed = parseTokenReference(s, context)
-      if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
-        return `color/${parsed.path[1]}/${parsed.path[2]}`
-      }
+      const inner = s.startsWith('{') ? s.slice(1, -1) : s
+      const parts = inner.split('.')
+      if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'color' && parts[2] && parts[3]) return `color/${parts[2]}/${parts[3]}`
       return 'color/gray/900'
     }
     const parsePaletteSelection = (s?: string): { paletteKey: string; level: string } | null => {
       if (!s) return null
-      const context: TokenReferenceContext = {
-        currentMode: 'light',
-        tokenIndex: buildTokenIndex(this.state.tokens),
-        theme: this.state.theme
-      }
-      const parsed = parseTokenReference(s, context)
-      if (parsed && parsed.type === 'brand') {
-        const pathParts = parsed.path
-        // Check if it's a palette reference: palettes.{paletteKey}.{level}.color.tone
-        if (pathParts.length >= 4 && pathParts[0] === 'palettes' && pathParts[2] === 'color' && pathParts[3] === 'tone') {
-          const paletteKey = pathParts[1]
-          let level = pathParts.length >= 5 ? pathParts[4] : undefined
-          // If level is 'default', try to resolve it from the theme
-          if (level === 'default' || !level) {
-            try {
-              // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-              const brandRoot = (this.state.theme as any)?.brand || this.state.theme
-              const themes = brandRoot?.themes || brandRoot
-              const defaultRef = themes?.light?.palettes?.[paletteKey]?.default
-              if (defaultRef) {
-                let defaultValue: any
-                if (typeof defaultRef === 'object' && defaultRef.$value) {
-                  defaultValue = defaultRef.$value
-                } else if (typeof defaultRef === 'string') {
-                  defaultValue = defaultRef
-                }
-                
-                if (defaultValue && typeof defaultValue === 'string') {
-                  const defaultParsed = parseTokenReference(defaultValue, context)
-                  if (defaultParsed && defaultParsed.type === 'brand') {
-                    const defaultPathParts = defaultParsed.path
-                    // Check if it's a palette reference: palettes.{paletteKey}.{level}
-                    if (defaultPathParts.length >= 2 && defaultPathParts[0] === 'palettes' && defaultPathParts[1] === paletteKey) {
-                      level = defaultPathParts[2] || 'primary'
-                    }
-                  } else {
-                    // Try to extract level number from end of path
-                    const defaultInner = extractBraceContent(defaultValue)
-                    if (defaultInner) {
-                      const levelMatch = /\.(\d+)$/.exec(defaultInner)
-                      if (levelMatch) {
-                        level = levelMatch[1]
-                      }
-                    }
+      const inner = s.startsWith('{') ? s.slice(1, -1) : s
+      // Match: brand.light.palettes.{paletteKey}.{level}.color.tone
+      // or: brand.light.palettes.{paletteKey}.default.color.tone (where default might reference another level)
+      const match = /^(?:brand|theme)\.(?:light|dark)\.palettes\.([a-z0-9-]+)\.(?:(\d+|default|primary))/.exec(inner)
+      if (match) {
+        const paletteKey = match[1]
+        let level = match[2]
+        // If level is 'default', try to resolve it from the theme
+        if (level === 'default') {
+          try {
+            // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+            const brandRoot = (theme as any)?.brand || theme
+            const themes = brandRoot?.themes || brandRoot
+            const defaultRef = themes?.light?.palettes?.[paletteKey]?.default
+            if (defaultRef) {
+              let defaultValue: any
+              if (typeof defaultRef === 'object' && defaultRef.$value) {
+                defaultValue = defaultRef.$value
+              } else if (typeof defaultRef === 'string') {
+                defaultValue = defaultRef
+              }
+              
+              if (defaultValue && typeof defaultValue === 'string' && defaultValue.startsWith('{')) {
+                const defaultInner = defaultValue.slice(1, -1)
+                // Match: theme.light.palettes.{paletteKey}.{level}
+                const defaultMatch = /^(?:brand|theme)\.(?:light|dark)\.palettes\.([a-z0-9-]+)\.(\d+)/.exec(defaultInner)
+                if (defaultMatch && defaultMatch[1] === paletteKey) {
+                  level = defaultMatch[2]
+                } else {
+                  // Try to extract level number from end of path
+                  const directLevelMatch = /\.(\d+)$/.exec(defaultInner)
+                  if (directLevelMatch) {
+                    level = directLevelMatch[1]
                   }
                 }
               }
-              // If we couldn't resolve default, use 'primary' as fallback
-              if (level === 'default' || !level) {
-                level = 'primary'
-              }
-            } catch {
+            }
+            // If we couldn't resolve default, use 'primary' as fallback
+            if (level === 'default') {
               level = 'primary'
             }
+          } catch {
+            level = 'primary'
           }
-          if (level === 'primary') {
-            // Try to get primary level from palette
-            try {
-              // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-              const brandRoot = (this.state.theme as any)?.brand || this.state.theme
-              const themes = brandRoot?.themes || brandRoot
-              const primaryLevel = themes?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
-              if (typeof primaryLevel === 'string') {
-                level = primaryLevel
-              } else {
-                // Default to 500 if no primary level specified
-                level = '500'
-              }
-            } catch {
+        }
+        if (level === 'primary') {
+          // Try to get primary level from palette
+          try {
+            // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+            const brandRoot = (theme as any)?.brand || theme
+            const themes = brandRoot?.themes || brandRoot
+            const primaryLevel = themes?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
+            if (typeof primaryLevel === 'string') {
+              level = primaryLevel
+            } else {
+              // Default to 500 if no primary level specified
               level = '500'
             }
+          } catch {
+            level = '500'
           }
-          return { paletteKey, level }
         }
+        return { paletteKey, level }
       }
       return null
     }
@@ -754,8 +679,8 @@ class VarsStore {
     }
     const baseX = Number((elev1?.['x-direction']?.['$value'] ?? 1))
     const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
-    let baseXDirection: 'left' | 'right' = baseX >= 0 ? 'right' : 'left'
-    let baseYDirection: 'up' | 'down' = baseY >= 0 ? 'down' : 'up'
+    const baseXDirection: 'left' | 'right' = baseX >= 0 ? 'right' : 'left'
+    const baseYDirection: 'up' | 'down' = baseY >= 0 ? 'down' : 'up'
     const directions: Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }> = {}
     for (let i = 1; i <= 4; i += 1) directions[`elevation-${i}`] = { x: baseXDirection, y: baseYDirection }
     // Migrate legacy keys
@@ -774,8 +699,8 @@ class VarsStore {
         }
       } catch {}
       try { const raw = localStorage.getItem('elevation-directions'); if (raw) Object.assign(directions, JSON.parse(raw)) } catch {}
-      try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') baseXDirection = raw } catch {}
-      try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') baseYDirection = raw } catch {}
+      try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') (baseXDirection as any) = raw } catch {}
+      try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') (baseYDirection as any) = raw } catch {}
     }
     return { controls, colorTokens, alphaTokens, paletteSelections, baseXDirection, baseYDirection, directions, shadowColorControl }
   }
@@ -801,17 +726,10 @@ class VarsStore {
   }
 
   private recomputeAndApplyAll() {
-    // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
-    if (this.isRecomputing) {
-      return
-    }
-    this.isRecomputing = true
-    
-    try {
-      // Build complete CSS variable map from current state
-      // Note: Tokens are now the single source of truth - no overrides needed
-      const currentMode = this.getCurrentMode()
-      const allVars: Record<string, string> = {}
+    // Build complete CSS variable map from current state
+    // Note: Tokens are now the single source of truth - no overrides needed
+    const currentMode = this.getCurrentMode()
+    const allVars: Record<string, string> = {}
     
     // Tokens: expose size tokens as CSS vars under --tokens-size-<key>
     try {
@@ -911,14 +829,13 @@ class VarsStore {
         const core: any = coreColorsObj?.$value || coreColorsObj || {}
         
         // Map core color names to CSS variable names
-        // Use --recursica-brand-themes- format to match palettes.ts resolver
         const coreColorMap: Record<string, string> = {
-          black: `--recursica-brand-themes-${mode}-palettes-core-black`,
-          white: `--recursica-brand-themes-${mode}-palettes-core-white`,
-          alert: `--recursica-brand-themes-${mode}-palettes-core-alert`,
-          warning: `--recursica-brand-themes-${mode}-palettes-core-warning`,
-          success: `--recursica-brand-themes-${mode}-palettes-core-success`,
-          interactive: `--recursica-brand-themes-${mode}-palettes-core-interactive`,
+          black: `--recursica-brand-${mode}-palettes-core-black`,
+          white: `--recursica-brand-${mode}-palettes-core-white`,
+          alert: `--recursica-brand-${mode}-palettes-core-alert`,
+          warning: `--recursica-brand-${mode}-palettes-core-warning`,
+          success: `--recursica-brand-${mode}-palettes-core-success`,
+          interactive: `--recursica-brand-${mode}-palettes-core-interactive`,
         }
       
         // Default fallbacks if theme JSON doesn't have the value
@@ -933,14 +850,52 @@ class VarsStore {
         
         const colors: Record<string, string> = {}
         
-        // Helper function to resolve a token reference using centralized parser
+        // Helper function to resolve a token reference
         const resolveTokenRef = (value: any): string | null => {
-          const context: TokenReferenceContext = {
-            currentMode: currentMode === 'Dark' ? 'dark' : 'light',
-            tokenIndex: buildTokenIndex(this.state.tokens),
-            theme: this.state.theme
+          if (typeof value === 'string') {
+            const trimmed = value.trim()
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+              const inner = trimmed.slice(1, -1).trim()
+              // Match pattern: tokens.color.<family>.<level>
+              const match = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|000|050|1000)$/i.exec(inner)
+              if (match) {
+                const family = match[1]
+                const level = normalizeLevel(match[2])
+                if (family && level) {
+                  return `var(--recursica-tokens-color-${family}-${level})`
+                }
+              }
+              // Match pattern: brand.themes.{mode}.palettes.core-colors.{color}.{property}
+              const coreColorPropertyMatch = /^brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z]+)\.(tone|on-tone|interactive)$/i.exec(inner)
+              if (coreColorPropertyMatch) {
+                const [, refMode, color, property] = coreColorPropertyMatch
+                const modeMatch = refMode.toLowerCase()
+                const colorName = color.toLowerCase()
+                const propName = property.toLowerCase()
+                return `var(--recursica-brand-${modeMatch}-palettes-core-${colorName}-${propName})`
+              }
+              // Match pattern: brand.themes.{mode}.palettes.core-colors.interactive.default.tone
+              const interactiveToneMatch = /^brand\.themes\.(light|dark)\.palettes\.core-colors\.interactive\.(default|hover)\.(tone|on-tone)$/i.exec(inner)
+              if (interactiveToneMatch) {
+                const [, refMode, state, type] = interactiveToneMatch
+                const modeMatch = refMode.toLowerCase()
+                const stateName = state.toLowerCase()
+                const typeName = type.toLowerCase().replace(/-/g, '-')
+                return `var(--recursica-brand-${modeMatch}-palettes-core-interactive-${stateName}-${typeName})`
+              }
+              // Match pattern: brand.themes.{mode}.palettes.core-colors.{color} or brand.themes.{mode}.palettes.{color}
+              const brandMatch = new RegExp(`^brand\\.themes\\.(light|dark)\\.palettes\\.(?:core-colors\\.)?([a-z]+)$`, 'i').exec(inner)
+              if (brandMatch) {
+                const modeMatch = brandMatch[1].toLowerCase()
+                const color = brandMatch[2].toLowerCase()
+                // Check if it's a core color
+                if (['black', 'white', 'alert', 'warning', 'success', 'interactive'].includes(color)) {
+                  return `var(--recursica-brand-${modeMatch}-palettes-core-${color})`
+                }
+              }
+            }
           }
-          return resolveTokenReferenceToCssVar(value, context)
+          return null
         }
       
         // Process each core color
@@ -999,23 +954,22 @@ class VarsStore {
             }
             
             // Generate additional CSS vars for new structure
-            // Use --recursica-brand-themes- format to match palettes.ts resolver
             if (tone) {
               const toneRef = resolveTokenRef(tone)
               if (toneRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`] = toneRef
+                colors[`--recursica-brand-${mode}-palettes-core-${colorName}-tone`] = toneRef
               }
             }
             if (onTone) {
               const onToneRef = resolveTokenRef(onTone)
               if (onToneRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-on-tone`] = onToneRef
+                colors[`--recursica-brand-${mode}-palettes-core-${colorName}-on-tone`] = onToneRef
               }
             }
             if (interactive) {
               const interactiveRef = resolveTokenRef(interactive)
               if (interactiveRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`] = interactiveRef
+                colors[`--recursica-brand-${mode}-palettes-core-${colorName}-interactive`] = interactiveRef
               }
             }
           } else {
@@ -1062,29 +1016,13 @@ class VarsStore {
           }
         })
         
-        // Preserve individual core color interactive CSS variables (e.g., core-black-interactive, core-white-interactive)
-        const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success']
-        coreColorKeys.forEach((colorName) => {
-          const interactiveVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`
-          const existingValue = readCssVar(interactiveVar)
-          const generatedValue = colors[interactiveVar]
-          
-          // Preserve if it exists in DOM and is different from generated (user customization)
-          // OR if it exists but wasn't generated (customization not in theme JSON)
-          if (existingValue && existingValue.startsWith('var(')) {
-            if (!generatedValue || existingValue !== generatedValue) {
-              colors[interactiveVar] = existingValue
-            }
-          }
-        })
-        
         // Also preserve interactive sub-properties if they exist
         if (core['interactive'] && typeof core['interactive'] === 'object') {
           const interactiveSubVars = [
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`,
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`,
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`,
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-default-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-default-on-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-hover-tone`,
+            `--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone`,
           ]
           
           interactiveSubVars.forEach((cssVar) => {
@@ -1124,27 +1062,6 @@ class VarsStore {
         if (inlineValue !== '' && inlineValue !== generatedValue) {
           allPaletteVars[cssVar] = inlineValue
         }
-      }
-    })
-    
-    // Preserve overlay color and opacity CSS variables that were set directly by the user
-    // This prevents recomputes from overwriting user changes
-    // Overlay vars are generated in buildPaletteVars, so they're already in allPaletteVars
-    const overlayVars = [
-      '--recursica-brand-themes-light-state-overlay-color',
-      '--recursica-brand-themes-light-state-overlay-opacity',
-      '--recursica-brand-themes-dark-state-overlay-color',
-      '--recursica-brand-themes-dark-state-overlay-opacity'
-    ]
-    overlayVars.forEach((cssVar) => {
-      const inlineValue = typeof document !== 'undefined' 
-        ? document.documentElement.style.getPropertyValue(cssVar).trim()
-        : ''
-      const generatedValue = allPaletteVars[cssVar]
-      
-      // Preserve if there's an inline override and it differs from generated (user customization)
-      if (inlineValue !== '' && inlineValue !== generatedValue) {
-        allPaletteVars[cssVar] = inlineValue
       }
     })
     
@@ -1517,83 +1434,6 @@ class VarsStore {
       }
     }
     applyCssVars(allVars, this.state.tokens)
-    } finally {
-      // Always reset the flag, even if an error occurred
-      this.isRecomputing = false
-    }
-  }
-
-  private isCoreColorToken(family: string, level: string): boolean {
-    try {
-      const root: any = this.state.theme?.brand ? this.state.theme.brand : this.state.theme
-      const themes = root?.themes || root
-      
-      // Check both light and dark modes
-      for (const mode of ['light', 'dark'] as const) {
-        const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']
-        if (!coreColors) continue
-        
-        const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success', 'interactive']
-        for (const colorKey of coreColorKeys) {
-          const colorDef = coreColors[colorKey]
-          if (!colorDef) continue
-          
-          // Check tone reference using centralized parser
-          const toneRef = colorDef.tone?.$value || colorDef.tone
-          if (toneRef) {
-            const context: TokenReferenceContext = {
-              currentMode: mode,
-              tokenIndex: buildTokenIndex(this.state.tokens),
-              theme: this.state.theme
-            }
-            const parsed = parseTokenReference(toneRef, context)
-            if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color' && parsed.path[1] === family && parsed.path[2] === level) {
-              return true
-            }
-          }
-          
-          // Check interactive default/hover tone references
-          if (colorKey === 'interactive') {
-            const defaultToneRef = colorDef.default?.tone?.$value || colorDef.default?.tone
-            const hoverToneRef = colorDef.hover?.tone?.$value || colorDef.hover?.tone
-            const context: TokenReferenceContext = {
-              currentMode: mode,
-              tokenIndex: buildTokenIndex(this.state.tokens),
-              theme: this.state.theme
-            }
-            if (defaultToneRef) {
-              const parsed = parseTokenReference(defaultToneRef, context)
-              if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color' && parsed.path[1] === family && parsed.path[2] === level) {
-                return true
-              }
-            }
-            if (hoverToneRef) {
-              const parsed = parseTokenReference(hoverToneRef, context)
-              if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color' && parsed.path[1] === family && parsed.path[2] === level) {
-                return true
-              }
-            }
-          }
-        }
-      }
-    } catch {}
-    return false
-  }
-
-  private updateCoreColorOnTonesForAA() {
-    try {
-      // Dynamically import to avoid circular dependencies
-      import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorOnTones }) => {
-        const currentMode = this.getCurrentMode()
-        updateCoreColorOnTones(this.state.tokens, this.state.theme, (theme) => {
-          this.setTheme(theme)
-        }, currentMode)
-      }).catch((err) => {
-        console.error('Failed to update core color on-tones:', err)
-      })
-    } catch (err) {
-      console.error('Failed to update core color on-tones:', err)
-    }
   }
 }
 
