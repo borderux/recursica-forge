@@ -3,6 +3,7 @@ import { Badge } from '../../components/adapters/Badge'
 interface BadgePreviewProps {
   selectedVariants: Record<string, string> // e.g., { color: "primary-color" }
   selectedLayer: string // e.g., "layer-0"
+  componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
 }
 
 export default function BadgePreview({
@@ -33,6 +34,13 @@ export default function BadgePreview({
         layer={selectedLayer as any}
       >
         {getVariantLabel(colorVariant)}
+      </Badge>
+      <Badge
+        variant={colorVariant}
+        size={sizeVariant}
+        layer={selectedLayer as any}
+      >
+        99
       </Badge>
     </div>
   )
