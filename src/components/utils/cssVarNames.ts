@@ -106,7 +106,8 @@ export function getComponentCssVar(
       } else {
         // Single-level variant (e.g., "solid-background", "outline-text", "default-thumb-selected")
         // Check if property starts with a known variant name followed by a hyphen
-        const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost', 'unselected', 'selected', 'error']
+        // Note: Order matters - more specific variants (like "error-selected") must come before less specific ones (like "error")
+        const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost', 'unselected', 'selected', 'error-selected', 'error']
         let variantName: string | null = null
         let propName: string | null = null
         

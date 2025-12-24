@@ -94,8 +94,8 @@ export default function Chip({
     icon: icon ? icon : undefined,
     className,
     sx: {
-      backgroundColor: isAlternativeLayer ? chipBgVar : `var(${chipBgVar})`,
-      color: isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
+      backgroundColor: 'var(--chip-bg)',
+      color: 'var(--chip-color)',
       borderColor: isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
       borderWidth: `var(${borderSizeVar})`,
       paddingLeft: `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,

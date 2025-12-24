@@ -32,7 +32,7 @@ export default function ChipPreview({
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
       {/* Default chip */}
       <Chip
-        variant={colorVariant as 'unselected' | 'selected'}
+        variant={colorVariant as 'unselected' | 'selected' | 'error-selected'}
         size={sizeVariant as 'default' | 'small'}
         layer={actualLayer}
         elevation={componentElevation}
@@ -42,7 +42,7 @@ export default function ChipPreview({
       
       {/* Deletable chip */}
       <Chip
-        variant={colorVariant as 'unselected' | 'selected'}
+        variant={colorVariant as 'unselected' | 'selected' | 'error-selected'}
         size={sizeVariant as 'default' | 'small'}
         layer={actualLayer}
         elevation={componentElevation}
@@ -54,7 +54,7 @@ export default function ChipPreview({
       
       {/* Chip with icon */}
       <Chip
-        variant={colorVariant as 'unselected' | 'selected'}
+        variant={colorVariant as 'unselected' | 'selected' | 'error-selected'}
         size={sizeVariant as 'default' | 'small'}
         layer={actualLayer}
         elevation={componentElevation}
