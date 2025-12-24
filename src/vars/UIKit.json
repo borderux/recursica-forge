@@ -846,7 +846,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.palettes.core-colors.alert.on-tone}"
+                  "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
+                },
+                "icon-color": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
                 },
                 "border": {
                   "$type": "color",
@@ -860,7 +864,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.palettes.core-colors.alert.on-tone}"
+                  "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
+                },
+                "icon-color": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
                 },
                 "border": {
                   "$type": "color",
@@ -874,7 +882,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.palettes.core-colors.alert.on-tone}"
+                  "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
+                },
+                "icon-color": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
                 },
                 "border": {
                   "$type": "color",
@@ -888,7 +900,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.palettes.core-colors.alert.on-tone}"
+                  "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
+                },
+                "icon-color": {
+                  "$type": "color",
+                  "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
                 },
                 "border": {
                   "$type": "color",
