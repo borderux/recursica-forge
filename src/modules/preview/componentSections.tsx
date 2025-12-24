@@ -355,7 +355,6 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <Chip variant="unselected" layer={layer as any}>Default Chip</Chip>
             <Chip variant="unselected" layer={layer as any} deletable onDelete={() => {}}>Deletable</Chip>
-            <Chip variant="unselected" layer={layer as any} disabled>Disabled</Chip>
           </div>
         )
       },

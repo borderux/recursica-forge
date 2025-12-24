@@ -74,17 +74,6 @@ export default function ChipPreview({
       >
         With Icon
       </Chip>
-      
-      {/* Disabled chip */}
-      <Chip
-        variant={colorVariant as 'unselected' | 'selected'}
-        size={sizeVariant as 'default' | 'small'}
-        layer={actualLayer}
-        elevation={componentElevation}
-        disabled
-      >
-        Disabled
-      </Chip>
     </div>
   )
 }
