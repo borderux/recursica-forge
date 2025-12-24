@@ -129,6 +129,10 @@ export default function Chip({
       ...material?.sx,
     },
     style: {
+      // Set CSS custom properties for CSS file
+      '--chip-bg': isAlternativeLayer ? chipBgVar : `var(${chipBgVar})`,
+      '--chip-color': isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
+      '--chip-border': isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Don't set --chip-icon-text-gap here - let CSS use UIKit variable directly for real-time updates
       '--chip-border-size': `var(${borderSizeVar})`,
