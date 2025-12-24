@@ -26,6 +26,7 @@
 .MuiChip-root .MuiChip-icon {
   width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
   height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  color: var(--chip-icon-color, var(--chip-color)) !important;
   /* Use UIKit variable directly for real-time updates - toolbar updates this on document root */
   /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-icon-text-gap */
   margin-right: var(--recursica-ui-kit-components-chip-icon-text-gap, 8px) !important;

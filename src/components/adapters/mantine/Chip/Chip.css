@@ -51,6 +51,7 @@
 /* Even more specific selectors to ensure we override Mantine's inline styles */
 .mantine-Badge-root[class*="mantine-Badge"] .mantine-Badge-leftSection,
 [class*="mantine-Badge-root"][class*="mantine-Badge"] .mantine-Badge-leftSection {
+  color: var(--chip-icon-color, var(--chip-color)) !important;
   /* Icon size - use CSS variable with fallback to UIKit variable */
   /* Force exact size - no growth allowed - use fixed pixel fallback */
   width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;

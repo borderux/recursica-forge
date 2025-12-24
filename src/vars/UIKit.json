@@ -628,6 +628,18 @@
         }
       },
       "chip": {
+        "color": {
+          "error": {
+            "text-color": {
+              "$type": "color",
+              "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
+            },
+            "icon-color": {
+              "$type": "color",
+              "$value": "{brand.themes.light.palettes.core-colors.alert.tone}"
+            }
+          }
+        },
         "variant": {
           "unselected": {
             "color": {
@@ -758,7 +770,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-0.element.text.alert}"
+                  "$value": "{ui-kit.0.components.chip.color.error.text-color}"
+                },
+                "icon-color": {
+                  "$type": "color",
+                  "$value": "{ui-kit.0.components.chip.color.error.icon-color}"
                 },
                 "border": {
                   "$type": "color",
@@ -772,7 +788,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-1.element.text.alert}"
+                  "$value": "{ui-kit.0.components.chip.color.error.text-color}"
+                },
+                "icon-color": {
+                  "$type": "color",
+                  "$value": "{ui-kit.0.components.chip.color.error.icon-color}"
                 },
                 "border": {
                   "$type": "color",
@@ -786,7 +806,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-2.element.text.alert}"
+                  "$value": "{ui-kit.0.components.chip.color.error.text-color}"
+                },
+                "icon-color": {
+                  "$type": "color",
+                  "$value": "{ui-kit.0.components.chip.color.error.icon-color}"
                 },
                 "border": {
                   "$type": "color",
@@ -800,7 +824,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-3.element.text.alert}"
+                  "$value": "{ui-kit.0.components.chip.color.error.text-color}"
+                },
+                "icon-color": {
+                  "$type": "color",
+                  "$value": "{ui-kit.0.components.chip.color.error.icon-color}"
                 },
                 "border": {
                   "$type": "color",

@@ -176,8 +176,14 @@ function getChipStyles(
   } else {
     // Use UIKit.json chip colors for standard layers
     bgVar = getComponentCssVar('Chip', 'color', `${variant}-background`, layer)
-    textVar = getComponentCssVar('Chip', 'color', `${variant}-text`, layer)
     borderVar = getComponentCssVar('Chip', 'color', `${variant}-border`, layer)
+    
+    // For error variant, use component-level error color CSS variables
+    if (variant === 'error') {
+      textVar = '--recursica-ui-kit-components-chip-color-error-text-color'
+    } else {
+      textVar = getComponentCssVar('Chip', 'color', `${variant}-text`, layer)
+    }
   }
   
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant

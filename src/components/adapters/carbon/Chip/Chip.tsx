@@ -39,24 +39,37 @@ export default function Chip({
   
   let chipBgVar: string
   let chipColorVar: string
+  let chipIconColorVar: string
   let chipBorderVar: string
   
   if (hasComponentAlternativeLayer) {
     const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
     chipBgVar = `var(${layerBase}-surface)`
     chipColorVar = `var(${layerBase}-element-interactive-on-tone)`
+    chipIconColorVar = chipColorVar
     chipBorderVar = `var(${layerBase}-border-color)`
   } else if (isAlternativeLayer) {
     const altKey = layer.replace('layer-alternative-', '')
     const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
     chipBgVar = `var(${layerBase}-surface)`
     chipColorVar = `var(${layerBase}-element-interactive-on-tone)`
+    chipIconColorVar = chipColorVar
     chipBorderVar = `var(${layerBase}-border-color)`
   } else {
     // Use UIKit.json chip colors for standard layers
     chipBgVar = getComponentCssVar('Chip', 'color', `${variant}-background`, layer)
-    chipColorVar = getComponentCssVar('Chip', 'color', `${variant}-text`, layer)
     chipBorderVar = getComponentCssVar('Chip', 'color', `${variant}-border`, layer)
+    
+    // For error variant, use component-level error color CSS variables
+    if (variant === 'error') {
+      chipColorVar = getComponentLevelCssVar('Chip', 'color.error.text-color')
+      chipIconColorVar = getComponentLevelCssVar('Chip', 'color.error.icon-color')
+    } else {
+      chipColorVar = getComponentCssVar('Chip', 'color', `${variant}-text`, layer)
+      // Get icon-color if available, otherwise use text color
+      const iconColorVar = getComponentCssVar('Chip', 'color', `${variant}-icon-color`, layer)
+      chipIconColorVar = iconColorVar || chipColorVar
+    }
   }
   
   // Get size CSS variables - Chip size properties are nested by layer, not by size variant
@@ -97,8 +110,14 @@ export default function Chip({
     style: {
       // Set CSS custom properties for CSS file
       '--chip-bg': isAlternativeLayer ? chipBgVar : `var(${chipBgVar})`,
-      '--chip-color': isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`,
+      // For error variant, use chip error color CSS variable directly
+      '--chip-color': variant === 'error' ? `var(${chipColorVar})` : (isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`),
+      '--chip-icon-color': variant === 'error' ? `var(${chipIconColorVar})` : (isAlternativeLayer ? chipIconColorVar : `var(${chipIconColorVar})`),
       '--chip-border': isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
+      // For error variant, also set color directly to ensure it's applied
+      ...(variant === 'error' ? {
+        color: `var(${chipColorVar})`,
+      } : {}),
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Don't set --chip-icon-text-gap here - let CSS use UIKit variable directly for real-time updates
       '--chip-padding-x': `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,
