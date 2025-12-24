@@ -13,6 +13,7 @@ import PropControl from './menu/floating-palette/PropControl'
 import MenuIcon from './menu/MenuIcon'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getPropIcon, getPropLabel, getPropVisible, loadToolbarConfig } from './utils/loadToolbarConfig'
+import { getComponentCssVar } from '../../components/utils/cssVarNames'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
@@ -502,6 +503,18 @@ export default function ComponentToolbar({
       // Remove the inline style override to restore to default
       document.documentElement.style.removeProperty(prop.cssVar)
     })
+
+    // Also reset component-level properties that might not be in structure.props
+    // For Chip, reset min-width and max-width (Chip uses Button's max-width)
+    if (componentName === 'Chip') {
+      // Reset Chip's min-width
+      const chipMinWidthVar = getComponentCssVar('Chip', 'size', 'min-width', undefined)
+      document.documentElement.style.removeProperty(chipMinWidthVar)
+      
+      // Reset Button's max-width (Chip uses Button's max-width)
+      const buttonMaxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
+      document.documentElement.style.removeProperty(buttonMaxWidthVar)
+    }
 
     // Force a re-render by triggering a custom event
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
