@@ -40,6 +40,7 @@ export default function Button({
   // Use UIKit.json button colors for standard layers
   const buttonBgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
   const buttonColorVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
+  const buttonBorderVar = getComponentCssVar('Button', 'color', `${variant}-border`, layer)
   
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
@@ -86,6 +87,11 @@ export default function Button({
         border: `1px solid var(${buttonColorVar})`,
         borderColor: `var(${buttonColorVar})`,
       } : {}),
+      // For error variant, use the error-border CSS var for border color
+      ...(variant === 'error' ? {
+        border: `1px solid var(${buttonBorderVar})`,
+        borderColor: `var(${buttonBorderVar})`,
+      } : {}),
       // For text variant, explicitly remove border
       ...(variant === 'text' ? {
         border: 'none',
@@ -100,6 +106,7 @@ export default function Button({
       // Set CSS custom properties for CSS file overrides
       '--button-bg': `var(${buttonBgVar})`,
       '--button-color': `var(${buttonColorVar})`,
+      ...(variant === 'error' ? { '--button-border': `var(${buttonBorderVar})` } : {}),
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
       '--button-max-width': `var(${maxWidthVar})`,
@@ -111,6 +118,9 @@ export default function Button({
         color: `var(${buttonColorVar}) !important`,
         ...(variant === 'outline' && {
           borderColor: `var(${buttonColorVar}) !important`,
+        }),
+        ...(variant === 'error' && {
+          borderColor: `var(${buttonBorderVar}) !important`,
         }),
         ...(variant === 'text' && {
           border: 'none !important',

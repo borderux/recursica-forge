@@ -182,6 +182,12 @@
   border: var(--button-bd, 1px solid var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-outline-text))) !important;
 }
 
+/* Ensure error variant has a border with the correct color */
+.mantine-Button-root[data-variant='filled'][data-error='true'],
+.mantine-Button-root.recursica-error {
+  border: var(--button-bd, 1px solid var(--button-border, var(--recursica-ui-kit-components-button-color-layer-0-variant-error-border))) !important;
+}
+
 /* Ensure text variant (subtle) has no border */
 .mantine-Button-root[data-variant='subtle'] {
   border: none !important;

@@ -679,8 +679,8 @@ class VarsStore {
     }
     const baseX = Number((elev1?.['x-direction']?.['$value'] ?? 1))
     const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
-    const baseXDirection: 'left' | 'right' = baseX >= 0 ? 'right' : 'left'
-    const baseYDirection: 'up' | 'down' = baseY >= 0 ? 'down' : 'up'
+    let baseXDirection: 'left' | 'right' = baseX >= 0 ? 'right' : 'left'
+    let baseYDirection: 'up' | 'down' = baseY >= 0 ? 'down' : 'up'
     const directions: Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }> = {}
     for (let i = 1; i <= 4; i += 1) directions[`elevation-${i}`] = { x: baseXDirection, y: baseYDirection }
     // Migrate legacy keys

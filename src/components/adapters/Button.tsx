@@ -124,6 +124,7 @@ function getButtonStyles(
   // Use UIKit.json button colors for standard layers
   const bgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
   const textVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
+  const borderVar = getComponentCssVar('Button', 'color', `${variant}-border`, layer)
   
   const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
@@ -149,11 +150,17 @@ function getButtonStyles(
     styles.color = `var(${textVar})`
     styles.border = 'none'
   } else if (variant === 'outline') {
-    // For outline, use outline-specific CSS variables
+    // For outline, use text color as border color
     styles.backgroundColor = `var(${bgVar})`
     styles.color = `var(${textVar})`
     // For outline, use text color as border color (which is the outline-text CSS var)
     styles.border = `1px solid var(${textVar})`
+  } else if (variant === 'error') {
+    // For error, use border color CSS var
+    styles.backgroundColor = `var(${bgVar})`
+    styles.color = `var(${textVar})`
+    // For error, use the error-border CSS var
+    styles.border = `1px solid var(${borderVar})`
   } else {
     // text variant
     styles.backgroundColor = `var(${bgVar})`

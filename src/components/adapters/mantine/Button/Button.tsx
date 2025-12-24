@@ -41,14 +41,17 @@ export default function Button({
   const buttonBgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
   const buttonHoverVar = getComponentCssVar('Button', 'color', `${variant}-background-hover`, layer)
   const buttonColorVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
+  const buttonBorderVar = getComponentCssVar('Button', 'color', `${variant}-border`, layer)
   
-  // Get the correct CSS variable reference for button color (used for text and border)
+  // Get the correct CSS variable reference for button color (used for text)
   const buttonColorRef = `var(${buttonColorVar})`
   
-  // For outline buttons, set the border color using the outline-text CSS var
+  // For outline buttons, use text color for border; for error, use border color
   // Mantine uses --button-bd for border, which has format: calc(0.0625rem * var(--mantine-scale)) solid <color>
-  const buttonBorderColor = variant === 'outline' 
-    ? buttonColorRef 
+  const buttonBorderColor = variant === 'outline'
+    ? buttonColorRef
+    : variant === 'error'
+    ? `var(${buttonBorderVar})`
     : undefined
   
   // Get icon size and gap CSS variables
@@ -93,7 +96,7 @@ export default function Button({
         ...(disabled && {
           backgroundColor: `var(${buttonBgVar}) !important`,
           color: `${buttonColorRef} !important`,
-          ...(variant === 'outline' && buttonBorderColor && {
+          ...((variant === 'outline' || variant === 'error') && buttonBorderColor && {
             borderColor: `${buttonBorderColor} !important`,
           }),
           ...(variant === 'text' && {
@@ -135,10 +138,10 @@ export default function Button({
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Set content max width CSS variable for CSS file override
       '--button-max-width': `var(${maxWidthVar})`,
-      // For outline buttons, override Mantine's border color CSS variable
+      // For outline and error buttons, override Mantine's border color CSS variable
       // Mantine uses: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-blue-outline)
       // We override to use our recursica CSS var
-      ...(variant === 'outline' && buttonBorderColor ? {
+      ...((variant === 'outline' || variant === 'error') && buttonBorderColor ? {
         '--button-bd': `calc(0.0625rem * var(--mantine-scale, 1)) solid ${buttonBorderColor}`,
       } : {}),
       // For text variant, explicitly remove border

@@ -52,6 +52,14 @@
   border: 1px solid var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-outline-text)) !important;
 }
 
+/* Ensure error variant (danger) has a border with the correct color */
+.cds--btn--danger,
+.cds--btn--danger--primary,
+.cds--btn--danger--ghost,
+.cds--btn--danger--tertiary {
+  border: 1px solid var(--button-border, var(--recursica-ui-kit-components-button-color-layer-0-variant-error-border)) !important;
+}
+
 /* Ensure text variant (tertiary) has no border */
 .cds--btn--tertiary {
   border: none !important;

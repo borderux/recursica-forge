@@ -43,6 +43,12 @@
   border: 1px solid var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-outline-text)) !important;
 }
 
+/* Ensure error variant has a border with the correct color (error maps to contained) */
+.MuiButton-contained.recursica-error,
+.MuiButton-contained[data-error='true'] {
+  border: 1px solid var(--button-border, var(--recursica-ui-kit-components-button-color-layer-0-variant-error-border)) !important;
+}
+
 /* Ensure text variant has no border */
 .MuiButton-text {
   border: none !important;
