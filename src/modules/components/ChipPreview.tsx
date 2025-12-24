@@ -28,11 +28,25 @@ export default function ChipPreview({
     return selectedLayer as any
   }, [selectedAltLayer, selectedLayer])
 
+  const arrowIcon = (
+    <svg 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14"></path>
+      <path d="M12 5l7 7-7 7"></path>
+    </svg>
+  )
+
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
       {/* Default chip */}
       <Chip
-        variant={colorVariant as 'unselected' | 'selected' | 'error-selected'}
+        variant={colorVariant as 'unselected' | 'selected' | 'error' | 'error-selected'}
         size={sizeVariant as 'default' | 'small'}
         layer={actualLayer}
         elevation={componentElevation}
@@ -42,7 +56,7 @@ export default function ChipPreview({
       
       {/* Deletable chip */}
       <Chip
-        variant={colorVariant as 'unselected' | 'selected' | 'error-selected'}
+        variant={colorVariant as 'unselected' | 'selected' | 'error' | 'error-selected'}
         size={sizeVariant as 'default' | 'small'}
         layer={actualLayer}
         elevation={componentElevation}
@@ -54,25 +68,26 @@ export default function ChipPreview({
       
       {/* Chip with icon */}
       <Chip
-        variant={colorVariant as 'unselected' | 'selected' | 'error-selected'}
+        variant={colorVariant as 'unselected' | 'selected' | 'error' | 'error-selected'}
         size={sizeVariant as 'default' | 'small'}
         layer={actualLayer}
         elevation={componentElevation}
-        icon={
-          <svg 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <path d="M5 12h14"></path>
-            <path d="M12 5l7 7-7 7"></path>
-          </svg>
-        }
+        icon={arrowIcon}
       >
         With Icon
+      </Chip>
+      
+      {/* Chip with icon and deletable */}
+      <Chip
+        variant={colorVariant as 'unselected' | 'selected' | 'error' | 'error-selected'}
+        size={sizeVariant as 'default' | 'small'}
+        layer={actualLayer}
+        elevation={componentElevation}
+        icon={arrowIcon}
+        deletable
+        onDelete={() => {}}
+      >
+        Deletable with icon
       </Chip>
     </div>
   )
