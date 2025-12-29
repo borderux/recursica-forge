@@ -374,16 +374,16 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     const brandTextBase = `--recursica-brand-themes-${mode}-layer-layer-${prefix}-property-element-text-`
     const brandTextRefBase = `--recursica-brand-themes-${mode}-layer-layer-${prefix}-property-element-text-`
     // Extract text color value - handle both direct values and $value wrapper
-    let tcolorRaw = spec?.element?.text?.color
+    let tcolorRaw = spec?.elements?.text?.color
     if (tcolorRaw && typeof tcolorRaw === 'object' && typeof (tcolorRaw as any)['$value'] === 'string') {
       tcolorRaw = (tcolorRaw as any)['$value']
     }
     // Check if it's a palette reference first, before calling coerceToVarRef
     // This ensures we always use the correct palette variable even if coerceToVarRef fails
     const tcolorPalette = parsePaletteToneRef(tcolorRaw)
-    const talert = resolveRef(spec?.element?.text?.alert)
-    const twarn = resolveRef(spec?.element?.text?.warning)
-    const tsuccess = resolveRef(spec?.element?.text?.success)
+    const talert = resolveRef(spec?.elements?.text?.alert)
+    const twarn = resolveRef(spec?.elements?.text?.warning)
+    const tsuccess = resolveRef(spec?.elements?.text?.success)
     // Base text color: use explicit text color if set, otherwise derive from surface palette on-tone
     const surfaceHex = typeof surf === 'string' ? String(surf) : undefined
     if (tcolorPalette) {
@@ -511,24 +511,24 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     
     // Extract all interactive color values - handle both direct values and $value wrapper
     // New structure: tone, tone-hover, on-tone, on-tone-hover
-    const itoneRaw = extractValue(spec?.element?.interactive?.tone)
-    const itoneHoverRaw = extractValue(spec?.element?.interactive?.['tone-hover'])
-    const ionToneRaw = extractValue(spec?.element?.interactive?.['on-tone'])
-    const ionToneHoverRaw = extractValue(spec?.element?.interactive?.['on-tone-hover'])
+    const itoneRaw = extractValue(spec?.elements?.interactive?.tone)
+    const itoneHoverRaw = extractValue(spec?.elements?.interactive?.['tone-hover'])
+    const ionToneRaw = extractValue(spec?.elements?.interactive?.['on-tone'])
+    const ionToneHoverRaw = extractValue(spec?.elements?.interactive?.['on-tone-hover'])
     
     // Legacy support: check for old property names
-    const ibgRaw = extractValue(spec?.element?.interactive?.background)
-    const ibgHoverRaw = extractValue(spec?.element?.interactive?.['background-hover'])
-    const itextRaw = extractValue(spec?.element?.interactive?.text)
-    const itextHoverRaw = extractValue(spec?.element?.interactive?.['text-hover'])
+    const ibgRaw = extractValue(spec?.elements?.interactive?.background)
+    const ibgHoverRaw = extractValue(spec?.elements?.interactive?.['background-hover'])
+    const itextRaw = extractValue(spec?.elements?.interactive?.text)
+    const itextHoverRaw = extractValue(spec?.elements?.interactive?.['text-hover'])
     
     // Legacy support: check for old 'color' property
-    let icolorRaw = extractValue(spec?.element?.interactive?.color)
+    let icolorRaw = extractValue(spec?.elements?.interactive?.color)
     const icolorVar = coerceToVarRef(icolorRaw)
     
-    const ihRaw = spec?.element?.interactive?.['high-emphasis']
+    const ihRaw = spec?.elements?.interactive?.['high-emphasis']
     const ih = resolveRef(ihRaw)
-    const ihoverRaw = spec?.element?.interactive?.['hover-color']
+    const ihoverRaw = spec?.elements?.interactive?.['hover-color']
     const ihover = resolveRef(ihoverRaw)
     
     // Resolve all interactive properties - prefer new names, fall back to old names
