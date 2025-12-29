@@ -172,7 +172,7 @@ function getButtonStyles(
   
   // Apply disabled styles - use brand disabled opacity, don't change colors
   if (disabled) {
-    styles.opacity = `var(--recursica-brand-${mode}-state-disabled)`
+    styles.opacity = `var(--recursica-brand-themes-${mode}-state-disabled)`
     styles.cursor = 'not-allowed'
   } else {
     styles.cursor = 'pointer'

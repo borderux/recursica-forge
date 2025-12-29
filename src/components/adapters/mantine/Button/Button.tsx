@@ -164,7 +164,7 @@ export default function Button({
       }),
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       ...(disabled && {
-        opacity: `var(--recursica-brand-${mode}-state-disabled)`,
+        opacity: `var(--recursica-brand-themes-${mode}-state-disabled)`,
       }),
       minWidth: `var(${minWidthVar})`,
       borderRadius: `var(${borderRadiusVar})`,
