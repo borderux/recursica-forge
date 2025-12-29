@@ -37,31 +37,31 @@ export function getComponentColorVars({
 }: GetComponentColorVarsOptions): ComponentColorVars {
   // Use UIKit.json component colors for standard layers
   // For nested variants: text-solid-background, text-ghost-background, icon-solid-background, icon-ghost-background, image-background
-  // UIKit.json structure: variant.text.variant.solid.background
+  // UIKit.json structure: variants.text.variants.solid.colors.background
   // If variant is just "text" or "icon" (without secondary), default to "solid"
   let variantPath = colorVariant
   if (colorVariant === 'text' || colorVariant === 'icon') {
     variantPath = `${colorVariant}-solid`
   }
   
-  const bgVar = getComponentCssVar(componentName, 'color', `${variantPath}-background`, layer)
-  const borderVar = getComponentCssVar(componentName, 'color', `${variantPath}-border`, layer)
+  const bgVar = getComponentCssVar(componentName, 'colors', `${variantPath}-background`, layer)
+  const borderVar = getComponentCssVar(componentName, 'colors', `${variantPath}-border`, layer)
   
   // Use text-color for text variants, icon-color for icon variants
   let labelVar: string
   if (colorVariant.startsWith('text')) {
-    labelVar = getComponentCssVar(componentName, 'color', `${variantPath}-text-color`, layer)
+    labelVar = getComponentCssVar(componentName, 'colors', `${variantPath}-text-color`, layer)
   } else if (colorVariant.startsWith('icon')) {
-    labelVar = getComponentCssVar(componentName, 'color', `${variantPath}-icon-color`, layer)
+    labelVar = getComponentCssVar(componentName, 'colors', `${variantPath}-icon-color`, layer)
   } else {
     // For image variant, there's no label/color property
-    labelVar = getComponentCssVar(componentName, 'color', `${variantPath}-background`, layer) // Fallback
+    labelVar = getComponentCssVar(componentName, 'colors', `${variantPath}-background`, layer) // Fallback
   }
   
   // For images, use the image variant's border instead of the current variant's border
   let finalBorderVar = borderVar
   if ((src && !imageError) || colorVariant === 'image') {
-    finalBorderVar = getComponentCssVar(componentName, 'color', 'image-border', layer)
+    finalBorderVar = getComponentCssVar(componentName, 'colors', 'image-border', layer)
   }
   
   return { bgVar, borderVar: finalBorderVar, labelVar }

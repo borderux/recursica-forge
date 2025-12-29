@@ -44,7 +44,7 @@ export function toCssVarName(path: string): string {
  */
 export function getComponentCssVar(
   component: ComponentName,
-  category: 'color' | 'size',
+  category: 'colors' | 'size',
   property: string,
   layer?: ComponentLayer
 ): string {
@@ -66,33 +66,33 @@ export function getComponentCssVar(
   
   const parts = ['components', component.toLowerCase()]
   
-  // For size category, use the old structure: size.variant.default.height
+  // For size category, use the old structure: size.variants.default.height
   if (category === 'size') {
     parts.push(category)
     const variantMatch = property.match(/^(default|small|large)-(.+)$/)
     if (variantMatch) {
       const [, variantName, propName] = variantMatch
-      parts.push('variant', variantName, propName)
+      parts.push('variants', variantName, propName)
     } else if (/^(default|small|large)$/.test(property)) {
       // Property is just a variant name (e.g., "default", "small", "large")
-      // UIKit.json structure: size.variant.default (direct dimension value)
-      parts.push('variant', property)
+      // UIKit.json structure: size.variants.default (direct dimension value)
+      parts.push('variants', property)
     } else {
       // Non-variant size property (e.g., "icon", "border-radius", "font-size")
       const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
       parts.push(normalizedProperty)
     }
   } else {
-    // For color category, use NEW STRUCTURE: variant.{variant-name}.color.{layer}.{property}
-    // For nested variants (Avatar): variant.text.variant.solid.color.layer-0.background
-    // For single variants (Button/Switch): variant.solid.color.layer-0.background
+    // For colors category, use NEW STRUCTURE: variants.{variant-name}.colors.{layer}.{property}
+    // For nested variants (Avatar): variants.text.variants.solid.colors.layer-0.background
+    // For single variants (Button/Switch): variants.solid.colors.layer-0.background
     
     // Check for nested variants (e.g., "text-solid-background" for Avatar)
     const nestedVariantMatch = property.match(/^(text|icon)-(solid|ghost)-(.+)$/)
     if (nestedVariantMatch) {
-      // NEW STRUCTURE: variant.{primary-variant}.variant.{secondary-variant}.color.{layer}.{property}
+      // NEW STRUCTURE: variants.{primary-variant}.variants.{secondary-variant}.colors.{layer}.{property}
       const [, primaryVariant, secondaryVariant, propName] = nestedVariantMatch
-      parts.push('variant', primaryVariant, 'variant', secondaryVariant, 'color')
+      parts.push('variants', primaryVariant, 'variants', secondaryVariant, 'colors')
       if (layer) {
         parts.push(layer)
       }
@@ -102,7 +102,7 @@ export function getComponentCssVar(
       const imageVariantMatch = property.match(/^image-(.+)$/)
       if (imageVariantMatch) {
         const [, propName] = imageVariantMatch
-        parts.push('variant', 'image', 'color')
+        parts.push('variants', 'image', 'colors')
         if (layer) {
           parts.push(layer)
         }
@@ -124,8 +124,8 @@ export function getComponentCssVar(
         }
         
         if (variantName && propName) {
-          // Use new structure: variant.{name}.color.{layer}.{property}
-          parts.push('variant', variantName, 'color')
+          // Use new structure: variants.{name}.colors.{layer}.{property}
+          parts.push('variants', variantName, 'colors')
           if (layer) {
             parts.push(layer)
           }
@@ -147,7 +147,7 @@ export function getComponentCssVar(
  * Generates CSS variable name for a UIKit global/form property
  */
 export function getGlobalCssVar(
-  category: 'global' | 'form',
+  category: 'globals' | 'form',
   ...path: string[]
 ): string {
   const parts = ['ui-kit', category, ...path]
@@ -158,8 +158,8 @@ export function getGlobalCssVar(
  * Generates CSS variable name for form component properties
  */
 export function getFormCssVar(
-  component: 'field' | 'label' | 'indicator' | 'assistive-element',
-  category: 'color' | 'size',
+  component: 'field' | 'label' | 'indicator' | 'assistive-elements',
+  category: 'colors' | 'size',
   ...path: string[]
 ): string {
   return getGlobalCssVar('form', component, category, ...path)

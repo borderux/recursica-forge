@@ -1,6 +1,6 @@
 {
   "ui-kit": {
-    "global": {
+    "globals": {
       "icon": {
         "style": {
           "$type": "string",
@@ -9,7 +9,7 @@
       },
       "form": {
         "layouts": {
-          "side-by-side": {
+          "side-by-sides": {
             "label-column-width": {
               "$type": "dimension",
               "$value": {
@@ -70,7 +70,7 @@
         }
       },
       "field": {
-        "color": {
+        "colors": {
           "background": {
             "$type": "color",
             "$value": "{brand.layers.layer-0.properties.surface}"
@@ -193,7 +193,7 @@
         }
       },
       "label": {
-        "color": {
+        "colors": {
           "default": {
             "$type": "color",
             "$value": "{brand.layers.layer-0.elements.text.color}"
@@ -258,7 +258,7 @@
           }
         }
       },
-      "assistive-element": {
+      "assistive-elements": {
         "help": {
           "text-color": {
             "$type": "color",
@@ -293,9 +293,9 @@
     },
     "components": {
       "button": {
-        "variant": {
+        "variants": {
           "solid": {
-            "color": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
@@ -371,7 +371,7 @@
             }
           },
           "text": {
-            "color": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
@@ -447,7 +447,7 @@
             }
           },
           "outline": {
-            "color": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
@@ -524,7 +524,7 @@
           }
         },
         "size": {
-            "variant": {
+            "variants": {
               "default": {
                 "icon": {
                   "$type": "dimension",
@@ -848,9 +848,9 @@
         }
       },
       "switch": {
-        "variant": {
+        "variants": {
           "default": {
-            "color": {
+            "colors": {
               "layer-0": {
                 "thumb-selected": {
                   "$type": "color",
@@ -1000,11 +1000,11 @@
         }
       },
       "avatar": {
-        "variant": {
+        "variants": {
           "text": {
-            "variant": {
+            "variants": {
               "solid": {
-                "color": {
+                "colors": {
                   "layer-0": {
                     "background": {
                       "$type": "color",
@@ -1064,7 +1064,7 @@
                 }
               },
               "ghost": {
-                "color": {
+                "colors": {
                   "layer-0": {
                     "background": {
                       "$type": "color",
@@ -1126,9 +1126,9 @@
             }
           },
           "icon": {
-            "variant": {
+            "variants": {
               "solid": {
-                "color": {
+                "colors": {
                   "layer-0": {
                     "background": {
                       "$type": "color",
@@ -1188,7 +1188,7 @@
                 }
               },
               "ghost": {
-                "color": {
+                "colors": {
                   "layer-0": {
                     "background": {
                       "$type": "color",
@@ -1250,7 +1250,7 @@
             }
           },
           "image": {
-            "color": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
@@ -1295,7 +1295,7 @@
           }
         },
         "sizes": {
-          "variant": {
+          "variants": {
             "small": {
               "$type": "dimension",
               "$value": {
