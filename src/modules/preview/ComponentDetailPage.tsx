@@ -14,8 +14,6 @@ import ComponentDebugTable from './ComponentDebugTable'
 import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
 
 export default function ComponentDetailPage() {
-  // Force reload - alternative layers removed
-  console.log('ComponentDetailPage loaded - v2')
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
   const location = useLocation()
   const { mode } = useThemeMode()
