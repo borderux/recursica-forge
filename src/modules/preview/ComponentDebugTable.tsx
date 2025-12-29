@@ -89,7 +89,6 @@ interface ComponentDebugTableProps {
   openPropControl?: string | null
   selectedVariants?: Record<string, string>
   selectedLayer?: string
-  selectedAltLayer?: string | null
 }
 
 export default function ComponentDebugTable({ 
@@ -97,7 +96,6 @@ export default function ComponentDebugTable({
   openPropControl,
   selectedVariants = {},
   selectedLayer = 'layer-0',
-  selectedAltLayer = null,
 }: ComponentDebugTableProps) {
   const { mode } = useThemeMode()
   const { tokens, theme, uikit } = useVars()
@@ -150,18 +148,18 @@ export default function ComponentDebugTable({
       // These don't have variant or layer restrictions
       return true
     })
-  }, [allComponentVars, componentName, selectedVariants, selectedLayer, selectedAltLayer])
+  }, [allComponentVars, componentName, selectedVariants, selectedLayer])
 
   // Get resolved original values from UIKit.json
   const originalValues = useMemo(() => {
     try {
-      const resolvedVars = buildUIKitVars(tokens, theme, uikit)
+      const resolvedVars = buildUIKitVars(tokens, theme, uikit, mode)
       return resolvedVars
     } catch (error) {
       console.error('Error building UIKit vars:', error)
       return {}
     }
-  }, [tokens, theme, uikit])
+  }, [tokens, theme, uikit, mode])
 
   // Get current values and compare with originals
   const varData = useMemo(() => {
@@ -227,9 +225,8 @@ export default function ComponentDebugTable({
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
   }
 
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
-  const primaryAltLayerBase = `--recursica-brand-${mode}-layer-layer-alternative-primary-color-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
 
   // Get CSS vars for the currently open prop control
   const highlightedCssVars = useMemo(() => {
@@ -392,10 +389,10 @@ export default function ComponentDebugTable({
                   <td style={{
                     padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
                     color: isChanged 
-                      ? `var(${primaryAltLayerBase}-element-text-color)`
+                      ? `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)`
                       : `var(${layer0Base}-element-text-color)`,
                     background: isChanged 
-                      ? `var(${primaryAltLayerBase}-surface)`
+                      ? `var(${layer1Base}-surface)`
                       : 'transparent',
                     fontFamily: 'monospace',
                     fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
@@ -424,7 +421,7 @@ export default function ComponentDebugTable({
                       padding: 0,
                       opacity: v.isChanged ? 1 : 0.5,
                       color: v.isChanged 
-                        ? `var(--recursica-brand-${mode}-layer-layer-2-property-element-interactive-tone)`
+                        ? `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-interactive-tone)`
                         : `var(${layer0Base}-element-text-low-emphasis)`,
                     }}
                   />

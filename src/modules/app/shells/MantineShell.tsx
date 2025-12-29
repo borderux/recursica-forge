@@ -45,7 +45,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   // Logo SVG
   const LogoIcon = () => (
     <svg width="65" height="44" viewBox="0 0 65 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path fillRule="evenodd" clipRule="evenodd" d="M2.73689 0C1.22535 0 0 1.23486 0 2.75813V40.2687C0 41.792 1.22535 43.0269 2.73689 43.0269H61.3063C62.8178 43.0269 64.0431 41.792 64.0431 40.2687V2.75813C64.0431 1.23486 62.8178 0 61.3063 0H2.73689ZM4.10533 38.8628C4.10533 20.1314 18.8106 4.86124 37.2217 4.1372V38.8628H4.10533ZM45.4323 38.8628C42.4092 38.8628 39.9585 36.3931 39.9585 33.3465H45.4323V38.8628ZM59.8947 24.2447H39.9585V4.15383C50.6584 4.836 59.2177 13.4618 59.8947 24.2447ZM59.8674 27.0028C59.2296 33.2132 54.3317 38.1491 48.1692 38.7918V27.0028H59.8674ZM43.5165 27.0297C41.5515 27.0297 39.9585 28.635 39.9585 30.6153H43.5165V27.0297Z" fill={`var(--recursica-brand-${mode}-palettes-palette-1-primary-tone)`}/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M2.73689 0C1.22535 0 0 1.23486 0 2.75813V40.2687C0 41.792 1.22535 43.0269 2.73689 43.0269H61.3063C62.8178 43.0269 64.0431 41.792 64.0431 40.2687V2.75813C64.0431 1.23486 62.8178 0 61.3063 0H2.73689ZM4.10533 38.8628C4.10533 20.1314 18.8106 4.86124 37.2217 4.1372V38.8628H4.10533ZM45.4323 38.8628C42.4092 38.8628 39.9585 36.3931 39.9585 33.3465H45.4323V38.8628ZM59.8947 24.2447H39.9585V4.15383C50.6584 4.836 59.2177 13.4618 59.8947 24.2447ZM59.8674 27.0028C59.2296 33.2132 54.3317 38.1491 48.1692 38.7918V27.0028H59.8674ZM43.5165 27.0297C41.5515 27.0297 39.9585 28.635 39.9585 30.6153H43.5165V27.0297Z" fill={`var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-tone)`}/>
     </svg>
   )
   
@@ -87,7 +87,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
     })
   }
   
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
   
@@ -252,8 +253,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 w={180}
                 styles={{
                   input: {
-                    backgroundColor: 'var(--recursica-brand-light-layer-layer-0-property-surface)',
-                    borderColor: 'var(--recursica-brand-light-layer-layer-1-property-border-color)',
+                    backgroundColor: `var(${layer0Base}-surface)`,
+                    borderColor: `var(${layer1Base}-border-color)`,
                   },
                 }}
               />
@@ -347,7 +348,12 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           {showSidebar && <Sidebar />}
           {showThemeSidebar && <ThemeSidebar />}
-          <main style={{ flex: 1, overflow: 'auto' }}>
+          <main style={{ 
+            flex: 1, 
+            overflow: 'auto',
+            backgroundColor: `var(${layer0Base}-surface)`,
+            color: `var(${layer0Base}-element-text-color)`,
+          }}>
             {children}
           </main>
         </div>
@@ -374,7 +380,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-            <Group gap="sm" justify="flex-end" style={{ borderTop: '1px solid var(--recursica-brand-light-layer-layer-1-property-border-color)', paddingTop: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+            <Group gap="sm" justify="flex-end" style={{ borderTop: `1px solid var(${layer1Base}-border-color)`, paddingTop: 'var(--recursica-brand-dimensions-spacer-md)' }}>
               <Button variant="outline" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
                 Cancel
               </Button>

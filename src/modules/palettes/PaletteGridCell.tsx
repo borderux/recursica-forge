@@ -115,7 +115,7 @@ export function PaletteEmphasisCell({
   }, [])
 
   // Check AA compliance with opacity consideration
-  // Check both high and low emphasis to determine if tone fails AA for either
+  // Only check the current cell's emphasis level (passed in emphasisCssVar)
   const aaStatus = useMemo(() => {
     if (!tokens || !paletteKey || !level) return null
     
@@ -159,98 +159,20 @@ export function PaletteEmphasisCell({
       ? (opacityRaw <= 1 ? opacityRaw : opacityRaw / 100)
       : 1
     
-    // Also get high and low emphasis opacities to check both
-    const highEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-high`
-    const lowEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-low`
-    
-    const highEmphasisResolved = readCssVarResolved(highEmphasisCssVar) || readCssVar(highEmphasisCssVar)
-    const lowEmphasisResolved = readCssVarResolved(lowEmphasisCssVar) || readCssVar(lowEmphasisCssVar)
-    
-    let highOpacityRaw: number = 1
-    let lowOpacityRaw: number = 1
-    
-    // Parse high emphasis opacity
-    if (highEmphasisResolved) {
-      const tokenMatch = highEmphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
-      if (tokenMatch) {
-        const [, tokenName] = tokenMatch
-        const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
-        if (typeof tokenValue === 'number') {
-          highOpacityRaw = tokenValue
-        } else {
-          highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
-        }
-      } else {
-        highOpacityRaw = parseFloat(highEmphasisResolved)
-        if (isNaN(highOpacityRaw)) {
-          highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
-        }
-      }
-    } else {
-      highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
-    }
-    
-    // Parse low emphasis opacity
-    if (lowEmphasisResolved) {
-      const tokenMatch = lowEmphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
-      if (tokenMatch) {
-        const [, tokenName] = tokenMatch
-        const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
-        if (typeof tokenValue === 'number') {
-          lowOpacityRaw = tokenValue
-        } else {
-          lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
-        }
-      } else {
-        lowOpacityRaw = parseFloat(lowEmphasisResolved)
-        if (isNaN(lowOpacityRaw)) {
-          lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
-        }
-      }
-    } else {
-      lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
-    }
-    
-    const highOpacity = (highOpacityRaw && !isNaN(highOpacityRaw) && highOpacityRaw > 0) 
-      ? (highOpacityRaw <= 1 ? highOpacityRaw : highOpacityRaw / 100)
-      : 1
-    const lowOpacity = (lowOpacityRaw && !isNaN(lowOpacityRaw) && lowOpacityRaw > 0) 
-      ? (lowOpacityRaw <= 1 ? lowOpacityRaw : lowOpacityRaw / 100)
-      : 1
-    
-    // Blend on-tone with tone using current emphasis opacity
+    // Blend on-tone with tone using current emphasis opacity (only check the current cell's emphasis)
     const blendedOnTone = blendHexOver(onToneHex, toneHex, opacity)
     const currentRatio = contrastRatio(toneHex, blendedOnTone)
     const passesAA = currentRatio >= AA
     
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    const coreBlackVar = `--recursica-brand-${mode}-palettes-core-black`
-    const coreWhiteVar = `--recursica-brand-${mode}-palettes-core-white`
+    const coreBlackVar = `--recursica-brand-themes-${mode}-palettes-core-black`
+    const coreWhiteVar = `--recursica-brand-themes-${mode}-palettes-core-white`
     const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
     const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
     const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
     const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
     
-    // Check high emphasis
-    const blackHighBlended = blendHexOver(black, toneHex, highOpacity)
-    const whiteHighBlended = blendHexOver(white, toneHex, highOpacity)
-    const blackHighContrast = contrastRatio(toneHex, blackHighBlended)
-    const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
-    const blackHighPasses = blackHighContrast >= AA
-    const whiteHighPasses = whiteHighContrast >= AA
-    
-    // Check low emphasis
-    const blackLowBlended = blendHexOver(black, toneHex, lowOpacity)
-    const whiteLowBlended = blendHexOver(white, toneHex, lowOpacity)
-    const blackLowContrast = contrastRatio(toneHex, blackLowBlended)
-    const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
-    const blackLowPasses = blackLowContrast >= AA
-    const whiteLowPasses = whiteLowContrast >= AA
-    
-    // Tone fails AA if both black and white fail for EITHER emphasis level
-    const toneFailsAA = (!blackHighPasses && !whiteHighPasses) || (!blackLowPasses && !whiteLowPasses)
-    
-    // For current emphasis level
+    // Only check current emphasis level (the one passed in emphasisCssVar)
     const blackBlended = blendHexOver(black, toneHex, opacity)
     const whiteBlended = blendHexOver(white, toneHex, opacity)
     const blackContrast = contrastRatio(toneHex, blackBlended)
@@ -266,13 +188,12 @@ export function PaletteEmphasisCell({
       toneHex,
       onToneHex,
       opacity,
-      toneFailsAA, // New: indicates if tone fails AA for either emphasis level
     }
   }, [toneCssVar, onToneCssVar, emphasisCssVar, tokens, paletteKey, level, updateTrigger, mode])
 
   // Show "x" only if:
-  // 1. Current on-tone doesn't pass AA (with opacity considered)
-  // 2. AND both black and white (with opacity) don't pass AA
+  // 1. Current on-tone doesn't pass AA (with current emphasis opacity considered)
+  // 2. AND both black and white (with current emphasis opacity) don't pass AA
   // This means auto-fix has been attempted (trying both black and white) and failed
   // Show dot if current on-tone passes AA OR if black or white would pass (auto-fix would work)
   // If aaStatus is null (can't check), default to showing dot
@@ -280,8 +201,8 @@ export function PaletteEmphasisCell({
     ? (!aaStatus.passesAA && !aaStatus.blackPasses && !aaStatus.whitePasses)
     : false
   
-  // If tone fails AA for either emphasis level, both cells should open color picker (not set primary)
-  const shouldOpenColorPicker = aaStatus?.toneFailsAA ?? false
+  // If tone fails AA for current emphasis level, open color picker (not set primary)
+  const shouldOpenColorPicker = showAAWarning
   
 
   return (
@@ -368,8 +289,8 @@ export function PaletteEmphasisCell({
             transform: 'translateX(-50%)',
             marginTop: '4px',
             padding: '8px 12px',
-            backgroundColor: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`,
-            border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -383,15 +304,15 @@ export function PaletteEmphasisCell({
           <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
             AA Compliance Issue
           </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)` }}>
+          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)` }}>
             Tone doesn't pass contrast (≥4.5:1) for high or low emphasis
           </div>
           {aaStatus && (
-            <div style={{ fontSize: '11px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)`, opacity: 0.8 }}>
+            <div style={{ fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)`, opacity: 0.8 }}>
               Current: {aaStatus.currentRatio.toFixed(2)}:1
             </div>
           )}
-          <div style={{ marginTop: '8px', fontSize: '11px', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-color)`, opacity: 0.7, fontStyle: 'italic' }}>
+          <div style={{ marginTop: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)`, opacity: 0.7, fontStyle: 'italic' }}>
             Click to change tone color
           </div>
         </div>

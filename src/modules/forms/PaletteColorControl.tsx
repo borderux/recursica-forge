@@ -85,7 +85,7 @@ export default function PaletteColorControl({
   }, [paletteKeys, themeJson])
   
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
-    return `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
+    return `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
   }
   
   // Helper to find palette swatch that matches a token hex
@@ -425,7 +425,7 @@ export default function PaletteColorControl({
           alignItems: 'center',
           gap: 8,
           padding: '6px 8px',
-          border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color)`,
+          border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
           background: 'transparent',
           borderRadius: 6,
           cursor: 'pointer',
@@ -437,7 +437,7 @@ export default function PaletteColorControl({
             width: swatchSize,
             height: swatchSize,
             borderRadius: 4,
-            border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color)`,
+            border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
             background: `var(${displayCssVar}, transparent)`,
             flexShrink: 0,
           }}

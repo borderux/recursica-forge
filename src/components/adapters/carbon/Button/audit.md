@@ -40,9 +40,6 @@ This document audits the Button component implementation for Carbon Design Syste
 | `--recursica-ui-kit-components-button-border-radius` | UIKit.json | Button border radius |
 | `--recursica-ui-kit-components-button-font-size` | UIKit.json | Button font size |
 | `--recursica-ui-kit-components-button-content-max-width` | UIKit.json | Maximum content width |
-| `--recursica-brand-light-layer-layer-alternative-{key}-property-element-interactive-tone` | Brand.json | Alternative layer background |
-| `--recursica-brand-light-layer-layer-alternative-{key}-property-element-interactive-on-tone` | Brand.json | Alternative layer text color |
-| `--recursica-brand-light-layer-layer-alternative-{key}-property-surface` | Brand.json | Alternative layer surface |
 | `--recursica-brand-typography-button-font-weight` | Brand.json | Button font weight |
 | `--recursica-brand-light-state-disabled` | Brand.json | Disabled state opacity |
 | `--recursica-brand-{mode}-elevations-elevation-{n}-x-axis` | Brand.json | Elevation shadow x-axis offset |
@@ -155,8 +152,7 @@ Carbon default styles
 - [x] All variants (solid, outline, text) are covered
 - [x] All sizes (default, small) are covered
 - [x] All layers (layer-0 through layer-3) are covered
-- [x] Alternative layers are supported
-- [x] Elevation prop is supported (component-level and from alt layers)
+- [x] Elevation prop is supported
 - [x] Border handling is correct (outline has border, text has no border)
 - [x] Border color uses outline-text CSS variable
 - [x] All states (default, hover, active, disabled, focus) are covered
@@ -209,8 +205,7 @@ grep -r "var(--recursica-.*var(--cds-" src/components/adapters/carbon/Button/
 1. **Variants**: solid, outline, text
 2. **Sizes**: default, small
 3. **Layers**: layer-0, layer-1, layer-2, layer-3
-4. **Alternative Layers**: layer-alternative-{key}
-5. **States**: default, hover, active, disabled, focus
+4. **States**: default, hover, active, disabled, focus
 6. **With Icons**: icon-left, icon-right, icon-only
 7. **With Long Text**: truncation behavior
 
@@ -266,7 +261,6 @@ background-color: var(--button-bg, var(--recursica-ui-kit-components-button-colo
 
 **New Feature**:
 - Added `elevation` prop support that applies box-shadow using brand elevation CSS variables
-- Elevation is read from alternative layer properties if `alternativeLayer` prop is set, otherwise uses component-level `elevation` prop
 - Elevation-0 does not apply any box-shadow
 - Uses brand elevation CSS variables: `--recursica-brand-{mode}-elevations-elevation-{n}-{property}`
 

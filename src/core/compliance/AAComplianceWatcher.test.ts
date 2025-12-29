@@ -61,12 +61,12 @@ describe('AAComplianceWatcher', () => {
     const watcher = new AAComplianceWatcher(mockTokens as any, mockTheme as any)
     
     // Set up a palette tone
-    updateCssVar('--recursica-brand-light-palettes-test-500-tone', '#808080')
+    updateCssVar('--recursica-brand-themes-light-palettes-test-500-tone', '#808080')
     watcher.watchPaletteOnTone('test', '500', 'light')
     
     // Wait for watcher to process
     setTimeout(() => {
-      const onTone = readCssVar('--recursica-brand-light-palettes-test-500-on-tone')
+      const onTone = readCssVar('--recursica-brand-themes-light-palettes-test-500-on-tone')
       expect(onTone).toBeDefined()
       // Should be either black or white based on contrast
       expect(['var(--recursica-brand-light-palettes-core-black)', 'var(--recursica-brand-light-palettes-core-white)']).toContain(onTone)

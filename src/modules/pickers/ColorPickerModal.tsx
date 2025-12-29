@@ -79,11 +79,11 @@ export function ColorPickerModal({
     >
       <div
         style={{
-          background: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-surface, var(--recursica-brand-${mode}-layer-layer-3-property-surface))`,
-          color: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-element-text-color, var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color))`,
-          border: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-thickness, var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, var(--recursica-brand-${mode}-layer-layer-3-property-border-color))`,
-          borderRadius: `var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-radius, var(--recursica-brand-${mode}-layer-layer-3-property-border-radius))`,
-          boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-${mode}-elevations-elevation-4-blur) var(--recursica-brand-${mode}-elevations-elevation-4-spread) var(--recursica-brand-${mode}-elevations-elevation-4-shadow-color)`,
+          background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`,
+          color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`,
+          border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`,
+          borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`,
+          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
           padding: 20,
           display: 'grid',
           gap: 16,
@@ -177,7 +177,7 @@ export function ColorPickerModal({
               height: 60,
               borderRadius: 8,
               background: currentHex,
-              border: `1px solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, rgba(0,0,0,0.1))`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`,
               flexShrink: 0,
             }}
           />
@@ -197,7 +197,7 @@ export function ColorPickerModal({
               flex: 1,
               fontSize: 14,
               padding: '8px 12px',
-              border: `1px solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, rgba(0,0,0,0.1))`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`,
               borderRadius: 6,
             }}
             placeholder="#000000"
@@ -210,7 +210,7 @@ export function ColorPickerModal({
             style={{
               padding: '8px 16px',
               borderRadius: 6,
-              border: `1px solid var(--recursica-brand-${mode}-layer-layer-alternative-floating-property-border-color, rgba(0,0,0,0.1))`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`,
               background: 'transparent',
               cursor: 'pointer',
               fontSize: 14,
@@ -224,7 +224,7 @@ export function ColorPickerModal({
               padding: '8px 16px',
               borderRadius: 6,
               border: 'none',
-              background: `var(--recursica-brand-${mode}-palettes-core-interactive, #3b82f6)`,
+              background: `var(--recursica-brand-themes-${mode}-palettes-core-interactive, #3b82f6)`,
               color: '#fff',
               cursor: 'pointer',
               fontSize: 14,

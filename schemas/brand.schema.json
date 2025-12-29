@@ -42,7 +42,7 @@
         "layers": {
           "type": "object",
           "patternProperties": {
-            "^layer-\\d+$|^layer-alternative$": {
+            "^layer-\\d+$": {
               "$ref": "#/definitions/layer"
             }
           }
@@ -64,24 +64,189 @@
                   "required": ["black", "white", "alert", "success", "warning", "interactive"],
                   "properties": {
                     "black": {
-                      "type": "string",
-                      "pattern": "^\\{tokens\\.color\\.[a-z0-9_-]+\\.[0-9]{2,4}|000|050\\}$"
+                      "type": "object",
+                      "required": ["tone", "on-tone", "interactive"],
+                      "properties": {
+                        "tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "on-tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "interactive": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
                     },
                     "white": {
-                      "type": "string",
-                      "pattern": "^\\{tokens\\.color\\.[a-z0-9_-]+\\.[0-9]{2,4}|000|050\\}$"
+                      "type": "object",
+                      "required": ["tone", "on-tone", "interactive"],
+                      "properties": {
+                        "tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "on-tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "interactive": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
                     },
                     "alert": {
-                      "type": "string",
-                      "pattern": "^\\{tokens\\.color\\.[a-z0-9_-]+\\.[0-9]{2,4}|000|050\\}$"
+                      "type": "object",
+                      "required": ["tone", "on-tone", "interactive"],
+                      "properties": {
+                        "tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "on-tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "interactive": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
                     },
                     "success": {
-                      "type": "string",
-                      "pattern": "^\\{tokens\\.color\\.[a-z0-9_-]+\\.[0-9]{2,4}|000|050\\}$"
+                      "type": "object",
+                      "required": ["tone", "on-tone", "interactive"],
+                      "properties": {
+                        "tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "on-tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "interactive": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
                     },
                     "warning": {
-                      "type": "string",
-                      "pattern": "^\\{tokens\\.color\\.[a-z0-9_-]+\\.[0-9]{2,4}|000|050\\}$"
+                      "type": "object",
+                      "required": ["tone", "on-tone", "interactive"],
+                      "properties": {
+                        "tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "on-tone": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "interactive": {
+                          "type": "object",
+                          "required": ["$value"],
+                          "properties": {
+                            "$value": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
                     },
                     "interactive": {
                       "type": "object",
@@ -98,7 +263,8 @@
                                 "$value": {
                                   "type": "string"
                                 }
-                              }
+                              },
+                              "additionalProperties": false
                             },
                             "on-tone": {
                               "type": "object",
@@ -107,9 +273,11 @@
                                 "$value": {
                                   "type": "string"
                                 }
-                              }
+                              },
+                              "additionalProperties": false
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         },
                         "hover": {
                           "type": "object",
@@ -122,7 +290,8 @@
                                 "$value": {
                                   "type": "string"
                                 }
-                              }
+                              },
+                              "additionalProperties": false
                             },
                             "on-tone": {
                               "type": "object",
@@ -131,9 +300,11 @@
                                 "$value": {
                                   "type": "string"
                                 }
-                              }
+                              },
+                              "additionalProperties": false
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       },
                       "additionalProperties": false
@@ -420,6 +591,21 @@
       "type": "object",
       "properties": {
         "disabled": {
+          "type": "object",
+          "required": ["$type", "$value"],
+          "properties": {
+            "$type": {
+              "type": "string",
+              "enum": ["number"]
+            },
+            "$value": {
+              "type": "string",
+              "pattern": "^\\{tokens\\.opacity\\.[a-z0-9_-]+\\}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "hover": {
           "type": "object",
           "required": ["$type", "$value"],
           "properties": {

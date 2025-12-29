@@ -26,8 +26,8 @@ export default function FontPropertiesTokens() {
     return v === null ? false : v === 'true'
   })
 
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const buttonTextBg = getComponentCssVar('Button', 'color', 'text-background', 'layer-0')
   const buttonTextText = getComponentCssVar('Button', 'color', 'text-text', 'layer-0')
   const buttonSolidBg = getComponentCssVar('Button', 'color', 'solid-background', 'layer-0')

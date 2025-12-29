@@ -10,6 +10,8 @@ import { getFriendlyNamePreferNtc, getNtcName } from '../../utils/colorNaming'
 import { ColorPickerModal } from '../../pickers/ColorPickerModal'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
+import { parseTokenReference, type TokenReferenceContext } from '../../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../../core/resolvers/tokens'
 
 type TokenEntry = {
   name: string
@@ -39,7 +41,7 @@ export default function ColorTokens() {
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
   const [showAddColorModal, setShowAddColorModal] = useState(false)
-  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-light-palettes-core-black)')
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-themes-light-palettes-core-black)')
 
   // Initialize deleted families from localStorage
   useEffect(() => {
@@ -398,8 +400,15 @@ export default function ColorTokens() {
           })
           setValues(newValues)
           
-          // Update family order
-          setFamilyOrder((prev) => prev.map(f => f === tempFamily ? newFamilySlug : f).filter(f => f !== tempFamily))
+          // Update family order - always append new family to the end, not sorted alphabetically
+          setFamilyOrder((prev) => {
+            const updated = prev.map(f => f === tempFamily ? newFamilySlug : f).filter(f => f !== tempFamily)
+            // If newFamilySlug is not already in the order, append it to the end
+            if (!updated.includes(newFamilySlug)) {
+              return [...updated, newFamilySlug]
+            }
+            return updated
+          })
           
           // Update family names map
           const updatedFamilyNames = { ...familyNames }
@@ -419,17 +428,20 @@ export default function ColorTokens() {
         } else {
           // Fallback: if rename failed, just update the display name
           setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
+          // Always append to end, not sorted alphabetically
           setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
         }
       } catch (error) {
         console.error('Failed to rename color family after creation:', error)
         // Fallback: just update the display name
         setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
+        // Always append to end, not sorted alphabetically
         setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
       }
     } else {
       // If slug generation failed, just use temp name with friendly display name
       setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
+      // Always append to end, not sorted alphabetically
       setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
     }
   }
@@ -496,12 +508,18 @@ export default function ColorTokens() {
           return families
         }
         
-        for (const [key, value] of Object.entries(obj)) {
+        for (const [, value] of Object.entries(obj)) {
           if (typeof value === 'string') {
-            // Check for token references like {tokens.color.{family}.{level}}
-            const match = value.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
-            if (match && match[1]) {
-              families.add(match[1])
+            // Use centralized parser to check for token references
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const context: TokenReferenceContext = { currentMode: 'light', tokenIndex }
+            const parsed = parseTokenReference(value, context)
+            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
+              // Extract family name from token path (e.g., color/gray/100 -> gray)
+              const familyName = parsed.path[1]
+              if (familyName) {
+                families.add(familyName)
+              }
             }
           } else if (value && typeof value === 'object') {
             extractReferencedFamilies(value).forEach((f) => families.add(f))

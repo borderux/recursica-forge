@@ -149,8 +149,8 @@ describe('buildPaletteVars', () => {
   it('should generate text emphasis variables', () => {
     const vars = buildPaletteVars(mockTokens, mockTheme, 'Light')
     
-    expect(vars['--recursica-brand-light-text-emphasis-high']).toBeDefined()
-    expect(vars['--recursica-brand-light-text-emphasis-low']).toBeDefined()
+    expect(vars['--recursica-brand-themes-light-text-emphasis-high']).toBeDefined()
+    expect(vars['--recursica-brand-themes-light-text-emphasis-low']).toBeDefined()
   })
 
   it('should generate state variables', () => {
@@ -195,8 +195,8 @@ describe('buildPaletteVars', () => {
     const vars = buildPaletteVars(mockTokens, themeWithDefault, 'Light')
     
     // Should create primary-tone from default
-    expect(vars['--recursica-brand-light-palettes-neutral-primary-tone']).toBeDefined()
-    expect(vars['--recursica-brand-light-palettes-neutral-primary-on-tone']).toBeDefined()
+    expect(vars['--recursica-brand-themes-light-palettes-neutral-primary-tone']).toBeDefined()
+    expect(vars['--recursica-brand-themes-light-palettes-neutral-primary-on-tone']).toBeDefined()
   })
 
   it('should handle empty palettes gracefully', () => {

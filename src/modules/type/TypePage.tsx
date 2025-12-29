@@ -7,6 +7,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import TypeTokensPanel from './TypeTokensPanel'
 import TypeStylePanel from './TypeStylePanel'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 // local helpers retained for legacy but no longer used directly in this file
 
@@ -45,6 +46,7 @@ export function TypePage() {
   }
 
   function SimpleTypeSample({ tag, text, prefix, isSelected, onToggle, updateKey }: { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string; isSelected: boolean; onToggle: (checked: boolean) => void; updateKey: number }) {
+    const { mode } = useThemeMode()
     const Tag = tag as any
     const cssVarName = prefixToCssVarName(prefix)
     // CSS variables update automatically, but React needs to re-render to pick up changes
@@ -59,23 +61,23 @@ export function TypePage() {
     
     // Elevation level 1 box-shadow CSS variables for selected state
     const selectedElevation = isSelected 
-      ? `var(--recursica-brand-light-elevations-elevation-1-x-axis) var(--recursica-brand-light-elevations-elevation-1-y-axis) var(--recursica-brand-light-elevations-elevation-1-blur) var(--recursica-brand-light-elevations-elevation-1-spread) var(--recursica-brand-light-elevations-elevation-1-shadow-color)`
+      ? `var(--recursica-brand-themes-${mode}-elevations-elevation-1-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-1-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-1-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-1-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-1-shadow-color)`
       : undefined
     
     return (
       <div
         onClick={() => onToggle(!isSelected)}
         style={{ 
-          backgroundColor: 'var(--recursica-brand-light-layer-layer-1-property-surface)',
-          color: 'var(--recursica-brand-light-layer-layer-1-element-text-color)',
-          border: 'var(--recursica-brand-light-layer-layer-1-property-border-thickness) solid var(--recursica-brand-light-layer-layer-1-property-border-color)', 
-          borderRadius: 'var(--recursica-brand-light-layer-layer-1-property-border-radius)', 
-          padding: 'var(--recursica-brand-light-layer-layer-1-property-padding)', 
+          backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
+          color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
+          border: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
+          borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-radius)`, 
+          padding: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-padding)`, 
           display: 'flex', 
           alignItems: 'center', 
           gap: 12, 
           cursor: 'pointer',
-          boxShadow: selectedElevation || 'var(--recursica-brand-light-layer-layer-1-property-elevation)',
+          boxShadow: selectedElevation || `var(--recursica-brand-themes-${mode}-layer-layer-1-property-elevation)`,
         }}
       >
         <input type="checkbox" checked={isSelected} onClick={(e) => e.stopPropagation()} onChange={(e) => onToggle((e.target as HTMLInputElement).checked)} aria-label="Select type sample" />

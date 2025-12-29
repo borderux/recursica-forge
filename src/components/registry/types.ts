@@ -48,7 +48,7 @@ export type ComponentName =
   | 'List'
   | 'HoverCard'
 
-export type ComponentLayer = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3' | 'layer-alternative-high-contrast' | 'layer-alternative-primary-color' | 'layer-alternative-alert' | 'layer-alternative-warning' | 'layer-alternative-success'
+export type ComponentLayer = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 
 export interface ComponentRegistry {
   [componentName: string]: ComponentType<any>

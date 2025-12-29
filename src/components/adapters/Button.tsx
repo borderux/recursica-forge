@@ -18,7 +18,6 @@ export type ButtonProps = {
   size?: 'default' | 'small'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  alternativeLayer?: string | null // e.g., "high-contrast", "none", null
   disabled?: boolean
   onClick?: (e: React.MouseEvent) => void
   type?: 'button' | 'submit' | 'reset'
@@ -33,7 +32,6 @@ export function Button({
   size = 'default',
   layer = 'layer-0',
   elevation,
-  alternativeLayer,
   disabled = false,
   onClick,
   type = 'button',
@@ -47,15 +45,10 @@ export function Button({
   const Component = useComponent('Button')
   const { mode } = useThemeMode()
   
-  // Get elevation and alternative-layer from CSS vars if not provided as props
+  // Get elevation from CSS vars if not provided as props
   // These are set by the toolbar and initialized from UIKit.json
   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
-  const alternativeLayerVar = getComponentLevelCssVar('Button', 'alternative-layer')
-  
   const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
-  const componentAlternativeLayer = alternativeLayer !== undefined 
-    ? alternativeLayer 
-    : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
   
   if (!Component) {
     // Fallback to native button if component not available
@@ -70,7 +63,7 @@ export function Button({
         onClick={onClick}
         className={className}
         style={{
-          ...getButtonStyles(variant, size, layer, disabled, componentElevation, componentAlternativeLayer, mode),
+          ...getButtonStyles(variant, size, layer, disabled, componentElevation, mode),
           display: 'flex',
           alignItems: 'center',
           gap: icon ? `var(${iconGapVar})` : 0,
@@ -100,7 +93,6 @@ export function Button({
     size,
     layer,
     elevation: componentElevation,
-    alternativeLayer: componentAlternativeLayer,
     disabled,
     onClick,
     type,
@@ -125,54 +117,13 @@ function getButtonStyles(
   layer: ComponentLayer,
   disabled: boolean,
   elevation?: string,
-  alternativeLayer?: string | null,
   mode: 'light' | 'dark' = 'light'
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
   
-  // If alternativeLayer is set (not null and not "none"), override all surface/color props
-  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
-  const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
-  
-  // For alternative layers, use the layer's own colors directly since UIKit.json only defines layer-0 through layer-3
-  // For standard layers, use UIKit.json button colors
-  let bgVar: string
-  let textVar: string
-  
-  if (hasComponentAlternativeLayer) {
-    // Component has alternative-layer prop set - use that alt layer's properties
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
-    
-    // Use alternative layer's interactive color and surface
-    // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
-    if (variant === 'solid') {
-      bgVar = `${layerBase}-element-interactive-tone`
-      textVar = `${layerBase}-element-interactive-on-tone`
-    } else {
-      // outline and text variants use interactive-tone for text color
-      bgVar = `${layerBase}-surface`
-      textVar = `${layerBase}-element-interactive-tone`
-    }
-  } else if (isAlternativeLayer) {
-    // Extract alternative key (e.g., "high-contrast" from "layer-alternative-high-contrast")
-    const altKey = layer.replace('layer-alternative-', '')
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
-    
-    // Use alternative layer's interactive color and surface
-    // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
-    if (variant === 'solid') {
-      bgVar = `${layerBase}-element-interactive-tone`
-      textVar = `${layerBase}-element-interactive-on-tone`
-    } else {
-      // outline and text variants use interactive-tone for text color
-      bgVar = `${layerBase}-surface`
-      textVar = `${layerBase}-element-interactive-tone`
-    }
-  } else {
-    // Use UIKit.json button colors for standard layers
-    bgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
-    textVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
-  }
+  // Use UIKit.json button colors for standard layers
+  const bgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
+  const textVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
   
   const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
@@ -221,37 +172,15 @@ function getButtonStyles(
   
   // Apply disabled styles - use brand disabled opacity, don't change colors
   if (disabled) {
-    styles.opacity = `var(--recursica-brand-${mode}-state-disabled)`
+    styles.opacity = `var(--recursica-brand-themes-${mode}-state-disabled)`
     styles.cursor = 'not-allowed'
   } else {
     styles.cursor = 'pointer'
   }
   
-  // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
-  let elevationToApply: string | undefined = elevation
-  
-  if (hasComponentAlternativeLayer) {
-    // Read elevation from alt layer's property
-    const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
-    const altLayerElevation = readCssVar(altLayerElevationVar)
-    if (altLayerElevation) {
-      // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
-      const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
-      if (match) {
-        elevationToApply = match[1]
-      } else if (/^elevation-\d+$/.test(altLayerElevation)) {
-        elevationToApply = altLayerElevation
-      }
-    }
-    // If alt layer doesn't have elevation, fall back to component-level elevation
-    if (!elevationToApply) {
-      elevationToApply = elevation
-    }
-  }
-  
   // Apply elevation if set (and not elevation-0)
-  if (elevationToApply && elevationToApply !== 'elevation-0') {
-    const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
+  if (elevation && elevation !== 'elevation-0') {
+    const elevationMatch = elevation.match(/elevation-(\d+)/)
     if (elevationMatch) {
       const elevationLevel = elevationMatch[1]
       // Build box-shadow from elevation CSS variables
@@ -263,11 +192,11 @@ function getButtonStyles(
   return styles
 }
 
-function mapButtonProps(props: ButtonProps & { elevation?: string; alternativeLayer?: string | null }): any {
+function mapButtonProps(props: ButtonProps & { elevation?: string }): any {
   const { mantine, material, carbon, ...rest } = props
   
   // Base props that work across libraries
-  // Include variant, size, layer, elevation, and alternativeLayer so library adapters can use them
+  // Include variant, size, layer, and elevation so library adapters can use them
   const baseProps: any = {
     ...rest,
     disabled: props.disabled,

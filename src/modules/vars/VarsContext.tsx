@@ -32,7 +32,6 @@ type VarsContextValue = {
   setElevation: (next: import('../../core/store/varsStore').ElevationState) => void
   updateElevation: (mutator: (prev: import('../../core/store/varsStore').ElevationState) => import('../../core/store/varsStore').ElevationState) => void
   resetAll: () => void
-  checkAlternativeLayersAA: () => void
 }
 
 const VarsContext = createContext<VarsContextValue | undefined>(undefined)
@@ -65,7 +64,6 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     setElevation: (next) => store.setElevation(next),
     updateElevation: (mutator) => store.updateElevation(mutator),
     resetAll: () => store.resetAll(),
-    checkAlternativeLayersAA: () => store.checkAlternativeLayersAA(),
   }), [state, store, resolvedTheme])
 
   return <VarsContext.Provider value={value}>{children}</VarsContext.Provider>

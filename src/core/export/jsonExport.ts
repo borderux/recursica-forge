@@ -151,14 +151,14 @@ function cssVarToBrandRef(cssVar: string): string | null {
       if (parts[0] === 'property') {
         parts.shift() // Remove 'property'
         const propPath = parts.join('.')
-        return `{brand.themes.${mode}.layers.${layerId}.property.${propPath}}`
+        return `{brand.themes.${mode}.layers.${layerId}.properties.${propPath}}`
       }
       
       if (parts[0] === 'property' && parts[1] === 'element') {
         parts.shift() // Remove 'property'
         parts.shift() // Remove 'element'
         const elementPath = parts.join('.')
-        return `{brand.themes.${mode}.layers.${layerId}.element.${elementPath}}`
+        return `{brand.themes.${mode}.layers.${layerId}.elements.${elementPath}}`
       }
     }
     
@@ -422,13 +422,13 @@ export function exportBrandJson(): object {
         
         // Build structure from CSS vars only
         if (!result.brand.themes[mode].layers[layerId]) {
-          result.brand.themes[mode].layers[layerId] = { property: {}, element: {} }
+          result.brand.themes[mode].layers[layerId] = { properties: {}, elements: {} }
         }
-        if (!result.brand.themes[mode].layers[layerId].property) {
-          result.brand.themes[mode].layers[layerId].property = {}
+        if (!result.brand.themes[mode].layers[layerId].properties) {
+          result.brand.themes[mode].layers[layerId].properties = {}
         }
-        if (!result.brand.themes[mode].layers[layerId].element) {
-          result.brand.themes[mode].layers[layerId].element = {}
+        if (!result.brand.themes[mode].layers[layerId].elements) {
+          result.brand.themes[mode].layers[layerId].elements = {}
         }
         
         if (path[0] === 'property') {
@@ -441,7 +441,7 @@ export function exportBrandJson(): object {
           
           const jsonValue = cssValueToJsonValue(cssValue, propType, tokenIndex)
           if (jsonValue !== undefined) {
-            result.brand.themes[mode].layers[layerId].property[propName] = { 
+            result.brand.themes[mode].layers[layerId].properties[propName] = { 
               $type: propType, 
               $value: jsonValue 
             }
@@ -456,13 +456,13 @@ export function exportBrandJson(): object {
             const elementType = parts[0] // text, interactive
             const elementProp = parts.slice(1).join('-') // color, tone, etc.
             
-            if (!result.brand.themes[mode].layers[layerId].element[elementType]) {
-              result.brand.themes[mode].layers[layerId].element[elementType] = {}
+            if (!result.brand.themes[mode].layers[layerId].elements[elementType]) {
+              result.brand.themes[mode].layers[layerId].elements[elementType] = {}
             }
             
             const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
             if (jsonValue !== undefined) {
-              result.brand.themes[mode].layers[layerId].element[elementType][elementProp] = { 
+              result.brand.themes[mode].layers[layerId].elements[elementType][elementProp] = { 
                 $type: 'color', 
                 $value: jsonValue 
               }
@@ -535,8 +535,12 @@ export function exportUIKitJson(): object {
       const componentName = path[0]
       path.shift() // Remove component name
       
-      const category = path[0] // color, size
+      let category = path[0] // color, size
       path.shift() // Remove category
+      
+      // Map CSS variable category to JSON structure
+      // CSS vars use "size" but JSON uses "sizes"
+      const jsonCategory = category === 'size' ? 'sizes' : category
       
       const componentPath = path.join('.')
       
@@ -544,12 +548,12 @@ export function exportUIKitJson(): object {
       if (!result['ui-kit'].components[componentName]) {
         result['ui-kit'].components[componentName] = {}
       }
-      if (!result['ui-kit'].components[componentName][category]) {
-        result['ui-kit'].components[componentName][category] = {}
+      if (!result['ui-kit'].components[componentName][jsonCategory]) {
+        result['ui-kit'].components[componentName][jsonCategory] = {}
       }
       
       const parts = componentPath.split('.')
-      let current = result['ui-kit'].components[componentName][category]
+      let current = result['ui-kit'].components[componentName][jsonCategory]
       
       for (let i = 0; i < parts.length - 1; i++) {
         if (!current[parts[i]]) {

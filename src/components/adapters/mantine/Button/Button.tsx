@@ -17,7 +17,6 @@ export default function Button({
   size = 'default',
   layer = 'layer-0',
   elevation,
-  alternativeLayer,
   disabled,
   onClick,
   type,
@@ -38,49 +37,13 @@ export default function Button({
   // Determine size prefix for CSS variables
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
-  // Check if component has alternative-layer prop set (overrides layer-based alt layer)
-  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
-  const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
-  
-  let buttonBgVar: string
-  let buttonHoverVar: string
-  let buttonColorVar: string
-  
-  if (hasComponentAlternativeLayer) {
-    // Component has alternative-layer prop set - use that alt layer's properties
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
-    buttonBgVar = variant === 'solid' 
-      ? `var(${layerBase}-element-interactive-tone)`
-      : `var(${layerBase}-surface)`
-    buttonHoverVar = variant === 'solid'
-      ? `var(${layerBase}-element-interactive-tone-hover)`
-      : `var(${layerBase}-surface)`
-    // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
-    buttonColorVar = variant === 'solid'
-      ? `var(${layerBase}-element-interactive-on-tone)`
-      : `var(${layerBase}-element-interactive-tone)`
-  } else if (layer.startsWith('layer-alternative-')) {
-    const altKey = layer.replace('layer-alternative-', '')
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
-    buttonBgVar = variant === 'solid' 
-      ? `var(${layerBase}-element-interactive-tone)`
-      : `var(${layerBase}-surface)`
-    buttonHoverVar = variant === 'solid'
-      ? `var(${layerBase}-element-interactive-tone-hover)`
-      : `var(${layerBase}-surface)`
-    // For outline and text variants, use interactive-tone (not on-tone) to match UIKit.json pattern
-    buttonColorVar = variant === 'solid'
-      ? `var(${layerBase}-element-interactive-on-tone)`
-      : `var(${layerBase}-element-interactive-tone)`
-  } else {
-    // Use UIKit.json button colors for standard layers - use getComponentCssVar for correct variable names
-    buttonBgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
-    buttonHoverVar = getComponentCssVar('Button', 'color', `${variant}-background-hover`, layer)
-    buttonColorVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
-  }
+  // Use UIKit.json button colors for standard layers
+  const buttonBgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
+  const buttonHoverVar = getComponentCssVar('Button', 'color', `${variant}-background-hover`, layer)
+  const buttonColorVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
   
   // Get the correct CSS variable reference for button color (used for text and border)
-  const buttonColorRef = isAlternativeLayer ? buttonColorVar : `var(${buttonColorVar})`
+  const buttonColorRef = `var(${buttonColorVar})`
   
   // For outline buttons, set the border color using the outline-text CSS var
   // Mantine uses --button-bd for border, which has format: calc(0.0625rem * var(--mantine-scale)) solid <color>
@@ -128,7 +91,7 @@ export default function Button({
         } : {}),
         // Override disabled state to keep colors unchanged, only apply opacity
         ...(disabled && {
-          backgroundColor: isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar}) !important`,
+          backgroundColor: `var(${buttonBgVar}) !important`,
           color: `${buttonColorRef} !important`,
           ...(variant === 'outline' && buttonBorderColor && {
             borderColor: `${buttonBorderColor} !important`,
@@ -149,7 +112,7 @@ export default function Button({
       ...mantine?.styles,
     },
     style: {
-      // Use CSS variables for theming - supports both standard and alternative layers
+      // Use CSS variables for theming
       // getComponentCssVar returns CSS variable names, so wrap in var() for standard layers
       // Read the actual background color value - if it's transparent, set it directly to override library defaults
       ...(() => {
@@ -160,9 +123,9 @@ export default function Button({
             '--button-bg': 'transparent'
           }
         }
-        return { '--button-bg': isAlternativeLayer ? buttonBgVar : `var(${buttonBgVar})` }
+        return { '--button-bg': `var(${buttonBgVar})` }
       })(),
-      '--button-hover': isAlternativeLayer ? buttonHoverVar : `var(${buttonHoverVar})`,
+      '--button-hover': `var(${buttonHoverVar})`,
       // Set button color without fallback to Mantine colors
       '--button-color': buttonColorRef,
       // Set icon-text-gap CSS variable for CSS file override
@@ -201,35 +164,14 @@ export default function Button({
       }),
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       ...(disabled && {
-        opacity: `var(--recursica-brand-${mode}-state-disabled)`,
+        opacity: `var(--recursica-brand-themes-${mode}-state-disabled)`,
       }),
       minWidth: `var(${minWidthVar})`,
       borderRadius: `var(${borderRadiusVar})`,
-      // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
+      // Apply elevation if set
       ...(() => {
-        let elevationToApply: string | undefined = elevation
-        
-        if (hasComponentAlternativeLayer) {
-          // Read elevation from alt layer's property
-          const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
-          const altLayerElevation = readCssVar(altLayerElevationVar)
-          if (altLayerElevation) {
-            // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
-            const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
-            if (match) {
-              elevationToApply = match[1]
-            } else if (/^elevation-\d+$/.test(altLayerElevation)) {
-              elevationToApply = altLayerElevation
-            }
-          }
-          // If alt layer doesn't have elevation, fall back to component-level elevation
-          if (!elevationToApply) {
-            elevationToApply = elevation
-          }
-        }
-        
-        if (elevationToApply && elevationToApply !== 'elevation-0') {
-          const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
+        if (elevation && elevation !== 'elevation-0') {
+          const elevationMatch = elevation.match(/elevation-(\d+)/)
           if (elevationMatch) {
             const elevationLevel = elevationMatch[1]
             return {

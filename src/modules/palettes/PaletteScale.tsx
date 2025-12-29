@@ -100,16 +100,16 @@ export function PaletteScaleHeader({
   let isNonCompliant = false
   if (tokens && paletteKey) {
     // Detect mode by checking which CSS variable exists
-    const lightToneCssVar = `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
-    const darkToneCssVar = `--recursica-brand-dark-palettes-${paletteKey}-${level}-tone`
+    const lightToneCssVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
+    const darkToneCssVar = `--recursica-brand-themes-dark-palettes-${paletteKey}-${level}-tone`
     const lightToneValue = readCssVar(lightToneCssVar)
     const darkToneValue = readCssVar(darkToneCssVar)
     const mode = lightToneValue ? 'light' : (darkToneValue ? 'dark' : 'light')
     
-    const toneCssVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
-    const onToneCssVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-on-tone`
-    const highEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-high`
-    const lowEmphasisCssVar = `--recursica-brand-${mode}-text-emphasis-low`
+    const toneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
+    const onToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
+    const highEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+    const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
     
     const toneValue = readCssVar(toneCssVar)
     const onToneValue = readCssVar(onToneCssVar)
@@ -210,7 +210,7 @@ export function PaletteScaleHeader({
             e.preventDefault()
             e.stopPropagation()
             // Extract token name from the tone CSS variable
-            const toneCssVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
+            const toneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
             const toneValue = readCssVar(toneCssVar)
             const tokenName = extractTokenNameFromCssVar(toneValue)
             
