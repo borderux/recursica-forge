@@ -19,5 +19,8 @@ registerComponent('carbon', 'Switch', () => import('../adapters/carbon/Switch/Sw
 // Avatar
 registerComponent('carbon', 'Avatar', () => import('../adapters/carbon/Avatar/Avatar'))
 
+// Badge
+registerComponent('carbon', 'Badge', () => import('../adapters/carbon/Badge/Badge'))
+
 // Add more components as they're implemented
 

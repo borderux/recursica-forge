@@ -77,6 +77,47 @@ export function validateTokensJson(tokensJson: JsonLike): void {
 }
 
 /**
+ * Recursively checks for theme references in token references
+ * Returns an array of paths where theme references were found
+ */
+function findThemeReferences(
+  obj: any,
+  path: string[] = [],
+  themeRefs: Array<{ path: string; value: string }> = []
+): Array<{ path: string; value: string }> {
+  if (obj === null || obj === undefined) {
+    return themeRefs
+  }
+
+  if (typeof obj === 'object') {
+    for (const [key, value] of Object.entries(obj)) {
+      const currentPath = [...path, key]
+      
+      if (key === '$value' && typeof value === 'string') {
+        // Check if the value contains a token reference with theme
+        const themePattern = /\{brand\.themes\.(light|dark)\.[^}]+\}/g
+        const matches = value.match(themePattern)
+        
+        if (matches) {
+          themeRefs.push({
+            path: currentPath.join('.'),
+            value: value
+          })
+        }
+      } else if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          findThemeReferences(item, [...currentPath, String(index)], themeRefs)
+        })
+      } else if (typeof value === 'object') {
+        findThemeReferences(value, currentPath, themeRefs)
+      }
+    }
+  }
+
+  return themeRefs
+}
+
+/**
  * Validates UIKit.json against its schema
  */
 export function validateUIKitJson(uikitJson: JsonLike): void {
@@ -93,6 +134,22 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
         `First error: ${JSON.stringify(criticalErrors[0])}`
       )
     }
+  }
+
+  // Check for theme references in token references
+  const themeRefs = findThemeReferences(uikitJson)
+  
+  if (themeRefs.length > 0) {
+    const errorMessages = themeRefs.map(ref => 
+      `  - ${ref.path}: "${ref.value}"`
+    ).join('\n')
+    
+    console.error('[Schema Validation] UIKit.json contains theme references:', themeRefs)
+    throw new Error(
+      `UIKit.json validation failed: Found ${themeRefs.length} theme reference(s). ` +
+      `All token references must be theme-agnostic (use {brand.*} instead of {brand.themes.light.*} or {brand.themes.dark.*}).\n` +
+      `Theme references found:\n${errorMessages}`
+    )
   }
 }
 

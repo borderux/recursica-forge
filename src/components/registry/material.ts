@@ -19,5 +19,8 @@ registerComponent('material', 'Switch', () => import('../adapters/material/Switc
 // Avatar
 registerComponent('material', 'Avatar', () => import('../adapters/material/Avatar/Avatar'))
 
+// Badge
+registerComponent('material', 'Badge', () => import('../adapters/material/Badge/Badge'))
+
 // Add more components as they're implemented
 

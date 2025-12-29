@@ -91,6 +91,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'bars-3': List,
   'equals': Equals,
   'arrows-pointing-out': ArrowsOut,
+  'arrows-out': ArrowsOut,
   'arrow-long-up': ArrowUp,
   'arrow-long-down': ArrowDown,
   'arrow-long-left': ArrowLeft,

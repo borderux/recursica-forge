@@ -204,7 +204,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     try {
       const s = typeof ref === 'string' ? ref.trim() : (ref && typeof ref === 'object') ? String(((ref as any).$value ?? (ref as any).value) || '').trim() : ''
       if (!s) return null
-      const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
+      const inner = extractBraceContent(s) || s
       const cats: Array<'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'> = ['family','typeface','size','weight','letter-spacing','line-height']
       for (const cat of cats) {
         const re = new RegExp(`^(?:tokens|token)\\.font\\.${cat}\\.([a-z0-9\\-_]+)$`, 'i')

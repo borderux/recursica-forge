@@ -124,6 +124,9 @@ export function parseComponentStructure(componentName: string): ComponentStructu
               propName: finalPropName,
               variants: variantNames,
             })
+          } else if (componentKey === 'badge' && finalPropName === 'size') {
+            // If we've seen it before, log a warning
+            console.warn('Badge size variant already added, skipping duplicate')
           }
         }
         // Continue traversing into variants

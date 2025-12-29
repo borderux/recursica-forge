@@ -6,11 +6,13 @@ import { getComponentSections } from './componentSections'
 import { ComponentToolbar } from '../toolbar'
 import ButtonPreview from '../components/ButtonPreview'
 import AvatarPreview from '../components/AvatarPreview'
+import BadgePreview from '../components/BadgePreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
 import ComponentDebugTable from './ComponentDebugTable'
 import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
+import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
@@ -53,7 +55,7 @@ export default function ComponentDetailPage() {
     return initial
   }, [componentStructure])
 
-  // Toolbar state
+  // Toolbar state - alternative layers removed
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
@@ -115,7 +117,6 @@ export default function ComponentDetailPage() {
   // Get elevation level from layer property (if it exists)
   // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}
   // We need to extract the elevation number and build the box-shadow CSS
-  // For alt layers, check if they have their own elevation, otherwise use base layer elevation
   const elevationBoxShadow = useMemo(() => {
     let elevationLevel: string | null = null
     
@@ -124,19 +125,24 @@ export default function ComponentDetailPage() {
       const themes = root?.themes || root
       
       // Check base layer elevation
-      if (elevationLevel === null) {
-        // Layer 0 typically doesn't have elevation, layers 1-3 do
-        if (layerNum === '0') {
-          return undefined
-        }
-        
-        elevationLevel = layerNum
-        const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
-        const v: any = layerSpec?.properties?.elevation?.$value
-        if (typeof v === 'string') {
-          // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
-          const m = v.match(/elevations\.(elevation-(\d+))/i)
-          if (m) elevationLevel = m[2]
+      // Layer 0 typically doesn't have elevation, layers 1-3 do
+      if (layerNum === '0') {
+        return undefined
+      }
+      
+      elevationLevel = layerNum
+      const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
+      const v: any = layerSpec?.properties?.elevation?.$value
+      if (typeof v === 'string') {
+        // Use centralized parser to extract elevation name
+        const braceContent = extractBraceContent(v)
+        if (braceContent !== null) {
+          const parsed = parseTokenReference(v, { currentMode: mode, theme })
+          if (parsed && parsed.type === 'brand') {
+            const pathStr = parsed.path.join('.')
+            const m = /elevations?\.(elevation-(\d+))$/i.exec(pathStr)
+            if (m) elevationLevel = m[2]
+          }
         }
       }
     } catch {}
@@ -227,7 +233,6 @@ export default function ComponentDetailPage() {
 
         {/* Preview Section - Centered both vertically and horizontally */}
         {/* Apply all layer CSS variables: surface, border-color, border-thickness, border-radius, padding, elevation */}
-        {/* When alt layer is selected, only override properties defined for alt layer, fallback to base layer */}
         <div style={{ 
           flex: 1,
           display: 'flex',
@@ -257,6 +262,12 @@ export default function ComponentDetailPage() {
             />
           ) : component.name === 'Avatar' ? (
             <AvatarPreview
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+              componentElevation={componentElevation}
+            />
+          ) : component.name === 'Badge' ? (
+            <BadgePreview
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
               componentElevation={componentElevation}
