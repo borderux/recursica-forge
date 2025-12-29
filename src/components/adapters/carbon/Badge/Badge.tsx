@@ -15,6 +15,7 @@ import './Badge.css'
 export default function Badge({
   children,
   variant = 'primary-color',
+  size,
   layer = 'layer-0',
   className,
   style,
@@ -26,6 +27,9 @@ export default function Badge({
   // Get CSS variables
   const bgVar = getComponentCssVar('Badge', 'color', `${variant}-background`, layer)
   const textVar = getComponentCssVar('Badge', 'color', `${variant}-text`, layer)
+  
+  // Get size variant CSS variable for min-height
+  const minHeightVar = getComponentCssVar('Badge', 'size', `${size}-min-height`, undefined)
   
   // For typography type properties, we need to extract the typography style name
   // The UIKit.json has: { "$type": "typography", "$value": "{brand.typography.caption}" }
@@ -72,6 +76,10 @@ export default function Badge({
           '--badge-letter-spacing': `var(${typographyVars['font-letter-spacing']})`,
           '--badge-line-height': `var(${typographyVars['line-height']})`,
         } : {}),
+        // Always use min-height from size variant (not component-level height)
+        // Set height to auto to ensure min-height controls the height
+        height: 'auto',
+        minHeight: minHeightVar ? `var(${minHeightVar})` : undefined,
         // Only set non-CSS-variable styles here (like display)
         display: 'inline-block',
         ...style,

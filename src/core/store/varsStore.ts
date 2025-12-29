@@ -754,8 +754,8 @@ class VarsStore {
     }
     const baseX = Number((elev1?.['x-direction']?.['$value'] ?? 1))
     const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
-    const baseXDirection: 'left' | 'right' = baseX >= 0 ? 'right' : 'left'
-    const baseYDirection: 'up' | 'down' = baseY >= 0 ? 'down' : 'up'
+    let baseXDirection: 'left' | 'right' = baseX >= 0 ? 'right' : 'left'
+    let baseYDirection: 'up' | 'down' = baseY >= 0 ? 'down' : 'up'
     const directions: Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }> = {}
     for (let i = 1; i <= 4; i += 1) directions[`elevation-${i}`] = { x: baseXDirection, y: baseYDirection }
     // Migrate legacy keys
@@ -774,8 +774,8 @@ class VarsStore {
         }
       } catch {}
       try { const raw = localStorage.getItem('elevation-directions'); if (raw) Object.assign(directions, JSON.parse(raw)) } catch {}
-      try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') (baseXDirection as any) = raw } catch {}
-      try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') (baseYDirection as any) = raw } catch {}
+      try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') baseXDirection = raw } catch {}
+      try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') baseYDirection = raw } catch {}
     }
     return { controls, colorTokens, alphaTokens, paletteSelections, baseXDirection, baseYDirection, directions, shadowColorControl }
   }

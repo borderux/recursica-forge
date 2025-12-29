@@ -3,6 +3,10 @@
     "color": {
       "icon": "diamonds-four",
       "label": "Color"
+    },
+    "size": {
+      "icon": "resize",
+      "label": "Size"
     }
   },
   "props": {
@@ -34,16 +38,17 @@
         "padding-horizontal": {
           "label": "Horizontal",
           "visible": true
-        },
-        "padding-vertical": {
-          "label": "Vertical",
-          "visible": true
         }
       }
     },
     "border-radius": {
       "icon": "corners-out",
       "label": "Border Radius",
+      "visible": true
+    },
+    "height": {
+      "icon": "arrows-up-down",
+      "label": "Height",
       "visible": true
     }
   }

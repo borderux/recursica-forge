@@ -48,18 +48,15 @@ export default function VariantDropdown({ componentName, propName, variants, sel
   }, [controlledOpen])
 
   // Get icon for variant prop type from toolbar config
-  const getIcon = () => {
+  const getIconComponent = () => {
     const iconName = getVariantIcon(componentName, propName)
     if (iconName) {
-      const IconComponent = iconNameToReactComponent(iconName)
-      if (IconComponent) {
-        return <IconComponent className="toolbar-icon" />
-      }
+      return iconNameToReactComponent(iconName)
     }
     return null
   }
 
-  const icon = getIcon()
+  const IconComponent = getIconComponent()
   const CaretDownIcon = iconNameToReactComponent('chevron-down')
   const variantLabel = getVariantLabel(componentName, propName) || `${toSentenceCase(propName)} variant`
 
@@ -71,7 +68,7 @@ export default function VariantDropdown({ componentName, propName, variants, sel
         title={variantLabel}
         aria-label={variantLabel}
       >
-        {icon}
+        {IconComponent && <IconComponent className="toolbar-icon" />}
         {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />}
       </button>
       {open && (

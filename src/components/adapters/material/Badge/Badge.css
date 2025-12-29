@@ -12,7 +12,8 @@
   font-weight: var(--badge-font-weight) !important;
   letter-spacing: var(--badge-letter-spacing) !important;
   line-height: var(--badge-line-height) !important;
-  padding: var(--recursica-ui-kit-components-badge-padding-vertical) var(--recursica-ui-kit-components-badge-padding-horizontal) !important;
+  padding: 0 var(--recursica-ui-kit-components-badge-padding-horizontal) !important;
   border-radius: var(--recursica-ui-kit-components-badge-border-radius) !important;
+  height: auto !important; /* Override Material UI Chip default height */
 }
 

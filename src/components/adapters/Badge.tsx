@@ -15,6 +15,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 export type BadgeProps = {
   children?: React.ReactNode
   variant?: 'primary-color' | 'warning' | 'success' | 'alert'
+  size?: 'small' | 'large'
   layer?: ComponentLayer
   className?: string
   style?: React.CSSProperties
@@ -23,6 +24,7 @@ export type BadgeProps = {
 export function Badge({
   children,
   variant = 'primary-color',
+  size,
   layer = 'layer-0',
   className,
   style,
@@ -41,6 +43,10 @@ export function Badge({
     const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
     const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
     const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
+    const heightVar = getComponentLevelCssVar('Badge', 'height')
+    
+    // Get size variant CSS variable for min-height (used as fallback if height is not set)
+    const minHeightVar = getComponentCssVar('Badge', 'size', `${size}-min-height`, undefined)
     
     return (
       <span
@@ -49,8 +55,11 @@ export function Badge({
           backgroundColor: `var(${bgVar})`,
           color: `var(${textVar})`,
           fontSize: `var(${textSizeVar})`,
-          padding: `var(${paddingVerticalVar}) var(${paddingHorizontalVar})`,
+          padding: `0 var(${paddingHorizontalVar})`,
           borderRadius: `var(${borderRadiusVar})`,
+          // Use height if set, otherwise fall back to min-height from size variant
+          height: heightVar ? `var(${heightVar})` : undefined,
+          minHeight: !heightVar && minHeightVar ? `var(${minHeightVar})` : undefined,
           display: 'inline-block',
           ...style,
         } as React.CSSProperties}
@@ -64,6 +73,7 @@ export function Badge({
     <Suspense fallback={<span>{children}</span>}>
       <Component
         variant={variant}
+        size={size}
         layer={layer}
         className={className}
         style={style}

@@ -14,6 +14,8 @@ import ComponentDebugTable from './ComponentDebugTable'
 import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
 
 export default function ComponentDetailPage() {
+  // Force reload - alternative layers removed
+  console.log('ComponentDetailPage loaded - v2')
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
   const location = useLocation()
   const { mode } = useThemeMode()
@@ -54,7 +56,7 @@ export default function ComponentDetailPage() {
     return initial
   }, [componentStructure])
 
-  // Toolbar state
+  // Toolbar state - alternative layers removed
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
@@ -116,7 +118,6 @@ export default function ComponentDetailPage() {
   // Get elevation level from layer property (if it exists)
   // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}
   // We need to extract the elevation number and build the box-shadow CSS
-  // For alt layers, check if they have their own elevation, otherwise use base layer elevation
   const elevationBoxShadow = useMemo(() => {
     let elevationLevel: string | null = null
     
