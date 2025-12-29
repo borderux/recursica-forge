@@ -63,9 +63,10 @@ function parseCoreTokenRef(name: 'interactive' | 'alert' | 'warning' | 'success'
     const v: any = core?.[name]
     const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
     if (!s) return null
-    const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1) : s
-    const m = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|050)$/i.exec(inner)
-    if (m) return { family: m[1], level: m[2] }
+    const parsed = parseTokenReference(s)
+    if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
+      return { family: parsed.path[1], level: parsed.path[2] }
+    }
   } catch {}
   return null
 }

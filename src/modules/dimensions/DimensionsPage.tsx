@@ -63,10 +63,10 @@ export default function DimensionsPage() {
             // This is a dimension value
             const tokenRef = value.$value
             let tokenName: string | null = null
-            if (typeof tokenRef === 'string' && tokenRef.startsWith('{') && tokenRef.endsWith('}')) {
-              const inner = tokenRef.slice(1, -1).trim()
-              if (inner.startsWith('tokens.size.')) {
-                tokenName = inner.replace('tokens.size.', '')
+            if (typeof tokenRef === 'string') {
+              const parsed = parseTokenReference(tokenRef)
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
+                tokenName = parsed.path.slice(1).join('.')
               }
             }
             const cssVarName = `--recursica-brand-dimensions-${currentPath.join('-')}`

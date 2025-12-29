@@ -6,6 +6,7 @@
 
 import type { JsonLike } from './tokens'
 import { buildTokenIndex } from './tokens'
+import { resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../utils/tokenReferenceParser'
 
 /**
  * Recursively traverses dimension object and generates CSS variables
@@ -34,35 +35,14 @@ function traverseDimensions(
       const cssVarName = `--recursica-brand-dimensions-${currentPath.join('-')}`
 
       // Check if value is a token reference (e.g., {tokens.size.2x})
-      if (typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')) {
-        const inner = val.trim().slice(1, -1).trim()
-        
-        // Handle token references: {tokens.size.2x} → var(--recursica-tokens-size-2x)
-        if (/^tokens\./i.test(inner)) {
-          const tokenPath = inner.replace(/^tokens\./i, '').replace(/\./g, '-')
-          vars[cssVarName] = `var(--recursica-tokens-${tokenPath})`
+      if (typeof val === 'string') {
+        const context: TokenReferenceContext = {
+          tokenIndex
+        }
+        const cssVar = resolveTokenReferenceToCssVar(val, context)
+        if (cssVar) {
+          vars[cssVarName] = cssVar
           return // Skip to next iteration
-        }
-        
-        // Handle brand dimension references: {brand.dimensions.*} → var(--recursica-brand-dimensions-*)
-        if (/^brand\.dimensions?\./i.test(inner)) {
-          const parts = inner.split('.').filter(Boolean)
-          if (parts.length >= 2 && parts[1].toLowerCase() === 'dimensions') {
-            const dimPath = parts.slice(2).join('-')
-            vars[cssVarName] = `var(--recursica-brand-dimensions-${dimPath})`
-            return // Skip to next iteration
-          }
-        }
-        
-        // Handle legacy theme references: {theme.light.dimension.*} → var(--recursica-brand-dimensions-*)
-        // (dimensions are now mode-agnostic, so map both light and dark to the same dimensions)
-        if (/^theme\.(light|dark)\.dimension/i.test(inner)) {
-          const parts = inner.split('.').filter(Boolean)
-          if (parts.length >= 3) {
-            const dimPath = parts.slice(3).join('-')
-            vars[cssVarName] = `var(--recursica-brand-dimensions-${dimPath})`
-            return // Skip to next iteration
-          }
         }
       }
 
