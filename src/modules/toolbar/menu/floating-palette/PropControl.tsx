@@ -33,11 +33,6 @@ export default function PropControl({
   const { theme: themeJson } = useVars()
   const { mode } = useThemeMode()
   
-  // Debug logging for Chip component
-  if (componentName === 'Chip') {
-    console.log(`PropControl: Rendering prop "${prop.name}" for Chip. Has borderProps: ${!!prop.borderProps}, borderProps size: ${prop.borderProps?.size || 0}`)
-  }
-  
   // Get elevation options from brand theme
   const elevationOptions = useMemo(() => {
     try {
@@ -210,7 +205,6 @@ export default function PropControl({
       if (propToRender.name === 'max-width' && componentName.toLowerCase() === 'chip') {
         const buttonMaxWidthVar = '--recursica-ui-kit-components-button-max-width'
         additionalCssVars.push(buttonMaxWidthVar)
-        console.log(`PropControl: Chip max-width - also updating Button's max-width CSS var: ${buttonMaxWidthVar}`)
       }
       
       // For dimension props, use dimension token selector (only theme values)
@@ -427,23 +421,8 @@ export default function PropControl({
     // Check if this prop has a group in the toolbar config
     const groupedPropsConfig = getGroupedProps(componentName, prop.name)
     
-    // Debug logging for Chip border prop
-    if (componentName === 'Chip' && prop.name.toLowerCase() === 'border') {
-      console.log(`PropControl: Checking border prop.`, {
-        hasGroupedPropsConfig: !!groupedPropsConfig,
-        hasBorderProps: !!prop.borderProps,
-        borderPropsSize: prop.borderProps?.size || 0,
-        groupedPropsConfigKeys: groupedPropsConfig ? Object.keys(groupedPropsConfig) : [],
-        borderPropsKeys: prop.borderProps ? Array.from(prop.borderProps.keys()) : []
-      })
-    }
-    
     // If this is a grouped prop (border, width, etc.), render all grouped properties
     if (groupedPropsConfig && prop.borderProps && prop.borderProps.size > 0) {
-      if (componentName === 'Chip' && prop.name.toLowerCase() === 'border') {
-        console.log(`PropControl: Rendering border prop with ${prop.borderProps.size} grouped props. Keys:`, Array.from(prop.borderProps.keys()))
-        console.log(`PropControl: Grouped props config keys:`, Object.keys(groupedPropsConfig))
-      }
       const groupedPropEntries = Object.entries(groupedPropsConfig)
       
       return (
@@ -464,25 +443,12 @@ export default function PropControl({
             }
             
             if (!groupedProp) {
-              console.warn(`PropControl: Grouped prop "${groupedPropName}" (key: "${groupedPropKey}") not found in borderProps map. Available keys:`, Array.from(prop.borderProps!.keys()), `\n  Prop name: ${prop.name}, borderProps size: ${prop.borderProps!.size}`)
               return null
             }
             
             const cssVars = getCssVarsForProp(groupedProp)
             const primaryVar = cssVars[0] || groupedProp.cssVar
             const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
-            
-            // Debug logging for border-size and max-width
-            if (groupedPropName === 'border-size' || groupedPropName === 'max-width') {
-              console.log(`PropControl: Rendering ${groupedPropName} control for ${componentName}.`, {
-                groupedPropName,
-                groupedPropCssVar: groupedProp.cssVar,
-                cssVars,
-                primaryVar,
-                propCategory: groupedProp.category,
-                propPath: groupedProp.path
-              })
-            }
             
             return (
               <div 

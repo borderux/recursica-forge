@@ -29,7 +29,6 @@ export default function Chip({
   mantine,
   ...props
 }: AdapterChipProps) {
-  console.log('🔵 Chip component RENDERING', { variant, size, layer, hasIcon: !!icon })
   const { mode } = useThemeMode()
   
   // Map unified size to Mantine size
@@ -83,10 +82,6 @@ export default function Chip({
   // getComponentCssVar treats it as component-level, which matches toolbar's parseComponentStructure
   const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
   
-  // Debug icon size variable
-  if (icon) {
-    console.log('🔵 Chip icon vars:', { iconSizeVar, iconGapVar, icon })
-  }
   const horizontalPaddingVar = getComponentCssVar('Chip', 'size', 'horizontal-padding', layer)
   const verticalPaddingVar = getComponentCssVar('Chip', 'size', 'vertical-padding', layer)
   const borderSizeVar = getComponentCssVar('Chip', 'size', 'border-size', layer)
@@ -96,107 +91,7 @@ export default function Chip({
   const fontSizeVar = getComponentLevelCssVar('Chip', 'font-size')
   
   // CSS variables in stylesheets ARE reactive - they update automatically when the variable on documentElement changes
-  // However, we also set it directly on elements as a fallback and to ensure immediate updates
-  React.useEffect(() => {
-    if (!borderSizeVar) return
-    
-    let lastBorderWidth = ''
-    const updateAllChipBorders = () => {
-      try {
-        const root = document.documentElement
-        // Read CSS variable value from root
-        const borderWidth = root.style.getPropertyValue(borderSizeVar).trim() || 
-                           getComputedStyle(root).getPropertyValue(borderSizeVar).trim() || 
-                           '1px'
-        
-        // Only update if value changed
-        if (borderWidth === lastBorderWidth) return
-        lastBorderWidth = borderWidth
-        
-        // Find ALL chip elements using multiple selectors
-        const allChips = new Set<HTMLElement>()
-        const selectors = [
-          '.recursica-chip-root',
-          '.mantine-Badge-root',
-          '[class*="Badge-root"]',
-          '[class*="chip-root"]',
-          // Also try to find by text content as fallback
-          ...(children && typeof children === 'string' ? [`*:has-text("${children}")`] : [])
-        ]
-        
-        selectors.forEach(selector => {
-          try {
-            document.querySelectorAll(selector).forEach(el => {
-              allChips.add(el as HTMLElement)
-            })
-          } catch (e) {
-            // Silently handle selector errors
-          }
-        })
-        
-        // If no chips found, try finding elements that look like chips
-        if (allChips.size === 0) {
-          // Find all elements with inline-flex display (common for chips/badges)
-          document.querySelectorAll('*').forEach(el => {
-            const computed = getComputedStyle(el)
-            if (computed.display === 'inline-flex' && 
-                computed.alignItems === 'center' &&
-                el.textContent && 
-                el.textContent.trim().length > 0 &&
-                el.textContent.trim().length < 50) {
-              allChips.add(el as HTMLElement)
-            }
-          })
-        }
-        
-        // Update each chip element - set CSS variable AND border directly
-        allChips.forEach((element) => {
-          try {
-            // Set the CSS variable on the element itself
-            element.style.setProperty(borderSizeVar, borderWidth)
-            // ALSO set border directly as fallback - inline styles have highest specificity
-            element.style.borderWidth = borderWidth
-            element.style.borderStyle = 'solid'
-          } catch (e) {
-            // Silently handle update errors
-          }
-        })
-      } catch (e) {
-        // Silently handle errors
-      }
-    }
-    
-    // Initial update
-    updateAllChipBorders()
-    const initialTimeout = setTimeout(updateAllChipBorders, 50)
-    
-    // Watch for CSS variable changes on documentElement
-    const observer = new MutationObserver(() => {
-      updateAllChipBorders()
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-    
-    // Listen for custom event
-    const handleVarChange = (event?: CustomEvent) => {
-      if (!event?.detail?.cssVarName || event.detail.cssVarName === borderSizeVar) {
-        updateAllChipBorders()
-      }
-    }
-    window.addEventListener('cssvarchange', handleVarChange as EventListener)
-    
-    // Polling fallback - every 100ms
-    const pollInterval = setInterval(updateAllChipBorders, 100)
-    
-    return () => {
-      clearTimeout(initialTimeout)
-      observer.disconnect()
-      window.removeEventListener('cssvarchange', handleVarChange as EventListener)
-      clearInterval(pollInterval)
-    }
-  }, [borderSizeVar])
+  // The border-size is set via CSS custom property in styles.root, which will update reactively
   
   // Use Button's max-width and height vars (same as Button component)
   // Use Chip's own min-width so toolbar can control it
@@ -234,7 +129,6 @@ export default function Chip({
     // Use native leftSection prop for icon - wrap in container with explicit sizing
     // Ensure icon is always passed when provided
     leftSection: icon ? (() => {
-      console.log('🔵 Chip: Passing icon to leftSection:', icon)
       // Wrap icon in a span with explicit size constraints and class for CSS targeting
       return (
         <span 

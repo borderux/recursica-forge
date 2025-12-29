@@ -46,10 +46,8 @@ export function Chip({
   material,
   carbon,
 }: ChipProps) {
-  console.log('🟢 Chip adapter RENDERING', { variant, size, layer })
   const Component = useComponent('Chip')
   const { mode } = useThemeMode()
-  console.log('🟢 Chip adapter: Component =', Component?.name || 'undefined')
   
   // Get elevation and alternative-layer from CSS vars if not provided as props
   const elevationVar = getComponentLevelCssVar('Chip', 'elevation')

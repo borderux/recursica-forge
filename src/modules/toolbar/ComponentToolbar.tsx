@@ -84,17 +84,6 @@ export default function ComponentToolbar({
     const seenProps = new Set<string>()
     const groupedPropsMap = new Map<string, Map<string, ComponentProp>>() // Map of parent prop name -> map of grouped prop names -> props
 
-    // Debug: Log all discovered props for Chip
-    if (componentName === 'Chip') {
-      console.log('ComponentToolbar: All discovered props for Chip:', 
-        structure.props.map(p => `${p.name} (${p.category})`))
-      console.log('ComponentToolbar: Looking for border-size, border-radius, min-width:', 
-        structure.props.filter(p => 
-          ['border-size', 'border-radius', 'min-width'].includes(p.name.toLowerCase())
-        ).map(p => `${p.name} (${p.category})`)
-      )
-    }
-    
     // First pass: collect all props and identify which ones are grouped
     structure.props.forEach(prop => {
       const propNameLower = prop.name.toLowerCase()
@@ -114,9 +103,6 @@ export default function ComponentToolbar({
               if (groupKeyLower === propNameLower) {
                 groupedParent = key
                 matchedGroupKey = groupKey
-                if (componentName === 'Chip' && (propNameLower === 'border-size' || propNameLower === 'border-radius')) {
-                  console.log(`ComponentToolbar: First pass - Matched ${propNameLower} to group ${key} with groupKey ${groupKey}`)
-                }
                 break
               }
               // Special case: border-color might be stored as "border" in color category
@@ -138,9 +124,6 @@ export default function ComponentToolbar({
         // Use the matched group key name (e.g., "border-size", "border-radius", "border-color")
         const mapKey = matchedGroupKey ? matchedGroupKey.toLowerCase() : propNameLower
         groupedPropsMap.get(groupedParent.toLowerCase())!.set(mapKey, prop)
-        if (componentName === 'Chip' && (propNameLower === 'border-size' || propNameLower === 'border-radius')) {
-          console.log(`ComponentToolbar: First pass - Added ${propNameLower} to ${groupedParent} group with mapKey ${mapKey}`)
-        }
         return // Skip adding to main props for now
       }
     })
@@ -290,22 +273,7 @@ export default function ComponentToolbar({
             
             if (groupedProp) {
               groupedProps.set(groupedPropKey, groupedProp)
-              // Debug logging for max-width to verify it's being found correctly
-              if (groupedPropKey === 'max-width') {
-                console.log(`ComponentToolbar: Found max-width prop for ${componentName}.`, {
-                  propName: groupedProp.name,
-                  category: groupedProp.category,
-                  cssVar: groupedProp.cssVar,
-                  expectedCssVar: `--recursica-ui-kit-components-${componentName.toLowerCase()}-max-width`,
-                  path: groupedProp.path
-                })
-              }
-              if (componentName === 'Chip' && (groupedPropKey === 'border-size' || groupedPropKey === 'border-radius')) {
-                console.log(`ComponentToolbar: Third pass - Found and added grouped prop "${groupedPropName}" (${groupedPropKey}) for "${parentPropName}":`, groupedProp.name, groupedProp.category)
-              } else if (componentName === 'Chip' && groupedPropKey === 'border-color') {
-                console.log(`ComponentToolbar: Found grouped prop "${groupedPropName}" (${groupedPropKey}) for "${parentPropName}":`, groupedProp.name, groupedProp.category)
-              }
-              } else {
+            } else {
                 // Debug: log all available props to help diagnose
                 const allBorderProps = structure.props.filter(p => 
                   p.name.toLowerCase().includes('border') || 
@@ -338,17 +306,11 @@ export default function ComponentToolbar({
                 variantProp: undefined,
                 borderProps: groupedProps, // Reuse borderProps field for grouped props
               }
-              if (componentName === 'Chip' && parentPropName.toLowerCase() === 'border') {
-                console.log(`ComponentToolbar: Created combined border prop with ${groupedProps.size} grouped props. Keys:`, Array.from(groupedProps.keys()))
-              }
               
               // Use parent prop name as the key
               // Always replace any existing prop with this name (combined props take precedence)
               propsMap.set(parentPropName.toLowerCase(), combinedProp)
               seenProps.add(parentPropName.toLowerCase())
-              if (componentName === 'Chip' && parentPropName.toLowerCase() === 'border') {
-                console.log(`ComponentToolbar: Third pass - Replaced border prop in propsMap with combined prop. Has borderProps: ${!!combinedProp.borderProps}, size: ${combinedProp.borderProps?.size || 0}`)
-              }
             }
           }
         }
@@ -613,9 +575,6 @@ export default function ComponentToolbar({
           
           // Use prop name as key instead of cssVar since we have unique prop names now
           const propKey = prop.name
-          if (componentName === 'Chip' && propKey.toLowerCase() === 'border') {
-            console.log(`ComponentToolbar: Rendering border prop button. Prop has borderProps: ${!!prop.borderProps}, size: ${prop.borderProps?.size || 0}`)
-          }
           return (
             <div key={propKey} className="toolbar-icon-wrapper">
               <MenuIcon
@@ -629,9 +588,6 @@ export default function ComponentToolbar({
                 icon={Icon}
                 active={openPropControl === propKey}
                 onClick={() => {
-                  if (componentName === 'Chip' && propKey.toLowerCase() === 'border') {
-                    console.log(`ComponentToolbar: Border button clicked. Prop has borderProps: ${!!prop.borderProps}, size: ${prop.borderProps?.size || 0}, keys:`, prop.borderProps ? Array.from(prop.borderProps.keys()) : [])
-                  }
                   if (openPropControl === propKey) {
                     setOpenPropControl(null)
                   } else {

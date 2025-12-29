@@ -55,14 +55,6 @@ export function updateCssVar(
     }))
   }
   
-  // Debug logging for border-size updates
-  if (cssVarName.includes('border-size')) {
-    console.log(`updateCssVar: Set ${cssVarName} = ${trimmedValue} on documentElement`)
-    // Verify it was set
-    const verify = root.style.getPropertyValue(cssVarName)
-    console.log(`updateCssVar: Verified ${cssVarName} = ${verify}`)
-  }
-  
   return true
 }
 
