@@ -187,7 +187,8 @@ export default function ColorTokenPicker() {
     if (!setTheme || !themeJson || !tokensJson) return
     
     // Check if this is a core color CSS var for the current mode
-    const coreColorPrefix = `--recursica-brand-${mode}-palettes-core-`
+    // Use --recursica-brand-themes- format to match varsStore.ts and palettes.ts
+    const coreColorPrefix = `--recursica-brand-themes-${mode}-palettes-core-`
     if (!cssVar.startsWith(coreColorPrefix)) return // Not a core color
     
     // Extract the color name from the CSS var
@@ -236,7 +237,7 @@ export default function ColorTokenPicker() {
       // Handle interactive colors with nested structure
       if (mapping.isInteractive) {
         // For main interactive var (backward compatibility), it maps to default.tone
-        const isMainInteractive = cssVar === `--recursica-brand-${mode}-palettes-core-interactive`
+        const isMainInteractive = cssVar === `--recursica-brand-themes-${mode}-palettes-core-interactive`
         
         if (!coreColors.interactive) {
           coreColors.interactive = {
@@ -388,6 +389,24 @@ export default function ColorTokenPicker() {
       }
       
       setTheme(themeCopy)
+      
+      // After updating core color, trigger AA compliance checks for all core and palette on-tone values
+      // This runs once when the user changes the color (not bound/continuous)
+      setTimeout(() => {
+        try {
+          // Update all core color on-tones for AA compliance
+          import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorOnTones }) => {
+            updateCoreColorOnTones(tokensJson, themeCopy, setTheme, mode)
+          }).catch((err) => {
+            console.error('Failed to update core color on-tones:', err)
+          })
+          
+          // Trigger palette on-tone checks for all palettes
+          window.dispatchEvent(new CustomEvent('recheckAllPaletteOnTones'))
+        } catch (err) {
+          console.error('Failed to trigger AA compliance checks:', err)
+        }
+      }, 50) // Small delay to ensure theme update is complete
     } catch (err) {
       console.error('Failed to update core color in theme JSON:', err)
     }
@@ -413,11 +432,11 @@ export default function ColorTokenPicker() {
     // Still try to set it even if variable doesn't exist yet - it might be created dynamically
     
     // Check if this is a core color CSS var
-    const isCoreColor = targetVar.startsWith(`--recursica-brand-${mode}-palettes-core-`)
+    const isCoreColor = targetVar.startsWith(`--recursica-brand-themes-${mode}-palettes-core-`)
     
     // Check if this is an interactive color change
-    const isInteractiveDefault = targetVar === `--recursica-brand-${mode}-palettes-core-interactive-default-tone` ||
-                                  targetVar === `--recursica-brand-${mode}-palettes-core-interactive`
+    const isInteractiveDefault = targetVar === `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone` ||
+                                  targetVar === `--recursica-brand-themes-${mode}-palettes-core-interactive`
     
     if (isInteractiveDefault) {
       // Get the hex value for the selected token from tokens JSON (checking overrides first)
@@ -463,12 +482,12 @@ export default function ColorTokenPicker() {
           const defaultToneRef = hexToCssVarRef(normalizedHex, tokensJson)
           
           // Keep current hover color
-          const currentHover = readCssVar(`--recursica-brand-${mode}-palettes-core-interactive-hover-tone`)
+          const currentHover = readCssVar(`--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`)
           let hoverHex: string
           if (currentHover && !currentHover.startsWith('var(')) {
             hoverHex = currentHover
           } else {
-            hoverHex = resolveCssVarToHex(`var(--recursica-brand-${mode}-palettes-core-interactive-hover-tone)`, tokenIndex) || normalizedHex
+            hoverHex = resolveCssVarToHex(`var(--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone)`, tokenIndex) || normalizedHex
           }
           const hoverToneRef = hexToCssVarRef(hoverHex, tokensJson)
           
@@ -548,12 +567,26 @@ export default function ColorTokenPicker() {
             updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeJson, setTheme, mode)
           }
           
-          // Trigger AA compliance check for core colors
+          // After updating interactive color, trigger AA compliance checks for all core and palette on-tone values
+          // This runs once when the user changes the color (not bound/continuous)
           setTimeout(() => {
             try {
+              // Update all core color on-tones for AA compliance
+              import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorOnTones }) => {
+                updateCoreColorOnTones(tokensJson, themeCopy, setTheme, mode)
+              }).catch((err) => {
+                console.error('Failed to update core color on-tones:', err)
+              })
+              
+              // Trigger palette on-tone checks for all palettes
+              window.dispatchEvent(new CustomEvent('recheckAllPaletteOnTones'))
+              
+              // Trigger AA compliance check for core colors
               window.dispatchEvent(new CustomEvent('recheckCoreColorInteractiveOnTones'))
-            } catch {}
-          }, 10)
+            } catch (err) {
+              console.error('Failed to trigger AA compliance checks:', err)
+            }
+          }, 50) // Small delay to ensure theme update is complete
         } catch (err) {
           console.error('Failed to update interactive color:', err)
           // Fallback: just update CSS vars
@@ -682,7 +715,7 @@ export default function ColorTokenPicker() {
                               {/* White checkmark with dark shadow for visibility on any background */}
                               <path
                                 d="M2 6L5 9L10 2"
-                                stroke={`var(--recursica-brand-${mode}-palettes-core-black)`}
+                                stroke={`var(--recursica-brand-themes-${mode}-palettes-core-black)`}
                                 strokeWidth="2.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -690,7 +723,7 @@ export default function ColorTokenPicker() {
                               />
                               <path
                                 d="M2 6L5 9L10 2"
-                                stroke={`var(--recursica-brand-${mode}-palettes-core-white)`}
+                                stroke={`var(--recursica-brand-themes-${mode}-palettes-core-white)`}
                                 strokeWidth="1.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
