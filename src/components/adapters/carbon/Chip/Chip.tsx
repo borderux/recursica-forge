@@ -60,8 +60,8 @@ export default function Chip({
     chipBgVar = getComponentCssVar('Chip', 'color', `${variant}-background`, layer)
     chipBorderVar = getComponentCssVar('Chip', 'color', `${variant}-border`, layer)
     
-    // For error variant, use component-level error color CSS variables
-    if (variant === 'error') {
+    // For error variant (including error-selected), use component-level error color CSS variables
+    if (variant === 'error' || variant === 'error-selected') {
       chipColorVar = getComponentLevelCssVar('Chip', 'color.error.text-color')
       chipIconColorVar = getComponentLevelCssVar('Chip', 'color.error.icon-color')
     } else {
@@ -110,12 +110,12 @@ export default function Chip({
     style: {
       // Set CSS custom properties for CSS file
       '--chip-bg': isAlternativeLayer ? chipBgVar : `var(${chipBgVar})`,
-      // For error variant, use chip error color CSS variable directly
-      '--chip-color': variant === 'error' ? `var(${chipColorVar})` : (isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`),
-      '--chip-icon-color': variant === 'error' ? `var(${chipIconColorVar})` : (isAlternativeLayer ? chipIconColorVar : `var(${chipIconColorVar})`),
+      // For error variant (including error-selected), use chip error color CSS variable directly
+      '--chip-color': (variant === 'error' || variant === 'error-selected') ? `var(${chipColorVar})` : (isAlternativeLayer ? chipColorVar : `var(${chipColorVar})`),
+      '--chip-icon-color': (variant === 'error' || variant === 'error-selected') ? `var(${chipIconColorVar})` : (isAlternativeLayer ? chipIconColorVar : `var(${chipIconColorVar})`),
       '--chip-border': isAlternativeLayer ? chipBorderVar : `var(${chipBorderVar})`,
-      // For error variant, also set color directly to ensure it's applied
-      ...(variant === 'error' ? {
+      // For error variant (including error-selected), also set color directly to ensure it's applied
+      ...((variant === 'error' || variant === 'error-selected') ? {
         color: `var(${chipColorVar})`,
       } : {}),
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',

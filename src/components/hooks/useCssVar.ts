@@ -5,7 +5,7 @@
  * Watches for changes and updates reactively.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export function useCssVar(varName: string, fallback?: string): string {
   const [value, setValue] = useState(() => {
@@ -23,6 +23,14 @@ export function useCssVar(varName: string, fallback?: string): string {
     }
     return finalValue
   })
+
+  // Use a ref to track the current value for polling comparison
+  const valueRef = useRef(value)
+  
+  // Update ref whenever value changes
+  useEffect(() => {
+    valueRef.current = value
+  }, [value])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -96,7 +104,8 @@ export function useCssVar(varName: string, fallback?: string): string {
       pollInterval = window.setInterval(() => {
         const root = document.documentElement
         const currentValue = root.style.getPropertyValue(varName).trim()
-        const stateValue = value
+        // Use ref to get the latest value instead of stale closure value
+        const stateValue = valueRef.current
         if (currentValue !== stateValue && currentValue) {
           if (varName.includes('icon-text-gap')) {
             console.log(`useCssVar: Polling detected icon-text-gap change: "${stateValue}" -> "${currentValue}"`)

@@ -176,8 +176,8 @@ function getChipStyles(
     bgVar = getComponentCssVar('Chip', 'color', `${variant}-background`, layer)
     borderVar = getComponentCssVar('Chip', 'color', `${variant}-border`, layer)
     
-    // For error variant, use component-level error color CSS variables
-    if (variant === 'error') {
+    // For error variant (including error-selected), use component-level error color CSS variables
+    if (variant === 'error' || variant === 'error-selected') {
       textVar = '--recursica-ui-kit-components-chip-color-error-text-color'
     } else {
       textVar = getComponentCssVar('Chip', 'color', `${variant}-text`, layer)
