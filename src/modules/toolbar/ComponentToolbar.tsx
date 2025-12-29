@@ -13,7 +13,6 @@ import PropControl from './menu/floating-palette/PropControl'
 import MenuIcon from './menu/MenuIcon'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getPropIcon, getPropLabel, getPropVisible, loadToolbarConfig } from './utils/loadToolbarConfig'
-import { getComponentCssVar } from '../../components/utils/cssVarNames'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
@@ -90,40 +89,20 @@ export default function ComponentToolbar({
       
       // Check if this prop is part of a group in the config (but not if it's the parent prop itself)
       let groupedParent: string | null = null
-      let matchedGroupKey: string | null = null
       if (toolbarConfig?.props) {
         for (const [key, propConfig] of Object.entries(toolbarConfig.props)) {
-          if (propConfig.group) {
-            // Check if this prop name matches any key in the group config
-            // The group config keys might be hyphenated (border-size) or match exactly
-            const groupKeys = Object.keys(propConfig.group)
-            for (const groupKey of groupKeys) {
-              const groupKeyLower = groupKey.toLowerCase()
-              // Exact match
-              if (groupKeyLower === propNameLower) {
-                groupedParent = key
-                matchedGroupKey = groupKey
-                break
-              }
-              // Special case: border-color might be stored as "border" in color category
-              if (groupKeyLower === 'border-color' && propNameLower === 'border' && prop.category === 'color') {
-                groupedParent = key
-                matchedGroupKey = groupKey
-                break
-              }
-            }
-            if (groupedParent) break
+          if (propConfig.group && propConfig.group[propNameLower]) {
+            groupedParent = key
+            break
           }
         }
       }
       if (groupedParent && groupedParent.toLowerCase() !== propNameLower) {
         // This prop is grouped under another prop
-        if (!groupedPropsMap.has(groupedParent.toLowerCase())) {
-          groupedPropsMap.set(groupedParent.toLowerCase(), new Map())
+        if (!groupedPropsMap.has(groupedParent)) {
+          groupedPropsMap.set(groupedParent, new Map())
         }
-        // Use the matched group key name (e.g., "border-size", "border-radius", "border-color")
-        const mapKey = matchedGroupKey ? matchedGroupKey.toLowerCase() : propNameLower
-        groupedPropsMap.get(groupedParent.toLowerCase())!.set(mapKey, prop)
+        groupedPropsMap.get(groupedParent)!.set(propNameLower, prop)
         return // Skip adding to main props for now
       }
     })
@@ -184,7 +163,6 @@ export default function ComponentToolbar({
     if (toolbarConfig?.props) {
       for (const [parentPropName, parentPropConfig] of Object.entries(toolbarConfig.props)) {
         if (parentPropConfig.group) {
-          // Start with props already collected in first pass
           const groupedProps = groupedPropsMap.get(parentPropName.toLowerCase()) || new Map()
           
           // Also check if the parent prop itself is in the structure (it might be in its own group)
@@ -195,102 +173,16 @@ export default function ComponentToolbar({
           
           // Also add any props from the group config that might not have been found yet
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
-            const groupedPropKey = groupedPropName.toLowerCase()
-            
-            // Skip if already in the map (from first pass)
-            if (groupedProps.has(groupedPropKey)) {
-              continue
+            if (!groupedProps.has(groupedPropName.toLowerCase())) {
+              // Special case: border-color is stored as "border" in the color category
+              let groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropName.toLowerCase())
+              if (!groupedProp && groupedPropName.toLowerCase() === 'border-color') {
+                groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
+              }
+              if (groupedProp) {
+                groupedProps.set(groupedPropName.toLowerCase(), groupedProp)
+              }
             }
-            
-            let groupedProp: ComponentProp | undefined
-            
-            // First, check if it was already collected in first pass (shouldn't happen, but just in case)
-            groupedProp = groupedProps.get(groupedPropKey)
-            
-              // If not found, search in structure.props
-              if (!groupedProp) {
-                // Try exact name match first (any category) - this should catch most cases
-                groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
-                if (componentName === 'Chip' && (groupedPropKey === 'border-size' || groupedPropKey === 'border-radius') && !groupedProp) {
-                  console.log(`ComponentToolbar: Third pass - Exact match failed for ${groupedPropKey}, trying alternative search...`)
-                  // Try with root category explicitly
-                  groupedProp = structure.props.find(p => 
-                    p.name.toLowerCase() === groupedPropKey && 
-                    (p.category === 'root' || p.category === '' || !p.category || p.category === undefined)
-                  )
-                  if (groupedProp) {
-                    console.log(`ComponentToolbar: Third pass - Found ${groupedPropKey} with root category filter:`, groupedProp.name, groupedProp.category)
-                  }
-                }
-                
-                // Special case: border-color is stored as "border" in the color category
-                if (!groupedProp && groupedPropKey === 'border-color') {
-                  groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'color')
-                }
-                
-                // For border-size and border-radius, they're at top level (root category)
-                // Try multiple search strategies to ensure we find them
-                if (!groupedProp && (groupedPropKey === 'border-size' || groupedPropKey === 'border-radius')) {
-                  // Strategy 1: Try root category explicitly (they're at top level)
-                  groupedProp = structure.props.find(p => 
-                    p.name.toLowerCase() === groupedPropKey && 
-                    (p.category === 'root' || p.category === '' || !p.category || p.category === undefined)
-                  )
-                  // Strategy 2: Try any category (fallback)
-                  if (!groupedProp) {
-                    groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
-                  }
-                }
-                
-                // For min-width and max-width, they might be at top level or in size category
-                if (!groupedProp && (groupedPropKey === 'min-width' || groupedPropKey === 'max-width')) {
-                  // Try root category first (top level) - max-width is typically at root level in UIKit.json
-                  groupedProp = structure.props.find(p => 
-                    p.name.toLowerCase() === groupedPropKey && 
-                    (p.category === 'root' || p.category === '' || !p.category || p.category === undefined)
-                  )
-                  // Try size category (for variant-specific min/max-width)
-                  if (!groupedProp) {
-                    groupedProp = structure.props.find(p => 
-                      p.name.toLowerCase() === groupedPropKey && 
-                      p.category === 'size'
-                    )
-                  }
-                  // Final fallback: any category - ensure we find it even if category is unexpected
-                  if (!groupedProp) {
-                    groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
-                  }
-                  // Additional check: ensure the CSS variable name is correct for component-level properties
-                  // max-width should use --recursica-ui-kit-components-{component}-max-width
-                  if (groupedProp && groupedPropKey === 'max-width') {
-                    const expectedCssVar = `--recursica-ui-kit-components-${componentName.toLowerCase()}-max-width`
-                    if (groupedProp.cssVar !== expectedCssVar) {
-                      console.warn(`ComponentToolbar: max-width CSS variable mismatch. Expected: ${expectedCssVar}, Found: ${groupedProp.cssVar}`)
-                    }
-                  }
-                }
-              }
-            
-            if (groupedProp) {
-              groupedProps.set(groupedPropKey, groupedProp)
-            } else {
-                // Debug: log all available props to help diagnose
-                const allBorderProps = structure.props.filter(p => 
-                  p.name.toLowerCase().includes('border') || 
-                  (groupedPropKey.includes('border') && p.category === 'color' && p.name.toLowerCase() === 'border')
-                )
-                const allSizeProps = structure.props.filter(p => p.category === 'size')
-                const exactMatches = structure.props.filter(p => p.name.toLowerCase() === groupedPropKey)
-                console.warn(`ComponentToolbar: Could not find grouped prop "${groupedPropName}" for "${parentPropName}".`, 
-                  `\n  Searched in ${structure.props.length} props.`,
-                  `\n  Looking for: "${groupedPropKey}"`,
-                  `\n  Exact name matches:`, exactMatches.map(p => `${p.name} (${p.category})`),
-                  `\n  Border-related props:`, allBorderProps.map(p => `${p.name} (${p.category})`),
-                  `\n  Size props:`, allSizeProps.map(p => `${p.name}`),
-                  `\n  All props with "border" in name:`, structure.props.filter(p => p.name.toLowerCase().includes('border')).map(p => `${p.name} (${p.category})`),
-                  `\n  Root category props:`, structure.props.filter(p => p.category === 'root' || !p.category).map(p => `${p.name} (${p.category})`),
-                  `\n  First 20 all props:`, structure.props.slice(0, 20).map(p => `${p.name} (${p.category})`))
-              }
           }
           
           if (groupedProps.size > 0) {
@@ -308,9 +200,10 @@ export default function ComponentToolbar({
               }
               
               // Use parent prop name as the key
-              // Always replace any existing prop with this name (combined props take precedence)
-              propsMap.set(parentPropName.toLowerCase(), combinedProp)
-              seenProps.add(parentPropName.toLowerCase())
+              if (!seenProps.has(parentPropName.toLowerCase())) {
+                propsMap.set(parentPropName.toLowerCase(), combinedProp)
+                seenProps.add(parentPropName.toLowerCase())
+              }
             }
           }
         }
@@ -358,7 +251,7 @@ export default function ComponentToolbar({
               if (sizeVariant && !prop.path.includes(sizeVariant)) {
                 return false
               }
-            } else if (prop.category === 'color' && (prop.variantProp === 'style' || prop.variantProp === 'style-secondary')) {
+            } else if (prop.category === 'colors' && (prop.variantProp === 'style' || prop.variantProp === 'style-secondary')) {
               // Color props with style variant should match both style and style-secondary if selected
               const styleVariant = selectedVariants['style']
               const styleSecondary = selectedVariants['style-secondary']
@@ -380,7 +273,7 @@ export default function ComponentToolbar({
         } else {
           // Primary variant is in path, but for nested variants we may need to check secondary
           // For Avatar: if style="text" and style-secondary="solid", ensure both are in path
-          if ((prop.variantProp === 'style' || prop.variantProp === 'style-secondary') && prop.category === 'color') {
+          if ((prop.variantProp === 'style' || prop.variantProp === 'style-secondary') && prop.category === 'colors') {
             const styleSecondary = selectedVariants['style-secondary']
             const styleVariant = selectedVariants['style']
             
@@ -400,7 +293,7 @@ export default function ComponentToolbar({
       }
       
       // For color props, check if layer matches (if prop has a layer in path)
-      if (prop.category === 'color' && prop.path.some(p => p.startsWith('layer-'))) {
+      if (prop.category === 'colors' && prop.path.some(p => p.startsWith('layer-'))) {
         const layerInPath = prop.path.find(p => p.startsWith('layer-'))
         if (layerInPath && layerInPath !== selectedLayer) {
           return false
@@ -465,18 +358,6 @@ export default function ComponentToolbar({
       // Remove the inline style override to restore to default
       document.documentElement.style.removeProperty(prop.cssVar)
     })
-
-    // Also reset component-level properties that might not be in structure.props
-    // For Chip, reset min-width and max-width (Chip uses Button's max-width)
-    if (componentName === 'Chip') {
-      // Reset Chip's min-width
-      const chipMinWidthVar = getComponentCssVar('Chip', 'size', 'min-width', undefined)
-      document.documentElement.style.removeProperty(chipMinWidthVar)
-      
-      // Reset Button's max-width (Chip uses Button's max-width)
-      const buttonMaxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
-      document.documentElement.style.removeProperty(buttonMaxWidthVar)
-    }
 
     // Force a re-render by triggering a custom event
     window.dispatchEvent(new CustomEvent('cssVarsReset'))

@@ -56,7 +56,7 @@ export function extractBraceContent(value: any): string | null {
   // Normalize spaces to dots and clean up the reference
   // Handle cases like "{brand themes light palettes neutral.100. color tone}" 
   // → "{brand.themes.light.palettes.neutral.100.color.tone}"
-  // Also handle spaces around dots: "{ui-kit .0 . global}" → "{ui-kit.0.global}"
+  // Also handle spaces around dots: "{ui-kit .0 . globals}" → "{ui-kit.0.globals}"
   inner = inner
     .replace(/\s*\.\s*/g, '.')  // Remove spaces around dots first
     .replace(/\s+/g, '.')        // Replace remaining spaces with dots
@@ -158,7 +158,7 @@ export function resolveTokenReferenceToCssVar(
   
   // UIKit references → CSS UIKit variables
   if (parsed.type === 'ui-kit') {
-    // Handle UIKit self-references: {ui-kit.0.global.form.*} or {ui-kit.0.form.*}
+    // Handle UIKit self-references: {ui-kit.0.globals.form.*} or {ui-kit.0.form.*}
     // Normalize "ui-kit0" → "ui-kit.0" and ensure proper dot separation
     let normalized = parsed.resolvedPath || parsed.path.join('.')
     normalized = normalized
@@ -170,9 +170,9 @@ export function resolveTokenReferenceToCssVar(
     if (parts.length < 3) return null
     
     // Skip "ui-kit" and mode number (0 or 3), use the rest of the path
-    // {ui-kit.0.global.form.indicator.color.required-asterisk} 
-    // → parts: ['ui-kit', '0', 'global', 'form', 'indicator', 'color', 'required-asterisk']
-    // → uikitPath: 'global.form.indicator.color.required-asterisk'
+    // {ui-kit.0.globals.form.indicators.colors.required-asterisk} 
+    // → parts: ['ui-kit', '0', 'globals', 'form', 'indicators', 'colors', 'required-asterisk']
+    // → uikitPath: 'globals.form.indicators.colors.required-asterisk'
     const uikitPath = parts.slice(2).join('.')
     
     // Generate CSS var name by joining with hyphens

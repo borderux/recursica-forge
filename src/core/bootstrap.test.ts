@@ -24,7 +24,7 @@ vi.mock('../vars/Brand.json', () => ({
 }), { virtual: true })
 
 vi.mock('../vars/UIKit.json', () => ({
-  default: { 'ui-kit': { global: {}, components: {} } }
+  default: { 'ui-kit': { globals: {}, components: {} } }
 }), { virtual: true })
 
 describe('bootstrapTheme', () => {

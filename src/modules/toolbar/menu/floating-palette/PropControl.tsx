@@ -75,7 +75,7 @@ export default function PropControl({
       }
       
       // If color prop, must match selected layer (if prop has a layer in path)
-      if (propToCheck.category === 'color') {
+      if (propToCheck.category === 'colors') {
         const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
         if (layerInPath) {
           if (layerInPath !== selectedLayer) return false
@@ -103,9 +103,9 @@ export default function PropControl({
       const bgPropName = propName === 'text-hover' ? 'background-hover' : 'background'
       const bgProp = structure.props.find(p => 
         p.name.toLowerCase() === bgPropName && 
-        p.category === 'color' &&
+        p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
-        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+        (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       if (bgProp) {
         const bgCssVars = getCssVarsForProp(bgProp)
@@ -118,9 +118,9 @@ export default function PropControl({
       const textPropName = propName === 'background-hover' ? 'text-hover' : 'text'
       const textProp = structure.props.find(p => 
         p.name.toLowerCase() === textPropName && 
-        p.category === 'color' &&
+        p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
-        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+        (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       if (textProp) {
         const textCssVars = getCssVarsForProp(textProp)
@@ -132,9 +132,9 @@ export default function PropControl({
     if (propName === 'track-selected' || propName === 'track-unselected') {
       const thumbProp = structure.props.find(p => 
         p.name.toLowerCase() === 'thumb' && 
-        p.category === 'color' &&
+        p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
-        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+        (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       if (thumbProp) {
         const thumbCssVars = getCssVarsForProp(thumbProp)
@@ -146,9 +146,9 @@ export default function PropControl({
     if (propName === 'thumb') {
       const trackProp = structure.props.find(p => 
         p.name.toLowerCase() === 'track-selected' && 
-        p.category === 'color' &&
+        p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
-        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+        (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       if (trackProp) {
         const trackCssVars = getCssVarsForProp(trackProp)
@@ -479,9 +479,9 @@ export default function PropControl({
       const structure = parseComponentStructure(componentName)
       const thumbProp = structure.props.find(p => 
         p.name.toLowerCase() === 'thumb' && 
-        p.category === 'color' &&
+        p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
-        (p.category !== 'color' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
+        (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       const thumbCssVars = thumbProp ? getCssVarsForProp(thumbProp) : []
       const thumbVar = thumbCssVars[0]
