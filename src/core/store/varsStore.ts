@@ -889,13 +889,14 @@ class VarsStore {
         const core: any = coreColorsObj?.$value || coreColorsObj || {}
         
         // Map core color names to CSS variable names
+        // Use --recursica-brand-themes- format to match palettes.ts resolver
         const coreColorMap: Record<string, string> = {
-          black: `--recursica-brand-${mode}-palettes-core-black`,
-          white: `--recursica-brand-${mode}-palettes-core-white`,
-          alert: `--recursica-brand-${mode}-palettes-core-alert`,
-          warning: `--recursica-brand-${mode}-palettes-core-warning`,
-          success: `--recursica-brand-${mode}-palettes-core-success`,
-          interactive: `--recursica-brand-${mode}-palettes-core-interactive`,
+          black: `--recursica-brand-themes-${mode}-palettes-core-black`,
+          white: `--recursica-brand-themes-${mode}-palettes-core-white`,
+          alert: `--recursica-brand-themes-${mode}-palettes-core-alert`,
+          warning: `--recursica-brand-themes-${mode}-palettes-core-warning`,
+          success: `--recursica-brand-themes-${mode}-palettes-core-success`,
+          interactive: `--recursica-brand-themes-${mode}-palettes-core-interactive`,
         }
       
         // Default fallbacks if theme JSON doesn't have the value

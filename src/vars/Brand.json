@@ -494,7 +494,7 @@
               "color": {
                 "$type": "color",
                 "tone": {
-                  "$value": "{tokens.color.salmon.500}"
+                  "$value": "{tokens.color.salmon.400}"
                 },
                 "on-tone": {
                   "$value": "{brand.themes.light.palettes.white}"
