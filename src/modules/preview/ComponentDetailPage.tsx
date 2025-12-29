@@ -135,7 +135,7 @@ export default function ComponentDetailPage() {
         
         elevationLevel = layerNum
         const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
-        const v: any = layerSpec?.property?.elevation?.$value
+        const v: any = layerSpec?.properties?.elevation?.$value
         if (typeof v === 'string') {
           // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
           const m = v.match(/elevations\.(elevation-(\d+))/i)

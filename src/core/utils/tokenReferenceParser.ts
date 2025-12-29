@@ -288,8 +288,8 @@ export function resolveTokenReferenceToCssVar(
       return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationNum}-${prop.replace(/\./g, '-')})`
     }
     
-    // State references: state.disabled
-    const stateMatch = /^state\.(.+)$/i.exec(pathParts.join('.'))
+    // State references: state.disabled or states.disabled
+    const stateMatch = /^states?\.(.+)$/i.exec(pathParts.join('.'))
     if (stateMatch) {
       const statePath = stateMatch[1].replace(/\./g, '-')
       return `var(--recursica-brand-themes-${mode}-state-${statePath})`

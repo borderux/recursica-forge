@@ -105,7 +105,9 @@ function traverseUIKit(
     // Skip metadata keys
     if (key.startsWith('$')) return
     
-    const currentPath = [...prefix, key]
+    // Map JSON "sizes" to CSS variable "size" for backward compatibility
+    const cssVarKey = key === 'sizes' ? 'size' : key
+    const currentPath = [...prefix, cssVarKey]
     
     // If this is a value object with $type and $value
     if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
