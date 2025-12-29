@@ -35,36 +35,35 @@
         }
       }
     },
-
-
     "padding": {
-        "icon": "arrows-pointing-out",
-        "label": "Padding",
-        "visible": true,
-        "group": {
-            "horizontal-padding": {
-                "label": "Horizontal",
-                "visible": true
-              },
-              "vertical-padding": {
-                "label": "Vertical",
-                "visible": true
-              }
+      "icon": "arrows-pointing-out",
+      "label": "Padding",
+      "visible": true,
+      "group": {
+        "horizontal-padding": {
+          "label": "Horizontal",
+          "visible": true
+        },
+        "vertical-padding": {
+          "label": "Vertical",
+          "visible": true
         }
-      },
-    "icon-text-gap": {
+      }
+    },
+    "spacing": {
       "icon": "split-horizontal",
-      "label": "Icon Text Gap",
-      "visible": true
+      "label": "Spacing",
+      "visible": true,
+      "group": {
+        "icon-text-gap": {
+          "label": "Gap between Icon and Text",
+          "visible": true
+        }
+      }
     },
     "icon": {
       "icon": "diamond",
       "label": "Icon Size",
-      "visible": true
-    },
-    "height": {
-      "icon": "arrows-up-down",
-      "label": "Height",
       "visible": true
     },
     "width": {
@@ -84,4 +83,3 @@
     }
   }
 }
-
