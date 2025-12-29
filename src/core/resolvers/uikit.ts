@@ -17,8 +17,8 @@ import { resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../ut
  * => '--recursica-ui-kit-components-button-color-layer-0-background-solid'
  * 
  * @example
- * toCssVarName('global.icon.style')
- * => '--recursica-ui-kit-global-icon-style'
+ * toCssVarName('globals.icon.style')
+ * => '--recursica-ui-kit-globals-icon-style'
  */
 function toCssVarName(path: string): string {
   const parts = path
@@ -40,7 +40,7 @@ function toCssVarName(path: string): string {
  * - {theme.light.layer.layer-0.property.surface}
  * - {theme.light.palette.neutral.900.tone}
  * - {theme.light.dimension.border-radius.default}
- * - {ui-kit.0.global.form.indicator.color.required-asterisk}
+ * - {ui-kit.0.globals.form.indicators.colors.required-asterisk}
  */
 function resolveTokenRef(
   value: any,
@@ -268,8 +268,8 @@ export function buildUIKitVars(
   const uikitRoot: any = uikit
   
   // Handle two possible structures:
-  // 1. { "0": { "global": {...}, "button": {...} }, "3": {...} } - mode-based
-  // 2. { "ui-kit": { "global": {...}, "components": {...} } } - flat structure with components inside ui-kit
+  // 1. { "0": { "globals": {...}, "button": {...} }, "3": {...} } - mode-based
+  // 2. { "ui-kit": { "globals": {...}, "components": {...} } } - flat structure with components inside ui-kit
   
   // First pass: Generate all variables (with placeholders for UIKit self-references)
   if (uikitRoot?.['0']) {
@@ -278,9 +278,9 @@ export function buildUIKitVars(
     const lightMode = uikitRoot['0']
     traverseUIKit(lightMode, [], vars, tokenIndex, theme, uikit, mode)
   } else if (uikitRoot?.['ui-kit']) {
-    // Structure 2: Flat structure with "ui-kit" containing both "global" and "components"
+    // Structure 2: Flat structure with "ui-kit" containing both "globals" and "components"
     // Process "ui-kit" section (skip the "ui-kit" key in path)
-    // This will traverse both "global" and "components" as siblings
+    // This will traverse both "globals" and "components" as siblings
     traverseUIKit(uikitRoot['ui-kit'], [], vars, tokenIndex, theme, uikit, mode)
   } else {
     // Fallback: treat entire object as UIKit structure

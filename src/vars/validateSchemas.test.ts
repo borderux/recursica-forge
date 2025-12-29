@@ -170,9 +170,9 @@ describe('JSON Schema Validation', () => {
       expect(validate).toBeDefined()
     })
 
-    it('should have ui-kit.global structure', () => {
-      expect(uikitJson['ui-kit']?.global).toBeDefined()
-      expect(typeof uikitJson['ui-kit']?.global).toBe('object')
+    it('should have ui-kit.globals structure', () => {
+      expect(uikitJson['ui-kit']?.globals).toBeDefined()
+      expect(typeof uikitJson['ui-kit']?.globals).toBe('object')
     })
 
     it('should have ui-kit.components structure', () => {
@@ -182,18 +182,18 @@ describe('JSON Schema Validation', () => {
 
     it('should have button component defined', () => {
       expect(uikitJson['ui-kit']?.components?.button).toBeDefined()
-      expect(uikitJson['ui-kit']?.components?.button?.color).toBeDefined()
-      expect(uikitJson['ui-kit']?.components?.button?.sizes).toBeDefined()
+      expect(uikitJson['ui-kit']?.components?.button?.variants).toBeDefined()
+      expect(uikitJson['ui-kit']?.components?.button?.size).toBeDefined()
     })
 
     it('should validate JSON structure changes', () => {
       // Ensure structure is consistent
-      const global = uikitJson['ui-kit']?.global
-      expect(global).toBeDefined()
-      expect(typeof global).toBe('object')
+      const globals = uikitJson['ui-kit']?.globals
+      expect(globals).toBeDefined()
+      expect(typeof globals).toBe('object')
       
-      // Check that global has expected sections
-      expect(global?.form || global?.indicator || global?.field).toBeDefined()
+      // Check that globals has expected sections
+      expect(globals?.form || globals?.indicators || globals?.field).toBeDefined()
     })
   })
 
@@ -283,7 +283,7 @@ describe('JSON Schema Validation', () => {
       expect(valid).toBe(false)
       if (!valid && validate.errors) {
         const requiredErrors = validate.errors.filter(e => 
-          e.keyword === 'required' && e.instancePath?.includes('core-colors')
+          e.keyword === 'required' && e.params?.missingProperty === 'core-colors'
         )
         expect(requiredErrors.length).toBeGreaterThan(0)
       }
@@ -329,16 +329,16 @@ describe('JSON Schema Validation', () => {
       expect(valid).toBe(false)
       if (!valid && validate.errors) {
         const requiredErrors = validate.errors.filter(e => 
-          e.keyword === 'required' && e.instancePath?.includes('neutral')
+          e.keyword === 'required' && e.params?.missingProperty === 'neutral'
         )
         expect(requiredErrors.length).toBeGreaterThan(0)
       }
     })
 
-    it('should reject UIKit.json missing required global section', () => {
+    it('should reject UIKit.json missing required globals section', () => {
       const invalidUIKit = {
         'ui-kit': {
-          // Missing global section
+          // Missing globals section
           components: {}
         }
       }
@@ -350,7 +350,7 @@ describe('JSON Schema Validation', () => {
       expect(valid).toBe(false)
       if (!valid && validate.errors) {
         const requiredErrors = validate.errors.filter(e => 
-          e.keyword === 'required' && e.instancePath?.includes('global')
+          e.keyword === 'required' && e.params?.missingProperty === 'globals'
         )
         expect(requiredErrors.length).toBeGreaterThan(0)
       }

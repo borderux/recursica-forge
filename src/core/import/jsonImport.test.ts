@@ -180,7 +180,7 @@ describe('importUIKitJson', () => {
   })
 
   it('should validate and import uikit', () => {
-    const uikit = { 'ui-kit': { global: {}, components: {} } }
+    const uikit = { 'ui-kit': { globals: {}, components: {} } }
     
     importUIKitJson(uikit)
     
@@ -189,7 +189,7 @@ describe('importUIKitJson', () => {
   })
 
   it('should normalize uikit structure', () => {
-    const uikit = { global: {}, components: {} }
+    const uikit = { globals: {}, components: {} }
     
     importUIKitJson(uikit)
     

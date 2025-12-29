@@ -1,6 +1,6 @@
 {
   "ui-kit": {
-    "global": {
+    "globals": {
       "icon": {
         "style": {
           "$type": "string",
@@ -8,8 +8,8 @@
         }
       },
       "form": {
-        "layout": {
-          "side-by-side": {
+        "layouts": {
+          "side-by-sides": {
             "label-column-width": {
               "$type": "dimension",
               "$value": {
@@ -70,7 +70,7 @@
         }
       },
       "field": {
-        "color": {
+        "colors": {
           "background": {
             "$type": "color",
             "$value": "{brand.themes.light.layers.layer-0.property.surface}"
@@ -193,7 +193,7 @@
         }
       },
       "label": {
-        "color": {
+        "colors": {
           "default": {
             "$type": "color",
             "$value": "{brand.themes.light.layers.layer-0.element.text.color}"
@@ -258,7 +258,7 @@
           }
         }
       },
-      "assistive-element": {
+      "assistive-elements": {
         "help": {
           "text-color": {
             "$type": "color",
@@ -293,9 +293,9 @@
     },
     "components": {
       "button": {
-            "variant": {
-              "solid": {
-            "color": {
+        "variants": {
+          "solid": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
@@ -350,6 +350,62 @@
                   "$value": "{brand.themes.light.layers.layer-2.element.interactive.on-tone-hover}"
             }
           },
+          "text": {
+            "colors": {
+              "layer-0": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.properties.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.properties.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
+                }
+              },
+              "layer-1": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.properties.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.properties.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                }
+              },
+              "layer-2": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.properties.surface}"
+                },
+                "background-hover": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.properties.surface}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                },
+                "text-hover": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
+                }
+              },
               "layer-3": {
                 "background": {
                   "$type": "color",
@@ -408,46 +464,8 @@
                   "$value": "{brand.themes.light.layers.layer-1.element.interactive.tone-hover}"
             }
           },
-          "layer-2": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-2.property.surface}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-2.property.surface}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-2.element.interactive.tone-hover}"
-                }
-              },
-              "layer-3": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-3.property.surface}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-3.property.surface}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.themes.light.layers.layer-3.element.interactive.tone-hover}"
-                }
-              }
-                }
-              },
-              "outline": {
-            "color": {
+          "outline": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
@@ -524,7 +542,7 @@
           }
         },
         "size": {
-            "variant": {
+            "variants": {
               "default": {
                 "icon": {
                   "$type": "dimension",
@@ -628,9 +646,9 @@
         }
       },
       "switch": {
-            "variant": {
-              "default": {
-            "color": {
+        "variants": {
+          "default": {
+            "colors": {
               "layer-0": {
                 "thumb-selected": {
                   "$type": "color",
@@ -780,11 +798,11 @@
         }
       },
       "avatar": {
-        "variant": {
+        "variants": {
           "text": {
-            "variant": {
+            "variants": {
               "solid": {
-                "color": {
+                "colors": {
                   "layer-0": {
                     "background": {
                       "$type": "color",
@@ -844,7 +862,7 @@
                 }
               },
               "ghost": {
-                "color": {
+                "colors": {
                   "layer-0": {
                 "background": {
                   "$type": "color",
@@ -906,9 +924,9 @@
             }
           },
           "icon": {
-            "variant": {
+            "variants": {
               "solid": {
-                "color": {
+                "colors": {
                   "layer-0": {
                     "background": {
                       "$type": "color",
@@ -968,7 +986,7 @@
                 }
               },
               "ghost": {
-                "color": {
+                "colors": {
                   "layer-0": {
                 "background": {
                   "$type": "color",
@@ -1030,7 +1048,7 @@
             }
           },
           "image": {
-            "color": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
@@ -1074,8 +1092,8 @@
             }
           }
         },
-        "size": {
-          "variant": {
+        "sizes": {
+          "variants": {
             "small": {
               "$type": "dimension",
               "$value": {

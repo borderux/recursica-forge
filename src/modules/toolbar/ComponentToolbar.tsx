@@ -177,7 +177,7 @@ export default function ComponentToolbar({
               // Special case mappings: toolbar config names -> UIKit.json property names
               let groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropName.toLowerCase())
               if (!groupedProp && groupedPropName.toLowerCase() === 'border-color') {
-                groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'color')
+                groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
               }
               if (!groupedProp && groupedPropName.toLowerCase() === 'text-color') {
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'text' && p.category === 'color')
@@ -254,7 +254,7 @@ export default function ComponentToolbar({
               if (sizeVariant && !prop.path.includes(sizeVariant)) {
                 return false
               }
-            } else if (prop.category === 'color' && (prop.variantProp === 'style' || prop.variantProp === 'style-secondary')) {
+            } else if (prop.category === 'colors' && (prop.variantProp === 'style' || prop.variantProp === 'style-secondary')) {
               // Color props with style variant should match both style and style-secondary if selected
               const styleVariant = selectedVariants['style']
               const styleSecondary = selectedVariants['style-secondary']
@@ -276,7 +276,7 @@ export default function ComponentToolbar({
         } else {
           // Primary variant is in path, but for nested variants we may need to check secondary
           // For Avatar: if style="text" and style-secondary="solid", ensure both are in path
-          if ((prop.variantProp === 'style' || prop.variantProp === 'style-secondary') && prop.category === 'color') {
+          if ((prop.variantProp === 'style' || prop.variantProp === 'style-secondary') && prop.category === 'colors') {
             const styleSecondary = selectedVariants['style-secondary']
             const styleVariant = selectedVariants['style']
             
@@ -296,7 +296,7 @@ export default function ComponentToolbar({
       }
       
       // For color props, check if layer matches (if prop has a layer in path)
-      if (prop.category === 'color' && prop.path.some(p => p.startsWith('layer-'))) {
+      if (prop.category === 'colors' && prop.path.some(p => p.startsWith('layer-'))) {
         const layerInPath = prop.path.find(p => p.startsWith('layer-'))
         if (layerInPath && layerInPath !== selectedLayer) {
           return false

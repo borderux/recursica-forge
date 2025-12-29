@@ -69,35 +69,35 @@ export function parseComponentStructure(componentName: string): ComponentStructu
 
       const currentPath = [...prefix, key]
 
-      // Check if this is a "variant" node
-      if (key === 'variant' && typeof value === 'object' && !('$value' in value)) {
+      // Check if this is a "variants" node
+      if (key === 'variants' && typeof value === 'object' && !('$value' in value)) {
         // This is a variant container - extract variant names
         const variantNames = Object.keys(value).filter(k => !k.startsWith('$'))
         if (variantNames.length > 0) {
-          // NEW STRUCTURE: variant.text.variant.solid.color.layer-0.background (nested - Avatar)
-          // NEW STRUCTURE: variant.solid.color.layer-0.background (single - Button/Switch)
-          // OLD STRUCTURE: color.layer-0.variant.text.variant.solid.background
-          // Check if this is a nested variant (variant inside variant)
-          const variantCount = currentPath.filter(p => p === 'variant').length
+          // NEW STRUCTURE: variants.text.variants.solid.colors.layer-0.background (nested - Avatar)
+          // NEW STRUCTURE: variants.solid.colors.layer-0.background (single - Button/Switch)
+          // OLD STRUCTURE: colors.layer-0.variants.text.variants.solid.background
+          // Check if this is a nested variant (variants inside variants)
+          const variantCount = currentPath.filter(p => p === 'variants').length
           const isNestedVariant = variantCount > 1
           
-          // In new structure, variants are at the top level OR under a category (like size.variant)
+          // In new structure, variants are at the top level OR under a category (like size.variants)
           // For nested variants (Avatar): First level (text, icon, image) -> "style", Second level (solid, ghost) -> "style-secondary"
-          // For single variants (Button/Switch): variant name -> "color" (or component-specific name)
-          // For size variants: size.variant -> "size"
+          // For single variants (Button/Switch): variants name -> "color" (or component-specific name)
+          // For size variants: size.variants -> "size"
           let finalPropName: string
           
           // Check if parent is a category name (like "size")
           if (prefix.length > 0) {
             const parentName = prefix[prefix.length - 1]
             if (parentName === 'size') {
-              // This is a size variant (e.g., size.variant.small)
+              // This is a size variant (e.g., size.variants.small)
               finalPropName = 'size'
             } else if (isNestedVariant) {
-              // This is a nested variant (e.g., variant.text.variant.solid)
+              // This is a nested variant (e.g., variants.text.variants.solid)
               finalPropName = 'style-secondary'
             } else {
-              // This is a color variant at root level (e.g., variant.solid)
+              // This is a color variant at root level (e.g., variants.solid)
               if (componentKey === 'avatar') {
                 finalPropName = 'style'
               } else {
@@ -143,7 +143,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
             if (parentName === 'size') {
               variantPropName = 'size'
             } else {
-              const variantCount = currentPath.filter(p => p === 'variant').length
+              const variantCount = currentPath.filter(p => p === 'variants').length
               if (variantCount > 1) {
                 // Nested variant (Avatar only)
                 variantPropName = 'style-secondary'
@@ -158,7 +158,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
               }
             }
           } else {
-            const variantCount = currentPath.filter(p => p === 'variant').length
+            const variantCount = currentPath.filter(p => p === 'variants').length
             if (variantCount > 1) {
               // Nested variant (Avatar only)
               variantPropName = 'style-secondary'
@@ -179,20 +179,20 @@ export function parseComponentStructure(componentName: string): ComponentStructu
 
       // Check if this is a value object with $type and $value
       if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
-        // Skip if this is a variant value (e.g., "small", "default", "large" inside size.variant)
+        // Skip if this is a variant value (e.g., "small", "default", "large" inside size.variants)
         // Variant values should not be treated as props - they're the variant options themselves
-        // Check if the immediate parent in the path is "variant"
-        const isDirectVariantValue = prefix.length > 0 && prefix[prefix.length - 1] === 'variant'
+        // Check if the immediate parent in the path is "variants"
+        const isDirectVariantValue = prefix.length > 0 && prefix[prefix.length - 1] === 'variants'
         
         if (isDirectVariantValue) {
-          // This is a variant value (like size.variant.small, or variant.solid)
-          // In NEW STRUCTURE: variant.solid is an object containing color, not a value
-          // In OLD STRUCTURE: size.variant.small could be a direct dimension value
+          // This is a variant value (like size.variants.small, or variants.solid)
+          // In NEW STRUCTURE: variants.solid is an object containing colors, not a value
+          // In OLD STRUCTURE: size.variants.small could be a direct dimension value
           // Check if this is actually a value (has $type and $value) or an object to traverse
           // If it's a value, it's a variant option itself (like size variants)
           // If it's an object, continue traversing (like color variants in new structure)
           if ('$type' in value && '$value' in value) {
-            // This is a direct variant value (e.g., size.variant.small = dimension value)
+            // This is a direct variant value (e.g., size.variants.small = dimension value)
             // Don't add as prop, but continue traversing in case there are nested properties
             traverse(value, currentPath, variantProp)
             return
@@ -204,8 +204,8 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         const cssVar = toCssVarName(fullPath.join('.'))
         
         // Determine if this is variant-specific
-        // A prop is variant-specific if "variant" appears in its path
-        const isVariantSpecific = currentPath.includes('variant')
+        // A prop is variant-specific if "variants" appears in its path
+        const isVariantSpecific = currentPath.includes('variants')
         
         // In new structure, variantProp is already set correctly (style or style-secondary or color)
         let variantPropName: string | undefined = undefined
@@ -213,12 +213,12 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           variantPropName = variantProp
         }
         
-        // Determine category - in new structure, "color" is inside variants
-        // Path: ['variant', 'text', 'variant', 'solid', 'color', 'layer-0', 'background']
-        // Category should be "color" if it appears in the path, otherwise use prefix[0]
+        // Determine category - in new structure, "colors" is inside variants
+        // Path: ['variants', 'text', 'variants', 'solid', 'colors', 'layer-0', 'background']
+        // Category should be "colors" if it appears in the path, otherwise use prefix[0]
         let category = prefix[0] || 'root'
-        if (currentPath.includes('color')) {
-          category = 'color'
+        if (currentPath.includes('colors')) {
+          category = 'colors'
         } else if (currentPath.includes('size')) {
           category = 'size'
         }
@@ -270,9 +270,9 @@ export function getComponentCssVarsForVariants(
     }
 
     // For color props, check if layer matches
-    // NEW STRUCTURE: variant.text.variant.solid.color.layer-0.background
-    // Layer comes after "color" in the path
-    if (prop.category === 'color' && prop.path.includes('layer-')) {
+    // NEW STRUCTURE: variants.text.variants.solid.colors.layer-0.background
+    // Layer comes after "colors" in the path
+    if (prop.category === 'colors' && prop.path.includes('layer-')) {
       const layerIndex = prop.path.findIndex(p => p.startsWith('layer-'))
       if (layerIndex >= 0) {
         const propLayer = prop.path[layerIndex]
