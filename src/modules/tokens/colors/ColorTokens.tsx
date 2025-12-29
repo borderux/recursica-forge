@@ -10,6 +10,8 @@ import { getFriendlyNamePreferNtc, getNtcName } from '../../utils/colorNaming'
 import { ColorPickerModal } from '../../pickers/ColorPickerModal'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
+import { parseTokenReference, type TokenReferenceContext } from '../../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../../core/resolvers/tokens'
 
 type TokenEntry = {
   name: string
@@ -506,12 +508,18 @@ export default function ColorTokens() {
           return families
         }
         
-        for (const [key, value] of Object.entries(obj)) {
+        for (const [, value] of Object.entries(obj)) {
           if (typeof value === 'string') {
-            // Check for token references like {tokens.color.{family}.{level}}
-            const match = value.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
-            if (match && match[1]) {
-              families.add(match[1])
+            // Use centralized parser to check for token references
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const context: TokenReferenceContext = { currentMode: 'light', tokenIndex }
+            const parsed = parseTokenReference(value, context)
+            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
+              // Extract family name from token path (e.g., color/gray/100 -> gray)
+              const familyName = parsed.path[1]
+              if (familyName) {
+                families.add(familyName)
+              }
             }
           } else if (value && typeof value === 'object') {
             extractReferencedFamilies(value).forEach((f) => families.add(f))
