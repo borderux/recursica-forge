@@ -15,6 +15,8 @@ import TypeControls, { readChoices, writeChoices } from './TypeControls'
 type Style = React.CSSProperties
 
 import { readCssVar } from '../../core/css/readCssVar'
+import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 function pxOrUndefined(value?: string) {
   if (!value) return undefined
@@ -231,14 +233,14 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
   const resolveBraceRefToTokenValue = (ref: any): string | number | undefined => {
     try {
       if (typeof ref !== 'string') return undefined
-      const s = ref.trim()
-      // Accept both braced and unbraced forms, case-insensitive 'tokens.'
-      const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
-      if (!/^(tokens|token)\./i.test(inner)) return undefined
-      const fontPrefixRe = /^(tokens|token)\.font\./i
-      if (!fontPrefixRe.test(inner)) return undefined
-      const rest = inner.replace(fontPrefixRe, '') // size.md or weight.regular etc (dots or slashes)
-      const name = `font/${rest.replace(/[\.]/g, '/').replace(/\/+/, '/')}`
+      const context: TokenReferenceContext = {
+        currentMode: 'light', // TypeSample doesn't have mode context, default to light
+        tokenIndex: buildTokenIndex(tokens),
+        theme
+      }
+      const parsed = parseTokenReference(ref, context)
+      if (!parsed || parsed.type !== 'token' || parsed.path.length < 2 || parsed.path[0] !== 'font') return undefined
+      const name = `font/${parsed.path.slice(1).join('/')}`
       return getTokenValueWithOverrides(name, overrides, tokens as any)
     } catch {
       return undefined

@@ -1,5 +1,6 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex, resolveBraceRef } from './tokens'
+import { extractBraceContent, parseTokenReference, type TokenReferenceContext } from '../utils/tokenReferenceParser'
 
 // Dynamically import fontUtils to avoid circular dependencies
 let getCachedFontFamilyName: ((name: string) => string) | null = null
@@ -220,12 +221,9 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
   const resolveTokenRef = (ref: any) => {
     try {
       if (typeof ref === 'string') {
-        const s = ref.trim()
-        const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
-        const fontPrefixRe = /^(tokens|token)\.font\./i
-        if (fontPrefixRe.test(inner)) {
-          const rest = inner.replace(fontPrefixRe, '')
-          const path = rest.replace(/[\.]/g, '/').replace(/\/+/, '/')
+        const parsed = parseTokenReference(ref)
+        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'font') {
+          const path = parsed.path.slice(1).join('/')
           return getFontToken(path)
         }
       }

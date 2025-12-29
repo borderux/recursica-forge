@@ -5,6 +5,8 @@ import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 type PaletteColorSelectorProps = {
   paletteKey: string
@@ -257,15 +259,19 @@ export default function PaletteColorSelector({
   const getTokenLevelForPaletteLevel = useCallback((paletteLevel: string): string | null => {
     const toneName = `palette/${paletteKey}/${paletteLevel}/color/tone`
     const toneRaw = themeIndex[`${mode}::${toneName}`]?.value
-    if (typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
-      const inner = toneRaw.slice(1, -1).trim()
-      const match = /^tokens\.color\.([a-z0-9_-]+)\.(000|050|[1-9][0-9]{2}|1000)$/i.exec(inner)
-      if (match) {
-        return match[2] // Return the token level (e.g., '050' for dark mode neutral 1000)
+    if (typeof toneRaw === 'string') {
+      const context: TokenReferenceContext = {
+        currentMode: mode.toLowerCase() as 'light' | 'dark',
+        tokenIndex: buildTokenIndex(tokensJson),
+        theme: themeJson
+      }
+      const parsed = parseTokenReference(toneRaw, context)
+      if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
+        return parsed.path[2] // Return the token level (e.g., '050' for dark mode neutral 1000)
       }
     }
     return null
-  }, [themeIndex, mode, paletteKey])
+  }, [themeIndex, mode, paletteKey, tokensJson, themeJson])
 
   // Re-check AA compliance for a palette when token values change
   // If family is provided, only re-check if this palette uses that family
@@ -554,11 +560,15 @@ export default function PaletteColorSelector({
             const otherModeLabel = modeKey === 'light' ? 'Light' : 'Dark'
             const toneName = `palette/${paletteKey}/${lvl}/color/tone`
             const toneRaw = themeIndex[`${otherModeLabel}::${toneName}`]?.value
-            if (typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
-              const inner = toneRaw.slice(1, -1).trim()
-              const match = /^tokens\.color\.([a-z0-9_-]+)\.(000|050|[1-9][0-9]{2}|1000)$/i.exec(inner)
-              if (match) {
-                tokenLevel = match[2]
+            if (typeof toneRaw === 'string') {
+              const context: TokenReferenceContext = {
+                currentMode: otherModeLabel.toLowerCase() as 'light' | 'dark',
+                tokenIndex: buildTokenIndex(tokensJson),
+                theme: themeJson
+              }
+              const parsed = parseTokenReference(toneRaw, context)
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
+                tokenLevel = parsed.path[2]
               }
             }
           }

@@ -3,6 +3,8 @@ import { readOverrides } from '../theme/tokenOverrides'
 import { useEffect, useState, useMemo } from 'react'
 import { readCssVar } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
  
 
 type LayerModuleProps = {
@@ -57,16 +59,19 @@ export default function LayerModule({ level, title, className, children, onSelec
     const s = String(input).trim()
     if (!s) return undefined
     if (s.startsWith('{') && s.endsWith('}')) {
-      const inner = s.slice(1, -1).trim()
-      if (/^(tokens|token)\./i.test(inner)) {
-        const path = inner.replace(/^(tokens|token)\./i, '').replace(/[.]/g, '/').trim()
+      const context: TokenReferenceContext = {
+        currentMode: 'light',
+        tokenIndex: buildTokenIndex(tokens),
+        theme
+      }
+      const parsed = parseTokenReference(s, context)
+      if (parsed && parsed.type === 'token') {
+        const path = parsed.path.join('/')
         return resolveBraceRef(getTokenValue(path), depth + 1)
       }
-      if (/^brand\./i.test(inner)) {
-        const parts = inner.split('.').filter(Boolean)
-        let node: any = (theme as any)
-        for (const p of parts) { if (!node) break; node = node[p] }
-        return resolveBraceRef(node, depth + 1)
+      if (parsed && parsed.type === 'brand') {
+        const resolved = resolveTokenReferenceToValue(s, context)
+        return resolveBraceRef(resolved, depth + 1)
       }
       return undefined
     }

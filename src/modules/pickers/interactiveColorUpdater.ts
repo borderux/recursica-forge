@@ -3,6 +3,7 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { pickAAOnTone, contrastRatio, hexToRgb } from '../theme/contrastUtil'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import type { JsonLike } from '../../core/resolvers/tokens'
+import { resolveTokenReferenceToValue, resolveTokenReferenceToCssVar, extractBraceContent, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import {
   resolveCssVarToHex,
   findColorFamilyAndLevel,
@@ -151,26 +152,23 @@ export function updateCoreColorInteractiveOnTones(
       const toneRef = colorDef.tone?.$value
       if (!toneRef) continue
       
-      // Resolve tone to hex
+      // Resolve tone to hex using centralized parser
+      const context: TokenReferenceContext = {
+        currentMode: mode,
+        tokenIndex,
+        theme: { brand: { themes: themes } }
+      }
       const resolveRef = (ref: string): string | null => {
-        if (ref.startsWith('{') && ref.endsWith('}')) {
-          const inner = ref.slice(1, -1).trim()
-          if (inner.startsWith('tokens.color.')) {
-            const path = inner.replace('tokens.color.', '').replace(/\./g, '/')
-            const hex = tokenIndex.get(`color/${path}`)
-            if (typeof hex === 'string') {
-              return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-            }
-          } else if (inner.startsWith('brand.themes.')) {
-            const parts = inner.split('.')
-            let node: any = themes
-            for (const p of parts.slice(2)) {
-              if (!node) break
-              node = node[p]
-            }
-            if (node && typeof node === 'object' && '$value' in node) {
-              return resolveRef(node.$value)
-            }
+        const resolved = resolveTokenReferenceToValue(ref, context)
+        if (typeof resolved === 'string') {
+          // Check if it's a hex color
+          const hex = resolved.trim()
+          if (/^#?[0-9a-f]{6}$/i.test(hex)) {
+            return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+          }
+          // If it's still a reference, recurse
+          if (resolved.startsWith('{') && resolved.endsWith('}')) {
+            return resolveRef(resolved)
           }
         }
         return null
@@ -314,22 +312,15 @@ export function updateCoreColorInteractiveOnTones(
       const interactiveVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`
       const interactiveRef = coreColorsPath[colorName]?.interactive?.$value
       if (interactiveRef) {
-        // Resolve reference to CSS var
-        if (interactiveRef.startsWith('{tokens.color.')) {
-          const match = interactiveRef.match(/\{tokens\.color\.([a-z0-9_-]+)\.(\d+|000|050|1000)\}/)
-          if (match) {
-            const [, family, level] = match
-            const normalizedLevel = level === '000' ? '050' : level
-            const tokenCssVar = `--recursica-tokens-color-${family}-${normalizedLevel}`
-            updateCssVar(interactiveVar, `var(${tokenCssVar})`, tokens)
-          }
-        } else if (interactiveRef.startsWith('{brand.themes.')) {
-          const match = interactiveRef.match(/\{brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z]+)\}/)
-          if (match) {
-            const [, refMode, color] = match
-            const coreColorVar = `--recursica-brand-themes-${refMode}-palettes-core-${color}`
-            updateCssVar(interactiveVar, `var(${coreColorVar})`, tokens)
-          }
+        // Resolve reference to CSS var using centralized parser
+        const context: TokenReferenceContext = {
+          currentMode: mode,
+          tokenIndex: buildTokenIndex(tokens),
+          theme: { brand: { themes: {} } }
+        }
+        const cssVar = resolveTokenReferenceToCssVar(interactiveRef, context)
+        if (cssVar) {
+          updateCssVar(interactiveVar, cssVar, tokens)
         }
       }
     }
@@ -369,26 +360,23 @@ export function updateCoreColorOnTones(
     const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
     const normalizedWhite = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
     
-    // Helper to resolve tone reference to hex
+    // Helper to resolve tone reference to hex using centralized parser
+    const context: TokenReferenceContext = {
+      currentMode: mode,
+      tokenIndex,
+      theme: { brand: { themes: themes } }
+    }
     const resolveToneRef = (ref: string): string | null => {
-      if (ref.startsWith('{') && ref.endsWith('}')) {
-        const inner = ref.slice(1, -1).trim()
-        if (inner.startsWith('tokens.color.')) {
-          const path = inner.replace('tokens.color.', '').replace(/\./g, '/')
-          const hex = tokenIndex.get(`color/${path}`)
-          if (typeof hex === 'string') {
-            return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-          }
-        } else if (inner.startsWith('brand.themes.')) {
-          const parts = inner.split('.')
-          let node: any = themes
-          for (const p of parts.slice(2)) {
-            if (!node) break
-            node = node[p]
-          }
-          if (node && typeof node === 'object' && '$value' in node) {
-            return resolveToneRef(node.$value)
-          }
+      const resolved = resolveTokenReferenceToValue(ref, context)
+      if (typeof resolved === 'string') {
+        // Check if it's a hex color
+        const hex = resolved.trim()
+        if (/^#?[0-9a-f]{6}$/i.test(hex)) {
+          return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+        }
+        // If it's still a reference, recurse
+        if (resolved.startsWith('{') && resolved.endsWith('}')) {
+          return resolveToneRef(resolved)
         }
       }
       return null
