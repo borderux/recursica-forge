@@ -99,18 +99,18 @@ export default function ComponentDetailPage() {
 
   if (!component) {
     return (
-      <div style={{ padding: 24, textAlign: 'center', color: `var(--recursica-brand-${mode}-layer-layer-0-element-text-low-emphasis)` }}>
+      <div style={{ padding: 24, textAlign: 'center', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-low-emphasis)` }}>
         Component not found
       </div>
     )
   }
 
-  const layer0Base = `--recursica-brand-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
 
   // Get the layer number for building CSS variable paths
   const layerNum = selectedLayer.replace('layer-', '')
-  const baseLayerBase = `--recursica-brand-${mode}-layer-layer-${layerNum}-property`
+  const baseLayerBase = `--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property`
 
   // Get elevation level from layer property (if it exists)
   // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}
@@ -132,7 +132,7 @@ export default function ComponentDetailPage() {
         
         elevationLevel = layerNum
         const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
-        const v: any = layerSpec?.property?.elevation?.$value
+        const v: any = layerSpec?.properties?.elevation?.$value
         if (typeof v === 'string') {
           // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
           const m = v.match(/elevations\.(elevation-(\d+))/i)
@@ -148,7 +148,7 @@ export default function ComponentDetailPage() {
     
     // Build elevation box-shadow from elevation CSS variables
     // Format: x-axis y-axis blur spread shadow-color
-    return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+    return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
   }, [mode, layerNum, theme])
 
   return (

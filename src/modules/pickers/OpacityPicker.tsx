@@ -99,35 +99,35 @@ export default function OpacityPicker() {
           }
         } else if (isHoverOpacity) {
           // Handle hover opacity
-          // Ensure state structure exists
+          // Ensure states structure exists
           if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].state) themes[modeKey].state = {}
+          if (!themes[modeKey].states) themes[modeKey].states = {}
           
           // Update the hover opacity reference in theme JSON
-          themes[modeKey].state.hover = {
+          themes[modeKey].states.hover = {
             $type: 'number',
             $value: `{tokens.opacity.${tokenKey}}`
           }
         } else if (isDisabledOpacity) {
           // Handle disabled opacity
-          // Ensure state structure exists
+          // Ensure states structure exists
           if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].state) themes[modeKey].state = {}
+          if (!themes[modeKey].states) themes[modeKey].states = {}
           
           // Update the disabled opacity reference in theme JSON
-          themes[modeKey].state.disabled = {
+          themes[modeKey].states.disabled = {
             $type: 'number',
             $value: `{tokens.opacity.${tokenKey}}`
           }
         } else if (isOverlayOpacity) {
           // Handle overlay opacity
-          // Ensure state structure exists
+          // Ensure states structure exists
           if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].state) themes[modeKey].state = {}
-          if (!themes[modeKey].state.overlay) themes[modeKey].state.overlay = {}
+          if (!themes[modeKey].states) themes[modeKey].states = {}
+          if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
           
           // Update the overlay opacity reference in theme JSON
-          themes[modeKey].state.overlay.opacity = {
+          themes[modeKey].states.overlay.opacity = {
             $type: 'number',
             $value: `{tokens.opacity.${tokenKey}}`
           }
@@ -163,11 +163,11 @@ export default function OpacityPicker() {
       top: pos.top, 
       left: pos.left, 
       width: 240, 
-      background: `var(--recursica-brand-${mode}-layer-layer-3-property-surface)`, 
-      color: `var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color)`,
-      border: `var(--recursica-brand-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-${mode}-layer-layer-3-property-border-color)`, 
-      borderRadius: `var(--recursica-brand-${mode}-layer-layer-3-property-border-radius)`, 
-      boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-${mode}-elevations-elevation-4-blur) var(--recursica-brand-${mode}-elevations-elevation-4-spread) var(--recursica-brand-${mode}-elevations-elevation-4-shadow-color)`, 
+      background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`, 
+      color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+      border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, 
+      borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`, 
+      boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`, 
       padding: 10, 
       zIndex: 20000 
     }}>
@@ -198,7 +198,7 @@ export default function OpacityPicker() {
         <button 
           onClick={() => { setAnchor(null); setTargetCssVar(null); setCurrentToken(null) }} 
           aria-label="Close" 
-          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: `var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color)` }}
+          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)` }}
         >
           &times;
         </button>
@@ -215,9 +215,9 @@ export default function OpacityPicker() {
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 width: '100%', 
-                border: `1px solid var(--recursica-brand-${mode}-layer-layer-3-property-border-color)`, 
-                background: isSelected ? `var(--recursica-brand-${mode}-layer-layer-3-property-surface)` : 'transparent', 
-                color: `var(--recursica-brand-${mode}-layer-layer-3-property-element-text-color)`,
+                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, 
+                background: isSelected ? `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)` : 'transparent', 
+                color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
                 borderRadius: 6, 
                 padding: '6px 8px', 
                 cursor: 'pointer' 

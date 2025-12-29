@@ -3,6 +3,8 @@ import { readOverrides } from '../theme/tokenOverrides'
 import { useEffect, useState, useMemo } from 'react'
 import { readCssVar } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
  
 
 type LayerModuleProps = {
@@ -35,7 +37,7 @@ export default function LayerModule({ level, title, className, children, onSelec
   }, [])
   const layerId = level != null ? String(level) : '0'
   const legacyBase = `--layer-layer-${layerId}-property-`
-  const brandBase = `--recursica-brand-${mode}-layer-layer-${layerId}-property-`
+  const brandBase = `--recursica-brand-themes-${mode}-layer-layer-${layerId}-property-`
   const includeBorder = !(layerId === '0')
   const paletteBackground = null
 
@@ -57,16 +59,19 @@ export default function LayerModule({ level, title, className, children, onSelec
     const s = String(input).trim()
     if (!s) return undefined
     if (s.startsWith('{') && s.endsWith('}')) {
-      const inner = s.slice(1, -1).trim()
-      if (/^(tokens|token)\./i.test(inner)) {
-        const path = inner.replace(/^(tokens|token)\./i, '').replace(/[.]/g, '/').trim()
+      const context: TokenReferenceContext = {
+        currentMode: 'light',
+        tokenIndex: buildTokenIndex(tokens),
+        theme
+      }
+      const parsed = parseTokenReference(s, context)
+      if (parsed && parsed.type === 'token') {
+        const path = parsed.path.join('/')
         return resolveBraceRef(getTokenValue(path), depth + 1)
       }
-      if (/^brand\./i.test(inner)) {
-        const parts = inner.split('.').filter(Boolean)
-        let node: any = (theme as any)
-        for (const p of parts) { if (!node) break; node = node[p] }
-        return resolveBraceRef(node, depth + 1)
+      if (parsed && parsed.type === 'brand') {
+        const resolved = resolveTokenReferenceToValue(s, context)
+        return resolveBraceRef(resolved, depth + 1)
       }
       return undefined
     }
@@ -80,7 +85,7 @@ export default function LayerModule({ level, title, className, children, onSelec
       
       // For regular layers
       const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerId}`] || themes?.[mode]?.layer?.[`layer-${layerId}`] || root?.[mode]?.layers?.[`layer-${layerId}`] || root?.[mode]?.layer?.[`layer-${layerId}`] || {}
-      const v: any = layerSpec?.property?.elevation?.$value
+      const v: any = layerSpec?.properties?.elevation?.$value
       if (typeof v === 'string') {
         // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
         const m = v.match(/elevations\.(elevation-(\d+))/i)
@@ -89,7 +94,7 @@ export default function LayerModule({ level, title, className, children, onSelec
     } catch {}
     return String(layerId)
   }, [theme, layerId, mode])
-  const cssVarBoxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-color-gray-1000))`
+  const cssVarBoxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-color-gray-1000))`
 
   type Style = React.CSSProperties
   const pxOrUndefined = (value?: string) => {
@@ -225,7 +230,7 @@ export default function LayerModule({ level, title, className, children, onSelec
               <p style={{
                 ...(bodyStyle as any),
                 color: (`var(${brandBase}element-interactive-color)` as any),
-                opacity: (`var(--recursica-brand-${mode}-state-disabled)` as any)
+                opacity: (`var(--recursica-brand-themes-${mode}-state-disabled)` as any)
               }}>Disabled Interactive</p>
               <p style={{ color: (`var(${brandBase}element-text-alert)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Alert</p>
               <p style={{ color: (`var(${brandBase}element-text-warning)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Warning</p>

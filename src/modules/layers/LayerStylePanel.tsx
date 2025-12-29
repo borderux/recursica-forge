@@ -4,6 +4,8 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import PaletteColorControl from '../forms/PaletteColorControl'
 import TokenSlider from '../forms/TokenSlider'
 import brandDefault from '../../vars/Brand.json'
+import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 type Json = any
 
@@ -135,8 +137,8 @@ export default function LayerStylePanel({
     
     // Build CSS variable name for this field
     const fieldCssVar = selectedLevels.length > 0
-      ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-${pathKey.replace(/\./g, '-')}`
-      : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-${pathKey.replace(/\./g, '-')}`
+      ? `--recursica-brand-themes-${mode}-layer-layer-${selectedLevels[0]}-property-${pathKey.replace(/\./g, '-')}`
+      : `--recursica-brand-themes-${mode}-layer-layer-${layerKey}-property-${pathKey.replace(/\./g, '-')}`
     
     // For element-text-color, check contrast against surface
     // For surface, check contrast against element-text-color
@@ -145,13 +147,13 @@ export default function LayerStylePanel({
     const isElementTextColor = pathKey.includes('element-text-color') || pathKey.includes('element.text.color')
     if (isColor && isElementTextColor) {
       const surfaceVar = selectedLevels.length > 0
-        ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-surface`
-        : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-surface`
+        ? `--recursica-brand-themes-${mode}-layer-layer-${selectedLevels[0]}-property-surface`
+        : `--recursica-brand-themes-${mode}-layer-layer-${layerKey}-property-surface`
       contrastColorCssVar = surfaceVar
     } else if (isColor && (pathKey === 'surface' || pathKey.includes('surface'))) {
       const textColorVar = selectedLevels.length > 0
-        ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-element-text-color`
-        : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-element-text-color`
+        ? `--recursica-brand-themes-${mode}-layer-layer-${selectedLevels[0]}-property-element-text-color`
+        : `--recursica-brand-themes-${mode}-layer-layer-${layerKey}-property-element-text-color`
       contrastColorCssVar = textColorVar
     }
     
@@ -176,7 +178,7 @@ export default function LayerStylePanel({
           <select
             value={typeof val === 'string' ? val : ''}
             onChange={(e) => updateValue(path, e.currentTarget.value)}
-            style={{ padding: '6px 8px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 6 }}
+            style={{ padding: '6px 8px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, borderRadius: 6 }}
           >
             <option value="">-- select --</option>
             {options.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
@@ -186,7 +188,7 @@ export default function LayerStylePanel({
             type={(typeof val === 'number') ? 'number' : 'text'}
             value={val ?? ''}
             onChange={(e) => updateValue(path, e.currentTarget.value)}
-            style={{ padding: '6px 8px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, borderRadius: 6 }}
+            style={{ padding: '6px 8px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, borderRadius: 6 }}
           />
         )}
       </label>
@@ -195,10 +197,10 @@ export default function LayerStylePanel({
   const renderPaletteButton = (target: 'surface' | 'border-color', title: string) => {
     // Build CSS variables for all selected layers
     const targetCssVar = selectedLevels.length > 0
-      ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-${target}`
-      : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-${target}`
+      ? `--recursica-brand-themes-${mode}-layer-layer-${selectedLevels[0]}-property-${target}`
+      : `--recursica-brand-themes-${mode}-layer-layer-${layerKey}-property-${target}`
     const targetCssVars = selectedLevels.map(level => 
-        `--recursica-brand-${mode}-layer-layer-${level}-property-${target}`
+        `--recursica-brand-themes-${mode}-layer-layer-${level}-property-${target}`
       )
     
     // For surface color, check contrast against element-text-color (the label text color)
@@ -206,8 +208,8 @@ export default function LayerStylePanel({
     let contrastColorCssVar: string | undefined
     if (target === 'surface') {
       const textColorVar = selectedLevels.length > 0
-        ? `--recursica-brand-${mode}-layer-layer-${selectedLevels[0]}-property-element-text-color`
-        : `--recursica-brand-${mode}-layer-layer-${layerKey}-property-element-text-color`
+        ? `--recursica-brand-themes-${mode}-layer-layer-${selectedLevels[0]}-property-element-text-color`
+        : `--recursica-brand-themes-${mode}-layer-layer-${layerKey}-property-element-text-color`
       contrastColorCssVar = textColorVar
     }
     
@@ -240,10 +242,10 @@ export default function LayerStylePanel({
   }
   const title = selectedLevels.length === 1 ? `Layer ${selectedLevels[0]}` : `Layers ${selectedLevels.join(', ')}`
   return (
-    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 34vw, 560px)', background: `var(--recursica-brand-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-3-shadow-color)`, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 34vw, 560px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 700 }}>{title}</div>
-        <button onClick={onClose} aria-label="Close" style={{ border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
+        <button onClick={onClose} aria-label="Close" style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         {/* Palette color pickers: Surface (all layers, including 0) and Border Color (non-0 layers) */}
@@ -254,14 +256,14 @@ export default function LayerStylePanel({
             label="Elevation"
             tokens={elevationOptions.map((o) => ({ name: o.name, label: o.label }))}
             currentToken={(() => {
-              const v = (spec as any)?.property?.elevation?.$value
+              const v = (spec as any)?.properties?.elevation?.$value
               const s = typeof v === 'string' ? v : ''
               // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
               const m = s.match(/elevations\.(elevation-\d+)/)
               return m ? m[1] : undefined
             })()}
             onChange={(tokenName) => {
-              updateValue(['property','elevation'], `{brand.themes.${mode}.elevations.${tokenName}}`)
+              updateValue(['properties','elevation'], `{brand.themes.${mode}.elevations.${tokenName}}`)
             }}
             getTokenLabel={(token) => {
               const opt = elevationOptions.find((o) => o.name === token.name)
@@ -273,14 +275,21 @@ export default function LayerStylePanel({
           label="Padding"
           tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
           currentToken={(() => {
-            const v = (spec as any)?.property?.padding?.$value
-            const s = typeof v === 'string' ? v : ''
-            const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-            return m ? m[1] : undefined
+            const v = (spec as any)?.properties?.padding?.$value
+            if (typeof v !== 'string') return undefined
+            // Use centralized parser to extract size token name
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
+            const parsed = parseTokenReference(v, context)
+            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
+              // Extract token name from path (e.g., size/2x -> 2x)
+              return parsed.path.slice(1).join('/')
+            }
+            return undefined
           })()}
           onChange={(tokenName) => {
             const sel = sizeOptions.find((o) => o.label === tokenName)
-            if (sel) updateValue(['property','padding'], sel.value)
+            if (sel) updateValue(['properties','padding'], sel.value)
           }}
           getTokenLabel={(token) => toTitleCase(token.name)}
         />
@@ -289,14 +298,21 @@ export default function LayerStylePanel({
             label="Border Radius"
             tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
             currentToken={(() => {
-              const v = (spec as any)?.property?.['border-radius']?.$value
-              const s = typeof v === 'string' ? v : ''
-              const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-              return m ? m[1] : undefined
+              const v = (spec as any)?.properties?.['border-radius']?.$value
+              if (typeof v !== 'string') return undefined
+              // Use centralized parser to extract size token name
+              const tokenIndex = buildTokenIndex(tokensJson)
+              const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
+              const parsed = parseTokenReference(v, context)
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
+                // Extract token name from path (e.g., size/2x -> 2x)
+                return parsed.path.slice(1).join('/')
+              }
+              return undefined
             })()}
             onChange={(tokenName) => {
               const sel = sizeOptions.find((o) => o.label === tokenName)
-              if (sel) updateValue(['property','border-radius'], sel.value)
+              if (sel) updateValue(['properties','border-radius'], sel.value)
             }}
             getTokenLabel={(token) => toTitleCase(token.name)}
           />
@@ -308,7 +324,7 @@ export default function LayerStylePanel({
                 <span style={{ fontSize: 12, opacity: 0.7 }}>Border Thickness</span>
                 <span style={{ fontSize: 12, opacity: 0.7 }}>
                   {(() => {
-                    const v = (spec as any)?.property?.['border-thickness']?.$value
+                    const v = (spec as any)?.properties?.['border-thickness']?.$value
                     return typeof v === 'number' ? `${v}px` : '0px'
                   })()}
                 </span>
@@ -319,12 +335,12 @@ export default function LayerStylePanel({
                 max={20}
                 step={1}
                 value={(() => {
-                  const v = (spec as any)?.property?.['border-thickness']?.$value
+                  const v = (spec as any)?.properties?.['border-thickness']?.$value
                   return typeof v === 'number' ? v : 0
                 })()}
                 onChange={(e) => {
                   const n = parseInt(e.currentTarget.value || '0', 10)
-                  updateValue(['property','border-thickness'], String(Number.isFinite(n) ? n : 0))
+                  updateValue(['properties','border-thickness'], String(Number.isFinite(n) ? n : 0))
                 }}
               />
             </label>
@@ -346,9 +362,9 @@ export default function LayerStylePanel({
               // This is necessary because varsStore preserves existing CSS variables
               const rootEl = document.documentElement
               levels.forEach((lvl) => {
-                const surfaceVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-surface`
-                const borderVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-border-color`
-                const textColorVar = `--recursica-brand-${mode}-layer-layer-${lvl}-property-element-text-color`
+                const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-surface`
+                const borderVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-border-color`
+                const textColorVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-element-text-color`
                 rootEl.style.removeProperty(surfaceVar)
                 rootEl.style.removeProperty(textColorVar)
                 if (lvl > 0) {
@@ -365,7 +381,7 @@ export default function LayerStylePanel({
                 }
               })
             }}
-            style={{ padding: '8px 10px', border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+            style={{ padding: '8px 10px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
           >
             Revert
           </button>

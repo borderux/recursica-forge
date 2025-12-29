@@ -31,7 +31,7 @@ export default function ButtonPreview({
 
   // Get background color for contrast checking
   const bgColor = useMemo(() => {
-    const surfaceVar = `--recursica-brand-${mode}-layer-layer-${selectedLayer.replace('layer-', '')}-property-surface`
+    const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${selectedLayer.replace('layer-', '')}-property-surface`
     const surfaceValue = readCssVar(surfaceVar)
     if (surfaceValue) {
       const tokenIndex = buildTokenIndex(tokens || {})

@@ -6,6 +6,8 @@
 import { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 type DimensionEntry = {
   path: string[]
@@ -52,6 +54,13 @@ export default function DimensionsPage() {
       const dims = root?.dimensions
       if (!dims || typeof dims !== 'object') return entries
 
+      // Build token index for parsing token references
+      const tokenIndex = buildTokenIndex(tokensJson)
+      const context: TokenReferenceContext = {
+        currentMode: mode,
+        tokenIndex
+      }
+
       const traverse = (obj: any, path: string[], labelPrefix: string) => {
         Object.keys(obj).forEach((key) => {
           if (key.startsWith('$')) return
@@ -63,10 +72,10 @@ export default function DimensionsPage() {
             // This is a dimension value
             const tokenRef = value.$value
             let tokenName: string | null = null
-            if (typeof tokenRef === 'string' && tokenRef.startsWith('{') && tokenRef.endsWith('}')) {
-              const inner = tokenRef.slice(1, -1).trim()
-              if (inner.startsWith('tokens.size.')) {
-                tokenName = inner.replace('tokens.size.', '')
+            if (typeof tokenRef === 'string') {
+              const parsed = parseTokenReference(tokenRef, context)
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
+                tokenName = parsed.path.slice(1).join('.')
               }
             }
             const cssVarName = `--recursica-brand-dimensions-${currentPath.join('-')}`
@@ -81,7 +90,7 @@ export default function DimensionsPage() {
       traverse(dims, [], '')
     } catch {}
     return entries
-  }, [themeJson])
+  }, [themeJson, tokensJson, mode])
 
   const updateDimension = (path: string[], tokenName: string) => {
     const themeCopy = JSON.parse(JSON.stringify(themeJson))
@@ -123,7 +132,7 @@ export default function DimensionsPage() {
   return (
     <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
       <h2 style={{ marginTop: 0 }}>Dimensions</h2>
-      <p style={{ color: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-color)`, opacity: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-low-emphasis)` }}>
+      <p style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`, opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)` }}>
         Map brand dimensions to underlying size tokens. Changes will update CSS variables throughout the application.
       </p>
 
@@ -142,13 +151,13 @@ export default function DimensionsPage() {
                   gap: 'var(--recursica-brand-dimensions-spacer-default)',
                   alignItems: 'center',
                   padding: 'var(--recursica-brand-dimensions-spacer-default)',
-                  backgroundColor: `var(--recursica-brand-${mode}-layer-layer-0-property-surface)`,
-                  border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+                  backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
+                  border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
                   borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                 }}
               >
                 <div style={{ fontWeight: 500 }}>{entry.label}</div>
-                <div style={{ fontSize: 'var(--recursica-brand-dimensions-sm)', color: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-color)`, opacity: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-low-emphasis)` }}>
+                <div style={{ fontSize: 'var(--recursica-brand-dimensions-sm)', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`, opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)` }}>
                   {entry.cssVar}
                 </div>
                 <select
@@ -161,10 +170,10 @@ export default function DimensionsPage() {
                   }}
                   style={{
                     padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-default)',
-                    border: `1px solid var(--recursica-brand-${mode}-layer-layer-1-property-border-color)`,
+                    border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
                     borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-                    backgroundColor: `var(--recursica-brand-${mode}-layer-layer-0-property-surface)`,
-                    color: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-color)`,
+                    backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
+                    color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
                     fontSize: 'var(--recursica-brand-dimensions-sm)',
                   }}
                 >

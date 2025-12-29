@@ -160,7 +160,7 @@ export default function LayersPage() {
         next.paletteSelections = paletteRest
 
         // Clear shadow color CSS variable to reset to default
-        const shadowColorCssVar = `--recursica-brand-${mode}-elevations-elevation-${lvl}-shadow-color`
+        const shadowColorCssVar = `--recursica-brand-themes-${mode}-elevations-elevation-${lvl}-shadow-color`
         removeCssVar(shadowColorCssVar)
 
         // Update alpha tokens
@@ -185,7 +185,7 @@ export default function LayersPage() {
     })
   }
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-${mode}-layer-layer-0-property-element-text-color)` }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
       <div className="container-padding">
         <div className="section">
           <h2>Layers</h2>

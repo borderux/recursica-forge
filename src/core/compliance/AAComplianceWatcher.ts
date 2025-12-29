@@ -63,9 +63,10 @@ function parseCoreTokenRef(name: 'interactive' | 'alert' | 'warning' | 'success'
     const v: any = core?.[name]
     const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
     if (!s) return null
-    const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1) : s
-    const m = /^tokens\.color\.([a-z0-9_-]+)\.(\d{2,4}|050)$/i.exec(inner)
-    if (m) return { family: m[1], level: m[2] }
+    const parsed = parseTokenReference(s)
+    if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
+      return { family: parsed.path[1], level: parsed.path[2] }
+    }
   } catch {}
   return null
 }
@@ -104,8 +105,8 @@ export class AAComplianceWatcher {
    */
   private getCurrentMode(): 'light' | 'dark' {
     // Check if dark mode layer-0 surface exists and has a value
-    const darkLayer0Surface = readCssVar('--recursica-brand-dark-layer-layer-0-property-surface')
-    const lightLayer0Surface = readCssVar('--recursica-brand-light-layer-layer-0-property-surface')
+    const darkLayer0Surface = readCssVar('--recursica-brand-themes-dark-layer-layer-0-property-surface')
+    const lightLayer0Surface = readCssVar('--recursica-brand-themes-light-layer-layer-0-property-surface')
     
     // If dark mode has a value, check if it's different from light (meaning dark mode is active)
     // For now, we'll check both modes, but typically the active mode will have non-empty values
@@ -230,8 +231,8 @@ export class AAComplianceWatcher {
    * Watch a palette tone variable and update its on-tone when it changes
    */
   watchPaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark' = 'light') {
-    const toneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
-    const onToneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-on-tone`
+    const toneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
+    const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
     
     this.watchedVars.add(toneVar)
     this.watchedVars.add(onToneVar)
@@ -248,7 +249,7 @@ export class AAComplianceWatcher {
     // Don't update on initialization - let JSON values be set first
     for (const varName of this.watchedVars) {
       if (varName.includes('-tone') && !varName.includes('-on-tone')) {
-        const match = varName.match(/--recursica-brand-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
+        const match = varName.match(/--recursica-brand-themes-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
         if (match) {
           const [, mode, paletteKey, level] = match
           const currentValue = readCssVar(varName)
@@ -268,8 +269,8 @@ export class AAComplianceWatcher {
   }
 
   private updatePaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark') {
-    const toneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
-    const onToneVar = `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-on-tone`
+    const toneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
+    const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
     
     const toneValue = readCssVar(toneVar)
     
@@ -301,8 +302,8 @@ export class AAComplianceWatcher {
     }
     
     const onToneValue = chosen === 'white'
-      ? `var(--recursica-brand-${mode}-palettes-core-white)`
-      : `var(--recursica-brand-${mode}-palettes-core-black)`
+      ? `var(--recursica-brand-themes-${mode}-palettes-core-white)`
+      : `var(--recursica-brand-themes-${mode}-palettes-core-black)`
     
     updateCssVar(onToneVar, onToneValue)
   }
@@ -337,7 +338,7 @@ export class AAComplianceWatcher {
     // Watch both light and dark modes
     for (const mode of ['light', 'dark'] as const) {
       coreColors.forEach((colorName) => {
-        const coreColorVar = `--recursica-brand-${mode}-palettes-core-${colorName}`
+        const coreColorVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}`
         this.watchedVars.add(coreColorVar)
       })
     }
@@ -349,7 +350,7 @@ export class AAComplianceWatcher {
     // Check both light and dark modes
     for (const mode of ['light', 'dark'] as const) {
       coreColors.forEach((colorName) => {
-        const coreColorVar = `--recursica-brand-${mode}-palettes-core-${colorName}`
+        const coreColorVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}`
         const currentValue = readCssVar(coreColorVar)
         const lastValue = this.lastValues.get(coreColorVar)
         
@@ -486,9 +487,9 @@ export class AAComplianceWatcher {
       return
     } else if (elementName === 'interactive-tone') {
       // Use stepping logic for interactive tone colors (background)
-      const coreInteractiveVar = `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)`
+      const coreInteractiveVar = `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`
       const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex) || 
-                                  resolveCssVarToHex(`var(--recursica-brand-${mode}-palettes-core-interactive)`, this.tokenIndex)
+                                  resolveCssVarToHex(`var(--recursica-brand-themes-${mode}-palettes-core-interactive)`, this.tokenIndex)
       
       if (coreInteractiveHex) {
         // Step until AA compliant
@@ -499,7 +500,7 @@ export class AAComplianceWatcher {
       return
     } else if (elementName === 'interactive-tone-hover') {
       // Use stepping logic for interactive tone hover colors (background hover)
-      const coreInteractiveVar = `var(--recursica-brand-${mode}-palettes-core-interactive-hover-tone)`
+      const coreInteractiveVar = `var(--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone)`
       const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex)
       
       if (coreInteractiveHex) {
@@ -517,11 +518,11 @@ export class AAComplianceWatcher {
       const interactiveToneValue = readCssVar(interactiveToneVar)
       const interactiveToneHex = interactiveToneValue 
         ? resolveCssVarToHex(interactiveToneValue, this.tokenIndex)
-        : resolveCssVarToHex(`var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)`, this.tokenIndex)
+        : resolveCssVarToHex(`var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, this.tokenIndex)
       
       if (interactiveToneHex) {
         // Text should contrast with the interactive tone, not the surface
-        const coreOnToneVar = `var(--recursica-brand-${mode}-palettes-core-interactive-default-on-tone)`
+        const coreOnToneVar = `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone)`
         const coreOnToneHex = resolveCssVarToHex(coreOnToneVar, this.tokenIndex)
         
         if (coreOnToneHex) {
@@ -540,11 +541,11 @@ export class AAComplianceWatcher {
       const interactiveToneHoverValue = readCssVar(interactiveToneHoverVar)
       const interactiveToneHoverHex = interactiveToneHoverValue
         ? resolveCssVarToHex(interactiveToneHoverValue, this.tokenIndex)
-        : resolveCssVarToHex(`var(--recursica-brand-${mode}-palettes-core-interactive-hover-tone)`, this.tokenIndex)
+        : resolveCssVarToHex(`var(--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone)`, this.tokenIndex)
       
       if (interactiveToneHoverHex) {
         // Text should contrast with the interactive hover tone, not the surface
-        const coreOnToneVar = `var(--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone)`
+        const coreOnToneVar = `var(--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone)`
         const coreOnToneHex = resolveCssVarToHex(coreOnToneVar, this.tokenIndex)
         
         if (coreOnToneHex) {
@@ -557,9 +558,9 @@ export class AAComplianceWatcher {
       return
     } else if (elementName === 'interactive-color') {
       // Legacy support: Use stepping logic for old interactive-color property
-      const coreInteractiveVar = `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)`
+      const coreInteractiveVar = `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`
       const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex) || 
-                                  resolveCssVarToHex(`var(--recursica-brand-${mode}-palettes-core-interactive)`, this.tokenIndex)
+                                  resolveCssVarToHex(`var(--recursica-brand-themes-${mode}-palettes-core-interactive)`, this.tokenIndex)
       
       if (coreInteractiveHex) {
         // Step until AA compliant
@@ -626,7 +627,8 @@ export class AAComplianceWatcher {
     try {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
       const themes = root?.themes || root
-      const levels = ['900','800','700','600','500','400','300','200','100','050']
+      // Include all standard levels including 1000 and 000
+      const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
       
       // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
@@ -742,14 +744,15 @@ export class AAComplianceWatcher {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
       const themes = root?.themes || root
       const lightPal: any = themes?.light?.palettes || {}
-      const levels = ['900', '800', '700', '600', '500', '400', '300', '200', '100', '050']
+      // Include all standard levels including 1000 and 000
+      const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
       
       Object.keys(lightPal).forEach((paletteKey) => {
         if (paletteKey === 'core' || paletteKey === 'core-colors' || paletteKey === 'neutral') return
         
         levels.forEach((level) => {
-          const toneVar = `--recursica-brand-light-palettes-${paletteKey}-${level}-tone`
-          const onToneVar = `--recursica-brand-light-palettes-${paletteKey}-${level}-on-tone`
+          const toneVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
+          const onToneVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-on-tone`
           
           const toneValue = readCssVar(toneVar)
           const onToneValue = readCssVar(onToneVar)

@@ -5,6 +5,8 @@ import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 type PaletteColorSelectorProps = {
   paletteKey: string
@@ -34,8 +36,8 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const modeLower = modeLabel.toLowerCase()
   
   // Read actual core black and white colors from CSS variables (not hardcoded)
-  const coreBlackVar = `--recursica-brand-${modeLower}-palettes-core-black`
-  const coreWhiteVar = `--recursica-brand-${modeLower}-palettes-core-white`
+  const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
+  const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
   const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
   const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
   
@@ -48,8 +50,8 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const blackBaseContrast = contrastRatio(toneHex, black)
   
   // Get emphasis opacity values from CSS variables
-  const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-high`)
-  const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-low`)
+  const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
+  const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
   
   // Blend white and black with tone using both opacity values
   const whiteHighBlended = blendHexOver(white, toneHex, highEmphasisOpacity)
@@ -153,10 +155,17 @@ export default function PaletteColorSelector({
         const toneName = `palette/${pk}/${lvl}/color/tone`
         const toneRaw = themeIndex[`Light::${toneName}`]?.value || themeIndex[`Dark::${toneName}`]?.value
         if (typeof toneRaw === 'string') {
-          const match = toneRaw.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
-          if (match && match[1]) {
-            usedBy[pk] = match[1]
-            break // Found family for this palette, move to next
+          // Use centralized parser to check for token references
+          const tokenIndex = buildTokenIndex(tokensJson)
+          const context: TokenReferenceContext = { currentMode: 'light', tokenIndex }
+          const parsed = parseTokenReference(toneRaw, context)
+          if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
+            // Extract family name from token path (e.g., color/gray/100 -> gray)
+            const familyName = parsed.path[1]
+            if (familyName) {
+              usedBy[pk] = familyName
+              break // Found family for this palette, move to next
+            }
           }
         }
       }
@@ -257,15 +266,19 @@ export default function PaletteColorSelector({
   const getTokenLevelForPaletteLevel = useCallback((paletteLevel: string): string | null => {
     const toneName = `palette/${paletteKey}/${paletteLevel}/color/tone`
     const toneRaw = themeIndex[`${mode}::${toneName}`]?.value
-    if (typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
-      const inner = toneRaw.slice(1, -1).trim()
-      const match = /^tokens\.color\.([a-z0-9_-]+)\.(000|050|[1-9][0-9]{2}|1000)$/i.exec(inner)
-      if (match) {
-        return match[2] // Return the token level (e.g., '050' for dark mode neutral 1000)
+    if (typeof toneRaw === 'string') {
+      const context: TokenReferenceContext = {
+        currentMode: mode.toLowerCase() as 'light' | 'dark',
+        tokenIndex: buildTokenIndex(tokensJson),
+        theme: themeJson
+      }
+      const parsed = parseTokenReference(toneRaw, context)
+      if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
+        return parsed.path[2] // Return the token level (e.g., '050' for dark mode neutral 1000)
       }
     }
     return null
-  }, [themeIndex, mode, paletteKey])
+  }, [themeIndex, mode, paletteKey, tokensJson, themeJson])
 
   // Re-check AA compliance for a palette when token values change
   // If family is provided, only re-check if this palette uses that family
@@ -289,19 +302,19 @@ export default function PaletteColorSelector({
       const tokenName = `color/${familyToUse}/${tokenLevel}`
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
-        const onToneCssVar = `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
+        const onToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
         
         // Get actual core color values (read from CSS variables to get current values)
-        const coreBlackVar = `--recursica-brand-${modeLower}-palettes-core-black`
-        const coreWhiteVar = `--recursica-brand-${modeLower}-palettes-core-white`
+        const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
+        const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
         const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
         const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
         const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
         const normalizedWhite = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
         
         // Get emphasis opacity values
-        const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-high`)
-        const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeLower}-text-emphasis-low`)
+        const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
+        const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
         const AA = 4.5
         
         // Check both core colors with opacity blending
@@ -325,6 +338,7 @@ export default function PaletteColorSelector({
         
         // Determine best on-tone color based on AA compliance
         // Priority: both pass > low emphasis > high emphasis > baseline contrast
+        let onToneCore: 'white' | 'black'
         if (whitePassesBoth && blackPassesBoth) {
           // Both pass - choose based on contrast
           onToneCore = whiteLowContrast >= blackLowContrast ? 'white' : 'black'
@@ -348,7 +362,7 @@ export default function PaletteColorSelector({
         // Update CSS variable with verified on-tone
         updateCssVar(
           onToneCssVar,
-          `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
+          `var(--recursica-brand-themes-${modeLower}-palettes-core-${onToneCore})`
         )
         
         // Store verified value for theme JSON update
@@ -390,8 +404,8 @@ export default function PaletteColorSelector({
                 const otherNormalizedBlack = otherBlackHex.startsWith('#') ? otherBlackHex.toLowerCase() : `#${otherBlackHex.toLowerCase()}`
                 const otherNormalizedWhite = otherWhiteHex.startsWith('#') ? otherWhiteHex.toLowerCase() : `#${otherWhiteHex.toLowerCase()}`
                 
-                const otherHighEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeKeyLower}-text-emphasis-high`)
-                const otherLowEmphasisOpacity = readCssVarNumber(`--recursica-brand-${modeKeyLower}-text-emphasis-low`)
+                const otherHighEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeKeyLower}-text-emphasis-high`)
+                const otherLowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeKeyLower}-text-emphasis-low`)
                 
                 const otherWhiteHighBlended = blendHexOver(otherNormalizedWhite, hex, otherHighEmphasisOpacity)
                 const otherWhiteLowBlended = blendHexOver(otherNormalizedWhite, hex, otherLowEmphasisOpacity)
@@ -504,15 +518,15 @@ export default function PaletteColorSelector({
       if (typeof hex === 'string') {
         // Set tone CSS variable - only for this specific palette
         updateCssVar(
-          `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
+          `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
           `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`
         )
         
         // Determine on-tone color considering opacity for AA compliance - only for this palette
         const onToneCore = pickOnToneWithOpacity(hex, mode)
         updateCssVar(
-          `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
-          `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
+          `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
+          `var(--recursica-brand-themes-${modeLower}-palettes-core-${onToneCore})`
         )
       }
     })
@@ -554,11 +568,15 @@ export default function PaletteColorSelector({
             const otherModeLabel = modeKey === 'light' ? 'Light' : 'Dark'
             const toneName = `palette/${paletteKey}/${lvl}/color/tone`
             const toneRaw = themeIndex[`${otherModeLabel}::${toneName}`]?.value
-            if (typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
-              const inner = toneRaw.slice(1, -1).trim()
-              const match = /^tokens\.color\.([a-z0-9_-]+)\.(000|050|[1-9][0-9]{2}|1000)$/i.exec(inner)
-              if (match) {
-                tokenLevel = match[2]
+            if (typeof toneRaw === 'string') {
+              const context: TokenReferenceContext = {
+                currentMode: otherModeLabel.toLowerCase() as 'light' | 'dark',
+                tokenIndex: buildTokenIndex(tokensJson),
+                theme: themeJson
+              }
+              const parsed = parseTokenReference(toneRaw, context)
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
+                tokenLevel = parsed.path[2]
               }
             }
           }
@@ -594,15 +612,15 @@ export default function PaletteColorSelector({
         if (typeof hex === 'string') {
           // Set tone CSS variable - only for this specific palette
           updateCssVar(
-            `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
+            `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
             `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`
           )
           
           // Determine on-tone color considering opacity for AA compliance - only for this palette
           const onToneCore = pickOnToneWithOpacity(hex, mode)
           updateCssVar(
-            `--recursica-brand-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
-            `var(--recursica-brand-${modeLower}-palettes-core-${onToneCore})`
+            `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`,
+            `var(--recursica-brand-themes-${modeLower}-palettes-core-${onToneCore})`
           )
         }
       })
