@@ -262,7 +262,7 @@ globalStyle('.mantine-Button-root[data-variant="subtle"]', {
 
 /* Handle disabled state - use opacity from brand state */
 globalStyle('.mantine-Button-root[data-disabled="true"], .mantine-Button-root:disabled', {
-  opacity: 'var(--recursica-brand-light-state-disabled, var(--recursica-brand-dark-state-disabled, 0.5))',
+  opacity: 'var(--recursica-brand-themes-light-state-disabled, var(--recursica-brand-themes-dark-state-disabled, 0.5))',
 })
 
 /* Handle elevation via box-shadow - elevation is set on wrapper */
