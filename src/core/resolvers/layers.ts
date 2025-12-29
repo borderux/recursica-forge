@@ -274,26 +274,26 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
   const applyForLayer = (spec: any, prefix: string) => {
     const brandBase = `--recursica-brand-themes-${mode}-layer-layer-${prefix}-property-`
     // Extract surface value - handle both direct values and $value wrapper
-    let surfRaw = spec?.property?.surface
+    let surfRaw = spec?.properties?.surface
     if (surfRaw && typeof surfRaw === 'object' && typeof (surfRaw as any)['$value'] === 'string') {
       surfRaw = (surfRaw as any)['$value']
     }
     const surfPalette = parsePaletteToneRef(surfRaw)
     const surf = resolveRef(surfRaw)
-    const padRaw = spec?.property?.padding
+    const padRaw = spec?.properties?.padding
     const padSizeKey = parseSizeTokenRef(padRaw)
     const pad = resolveRef(padRaw)
     // Preserve only var references for border color; avoid emitting hex
     // Extract border color value - handle both direct values and $value wrapper
-    let bcolRaw = spec?.property?.['border-color']
+    let bcolRaw = spec?.properties?.['border-color']
     if (bcolRaw && typeof bcolRaw === 'object' && typeof (bcolRaw as any)['$value'] === 'string') {
       bcolRaw = (bcolRaw as any)['$value']
     }
     const bcolVarRef = coerceToVarRef(bcolRaw)
-    const bthRaw = spec?.property?.['border-thickness']
+    const bthRaw = spec?.properties?.['border-thickness']
     const bthSizeKey = parseSizeTokenRef(bthRaw)
     const bth = resolveRef(bthRaw)
-    const bradRaw = spec?.property?.['border-radius']
+    const bradRaw = spec?.properties?.['border-radius']
     const bradSizeKey = parseSizeTokenRef(bradRaw)
     const brad = resolveRef(bradRaw)
     if (surfPalette) {

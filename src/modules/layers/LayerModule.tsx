@@ -85,7 +85,7 @@ export default function LayerModule({ level, title, className, children, onSelec
       
       // For regular layers
       const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerId}`] || themes?.[mode]?.layer?.[`layer-${layerId}`] || root?.[mode]?.layers?.[`layer-${layerId}`] || root?.[mode]?.layer?.[`layer-${layerId}`] || {}
-      const v: any = layerSpec?.property?.elevation?.$value
+      const v: any = layerSpec?.properties?.elevation?.$value
       if (typeof v === 'string') {
         // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
         const m = v.match(/elevations\.(elevation-(\d+))/i)

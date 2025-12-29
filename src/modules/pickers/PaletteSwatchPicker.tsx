@@ -278,11 +278,11 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                               
                               // Ensure state structure exists
                               if (!themes[modeKey]) themes[modeKey] = {}
-                              if (!themes[modeKey].state) themes[modeKey].state = {}
-                              if (!themes[modeKey].state.overlay) themes[modeKey].state.overlay = {}
+                              if (!themes[modeKey].states) themes[modeKey].states = {}
+                              if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
                               
                               // Update the overlay color reference in theme JSON
-                              themes[modeKey].state.overlay.color = {
+                              themes[modeKey].states.overlay.color = {
                                 $type: 'color',
                                 $value: `{brand.themes.${modeKey}.palettes.${paletteKey}.${cssLevel}.color.tone}`
                               }

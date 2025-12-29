@@ -42,7 +42,7 @@
                 }
               }
             },
-            "property": {
+            "properties": {
               "elevation": {
                 "$type": "elevation",
                 "$value": "{brand.elevations.elevation-0}"
@@ -73,7 +73,7 @@
             }
           },
           "layer-1": {
-            "property": {
+            "properties": {
               "border-thickness": {
                 "$type": "number",
                 "$value": {
@@ -142,7 +142,7 @@
             }
           },
           "layer-3": {
-            "property": {
+            "properties": {
               "elevation": {
                 "$type": "elevation",
                 "$value": "{brand.elevations.elevation-2}"
@@ -249,7 +249,7 @@
                 }
               }
             },
-            "property": {
+            "properties": {
               "surface": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.100.color.tone}"
@@ -280,7 +280,7 @@
             }
           }
         },
-        "state": {
+        "states": {
           "disabled": {
             "$type": "number",
             "$value": "{tokens.opacity.ghost}"
@@ -1022,7 +1022,7 @@
                 }
               }
             },
-            "property": {
+            "properties": {
               "elevation": {
                 "$type": "elevation",
                 "$value": "{brand.elevations.elevation-0}"
@@ -1053,7 +1053,7 @@
             }
           },
           "layer-1": {
-            "property": {
+            "properties": {
               "border-thickness": {
                 "$type": "number",
                 "$value": {
@@ -1114,7 +1114,7 @@
             }
           },
           "layer-3": {
-            "property": {
+            "properties": {
               "elevation": {
                 "$type": "elevation",
                 "$value": "{brand.elevations.elevation-2}"
@@ -1205,7 +1205,7 @@
                 }
               }
             },
-            "property": {
+            "properties": {
               "surface": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.100.color.tone}"
@@ -1236,7 +1236,7 @@
             }
           }
         },
-        "state": {
+        "states": {
           "disabled": {
             "$type": "number",
             "$value": "{tokens.opacity.ghost}"

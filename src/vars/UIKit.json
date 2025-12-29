@@ -8,7 +8,7 @@
         }
       },
       "form": {
-        "layout": {
+        "layouts": {
           "side-by-side": {
             "label-column-width": {
               "$type": "dimension",
@@ -50,7 +50,7 @@
           }
         }
       },
-      "indicator": {
+      "indicators": {
         "color": {
           "optional-text": {
             "$type": "number",
@@ -73,7 +73,7 @@
         "color": {
           "background": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.property.surface}"
+            "$value": "{brand.layers.layer-0.properties.surface}"
           },
           "background-read-only": {
             "$type": "color",
@@ -109,10 +109,10 @@
           },
           "disabled": {
             "$type": "number",
-            "$value": "{brand.state.disabled}"
+            "$value": "{brand.states.disabled}"
           }
         },
-        "size": {
+        "sizes": {
           "border-radius": {
             "$type": "dimension",
             "$value": {
@@ -207,7 +207,7 @@
             "$value": "{brand.text-emphasis.low}"
           }
         },
-        "size": {
+        "sizes": {
           "required-indicator-gap": {
             "$type": "dimension",
             "$value": {
@@ -375,11 +375,11 @@
               "layer-0": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.property.surface}"
+                  "$value": "{brand.layers.layer-0.properties.surface}"
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.property.surface}"
+                  "$value": "{brand.layers.layer-0.properties.surface}"
                 },
                 "text": {
                   "$type": "color",
@@ -393,11 +393,11 @@
               "layer-1": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.property.surface}"
+                  "$value": "{brand.layers.layer-1.properties.surface}"
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.property.surface}"
+                  "$value": "{brand.layers.layer-1.properties.surface}"
                 },
                 "text": {
                   "$type": "color",
@@ -411,11 +411,11 @@
               "layer-2": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.property.surface}"
+                  "$value": "{brand.layers.layer-2.properties.surface}"
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.property.surface}"
+                  "$value": "{brand.layers.layer-2.properties.surface}"
                 },
                 "text": {
                   "$type": "color",
@@ -429,11 +429,11 @@
               "layer-3": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.property.surface}"
+                  "$value": "{brand.layers.layer-3.properties.surface}"
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.property.surface}"
+                  "$value": "{brand.layers.layer-3.properties.surface}"
                 },
                 "text": {
                   "$type": "color",
@@ -866,7 +866,7 @@
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.property.border-color}"
+                      "$value": "{brand.layers.layer-1.properties.border-color}"
                     },
                     "text-color": {
                       "$type": "color",
@@ -880,7 +880,7 @@
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.property.border-color}"
+                      "$value": "{brand.layers.layer-2.properties.border-color}"
                     },
                     "text-color": {
                       "$type": "color",
@@ -894,7 +894,7 @@
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.property.border-color}"
+                      "$value": "{brand.layers.layer-3.properties.border-color}"
                     },
                     "text-color": {
                       "$type": "color",
@@ -990,7 +990,7 @@
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.property.border-color}"
+                      "$value": "{brand.layers.layer-1.properties.border-color}"
                     },
                     "icon-color": {
                       "$type": "color",
@@ -1004,7 +1004,7 @@
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.property.border-color}"
+                      "$value": "{brand.layers.layer-2.properties.border-color}"
                     },
                     "icon-color": {
                       "$type": "color",
@@ -1018,7 +1018,7 @@
                     },
                     "border": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.property.border-color}"
+                      "$value": "{brand.layers.layer-3.properties.border-color}"
                     },
                     "icon-color": {
                       "$type": "color",
@@ -1044,37 +1044,37 @@
               "layer-1": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.property.surface}"
+                  "$value": "{brand.layers.layer-1.properties.surface}"
                 },
                 "border": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.property.border-color}"
+                  "$value": "{brand.layers.layer-1.properties.border-color}"
                 }
               },
               "layer-2": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.property.surface}"
+                  "$value": "{brand.layers.layer-2.properties.surface}"
                 },
                 "border": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.property.border-color}"
+                  "$value": "{brand.layers.layer-2.properties.border-color}"
                 }
               },
               "layer-3": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.property.surface}"
+                  "$value": "{brand.layers.layer-3.properties.surface}"
                 },
                 "border": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.property.border-color}"
+                  "$value": "{brand.layers.layer-3.properties.border-color}"
                 }
               }
             }
           }
         },
-        "size": {
+        "sizes": {
           "variant": {
             "small": {
               "$type": "dimension",

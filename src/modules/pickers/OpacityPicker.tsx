@@ -99,35 +99,35 @@ export default function OpacityPicker() {
           }
         } else if (isHoverOpacity) {
           // Handle hover opacity
-          // Ensure state structure exists
+          // Ensure states structure exists
           if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].state) themes[modeKey].state = {}
+          if (!themes[modeKey].states) themes[modeKey].states = {}
           
           // Update the hover opacity reference in theme JSON
-          themes[modeKey].state.hover = {
+          themes[modeKey].states.hover = {
             $type: 'number',
             $value: `{tokens.opacity.${tokenKey}}`
           }
         } else if (isDisabledOpacity) {
           // Handle disabled opacity
-          // Ensure state structure exists
+          // Ensure states structure exists
           if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].state) themes[modeKey].state = {}
+          if (!themes[modeKey].states) themes[modeKey].states = {}
           
           // Update the disabled opacity reference in theme JSON
-          themes[modeKey].state.disabled = {
+          themes[modeKey].states.disabled = {
             $type: 'number',
             $value: `{tokens.opacity.${tokenKey}}`
           }
         } else if (isOverlayOpacity) {
           // Handle overlay opacity
-          // Ensure state structure exists
+          // Ensure states structure exists
           if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].state) themes[modeKey].state = {}
-          if (!themes[modeKey].state.overlay) themes[modeKey].state.overlay = {}
+          if (!themes[modeKey].states) themes[modeKey].states = {}
+          if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
           
           // Update the overlay opacity reference in theme JSON
-          themes[modeKey].state.overlay.opacity = {
+          themes[modeKey].states.overlay.opacity = {
             $type: 'number',
             $value: `{tokens.opacity.${tokenKey}}`
           }
