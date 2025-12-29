@@ -27,7 +27,7 @@
       }
     },
     "button": {
-      "icon": "cursor-click",
+      "icon": "square",
       "label": "Button",
       "visible": true
     },
