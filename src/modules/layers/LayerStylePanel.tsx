@@ -4,6 +4,8 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import PaletteColorControl from '../forms/PaletteColorControl'
 import TokenSlider from '../forms/TokenSlider'
 import brandDefault from '../../vars/Brand.json'
+import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 type Json = any
 
@@ -274,9 +276,16 @@ export default function LayerStylePanel({
           tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
           currentToken={(() => {
             const v = (spec as any)?.property?.padding?.$value
-            const s = typeof v === 'string' ? v : ''
-            const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-            return m ? m[1] : undefined
+            if (typeof v !== 'string') return undefined
+            // Use centralized parser to extract size token name
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
+            const parsed = parseTokenReference(v, context)
+            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
+              // Extract token name from path (e.g., size/2x -> 2x)
+              return parsed.path.slice(1).join('/')
+            }
+            return undefined
           })()}
           onChange={(tokenName) => {
             const sel = sizeOptions.find((o) => o.label === tokenName)
@@ -290,9 +299,16 @@ export default function LayerStylePanel({
             tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
             currentToken={(() => {
               const v = (spec as any)?.property?.['border-radius']?.$value
-              const s = typeof v === 'string' ? v : ''
-              const m = s.match(/\{tokens\.size\.([^}]+)\}/)
-              return m ? m[1] : undefined
+              if (typeof v !== 'string') return undefined
+              // Use centralized parser to extract size token name
+              const tokenIndex = buildTokenIndex(tokensJson)
+              const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
+              const parsed = parseTokenReference(v, context)
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
+                // Extract token name from path (e.g., size/2x -> 2x)
+                return parsed.path.slice(1).join('/')
+              }
+              return undefined
             })()}
             onChange={(tokenName) => {
               const sel = sizeOptions.find((o) => o.label === tokenName)

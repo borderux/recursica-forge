@@ -155,10 +155,17 @@ export default function PaletteColorSelector({
         const toneName = `palette/${pk}/${lvl}/color/tone`
         const toneRaw = themeIndex[`Light::${toneName}`]?.value || themeIndex[`Dark::${toneName}`]?.value
         if (typeof toneRaw === 'string') {
-          const match = toneRaw.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
-          if (match && match[1]) {
-            usedBy[pk] = match[1]
-            break // Found family for this palette, move to next
+          // Use centralized parser to check for token references
+          const tokenIndex = buildTokenIndex(tokensJson)
+          const context: TokenReferenceContext = { currentMode: 'light', tokenIndex }
+          const parsed = parseTokenReference(toneRaw, context)
+          if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
+            // Extract family name from token path (e.g., color/gray/100 -> gray)
+            const familyName = parsed.path[1]
+            if (familyName) {
+              usedBy[pk] = familyName
+              break // Found family for this palette, move to next
+            }
           }
         }
       }
