@@ -422,13 +422,13 @@ export function exportBrandJson(): object {
         
         // Build structure from CSS vars only
         if (!result.brand.themes[mode].layers[layerId]) {
-          result.brand.themes[mode].layers[layerId] = { property: {}, element: {} }
+          result.brand.themes[mode].layers[layerId] = { property: {}, elements: {} }
         }
         if (!result.brand.themes[mode].layers[layerId].property) {
           result.brand.themes[mode].layers[layerId].property = {}
         }
-        if (!result.brand.themes[mode].layers[layerId].element) {
-          result.brand.themes[mode].layers[layerId].element = {}
+        if (!result.brand.themes[mode].layers[layerId].elements) {
+          result.brand.themes[mode].layers[layerId].elements = {}
         }
         
         if (path[0] === 'property') {
@@ -456,13 +456,13 @@ export function exportBrandJson(): object {
             const elementType = parts[0] // text, interactive
             const elementProp = parts.slice(1).join('-') // color, tone, etc.
             
-            if (!result.brand.themes[mode].layers[layerId].element[elementType]) {
-              result.brand.themes[mode].layers[layerId].element[elementType] = {}
+            if (!result.brand.themes[mode].layers[layerId].elements[elementType]) {
+              result.brand.themes[mode].layers[layerId].elements[elementType] = {}
             }
             
             const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
             if (jsonValue !== undefined) {
-              result.brand.themes[mode].layers[layerId].element[elementType][elementProp] = { 
+              result.brand.themes[mode].layers[layerId].elements[elementType][elementProp] = { 
                 $type: 'color', 
                 $value: jsonValue 
               }
