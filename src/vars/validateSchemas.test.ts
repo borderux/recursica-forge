@@ -183,7 +183,7 @@ describe('JSON Schema Validation', () => {
     it('should have button component defined', () => {
       expect(uikitJson['ui-kit']?.components?.button).toBeDefined()
       expect(uikitJson['ui-kit']?.components?.button?.color).toBeDefined()
-      expect(uikitJson['ui-kit']?.components?.button?.size).toBeDefined()
+      expect(uikitJson['ui-kit']?.components?.button?.sizes).toBeDefined()
     })
 
     it('should validate JSON structure changes', () => {

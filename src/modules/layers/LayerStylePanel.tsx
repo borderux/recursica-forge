@@ -256,14 +256,14 @@ export default function LayerStylePanel({
             label="Elevation"
             tokens={elevationOptions.map((o) => ({ name: o.name, label: o.label }))}
             currentToken={(() => {
-              const v = (spec as any)?.property?.elevation?.$value
+              const v = (spec as any)?.properties?.elevation?.$value
               const s = typeof v === 'string' ? v : ''
               // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
               const m = s.match(/elevations\.(elevation-\d+)/)
               return m ? m[1] : undefined
             })()}
             onChange={(tokenName) => {
-              updateValue(['property','elevation'], `{brand.themes.${mode}.elevations.${tokenName}}`)
+              updateValue(['properties','elevation'], `{brand.themes.${mode}.elevations.${tokenName}}`)
             }}
             getTokenLabel={(token) => {
               const opt = elevationOptions.find((o) => o.name === token.name)
@@ -275,7 +275,7 @@ export default function LayerStylePanel({
           label="Padding"
           tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
           currentToken={(() => {
-            const v = (spec as any)?.property?.padding?.$value
+            const v = (spec as any)?.properties?.padding?.$value
             if (typeof v !== 'string') return undefined
             // Use centralized parser to extract size token name
             const tokenIndex = buildTokenIndex(tokensJson)
@@ -289,7 +289,7 @@ export default function LayerStylePanel({
           })()}
           onChange={(tokenName) => {
             const sel = sizeOptions.find((o) => o.label === tokenName)
-            if (sel) updateValue(['property','padding'], sel.value)
+            if (sel) updateValue(['properties','padding'], sel.value)
           }}
           getTokenLabel={(token) => toTitleCase(token.name)}
         />
@@ -298,7 +298,7 @@ export default function LayerStylePanel({
             label="Border Radius"
             tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
             currentToken={(() => {
-              const v = (spec as any)?.property?.['border-radius']?.$value
+              const v = (spec as any)?.properties?.['border-radius']?.$value
               if (typeof v !== 'string') return undefined
               // Use centralized parser to extract size token name
               const tokenIndex = buildTokenIndex(tokensJson)
@@ -312,7 +312,7 @@ export default function LayerStylePanel({
             })()}
             onChange={(tokenName) => {
               const sel = sizeOptions.find((o) => o.label === tokenName)
-              if (sel) updateValue(['property','border-radius'], sel.value)
+              if (sel) updateValue(['properties','border-radius'], sel.value)
             }}
             getTokenLabel={(token) => toTitleCase(token.name)}
           />
@@ -324,7 +324,7 @@ export default function LayerStylePanel({
                 <span style={{ fontSize: 12, opacity: 0.7 }}>Border Thickness</span>
                 <span style={{ fontSize: 12, opacity: 0.7 }}>
                   {(() => {
-                    const v = (spec as any)?.property?.['border-thickness']?.$value
+                    const v = (spec as any)?.properties?.['border-thickness']?.$value
                     return typeof v === 'number' ? `${v}px` : '0px'
                   })()}
                 </span>
@@ -335,12 +335,12 @@ export default function LayerStylePanel({
                 max={20}
                 step={1}
                 value={(() => {
-                  const v = (spec as any)?.property?.['border-thickness']?.$value
+                  const v = (spec as any)?.properties?.['border-thickness']?.$value
                   return typeof v === 'number' ? v : 0
                 })()}
                 onChange={(e) => {
                   const n = parseInt(e.currentTarget.value || '0', 10)
-                  updateValue(['property','border-thickness'], String(Number.isFinite(n) ? n : 0))
+                  updateValue(['properties','border-thickness'], String(Number.isFinite(n) ? n : 0))
                 }}
               />
             </label>
