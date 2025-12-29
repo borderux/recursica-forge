@@ -92,11 +92,17 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       const toneName = `palette/${paletteKey}/${lvl}/color/tone`
       const toneRaw = (themeIndex as any)[`${mode}::${toneName}`]?.value
       if (typeof toneRaw === 'string') {
-        // Check for token reference format: {tokens.color.{family}.{level}}
-        const match = toneRaw.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
-        if (match && match[1]) {
-          const detectedFamily = match[1]
-          if (families.includes(detectedFamily)) {
+        // Use centralized parser to check for token references
+        const tokenIndex = buildTokenIndex(tokensJson)
+        const context: TokenReferenceContext = { 
+          currentMode: mode.toLowerCase() === 'dark' ? 'dark' : 'light', 
+          tokenIndex 
+        }
+        const parsed = parseTokenReference(toneRaw, context)
+        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
+          // Extract family name from token path (e.g., color/gray/100 -> gray)
+          const detectedFamily = parsed.path[1]
+          if (detectedFamily && families.includes(detectedFamily)) {
             return detectedFamily
           }
         }

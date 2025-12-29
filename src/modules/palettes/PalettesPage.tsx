@@ -10,6 +10,7 @@ import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css
 import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
@@ -535,13 +536,18 @@ export default function PalettesPage() {
             for (const lvl of checkLevels) {
               const tone = palette?.[lvl]?.color?.tone?.$value
               if (typeof tone === 'string') {
-                // Check for token reference format: {tokens.color.{family}.{level}}
-                const match = tone.match(/\{tokens\.color\.([a-z0-9_-]+)\./)
-                if (match && match[1]) {
-                  const detectedFamily = match[1]
-                  set.add(detectedFamily)
-                  foundFamily = true
-                  break // Found a family for this palette, move to next palette
+                // Use centralized parser to check for token references
+                const tokenIndex = buildTokenIndex(tokensJson)
+                const context: TokenReferenceContext = { currentMode: modeKey as 'light' | 'dark', tokenIndex }
+                const parsed = parseTokenReference(tone, context)
+                if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
+                  // Extract family name from token path (e.g., color/gray/100 -> gray)
+                  const detectedFamily = parsed.path[1]
+                  if (detectedFamily) {
+                    set.add(detectedFamily)
+                    foundFamily = true
+                    break // Found a family for this palette, move to next palette
+                  }
                 }
               }
             }
