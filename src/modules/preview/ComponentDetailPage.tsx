@@ -12,6 +12,7 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
 import ComponentDebugTable from './ComponentDebugTable'
 import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
+import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
@@ -133,9 +134,16 @@ export default function ComponentDetailPage() {
       const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
       const v: any = layerSpec?.properties?.elevation?.$value
       if (typeof v === 'string') {
-        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
-        const m = v.match(/elevations\.(elevation-(\d+))/i)
-        if (m) elevationLevel = m[2]
+        // Use centralized parser to extract elevation name
+        const braceContent = extractBraceContent(v)
+        if (braceContent !== null) {
+          const parsed = parseTokenReference(v, { currentMode: mode, theme })
+          if (parsed && parsed.type === 'brand') {
+            const pathStr = parsed.path.join('.')
+            const m = /elevations?\.(elevation-(\d+))$/i.exec(pathStr)
+            if (m) elevationLevel = m[2]
+          }
+        }
       }
     } catch {}
     

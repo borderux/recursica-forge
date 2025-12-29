@@ -120,10 +120,6 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           // Only add variant if we haven't seen this finalPropName before
           if (!seenVariants.has(finalPropName)) {
             seenVariants.add(finalPropName)
-            // Debug log for Badge size variants
-            if (componentKey === 'badge' && finalPropName === 'size') {
-              console.log('Badge size variants found:', variantNames)
-            }
             variants.push({
               propName: finalPropName,
               variants: variantNames,

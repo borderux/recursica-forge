@@ -4,6 +4,8 @@
  * Utilities for working with typography type styles from UIKit.json
  */
 
+import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
+
 /**
  * Typography properties that should be applied from a typography style
  * 
@@ -38,11 +40,11 @@ export function extractTypographyStyleName(value: string | null | undefined): st
   const trimmed = value.trim()
   
   // Check if it's a brace reference: {brand.typography.caption}
-  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-    const inner = trimmed.slice(1, -1).trim()
-    const match = /^brand\.typography\.([a-z0-9-]+)$/i.exec(inner)
-    if (match) {
-      return match[1].toLowerCase()
+  const braceContent = extractBraceContent(trimmed)
+  if (braceContent !== null) {
+    const parsed = parseTokenReference(trimmed, {})
+    if (parsed && parsed.type === 'brand' && parsed.path.length === 2 && parsed.path[0] === 'typography') {
+      return parsed.path[1].toLowerCase()
     }
   }
   

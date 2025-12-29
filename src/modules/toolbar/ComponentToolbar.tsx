@@ -353,14 +353,6 @@ export default function ComponentToolbar({
       return a.name.localeCompare(b.name)
     })
   }, [structure.props, componentName, selectedVariants, toolbarConfig, selectedLayer])
-  
-  // Debug: log all props for Badge
-  useEffect(() => {
-    if (componentName.toLowerCase() === 'badge') {
-      console.log('Badge allProps:', allProps.map(p => ({ name: p.name, category: p.category, isVariantSpecific: p.isVariantSpecific })))
-      console.log('Badge structure.props:', structure.props.map(p => ({ name: p.name, category: p.category, path: p.path })))
-    }
-  }, [componentName, allProps, structure.props])
 
   const handleReset = () => {
     // Remove all CSS var overrides for this component

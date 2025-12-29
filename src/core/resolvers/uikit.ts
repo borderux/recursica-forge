@@ -7,7 +7,7 @@
 
 import type { JsonLike } from './tokens'
 import { buildTokenIndex } from './tokens'
-import { resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../utils/tokenReferenceParser'
+import { resolveTokenReferenceToCssVar, extractBraceContent, parseTokenReference, type TokenReferenceContext } from '../utils/tokenReferenceParser'
 
 /**
  * Converts a UIKit.json path to a CSS variable name
@@ -142,9 +142,10 @@ function traverseUIKit(
           vars[cssVarName] = resolved
         } else if (dimValue != null) {
           // Check if dimValue is a brace reference that couldn't be resolved yet
-          if (typeof dimValue === 'string' && dimValue.trim().startsWith('{') && dimValue.trim().endsWith('}')) {
+          const braceContent = extractBraceContent(dimValue)
+          if (braceContent !== null) {
             // Preserve the brace reference for second pass resolution
-            vars[cssVarName] = dimValue.trim()
+            vars[cssVarName] = typeof dimValue === 'string' ? dimValue.trim() : `{${braceContent}}`
           } else {
             // Use the value with the unit
             if (typeof dimValue === 'number') {
@@ -166,28 +167,41 @@ function traverseUIKit(
         }
       } else if (type === 'elevation' && typeof val === 'string') {
         // Handle elevation type: extract elevation name from reference
-        // e.g., {brand.themes.light.elevations.elevation-0} -> elevation-0
+        // e.g., {brand.elevations.elevation-0} -> elevation-0
         const trimmed = val.trim()
-        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-          const inner = trimmed.slice(1, -1).trim()
-          // Normalize spaces to dots
-          const normalized = inner
-            .replace(/\s*\.\s*/g, '.')
-            .replace(/\s+/g, '.')
-            .replace(/\.+/g, '.')
-            .replace(/^\.|\.$/g, '')
+        const braceContent = extractBraceContent(trimmed)
+        if (braceContent !== null) {
+          // Parse the token reference to extract elevation name
+          const context: TokenReferenceContext = {
+            currentMode: mode,
+            tokenIndex,
+            theme,
+            uikit
+          }
+          const parsed = parseTokenReference(trimmed, context)
           
-          // Extract elevation name from pattern: brand.themes.light.elevations.elevation-0
-          const elevationMatch = /elevations?\.(elevation-\d+)$/i.exec(normalized)
-          if (elevationMatch) {
-            vars[cssVarName] = elevationMatch[1] // Just the elevation name like "elevation-0"
+          if (parsed && parsed.type === 'brand') {
+            // Extract elevation name from path: palettes.elevations.elevation-0 or elevations.elevation-0
+            const pathStr = parsed.path.join('.')
+            const elevationMatch = /elevations?\.(elevation-\d+)$/i.exec(pathStr)
+            if (elevationMatch) {
+              vars[cssVarName] = elevationMatch[1] // Just the elevation name like "elevation-0"
+            } else {
+              // Try to resolve as a regular token reference
+              const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
+              if (resolved) {
+                vars[cssVarName] = resolved
+              } else {
+                vars[cssVarName] = trimmed
+              }
+            }
           } else {
             // Try to resolve as a regular token reference
             const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
             if (resolved) {
               vars[cssVarName] = resolved
             } else {
-              vars[cssVarName] = val.trim()
+              vars[cssVarName] = trimmed
             }
           }
         } else {
@@ -213,9 +227,10 @@ function traverseUIKit(
         } else if (val != null) {
           // Check if val is a brace reference that couldn't be resolved yet
           // (e.g., UIKit self-reference that doesn't exist yet)
-          if (typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')) {
+          const braceContent = extractBraceContent(val)
+          if (braceContent !== null) {
             // Preserve the brace reference for second pass resolution
-            vars[cssVarName] = val.trim()
+            vars[cssVarName] = typeof val === 'string' ? val.trim() : `{${braceContent}}`
           } else {
             // Use raw value if it's not a reference
             // For numbers, add px if no unit (unless it's already a string with unit)
