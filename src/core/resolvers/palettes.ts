@@ -501,6 +501,10 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         const onToneValue = getColorVar(colorDef['on-tone'])
         vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-on-tone`] = onToneValue
       }
+      if (colorDef?.interactive) {
+        const interactiveValue = getColorVar(colorDef.interactive)
+        vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive`] = interactiveValue
+      }
     })
   } catch {}
   
