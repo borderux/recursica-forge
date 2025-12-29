@@ -181,8 +181,18 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     vars[`--recursica-brand-themes-${modeLower}-state-overlay-color`] = overlayColor
   } catch {}
   const toLevelString = (lvl: string): string => {
-    // Use token level as-is - no normalization needed
-    // Token levels like 000, 050, 100-900, 1000 should be used directly
+    // Normalize token level to match CSS variable format
+    // Token levels should be padded to 3 digits (e.g., 50 -> 050, 5 -> 005)
+    // But preserve special levels like 000, 050, 1000 as-is
+    const num = Number(lvl)
+    if (Number.isFinite(num) && num >= 0 && num <= 1000) {
+      // Pad to 3 digits, but handle special cases
+      if (num === 0) return '000'
+      if (num === 50) return '050'
+      if (num === 1000) return '1000'
+      return String(num).padStart(3, '0')
+    }
+    // For non-numeric levels, return as-is
     return String(lvl)
   }
   palettes.forEach((pk) => {
