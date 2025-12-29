@@ -398,8 +398,15 @@ export default function ColorTokens() {
           })
           setValues(newValues)
           
-          // Update family order
-          setFamilyOrder((prev) => prev.map(f => f === tempFamily ? newFamilySlug : f).filter(f => f !== tempFamily))
+          // Update family order - always append new family to the end, not sorted alphabetically
+          setFamilyOrder((prev) => {
+            const updated = prev.map(f => f === tempFamily ? newFamilySlug : f).filter(f => f !== tempFamily)
+            // If newFamilySlug is not already in the order, append it to the end
+            if (!updated.includes(newFamilySlug)) {
+              return [...updated, newFamilySlug]
+            }
+            return updated
+          })
           
           // Update family names map
           const updatedFamilyNames = { ...familyNames }
@@ -419,17 +426,20 @@ export default function ColorTokens() {
         } else {
           // Fallback: if rename failed, just update the display name
           setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
+          // Always append to end, not sorted alphabetically
           setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
         }
       } catch (error) {
         console.error('Failed to rename color family after creation:', error)
         // Fallback: just update the display name
         setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
+        // Always append to end, not sorted alphabetically
         setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
       }
     } else {
       // If slug generation failed, just use temp name with friendly display name
       setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
+      // Always append to end, not sorted alphabetically
       setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
     }
   }
