@@ -628,9 +628,9 @@
         }
       },
       "toast": {
-        "variant": {
+        "variants": {
           "default": {
-            "color": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
@@ -674,7 +674,7 @@
             }
           },
           "success": {
-            "color": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
@@ -734,7 +734,7 @@
             }
           },
           "error": {
-            "color": {
+            "colors": {
               "layer-0": {
                 "background": {
                   "$type": "color",
