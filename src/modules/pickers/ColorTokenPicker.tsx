@@ -6,6 +6,7 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateInteractiveColor, updateCoreColorInteractiveOnTones } from './interactiveColorUpdater'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { hexToCssVarRef, getSteppedColor, resolveCssVarToHex, findColorFamilyAndLevel } from '../../core/compliance/layerColorStepping'
 import { pickAAOnTone, contrastRatio } from '../theme/contrastUtil'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -280,24 +281,20 @@ export default function ColorTokenPicker() {
             if (currentInteractiveRef) {
               // Resolve interactive color to hex
               const resolveRef = (ref: string): string | null => {
-                if (ref.startsWith('{') && ref.endsWith('}')) {
-                  const inner = ref.slice(1, -1).trim()
-                  if (inner.startsWith('tokens.color.')) {
-                    const path = inner.replace('tokens.color.', '').replace(/\./g, '/')
-                    const hex = tokenIndex.get(`color/${path}`)
-                    if (typeof hex === 'string') {
-                      return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-                    }
-                  } else if (inner.startsWith('brand.themes.')) {
-                    const parts = inner.split('.')
-                    let node: any = themes
-                    for (const p of parts.slice(2)) {
-                      if (!node) break
-                      node = node[p]
-                    }
-                    if (node && typeof node === 'object' && '$value' in node) {
-                      return resolveRef(node.$value)
-                    }
+                const context: TokenReferenceContext = {
+                  currentMode: mode,
+                  tokenIndex: buildTokenIndex(tokensJson),
+                  theme: themeJson
+                }
+                const resolved = resolveTokenReferenceToValue(ref, context)
+                if (typeof resolved === 'string') {
+                  // Check if it's a hex color
+                  if (resolved.startsWith('#')) {
+                    return resolved.toLowerCase()
+                  }
+                  // If it resolved to another reference, try resolving again
+                  if (resolved.startsWith('{')) {
+                    return resolveRef(resolved)
                   }
                 }
                 return null
