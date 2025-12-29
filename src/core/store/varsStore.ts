@@ -195,6 +195,8 @@ class VarsStore {
   private listeners: Set<Listener> = new Set()
   private lsAvailable = isLocalStorageAvailable()
   private aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
+  private isRecomputing: boolean = false
+  private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
 
   constructor() {
     const tokensRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
@@ -246,8 +248,21 @@ class VarsStore {
     this.initAAWatcher()
 
     // React to type choice changes and palette changes (centralized)
+    // Debounce palette var changes to prevent infinite loops
     const onTypeChoices = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
-    const onPaletteVarsChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
+    let paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
+    const onPaletteVarsChanged = () => {
+      // Debounce to prevent loops - only recompute if no other recompute is pending
+      if (paletteVarsChangedTimeout) {
+        clearTimeout(paletteVarsChangedTimeout)
+      }
+      paletteVarsChangedTimeout = setTimeout(() => {
+        // Don't bump version here - recomputeAndApplyAll doesn't change state, only CSS vars
+        // Only bump version if state actually changes (tokens, theme, etc.)
+        this.recomputeAndApplyAll()
+        paletteVarsChangedTimeout = null
+      }, 100) // Small delay to batch multiple rapid changes
+    }
     const onPaletteFamilyChanged = () => { this.bumpVersion(); this.recomputeAndApplyAll() }
     // Debounce font-loaded events to avoid excessive recomputation
     // Note: We still recompute to update font-family names in token CSS variables,
@@ -786,10 +801,17 @@ class VarsStore {
   }
 
   private recomputeAndApplyAll() {
-    // Build complete CSS variable map from current state
-    // Note: Tokens are now the single source of truth - no overrides needed
-    const currentMode = this.getCurrentMode()
-    const allVars: Record<string, string> = {}
+    // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
+    if (this.isRecomputing) {
+      return
+    }
+    this.isRecomputing = true
+    
+    try {
+      // Build complete CSS variable map from current state
+      // Note: Tokens are now the single source of truth - no overrides needed
+      const currentMode = this.getCurrentMode()
+      const allVars: Record<string, string> = {}
     
     // Tokens: expose size tokens as CSS vars under --tokens-size-<key>
     try {
@@ -977,22 +999,23 @@ class VarsStore {
             }
             
             // Generate additional CSS vars for new structure
+            // Use --recursica-brand-themes- format to match palettes.ts resolver
             if (tone) {
               const toneRef = resolveTokenRef(tone)
               if (toneRef) {
-                colors[`--recursica-brand-${mode}-palettes-core-${colorName}-tone`] = toneRef
+                colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`] = toneRef
               }
             }
             if (onTone) {
               const onToneRef = resolveTokenRef(onTone)
               if (onToneRef) {
-                colors[`--recursica-brand-${mode}-palettes-core-${colorName}-on-tone`] = onToneRef
+                colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-on-tone`] = onToneRef
               }
             }
             if (interactive) {
               const interactiveRef = resolveTokenRef(interactive)
               if (interactiveRef) {
-                colors[`--recursica-brand-${mode}-palettes-core-${colorName}-interactive`] = interactiveRef
+                colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`] = interactiveRef
               }
             }
           } else {
@@ -1035,6 +1058,22 @@ class VarsStore {
           if (existingValue && existingValue.startsWith('var(')) {
             if (!generatedValue || existingValue !== generatedValue) {
               colors[cssVar] = existingValue
+            }
+          }
+        })
+        
+        // Preserve individual core color interactive CSS variables (e.g., core-black-interactive, core-white-interactive)
+        const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success']
+        coreColorKeys.forEach((colorName) => {
+          const interactiveVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`
+          const existingValue = readCssVar(interactiveVar)
+          const generatedValue = colors[interactiveVar]
+          
+          // Preserve if it exists in DOM and is different from generated (user customization)
+          // OR if it exists but wasn't generated (customization not in theme JSON)
+          if (existingValue && existingValue.startsWith('var(')) {
+            if (!generatedValue || existingValue !== generatedValue) {
+              colors[interactiveVar] = existingValue
             }
           }
         })
@@ -1457,6 +1496,10 @@ class VarsStore {
       }
     }
     applyCssVars(allVars, this.state.tokens)
+    } finally {
+      // Always reset the flag, even if an error occurred
+      this.isRecomputing = false
+    }
   }
 
   private isCoreColorToken(family: string, level: string): boolean {

@@ -192,7 +192,24 @@ export default function ColorTokenPicker() {
     if (!cssVar.startsWith(coreColorPrefix)) return // Not a core color
     
     // Extract the color name from the CSS var
-    const colorName = cssVar.replace(coreColorPrefix, '').replace('-tone', '')
+    // Only update if this is a -tone variable, not -on-tone
+    // We should always be updating the tone value, never the on-tone value
+    if (cssVar.includes('-on-tone')) {
+      console.warn(`updateCoreColorInTheme called with on-tone CSS variable: ${cssVar}. Skipping update - only tone values should be updated.`)
+      return
+    }
+    
+    // Extract color name - handle both -tone suffix and base (for backward compatibility)
+    let colorName = cssVar.replace(coreColorPrefix, '')
+    if (colorName.endsWith('-tone')) {
+      colorName = colorName.replace('-tone', '')
+    }
+    
+    // If it's the main interactive variable (not interactive-default-tone or interactive-hover-tone), handle it separately
+    if (colorName === 'interactive' && !cssVar.includes('interactive-default-tone') && !cssVar.includes('interactive-hover-tone')) {
+      // This is the main interactive var (backward compatibility) - treat as interactive-default
+      colorName = 'interactive-default'
+    }
     
     // Determine mapping based on color name
     let mapping: { isInteractive?: boolean; isHover?: boolean } | null = null
@@ -556,15 +573,133 @@ export default function ColorTokenPicker() {
             $value: `{brand.themes.${mode}.palettes.core-colors.${hoverOnToneCore}}`
           }
           
+          // Update core color interactive properties in theme JSON BEFORE calling setTheme
+          // This ensures recomputeAndApplyAll generates the correct CSS variables
+          if (setTheme && themeCopy && tokensJson) {
+            // Update theme JSON with new interactive values for each core color
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const AA = 4.5
+            const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
+            const coreColors = ['black', 'white', 'alert', 'warning', 'success']
+            
+            // Find the interactive color's family and level for stepping
+            const interactiveFamily = findColorFamilyAndLevel(normalizedHex, tokensJson)
+            if (interactiveFamily) {
+              const { family: interactiveFamilyName, level: interactiveLevel } = interactiveFamily
+              const normalizedInteractiveLevel = interactiveLevel === '000' ? '050' : interactiveLevel
+              const startIdx = LEVELS.indexOf(normalizedInteractiveLevel)
+              
+              if (startIdx !== -1) {
+                const coreColorsPath = themes[mode].palettes['core-colors'].$value
+                
+                // Helper to resolve tone reference to hex
+                const context: TokenReferenceContext = {
+                  currentMode: mode,
+                  tokenIndex,
+                  theme: { brand: { themes: themes } }
+                }
+                const resolveRef = (ref: string): string | null => {
+                  const resolved = resolveTokenReferenceToValue(ref, context)
+                  if (typeof resolved === 'string') {
+                    const hex = resolved.trim()
+                    if (/^#?[0-9a-f]{6}$/i.test(hex)) {
+                      return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+                    }
+                    if (resolved.startsWith('{') && resolved.endsWith('}')) {
+                      return resolveRef(resolved)
+                    }
+                  }
+                  return null
+                }
+                
+                // For each core color, update its interactive property
+                for (const colorName of coreColors) {
+                  const colorDef = coreColorsPath[colorName]
+                  if (!colorDef) continue
+                  
+                  const toneRef = colorDef.tone?.$value
+                  if (!toneRef) continue
+                  
+                  const toneHex = resolveRef(toneRef)
+                  if (!toneHex) continue
+                  
+                  // Step through interactive scale to find AA-compliant color
+                  let interactiveRef: string | null = null
+                  
+                  // Try lighter first
+                  for (let i = startIdx - 1; i >= 0; i--) {
+                    const testLevel = LEVELS[i]
+                    const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
+                    const testHex = tokenIndex.get(`color/${interactiveFamilyName}/${normalizedTestLevel}`)
+                    if (typeof testHex === 'string') {
+                      const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+                      const testContrast = contrastRatio(toneHex, hex)
+                      if (testContrast >= AA) {
+                        interactiveRef = `{tokens.color.${interactiveFamilyName}.${normalizedTestLevel}}`
+                        break
+                      }
+                    }
+                  }
+                  
+                  // Try darker if lighter didn't work
+                  if (!interactiveRef) {
+                    for (let i = startIdx + 1; i < LEVELS.length; i++) {
+                      const testLevel = LEVELS[i]
+                      const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
+                      const testHex = tokenIndex.get(`color/${interactiveFamilyName}/${normalizedTestLevel}`)
+                      if (typeof testHex === 'string') {
+                        const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+                        const testContrast = contrastRatio(toneHex, hex)
+                        if (testContrast >= AA) {
+                          interactiveRef = `{tokens.color.${interactiveFamilyName}.${normalizedTestLevel}}`
+                          break
+                        }
+                      }
+                    }
+                  }
+                  
+                  // Check current interactive color itself
+                  if (!interactiveRef) {
+                    const currentContrast = contrastRatio(toneHex, normalizedHex)
+                    if (currentContrast >= AA) {
+                      interactiveRef = `{tokens.color.${interactiveFamilyName}.${normalizedInteractiveLevel}}`
+                    }
+                  }
+                  
+                  // Fallback to white/black
+                  if (!interactiveRef) {
+                    const whiteHex = '#ffffff'
+                    const blackHex = '#000000'
+                    const whiteContrast = contrastRatio(toneHex, whiteHex)
+                    const blackContrast = contrastRatio(toneHex, blackHex)
+                    interactiveRef = whiteContrast >= blackContrast
+                      ? `{brand.themes.${mode}.palettes.core-colors.white}`
+                      : `{brand.themes.${mode}.palettes.core-colors.black}`
+                  }
+                  
+                  // Update interactive property in theme JSON
+                  if (interactiveRef) {
+                    if (!colorDef.interactive) {
+                      colorDef.interactive = {}
+                    }
+                    colorDef.interactive.$value = interactiveRef
+                  }
+                }
+              }
+            }
+          }
+          
           // Update theme JSON synchronously BEFORE updating CSS vars
+          // This includes the updated interactive values for each core color
           setTheme(themeCopy)
           
           // Now update CSS vars - this will match what's in theme JSON, preventing flicker
           updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode)
           
-          // Update core color interactive on-tone values for AA compliance
-          if (setTheme && themeJson) {
-            updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeJson, setTheme, mode)
+          // Update CSS variables for core color interactive properties
+          // Pass skipSetTheme=true since we already called setTheme above
+          if (setTheme && themeCopy) {
+            updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeCopy, setTheme, mode, true)
           }
           
           // After updating interactive color, trigger AA compliance checks for all core and palette on-tone values
@@ -607,7 +742,8 @@ export default function ColorTokenPicker() {
       }
     }
     
-    // Set the CSS variable to reference the token (using exact level, no normalization)
+    // Set the CSS variable FIRST for immediate visual feedback
+    // For core colors, this will be preserved by recomputeAndApplyAll's preservation logic
     const success = updateCssVar(targetVar, `var(${tokenCssVar})`, tokensJson)
     if (!success) {
       console.error(`Failed to update ${targetVar} to var(${tokenCssVar})`)
@@ -619,8 +755,12 @@ export default function ColorTokenPicker() {
     
     // Also update theme JSON for core colors so changes persist across navigation
     // This will also check and update on-tone colors for AA compliance
+    // The CSS variable we set above will be preserved by recomputeAndApplyAll's preservation logic
     if (isCoreColor) {
-      updateCoreColorInTheme(targetVar, tokenName)
+      // Use requestAnimationFrame to ensure CSS variable is set in DOM before setTheme triggers recompute
+      requestAnimationFrame(() => {
+        updateCoreColorInTheme(targetVar, tokenName)
+      })
     }
     
     setAnchor(null)
