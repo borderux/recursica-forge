@@ -490,7 +490,7 @@ export function exportUIKitJson(): object {
   const tokenIndex = buildTokenIndex(tokensJson as JsonLike)
   const result: any = {
     'ui-kit': {
-      global: {},
+      globals: {},
       components: {}
     }
   }
@@ -501,14 +501,14 @@ export function exportUIKitJson(): object {
     
     const path = cssVar.replace('--recursica-ui-kit-', '').split('-')
     
-    // Handle global paths: global-icon-style
-    if (path[0] === 'global' && path.length >= 2) {
-      path.shift() // Remove 'global'
+    // Handle global paths: globals-icon-style
+    if (path[0] === 'globals' && path.length >= 2) {
+      path.shift() // Remove 'globals'
       const globalPath = path.join('.')
       
       // Build structure from CSS vars only
       const parts = globalPath.split('.')
-      let current = result['ui-kit'].global
+      let current = result['ui-kit'].globals
       
       for (let i = 0; i < parts.length - 1; i++) {
         if (!current[parts[i]]) {
@@ -535,12 +535,13 @@ export function exportUIKitJson(): object {
       const componentName = path[0]
       path.shift() // Remove component name
       
-      let category = path[0] // color, size
+      let category = path[0] // colors, size
       path.shift() // Remove category
       
       // Map CSS variable category to JSON structure
       // CSS vars use "size" but JSON uses "sizes"
-      const jsonCategory = category === 'size' ? 'sizes' : category
+      // CSS vars use "colors" but JSON uses "variants" (colors are inside variants)
+      const jsonCategory = category === 'size' ? 'sizes' : category === 'colors' ? 'variants' : category
       
       const componentPath = path.join('.')
       
@@ -563,7 +564,7 @@ export function exportUIKitJson(): object {
       }
       
       const lastPart = parts[parts.length - 1]
-      const type = category === 'color' ? 'color' : 'dimension'
+      const type = category === 'colors' ? 'color' : 'dimension'
       const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
       if (jsonValue !== undefined) {
         current[lastPart] = {
