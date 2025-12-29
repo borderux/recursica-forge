@@ -627,7 +627,8 @@ export class AAComplianceWatcher {
     try {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
       const themes = root?.themes || root
-      const levels = ['900','800','700','600','500','400','300','200','100','050']
+      // Include all standard levels including 1000 and 000
+      const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
       
       // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
@@ -743,7 +744,8 @@ export class AAComplianceWatcher {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
       const themes = root?.themes || root
       const lightPal: any = themes?.light?.palettes || {}
-      const levels = ['900', '800', '700', '600', '500', '400', '300', '200', '100', '050']
+      // Include all standard levels including 1000 and 000
+      const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
       
       Object.keys(lightPal).forEach((paletteKey) => {
         if (paletteKey === 'core' || paletteKey === 'core-colors' || paletteKey === 'neutral') return
