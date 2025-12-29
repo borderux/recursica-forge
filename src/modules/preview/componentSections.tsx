@@ -3,6 +3,7 @@ import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
 import { Avatar } from '../../components/adapters/Avatar'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
+import type { ComponentLayer } from '../../components/registry/types'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 
@@ -30,7 +31,7 @@ export function sortLayers(layers: LayerOption[]): LayerOption[] {
 
 export function getComponentSections(mode: 'light' | 'dark'): Section[] {
   // Define SwitchExamples inside getComponentSections to have access to mode
-  function SwitchExamples({ layer, colorVariant = 'default', sizeVariant = 'default' }: { layer: string; colorVariant?: string; sizeVariant?: string }) {
+  function SwitchExamples({ layer, colorVariant = 'default', sizeVariant = 'default' }: { layer: ComponentLayer; colorVariant?: string; sizeVariant?: string }) {
     const [checked1, setChecked1] = React.useState(true)
     const [checked2, setChecked2] = React.useState(false)
     const [checked3, setChecked3] = React.useState(false)
@@ -493,8 +494,8 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       render: (selectedLayers) => {
         // Extract layer from selectedLayers Set (use first one, or default to layer-0)
         const layer = selectedLayers.size > 0 
-          ? Array.from(selectedLayers)[0] as string
-          : 'layer-0'
+          ? Array.from(selectedLayers)[0] as ComponentLayer
+          : 'layer-0' as ComponentLayer
         
         // Use default variants - the toolbar will update the CSS vars for the selected variant
         return <SwitchExamples layer={layer} colorVariant="default" sizeVariant="default" />
