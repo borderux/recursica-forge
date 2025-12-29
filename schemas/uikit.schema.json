@@ -7,9 +7,9 @@
   "properties": {
     "ui-kit": {
       "type": "object",
-      "required": ["global"],
+      "required": ["globals"],
       "properties": {
-        "global": {
+        "globals": {
           "type": "object",
           "properties": {
             "icon": {
@@ -18,7 +18,7 @@
             "form": {
               "type": "object"
             },
-            "indicator": {
+            "indicators": {
               "type": "object"
             },
             "field": {
@@ -27,7 +27,7 @@
             "label": {
               "type": "object"
             },
-            "assistive-element": {
+            "assistive-elements": {
               "type": "object"
             }
           },
@@ -39,7 +39,7 @@
             "^[a-z0-9-]+$": {
               "type": "object",
               "properties": {
-                "color": {
+                "variants": {
                   "type": "object"
                 },
                 "size": {

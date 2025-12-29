@@ -340,8 +340,42 @@
             }
           }
         },
-        "state": {
+        "states": {
           "$ref": "#/definitions/state"
+        },
+        "text-emphasis": {
+          "type": "object",
+          "properties": {
+            "low": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["number"]
+                },
+                "$value": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "high": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["number"]
+                },
+                "$value": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         },
         "typography": {
           "type": "object"
