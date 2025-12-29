@@ -113,7 +113,7 @@ export default function Button({
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Carbon's default disabled styles to keep colors unchanged
       ...(disabled && {
-        opacity: `var(--recursica-brand-${mode}-state-disabled)`,
+        opacity: `var(--recursica-brand-themes-${mode}-state-disabled)`,
         backgroundColor: `var(${buttonBgVar}) !important`,
         color: `var(${buttonColorVar}) !important`,
         ...(variant === 'outline' && {

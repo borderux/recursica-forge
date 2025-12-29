@@ -175,11 +175,20 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const hover = getOpacityVar(state?.hover)
     const overlayOpacity = getOpacityVar(state?.overlay?.opacity)
     const overlayColor = getColorVar(state?.overlay?.color)
+    
+    // Always emit state CSS variables, even if values are undefined (they'll have fallback defaults)
     vars[`--recursica-brand-themes-${modeLower}-state-disabled`] = disabled
     vars[`--recursica-brand-themes-${modeLower}-state-hover`] = hover
     vars[`--recursica-brand-themes-${modeLower}-state-overlay-opacity`] = overlayOpacity
     vars[`--recursica-brand-themes-${modeLower}-state-overlay-color`] = overlayColor
-  } catch {}
+  } catch (err) {
+    // If state vars fail to generate, provide fallback defaults
+    console.error('[PaletteResolver] Failed to generate state variables:', err)
+    vars[`--recursica-brand-themes-${modeLower}-state-disabled`] = 'var(--recursica-tokens-opacity-solid)'
+    vars[`--recursica-brand-themes-${modeLower}-state-hover`] = 'var(--recursica-tokens-opacity-solid)'
+    vars[`--recursica-brand-themes-${modeLower}-state-overlay-opacity`] = 'var(--recursica-tokens-opacity-solid)'
+    vars[`--recursica-brand-themes-${modeLower}-state-overlay-color`] = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+  }
   const toLevelString = (lvl: string): string => {
     // Normalize token level to match CSS variable format
     // Token levels should be padded to 3 digits (e.g., 50 -> 050, 5 -> 005)

@@ -1127,6 +1127,27 @@ class VarsStore {
       }
     })
     
+    // Preserve overlay color and opacity CSS variables that were set directly by the user
+    // This prevents recomputes from overwriting user changes
+    // Overlay vars are generated in buildPaletteVars, so they're already in allPaletteVars
+    const overlayVars = [
+      '--recursica-brand-themes-light-state-overlay-color',
+      '--recursica-brand-themes-light-state-overlay-opacity',
+      '--recursica-brand-themes-dark-state-overlay-color',
+      '--recursica-brand-themes-dark-state-overlay-opacity'
+    ]
+    overlayVars.forEach((cssVar) => {
+      const inlineValue = typeof document !== 'undefined' 
+        ? document.documentElement.style.getPropertyValue(cssVar).trim()
+        : ''
+      const generatedValue = allPaletteVars[cssVar]
+      
+      // Preserve if there's an inline override and it differs from generated (user customization)
+      if (inlineValue !== '' && inlineValue !== generatedValue) {
+        allPaletteVars[cssVar] = inlineValue
+      }
+    })
+    
     Object.assign(allVars, allPaletteVars)
     // allPaletteVars already defined above with preserved values
     // Layers (from Brand) - generate for both modes

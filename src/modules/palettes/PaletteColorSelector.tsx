@@ -331,6 +331,7 @@ export default function PaletteColorSelector({
         
         // Determine best on-tone color based on AA compliance
         // Priority: both pass > low emphasis > high emphasis > baseline contrast
+        let onToneCore: 'white' | 'black'
         if (whitePassesBoth && blackPassesBoth) {
           // Both pass - choose based on contrast
           onToneCore = whiteLowContrast >= blackLowContrast ? 'white' : 'black'
