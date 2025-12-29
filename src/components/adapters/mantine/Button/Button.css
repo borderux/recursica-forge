@@ -8,9 +8,9 @@
 .mantine-Button-root[data-position='left'],
 .mantine-Button-leftSection[data-position='left'],
 [class*="mantine-Button-leftSection"][data-position='left'] {
-  margin-inline-end: var(--button-icon-text-gap, var(--recursica-ui-kit-components-button-size-variant-default-icon-text-gap)) !important;
-  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
-  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
+  margin-inline-end: var(--button-icon-text-gap, var(--recursica-ui-kit-components-button-size-variants-default-icon-text-gap)) !important;
+  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variants-default-icon)) !important;
+  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variants-default-icon)) !important;
   flex-shrink: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -20,8 +20,8 @@
 /* Set icon size based on button size variant - small buttons use small-icon */
 .mantine-Button-root[data-size='xs'] .recursica-button-left-section,
 .mantine-Button-root[data-size='xs'] .mantine-Button-leftSection {
-  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-small-icon)) !important;
-  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-small-icon)) !important;
+  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variants-small-icon)) !important;
+  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variants-small-icon)) !important;
 }
 
 /* Default and large buttons use default-icon */
@@ -29,8 +29,8 @@
 .mantine-Button-root[data-size='md'] .mantine-Button-leftSection,
 .mantine-Button-root[data-size='lg'] .recursica-button-left-section,
 .mantine-Button-root[data-size='lg'] .mantine-Button-leftSection {
-  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
-  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
+  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variants-default-icon)) !important;
+  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variants-default-icon)) !important;
 }
 
 /* Ensure SVG icons scale to fill their container in leftSection */
@@ -62,12 +62,12 @@
 .mantine-Button-root svg[style*="height:0"],
 .mantine-Button-root .mantine-Button-label svg,
 .mantine-Button-root > svg {
-  width: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  height: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  min-width: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  min-height: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  max-width: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  max-height: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
+  width: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  height: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  min-width: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  min-height: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  max-width: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  max-height: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -88,12 +88,12 @@
 .mantine-Button-root[data-size='xs'] svg[style*="height:0"],
 .mantine-Button-root[data-size='xs'] .mantine-Button-label svg,
 .mantine-Button-root[data-size='xs'] > svg {
-  width: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--button-icon-size)) !important;
-  height: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--button-icon-size)) !important;
-  min-width: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--button-icon-size)) !important;
-  min-height: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--button-icon-size)) !important;
-  max-width: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--button-icon-size)) !important;
-  max-height: var(--recursica-ui-kit-components-button-size-variant-small-icon, var(--button-icon-size)) !important;
+  width: var(--recursica-ui-kit-components-button-size-variants-small-icon, var(--button-icon-size)) !important;
+  height: var(--recursica-ui-kit-components-button-size-variants-small-icon, var(--button-icon-size)) !important;
+  min-width: var(--recursica-ui-kit-components-button-size-variants-small-icon, var(--button-icon-size)) !important;
+  min-height: var(--recursica-ui-kit-components-button-size-variants-small-icon, var(--button-icon-size)) !important;
+  max-width: var(--recursica-ui-kit-components-button-size-variants-small-icon, var(--button-icon-size)) !important;
+  max-height: var(--recursica-ui-kit-components-button-size-variants-small-icon, var(--button-icon-size)) !important;
 }
 
 /* Default and large buttons (md, lg) use default-icon variant - use recursica CSS var directly, fall back to --button-icon-size */
@@ -123,12 +123,12 @@
 .mantine-Button-root[data-size='lg'] svg[style*="height:0"],
 .mantine-Button-root[data-size='lg'] .mantine-Button-label svg,
 .mantine-Button-root[data-size='lg'] > svg {
-  width: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  height: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  min-width: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  min-height: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  max-width: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
-  max-height: var(--recursica-ui-kit-components-button-size-variant-default-icon, var(--button-icon-size)) !important;
+  width: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  height: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  min-width: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  min-height: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  max-width: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
+  max-height: var(--recursica-ui-kit-components-button-size-variants-default-icon, var(--button-icon-size)) !important;
 }
 
 

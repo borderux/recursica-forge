@@ -97,7 +97,7 @@ export default function PropControl({
   // For Badge height, override to target the size variant's min-height instead of component-level height
   if (prop.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
     const sizeVariant = selectedVariants.size || 'small'
-    const minHeightVar = `--recursica-ui-kit-components-badge-size-variant-${sizeVariant}-min-height`
+    const minHeightVar = `--recursica-ui-kit-components-badge-size-variants-${sizeVariant}-min-height`
     primaryCssVar = minHeightVar
     cssVarsForControl = [minHeightVar]
   }

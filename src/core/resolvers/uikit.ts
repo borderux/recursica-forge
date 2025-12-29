@@ -122,9 +122,11 @@ function traverseUIKit(
       // the typography style name directly. Instead, components should use the typography
       // utility functions to get the individual property CSS variables.
       if (type === 'typography' && typeof val === 'string') {
-        // Don't create a CSS variable for typography type - it's handled differently
+        // Create a CSS variable with the raw token reference as a valid CSS string value
         // Components use typographyUtils to extract the style name and get individual properties
-        // Just preserve the raw value for components to read
+        // The token reference like {brand.typography.caption} is a valid CSS value (string literal)
+        // Store it as-is so components can read and parse it
+        // Note: CSS variables can contain any string value, including braces
         vars[cssVarName] = val.trim()
         return
       }

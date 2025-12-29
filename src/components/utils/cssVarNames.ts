@@ -35,7 +35,7 @@ export function toCssVarName(path: string): string {
  * 
  * @example
  * getComponentCssVar('Button', 'size', 'default-height', undefined)
- * => '--recursica-ui-kit-components-button-size-variant-default-height'
+ * => '--recursica-ui-kit-components-button-size-variants-default-height'
  * 
  * @example
  * getComponentCssVar('Button', 'size', 'font-size', undefined)

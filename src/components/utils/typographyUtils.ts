@@ -37,7 +37,13 @@ export type TypographyProperty = typeof TYPOGRAPHY_PROPERTIES[number]
 export function extractTypographyStyleName(value: string | null | undefined): string | null {
   if (!value || typeof value !== 'string') return null
   
-  const trimmed = value.trim()
+  let trimmed = value.trim()
+  
+  // Remove quotes if present (CSS variables may be stored as quoted strings)
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || 
+      (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    trimmed = trimmed.slice(1, -1).trim()
+  }
   
   // Check if it's a brace reference: {brand.typography.caption}
   const braceContent = extractBraceContent(trimmed)
