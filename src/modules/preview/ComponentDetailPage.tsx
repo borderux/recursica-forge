@@ -125,20 +125,18 @@ export default function ComponentDetailPage() {
       const themes = root?.themes || root
       
       // Check base layer elevation
-      if (elevationLevel === null) {
-        // Layer 0 typically doesn't have elevation, layers 1-3 do
-        if (layerNum === '0') {
-          return undefined
-        }
-        
-        elevationLevel = layerNum
-        const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
-        const v: any = layerSpec?.properties?.elevation?.$value
-        if (typeof v === 'string') {
-          // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
-          const m = v.match(/elevations\.(elevation-(\d+))/i)
-          if (m) elevationLevel = m[2]
-        }
+      // Layer 0 typically doesn't have elevation, layers 1-3 do
+      if (layerNum === '0') {
+        return undefined
+      }
+      
+      elevationLevel = layerNum
+      const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
+      const v: any = layerSpec?.properties?.elevation?.$value
+      if (typeof v === 'string') {
+        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
+        const m = v.match(/elevations\.(elevation-(\d+))/i)
+        if (m) elevationLevel = m[2]
       }
     } catch {}
     
@@ -228,7 +226,6 @@ export default function ComponentDetailPage() {
 
         {/* Preview Section - Centered both vertically and horizontally */}
         {/* Apply all layer CSS variables: surface, border-color, border-thickness, border-radius, padding, elevation */}
-        {/* When alt layer is selected, only override properties defined for alt layer, fallback to base layer */}
         <div style={{ 
           flex: 1,
           display: 'flex',
@@ -266,7 +263,6 @@ export default function ComponentDetailPage() {
             <BadgePreview
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
-              selectedAltLayer={selectedAltLayer}
               componentElevation={componentElevation}
             />
           ) : (
