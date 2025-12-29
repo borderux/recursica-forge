@@ -58,7 +58,7 @@
           },
           "required-asterisk": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.element.text.alert}"
+            "$value": "{brand.layers.layer-0.elements.text.alert}"
           }
         },
         "label-gap": {
@@ -97,11 +97,11 @@
           },
           "icon": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.element.text.color}"
+            "$value": "{brand.layers.layer-0.elements.text.color}"
           },
           "text-valued": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.element.text.color}"
+            "$value": "{brand.layers.layer-0.elements.text.color}"
           },
           "placeholder-text-opacity": {
             "$type": "number",
@@ -196,11 +196,11 @@
         "color": {
           "default": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.element.text.color}"
+            "$value": "{brand.layers.layer-0.elements.text.color}"
           },
           "required-asterisk": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.element.text.alert}"
+            "$value": "{brand.layers.layer-0.elements.text.alert}"
           },
           "optional-text-opacity": {
             "$type": "number",
@@ -262,21 +262,21 @@
         "help": {
           "text-color": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.element.text.color}"
+            "$value": "{brand.layers.layer-0.elements.text.color}"
           },
           "icon-color": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.element.text.color}"
+            "$value": "{brand.layers.layer-0.elements.text.color}"
           }
         },
         "error": {
           "text-color": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.element.text.alert}"
+            "$value": "{brand.layers.layer-0.elements.text.alert}"
           },
           "icon-color": {
             "$type": "color",
-            "$value": "{brand.layers.layer-0.element.text.alert}"
+            "$value": "{brand.layers.layer-0.elements.text.alert}"
           }
         },
         "size": {
@@ -299,73 +299,73 @@
               "layer-0": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.on-tone-hover}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.on-tone-hover}"
                 }
               },
               "layer-1": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.on-tone-hover}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.on-tone-hover}"
                 }
               },
               "layer-2": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.on-tone-hover}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.on-tone-hover}"
                 }
               },
               "layer-3": {
                 "background": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.tone}"
                 },
                 "background-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.on-tone-hover}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone-hover}"
                 }
               }
             }
@@ -383,11 +383,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
                 }
               },
               "layer-1": {
@@ -401,11 +401,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
                 }
               },
               "layer-2": {
@@ -419,11 +419,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
                 }
               },
               "layer-3": {
@@ -437,11 +437,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
                 }
               }
             }
@@ -459,11 +459,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
                 }
               },
               "layer-1": {
@@ -477,11 +477,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
                 }
               },
               "layer-2": {
@@ -495,11 +495,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
                 }
               },
               "layer-3": {
@@ -513,11 +513,11 @@
                 },
                 "text": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.tone}"
                 },
                 "text-hover": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.tone-hover}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
                 }
               }
             }
@@ -978,15 +978,15 @@
               "layer-0": {
                 "thumb-selected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
                 },
                 "thumb-unselected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
                 },
                 "track-selected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-0.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                 },
                 "track-unselected": {
                   "$type": "color",
@@ -996,15 +996,15 @@
               "layer-1": {
                 "thumb-selected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
                 },
                 "thumb-unselected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
                 },
                 "track-selected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-1.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                 },
                 "track-unselected": {
                   "$type": "color",
@@ -1014,15 +1014,15 @@
               "layer-2": {
                 "thumb-selected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
                 },
                 "thumb-unselected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
                 },
                 "track-selected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-2.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
                 },
                 "track-unselected": {
                   "$type": "color",
@@ -1032,15 +1032,15 @@
               "layer-3": {
                 "thumb-selected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
                 },
                 "thumb-unselected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.on-tone}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
                 },
                 "track-selected": {
                   "$type": "color",
-                  "$value": "{brand.layers.layer-3.element.interactive.tone}"
+                  "$value": "{brand.layers.layer-3.elements.interactive.tone}"
                 },
                 "track-unselected": {
                   "$type": "color",
@@ -1200,7 +1200,7 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.element.text.color}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -1214,7 +1214,7 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.element.text.color}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -1228,7 +1228,7 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.element.text.color}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -1242,7 +1242,7 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.element.text.color}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 }
@@ -1324,7 +1324,7 @@
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.element.text.color}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -1338,7 +1338,7 @@
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.element.text.color}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -1352,7 +1352,7 @@
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.element.text.color}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -1366,7 +1366,7 @@
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.element.text.color}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 }

@@ -209,8 +209,8 @@ export function resolveTokenReferenceToCssVar(
       return `var(--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property-${prop})`
     }
     
-    // Layer element references: layers.layer-0.element.text.color
-    const layerElementMatch = /^layers?\.(?:layer-)?(\d+)\.element\.(.+)$/i.exec(pathParts.join('.'))
+    // Layer element references: layers.layer-0.elements.text.color
+    const layerElementMatch = /^layers?\.(?:layer-)?(\d+)\.elements?\.(.+)$/i.exec(pathParts.join('.'))
     if (layerElementMatch) {
       const layerNum = layerElementMatch[1]
       let elementPath = layerElementMatch[2].replace(/\./g, '-')
