@@ -14,6 +14,8 @@ import PaletteColorSelector from './PaletteColorSelector'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
 import { readOverrides } from '../theme/tokenOverrides'
+import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 type PaletteGridProps = {
   paletteKey: string
@@ -161,12 +163,25 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
     if (typeof ref === 'string') {
       const s = ref.trim()
       if (!s.startsWith('{')) return s
-      const inner = s.slice(1, -1)
-      if (inner.startsWith('token.')) return getTokenValueByName(inner.replace(/^token\./, '').replace(/\./g, '/'))
-      if (inner.startsWith('theme.')) {
-        const parts = inner.split('.')
-        const mode = (parts[1] || '').toLowerCase() === 'dark' ? 'Dark' : 'Light'
-        const path = parts.slice(2).join('/')
+      
+      // Use centralized parser
+      const context: TokenReferenceContext = {
+        currentMode: modeLabel.toLowerCase() === 'dark' ? 'dark' : 'light',
+        tokenIndex: buildTokenIndex(tokensJson),
+        theme: themeJson
+      }
+      const parsed = parseTokenReference(s, context)
+      
+      if (parsed && parsed.type === 'token') {
+        // Token reference: resolve to value
+        const path = parsed.path.join('/')
+        return getTokenValueByName(path)
+      }
+      
+      if (parsed && parsed.type === 'brand') {
+        // Brand/theme reference: resolve using theme index
+        const mode = parsed.mode === 'dark' ? 'Dark' : 'Light'
+        const path = parsed.path.join('/')
         let entry = (themeIndex as any)[`${mode}::${path}`]
         if (!entry && /\/high-emphasis$/.test(path)) {
           const alt = path.replace(/\/high-emphasis$/, '/text/high-emphasis')
@@ -178,6 +193,7 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
         }
         return resolveThemeRef(entry?.value, mode)
       }
+      
       return s
     }
     if (typeof ref === 'object') {
@@ -268,30 +284,49 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
         } else if (s === '#000000' || s === 'black') {
           coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
-        }
-        // Handle JSON references like {brand.themes.light.palettes.core-colors.white}
-        else if (s.includes('core-colors.white') || s.includes('core.white') || s.includes('.white}')) {
-          coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
-        } else if (s.includes('core-colors.black') || s.includes('core.black') || s.includes('.black}')) {
-          coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
-        }
-        // Try to resolve as theme reference (handles var() references)
-        else {
-          // Try both path formats
-          const resolved = resolveThemeRef({ collection: 'Theme', name: onToneNamePlural }, modeLabel)
-            || resolveThemeRef({ collection: 'Theme', name: onToneNameSingular }, modeLabel)
-          if (typeof resolved === 'string') {
-            // If it's already a var() reference, use it directly
-            if (resolved.startsWith('var(')) {
-              coreRef = resolved
-            }
-            // If it resolved to a hex or color name, map it
-            else {
-              const resolvedLower = resolved.trim().toLowerCase()
-              if (resolvedLower === '#ffffff' || resolvedLower === 'white') {
+        } else {
+          // Handle JSON references like {brand.themes.light.palettes.core-colors.white}
+          const context: TokenReferenceContext = {
+            currentMode: modeLabel.toLowerCase() as 'light' | 'dark',
+            tokenIndex: buildTokenIndex(tokensJson),
+            theme: themeJson
+          }
+          const parsed = parseTokenReference(onToneRaw, context)
+          if (parsed && parsed.type === 'brand') {
+            const pathParts = parsed.path
+            // Check if it's a core color reference (palettes.core-colors.white or palettes.core.white or palettes.white)
+            if (pathParts.length >= 2 && pathParts[0] === 'palettes' && (pathParts[1] === 'core-colors' || pathParts[1] === 'core')) {
+              const colorName = pathParts[pathParts.length - 1] // Last part is the color name
+              if (colorName === 'white') {
                 coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
-              } else if (resolvedLower === '#000000' || resolvedLower === 'black') {
+              } else if (colorName === 'black') {
                 coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+              }
+            } else if (pathParts.length >= 2 && pathParts[0] === 'palettes' && (pathParts[1] === 'white' || pathParts[1] === 'black')) {
+              // Handle {brand.palettes.white} or {brand.palettes.black}
+              const colorName = pathParts[1]
+              coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-${colorName})`
+            }
+          }
+          
+          // If we still don't have a coreRef, try to resolve as theme reference (handles var() references)
+          if (!coreRef) {
+            // Try both path formats
+            const resolved = resolveThemeRef({ collection: 'Theme', name: onToneNamePlural }, modeLabel)
+              || resolveThemeRef({ collection: 'Theme', name: onToneNameSingular }, modeLabel)
+            if (typeof resolved === 'string') {
+              // If it's already a var() reference, use it directly
+              if (resolved.startsWith('var(')) {
+                coreRef = resolved
+              }
+              // If it resolved to a hex or color name, map it
+              else {
+                const resolvedLower = resolved.trim().toLowerCase()
+                if (resolvedLower === '#ffffff' || resolvedLower === 'white') {
+                  coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
+                } else if (resolvedLower === '#000000' || resolvedLower === 'black') {
+                  coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+                }
               }
             }
           }

@@ -6,8 +6,6 @@
 import { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
-import { buildTokenIndex } from '../../core/resolvers/tokens'
 
 type DimensionEntry = {
   path: string[]
@@ -54,13 +52,6 @@ export default function DimensionsPage() {
       const dims = root?.dimensions
       if (!dims || typeof dims !== 'object') return entries
 
-      // Build token index for parsing token references
-      const tokenIndex = buildTokenIndex(tokensJson)
-      const context: TokenReferenceContext = {
-        currentMode: mode,
-        tokenIndex
-      }
-
       const traverse = (obj: any, path: string[], labelPrefix: string) => {
         Object.keys(obj).forEach((key) => {
           if (key.startsWith('$')) return
@@ -73,7 +64,7 @@ export default function DimensionsPage() {
             const tokenRef = value.$value
             let tokenName: string | null = null
             if (typeof tokenRef === 'string') {
-              const parsed = parseTokenReference(tokenRef, context)
+              const parsed = parseTokenReference(tokenRef)
               if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
                 tokenName = parsed.path.slice(1).join('.')
               }
@@ -90,7 +81,7 @@ export default function DimensionsPage() {
       traverse(dims, [], '')
     } catch {}
     return entries
-  }, [themeJson, tokensJson, mode])
+  }, [themeJson])
 
   const updateDimension = (path: string[], tokenName: string) => {
     const themeCopy = JSON.parse(JSON.stringify(themeJson))

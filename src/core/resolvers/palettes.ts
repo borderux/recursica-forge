@@ -1,5 +1,6 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex, resolveBraceRef } from './tokens'
+import { resolveTokenReferenceToCssVar, resolveTokenReferenceToValue, extractBraceContent, parseTokenReference, type TokenReferenceContext } from '../utils/tokenReferenceParser'
 
 export type ModeLabel = 'Light' | 'Dark'
 
@@ -48,23 +49,35 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
   })
   const modeLower = mode.toLowerCase()
   
+  // Create context for centralized token reference parser
+  const context: TokenReferenceContext = {
+    currentMode: mode.toLowerCase() as 'light' | 'dark',
+    tokenIndex,
+    theme
+  }
+  
   // Helper function to convert opacity values to CSS variable references
   const getOpacityVar = (v: any): string => {
     // Extract $value if v is an object with $value property (e.g., { $type: "number", $value: "{tokens.opacity.smoky}" })
     const rawValue = (v && typeof v === 'object' && '$value' in v) ? v.$value : v
-    // Try to extract token name from brace reference before resolving
+    // Try to resolve using centralized parser
     try {
       if (typeof rawValue === 'string') {
-        const inner = rawValue.startsWith('{') && rawValue.endsWith('}') ? rawValue.slice(1, -1) : rawValue
-        const m = /^(?:tokens|token)\.opacity\.([a-z0-9\-_]+)$/i.exec(inner)
-        if (m) return `var(--recursica-tokens-opacity-${m[1]})`
+        const parsed = parseTokenReference(rawValue, context)
+        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'opacity') {
+          const tokenName = parsed.path[1]
+          return `var(--recursica-tokens-opacity-${tokenName})`
+        }
       }
     } catch {}
     // If that didn't work, try resolving and checking the result
     const s = resolveBraceRef(rawValue, tokenIndex)
     if (typeof s === 'string') {
-      const m = /^(?:tokens|token)\/?opacity\/([a-z0-9\-_]+)$/i.exec(s)
-      if (m) return `var(--recursica-tokens-opacity-${m[1]})`
+      // Try centralized parser on the resolved value
+      const parsed = parseTokenReference(s, context)
+      if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'opacity') {
+        return `var(--recursica-tokens-opacity-${parsed.path[1]})`
+      }
       // numeric fallback wraps solid as default
       const n = Number(s)
       if (Number.isFinite(n)) {
@@ -93,90 +106,50 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     if (depth > 5) {
       return `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
     }
+    
     // Extract $value if v is an object with $value property
     const rawValue = (v && typeof v === 'object' && '$value' in v) ? v.$value : v
-    if (typeof rawValue === 'string') {
-      // Extract the inner reference (remove braces if present)
-      const inner = rawValue.startsWith('{') && rawValue.endsWith('}') ? rawValue.slice(1, -1).trim() : rawValue
-      
-      // Check for token references first (these should resolve to actual token CSS vars, not create circular refs)
-      if (/^(?:tokens|token)\.color\./i.test(inner)) {
-        const tokenPath = inner.replace(/^(?:tokens|token)\.color\./i, '').replace(/\./g, '/')
-        const tokenValue = tokenIndex.get(`color/${tokenPath}`)
-        if (tokenValue && typeof tokenValue === 'string') {
-          // Extract family and level from path (e.g., "gray/1000" -> family="gray", level="1000")
-          const pathParts = tokenPath.split('/')
-          if (pathParts.length >= 2) {
-            const [family, level] = pathParts
-            return `var(--recursica-tokens-color-${family}-${level})`
+    
+    // Try to resolve to CSS var using centralized parser
+    const cssVar = resolveTokenReferenceToCssVar(rawValue, context)
+    if (cssVar) {
+      // Special handling for shortcuts like {brand.palettes.black} or {brand.palettes.white}
+      // These should resolve to the actual tone value, not create circular references
+      const parsed = parseTokenReference(rawValue, context)
+      if (parsed && parsed.type === 'brand') {
+        const pathParts = parsed.path
+        // Check if it's a core color shortcut: palettes.core-colors.{color} or palettes.{color}
+        if (pathParts.length >= 2 && pathParts[0] === 'palettes') {
+          let color: string | undefined
+          let refMode = parsed.mode || modeLower
+          if (pathParts.length >= 3 && (pathParts[1] === 'core-colors' || pathParts[1] === 'core')) {
+            color = pathParts[2]
+          } else if (pathParts.length === 2 && (pathParts[1] === 'black' || pathParts[1] === 'white')) {
+            color = pathParts[1]
+          }
+          if (color && ['black', 'white'].includes(color.toLowerCase())) {
+            // Resolve to the actual tone value from core-colors, not to the CSS var itself
+            try {
+              const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+              const themes = root?.themes || root
+              const coreColorsRaw: any = (refMode === 'light' ? themes?.light?.palettes?.['core-colors'] : themes?.dark?.palettes?.['core-colors']) || {}
+              const coreColors: any = coreColorsRaw?.$value || coreColorsRaw
+              const colorDef: any = coreColors?.[color]
+              if (colorDef?.tone) {
+                // Recursively resolve the tone value (should be a token reference)
+                return getColorVar(colorDef.tone, depth + 1)
+              }
+            } catch {}
+            // Fallback to CSS var if resolution fails
+            return `var(--recursica-brand-themes-${refMode}-palettes-core-${color})`
           }
         }
       }
-      
-      // Core color reference with state: brand.palettes.core-colors.interactive.{state}.{type}
-      // Handle: {brand.palettes.core-colors.interactive.default.tone} or {brand.themes.light.palettes.core-colors.interactive.hover.on-tone}
-      const coreInteractiveMatch = /^(?:brand|theme)(?:\.themes)?\.(light|dark)?\.palettes\.core-colors?\.interactive\.(default|hover)\.(tone|on-tone)$/i.exec(inner)
-      if (coreInteractiveMatch) {
-        const refMode = (coreInteractiveMatch[1] || modeLower).toLowerCase()
-        const state = coreInteractiveMatch[2].toLowerCase()
-        const type = coreInteractiveMatch[3].toLowerCase()
-        return `var(--recursica-brand-themes-${refMode}-palettes-core-interactive-${state}-${type})`
-      }
-      
-      // Short palette reference shortcuts: {brand.palettes.black} or {brand.palettes.white}
-      // These should resolve to the actual tone value, not create circular references
-      const shortcutMatch = /^(?:brand|theme)(?:\.themes)?\.(light|dark)?\.palettes\.(black|white)$/i.exec(inner)
-      if (shortcutMatch) {
-        const refMode = (shortcutMatch[1] || modeLower).toLowerCase()
-        const color = shortcutMatch[2].toLowerCase()
-        // Resolve to the actual tone value from core-colors, not to the CSS var itself
-        try {
-          const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-          const themes = root?.themes || root
-          const coreColorsRaw: any = (refMode === 'light' ? themes?.light?.palettes?.['core-colors'] : themes?.dark?.palettes?.['core-colors']) || {}
-          const coreColors: any = coreColorsRaw?.$value || coreColorsRaw
-          const colorDef: any = coreColors?.[color]
-          if (colorDef?.tone) {
-            // Recursively resolve the tone value (should be a token reference)
-            return getColorVar(colorDef.tone, depth + 1)
-          }
-        } catch {}
-        // Fallback to CSS var if resolution fails
-        return `var(--recursica-brand-themes-${refMode}-palettes-core-${color})`
-      }
-      
-      // Core color reference: brand.themes.{mode}.palettes.core-colors.{color}
-      // Also handle: brand.palettes.core-colors.{color} (uses current mode)
-      // Extract the mode from the reference itself (may be different from current mode)
-      const coreMatch = /^(?:brand|theme)(?:\.themes)?\.(light|dark)?\.palettes\.core-colors?\.([a-z]+)$/i.exec(inner)
-      if (coreMatch) {
-        const refMode = (coreMatch[1] || modeLower).toLowerCase()
-        const color = coreMatch[2].toLowerCase()
-        return `var(--recursica-brand-themes-${refMode}-palettes-core-${color})`
-      }
-      
-      // Palette reference: brand.themes.{mode}.palettes.{palette}.{level}.color.{type}
-      // Also handle: brand.palettes.{palette}.{level}.color.{type} (uses current mode)
-      const paletteMatch = /^(?:brand|theme)(?:\.themes)?\.(light|dark)?\.palettes\.([a-z0-9-]+)\.([a-z0-9]+)\.color\.(tone|on-tone)$/i.exec(inner)
-      if (paletteMatch) {
-        const refMode = (paletteMatch[1] || modeLower).toLowerCase()
-        const paletteKey = paletteMatch[2]
-        const level = paletteMatch[3].toLowerCase()
-        const type = paletteMatch[4].toLowerCase()
-        const cssLevel = level === 'default' ? 'primary' : level
-        return `var(--recursica-brand-themes-${refMode}-palettes-${paletteKey}-${cssLevel}-${type})`
-      }
-      
-      // Short palette reference: brand.themes.{mode}.palettes.{palette}
-      // Also handle: brand.palettes.{palette} (uses current mode)
-      const shortPaletteMatch = /^(?:brand|theme)(?:\.themes)?\.(light|dark)?\.palettes\.([a-z0-9-]+)$/i.exec(inner)
-      if (shortPaletteMatch) {
-        const refMode = (shortPaletteMatch[1] || modeLower).toLowerCase()
-        const paletteKey = shortPaletteMatch[2]
-        return `var(--recursica-brand-themes-${refMode}-palettes-${paletteKey}-primary-tone)`
-      }
-      
-      // Try to resolve theme reference as fallback (e.g., {brand.themes.light.palettes.core-colors.white})
+      return cssVar
+    }
+    
+    // Try to resolve theme reference as fallback
+    if (typeof rawValue === 'string') {
       const resolved = resolveThemeRef(rawValue)
       if (typeof resolved === 'string') {
         // If already a CSS var, return it
@@ -187,6 +160,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         }
       }
     }
+    
     // Fallback to black for current mode
     return `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
   }
@@ -228,9 +202,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       }
     })()
     
-    // Always use standard levels to ensure all levels (including 050) are processed
-    // This ensures CSS vars are created for all standard levels even if JSON doesn't define them
-    // We'll still check JSON for tone/on-tone values, but create CSS vars for all levels
+    // Use standard levels, but only generate CSS vars for levels that exist in the JSON
+    // This prevents generating undefined variables for levels that don't exist
     const levelsToProcess = levels
     
     levelsToProcess.forEach((lvl) => {
@@ -240,17 +213,27 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       const onToneName = `palette/${pk}/${lvl}/on-tone`
       let toneRaw = themeIndex[`${mode}::${toneName}`]?.value
       
+      // Skip this level only if both tone and on-tone are undefined (unless it's 'default')
+      // This ensures we don't skip levels that exist but might have parsing issues
+      if (!toneRaw && lvl !== 'default') {
+        const onToneRaw = themeIndex[`${mode}::${onToneName}`]?.value
+        if (!onToneRaw) {
+          return // Skip this level - neither tone nor on-tone exists in the JSON
+        }
+        // If on-tone exists but tone doesn't, we'll still process on-tone below
+      }
+      
       // If 'default' level and no direct color.tone, check if default references another level
       if (lvl === 'default' && !toneRaw) {
         const defaultRef = themeIndex[`${mode}::palette/${pk}/default`]?.value
-        if (defaultRef && typeof defaultRef === 'string' && defaultRef.startsWith('{') && defaultRef.endsWith('}')) {
-          // Parse reference like {theme.light.palettes.palette-1.400}
-          const inner = defaultRef.slice(1, -1).trim()
-          const match = /^(?:theme|brand)\.(?:light|dark)\.palettes\.([a-z0-9\-]+)\.(\d+)$/i.exec(inner)
-          if (match && match[1] === pk) {
-            // default references another level in the same palette, use that level's color.tone
-            const referencedLevel = match[2]
-            toneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/tone`]?.value
+        if (defaultRef && typeof defaultRef === 'string') {
+          const parsed = parseTokenReference(defaultRef, context)
+          if (parsed && parsed.type === 'brand' && parsed.path.length >= 3) {
+            // Check if it's a palette reference: palettes.{paletteKey}.{level}
+            if (parsed.path[0] === 'palettes' && parsed.path[1] === pk && /^\d+$/.test(parsed.path[2])) {
+              const referencedLevel = parsed.path[2]
+              toneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/tone`]?.value
+            }
           }
         }
       }
@@ -259,30 +242,22 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       
       // Parse tone from JSON - simple brace reference parsing
       let toneVar: string | null = null
-      if (toneRaw && typeof toneRaw === 'string' && toneRaw.startsWith('{') && toneRaw.endsWith('}')) {
-        const inner = toneRaw.slice(1, -1).trim()
-        // Match token references like tokens.color.{family}.{level}
-        // Handle levels: 000, 050, 100-900, 1000 (explicitly match these patterns)
-        const match = /^tokens\.color\.([a-z0-9_-]+)\.(000|050|[1-9][0-9]{2}|1000)$/i.exec(inner)
-        if (match) {
-          const family = match[1]
-          const tokenLevel = match[2] // Use the token level from the JSON, NOT the palette level
+      if (toneRaw && typeof toneRaw === 'string') {
+        const parsed = parseTokenReference(toneRaw, context)
+        if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
+          const family = parsed.path[1]
+          const tokenLevel = parsed.path[2] // Use the token level from the JSON, NOT the palette level
           const level = toLevelString(tokenLevel)
           toneVar = `var(--recursica-tokens-color-${family}-${level})`
         } else {
-          // If regex didn't match, try resolving through token index to get the actual hex value
-          // Then try to find the matching token
+          // If parsing didn't match token format, try resolving the value to see if it's a valid token reference
+          // This handles edge cases where the reference format might be slightly different
           try {
-            const tokenPath = inner.replace(/^tokens\.color\./i, '').replace(/\./g, '/')
-            const tokenValue = tokenIndex.get(`color/${tokenPath}`)
-            if (tokenValue && typeof tokenValue === 'string') {
-              // We have the hex value, but we need the token reference
-              // Extract the level from the path
-              const pathParts = tokenPath.split('/')
-              if (pathParts.length >= 2) {
-                const [family, level] = pathParts
-                toneVar = `var(--recursica-tokens-color-${family}-${level})`
-              }
+            const resolvedValue = resolveTokenReferenceToValue(toneRaw, context)
+            if (resolvedValue && typeof resolvedValue === 'string' && resolvedValue.startsWith('#')) {
+              // If it resolved to a hex color, we can't generate a CSS variable from it
+              // This is a fallback case - the reference should be in token format
+              console.error(`[PaletteResolver] Tone reference resolved to hex color instead of token: ${toneRaw} -> ${resolvedValue}`)
             }
           } catch {}
         }
@@ -296,9 +271,12 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         }
       }
       
-      // Emit tone if we successfully resolved it
+      // Emit tone only if we successfully resolved it
       if (toneVar) {
         vars[`${scope}-tone`] = toneVar
+      } else if (toneRaw && typeof toneRaw === 'string') {
+        // Parsing failed - log an error but don't emit erroneous variables
+        console.error(`[PaletteResolver] Failed to parse tone reference for ${scope}-tone:`, toneRaw)
       }
       
       // Always process on-tone, even if tone wasn't found (some levels might only have on-tone defined)
@@ -311,12 +289,14 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         let onToneRaw = themeIndex[`${mode}::${onToneName}`]?.value
         if (lvl === 'default' && !onToneRaw) {
           const defaultRef = themeIndex[`${mode}::palette/${pk}/default`]?.value
-          if (defaultRef && typeof defaultRef === 'string' && defaultRef.startsWith('{') && defaultRef.endsWith('}')) {
-            const inner = defaultRef.slice(1, -1).trim()
-            const match = /^(?:theme|brand)\.(?:light|dark)\.palettes\.([a-z0-9\-]+)\.(\d+)$/i.exec(inner)
-            if (match && match[1] === pk) {
-              const referencedLevel = match[2]
-              onToneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/on-tone`]?.value
+          if (defaultRef && typeof defaultRef === 'string') {
+            const parsed = parseTokenReference(defaultRef, context)
+            if (parsed && parsed.type === 'brand' && parsed.path.length >= 3) {
+              // Check if it's a palette reference: palettes.{paletteKey}.{level}
+              if (parsed.path[0] === 'palettes' && parsed.path[1] === pk && /^\d+$/.test(parsed.path[2])) {
+                const referencedLevel = parsed.path[2]
+                onToneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/on-tone`]?.value
+              }
             }
           }
         }
@@ -325,44 +305,58 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         if (typeof onToneRaw === 'string') {
           const s = onToneRaw.trim()
           const sLower = s.toLowerCase()
-          // Support both old format (brand.light.*) and new format (brand.themes.light.*)
-          // Also support shortcuts like {brand.palettes.black} or {brand.palettes.white} (uses current mode)
-          // Handle shortcuts without mode first
-          if (sLower === '{brand.palettes.white}' || sLower === '{brand.palettes.core-colors.white}') {
+          
+          // Handle direct hex values and color names
+          if (sLower === '#ffffff' || sLower === 'white') {
             onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
-          } else if (sLower === '{brand.palettes.black}' || sLower === '{brand.palettes.core-colors.black}') {
-            onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
-          } else if (sLower === '#ffffff' || sLower === 'white' || 
-              sLower === '{brand.light.palettes.core-colors.white}' || sLower === '{brand.dark.palettes.core-colors.white}' ||
-              sLower === '{brand.themes.light.palettes.core-colors.white}' || sLower === '{brand.themes.dark.palettes.core-colors.white}' ||
-              sLower === '{brand.light.palettes.core.white}' || sLower === '{brand.dark.palettes.core.white}' ||
-              sLower === '{brand.themes.light.palettes.white}' || sLower === '{brand.themes.dark.palettes.white}') {
-            onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
-          } else if (sLower === '#000000' || sLower === 'black' || 
-                     sLower === '{brand.light.palettes.core-colors.black}' || sLower === '{brand.dark.palettes.core-colors.black}' ||
-                     sLower === '{brand.themes.light.palettes.core-colors.black}' || sLower === '{brand.themes.dark.palettes.core-colors.black}' ||
-                     sLower === '{brand.light.palettes.core.black}' || sLower === '{brand.dark.palettes.core.black}' ||
-                     sLower === '{brand.themes.light.palettes.black}' || sLower === '{brand.themes.dark.palettes.black}') {
+          } else if (sLower === '#000000' || sLower === 'black') {
             onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
           } else {
-            // Try to resolve as theme reference
-            const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
-            if (typeof onTone === 'string') {
-              // Check if it's a shortcut that needs further resolution
-              const onToneLower = onTone.toLowerCase().trim()
-              if (onToneLower === '{brand.palettes.white}' || onToneLower === '{brand.palettes.core-colors.white}') {
-                onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
-              } else if (onToneLower === '{brand.palettes.black}' || onToneLower === '{brand.palettes.core-colors.black}') {
-                onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
-              } else if (onTone.startsWith('var(')) {
+            // Use centralized parser to handle all brand reference formats
+            const parsed = parseTokenReference(onToneRaw, context)
+            if (parsed && parsed.type === 'brand') {
+              const pathParts = parsed.path
+              // Check if it's a core color reference
+              if (pathParts.length >= 3 && pathParts[0] === 'palettes' && (pathParts[1] === 'core-colors' || pathParts[1] === 'core')) {
+                const colorName = pathParts[pathParts.length - 1]
+                if (colorName === 'white') {
+                  onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
+                } else if (colorName === 'black') {
+                  onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+                } else {
+                  // Try to resolve as CSS var
+                  const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
+                  onToneVar = cssVar || `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+                }
+              } else if (pathParts.length >= 2 && pathParts[0] === 'palettes' && (pathParts[1] === 'white' || pathParts[1] === 'black')) {
+                // Handle {brand.palettes.white} or {brand.palettes.black}
+                const colorName = pathParts[1]
+                onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-${colorName})`
+              } else {
+                // Try to resolve as CSS var
+                const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
+                if (cssVar) {
+                  onToneVar = cssVar
+                } else {
+                  // Try to resolve as theme reference
+                  const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
+                  if (typeof onTone === 'string' && onTone.startsWith('var(')) {
+                    onToneVar = onTone
+                  } else {
+                    // Default to black if unknown
+                    onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+                  }
+                }
+              }
+            } else {
+              // Not a brand reference, try to resolve as theme reference
+              const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
+              if (typeof onTone === 'string' && onTone.startsWith('var(')) {
                 onToneVar = onTone
               } else {
                 // Default to black if unknown
                 onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
               }
-            } else {
-              // Default to black if unknown
-              onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
             }
           }
         } else {
