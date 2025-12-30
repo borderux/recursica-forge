@@ -284,7 +284,7 @@ export default function ComponentDetailPage() {
             <ToastPreview
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
-              selectedAltLayer={selectedAltLayer}
+              selectedAltLayer={null}
               componentElevation={componentElevation}
             />
           ) : (
