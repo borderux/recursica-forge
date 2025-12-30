@@ -1348,6 +1348,186 @@
           "$type": "elevation",
           "$value": "{brand.elevations.elevation-0}"
         }
+      },
+      "badge": {
+        "variants": {
+          "primary-color": {
+            "colors": {
+              "layer-0": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.palette-1.default.color.tone}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                }
+              },
+              "layer-1": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.palette-1.default.color.tone}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                }
+              },
+              "layer-2": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.palette-1.default.color.tone}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                }
+              },
+              "layer-3": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.palette-1.default.color.tone}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                }
+              }
+            }
+          },
+          "warning": {
+            "colors": {
+              "layer-0": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.warning}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              },
+              "layer-1": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.warning}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              },
+              "layer-2": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.warning}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              },
+              "layer-3": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.warning}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              }
+            }
+          },
+          "success": {
+            "colors": {
+              "layer-0": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.success}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              },
+              "layer-1": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.success}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              },
+              "layer-2": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.success}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              },
+              "layer-3": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.success}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              }
+            }
+          },
+          "alert": {
+            "colors": {
+              "layer-0": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.alert}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              },
+              "layer-1": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.alert}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              },
+              "layer-2": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.alert}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              },
+              "layer-3": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.alert}"
+                },
+                "text": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.white}"
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
