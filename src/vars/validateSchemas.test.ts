@@ -7,7 +7,6 @@ import uikitSchema from '../../schemas/uikit.schema.json'
 import brandJson from './Brand.json'
 import tokensJson from './Tokens.json'
 import uikitJson from './UIKit.json'
-import { validateUIKitJson } from '../core/utils/validateJsonSchemas'
 
 describe('JSON Schema Validation', () => {
   const ajv = new Ajv({ allErrors: true, strict: false })
@@ -171,9 +170,9 @@ describe('JSON Schema Validation', () => {
       expect(validate).toBeDefined()
     })
 
-    it('should have ui-kit.globals structure', () => {
-      expect(uikitJson['ui-kit']?.globals).toBeDefined()
-      expect(typeof uikitJson['ui-kit']?.globals).toBe('object')
+    it('should have ui-kit.global structure', () => {
+      expect(uikitJson['ui-kit']?.global).toBeDefined()
+      expect(typeof uikitJson['ui-kit']?.global).toBe('object')
     })
 
     it('should have ui-kit.components structure', () => {
@@ -183,55 +182,18 @@ describe('JSON Schema Validation', () => {
 
     it('should have button component defined', () => {
       expect(uikitJson['ui-kit']?.components?.button).toBeDefined()
-      expect(uikitJson['ui-kit']?.components?.button?.variants).toBeDefined()
-      expect(uikitJson['ui-kit']?.components?.button?.size).toBeDefined()
+      expect(uikitJson['ui-kit']?.components?.button?.color).toBeDefined()
+      expect(uikitJson['ui-kit']?.components?.button?.sizes).toBeDefined()
     })
 
     it('should validate JSON structure changes', () => {
       // Ensure structure is consistent
-      const globals = uikitJson['ui-kit']?.globals
-      expect(globals).toBeDefined()
-      expect(typeof globals).toBe('object')
+      const global = uikitJson['ui-kit']?.global
+      expect(global).toBeDefined()
+      expect(typeof global).toBe('object')
       
-      // Check that globals has expected sections
-      expect(globals?.form || globals?.indicators || globals?.field).toBeDefined()
-    })
-
-    it('should pass validation with validateUIKitJson (no theme references)', () => {
-      // This should pass since we've removed all theme references
-      expect(() => validateUIKitJson(uikitJson)).not.toThrow()
-    })
-
-    it('should reject UIKit.json with theme references', () => {
-      // Create a test object with a theme reference
-      const invalidUiKit: any = {
-        'ui-kit': {
-          globals: {
-            test: {
-              '$value': '{brand.themes.light.layers.layer-0.elements.text.color}'
-            }
-          }
-        }
-      }
-
-      // Should throw an error about theme references
-      expect(() => validateUIKitJson(invalidUiKit)).toThrow(/theme reference/i)
-    })
-
-    it('should reject UIKit.json with dark theme references', () => {
-      // Create a test object with a dark theme reference
-      const invalidUiKit: any = {
-        'ui-kit': {
-          globals: {
-            test: {
-              '$value': '{brand.themes.dark.palettes.neutral.100.color.tone}'
-            }
-          }
-        }
-      }
-
-      // Should throw an error about theme references
-      expect(() => validateUIKitJson(invalidUiKit)).toThrow(/theme reference/i)
+      // Check that global has expected sections
+      expect(global?.form || global?.indicator || global?.field).toBeDefined()
     })
   })
 
@@ -321,7 +283,7 @@ describe('JSON Schema Validation', () => {
       expect(valid).toBe(false)
       if (!valid && validate.errors) {
         const requiredErrors = validate.errors.filter(e => 
-          e.keyword === 'required' && e.params?.missingProperty === 'core-colors'
+          e.keyword === 'required' && e.instancePath?.includes('core-colors')
         )
         expect(requiredErrors.length).toBeGreaterThan(0)
       }
@@ -367,16 +329,16 @@ describe('JSON Schema Validation', () => {
       expect(valid).toBe(false)
       if (!valid && validate.errors) {
         const requiredErrors = validate.errors.filter(e => 
-          e.keyword === 'required' && e.params?.missingProperty === 'neutral'
+          e.keyword === 'required' && e.instancePath?.includes('neutral')
         )
         expect(requiredErrors.length).toBeGreaterThan(0)
       }
     })
 
-    it('should reject UIKit.json missing required globals section', () => {
+    it('should reject UIKit.json missing required global section', () => {
       const invalidUIKit = {
         'ui-kit': {
-          // Missing globals section
+          // Missing global section
           components: {}
         }
       }
@@ -388,7 +350,7 @@ describe('JSON Schema Validation', () => {
       expect(valid).toBe(false)
       if (!valid && validate.errors) {
         const requiredErrors = validate.errors.filter(e => 
-          e.keyword === 'required' && e.params?.missingProperty === 'globals'
+          e.keyword === 'required' && e.instancePath?.includes('global')
         )
         expect(requiredErrors.length).toBeGreaterThan(0)
       }

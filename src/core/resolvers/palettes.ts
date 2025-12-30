@@ -170,7 +170,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
     // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
     const themes = root?.themes || root
-    const state: any = (mode === 'Light' ? themes?.light?.state : themes?.dark?.state) || {}
+    const state: any = (mode === 'Light' ? themes?.light?.states : themes?.dark?.states) || {}
     const disabled = getOpacityVar(state?.disabled)
     const hover = getOpacityVar(state?.hover)
     const overlayOpacity = getOpacityVar(state?.overlay?.opacity)
