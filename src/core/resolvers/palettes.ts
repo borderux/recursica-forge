@@ -202,8 +202,9 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       }
     })()
     
-    // Use standard levels, but only generate CSS vars for levels that exist in the JSON
-    // This prevents generating undefined variables for levels that don't exist
+    // Always process all standard levels (including 1000) to ensure CSS variables are generated
+    // Even if a level doesn't exist in JSON, we'll generate default values for on-tone
+    // This ensures reset doesn't cause on-tone colors to disappear
     const levelsToProcess = levels
     
     levelsToProcess.forEach((lvl) => {
@@ -213,15 +214,20 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       const onToneName = `palette/${pk}/${lvl}/on-tone`
       let toneRaw = themeIndex[`${mode}::${toneName}`]?.value
       
-      // Skip this level only if both tone and on-tone are undefined (unless it's 'default')
-      // This ensures we don't skip levels that exist but might have parsing issues
-      if (!toneRaw && lvl !== 'default') {
-        const onToneRaw = themeIndex[`${mode}::${onToneName}`]?.value
-        if (!onToneRaw) {
-          return // Skip this level - neither tone nor on-tone exists in the JSON
-        }
-        // If on-tone exists but tone doesn't, we'll still process on-tone below
+      // Check if on-tone exists in JSON
+      // We always want to generate on-tone CSS variables, even if tone doesn't exist
+      // So we don't skip the level - we'll generate a default on-tone value if needed
+      const onToneRawCheck = themeIndex[`${mode}::${onToneName}`]?.value
+      
+      // NEVER skip standard levels (like 1000) - always generate CSS variables for them
+      // Only skip non-standard levels that don't exist in JSON and aren't in the standard levels array
+      const isStandardLevel = levels.includes(lvl) || lvl === 'default'
+      if (!toneRaw && !onToneRawCheck && !isStandardLevel) {
+        return // Skip non-standard levels that don't exist in JSON
       }
+      
+      // For standard levels (including 1000), always continue to generate CSS variables
+      // even if they don't exist in JSON - they'll get default values
       
       // If 'default' level and no direct color.tone, check if default references another level
       if (lvl === 'default' && !toneRaw) {
@@ -232,7 +238,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
             // Check if it's a palette reference: palettes.{paletteKey}.{level}
             if (parsed.path[0] === 'palettes' && parsed.path[1] === pk && /^\d+$/.test(parsed.path[2])) {
               const referencedLevel = parsed.path[2]
-              toneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/tone`]?.value
+            toneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/tone`]?.value
             }
           }
         }
@@ -286,7 +292,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         // If theme JSON specifies on-tone, use it; otherwise default to black
         // AA compliance will be handled reactively in Phase 3
         // For 'default' level, check if we need to use the referenced level's on-tone
-        let onToneRaw = themeIndex[`${mode}::${onToneName}`]?.value
+        // Use the value we already checked above, or look it up again
+        let onToneRaw = onToneRawCheck ?? themeIndex[`${mode}::${onToneName}`]?.value
         if (lvl === 'default' && !onToneRaw) {
           const defaultRef = themeIndex[`${mode}::palette/${pk}/default`]?.value
           if (defaultRef && typeof defaultRef === 'string') {
@@ -295,7 +302,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
               // Check if it's a palette reference: palettes.{paletteKey}.{level}
               if (parsed.path[0] === 'palettes' && parsed.path[1] === pk && /^\d+$/.test(parsed.path[2])) {
                 const referencedLevel = parsed.path[2]
-                onToneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/on-tone`]?.value
+              onToneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/on-tone`]?.value
               }
             }
           }
@@ -337,13 +344,13 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
                 const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
                 if (cssVar) {
                   onToneVar = cssVar
-                } else {
-                  // Try to resolve as theme reference
-                  const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
-                  if (typeof onTone === 'string' && onTone.startsWith('var(')) {
-                    onToneVar = onTone
-                  } else {
-                    // Default to black if unknown
+          } else {
+            // Try to resolve as theme reference
+            const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
+            if (typeof onTone === 'string' && onTone.startsWith('var(')) {
+              onToneVar = onTone
+            } else {
+              // Default to black if unknown
                     onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
                   }
                 }
@@ -361,9 +368,12 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
           }
         } else {
           // Default to black - AA compliance will update this reactively in Phase 3
+          // Always generate on-tone CSS variable, even if not found in JSON
           onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
         }
         
+        // Always set the on-tone CSS variable - never skip it, even for standard levels like 1000
+        // This ensures reset doesn't cause on-tone colors to disappear
         vars[`${scope}-on-tone`] = onToneVar
       }
       // Do not emit per-level palette emphasis vars; consumers should reference brand-level text emphasis tokens directly

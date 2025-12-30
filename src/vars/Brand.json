@@ -774,7 +774,7 @@
                   "$value": "{tokens.color.mandarin.600}"
                 },
                 "on-tone": {
-                  "$value": "{brand.palettes.core-colors.white}"
+                  "$value": "{tokens.color.mandy.900}"
                 },
                 "interactive": {
                   "$value": "{tokens.color.mandy.900}"
@@ -1733,7 +1733,7 @@
                   "$value": "{tokens.color.mandarin.400}"
                 },
                 "on-tone": {
-                  "$value": "{brand.palettes.core-colors.white}"
+                  "$value": "{tokens.color.mandy.900}"
                 },
                 "interactive": {
                   "$value": "{tokens.color.mandy.800}"
