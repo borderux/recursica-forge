@@ -22,7 +22,7 @@
       "visible": true
     },
     "padding": {
-      "icon": "arrows-pointing-out",
+      "icon": "square-logo",
       "label": "Padding",
       "visible": true,
       "group": {
@@ -58,7 +58,7 @@
     },
     "icon": {
       "icon": "diamond",
-      "label": "Icon Size",
+      "label": "Icon",
       "visible": true
     },
     "elevation": {
