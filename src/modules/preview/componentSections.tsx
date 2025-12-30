@@ -2,6 +2,7 @@ import React from 'react'
 import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
 import { Avatar } from '../../components/adapters/Avatar'
+import { Toast } from '../../components/adapters/Toast'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'

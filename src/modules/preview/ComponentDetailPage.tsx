@@ -6,6 +6,7 @@ import { getComponentSections } from './componentSections'
 import { ComponentToolbar } from '../toolbar'
 import ButtonPreview from '../components/ButtonPreview'
 import AvatarPreview from '../components/AvatarPreview'
+import ToastPreview from '../components/ToastPreview'
 import BadgePreview from '../components/BadgePreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -266,6 +267,11 @@ export default function ComponentDetailPage() {
               selectedLayer={selectedLayer}
               componentElevation={componentElevation}
             />
+          ) : component.name === 'Toast' ? (
+            <ToastPreview
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+              selectedAltLayer={null}
           ) : component.name === 'Badge' ? (
             <BadgePreview
               selectedVariants={selectedVariants}

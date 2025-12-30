@@ -53,7 +53,11 @@ export function getComponentCssVar(
   const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
   
   // Check if this is a component-level property (not under size/color category)
-  if (componentLevelProperties.includes(property.toLowerCase())) {
+  // Exception: For Toast, max-width is under size, so don't treat it as component-level when category is 'size'
+  const isComponentLevel = componentLevelProperties.includes(property.toLowerCase()) && 
+    !(component.toLowerCase() === 'toast' && category === 'size' && property.toLowerCase() === 'max-width')
+  
+  if (isComponentLevel) {
     const parts = ['components', component.toLowerCase()]
     const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
     parts.push(normalizedProperty)
@@ -106,7 +110,6 @@ export function getComponentCssVar(
       } else {
         // Single-level variant (e.g., "solid-background", "outline-text", "default-thumb-selected", "primary-color-background")
         // Check if property starts with a known variant name followed by a hyphen
-        // Note: Variant names can be hyphenated (e.g., "primary-color")
         const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost', 'primary-color', 'warning', 'success', 'alert']
         let variantName: string | null = null
         let propName: string | null = null

@@ -5,6 +5,7 @@
 import ButtonConfig from '../configs/Button.toolbar.json'
 import SwitchConfig from '../configs/Switch.toolbar.json'
 import AvatarConfig from '../configs/Avatar.toolbar.json'
+import ToastConfig from '../configs/Toast.toolbar.json'
 import BadgeConfig from '../configs/Badge.toolbar.json'
 
 export interface ToolbarPropConfig {
@@ -41,6 +42,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return SwitchConfig as ToolbarConfig
       case 'avatar':
         return AvatarConfig as ToolbarConfig
+      case 'toast':
+        return ToastConfig as ToolbarConfig
       case 'badge':
         return BadgeConfig as ToolbarConfig
       default:

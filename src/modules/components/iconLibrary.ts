@@ -46,6 +46,7 @@ import {
   FileText,
   FrameCorners,
   GridFour,
+  Info,
   Link,
   List,
   Moon,
@@ -61,6 +62,7 @@ import {
   SlidersHorizontal,
   SplitHorizontal,
   Square,
+  SquareLogo,
   Stack,
   Sun,
   Swap,
@@ -157,6 +159,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'angle': Angle,
   'file-svg': FileSvg,
   'check': Check,
+  'info': Info,
   'sliders-horizontal': SlidersHorizontal,
   'faders-horizontal': FadersHorizontal,
   'user': User,
@@ -164,6 +167,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'circle-half-tilt': CircleHalfTilt,
   'border': FrameCorners,
   'square': Square,
+  'square-logo': SquareLogo,
 }
 
 /**

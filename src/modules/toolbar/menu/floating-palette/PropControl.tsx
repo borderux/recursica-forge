@@ -303,7 +303,14 @@ export default function PropControl({
   }
 
   const renderControls = () => {
-    const baseLabel = toSentenceCase(prop.name)
+    // Special case: Toast background and text props should show "Color" as the label
+    // Toast icon prop should show "Size" as the label
+    const baseLabel = (componentName.toLowerCase() === 'toast' && 
+                       (prop.name.toLowerCase() === 'background' || prop.name.toLowerCase() === 'text'))
+      ? 'Color'
+      : (componentName.toLowerCase() === 'toast' && prop.name.toLowerCase() === 'icon')
+      ? 'Size'
+      : toSentenceCase(prop.name)
     
     // If this is a combined "thumb" prop, render all thumb-related properties
     if (prop.name.toLowerCase() === 'thumb' && prop.thumbProps && prop.thumbProps.size > 0) {
