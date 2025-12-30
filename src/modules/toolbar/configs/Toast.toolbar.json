@@ -14,25 +14,15 @@
     "text": {
       "icon": "text-aa",
       "label": "Text",
-      "visible": true,
-      "group": {
-        "text": {
-          "label": "Color",
-          "visible": true
-        },
-        "text-size": {
-          "label": "Size",
-          "visible": true
-        }
-      }
+      "visible": true
     },
     "button": {
-      "icon": "square",
+      "icon": "cursor-click",
       "label": "Button",
       "visible": true
     },
     "padding": {
-      "icon": "square-logo",
+      "icon": "arrows-pointing-out",
       "label": "Padding",
       "visible": true,
       "group": {
@@ -63,12 +53,12 @@
     },
     "spacing": {
       "icon": "split-horizontal",
-      "label": "Gap Between Text and Actions",
+      "label": "Spacing",
       "visible": true
     },
     "icon": {
       "icon": "diamond",
-      "label": "Icon",
+      "label": "Icon Size",
       "visible": true
     },
     "elevation": {
