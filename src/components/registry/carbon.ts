@@ -22,5 +22,8 @@ registerComponent('carbon', 'Avatar', () => import('../adapters/carbon/Avatar/Av
 // Badge
 registerComponent('carbon', 'Badge', () => import('../adapters/carbon/Badge/Badge'))
 
+// Toast
+registerComponent('carbon', 'Toast', () => import('../adapters/carbon/Toast/Toast'))
+
 // Add more components as they're implemented
 

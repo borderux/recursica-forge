@@ -5,6 +5,7 @@
  * Uses Material UI's Paper component as the base for toast styling.
  */
 
+<<<<<<< HEAD
 import React from 'react'
 import { Paper } from '@mui/material'
 import type { ToastProps as AdapterToastProps } from '../../Toast'
@@ -13,6 +14,13 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { Button } from '../../Button'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
+=======
+import { Paper } from '@mui/material'
+import type { ToastProps as AdapterToastProps } from '../../Toast'
+import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../../../core/css/readCssVar'
+>>>>>>> e44261b (Stopping point, submit as PR for code review)
 import './Toast.css'
 
 export default function Toast({
@@ -30,7 +38,10 @@ export default function Toast({
   ...props
 }: AdapterToastProps) {
   const { mode } = useThemeMode()
+<<<<<<< HEAD
   const CloseIcon = iconNameToReactComponent('x-mark')
+=======
+>>>>>>> e44261b (Stopping point, submit as PR for code review)
   
   // Check if component has alternative-layer prop set (overrides layer-based alt layer)
   const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
@@ -59,21 +70,24 @@ export default function Toast({
     }
   } else {
     // Use UIKit.json toast colors for standard layers
-    toastBgVar = getComponentCssVar('Toast', 'color', `${variant}-background`, layer)
-    toastTextVar = getComponentCssVar('Toast', 'color', `${variant}-text`, layer)
+    toastBgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
+    toastTextVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
     if (variant === 'success' || variant === 'error') {
-      toastButtonVar = getComponentCssVar('Toast', 'color', `${variant}-button`, layer)
+      toastButtonVar = getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
     }
   }
   
   // Get size CSS variables
-  const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'vertical-padding', undefined)
-  const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'horizontal-padding', undefined)
-  const minWidthVar = getComponentCssVar('Toast', 'size', 'min-width', undefined)
-  const maxWidthVar = getComponentCssVar('Toast', 'size', 'max-width', undefined)
-  const iconVar = getComponentCssVar('Toast', 'size', 'icon', undefined)
-  const spacingVar = getComponentCssVar('Toast', 'size', 'spacing', undefined)
+  const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'default-vertical-padding', undefined)
+  const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'default-horizontal-padding', undefined)
+  const minWidthVar = getComponentCssVar('Toast', 'size', 'default-min-width', undefined)
+  const maxWidthVar = getComponentCssVar('Toast', 'size', 'default-max-width', undefined)
+  const iconVar = getComponentCssVar('Toast', 'size', 'default-icon', undefined)
+  const spacingVar = getComponentCssVar('Toast', 'size', 'default-spacing', undefined)
+<<<<<<< HEAD
   const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
+=======
+>>>>>>> e44261b (Stopping point, submit as PR for code review)
   
   // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
   let elevationToApply: string | undefined = elevation
@@ -120,7 +134,10 @@ export default function Toast({
       '--toast-max-width': `var(${maxWidthVar})`,
       '--toast-icon-size': icon ? `var(${iconVar})` : '0px',
       '--toast-spacing': icon || action ? `var(${spacingVar})` : '0px',
+<<<<<<< HEAD
       '--toast-text-size': `var(${textSizeVar})`,
+=======
+>>>>>>> e44261b (Stopping point, submit as PR for code review)
       backgroundColor: isAlternativeLayer ? toastBgVar : `var(${toastBgVar})`,
       color: isAlternativeLayer ? toastTextVar : `var(${toastTextVar})`,
       ...(boxShadow && { boxShadow }),
@@ -143,6 +160,7 @@ export default function Toast({
           <span className="recursica-toast-action">{action}</span>
         )}
         {onClose && (
+<<<<<<< HEAD
           <Button
             variant="text"
             size="small"
@@ -166,6 +184,17 @@ export default function Toast({
           >
             {CloseIcon ? <CloseIcon /> : '×'}
           </Button>
+=======
+          <button
+            className="recursica-toast-close"
+            onClick={onClose}
+            style={{
+              backgroundColor: toastButtonVar ? (isAlternativeLayer ? toastButtonVar : `var(${toastButtonVar})`) : 'transparent',
+            }}
+          >
+            ×
+          </button>
+>>>>>>> e44261b (Stopping point, submit as PR for code review)
         )}
       </div>
     </Paper>

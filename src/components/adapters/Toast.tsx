@@ -70,17 +70,17 @@ export function Toast({
   if (!Component) {
     // Fallback to native div if component not available
     const CloseIcon = iconNameToReactComponent('x-mark')
-    const bgVar = getComponentCssVar('Toast', 'color', `${variant}-background`, layer)
-    const textVar = getComponentCssVar('Toast', 'color', `${variant}-text`, layer)
+    const bgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
+    const textVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
     const buttonVar = (variant === 'success' || variant === 'error')
-      ? getComponentCssVar('Toast', 'color', `${variant}-button`, layer)
+      ? getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
       : null
-    const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'vertical-padding', undefined)
-    const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'horizontal-padding', undefined)
-    const minWidthVar = getComponentCssVar('Toast', 'size', 'min-width', undefined)
-    const maxWidthVar = getComponentCssVar('Toast', 'size', 'max-width', undefined)
-    const iconVar = getComponentCssVar('Toast', 'size', 'icon', undefined)
-    const spacingVar = getComponentCssVar('Toast', 'size', 'spacing', undefined)
+    const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'default-vertical-padding', undefined)
+    const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'default-horizontal-padding', undefined)
+    const minWidthVar = getComponentCssVar('Toast', 'size', 'default-min-width', undefined)
+    const maxWidthVar = getComponentCssVar('Toast', 'size', 'default-max-width', undefined)
+    const iconVar = getComponentCssVar('Toast', 'size', 'default-icon', undefined)
+    const spacingVar = getComponentCssVar('Toast', 'size', 'default-spacing', undefined)
     const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
     
     // Build box-shadow from elevation if set (and not elevation-0)
