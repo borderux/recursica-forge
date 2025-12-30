@@ -19,6 +19,9 @@ registerComponent('mantine', 'Switch', () => import('../adapters/mantine/Switch/
 // Avatar
 registerComponent('mantine', 'Avatar', () => import('../adapters/mantine/Avatar/Avatar'))
 
+// Badge
+registerComponent('mantine', 'Badge', () => import('../adapters/mantine/Badge/Badge'))
+
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))
 // registerComponent('mantine', 'TextField', () => import('../../adapters/mantine/TextField'))

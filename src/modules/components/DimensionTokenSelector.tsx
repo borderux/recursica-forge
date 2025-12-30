@@ -11,6 +11,7 @@ interface DimensionTokenSelectorProps {
   targetCssVars?: string[]
   label: string
   propName: string // e.g., "border-radius", "font-size", "height"
+  minPixelValue?: number // Optional minimum value for pixel slider
 }
 
 export default function DimensionTokenSelector({
@@ -18,6 +19,7 @@ export default function DimensionTokenSelector({
   targetCssVars = [],
   label,
   propName,
+  minPixelValue: minPixelValueProp,
 }: DimensionTokenSelectorProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
@@ -584,9 +586,10 @@ export default function DimensionTokenSelector({
       const pxValue = extractPixelValue(currentValue)
       // Determine max pixel value based on prop name
       const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
-      setPixelValue(Math.max(0, Math.min(maxPixelValue, pxValue))) // Clamp to 0-maxPixelValue
+      const minPixelValue = minPixelValueProp ?? 0
+      setPixelValue(Math.max(minPixelValue, Math.min(maxPixelValue, pxValue))) // Clamp to minPixelValue-maxPixelValue
     }
-  }, [targetCssVar, dimensionTokens, propName])
+  }, [targetCssVar, dimensionTokens, propName, minPixelValueProp])
   
   // Read initial value when component mounts or targetCssVar changes
   useEffect(() => {
@@ -642,6 +645,7 @@ export default function DimensionTokenSelector({
   // Determine max pixel value based on prop name
   // max-width can go up to 500px, others default to 200px
   const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
+  const minPixelValue = minPixelValueProp ?? 0
 
   // Render pixel slider for raw pixel values
   if (isPixelMode) {
@@ -654,7 +658,7 @@ export default function DimensionTokenSelector({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input
               type="range"
-              min={0}
+              min={minPixelValue}
               max={maxPixelValue}
               step={1}
               value={pixelValue}
@@ -663,22 +667,22 @@ export default function DimensionTokenSelector({
             />
             <input
               type="number"
-              min={0}
+              min={minPixelValue}
               max={maxPixelValue}
               step={1}
               value={pixelValue}
               onChange={(e) => {
                 const value = Number(e.target.value)
                 if (!isNaN(value)) {
-                  const clampedValue = Math.max(0, Math.min(maxPixelValue, value))
+                  const clampedValue = Math.max(minPixelValue, Math.min(maxPixelValue, value))
                   handlePixelChange(clampedValue)
                 }
               }}
               onBlur={(e) => {
                 // Ensure value is valid on blur
                 const value = Number(e.target.value)
-                if (isNaN(value) || value < 0) {
-                  handlePixelChange(0)
+                if (isNaN(value) || value < minPixelValue) {
+                  handlePixelChange(minPixelValue)
                 } else if (value > maxPixelValue) {
                   handlePixelChange(maxPixelValue)
                 }

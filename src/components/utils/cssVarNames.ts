@@ -35,7 +35,7 @@ export function toCssVarName(path: string): string {
  * 
  * @example
  * getComponentCssVar('Button', 'size', 'default-height', undefined)
- * => '--recursica-ui-kit-components-button-size-variant-default-height'
+ * => '--recursica-ui-kit-components-button-size-variants-default-height'
  * 
  * @example
  * getComponentCssVar('Button', 'size', 'font-size', undefined)
@@ -108,14 +108,16 @@ export function getComponentCssVar(
         }
         parts.push(propName)
       } else {
-        // Single-level variant (e.g., "solid-background", "outline-text", "default-thumb-selected")
+        // Single-level variant (e.g., "solid-background", "outline-text", "default-thumb-selected", "primary-color-background")
         // Check if property starts with a known variant name followed by a hyphen
-        const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost', 'success', 'error']
+        const knownVariants = ['solid', 'text', 'outline', 'default', 'primary', 'ghost', 'primary-color', 'warning', 'success', 'alert']
         let variantName: string | null = null
         let propName: string | null = null
         
-        // Try to match known variants at the start of the property
-        for (const variant of knownVariants) {
+        // Try to match known variants at the start of the property (longest match first)
+        // Sort by length descending to match "primary-color" before "primary"
+        const sortedVariants = knownVariants.sort((a, b) => b.length - a.length)
+        for (const variant of sortedVariants) {
           if (property.startsWith(`${variant}-`)) {
             variantName = variant
             propName = property.substring(variant.length + 1) // +1 for the hyphen

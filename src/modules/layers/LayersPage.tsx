@@ -98,10 +98,11 @@ export default function LayersPage() {
     const toSize = (ref?: any): string => {
       const s: string | undefined = typeof ref === 'string' ? ref : (ref?.['$value'] as any)
       if (!s) return 'size/none'
-      const inner = s.startsWith('{') ? s.slice(1, -1) : s
-      const parts = inner.split('.')
-      if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'size') {
-        const key = parts.slice(2).join('.')
+      const { extractBraceContent, parseTokenReference } = require('../../core/utils/tokenReferenceParser')
+      const inner = extractBraceContent(s) || s
+      const parsed = parseTokenReference(s, {})
+      if (parsed && parsed.type === 'token' && parsed.path[0] === 'size') {
+        const key = parsed.path.slice(1).join('.')
         return `size/${key}`
       }
       return 'size/none'
@@ -110,10 +111,10 @@ export default function LayersPage() {
     const parseColorToken = (s?: any): string | undefined => {
       const v: string | undefined = typeof s === 'string' ? s : (s?.['$value'] as any)
       if (!v) return undefined
-      const inner = v.startsWith('{') ? v.slice(1, -1) : v
-      const parts = inner.split('.')
-      if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'color' && parts[2] && parts[3]) {
-        return `color/${parts[2]}/${parts[3]}`
+      const { parseTokenReference } = require('../../core/utils/tokenReferenceParser')
+      const parsed = parseTokenReference(v, {})
+      if (parsed && parsed.type === 'token' && parsed.path[0] === 'color' && parsed.path.length >= 3) {
+        return `color/${parsed.path[1]}/${parsed.path[2]}`
       }
       return undefined
     }
@@ -121,10 +122,10 @@ export default function LayersPage() {
     const parseOpacityToken = (s?: any): string | undefined => {
       const v: string | undefined = typeof s === 'string' ? s : (s?.['$value'] as any)
       if (!v) return undefined
-      const inner = v.startsWith('{') ? v.slice(1, -1) : v
-      const parts = inner.split('.')
-      if ((parts[0] || '').toLowerCase() === 'tokens' && parts[1] === 'opacity' && parts[2]) {
-        return `opacity/${parts[2]}`
+      const { parseTokenReference } = require('../../core/utils/tokenReferenceParser')
+      const parsed = parseTokenReference(v, {})
+      if (parsed && parsed.type === 'token' && parsed.path[0] === 'opacity' && parsed.path.length >= 2) {
+        return `opacity/${parsed.path[1]}`
       }
       return undefined
     }

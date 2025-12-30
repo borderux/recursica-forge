@@ -37,11 +37,31 @@ type VarsContextValue = {
 const VarsContext = createContext<VarsContextValue | undefined>(undefined)
 
 export function VarsProvider({ children }: { children: React.ReactNode }) {
-  const store = getVarsStore()
+  // Ensure store is initialized before using it
+  const store = useMemo(() => getVarsStore(), [])
   const [state, setState] = useState(() => store.getState())
 
   useEffect(() => {
-    return store.subscribe(() => setState(store.getState()))
+    return store.subscribe(() => {
+      const newState = store.getState()
+      // Only update React state if actual data changed, not just version
+      // bumpVersion() creates a new state object but keeps the same references for
+      // tokens, theme, uikit, palettes, and elevation, so we can skip the update
+      // to prevent unnecessary re-renders of all consumers
+      setState(prevState => {
+        if (
+          prevState.tokens !== newState.tokens ||
+          prevState.theme !== newState.theme ||
+          prevState.uikit !== newState.uikit ||
+          prevState.palettes !== newState.palettes ||
+          prevState.elevation !== newState.elevation
+        ) {
+          return newState
+        }
+        // Data hasn't changed (only version changed), return previous state to prevent re-render
+        return prevState
+      })
+    })
   }, [store])
 
   const resolvedTheme: ResolvedTheme = useMemo(() => ({

@@ -1,0 +1,20 @@
+/**
+ * Carbon Badge Styles
+ * 
+ * Uses CSS variables from UIKit.json for theming.
+ */
+
+.cds--badge {
+  background-color: var(--badge-bg) !important;
+  color: var(--badge-text) !important;
+  font-family: var(--badge-font-family) !important;
+  font-size: var(--badge-font-size) !important;
+  font-weight: var(--badge-font-weight) !important;
+  letter-spacing: var(--badge-letter-spacing) !important;
+  line-height: var(--badge-line-height) !important;
+  padding: 0 var(--recursica-ui-kit-components-badge-padding-horizontal) !important;
+  border-radius: var(--recursica-ui-kit-components-badge-border-radius) !important;
+  display: inline-block !important;
+  height: auto !important; /* Ensure min-height controls the height */
+}
+

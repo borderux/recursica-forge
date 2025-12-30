@@ -239,7 +239,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       })()
       const s = typeof raw === 'string' ? raw.trim() : ''
       if (!s) return null
-      const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
+      const inner = extractBraceContent(s) || s
       const m = /^(?:tokens|token)\.size\.([a-z0-9\-_]+)$/i.exec(inner)
       if (m) return m[1]
       if (/^var\(\s*--tokens-size-[a-z0-9\-_]+\s*\)\s*$/i.test(s)) {
@@ -261,7 +261,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       })()
       const s = typeof raw === 'string' ? raw.trim() : ''
       if (!s) return null
-      const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
+      const inner = extractBraceContent(s) || s
       const m = /^(?:tokens|token)\.opacity\.([a-z0-9\-_]+)$/i.exec(inner)
       if (m) return m[1]
       if (/^var\(\s*--tokens-opacity-[a-z0-9\-_]+\s*\)\s*$/i.test(s)) {

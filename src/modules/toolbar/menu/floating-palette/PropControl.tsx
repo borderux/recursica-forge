@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
 import { getPropLabel, getPropVisible, getGroupedProps, getGroupedPropConfig } from '../../utils/loadToolbarConfig'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
@@ -91,7 +91,16 @@ export default function PropControl({
 
   // Get CSS vars for base prop
   const baseCssVars = getCssVarsForProp(prop)
-  const primaryCssVar = baseCssVars[0] || prop.cssVar
+  let primaryCssVar = baseCssVars[0] || prop.cssVar
+  let cssVarsForControl = baseCssVars
+  
+  // For Badge height, override to target the size variant's min-height instead of component-level height
+  if (prop.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
+    const sizeVariant = selectedVariants.size || 'small'
+    const minHeightVar = `--recursica-ui-kit-components-badge-size-variants-${sizeVariant}-min-height`
+    primaryCssVar = minHeightVar
+    cssVarsForControl = [minHeightVar]
+  }
 
   // Helper to determine contrast color CSS var based on prop name
   const getContrastColorVar = (propToRender: ComponentProp): string | undefined => {
@@ -200,6 +209,40 @@ export default function PropControl({
         ? ['--recursica-brand-typography-button-font-size']
         : []
       
+      // For Badge height, get min value from size variant's min-height in UIKit.json
+      // Read from JSON structure directly, not from CSS var (which can be modified)
+      let minPixelValue: number | undefined = undefined
+      if (propToRender.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
+        const sizeVariant = selectedVariants.size || 'small'
+        try {
+          // Read directly from UIKit.json structure to get the original/default value
+          const uikitRoot: any = (themeJson as any)?.['ui-kit'] || (themeJson as any)
+          const badgeComponent = uikitRoot?.components?.badge
+          if (badgeComponent?.size?.variant?.[sizeVariant]?.['min-height']) {
+            const minHeightDef = badgeComponent.size.variant[sizeVariant]['min-height']
+            if (minHeightDef?.$type === 'dimension' && minHeightDef?.$value) {
+              const value = minHeightDef.$value
+              // Handle both direct number values and object with value/unit
+              if (typeof value === 'number') {
+                minPixelValue = value
+              } else if (value && typeof value === 'object' && 'value' in value) {
+                minPixelValue = typeof value.value === 'number' ? value.value : parseFloat(value.value)
+              }
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to read min-height from UIKit.json:', error)
+        }
+        // Fallback: use default values based on size variant if JSON read fails
+        if (minPixelValue === undefined) {
+          const defaultValues: Record<string, number> = {
+            small: 16,
+            large: 24,
+          }
+          minPixelValue = defaultValues[sizeVariant] || 16
+        }
+      }
+      
       // For dimension props, use dimension token selector (only theme values)
       return (
         <DimensionTokenSelector
@@ -207,6 +250,7 @@ export default function PropControl({
           targetCssVars={[...cssVars, ...additionalCssVars]}
           label={label}
           propName={propToRender.name}
+          minPixelValue={minPixelValue}
         />
       )
     }
@@ -437,9 +481,19 @@ export default function PropControl({
             const groupedPropKey = groupedPropName.toLowerCase()
             let groupedProp = prop.borderProps!.get(groupedPropKey)
             
-            // Special case: border-color is stored as "border" in the color category
+            // Special case mappings: toolbar config names -> UIKit.json property names
             if (!groupedProp && groupedPropKey === 'border-color') {
               groupedProp = prop.borderProps!.get('border')
+            }
+            if (!groupedProp && groupedPropKey === 'text-color') {
+              groupedProp = prop.borderProps!.get('text')
+            }
+            // Special handling for variant-specific props with variant prefix in config name
+            // e.g., "small-min-height" should match prop stored with that key
+            if (!groupedProp && (groupedPropKey.includes('-min-height') || groupedPropKey.includes('-height'))) {
+              // The grouped prop should already be stored with the variant-prefixed key
+              // from ComponentToolbar.tsx, so just try to get it directly
+              groupedProp = prop.borderProps!.get(groupedPropKey)
             }
             
             if (!groupedProp) {
@@ -562,7 +616,7 @@ export default function PropControl({
     }
     
     // Render the base control (hover props are now handled via config grouping)
-    return renderControl(prop, baseCssVars, primaryCssVar, baseLabel)
+    return renderControl(prop, cssVarsForControl, primaryCssVar, baseLabel)
   }
 
   if (!anchorElement) {
