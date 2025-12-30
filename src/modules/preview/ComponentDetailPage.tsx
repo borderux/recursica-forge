@@ -272,6 +272,7 @@ export default function ComponentDetailPage() {
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
               selectedAltLayer={null}
+            />
           ) : component.name === 'Badge' ? (
             <BadgePreview
               selectedVariants={selectedVariants}
