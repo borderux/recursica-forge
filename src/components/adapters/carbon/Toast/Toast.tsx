@@ -5,7 +5,6 @@
  * Uses a simple div-based approach for maximum flexibility.
  */
 
-<<<<<<< HEAD
 import React from 'react'
 import type { ToastProps as AdapterToastProps } from '../../Toast'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
@@ -13,12 +12,6 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { Button } from '../../Button'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-=======
-import type { ToastProps as AdapterToastProps } from '../../Toast'
-import { getComponentCssVar } from '../../../utils/cssVarNames'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
->>>>>>> e44261b (Stopping point, submit as PR for code review)
 import './Toast.css'
 
 export default function Toast({
@@ -36,10 +29,7 @@ export default function Toast({
   ...props
 }: AdapterToastProps) {
   const { mode } = useThemeMode()
-<<<<<<< HEAD
   const CloseIcon = iconNameToReactComponent('x-mark')
-=======
->>>>>>> e44261b (Stopping point, submit as PR for code review)
   
   // Check if component has alternative-layer prop set (overrides layer-based alt layer)
   const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
@@ -82,10 +72,7 @@ export default function Toast({
   const maxWidthVar = getComponentCssVar('Toast', 'size', 'default-max-width', undefined)
   const iconVar = getComponentCssVar('Toast', 'size', 'default-icon', undefined)
   const spacingVar = getComponentCssVar('Toast', 'size', 'default-spacing', undefined)
-<<<<<<< HEAD
   const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
-=======
->>>>>>> e44261b (Stopping point, submit as PR for code review)
   
   // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
   let elevationToApply: string | undefined = elevation
@@ -132,10 +119,7 @@ export default function Toast({
       '--toast-max-width': `var(${maxWidthVar})`,
       '--toast-icon-size': icon ? `var(${iconVar})` : '0px',
       '--toast-spacing': icon || action ? `var(${spacingVar})` : '0px',
-<<<<<<< HEAD
       '--toast-text-size': `var(${textSizeVar})`,
-=======
->>>>>>> e44261b (Stopping point, submit as PR for code review)
       backgroundColor: isAlternativeLayer ? toastBgVar : `var(${toastBgVar})`,
       color: isAlternativeLayer ? toastTextVar : `var(${toastTextVar})`,
       ...(boxShadow && { boxShadow }),
@@ -158,7 +142,6 @@ export default function Toast({
           <span className="recursica-toast-action">{action}</span>
         )}
         {onClose && (
-<<<<<<< HEAD
           <Button
             variant="text"
             size="small"
@@ -182,17 +165,6 @@ export default function Toast({
           >
             {CloseIcon ? <CloseIcon /> : '×'}
           </Button>
-=======
-          <button
-            className="recursica-toast-close"
-            onClick={onClose}
-            style={{
-              backgroundColor: toastButtonVar ? (isAlternativeLayer ? toastButtonVar : `var(${toastButtonVar})`) : 'transparent',
-            }}
-          >
-            ×
-          </button>
->>>>>>> e44261b (Stopping point, submit as PR for code review)
         )}
       </div>
     </div>
