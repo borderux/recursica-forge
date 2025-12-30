@@ -151,14 +151,14 @@ function cssVarToBrandRef(cssVar: string): string | null {
       if (parts[0] === 'property') {
         parts.shift() // Remove 'property'
         const propPath = parts.join('.')
-        return `{brand.themes.${mode}.layers.${layerId}.properties.${propPath}}`
+        return `{brand.themes.${mode}.layers.${layerId}.property.${propPath}}`
       }
       
       if (parts[0] === 'property' && parts[1] === 'element') {
         parts.shift() // Remove 'property'
         parts.shift() // Remove 'element'
         const elementPath = parts.join('.')
-        return `{brand.themes.${mode}.layers.${layerId}.elements.${elementPath}}`
+        return `{brand.themes.${mode}.layers.${layerId}.element.${elementPath}}`
       }
     }
     
@@ -422,10 +422,10 @@ export function exportBrandJson(): object {
         
         // Build structure from CSS vars only
         if (!result.brand.themes[mode].layers[layerId]) {
-          result.brand.themes[mode].layers[layerId] = { properties: {}, elements: {} }
+          result.brand.themes[mode].layers[layerId] = { property: {}, elements: {} }
         }
-        if (!result.brand.themes[mode].layers[layerId].properties) {
-          result.brand.themes[mode].layers[layerId].properties = {}
+        if (!result.brand.themes[mode].layers[layerId].property) {
+          result.brand.themes[mode].layers[layerId].property = {}
         }
         if (!result.brand.themes[mode].layers[layerId].elements) {
           result.brand.themes[mode].layers[layerId].elements = {}
@@ -441,7 +441,7 @@ export function exportBrandJson(): object {
           
           const jsonValue = cssValueToJsonValue(cssValue, propType, tokenIndex)
           if (jsonValue !== undefined) {
-            result.brand.themes[mode].layers[layerId].properties[propName] = { 
+            result.brand.themes[mode].layers[layerId].property[propName] = { 
               $type: propType, 
               $value: jsonValue 
             }
@@ -490,7 +490,7 @@ export function exportUIKitJson(): object {
   const tokenIndex = buildTokenIndex(tokensJson as JsonLike)
   const result: any = {
     'ui-kit': {
-      globals: {},
+      global: {},
       components: {}
     }
   }
@@ -501,14 +501,14 @@ export function exportUIKitJson(): object {
     
     const path = cssVar.replace('--recursica-ui-kit-', '').split('-')
     
-    // Handle global paths: globals-icon-style
-    if (path[0] === 'globals' && path.length >= 2) {
-      path.shift() // Remove 'globals'
+    // Handle global paths: global-icon-style
+    if (path[0] === 'global' && path.length >= 2) {
+      path.shift() // Remove 'global'
       const globalPath = path.join('.')
       
       // Build structure from CSS vars only
       const parts = globalPath.split('.')
-      let current = result['ui-kit'].globals
+      let current = result['ui-kit'].global
       
       for (let i = 0; i < parts.length - 1; i++) {
         if (!current[parts[i]]) {
@@ -535,13 +535,8 @@ export function exportUIKitJson(): object {
       const componentName = path[0]
       path.shift() // Remove component name
       
-      let category = path[0] // colors, size
+      const category = path[0] // color, size
       path.shift() // Remove category
-      
-      // Map CSS variable category to JSON structure
-      // CSS vars use "size" but JSON uses "sizes"
-      // CSS vars use "colors" but JSON uses "variants" (colors are inside variants)
-      const jsonCategory = category === 'size' ? 'sizes' : category === 'colors' ? 'variants' : category
       
       const componentPath = path.join('.')
       
@@ -549,12 +544,12 @@ export function exportUIKitJson(): object {
       if (!result['ui-kit'].components[componentName]) {
         result['ui-kit'].components[componentName] = {}
       }
-      if (!result['ui-kit'].components[componentName][jsonCategory]) {
-        result['ui-kit'].components[componentName][jsonCategory] = {}
+      if (!result['ui-kit'].components[componentName][category]) {
+        result['ui-kit'].components[componentName][category] = {}
       }
       
       const parts = componentPath.split('.')
-      let current = result['ui-kit'].components[componentName][jsonCategory]
+      let current = result['ui-kit'].components[componentName][category]
       
       for (let i = 0; i < parts.length - 1; i++) {
         if (!current[parts[i]]) {
@@ -564,7 +559,7 @@ export function exportUIKitJson(): object {
       }
       
       const lastPart = parts[parts.length - 1]
-      const type = category === 'colors' ? 'color' : 'dimension'
+      const type = category === 'color' ? 'color' : 'dimension'
       const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
       if (jsonValue !== undefined) {
         current[lastPart] = {
