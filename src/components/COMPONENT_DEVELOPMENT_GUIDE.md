@@ -73,6 +73,73 @@ src/components/adapters/
         └── Button.carbon.audit.md
 ```
 
+## UIKit.json Structure
+
+The UIKit.json file uses a consistent structure for all components:
+
+### Component Structure
+
+```json
+{
+  "ui-kit": {
+    "components": {
+      "{component}": {
+        "variants": {
+          "styles": {
+            "{variant-name}": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "{property}": { "$type": "color", "$value": "..." }
+                  }
+                }
+              }
+            }
+          },
+          "sizes": {
+            "{variant-name}": {
+              "properties": {
+                "{property}": { "$type": "dimension", "$value": "..." }
+              }
+            }
+          }
+        },
+        "properties": {
+          "{property}": { "$type": "dimension|elevation|typography", "$value": "..." }
+        }
+      }
+    }
+  }
+}
+```
+
+### Key Patterns
+
+1. **Color Variants**: `variants.styles.{variant}.properties.colors.{layer}.{property}`
+   - Example: `button.variants.styles.solid.properties.colors.layer-0.background`
+   - CSS Variable: `--recursica-ui-kit-components-button-variants-styles-solid-properties-colors-layer-0-background`
+   - Code: `getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')`
+
+2. **Size Variants**: `variants.sizes.{variant}.properties.{property}`
+   - Example: `button.variants.sizes.default.properties.height`
+   - CSS Variable: `--recursica-ui-kit-components-button-variants-sizes-default-properties-height`
+   - Code: `getComponentCssVar('Button', 'size', 'default-height', undefined)`
+
+3. **Component-Level Properties**: `properties.{property}`
+   - Example: `button.properties.elevation`
+   - CSS Variable: `--recursica-ui-kit-components-button-properties-elevation`
+   - Code: `getComponentLevelCssVar('Button', 'elevation')`
+
+### Special Cases
+
+- **Switch Component**: Has colors directly under `properties.colors` (no variants)
+  - Structure: `switch.properties.colors.layer-0.thumb-selected`
+  - Code: `getComponentCssVar('Switch', 'colors', 'thumb-selected', 'layer-0')`
+
+- **Avatar Component**: Has nested variants for styles
+  - Structure: `avatar.variants.styles.text.variants.solid.properties.colors.layer-0.background`
+  - Code: `getComponentCssVar('Avatar', 'colors', 'text-solid-background', 'layer-0')`
+
 ## Development Process
 
 ### Step 1: Create the Adapter Component
@@ -96,14 +163,51 @@ The adapter component provides a unified interface that works across all librari
    } & LibrarySpecificProps
    ```
 
-2. **Read Component-Level CSS Variables**
-   The adapter reads `elevation` from CSS variables that the toolbar sets:
+2. **Read Component-Level CSS Variables Reactively**
+   The adapter reactively reads CSS variables (like `elevation`) that the toolbar sets. Use `useState` and `useEffect` to ensure components update when CSS variables change:
    ```typescript
+   import { useState, useEffect } from 'react'
    import { getComponentLevelCssVar } from '../utils/cssVarNames'
    import { readCssVar } from '../../core/css/readCssVar'
+   import { parseElevationValue } from '../utils/brandCssVars'
    
    const elevationVar = getComponentLevelCssVar('Button', 'elevation')
-   const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+   
+   // Reactively read elevation from CSS variable
+   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+     const value = readCssVar(elevationVar)
+     return value ? parseElevationValue(value) : undefined
+   })
+   
+   // Listen for CSS variable updates from the toolbar
+   useEffect(() => {
+     const handleCssVarUpdate = (e: Event) => {
+       const detail = (e as CustomEvent).detail
+       if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
+         const value = readCssVar(elevationVar)
+         setElevationFromVar(value ? parseElevationValue(value) : undefined)
+       }
+     }
+     
+     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+     
+     // Also watch for direct style changes using MutationObserver
+     const observer = new MutationObserver(() => {
+       const value = readCssVar(elevationVar)
+       setElevationFromVar(value ? parseElevationValue(value) : undefined)
+     })
+     observer.observe(document.documentElement, {
+       attributes: true,
+       attributeFilter: ['style'],
+     })
+     
+     return () => {
+       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+       observer.disconnect()
+     }
+   }, [elevationVar])
+   
+   const componentElevation = elevation ?? elevationFromVar ?? undefined
    ```
 
 3. **Use Component Registry**
@@ -137,27 +241,62 @@ Create implementations for each library simultaneously. Each library implementat
 1. **Import Dependencies**
    ```typescript
    import { {ComponentName} as Library{ComponentName} } from '@library/package'
-   import { getComponentCssVar } from '../../../utils/cssVarNames'
+   import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+   import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
    import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
    import { readCssVar } from '../../../../core/css/readCssVar'
+   import { useState, useEffect } from 'react'
    import './{ComponentName}.css'
    ```
 
 2. **Build CSS Variable Names Using `getComponentCssVar`**
-   This utility builds CSS variable names that match what the toolbar uses:
+   This utility builds CSS variable names that match the new UIKit.json structure:
+   
+   **For Color Properties** (use `'colors'` plural, not `'color'`):
    ```typescript
-   // Pattern: getComponentCssVar(componentName, category, property, layer?)
-   const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
-   const textVar = getComponentCssVar('Button', 'color', 'solid-text', layer)
+   // Pattern: getComponentCssVar(componentName, 'colors', 'variant-property', layer?)
+   // NEW STRUCTURE: variants.styles.{variant}.properties.colors.{layer}.{property}
+   const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
+   const textVar = getComponentCssVar('Button', 'colors', 'solid-text', layer)
+   // For nested variants (Avatar): 'text-solid-background' → variants.styles.text.variants.solid.properties.colors
+   const avatarBgVar = getComponentCssVar('Avatar', 'colors', 'text-solid-background', layer)
+   ```
+   
+   **For Size Properties**:
+   ```typescript
+   // Pattern: getComponentCssVar(componentName, 'size', 'variant-property', undefined)
+   // NEW STRUCTURE: variants.sizes.{variant}.properties.{property}
    const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
    const iconSizeVar = getComponentCssVar('Button', 'size', 'default-icon', undefined)
+   const iconGapVar = getComponentCssVar('Button', 'size', 'default-icon-text-gap', undefined)
+   ```
+   
+   **For Component-Level Properties** (use `getComponentLevelCssVar`):
+   ```typescript
+   // Pattern: getComponentLevelCssVar(componentName, 'property')
+   // NEW STRUCTURE: properties.{property}
+   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+   const borderRadiusVar = getComponentLevelCssVar('Button', 'border-radius')
+   const fontSizeVar = getComponentLevelCssVar('Button', 'font-size')
+   const maxWidthVar = getComponentLevelCssVar('Button', 'max-width')
    ```
 
-3. **Use UIKit.json Colors**
-   Use standard UIKit.json colors for all layers:
+3. **Use UIKit.json Structure**
+   The new UIKit.json structure uses:
+   - `variants.styles.{variant}.properties.colors.{layer}.{property}` for color variants
+   - `variants.sizes.{variant}.properties.{property}` for size variants
+   - `properties.{property}` for component-level properties
+   
+   **Examples**:
    ```typescript
-   bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
-   textVar = getComponentCssVar('Button', 'color', 'solid-text', layer)
+   // Button colors: variants.styles.solid.properties.colors.layer-0.background
+   const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
+   
+   // Button sizes: variants.sizes.default.properties.height
+   const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+   
+   // Component-level: properties.elevation
+   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
    ```
 
 4. **Set CSS Custom Properties on Style Prop**
@@ -174,19 +313,50 @@ Create implementations for each library simultaneously. Each library implementat
    }}
    ```
 
-5. **Handle Elevation**
-   Elevation logic prioritizes: prop > UIKit.json:
+5. **Handle Elevation Reactively**
+   Elevation should be read reactively from CSS variables. Use centralized utilities:
    ```typescript
-   let elevationToApply = elevation
+   // Reactively read elevation from CSS variable
+   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+     const value = readCssVar(elevationVar)
+     return value ? parseElevationValue(value) : undefined
+   })
    
-   if (elevationToApply && elevationToApply !== 'elevation-0') {
-     const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
-     if (elevationMatch) {
-       const level = elevationMatch[1]
-       style.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${level}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+   useEffect(() => {
+     const handleCssVarUpdate = (e: Event) => {
+       const detail = (e as CustomEvent).detail
+       if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
+         const value = readCssVar(elevationVar)
+         setElevationFromVar(value ? parseElevationValue(value) : undefined)
+       }
      }
+     
+     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+     const observer = new MutationObserver(() => {
+       const value = readCssVar(elevationVar)
+       setElevationFromVar(value ? parseElevationValue(value) : undefined)
+     })
+     observer.observe(document.documentElement, {
+       attributes: true,
+       attributeFilter: ['style'],
+     })
+     
+     return () => {
+       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+       observer.disconnect()
+     }
+   }, [elevationVar])
+   
+   const elevationToApply = elevation ?? elevationFromVar ?? undefined
+   
+   // Use centralized utility for box-shadow generation
+   if (elevationToApply && elevationToApply !== 'elevation-0') {
+     style.boxShadow = getElevationBoxShadow(mode, elevationToApply) || undefined
    }
    ```
+   
+   **Note**: Always use `getElevationBoxShadow()` from `brandCssVars.ts` instead of manually constructing box-shadow values. This ensures consistency and correct CSS variable paths (including the `themes` segment).
 
 6. **Map Unified Props to Library Props**
    ```typescript
@@ -353,7 +523,195 @@ registerComponent('carbon', '{ComponentName}', () => import('../adapters/carbon/
 
 ### Step 5: Create Tests
 
+**MANDATORY**: You must create comprehensive test files including toolbar integration tests.
+
 See [Testing Requirements](#testing-requirements) section below.
+
+#### Step 5a: Create Toolbar Integration Tests (MANDATORY)
+
+**File**: `src/components/adapters/__tests__/{ComponentName}.toolbar.test.tsx`
+
+**CRITICAL**: This test file is **mandatory** and must verify that all toolbar props, when changed, properly update component props reactively.
+
+**Purpose**: These tests simulate toolbar updates by directly updating CSS variables and verify that components respond correctly. This ensures that the toolbar and components stay in sync.
+
+**Test Coverage Requirements**:
+
+1. **Color Props Updates**:
+   - Test that background colors update when toolbar changes variant colors
+   - Test that text colors update when toolbar changes variant colors
+   - Test all variants (solid, outline, text, etc.)
+   - Test all layers (layer-0, layer-1, layer-2, layer-3)
+
+2. **Size Props Updates**:
+   - Test that height updates when toolbar changes size height
+   - Test that icon size updates when toolbar changes size icon
+   - Test that padding updates when toolbar changes size padding
+   - Test all size variants (default, small, large, etc.)
+
+3. **Component-Level Props Updates**:
+   - Test that elevation updates when toolbar changes elevation
+   - Test that border-radius updates when toolbar changes border-radius
+   - Test that max-width updates when toolbar changes max-width
+   - Test that font-size updates when toolbar changes font-size
+   - Test all component-level properties defined in `UIKit.json`
+
+4. **Multiple Props Updates**:
+   - Test that components handle multiple simultaneous CSS variable updates
+   - Test that components update correctly when multiple props change at once
+
+5. **Variant Switching**:
+   - Test that components update CSS variables when variant changes via toolbar
+   - Test that components correctly switch between variants
+
+6. **Reactive Updates**:
+   - Test that components update when CSS variables change via `cssVarsUpdated` events
+   - Test that components update when CSS variables change via MutationObserver (direct style changes)
+   - Test that components handle sequential CSS variable updates
+
+**Test Template**:
+
+```typescript
+/**
+ * Toolbar Props Integration Tests
+ * 
+ * Tests that verify components reactively update when toolbar props are changed.
+ * These tests simulate toolbar updates by directly updating CSS variables and
+ * verifying that components respond correctly.
+ */
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { render, waitFor } from '@testing-library/react'
+import { UnifiedThemeProvider } from '../providers/UnifiedThemeProvider'
+import { UiKitProvider } from '../../modules/uikit/UiKitContext'
+import { {ComponentName} } from '../{ComponentName}'
+import { updateCssVar } from '../../../core/css/updateCssVar'
+import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+
+describe('{ComponentName} Toolbar Props Integration', () => {
+  beforeEach(() => {
+    // Clear all CSS variables before each test
+    document.documentElement.style.cssText = ''
+  })
+
+  afterEach(() => {
+    // Clean up after each test
+    document.documentElement.style.cssText = ''
+  })
+
+  const renderWithProviders = (ui: React.ReactElement) => {
+    return render(
+      <UiKitProvider>
+        <UnifiedThemeProvider>
+          {ui}
+        </UnifiedThemeProvider>
+      </UiKitProvider>
+    )
+  }
+
+  describe('Color Props Updates', () => {
+    it('updates background color when toolbar changes {variant}-background', async () => {
+      const { container } = renderWithProviders(
+        <{ComponentName} variant="{variant}" layer="layer-0">Test</{ComponentName}>
+      )
+      const element = container.querySelector('{selector}')
+      expect(element).toBeInTheDocument()
+
+      // Get the CSS variable name that the toolbar would use
+      const bgVar = getComponentCssVar('{ComponentName}', 'colors', '{variant}-background', 'layer-0')
+      
+      // Simulate toolbar update: change the CSS variable
+      updateCssVar(bgVar, '#ff0000')
+      
+      // Dispatch the cssVarsUpdated event that components listen for
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+        detail: { cssVars: [bgVar] }
+      }))
+
+      // Wait for component to reactively update
+      await waitFor(() => {
+        const styles = window.getComputedStyle(element!)
+        // Verify component references the updated CSS variable
+        const bgValue = styles.getPropertyValue('--{component}-bg')
+        expect(bgValue).toContain('var(')
+        expect(bgValue).toContain(bgVar)
+      })
+    })
+
+    // Add more color prop tests for all variants and layers
+  })
+
+  describe('Size Props Updates', () => {
+    it('updates height when toolbar changes {variant}-height', async () => {
+      // Test size prop updates
+    })
+
+    // Add more size prop tests for all size variants
+  })
+
+  describe('Component-Level Props Updates', () => {
+    it('updates elevation when toolbar changes elevation', async () => {
+      const { container } = renderWithProviders(
+        <{ComponentName}>Test</{ComponentName}>
+      )
+      const element = container.querySelector('{selector}')
+      
+      const elevationVar = getComponentLevelCssVar('{ComponentName}', 'elevation')
+      
+      // Update elevation CSS variable
+      updateCssVar(elevationVar, 'elevation-2')
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+        detail: { cssVars: [elevationVar] }
+      }))
+
+      // Wait for component to reactively update elevation
+      await waitFor(() => {
+        const styles = window.getComputedStyle(element!)
+        // Elevation should be applied as box-shadow
+        expect(styles.boxShadow).toBeTruthy()
+      }, { timeout: 1000 })
+    })
+
+    // Add tests for all component-level properties
+  })
+
+  describe('Multiple Props Updates', () => {
+    it('handles multiple simultaneous CSS variable updates', async () => {
+      // Test multiple props updating at once
+    })
+  })
+
+  describe('Reactive Updates', () => {
+    it('component updates when CSS variable changes without event', async () => {
+      // Test MutationObserver detection
+    })
+  })
+})
+```
+
+**Key Testing Patterns**:
+
+1. **Simulate Toolbar Updates**: Use `updateCssVar()` to change CSS variables, then dispatch `cssVarsUpdated` events
+2. **Verify Reactive Updates**: Use `waitFor()` to ensure components update after CSS variable changes
+3. **Check CSS Variable References**: Verify that components reference the correct CSS variables in their styles
+4. **Test All Variants**: Ensure all variants (styles, sizes) are tested
+5. **Test All Layers**: Ensure all layers (layer-0 through layer-3) are tested
+6. **Test Component-Level Props**: Ensure all component-level properties are tested
+
+**Example Test for Button**:
+
+See `src/components/adapters/__tests__/Button.toolbar.test.tsx` for a complete reference implementation.
+
+**Verification Checklist**:
+
+- [ ] All color props (background, text, etc.) are tested for all variants
+- [ ] All size props (height, icon, padding, etc.) are tested for all size variants
+- [ ] All component-level props (elevation, border-radius, etc.) are tested
+- [ ] Multiple simultaneous updates are tested
+- [ ] Variant switching is tested
+- [ ] Reactive updates via `cssVarsUpdated` events are tested
+- [ ] Reactive updates via MutationObserver are tested
+- [ ] All tests pass and components update correctly
 
 ### Step 6: Create Toolbar Configuration
 
@@ -369,16 +727,36 @@ Each component needs a toolbar configuration file that defines:
 
 ```json
 {
+  "variants": {
+    "style": {
+      "icon": "diamonds-four",
+      "label": "Style"
+    },
+    "size": {
+      "icon": "resize",
+      "label": "Size"
+    }
+  },
   "props": {
     "prop-name": {
       "icon": "icon-name",
       "label": "Display Label",
-      "floatingPaletteLabel": "Floating Palette Title",
-      "groupedProps": ["prop1", "prop2"]
+      "visible": true,
+      "group": {
+        "sub-prop": {
+          "label": "Sub Property",
+          "visible": true
+        }
+      }
     }
   }
 }
 ```
+
+**Important Notes:**
+- Use `variants.style` (not `variants.color`) for style variants
+- Use `variants.size` for size variants (if component has sizes)
+- Variant names in the config should match the variant keys in `UIKit.json` (e.g., `styles`, `sizes`)
 
 #### Key Fields
 
@@ -400,21 +778,38 @@ Each component needs a toolbar configuration file that defines:
 
 The prop names in the config file should match the keys in `UIKit.json`:
 
-**UIKit.json Structure:**
+**UIKit.json Structure (NEW):**
 ```json
 {
   "ui-kit": {
     "components": {
       "button": {
-        "variant": { ... },
-        "size": {
-          "variant": {
+        "variants": {
+          "styles": {
+            "solid": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": { "$type": "color", "$value": "..." },
+                    "text": { "$type": "color", "$value": "..." }
+                  }
+                }
+              }
+            }
+          },
+          "sizes": {
             "default": {
-              "horizontal-padding": { "$type": "dimension", ... }
+              "properties": {
+                "height": { "$type": "dimension", "$value": "..." },
+                "horizontal-padding": { "$type": "dimension", "$value": "..." }
+              }
             }
           }
         },
-        "border-radius": { "$type": "dimension", ... }
+        "properties": {
+          "border-radius": { "$type": "dimension", "$value": "..." },
+          "elevation": { "$type": "elevation", "$value": "..." }
+        }
       }
     }
   }
@@ -704,17 +1099,28 @@ import { Button } from '../../components/adapters/Button'
 
 ### How CSS Variables Work
 
-The component system uses a **two-layer CSS variable system**:
+The component system uses a **three-layer CSS variable system**:
 
 1. **UIKit CSS Variables** (set by toolbar, read by components)
-   - Pattern: `--recursica-ui-kit-components-{component}-{category}-{layer?}-{property}`
-   - Built using: `getComponentCssVar(componentName, category, property, layer?)`
-   - Example: `--recursica-ui-kit-components-button-color-layer-0-variant-solid-background`
+   - **Color Properties**: `--recursica-ui-kit-components-{component}-variants-styles-{variant}-properties-colors-{layer}-{property}`
+     - Built using: `getComponentCssVar(componentName, 'colors', 'variant-property', layer)`
+     - Example: `--recursica-ui-kit-components-button-variants-styles-solid-properties-colors-layer-0-background`
+   - **Size Properties**: `--recursica-ui-kit-components-{component}-variants-sizes-{variant}-properties-{property}`
+     - Built using: `getComponentCssVar(componentName, 'size', 'variant-property', undefined)`
+     - Example: `--recursica-ui-kit-components-button-variants-sizes-default-properties-height`
+   - **Component-Level Properties**: `--recursica-ui-kit-components-{component}-properties-{property}`
+     - Built using: `getComponentLevelCssVar(componentName, property)`
+     - Examples: `--recursica-ui-kit-components-button-properties-elevation`, `--recursica-ui-kit-components-button-properties-border-radius`
 
-2. **Component-Level CSS Variables** (component-specific props)
-   - Pattern: `--recursica-ui-kit-components-{component}-{property}`
-   - Built using: `getComponentLevelCssVar(componentName, property)`
-   - Examples: `elevation`
+2. **Brand CSS Variables** (for typography, state, elevation)
+   - **Typography**: `--recursica-brand-typography-{style}-{property}`
+     - Built using: `getBrandTypographyCssVar(styleName, property)`
+     - Example: `--recursica-brand-typography-button-font-weight`
+   - **State**: `--recursica-brand-themes-{mode}-state-{state}`
+     - Built using: `getBrandStateCssVar(mode, state)`
+     - Example: `--recursica-brand-themes-light-state-disabled`
+   - **Elevation**: `--recursica-brand-themes-{mode}-elevations-elevation-{level}-{property}`
+     - Box-shadow generated using: `getElevationBoxShadow(mode, elevation)`
 
 3. **Component Custom Properties** (set by component, used by CSS file)
    - Pattern: `--{component}-{property}` (scoped to component instance)
@@ -733,26 +1139,54 @@ Toolbar → Updates UIKit CSS vars → Component reads vars → Component sets c
 
 ### Using CSS Variables in Components
 
-#### ✅ Correct: Build CSS var names with `getComponentCssVar`
+#### ✅ Correct: Build CSS var names with `getComponentCssVar` (use 'colors' plural)
 
 ```typescript
 // This matches what the toolbar uses
-const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+// IMPORTANT: Use 'colors' (plural), not 'color' (singular)
+const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
+const textVar = getComponentCssVar('Button', 'colors', 'solid-text', layer)
 const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
 
 style={{
   // Reference the UIKit CSS var (toolbar updates this)
   '--button-bg': `var(${bgVar})`,
+  '--button-text': `var(${textVar})`,
   '--button-height': `var(${heightVar})`,
 }}
 ```
 
-#### ✅ Correct: Use component-level CSS vars for special props
+#### ✅ Correct: Use component-level CSS vars for component-level properties
 
 ```typescript
-// In adapter component
+// For properties directly under component.properties (not under variants)
 const elevationVar = getComponentLevelCssVar('Button', 'elevation')
-const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+const borderRadiusVar = getComponentLevelCssVar('Button', 'border-radius')
+const fontSizeVar = getComponentLevelCssVar('Button', 'font-size')
+const maxWidthVar = getComponentLevelCssVar('Button', 'max-width')
+
+// Reactively read from CSS variable
+const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+  const value = readCssVar(elevationVar)
+  return value ? parseElevationValue(value) : undefined
+})
+```
+
+#### ✅ Correct: Use centralized brand utilities
+
+```typescript
+import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
+
+// Typography
+const fontWeight = getBrandTypographyCssVar('button', 'font-weight')
+
+// State
+const disabledOpacity = getBrandStateCssVar(mode, 'disabled')
+
+// Elevation
+if (elevation && elevation !== 'elevation-0') {
+  style.boxShadow = getElevationBoxShadow(mode, elevation) || undefined
+}
 ```
 
 #### ✅ Correct: CSS file uses component custom properties
@@ -774,7 +1208,36 @@ const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
 
 ```typescript
 // ❌ Don't do this - use getComponentCssVar instead
-const bgVar = `--recursica-ui-kit-components-button-color-layer-0-variant-solid-background`
+const bgVar = `--recursica-ui-kit-components-button-variants-styles-solid-properties-colors-layer-0-background`
+
+// ✅ Do this instead
+const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
+```
+
+#### ❌ Incorrect: Don't use 'color' (singular) - use 'colors' (plural)
+
+```typescript
+// ❌ Don't do this
+const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+
+// ✅ Do this
+const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
+```
+
+#### ❌ Incorrect: Don't manually construct elevation box-shadow
+
+```typescript
+// ❌ Don't do this
+if (elevation && elevation !== 'elevation-0') {
+  const level = elevation.match(/elevation-(\d+)/)?.[1]
+  style.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${level}-x-axis, 0px) ...`
+}
+
+// ✅ Do this instead
+import { getElevationBoxShadow } from '../../../utils/brandCssVars'
+if (elevation && elevation !== 'elevation-0') {
+  style.boxShadow = getElevationBoxShadow(mode, elevation) || undefined
+}
 ```
 
 #### ❌ Incorrect: Don't modify library CSS variables directly
@@ -786,37 +1249,71 @@ style={{
 }}
 ```
 
-### Component-Level Props (Elevation)
+### Component-Level Props (Elevation and Other Properties)
 
-Components support elevation as a special prop that is stored as a component-level CSS variable and controlled by the toolbar:
+Components support component-level properties that are stored as CSS variables and controlled by the toolbar:
 
 1. **Elevation** (`elevation` prop)
    - Type: `string | undefined` (e.g., `"elevation-0"`, `"elevation-1"`, etc.)
-   - CSS Variable: `--recursica-ui-kit-components-{component}-elevation`
-   - Priority: **Prop** > **UIKit.json** > **No elevation**
+   - CSS Variable: `--recursica-ui-kit-components-{component}-properties-elevation`
+   - Priority: **Prop** > **CSS Variable** > **UIKit.json default** > **No elevation**
    - Implementation:
      ```typescript
-     // In adapter: read from CSS var if prop not provided
+     // In adapter: reactively read from CSS var if prop not provided
+     import { useState, useEffect } from 'react'
+     import { getComponentLevelCssVar } from '../utils/cssVarNames'
+     import { parseElevationValue } from '../utils/brandCssVars'
+     import { readCssVar } from '../../core/css/readCssVar'
+     
      const elevationVar = getComponentLevelCssVar('Button', 'elevation')
-     const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+     const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+       const value = readCssVar(elevationVar)
+       return value ? parseElevationValue(value) : undefined
+     })
      
-     // In library implementation: apply elevation box-shadow
-     let elevationToApply = elevation
-     
-     
-     // Apply box-shadow if elevation is set
-     if (elevationToApply && elevationToApply !== 'elevation-0') {
-       const match = elevationToApply.match(/elevation-(\d+)/)
-       if (match) {
-         const level = match[1]
-         style.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${level}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+     useEffect(() => {
+       const handleCssVarUpdate = (e: Event) => {
+         const detail = (e as CustomEvent).detail
+         if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
+           const value = readCssVar(elevationVar)
+           setElevationFromVar(value ? parseElevationValue(value) : undefined)
+         }
        }
+       window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+       const observer = new MutationObserver(() => {
+         const value = readCssVar(elevationVar)
+         setElevationFromVar(value ? parseElevationValue(value) : undefined)
+       })
+       observer.observe(document.documentElement, {
+         attributes: true,
+         attributeFilter: ['style'],
+       })
+       return () => {
+         window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+         observer.disconnect()
+       }
+     }, [elevationVar])
+     
+     const componentElevation = elevation ?? elevationFromVar ?? undefined
+     
+     // In library implementation: apply elevation box-shadow using centralized utility
+     import { getElevationBoxShadow } from '../../../utils/brandCssVars'
+     
+     if (componentElevation && componentElevation !== 'elevation-0') {
+       style.boxShadow = getElevationBoxShadow(mode, componentElevation) || undefined
      }
      ```
 
+2. **Other Component-Level Properties**
+   - Properties like `border-radius`, `font-size`, `max-width`, etc. are also component-level
+   - Use `getComponentLevelCssVar(componentName, property)` to get their CSS variable names
+   - Pattern: `--recursica-ui-kit-components-{component}-properties-{property}`
+
 **Key Points:**
 - Use `getComponentLevelCssVar(componentName, 'elevation')` to get the elevation CSS variable name
-- The toolbar sets this CSS variable, and components read it if the prop isn't provided
+- Always read CSS variables reactively using `useState` and `useEffect` to respond to toolbar updates
+- Use `getElevationBoxShadow()` from `brandCssVars.ts` instead of manually constructing box-shadow values
+- Listen for `cssVarsUpdated` events and use `MutationObserver` to detect style attribute changes
 
 ### How Components Connect to the Toolbar
 
@@ -831,11 +1328,24 @@ The toolbar and components use the **same utilities** to build CSS variable name
 **Example Flow:**
 ```typescript
 // Toolbar (ComponentToolbar.tsx)
-const bgVar = getComponentCssVar('Button', 'color', 'solid-background', selectedLayer)
+const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', selectedLayer)
 updateCssVar(bgVar, newValue) // Updates DOM CSS variable
 
-// Component (Button.tsx)
-const bgVar = getComponentCssVar('Button', 'color', 'solid-background', layer)
+// Component (Button.tsx) - Reactively reads CSS variable
+const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
+const [bgFromVar, setBgFromVar] = useState(() => readCssVar(bgVar))
+
+useEffect(() => {
+  const handleUpdate = (e: Event) => {
+    const detail = (e as CustomEvent).detail
+    if (!detail?.cssVars || detail.cssVars.includes(bgVar)) {
+      setBgFromVar(readCssVar(bgVar))
+    }
+  }
+  window.addEventListener('cssVarsUpdated', handleUpdate)
+  return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+}, [bgVar])
+
 style={{ '--button-bg': `var(${bgVar})` }} // References the same CSS variable
 
 // CSS File (Button.css)
@@ -859,7 +1369,11 @@ Library-specific CSS variables (e.g., `--mantine-color-*`, `--cds-*`, `--mui-*`)
 
 ```
 src/components/adapters/
-├── {ComponentName}.test.tsx              # Adapter tests
+├── __tests__/
+│   ├── {ComponentName}.test.tsx              # Adapter tests
+│   ├── {ComponentName}.cssVars.test.tsx      # CSS variable coverage tests
+│   ├── {ComponentName}.integration.test.tsx  # Integration tests
+│   └── {ComponentName}.toolbar.test.tsx      # Toolbar integration tests (MANDATORY)
 ├── mantine/
 │   └── {ComponentName}/
 │       └── {ComponentName}.test.tsx      # Mantine-specific tests
@@ -1058,7 +1572,58 @@ describe('Button CSS Variables', () => {
 })
 ```
 
-### 4. Visual Regression Tests
+### 4. Toolbar Integration Tests (MANDATORY)
+
+**File**: `{ComponentName}.toolbar.test.tsx`
+
+**CRITICAL**: This test file is **mandatory** and must be created for every component. It verifies that components reactively update when toolbar props are changed.
+
+These tests simulate toolbar updates by directly updating CSS variables and verify that components respond correctly. This ensures that the toolbar and components stay in sync.
+
+**Test Coverage Requirements**:
+
+1. **Color Props Updates**: Test all color properties for all variants and layers
+2. **Size Props Updates**: Test all size properties for all size variants
+3. **Component-Level Props Updates**: Test all component-level properties (elevation, border-radius, etc.)
+4. **Multiple Props Updates**: Test simultaneous updates of multiple CSS variables
+5. **Variant Switching**: Test that components update when variants change
+6. **Reactive Updates**: Test both `cssVarsUpdated` events and MutationObserver detection
+
+**Example**:
+
+```typescript
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { render, waitFor } from '@testing-library/react'
+import { updateCssVar } from '../../../core/css/updateCssVar'
+import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+
+describe('{ComponentName} Toolbar Props Integration', () => {
+  it('updates background color when toolbar changes', async () => {
+    const { container } = renderWithProviders(
+      <{ComponentName} variant="solid" layer="layer-0">Test</{ComponentName}>
+    )
+    const element = container.querySelector('{selector}')
+    
+    const bgVar = getComponentCssVar('{ComponentName}', 'colors', 'solid-background', 'layer-0')
+    
+    // Simulate toolbar update
+    updateCssVar(bgVar, '#ff0000')
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars: [bgVar] }
+    }))
+
+    // Verify component updates reactively
+    await waitFor(() => {
+      const styles = window.getComputedStyle(element!)
+      expect(styles.getPropertyValue('--{component}-bg')).toContain(bgVar)
+    })
+  })
+})
+```
+
+**See**: `src/components/adapters/__tests__/Button.toolbar.test.tsx` for a complete reference implementation.
+
+### 5. Visual Regression Tests
 
 **File**: `{ComponentName}.visual.test.tsx`
 
@@ -1832,6 +2397,14 @@ After creating a new component, complete this checklist:
 - [ ] Unit tests written for each library implementation
 - [ ] Integration tests written for library switching
 - [ ] CSS variable coverage tests written
+- [ ] **Toolbar integration tests written (MANDATORY)** - `{ComponentName}.toolbar.test.tsx`
+  - [ ] All color props tested for all variants and layers
+  - [ ] All size props tested for all size variants
+  - [ ] All component-level props tested
+  - [ ] Multiple simultaneous updates tested
+  - [ ] Variant switching tested
+  - [ ] Reactive updates via `cssVarsUpdated` events tested
+  - [ ] Reactive updates via MutationObserver tested
 - [ ] Visual regression tests written
 - [ ] All tests passing
 
@@ -1890,9 +2463,19 @@ See the existing Button component as a reference:
 ## Additional Resources
 
 - **CSS Variable Utilities**: `src/components/utils/cssVarNames.ts`
+  - `getComponentCssVar()` - For variant properties (colors, sizes)
+  - `getComponentLevelCssVar()` - For component-level properties (elevation, border-radius, etc.)
+- **Brand CSS Variable Utilities**: `src/components/utils/brandCssVars.ts`
+  - `getBrandTypographyCssVar()` - For typography CSS variables
+  - `getBrandStateCssVar()` - For state CSS variables (disabled, hover, etc.)
+  - `getElevationBoxShadow()` - For generating elevation box-shadow values
+  - `parseElevationValue()` - For parsing elevation values from CSS variables
 - **Component Registry**: `src/components/registry/`
 - **Testing Setup**: `vitest.setup.ts`
 - **UIKit.json Structure**: `src/vars/UIKit.json`
+  - **NEW STRUCTURE**: Uses `variants.styles.{variant}.properties.colors` for color variants
+  - **NEW STRUCTURE**: Uses `variants.sizes.{variant}.properties.{property}` for size variants
+  - **NEW STRUCTURE**: Uses `properties.{property}` for component-level properties
 
 ## Questions?
 
