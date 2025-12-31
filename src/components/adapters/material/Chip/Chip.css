@@ -1,0 +1,44 @@
+/* Override Material UI Chip styles to use Recursica CSS variables */
+.MuiChip-root {
+  background-color: var(--chip-bg) !important;
+  color: var(--chip-color) !important;
+  border: var(--chip-border-size, 1px) solid var(--chip-border, var(--mui-palette-divider)) !important;
+  cursor: pointer !important;
+  /* Override any fixed height from Material UI - let padding and content determine height */
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  /* Use Chip's min-width and max-width CSS variables */
+  /* This is reactive and updates in real time when the toolbar changes Chip's width */
+  min-width: var(--chip-min-width, var(--recursica-ui-kit-components-chip-min-width)) !important;
+  max-width: var(--chip-max-width, var(--recursica-ui-kit-components-chip-max-width)) !important;
+  /* Padding is set inline in the component, but ensure it's not overridden */
+  padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px))) !important;
+  padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px))) !important;
+  padding-left: var(--chip-padding-x, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px))) !important;
+  padding-right: var(--chip-padding-x, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px))) !important;
+}
+
+.MuiChip-root.Mui-disabled {
+  cursor: not-allowed !important;
+}
+
+/* Icon styling - use native icon prop */
+.MuiChip-root .MuiChip-icon {
+  width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  color: var(--chip-icon-color, var(--chip-color)) !important;
+  /* Use UIKit variable directly for real-time updates - toolbar updates this on document root */
+  /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-icon-text-gap */
+  margin-right: var(--recursica-ui-kit-components-chip-icon-text-gap, 8px) !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.MuiChip-root .MuiChip-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+

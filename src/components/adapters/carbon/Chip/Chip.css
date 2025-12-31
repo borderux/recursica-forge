@@ -1,0 +1,38 @@
+/* Override Carbon Tag styles to use Recursica CSS variables */
+.cds--tag {
+  background-color: var(--chip-bg, var(--cds-layer-01)) !important;
+  color: var(--chip-color, var(--cds-text-primary)) !important;
+  border: var(--chip-border-size, 1px) solid var(--chip-border, var(--cds-border-subtle)) !important;
+  padding-left: var(--chip-padding-x) !important;
+  padding-right: var(--chip-padding-x) !important;
+  padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
+  padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
+  /* Override any fixed height from Carbon - let padding and content determine height */
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  border-radius: var(--chip-border-radius, 16px) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  cursor: pointer !important;
+  /* Use Chip's min-width and max-width CSS variables */
+  /* This is reactive and updates in real time when the toolbar changes Chip's width */
+  min-width: var(--chip-min-width, var(--recursica-ui-kit-components-chip-min-width)) !important;
+  max-width: var(--chip-max-width, var(--recursica-ui-kit-components-chip-max-width)) !important;
+}
+
+.cds--tag[disabled] {
+  cursor: not-allowed !important;
+}
+
+/* Icon styling - use native renderIcon */
+.cds--tag svg {
+  width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  color: var(--chip-icon-color, var(--chip-color)) !important;
+  /* Use UIKit variable directly for real-time updates - toolbar updates this on document root */
+  /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-icon-text-gap */
+  margin-right: var(--recursica-ui-kit-components-chip-icon-text-gap, 8px) !important;
+  flex-shrink: 0 !important;
+}
+
