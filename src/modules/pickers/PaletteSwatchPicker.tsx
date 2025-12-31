@@ -72,7 +72,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const { mode } = useThemeMode()
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
     // Use actual level - no normalization (000 stays 000, 1000 stays 1000)
-    return `--recursica-brand-${mode}-palettes-${paletteKey}-${level}-tone`
+    // Use new brand.json structure: --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-tone
+    return `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
   }
 
   // Get the resolved value of the target CSS var to compare with palette swatches
@@ -94,7 +95,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     const trimmed = directValue.trim()
     
     // Check if target directly references a palette var
-    const directPaletteMatch = trimmed.match(/var\(--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone\)/)
+    // Use new brand.json structure: --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-tone
+    const directPaletteMatch = trimmed.match(/var\(--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone\)/)
     if (directPaletteMatch) {
       const [, paletteKey, level] = directPaletteMatch
       return `${paletteKey}-${level}`
@@ -102,7 +104,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     
     // Check if target is a color-mix() that contains a palette var
     if (trimmed.includes('color-mix')) {
-      const colorMixPaletteMatch = trimmed.match(/--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone/)
+      const colorMixPaletteMatch = trimmed.match(/--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone/)
       if (colorMixPaletteMatch) {
         const [, paletteKey, level] = colorMixPaletteMatch
         return `${paletteKey}-${level}`
@@ -163,7 +165,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     if (!targetResolvedValue || !targetCssVar) return false
     
     // Extract palette key and level from the palette CSS var
-    const paletteMatch = paletteCssVar.match(/--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone/)
+    // Use new brand.json structure: --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-tone
+    const paletteMatch = paletteCssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone/)
     if (!paletteMatch) return false
     
     const [, paletteKey, level] = paletteMatch
@@ -270,8 +273,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                             const modeKey = isDark ? 'dark' : 'light'
                             
                             // Extract palette key and level from paletteCssVar
-                            // Format: --recursica-brand-{mode}-palettes-{paletteKey}-{level}-tone
-                            const paletteMatch = paletteCssVar.match(/--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-([a-z0-9]+)-tone/)
+                            // Format: --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-tone
+                            const paletteMatch = paletteCssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-([a-z0-9]+)-tone/)
                             if (paletteMatch) {
                               const [, paletteKey, level] = paletteMatch
                               const cssLevel = level === 'primary' ? 'default' : level
@@ -330,7 +333,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         {/* White checkmark with dark shadow for visibility on any background */}
                         <path
                           d="M2 6L5 9L10 2"
-                          stroke={`var(--recursica-brand-${mode}-palettes-core-black)`}
+                          stroke={`var(--recursica-brand-themes-${mode}-palettes-core-black)`}
                           strokeWidth="2.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -338,7 +341,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         />
                         <path
                           d="M2 6L5 9L10 2"
-                          stroke={`var(--recursica-brand-${mode}-palettes-core-white)`}
+                          stroke={`var(--recursica-brand-themes-${mode}-palettes-core-white)`}
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"

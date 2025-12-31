@@ -6,7 +6,7 @@ export interface BrokenReference {
   variable: string
   value: string
   referencedVar: string
-  reason: 'not-defined' | 'circular' | 'invalid-syntax'
+  reason: 'not-defined' | 'circular' | 'invalid-syntax' | 'brace-notation'
   element?: string // Element selector or description where variable is used
   location?: 'root' | 'element' | 'stylesheet' | 'computed'
 }
@@ -40,6 +40,13 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   const varValues = new Map<string, string>()
   const varLocations = new Map<string, Set<string>>() // Track where each variable is found
 
+  // Helper to check if a value is brace notation (unresolved JSON reference)
+  const isBraceNotation = (value: string): boolean => {
+    if (!value || typeof value !== 'string') return false
+    const trimmed = value.trim()
+    return trimmed.startsWith('{') && trimmed.endsWith('}')
+  }
+
   // Helper to add variable with location tracking
   const addVar = (varName: string, value: string, location: string) => {
     allVars.add(varName)
@@ -51,6 +58,24 @@ export function auditRecursicaCssVars(): BrokenReference[] {
       varLocations.set(varName, new Set())
     }
     varLocations.get(varName)!.add(location)
+    
+    // Check for brace notation in CSS variable values
+    if (isBraceNotation(value)) {
+      const locations = varLocations.get(varName) || new Set()
+      const locationStr = Array.from(locations).join(', ')
+      const isRoot = locationStr.includes('root')
+      const locationType: BrokenReference['location'] = isRoot ? 'root' : 
+                                                        locationStr.includes('stylesheet') ? 'stylesheet' :
+                                                        locationStr.includes('element') ? 'element' : 'computed'
+      broken.push({
+        variable: varName,
+        value: value,
+        referencedVar: value,
+        reason: 'brace-notation',
+        element: locationStr,
+        location: locationType,
+      })
+    }
   }
 
   // Helper to get element description
@@ -330,6 +355,30 @@ export function auditRecursicaCssVars(): BrokenReference[] {
       if (COMPONENT_INSTANCE_VARS.has(checkVar)) {
         continue
       }
+    }
+
+    // Check for brace notation (unresolved JSON references)
+    // This should have been caught in addVar, but check again here as a safety net
+    if (isBraceNotation(value)) {
+      const locations = varLocations.get(varName) || new Set()
+      const locationStr = Array.from(locations).join(', ')
+      const isRoot = locationStr.includes('root')
+      const locationType: BrokenReference['location'] = isRoot ? 'root' : 
+                                                        locationStr.includes('stylesheet') ? 'stylesheet' :
+                                                        locationStr.includes('element') ? 'element' : 'computed'
+      // Only add if not already added (avoid duplicates)
+      const alreadyAdded = broken.some(b => b.variable === varName && b.reason === 'brace-notation')
+      if (!alreadyAdded) {
+        broken.push({
+          variable: varName,
+          value: value,
+          referencedVar: value,
+          reason: 'brace-notation',
+          element: locationStr,
+          location: locationType,
+        })
+      }
+      continue // Skip further processing for brace notation values
     }
 
     // Check if value is a var() reference
@@ -695,6 +744,7 @@ export function formatBrokenReferencesReport(broken: BrokenReference[]): string 
     'not-defined': [] as BrokenReference[],
     'circular': [] as BrokenReference[],
     'invalid-syntax': [] as BrokenReference[],
+    'brace-notation': [] as BrokenReference[],
   }
 
   for (const ref of broken) {
@@ -725,6 +775,18 @@ export function formatBrokenReferencesReport(broken: BrokenReference[]): string 
     for (const ref of byReason['invalid-syntax']) {
       report += `  • ${ref.variable}\n`
       report += `    → Value: ${ref.value}\n\n`
+    }
+  }
+
+  if (byReason['brace-notation'].length > 0) {
+    report += `🔴 Brace Notation (Unresolved JSON Reference) (${byReason['brace-notation'].length}):\n`
+    for (const ref of byReason['brace-notation']) {
+      report += `  • ${ref.variable}\n`
+      report += `    → Value: ${ref.value}\n`
+      if (ref.element) {
+        report += `    → Location: ${ref.element}\n`
+      }
+      report += `\n`
     }
   }
 

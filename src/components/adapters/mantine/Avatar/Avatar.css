@@ -8,11 +8,11 @@
 .mantine-Avatar-root {
   box-sizing: content-box !important;
   background-color: var(--avatar-bg) !important;
-  border: var(--recursica-ui-kit-components-avatar-border-size) solid var(--avatar-border) !important;
+  border: var(--recursica-ui-kit-components-avatar-properties-border-size) solid var(--avatar-border) !important;
   width: var(--avatar-size) !important;
   height: var(--avatar-size) !important;
-  padding: var(--recursica-ui-kit-components-avatar-padding) !important;
-  border-radius: var(--recursica-ui-kit-components-avatar-border-radius) !important;
+  padding: var(--recursica-ui-kit-components-avatar-properties-padding) !important;
+  border-radius: var(--recursica-ui-kit-components-avatar-properties-border-radius) !important;
 }
 
 /* Override avatar image */

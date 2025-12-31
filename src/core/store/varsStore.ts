@@ -440,7 +440,7 @@ class VarsStore {
           return undefined
         }
         const px = toPxString(tokenValue)
-        if (px) varsToUpdate[`--tokens-size-${key}`] = px
+        if (px) varsToUpdate[`--recursica-tokens-size-${key}`] = px
       } else if (category === 'opacity' && rest.length >= 1) {
         const [key] = rest
         const tokenValue = tokensRoot?.opacity?.[key]?.$value
@@ -455,13 +455,13 @@ class VarsStore {
           } catch { return undefined }
         }
         const norm = normalize(tokenValue)
-        if (norm) varsToUpdate[`--tokens-opacity-${key}`] = norm
+        if (norm) varsToUpdate[`--recursica-tokens-opacity-${key}`] = norm
       } else if (category === 'color' && rest.length >= 2) {
         const [family, level] = rest
         const tokenValue = tokensRoot?.color?.[family]?.[level]?.$value
         if (tokenValue == null) return
         
-        const cssVarKey = `--tokens-color-${family}-${String(level).padStart(3, '0')}`
+        const cssVarKey = `--recursica-tokens-color-${family}-${String(level).padStart(3, '0')}`
         varsToUpdate[cssVarKey] = String(tokenValue)
       }
 
@@ -837,7 +837,7 @@ class VarsStore {
         if (short.startsWith('$')) return
         const val = sizesRoot[short]?.$value
         const px = toPxString(val)
-        if (typeof px === 'string' && px) vars[`--tokens-size-${short}`] = px
+        if (typeof px === 'string' && px) vars[`--recursica-tokens-size-${short}`] = px
       })
       Object.assign(allVars, vars)
     } catch {}
@@ -858,11 +858,11 @@ class VarsStore {
         if (short.startsWith('$')) return
         const v = opacityRoot[short]?.$value
         const norm = normalize(v)
-        if (typeof norm === 'string') vars[`--tokens-opacity-${short}`] = norm
+        if (typeof norm === 'string') vars[`--recursica-tokens-opacity-${short}`] = norm
       })
       Object.assign(allVars, vars)
     } catch {}
-    // Tokens: expose color tokens as CSS vars under --tokens-color-<family>-<level>
+    // Tokens: expose color tokens as CSS vars under --recursica-tokens-color-<family>-<level>
     try {
       const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
       const colorsRoot: any = tokensRoot?.color || {}
@@ -872,9 +872,13 @@ class VarsStore {
         if (!family || family === 'translucent') return
         const levels = colorsRoot[family] || {}
         Object.keys(levels).forEach((lvl) => {
-          if (!/^\d{2,4}|000|050$/.test(lvl)) return
+          // Accept levels that are: 2-4 digits, or exactly '000' or '050'
+          // Regex matches: 2-4 digit numbers OR exactly '000' OR exactly '050'
+          if (!/^(\d{2,4}|000|050)$/.test(lvl)) return
           const tokenName = `color/${family}/${lvl}`
-          const cssVarKey = `--tokens-color-${family}-${String(lvl).padStart(3, '0')}`
+          // Normalize level for CSS var: pad to 3 digits, but preserve '1000' as-is
+          const normalizedLevel = lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
+          const cssVarKey = `--recursica-tokens-color-${family}-${normalizedLevel}`
           // Read directly from token value
           const val = levels[lvl]?.$value
           if (typeof val === 'string' && val) {
@@ -885,7 +889,9 @@ class VarsStore {
       })
       // Custom color scales are now stored directly in tokens, so they're already included above
       Object.assign(allVars, vars)
-    } catch {}
+    } catch (e) {
+      console.error('[VarsStore] Error generating color token CSS variables:', e)
+    }
     // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
     // Generate for both light and dark modes
     try {

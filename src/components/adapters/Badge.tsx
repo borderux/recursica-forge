@@ -46,7 +46,9 @@ export function Badge({
     const heightVar = getComponentLevelCssVar('Badge', 'height')
     
     // Get size variant CSS variable for min-height (used as fallback if height is not set)
-    const minHeightVar = getComponentCssVar('Badge', 'size', `${size}-min-height`, undefined)
+    // Use 'small' as default if size is undefined
+    const sizeVariant = size || 'small'
+    const minHeightVar = getComponentCssVar('Badge', 'size', `${sizeVariant}-min-height`, undefined)
     
     return (
       <span

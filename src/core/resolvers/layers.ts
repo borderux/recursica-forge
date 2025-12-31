@@ -242,9 +242,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
       const m = /^(?:tokens|token)\.size\.([a-z0-9\-_]+)$/i.exec(inner)
       if (m) return m[1]
-      if (/^var\(\s*--tokens-size-[a-z0-9\-_]+\s*\)\s*$/i.test(s)) {
-        const mv = /^var\(\s*(--tokens-size-[a-z0-9\-_]+)\s*\)\s*$/i.exec(s)
-        if (mv) return mv[1].replace(/^--tokens-size-/, '')
+      // Support both old format (--tokens-size-*) and new format (--recursica-tokens-size-*)
+      if (/^var\(\s*(--recursica-)?tokens-size-[a-z0-9\-_]+\s*\)\s*$/i.test(s)) {
+        const mv = /^var\(\s*((?:--recursica-)?tokens-size-[a-z0-9\-_]+)\s*\)\s*$/i.exec(s)
+        if (mv) return mv[1].replace(/^--(recursica-)?tokens-size-/, '')
       }
     } catch {}
     return null
@@ -264,9 +265,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
       const m = /^(?:tokens|token)\.opacity\.([a-z0-9\-_]+)$/i.exec(inner)
       if (m) return m[1]
-      if (/^var\(\s*--tokens-opacity-[a-z0-9\-_]+\s*\)\s*$/i.test(s)) {
-        const mv = /^var\(\s*(--tokens-opacity-[a-z0-9\-_]+)\s*\)\s*$/i.exec(s)
-        if (mv) return mv[1].replace(/^--tokens-opacity-/, '')
+      // Support both old format (--tokens-opacity-*) and new format (--recursica-tokens-opacity-*)
+      if (/^var\(\s*(--recursica-)?tokens-opacity-[a-z0-9\-_]+\s*\)\s*$/i.test(s)) {
+        const mv = /^var\(\s*((?:--recursica-)?tokens-opacity-[a-z0-9\-_]+)\s*\)\s*$/i.exec(s)
+        if (mv) return mv[1].replace(/^--(recursica-)?tokens-opacity-/, '')
       }
     } catch {}
     return null

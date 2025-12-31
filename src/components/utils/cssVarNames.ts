@@ -48,6 +48,13 @@ export function getComponentCssVar(
   property: string,
   layer?: ComponentLayer
 ): string {
+  // Guard against undefined/null values being stringified into property names
+  if (!property || property.includes('undefined') || property.includes('null')) {
+    console.warn(`[getComponentCssVar] Invalid property value for ${component}: "${property}"`)
+    // Return a safe fallback variable name
+    return `--recursica-ui-kit-components-${component.toLowerCase()}-invalid-property`
+  }
+  
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
   const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']

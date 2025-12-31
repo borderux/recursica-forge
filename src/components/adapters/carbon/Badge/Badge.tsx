@@ -29,7 +29,9 @@ export default function Badge({
   const textVar = getComponentCssVar('Badge', 'color', `${variant}-text`, layer)
   
   // Get size variant CSS variable for min-height
-  const minHeightVar = getComponentCssVar('Badge', 'size', `${size}-min-height`, undefined)
+  // Use 'small' as default if size is undefined
+  const sizeVariant = size || 'small'
+  const minHeightVar = getComponentCssVar('Badge', 'size', `${sizeVariant}-min-height`, undefined)
   
   // For typography type properties, we need to extract the typography style name
   // The UIKit.json has: { "$type": "typography", "$value": "{brand.typography.caption}" }

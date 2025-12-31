@@ -201,8 +201,9 @@ export function resolveTokenReferenceToCssVar(
       }
     }
     
-    // Layer references: layers.layer-0.property.surface or layers.0.property.surface
-    const layerMatch = /^layers?\.(?:layer-)?(\d+)\.property\.(.+)$/i.exec(pathParts.join('.'))
+    // Layer references: layers.layer-0.properties.surface or layers.layer-0.property.surface or layers.0.property.surface
+    // Support both "property" (singular) and "properties" (plural)
+    const layerMatch = /^layers?\.(?:layer-)?(\d+)\.properties?\.(.+)$/i.exec(pathParts.join('.'))
     if (layerMatch) {
       const layerNum = layerMatch[1]
       const prop = layerMatch[2].replace(/\./g, '-')
