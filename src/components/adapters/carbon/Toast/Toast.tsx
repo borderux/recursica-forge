@@ -8,6 +8,7 @@
 import React from 'react'
 import type { ToastProps as AdapterToastProps } from '../../Toast'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { Button } from '../../Button'
@@ -41,7 +42,8 @@ export default function Toast({
   
   if (hasComponentAlternativeLayer) {
     // Component has alternative-layer prop set - use that alt layer's properties
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
+    // Use new brand.json structure: --recursica-brand-themes-{mode}-layer-layer-alternative-{n}-property
+    const layerBase = `--recursica-brand-themes-${mode}-layer-layer-alternative-${alternativeLayer}-property`
     toastBgVar = `var(${layerBase}-surface)`
     toastTextVar = `var(${layerBase}-element-text-color)`
     // For success/error variants, use interactive tone for button
@@ -50,7 +52,8 @@ export default function Toast({
     }
   } else if (layer.startsWith('layer-alternative-')) {
     const altKey = layer.replace('layer-alternative-', '')
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
+    // Use new brand.json structure: --recursica-brand-themes-{mode}-layer-layer-alternative-{n}-property
+    const layerBase = `--recursica-brand-themes-${mode}-layer-layer-alternative-${altKey}-property`
     toastBgVar = `var(${layerBase}-surface)`
     toastTextVar = `var(${layerBase}-element-text-color)`
     if (variant === 'success' || variant === 'error') {
@@ -58,20 +61,20 @@ export default function Toast({
     }
   } else {
     // Use UIKit.json toast colors for standard layers
-    toastBgVar = getComponentCssVar('Toast', 'color', `${variant}-background`, layer)
-    toastTextVar = getComponentCssVar('Toast', 'color', `${variant}-text`, layer)
+    toastBgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
+    toastTextVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
     if (variant === 'success' || variant === 'error') {
-      toastButtonVar = getComponentCssVar('Toast', 'color', `${variant}-button`, layer)
+      toastButtonVar = getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
     }
   }
   
-  // Get size CSS variables
-  const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'vertical-padding', undefined)
-  const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'horizontal-padding', undefined)
-  const minWidthVar = getComponentCssVar('Toast', 'size', 'min-width', undefined)
-  const maxWidthVar = getComponentCssVar('Toast', 'size', 'max-width', undefined)
-  const iconVar = getComponentCssVar('Toast', 'size', 'icon', undefined)
-  const spacingVar = getComponentCssVar('Toast', 'size', 'spacing', undefined)
+  // Get component-level CSS variables (these are under toast.properties in UIKit.json)
+  const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
+  const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
+  const minWidthVar = getComponentLevelCssVar('Toast', 'min-width')
+  const maxWidthVar = getComponentLevelCssVar('Toast', 'max-width')
+  const iconVar = getComponentLevelCssVar('Toast', 'icon')
+  const spacingVar = getComponentLevelCssVar('Toast', 'spacing')
   const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
   
   // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
@@ -79,7 +82,8 @@ export default function Toast({
   
   if (hasComponentAlternativeLayer) {
     // Read elevation from alt layer's property
-    const altLayerElevationVar = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
+    // Use new brand.json structure: --recursica-brand-themes-{mode}-layer-layer-alternative-{n}-property-elevation
+    const altLayerElevationVar = `--recursica-brand-themes-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
     const altLayerElevation = readCssVar(altLayerElevationVar)
     if (altLayerElevation) {
       // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
@@ -97,14 +101,7 @@ export default function Toast({
   }
   
   // Build box-shadow from elevation CSS variables if set (and not elevation-0)
-  let boxShadow: string | undefined
-  if (elevationToApply && elevationToApply !== 'elevation-0') {
-    const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
-    if (elevationMatch) {
-      const elevationLevel = elevationMatch[1]
-      boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-    }
-  }
+  const boxShadow = getElevationBoxShadow(mode, elevationToApply)
   
   const carbonProps = {
     className: `recursica-toast ${className || ''}`,

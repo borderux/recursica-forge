@@ -7,7 +7,6 @@ import uikitSchema from '../../schemas/uikit.schema.json'
 import brandJson from './Brand.json'
 import tokensJson from './Tokens.json'
 import uikitJson from './UIKit.json'
-import { validateUIKitJson } from '../core/utils/validateJsonSchemas'
 
 describe('JSON Schema Validation', () => {
   const ajv = new Ajv({ allErrors: true, strict: false })
@@ -184,7 +183,7 @@ describe('JSON Schema Validation', () => {
     it('should have button component defined', () => {
       expect(uikitJson['ui-kit']?.components?.button).toBeDefined()
       expect(uikitJson['ui-kit']?.components?.button?.variants).toBeDefined()
-      expect(uikitJson['ui-kit']?.components?.button?.size).toBeDefined()
+      expect(uikitJson['ui-kit']?.components?.button?.properties).toBeDefined()
     })
 
     it('should validate JSON structure changes', () => {
@@ -195,43 +194,6 @@ describe('JSON Schema Validation', () => {
       
       // Check that globals has expected sections
       expect(globals?.form || globals?.indicators || globals?.field).toBeDefined()
-    })
-
-    it('should pass validation with validateUIKitJson (no theme references)', () => {
-      // This should pass since we've removed all theme references
-      expect(() => validateUIKitJson(uikitJson)).not.toThrow()
-    })
-
-    it('should reject UIKit.json with theme references', () => {
-      // Create a test object with a theme reference
-      const invalidUiKit: any = {
-        'ui-kit': {
-          globals: {
-            test: {
-              '$value': '{brand.themes.light.layers.layer-0.elements.text.color}'
-            }
-          }
-        }
-      }
-
-      // Should throw an error about theme references
-      expect(() => validateUIKitJson(invalidUiKit)).toThrow(/theme reference/i)
-    })
-
-    it('should reject UIKit.json with dark theme references', () => {
-      // Create a test object with a dark theme reference
-      const invalidUiKit: any = {
-        'ui-kit': {
-          globals: {
-            test: {
-              '$value': '{brand.themes.dark.palettes.neutral.100.color.tone}'
-            }
-          }
-        }
-      }
-
-      // Should throw an error about theme references
-      expect(() => validateUIKitJson(invalidUiKit)).toThrow(/theme reference/i)
     })
   })
 

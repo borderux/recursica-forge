@@ -551,9 +551,24 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Toast',
       url: `${base}/toast`,
-      render: (_selectedLayers) => (
-        <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', padding: 12, borderRadius: 8, background: 'var(--layer-layer-layer-3-property-surface)' }}>Success toast</div>
-      ),
+      render: (selectedLayers) => {
+        const layers = sortLayers(Array.from(selectedLayers))
+        const layer = layers[0] || 'layer-0'
+        
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 600 }}>
+            <Toast variant="default" layer={layer as any}>
+              Default toast message
+            </Toast>
+            <Toast variant="success" layer={layer as any} icon={<span>✓</span>} onClose={() => {}}>
+              Success toast message
+            </Toast>
+            <Toast variant="error" layer={layer as any} icon={<span>✕</span>} onClose={() => {}}>
+              Error toast message
+            </Toast>
+          </div>
+        )
+      },
     },
     {
       name: 'Tooltip',

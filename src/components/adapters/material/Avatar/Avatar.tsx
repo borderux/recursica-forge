@@ -8,6 +8,7 @@ import { Avatar as MaterialAvatar } from '@mui/material'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
+import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Avatar.css'
 
@@ -48,14 +49,7 @@ export default function Avatar({
   const materialSize = sizeVariant === 'small' ? 'small' : sizeVariant === 'large' ? 'medium' : undefined
   
   // Handle elevation
-  let elevationBoxShadow: string | undefined
-  if (elevation && elevation !== 'elevation-0') {
-    const elevationMatch = elevation.match(/elevation-(\d+)/)
-    if (elevationMatch) {
-      const elevationLevel = elevationMatch[1]
-      elevationBoxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-    }
-  }
+  const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
   
   return (
     <MaterialAvatar

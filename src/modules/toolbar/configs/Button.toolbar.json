@@ -1,6 +1,6 @@
 {
   "variants": {
-    "color": {
+    "style": {
       "icon": "diamonds-four",
       "label": "Style"
     },

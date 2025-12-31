@@ -294,238 +294,245 @@
     "components": {
       "button": {
         "variants": {
-          "solid": {
-            "colors": {
-              "layer-0": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.on-tone-hover}"
+          "styles": {
+            "solid": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.on-tone-hover}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.on-tone-hover}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.on-tone-hover}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.on-tone-hover}"
+                    }
+                  }
                 }
-              },
-              "layer-1": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.on-tone-hover}"
+              }
+            },
+            "text": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.properties.surface}"
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.properties.surface}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.properties.surface}"
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.properties.surface}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.properties.surface}"
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.properties.surface}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.on-tone-hover}"
+                    }
+                  }
                 }
-              },
-              "layer-2": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.on-tone-hover}"
-                }
-              },
-              "layer-3": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.tone}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone-hover}"
+              }
+            },
+            "outline": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "background-hover": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    },
+                    "text-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
+                    }
+                  }
                 }
               }
             }
           },
-          "text": {
-            "colors": {
-              "layer-0": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.properties.surface}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.properties.surface}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
-                }
-              },
-              "layer-1": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.properties.surface}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.properties.surface}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
-                }
-              },
-              "layer-2": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.properties.surface}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.properties.surface}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
-                }
-              },
-              "layer-3": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.tone}"
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone-hover}"
-                }
-              }
-            }
-          },
-          "outline": {
-            "colors": {
-              "layer-0": {
-                "background": {
-                  "$type": "color",
-                  "$value": null
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": null
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
-                }
-              },
-              "layer-1": {
-                "background": {
-                  "$type": "color",
-                  "$value": null
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": null
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
-                }
-              },
-              "layer-2": {
-                "background": {
-                  "$type": "color",
-                  "$value": null
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": null
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
-                }
-              },
-              "layer-3": {
-                "background": {
-                  "$type": "color",
-                  "$value": null
-                },
-                "background-hover": {
-                  "$type": "color",
-                  "$value": null
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.tone}"
-                },
-                "text-hover": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
-                }
-              }
-            }
-          }
-        },
-        "size": {
-            "variants": {
-              "default": {
+          "sizes": {
+            "default": {
+              "properties": {
                 "icon": {
                   "$type": "dimension",
                   "$value": {
@@ -561,8 +568,10 @@
                     "unit": "px"
                   }
                 }
-              },
-              "small": {
+              }
+            },
+            "small": {
+              "properties": {
                 "icon": {
                   "$type": "dimension",
                   "$value": {
@@ -599,202 +608,213 @@
                   }
                 }
               }
+            }
           }
         },
-        "font-size": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.typography.button.font-size}",
-            "unit": "px"
+        "properties": {
+          "font-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.typography.button.font-size}",
+              "unit": "px"
+            }
+          },
+          "border-radius": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.border-radius.xl}",
+              "unit": "px"
+            }
+          },
+          "max-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 500,
+              "unit": "px"
+            }
+          },
+          "elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-0}"
           }
-        },
-        "border-radius": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.border-radius.xl}",
-            "unit": "px"
-          }
-        },
-        "max-width": {
-          "$type": "dimension",
-          "$value": {
-            "value": 500,
-            "unit": "px"
-          }
-        },
-        "elevation": {
-          "$type": "elevation",
-          "$value": "{brand.elevations.elevation-0}"
         }
       },
       "toast": {
         "variants": {
-          "default": {
-            "colors": {
-              "layer-0": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.neutral.050.color.tone}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.neutral.050.color.on-tone}"
-                }
-              },
-              "layer-1": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.neutral.050.color.tone}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.neutral.050.color.on-tone}"
-                }
-              },
-              "layer-2": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.neutral.050.color.tone}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.neutral.050.color.on-tone}"
-                }
-              },
-              "layer-3": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.neutral.050.color.tone}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.neutral.050.color.on-tone}"
-                }
-              }
-            }
-          },
-          "success": {
-            "colors": {
-              "layer-0": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.tone}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.interactive}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.on-tone}"
-                }
-              },
-              "layer-1": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.tone}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.interactive}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.on-tone}"
-                }
-              },
-              "layer-2": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.tone}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.interactive}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.on-tone}"
-                }
-              },
-              "layer-3": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.tone}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.interactive}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.success.on-tone}"
+          "styles": {
+            "default": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.050.color.tone}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.050.color.tone}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.050.color.tone}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.050.color.tone}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                    }
+                  }
                 }
               }
-            }
-          },
-          "error": {
-            "colors": {
-              "layer-0": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.tone}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.interactive}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.on-tone}"
+            },
+            "success": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.interactive}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.on-tone}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.interactive}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.on-tone}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.interactive}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.on-tone}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.interactive}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success.on-tone}"
+                    }
+                  }
                 }
-              },
-              "layer-1": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.tone}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.interactive}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.on-tone}"
-                }
-              },
-              "layer-2": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.tone}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.interactive}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.on-tone}"
-                }
-              },
-              "layer-3": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.tone}"
-                },
-                "button": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.interactive}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.light.palettes.core-colors.alert.on-tone}"
+              }
+            },
+            "error": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.interactive}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.on-tone}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.interactive}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.on-tone}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.interactive}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.on-tone}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.interactive}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert.on-tone}"
+                    }
+                  }
                 }
               }
             }
           }
         },
-        "size": {
+        "properties": {
           "vertical-padding": {
             "$type": "dimension",
             "$value": {
@@ -836,517 +856,760 @@
               "value": "{brand.dimensions.icon.default}",
               "unit": "px"
             }
+          },
+          "text-size": {
+            "$type": "typography",
+            "$value": "{brand.typography.body.font-size}"
+          },
+          "elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-1}"
           }
-        },
-        "text-size": {
-          "$type": "typography",
-          "$value": "{brand.typography.body.font-size}"
-        },
-        "elevation": {
-          "$type": "elevation",
-          "$value": "{brand.light.elevations.elevation-1}"
         }
       },
       "switch": {
-        "variants": {
-          "default": {
-            "colors": {
-              "layer-0": {
-                "thumb-selected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
-                },
-                "thumb-unselected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
-                },
-                "track-selected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
-                },
-                "track-unselected": {
-                  "$type": "color",
-                  "$value": "{brand.palettes.neutral.800.color.tone}"
-            }
-          },
-          "layer-1": {
-                "thumb-selected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
-                },
-                "thumb-unselected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
-                },
-                "track-selected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
-                },
-                "track-unselected": {
-                  "$type": "color",
-                  "$value": "{brand.palettes.neutral.800.color.tone}"
-            }
-          },
-          "layer-2": {
-                "thumb-selected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
-                },
-                "thumb-unselected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
-                },
-                "track-selected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
-                },
-                "track-unselected": {
-                  "$type": "color",
-                  "$value": "{brand.palettes.neutral.800.color.tone}"
-            }
-          },
-          "layer-3": {
-                "thumb-selected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
-                },
-                "thumb-unselected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
-                },
-                "track-selected": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.interactive.tone}"
-                },
-                "track-unselected": {
-                  "$type": "color",
-                  "$value": "{brand.palettes.neutral.800.color.tone}"
-                }
+        "properties": {
+          "colors": {
+            "layer-0": {
+              "thumb-selected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
+              },
+              "thumb-unselected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
+              },
+              "track-selected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "track-unselected": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.800.color.tone}"
+              }
+            },
+            "layer-1": {
+              "thumb-selected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
+              },
+              "thumb-unselected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
+              },
+              "track-selected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "track-unselected": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.800.color.tone}"
+              }
+            },
+            "layer-2": {
+              "thumb-selected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
+              },
+              "thumb-unselected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
+              },
+              "track-selected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "track-unselected": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.800.color.tone}"
+              }
+            },
+            "layer-3": {
+              "thumb-selected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
+              },
+              "thumb-unselected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
+              },
+              "track-selected": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "track-unselected": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.800.color.tone}"
               }
             }
+          },
+          "thumb-height": {
+            "$type": "dimension",
+            "$value": {
+              "value": 20,
+              "unit": "px"
+            }
+          },
+          "thumb-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 20,
+              "unit": "px"
+            }
+          },
+          "track-inner-padding": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.sm}",
+              "unit": "px"
+            }
+          },
+          "label-switch-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.default}",
+              "unit": "px"
+            }
+          },
+          "thumb-border-radius": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.border-radius.lg}",
+              "unit": "px"
+            }
+          },
+          "track-border-radius": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.border-radius.lg}",
+              "unit": "px"
+            }
+          },
+          "thumb-icon-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.icon.sm}",
+              "unit": "px"
+            }
+          },
+          "track-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 64,
+              "unit": "px"
+            }
+          },
+          "thumb-icon-selected": {
+            "$type": "string",
+            "$value": "check"
+          },
+          "thumb-icon-unselected": {
+            "$type": "string",
+            "$value": "x-mark"
+          },
+          "thumb-elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-0}"
+          },
+          "track-elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-0}"
           }
-        },
-        "thumb-height": {
-          "$type": "dimension",
-          "$value": {
-            "value": 20,
-            "unit": "px"
-          }
-        },
-        "thumb-width": {
-          "$type": "dimension",
-          "$value": {
-            "value": 20,
-            "unit": "px"
-          }
-        },
-        "track-inner-padding": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.general.sm}",
-            "unit": "px"
-          }
-        },
-        "label-switch-gap": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.general.default}",
-            "unit": "px"
-          }
-        },
-        "thumb-border-radius": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.border-radius.lg}",
-            "unit": "px"
-          }
-        },
-        "track-border-radius": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.border-radius.lg}",
-            "unit": "px"
-          }
-        },
-        "thumb-icon-size": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.icon.sm}",
-            "unit": "px"
-          }
-        },
-        "track-width": {
-          "$type": "dimension",
-          "$value": {
-            "value": 64,
-            "unit": "px"
-          }
-        },
-        "thumb-icon-selected": {
-          "$type": "string",
-          "$value": "check"
-        },
-        "thumb-icon-unselected": {
-          "$type": "string",
-          "$value": "x-mark"
-        },
-        "thumb-elevation": {
-          "$type": "elevation",
-          "$value": "{brand.elevations.elevation-0}"
-        },
-        "track-elevation": {
-          "$type": "elevation",
-          "$value": "{brand.elevations.elevation-0}"
         }
       },
       "avatar": {
         "variants": {
-          "text": {
-            "variants": {
-              "solid": {
-                "colors": {
-                  "layer-0": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    },
-                    "text-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    }
-                  },
-                  "layer-1": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    },
-                    "text-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    }
-                  },
-                  "layer-2": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    },
-                    "text-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    }
-                  },
-                  "layer-3": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    },
-                    "text-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+          "styles": {
+            "text": {
+              "variants": {
+                "solid": {
+                  "properties": {
+                    "colors": {
+                      "layer-0": {
+                        "background": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        }
+                      },
+                      "layer-1": {
+                        "background": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        }
+                      },
+                      "layer-2": {
+                        "background": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        }
+                      },
+                      "layer-3": {
+                        "background": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        }
+                      }
                     }
                   }
-                }
-              },
-              "ghost": {
-                "colors": {
-                  "layer-0": {
-                "background": {
-                  "$type": "color",
-                      "$value": null
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
-                    },
-                    "text-color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.color}"
-                    }
-                  },
-                  "layer-1": {
-                    "background": {
-                      "$type": "color",
-                      "$value": null
                 },
-                "border": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.properties.border-color}"
-                },
-                    "text-color": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.text.color}"
-                }
-                  },
-                  "layer-2": {
-                    "background": {
-                      "$type": "color",
-                      "$value": null
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.border-color}"
-                    },
-                    "text-color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.text.color}"
-                    }
-                  },
-                  "layer-3": {
-                    "background": {
-              "$type": "color",
-                      "$value": null
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.properties.border-color}"
-                    },
-                    "text-color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.text.color}"
+                "ghost": {
+                  "properties": {
+                    "colors": {
+                      "layer-0": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.neutral.200.color.tone}"
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-0.elements.text.color}"
+                        }
+                      },
+                      "layer-1": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-1.properties.border-color}"
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-1.elements.text.color}"
+                        }
+                      },
+                      "layer-2": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-2.properties.border-color}"
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-2.elements.text.color}"
+                        }
+                      },
+                      "layer-3": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-3.properties.border-color}"
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-3.elements.text.color}"
+                        }
+                      }
                     }
                   }
                 }
               }
-            }
-          },
-          "icon": {
-            "variants": {
-              "solid": {
-                "colors": {
-                  "layer-0": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+            },
+            "icon": {
+              "variants": {
+                "solid": {
+                  "properties": {
+                    "colors": {
+                      "layer-0": {
+                        "background": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        }
+                      },
+                      "layer-1": {
+                        "background": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        }
+                      },
+                      "layer-2": {
+                        "background": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        }
+                      },
+                      "layer-3": {
+                        "background": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        }
+                      }
                     }
-                  },
-                  "layer-1": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    }
-                  },
-                  "layer-2": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-                    },
-                    "border": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    }
-                  },
-                  "layer-3": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-                    },
-                    "border": {
-                      "$type": "color",
-                        "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                  }
+                },
+                "ghost": {
+                  "properties": {
+                    "colors": {
+                      "layer-0": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.neutral.200.color.tone}"
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-0.elements.text.color}"
+                        }
+                      },
+                      "layer-1": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-1.properties.border-color}"
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-1.elements.text.color}"
+                        }
+                      },
+                      "layer-2": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-2.properties.border-color}"
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-2.elements.text.color}"
+                        }
+                      },
+                      "layer-3": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "border": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-3.properties.border-color}"
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-3.elements.text.color}"
+                        }
+                      }
                     }
                   }
                 }
-              },
-              "ghost": {
+              }
+            },
+            "image": {
+              "properties": {
                 "colors": {
                   "layer-0": {
-                "background": {
-                  "$type": "color",
+                    "background": {
+                      "$type": "color",
                       "$value": null
                     },
                     "border": {
                       "$type": "color",
                       "$value": "{brand.palettes.neutral.200.color.tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": null
+                      "$value": "{brand.layers.layer-1.properties.surface}"
                     },
                     "border": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.properties.border-color}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": null
+                      "$value": "{brand.layers.layer-2.properties.surface}"
                     },
                     "border": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.properties.border-color}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": null
-                },
-                "border": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.properties.border-color}"
-                },
-                    "icon-color": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.text.color}"
+                      "$value": "{brand.layers.layer-3.properties.surface}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.properties.border-color}"
                     }
                   }
                 }
               }
             }
           },
-          "image": {
-            "colors": {
-              "layer-0": {
-                "background": {
-                  "$type": "color",
-                  "$value": null
-                },
-                "border": {
-                  "$type": "color",
-                  "$value": "{brand.palettes.neutral.200.color.tone}"
-                }
-              },
-              "layer-1": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.properties.surface}"
-                },
-                "border": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.properties.border-color}"
-                }
-              },
-              "layer-2": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.properties.surface}"
-                },
-                "border": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.properties.border-color}"
-                }
-              },
-              "layer-3": {
-                "background": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.properties.surface}"
-                },
-                "border": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-3.properties.border-color}"
-                }
-              }
-            }
-          }
-        },
-        "sizes": {
-          "variants": {
+          "sizes": {
             "small": {
-              "$type": "dimension",
-              "$value": {
-                "value": 32,
-                "unit": "px"
+              "properties": {
+                "size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 32,
+                    "unit": "px"
+                  }
+                }
               }
             },
             "default": {
-              "$type": "dimension",
-              "$value": {
-                "value": 40,
-                "unit": "px"
+              "properties": {
+                "size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 40,
+                    "unit": "px"
+                  }
+                }
               }
             },
             "large": {
-              "$type": "dimension",
-              "$value": {
-                "value": 64,
-                "unit": "px"
+              "properties": {
+                "size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 64,
+                    "unit": "px"
+                  }
+                }
               }
             }
           }
         },
-        "text-size": {
-          "$type": "typography",
-          "$value": "{brand.typography.body.font-size}"
-        },
-        "padding": {
+        "properties": {
+          "text-size": {
+            "$type": "typography",
+            "$value": "{brand.typography.body.font-size}"
+          },
+          "padding": {
             "$type": "dimension",
             "$value": {
-            "value": 0,
+              "value": 0,
               "unit": "px"
             }
-        },
-        "border-size": {
-          "$type": "dimension",
-          "$value": {
-            "value": 1,
-            "unit": "px"
+          },
+          "border-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
+          "border-radius": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.border-radius.default}",
+              "unit": "px"
+            }
+          },
+          "elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-0}"
+          }
+        }
+      },
+      "badge": {
+        "variants": {
+          "styles": {
+            "primary-color": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                    }
+                  }
+                }
+              }
+            },
+            "warning": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.warning}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.warning}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.warning}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.warning}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  }
+                }
+              }
+            },
+            "success": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.success}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  }
+                }
+              }
+            },
+            "alert": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  },
+                  "layer-1": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  },
+                  "layer-2": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  },
+                  "layer-3": {
+                    "background": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.alert}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.white}"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
-        "border-radius": {
-          "$type": "dimension",
-          "$value": {
-            "value": "{brand.dimensions.border-radius.default}",
-            "unit": "px"
+        "properties": {
+          "text-size": {
+            "$type": "typography",
+            "$value": "{brand.typography.body.font-size}"
+          },
+          "padding": {
+            "$type": "dimension",
+            "$value": {
+              "value": 8,
+              "unit": "px"
+            }
+          },
+          "border-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
+          "border-radius": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.border-radius.default}",
+              "unit": "px"
+            }
+          },
+          "elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-0}"
           }
-        },
-        "elevation": {
-          "$type": "elevation",
-          "$value": "{brand.elevations.elevation-0}"
         }
       }
     }

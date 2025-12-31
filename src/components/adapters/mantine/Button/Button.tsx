@@ -7,6 +7,7 @@
 import { Button as MantineButton } from '@mantine/core'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './Button.css'
@@ -38,9 +39,9 @@ export default function Button({
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
   // Use UIKit.json button colors for standard layers
-  const buttonBgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
-  const buttonHoverVar = getComponentCssVar('Button', 'color', `${variant}-background-hover`, layer)
-  const buttonColorVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
+  const buttonBgVar = getComponentCssVar('Button', 'colors', `${variant}-background`, layer)
+  const buttonHoverVar = getComponentCssVar('Button', 'colors', `${variant}-background-hover`, layer)
+  const buttonColorVar = getComponentCssVar('Button', 'colors', `${variant}-text`, layer)
   
   // Get the correct CSS variable reference for button color (used for text and border)
   const buttonColorRef = `var(${buttonColorVar})`
@@ -152,10 +153,10 @@ export default function Button({
       '--button-border-radius': `var(${borderRadiusVar})`,
       '--button-font-size': `var(${fontSizeVar})`,
       '--button-fz': `var(${fontSizeVar})`,
-      '--button-font-weight': 'var(--recursica-brand-typography-button-font-weight)',
+      '--button-font-weight': `var(${getBrandTypographyCssVar('button', 'font-weight')})`,
       // Directly set color to override Mantine's fallback (var(--button-color, var(--mantine-color-white)))
       color: buttonColorRef,
-      fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      fontWeight: `var(${getBrandTypographyCssVar('button', 'font-weight')})`,
       // For icon-only buttons, ensure flex centering with space-around
       ...(isIconOnly && {
         display: 'flex',
@@ -164,22 +165,14 @@ export default function Button({
       }),
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       ...(disabled && {
-        opacity: `var(--recursica-brand-themes-${mode}-state-disabled)`,
+        opacity: `var(${getBrandStateCssVar(mode, 'disabled')})`,
       }),
       minWidth: `var(${minWidthVar})`,
       borderRadius: `var(${borderRadiusVar})`,
       // Apply elevation if set
       ...(() => {
-        if (elevation && elevation !== 'elevation-0') {
-          const elevationMatch = elevation.match(/elevation-(\d+)/)
-          if (elevationMatch) {
-            const elevationLevel = elevationMatch[1]
-            return {
-              boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-            }
-          }
-        }
-        return {}
+        const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
+        return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
       })(),
       // Don't apply maxWidth to root - it will be applied to label element only
       ...style,

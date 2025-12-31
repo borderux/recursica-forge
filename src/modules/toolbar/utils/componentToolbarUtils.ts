@@ -69,35 +69,97 @@ export function parseComponentStructure(componentName: string): ComponentStructu
 
       const currentPath = [...prefix, key]
 
+      // Check if this is a "properties" node at component level (for Switch which has properties.colors)
+      if (key === 'properties' && typeof value === 'object' && !('$value' in value)) {
+        // For Switch: properties.colors is at component level (not under variants)
+        // Continue traversing into properties
+        traverse(value, currentPath, variantProp)
+        return
+      }
+
       // Check if this is a "variants" node
       if (key === 'variants' && typeof value === 'object' && !('$value' in value)) {
-        // This is a variant container - extract variant names
+        // Check if this variants object contains category containers (styles, sizes)
+        // NEW STRUCTURE: variants.styles.solid or variants.sizes.default
+        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes'))
+        
+        if (categoryKeys.length > 0) {
+          // NEW STRUCTURE: variants.styles and variants.sizes are category containers
+          // Extract variants from each category, not the category names themselves
+          categoryKeys.forEach(categoryKey => {
+            const categoryObj = (value as any)[categoryKey]
+            if (categoryObj && typeof categoryObj === 'object' && !('$value' in categoryObj)) {
+              // Extract variant names from inside this category (e.g., "solid", "text", "outline" from styles)
+              const variantNames = Object.keys(categoryObj).filter(k => !k.startsWith('$'))
+              
+              if (variantNames.length > 0) {
+                // Determine prop name based on category
+                const finalPropName = categoryKey === 'styles' ? 'style' : 'size'
+                
+                // Only add variant if we haven't seen this finalPropName before
+                if (!seenVariants.has(finalPropName)) {
+                  seenVariants.add(finalPropName)
+                  variants.push({
+                    propName: finalPropName,
+                    variants: variantNames,
+                  })
+                }
+              }
+            }
+          })
+          
+          // Continue traversing with appropriate variant prop names
+          categoryKeys.forEach(categoryKey => {
+            const categoryObj = (value as any)[categoryKey]
+            const variantPropName = categoryKey === 'styles' ? 'style' : 'size'
+            if (categoryObj && typeof categoryObj === 'object') {
+              // Traverse each variant within the category
+              Object.keys(categoryObj).forEach(variantKey => {
+                if (variantKey.startsWith('$')) return
+                const variantObj = (categoryObj as any)[variantKey]
+                if (variantObj && typeof variantObj === 'object') {
+                  // Check if variant has a "properties" key (new structure)
+                  if ('properties' in variantObj && typeof variantObj.properties === 'object') {
+                    // New structure: variants.styles.solid.properties.colors...
+                    traverse(variantObj.properties, [...currentPath, categoryKey, variantKey, 'properties'], variantPropName)
+                  } else {
+                    // Old structure or nested variants: traverse directly
+                    traverse(variantObj, [...currentPath, categoryKey, variantKey], variantPropName)
+                  }
+                }
+              })
+            }
+          })
+          
+          // Also traverse any other keys that aren't styles/sizes (for backward compatibility)
+          const otherKeys = Object.keys(value).filter(k => !k.startsWith('$') && k !== 'styles' && k !== 'sizes')
+          otherKeys.forEach(otherKey => {
+            const otherObj = (value as any)[otherKey]
+            if (otherObj && typeof otherObj === 'object') {
+              // For backward compatibility, treat direct variants as style variants
+              const variantPropName = variantProp || 'style'
+              traverse(otherObj, [...currentPath, otherKey], variantPropName)
+            }
+          })
+          return // Early return to avoid processing as old structure
+        } else {
+          // OLD STRUCTURE or direct variants (no styles/sizes categories)
+          // This handles cases like variants.solid or variants.text.variants.solid (Avatar)
         const variantNames = Object.keys(value).filter(k => !k.startsWith('$'))
         if (variantNames.length > 0) {
-          // NEW STRUCTURE: variants.text.variants.solid.colors.layer-0.background (nested - Avatar)
-          // NEW STRUCTURE: variants.solid.colors.layer-0.background (single - Button/Switch)
-          // OLD STRUCTURE: colors.layer-0.variants.text.variants.solid.background
           // Check if this is a nested variant (variants inside variants)
           const variantCount = currentPath.filter(p => p === 'variants').length
           const isNestedVariant = variantCount > 1
           
-          // In new structure, variants are at the top level OR under a category (like size.variants)
-          // For nested variants (Avatar): First level (text, icon, image) -> "style", Second level (solid, ghost) -> "style-secondary"
-          // For single variants (Button/Switch): variants name -> "color" (or component-specific name)
-          // For size variants: size.variants -> "size"
+            // Determine prop name
           let finalPropName: string
-          
-          // Check if parent is a category name (like "size")
           if (prefix.length > 0) {
             const parentName = prefix[prefix.length - 1]
             if (parentName === 'size') {
-              // This is a size variant (e.g., size.variants.small)
               finalPropName = 'size'
             } else if (isNestedVariant) {
-              // This is a nested variant (e.g., variants.text.variants.solid)
               finalPropName = 'style-secondary'
             } else {
-              // This is a color variant at root level (e.g., variants.solid)
               if (componentKey === 'avatar') {
                 finalPropName = 'style'
               } else {
@@ -105,7 +167,6 @@ export function parseComponentStructure(componentName: string): ComponentStructu
               }
             }
           } else {
-            // Root level variant (new structure)
             if (isNestedVariant) {
               finalPropName = 'style-secondary'
             } else {
@@ -124,16 +185,12 @@ export function parseComponentStructure(componentName: string): ComponentStructu
               propName: finalPropName,
               variants: variantNames,
             })
-          } else if (componentKey === 'badge' && finalPropName === 'size') {
-            // If we've seen it before, log a warning
-            console.warn('Badge size variant already added, skipping duplicate')
+            }
           }
-        }
+          
         // Continue traversing into variants
-        // In new structure, variantProp depends on component, nesting level, and parent category
         let variantPropName = variantProp
         if (!variantPropName) {
-          // Check if parent is a category name (like "size")
           if (prefix.length > 0) {
             const parentName = prefix[prefix.length - 1]
             if (parentName === 'size') {
@@ -141,14 +198,11 @@ export function parseComponentStructure(componentName: string): ComponentStructu
             } else {
               const variantCount = currentPath.filter(p => p === 'variants').length
               if (variantCount > 1) {
-                // Nested variant (Avatar only)
                 variantPropName = 'style-secondary'
               } else {
-                // Single-level variant
                 if (componentKey === 'avatar') {
                   variantPropName = 'style'
                 } else {
-                  // Button, Switch, etc.
                   variantPropName = 'color'
                 }
               }
@@ -156,21 +210,19 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           } else {
             const variantCount = currentPath.filter(p => p === 'variants').length
             if (variantCount > 1) {
-              // Nested variant (Avatar only)
               variantPropName = 'style-secondary'
             } else {
-              // Single-level variant
               if (componentKey === 'avatar') {
                 variantPropName = 'style'
               } else {
-                // Button, Switch, etc.
                 variantPropName = 'color'
               }
             }
           }
         }
         traverse(value, currentPath, variantPropName)
-        return
+        }
+        return // Early return after handling variants
       }
 
       // Check if this is a value object with $type and $value
@@ -209,13 +261,17 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           variantPropName = variantProp
         }
         
-        // Determine category - in new structure, "colors" is inside variants
-        // Path: ['variants', 'text', 'variants', 'solid', 'colors', 'layer-0', 'background']
-        // Category should be "colors" if it appears in the path, otherwise use prefix[0]
+        // Determine category - in new structure, "colors" can be:
+        // 1. Inside variants.properties: ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background']
+        // 2. Inside component properties: ['properties', 'colors', 'layer-0', 'thumb-selected'] (Switch)
+        // 3. Size properties: ['variants', 'sizes', 'default', 'properties', 'height'] or ['properties', 'border-radius']
         let category = prefix[0] || 'root'
         if (currentPath.includes('colors')) {
           category = 'colors'
-        } else if (currentPath.includes('size')) {
+        } else if (currentPath.includes('size') || currentPath.includes('sizes')) {
+          category = 'size'
+        } else if (prefix.includes('properties') && !currentPath.includes('colors')) {
+          // Component-level properties (not colors) - default to size category
           category = 'size'
         }
         

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
 import { getPropLabel, getPropVisible, getGroupedProps, getGroupedPropConfig } from '../../utils/loadToolbarConfig'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
@@ -12,6 +12,79 @@ import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import FloatingPalette from './FloatingPalette'
 import './PropControl.css' // Keep prop-control specific styles
+
+// Separate component for elevation control to properly use hooks
+function ElevationPropControl({
+  primaryVar,
+  label,
+  elevationOptions,
+  mode,
+}: {
+  primaryVar: string
+  label: string
+  elevationOptions: Array<{ name: string; label: string }>
+  mode: 'light' | 'dark'
+}) {
+  const [currentElevation, setCurrentElevation] = useState(() => {
+    const value = readCssVar(primaryVar)
+    if (value) {
+      // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-1}"
+      const match = value.match(/elevations\.(elevation-\d+)/)
+      if (match) return match[1]
+      // Or could be direct value like "elevation-1"
+      if (/^elevation-\d+$/.test(value)) return value
+    }
+    return 'elevation-0' // Default
+  })
+
+  // Listen for CSS variable updates to refresh the current elevation
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      // Only update if this CSS var was updated
+      if (!detail?.cssVars || detail.cssVars.includes(primaryVar)) {
+        const value = readCssVar(primaryVar)
+        if (value) {
+          const match = value.match(/elevations\.(elevation-\d+)/)
+          if (match) {
+            setCurrentElevation(match[1])
+            return
+          }
+          if (/^elevation-\d+$/.test(value)) {
+            setCurrentElevation(value)
+            return
+          }
+        }
+        setCurrentElevation('elevation-0')
+      }
+    }
+
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+  }, [primaryVar])
+
+  const handleElevationChange = (elevationName: string) => {
+    updateCssVar(primaryVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
+    // Update local state immediately for responsive UI
+    setCurrentElevation(elevationName)
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars: [primaryVar] }
+    }))
+  }
+
+  return (
+    <TokenSlider
+      label={label}
+      tokens={elevationOptions.map(opt => ({ name: opt.name, label: opt.label }))}
+      currentToken={currentElevation}
+      onChange={handleElevationChange}
+      getTokenLabel={(token) => {
+        const opt = elevationOptions.find((o) => o.name === token.name)
+        return opt?.label || token.label || token.name
+      }}
+    />
+  )
+}
 
 interface PropControlProps {
   prop: ComponentProp
@@ -256,36 +329,13 @@ export default function PropControl({
     }
 
     if (propToRender.type === 'elevation') {
-      // For elevation props, use TokenSlider with elevation options
-      const currentElevation = (() => {
-        const value = readCssVar(primaryVar)
-        if (value) {
-          // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-1}"
-          const match = value.match(/elevations\.(elevation-\d+)/)
-          if (match) return match[1]
-          // Or could be direct value like "elevation-1"
-          if (/^elevation-\d+$/.test(value)) return value
-        }
-        return 'elevation-0' // Default
-      })()
-
-      const handleElevationChange = (elevationName: string) => {
-        updateCssVar(primaryVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [primaryVar] }
-        }))
-      }
-
+      // For elevation props, use a separate component that can use hooks
       return (
-        <TokenSlider
+        <ElevationPropControl
+          primaryVar={primaryVar}
           label={label}
-          tokens={elevationOptions.map(opt => ({ name: opt.name, label: opt.label }))}
-          currentToken={currentElevation}
-          onChange={handleElevationChange}
-          getTokenLabel={(token) => {
-            const opt = elevationOptions.find((o) => o.name === token.name)
-            return opt?.label || token.label || token.name
-          }}
+          elevationOptions={elevationOptions}
+          mode={mode}
         />
       )
     }

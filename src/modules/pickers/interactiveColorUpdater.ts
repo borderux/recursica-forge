@@ -124,15 +124,12 @@ export function updateInteractiveColor(
 }
 
 // Update core color interactive on-tone values for AA compliance
-// When interactive color changes, updates on-tone values for other core colors by stepping through interactive token scale
-// If skipSetTheme is true, only updates CSS variables without calling setTheme (to avoid triggering recomputeAndApplyAll)
 export function updateCoreColorInteractiveOnTones(
   interactiveHex: string,
   tokens: JsonLike,
   theme: JsonLike,
   setTheme: (theme: JsonLike) => void,
-  mode: 'light' | 'dark',
-  skipSetTheme: boolean = false
+  mode: 'light' | 'dark'
 ): void {
   const tokenIndex = buildTokenIndex(tokens)
   const AA = 4.5
@@ -147,198 +144,183 @@ export function updateCoreColorInteractiveOnTones(
     
     if (!coreColorsPath) return
     
-    // Find the interactive color's family and level for stepping
-    const interactiveFamily = findColorFamilyAndLevel(interactiveHex, tokens)
-    if (!interactiveFamily) {
-      console.warn('Could not find interactive color family/level for stepping')
-      return
-    }
-    
-    const { family: interactiveFamilyName, level: interactiveLevel } = interactiveFamily
-    const normalizedInteractiveLevel = interactiveLevel === '000' ? '050' : interactiveLevel
-    const startIdx = LEVELS.indexOf(normalizedInteractiveLevel)
-    
-    if (startIdx === -1) {
-      console.warn(`Interactive level ${normalizedInteractiveLevel} not found in LEVELS`)
-      return
-    }
-    
-    // Helper to resolve tone reference to hex
-    const context: TokenReferenceContext = {
-      currentMode: mode,
-      tokenIndex,
-      theme: { brand: { themes: themes } }
-    }
-    const resolveRef = (ref: string): string | null => {
-      const resolved = resolveTokenReferenceToValue(ref, context)
-      if (typeof resolved === 'string') {
-        const hex = resolved.trim()
-        if (/^#?[0-9a-f]{6}$/i.test(hex)) {
-          return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-        }
-        if (resolved.startsWith('{') && resolved.endsWith('}')) {
-          return resolveRef(resolved)
-        }
-      }
-      return null
-    }
-    
-    // For each core color, update both its on-tone and interactive values by stepping through interactive scale
     for (const colorName of coreColors) {
       const colorDef = coreColorsPath[colorName]
       if (!colorDef) continue
       
-      // Get tone hex for this core color
+      // Get tone hex
       const toneRef = colorDef.tone?.$value
       if (!toneRef) continue
+      
+      // Resolve tone to hex using centralized parser
+      const context: TokenReferenceContext = {
+        currentMode: mode,
+        tokenIndex,
+        theme: { brand: { themes: themes } }
+      }
+      const resolveRef = (ref: string): string | null => {
+        const resolved = resolveTokenReferenceToValue(ref, context)
+        if (typeof resolved === 'string') {
+          // Check if it's a hex color
+          const hex = resolved.trim()
+          if (/^#?[0-9a-f]{6}$/i.test(hex)) {
+            return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+          }
+          // If it's still a reference, recurse
+          if (resolved.startsWith('{') && resolved.endsWith('}')) {
+            return resolveRef(resolved)
+          }
+        }
+        return null
+      }
       
       const toneHex = resolveRef(toneRef)
       if (!toneHex) continue
       
-      // Step through interactive color scale to find AA-compliant color for interactive property
-      let interactiveRef: string | null = null
+      // Check contrast between tone and interactive
+      const contrast = contrastRatio(toneHex, interactiveHex)
       
-      // Try stepping lighter first (lower index = lighter)
-      for (let i = startIdx - 1; i >= 0; i--) {
-        const testLevel = LEVELS[i]
-        const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-        const testHex = tokenIndex.get(`color/${interactiveFamilyName}/${normalizedTestLevel}`)
-        if (typeof testHex === 'string') {
-          const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-          const testContrast = contrastRatio(toneHex, hex)
-          if (testContrast >= AA) {
-            interactiveRef = `{tokens.color.${interactiveFamilyName}.${normalizedTestLevel}}`
-            break
+      // Find accessible color by stepping through scale
+      let accessibleRef: string | null = null
+      
+      if (contrast >= AA) {
+        // Current is accessible, find what it maps to
+        const found = findColorFamilyAndLevel(interactiveHex, tokens)
+        if (found) {
+          const normalizedLevel = found.level === '000' ? '050' : found.level
+          accessibleRef = `{tokens.color.${found.family}.${normalizedLevel}}`
+        } else {
+          // Check if it's white or black
+          const normalizedHex = interactiveHex.startsWith('#') ? interactiveHex.toLowerCase() : `#${interactiveHex.toLowerCase()}`
+          if (normalizedHex === '#ffffff' || normalizedHex === '#fff') {
+            accessibleRef = `{brand.themes.${mode}.palettes.core-colors.white}`
+          } else if (normalizedHex === '#000000' || normalizedHex === '#000') {
+            accessibleRef = `{brand.themes.${mode}.palettes.core-colors.black}`
           }
         }
-      }
-      
-      // Try stepping darker if lighter didn't work (higher index = darker)
-      if (!interactiveRef) {
-        for (let i = startIdx + 1; i < LEVELS.length; i++) {
-          const testLevel = LEVELS[i]
-          const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-          const testHex = tokenIndex.get(`color/${interactiveFamilyName}/${normalizedTestLevel}`)
-          if (typeof testHex === 'string') {
-            const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-            const testContrast = contrastRatio(toneHex, hex)
-            if (testContrast >= AA) {
-              interactiveRef = `{tokens.color.${interactiveFamilyName}.${normalizedTestLevel}}`
-              break
+      } else {
+        // Step through color scale
+        const interactiveFamily = findColorFamilyAndLevel(interactiveHex, tokens)
+        
+        if (interactiveFamily) {
+          const { family, level } = interactiveFamily
+          const normalizedLevel = level === '000' ? '050' : level
+          const startIdx = LEVELS.indexOf(normalizedLevel)
+          
+          if (startIdx !== -1) {
+            // Try lighter first
+            for (let i = startIdx - 1; i >= 0; i--) {
+              const testLevel = LEVELS[i]
+              const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
+              const testHex = tokenIndex.get(`color/${family}/${normalizedTestLevel}`)
+              if (typeof testHex === 'string') {
+                const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+                const testContrast = contrastRatio(toneHex, hex)
+                if (testContrast >= AA) {
+                  accessibleRef = `{tokens.color.${family}.${normalizedTestLevel}}`
+                  break
+                }
+              }
+            }
+            
+            // Try darker if lighter didn't work
+            if (!accessibleRef) {
+              for (let i = startIdx + 1; i < LEVELS.length; i++) {
+                const testLevel = LEVELS[i]
+                const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
+                const testHex = tokenIndex.get(`color/${family}/${normalizedTestLevel}`)
+                if (typeof testHex === 'string') {
+                  const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+                  const testContrast = contrastRatio(toneHex, hex)
+                  if (testContrast >= AA) {
+                    accessibleRef = `{tokens.color.${family}.${normalizedTestLevel}}`
+                    break
+                  }
+                }
+              }
             }
           }
         }
-      }
-      
-      // Check the current interactive color itself
-      if (!interactiveRef) {
-        const currentContrast = contrastRatio(toneHex, interactiveHex)
-        if (currentContrast >= AA) {
-          interactiveRef = `{tokens.color.${interactiveFamilyName}.${normalizedInteractiveLevel}}`
-        }
-      }
-      
-      // Fallback to white or black if no interactive scale color works
-      if (!interactiveRef) {
-        const whiteToneVar = `--recursica-brand-themes-${mode}-palettes-core-white-tone`
-        const whiteToneValue = readCssVar(whiteToneVar)
-        let whiteHex = '#ffffff'
-        if (whiteToneValue) {
-          const resolved = resolveCssVarToHex(whiteToneValue, tokenIndex)
-          if (resolved) whiteHex = resolved
-        }
         
-        const blackToneVar = `--recursica-brand-themes-${mode}-palettes-core-black-tone`
-        const blackToneValue = readCssVar(blackToneVar)
-        let blackHex = '#000000'
-        if (blackToneValue) {
-          const resolved = resolveCssVarToHex(blackToneValue, tokenIndex)
-          if (resolved) blackHex = resolved
-        }
-        
-        const whiteContrast = contrastRatio(toneHex, whiteHex)
-        const blackContrast = contrastRatio(toneHex, blackHex)
-        
-        if (whiteContrast >= AA && blackContrast >= AA) {
-          // Both pass, use higher contrast
-          interactiveRef = whiteContrast >= blackContrast
-            ? `{brand.themes.${mode}.palettes.core-colors.white}`
-            : `{brand.themes.${mode}.palettes.core-colors.black}`
-        } else if (whiteContrast >= AA) {
-          interactiveRef = `{brand.themes.${mode}.palettes.core-colors.white}`
-        } else if (blackContrast >= AA) {
-          interactiveRef = `{brand.themes.${mode}.palettes.core-colors.black}`
-        } else {
-          // Neither passes, use higher contrast
-          interactiveRef = whiteContrast >= blackContrast
-            ? `{brand.themes.${mode}.palettes.core-colors.white}`
-            : `{brand.themes.${mode}.palettes.core-colors.black}`
-        }
-      }
-      
-      // Update interactive property in Brand.json (always update, even if it doesn't exist)
-      if (interactiveRef) {
-        if (!colorDef.interactive) {
-          colorDef.interactive = {}
-        }
-        colorDef.interactive.$value = interactiveRef
-      }
-      
-      // Also update on-tone value using the same logic (for consistency)
-      // The on-tone should also use a color from the interactive scale that passes AA
-      if (interactiveRef) {
-        if (!colorDef['on-tone']) {
-          colorDef['on-tone'] = {}
-        }
-        colorDef['on-tone'].$value = interactiveRef
-      }
-    }
-    
-    // Only call setTheme if not skipping (to avoid triggering recomputeAndApplyAll multiple times)
-    if (!skipSetTheme) {
-      setTheme(themeCopy)
-    }
-    
-    // Update CSS variables for both on-tone and interactive values
-    // Re-read from updated themeCopy to ensure we have the latest values
-    const updatedCoreColorsPath = themes?.[mode]?.palettes?.['core-colors']?.$value
-    if (updatedCoreColorsPath) {
-      for (const colorName of coreColors) {
-        const colorDef = updatedCoreColorsPath[colorName]
-        if (!colorDef) continue
-        
-        // Update on-tone CSS variable
-        const onToneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-on-tone`
-        const onToneRef = colorDef['on-tone']?.$value
-        if (onToneRef) {
-          const context: TokenReferenceContext = {
-            currentMode: mode,
-            tokenIndex: buildTokenIndex(tokens),
-            theme: { brand: { themes: themes } }
-          }
-          const cssVar = resolveTokenReferenceToCssVar(onToneRef, context)
-          if (cssVar) {
-            updateCssVar(onToneVar, cssVar, tokens)
-          }
-        }
-        
-        // Update interactive CSS variable (this is the main one we're updating)
-        const interactiveVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`
-        const interactiveRef = colorDef.interactive?.$value
-        if (interactiveRef) {
-          const context: TokenReferenceContext = {
-            currentMode: mode,
-            tokenIndex: buildTokenIndex(tokens),
-            theme: { brand: { themes: themes } }
-          }
-          const cssVar = resolveTokenReferenceToCssVar(interactiveRef, context)
-          if (cssVar) {
-            updateCssVar(interactiveVar, cssVar, tokens)
+        // Try white
+        if (!accessibleRef) {
+          const whiteRef = `{brand.themes.${mode}.palettes.core-colors.white}`
+          // Try to resolve white tone
+          const whiteToneVar = `--recursica-brand-themes-${mode}-palettes-core-white-tone`
+          const whiteToneValue = readCssVar(whiteToneVar)
+          let whiteHex = '#ffffff'
+          if (whiteToneValue) {
+            const resolved = resolveCssVarToHex(whiteToneValue, tokenIndex)
+            if (resolved) whiteHex = resolved
           } else {
-            console.warn(`Failed to resolve CSS var for ${interactiveVar} from reference: ${interactiveRef}`)
+            // Fallback to core-white
+            const resolved = resolveCssVarToHex(`var(--recursica-brand-themes-${mode}-palettes-core-white)`, tokenIndex)
+            if (resolved) whiteHex = resolved
           }
-        } else {
-          console.warn(`No interactive reference found for core color: ${colorName}`)
+          const whiteContrast = contrastRatio(toneHex, whiteHex)
+          if (whiteContrast >= AA) {
+            accessibleRef = whiteRef
+          }
+        }
+        
+        // Try black
+        if (!accessibleRef) {
+          const blackRef = `{brand.themes.${mode}.palettes.core-colors.black}`
+          // Try to resolve black tone
+          const blackToneVar = `--recursica-brand-themes-${mode}-palettes-core-black-tone`
+          const blackToneValue = readCssVar(blackToneVar)
+          let blackHex = '#000000'
+          if (blackToneValue) {
+            const resolved = resolveCssVarToHex(blackToneValue, tokenIndex)
+            if (resolved) blackHex = resolved
+          } else {
+            // Fallback to core-black
+            const resolved = resolveCssVarToHex(`var(--recursica-brand-themes-${mode}-palettes-core-black)`, tokenIndex)
+            if (resolved) blackHex = resolved
+          }
+          const blackContrast = contrastRatio(toneHex, blackHex)
+          if (blackContrast >= AA) {
+            accessibleRef = blackRef
+          } else {
+            // Use the one with higher contrast
+            const whiteToneVar = `--recursica-brand-themes-${mode}-palettes-core-white-tone`
+            const whiteToneValue = readCssVar(whiteToneVar)
+            let whiteHex = '#ffffff'
+            if (whiteToneValue) {
+              const resolved = resolveCssVarToHex(whiteToneValue, tokenIndex)
+              if (resolved) whiteHex = resolved
+            } else {
+              const resolved = resolveCssVarToHex(`var(--recursica-brand-themes-${mode}-palettes-core-white)`, tokenIndex)
+              if (resolved) whiteHex = resolved
+            }
+            const whiteContrast = contrastRatio(toneHex, whiteHex)
+            accessibleRef = whiteContrast >= blackContrast ? `{brand.themes.${mode}.palettes.core-colors.white}` : blackRef
+          }
+        }
+      }
+      
+      // Update Brand.json
+      if (accessibleRef && colorDef.interactive) {
+        colorDef.interactive.$value = accessibleRef
+      }
+    }
+    
+    setTheme(themeCopy)
+    
+    // Update CSS variables
+    for (const colorName of coreColors) {
+      const interactiveVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`
+      const interactiveRef = coreColorsPath[colorName]?.interactive?.$value
+      if (interactiveRef) {
+        // Resolve reference to CSS var using centralized parser
+        const context: TokenReferenceContext = {
+          currentMode: mode,
+          tokenIndex: buildTokenIndex(tokens),
+          theme: { brand: { themes: {} } }
+        }
+        const cssVar = resolveTokenReferenceToCssVar(interactiveRef, context)
+        if (cssVar) {
+          updateCssVar(interactiveVar, cssVar, tokens)
         }
       }
     }

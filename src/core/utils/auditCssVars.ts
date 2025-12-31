@@ -6,10 +6,18 @@ export interface BrokenReference {
   variable: string
   value: string
   referencedVar: string
-  reason: 'not-defined' | 'circular' | 'invalid-syntax'
+  reason: 'not-defined' | 'circular' | 'invalid-syntax' | 'brace-notation'
   element?: string // Element selector or description where variable is used
   location?: 'root' | 'element' | 'stylesheet' | 'computed'
 }
+
+/**
+ * Known CSS variables that are calculated/set on component instances (not on :root)
+ * These are valid even if not found on :root during audit
+ */
+const COMPONENT_INSTANCE_VARS = new Set([
+  '--recursica-ui-kit-components-switch-track-height', // Calculated: thumb-height + 2 * track-inner-padding
+])
 
 /**
  * Audits all CSS variables with --recursica prefix to find broken references
@@ -32,6 +40,13 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   const varValues = new Map<string, string>()
   const varLocations = new Map<string, Set<string>>() // Track where each variable is found
 
+  // Helper to check if a value is brace notation (unresolved JSON reference)
+  const isBraceNotation = (value: string): boolean => {
+    if (!value || typeof value !== 'string') return false
+    const trimmed = value.trim()
+    return trimmed.startsWith('{') && trimmed.endsWith('}')
+  }
+
   // Helper to add variable with location tracking
   const addVar = (varName: string, value: string, location: string) => {
     allVars.add(varName)
@@ -43,6 +58,24 @@ export function auditRecursicaCssVars(): BrokenReference[] {
       varLocations.set(varName, new Set())
     }
     varLocations.get(varName)!.add(location)
+    
+    // Check for brace notation in CSS variable values
+    if (isBraceNotation(value)) {
+      const locations = varLocations.get(varName) || new Set()
+      const locationStr = Array.from(locations).join(', ')
+      const isRoot = locationStr.includes('root')
+      const locationType: BrokenReference['location'] = isRoot ? 'root' : 
+                                                        locationStr.includes('stylesheet') ? 'stylesheet' :
+                                                        locationStr.includes('element') ? 'element' : 'computed'
+      broken.push({
+        variable: varName,
+        value: value,
+        referencedVar: value,
+        reason: 'brace-notation',
+        element: locationStr,
+        location: locationType,
+      })
+    }
   }
 
   // Helper to get element description
@@ -101,28 +134,19 @@ export function auditRecursicaCssVars(): BrokenReference[] {
             for (let i = 0; i < style.length; i++) {
               const cssProp = style[i]
               const cssValue = style.getPropertyValue(cssProp).trim()
-              if (cssValue && cssValue.includes('var(--recursica-')) {
-                // Extract all var() references from this CSS property value
-                const varMatches = cssValue.match(/var\s*\(\s*([^,)]+)/g)
-                if (varMatches) {
-                  for (const varMatch of varMatches) {
-                    const innerMatch = varMatch.match(/var\s*\(\s*([^,)]+)/)
-                    if (innerMatch) {
-                      const referencedVar = innerMatch[1].trim()
-                      if (referencedVar.startsWith('--recursica-')) {
-                        // Track that this variable is referenced in a stylesheet
-                        if (!varLocations.has(`usage:${referencedVar}`)) {
-                          varLocations.set(`usage:${referencedVar}`, new Set())
-                        }
-                        varLocations.get(`usage:${referencedVar}`)!.add(`stylesheet:${selector}:${cssProp}`)
-                        // Also check if this variable is defined - if not, we'll catch it as broken
-                        if (!allVars.has(referencedVar)) {
-                          // Variable is referenced but not defined - we'll add it to broken refs later
-                          // For now, just track the usage
-                        }
-                      }
-                    }
+              if (cssValue && cssValue.includes('--recursica-')) {
+                // Extract all --recursica- variable references from the CSS value
+                // This regex matches --recursica-* variable names anywhere in the value
+                // It handles both direct references and nested var() calls
+                const varNamePattern = /--recursica-[a-z0-9-]+/g
+                let match
+                while ((match = varNamePattern.exec(cssValue)) !== null) {
+                  const referencedVar = match[0]
+                  // Track that this variable is referenced in a stylesheet
+                  if (!varLocations.has(`usage:${referencedVar}`)) {
+                    varLocations.set(`usage:${referencedVar}`, new Set())
                   }
+                  varLocations.get(`usage:${referencedVar}`)!.add(`stylesheet:${selector}:${cssProp}`)
                 }
               }
             }
@@ -169,29 +193,24 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     for (let i = 0; i < elComputed.length; i++) {
       const prop = elComputed[i]
       const value = elComputed.getPropertyValue(prop).trim()
-      if (value && value.includes('var(--recursica-')) {
-        // Extract all var() references
-        const varMatches = value.match(/var\s*\(\s*([^,)]+)/g)
-        if (varMatches) {
-          for (const varMatch of varMatches) {
-            const innerMatch = varMatch.match(/var\s*\(\s*([^,)]+)/)
-            if (innerMatch) {
-              const referencedVar = innerMatch[1].trim()
-              if (referencedVar.startsWith('--recursica-')) {
-                // Track that this element uses this CSS variable
-                if (!varLocations.has(`usage:${referencedVar}`)) {
-                  varLocations.set(`usage:${referencedVar}`, new Set())
-                }
-                varLocations.get(`usage:${referencedVar}`)!.add(`used-in:${elDesc}:${prop}`)
-                // Also add this as a variable reference to check if it exists
-                // We'll check it exists in the second pass
-                if (!allVars.has(referencedVar)) {
-                  // Variable is referenced but not defined - add to varValues with empty value
-                  // so it gets checked in the second pass
-                  varValues.set(`usage-check:${referencedVar}`, `var(${referencedVar})`)
-                }
-              }
-            }
+      if (value && value.includes('--recursica-')) {
+        // Extract all --recursica- variable references from the CSS value
+        // This regex matches --recursica-* variable names anywhere in the value
+        const varNamePattern = /--recursica-[a-z0-9-]+/g
+        let match
+        while ((match = varNamePattern.exec(value)) !== null) {
+          const referencedVar = match[0]
+          // Track that this element uses this CSS variable
+          if (!varLocations.has(`usage:${referencedVar}`)) {
+            varLocations.set(`usage:${referencedVar}`, new Set())
+          }
+          varLocations.get(`usage:${referencedVar}`)!.add(`used-in:${elDesc}:${prop}`)
+          // Also add this as a variable reference to check if it exists
+          // We'll check it exists in the second pass
+          if (!allVars.has(referencedVar)) {
+            // Variable is referenced but not defined - add to varValues with empty value
+            // so it gets checked in the second pass
+            varValues.set(`usage-check:${referencedVar}`, `var(${referencedVar})`)
           }
         }
       }
@@ -204,6 +223,63 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     if (usageKey.startsWith('usage:')) {
       const referencedVar = usageKey.replace('usage:', '')
       if (referencedVar.startsWith('--recursica-')) {
+        // Skip component-instance variables (calculated values set on component instances)
+        if (COMPONENT_INSTANCE_VARS.has(referencedVar)) {
+          continue
+        }
+        
+        // Check if this variable is used as a fallback for component-level variables
+        let isUsedAsComponentFallback = false
+        const checkValueForFallback = (value: string): boolean => {
+          if (!value) return false
+          // Pattern: var(--component-var, var(--recursica-...))
+          const fallbackPattern = new RegExp(`var\\s*\\(\\s*(--[a-z-]+)\\s*,\\s*var\\s*\\(\\s*${referencedVar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\)\\s*\\)`, 'i')
+          const match = value.match(fallbackPattern)
+          if (match) {
+            const primaryVar = match[1]
+            const componentVarPattern = /^--(toast|button|avatar|badge|switch)-/
+            return componentVarPattern.test(primaryVar)
+          }
+          return false
+        }
+        
+        // Check if used as fallback in stylesheets
+        for (const location of usageLocations) {
+          if (location.includes('stylesheet:')) {
+            const match = location.match(/stylesheet:([^:]+):(.+)/)
+            if (match) {
+              const selector = match[1]
+              const cssProp = match[2]
+              try {
+                const allStyles = Array.from(document.styleSheets)
+                for (const sheet of allStyles) {
+                  try {
+                    const rules = Array.from(sheet.cssRules || [])
+                    for (const rule of rules) {
+                      if (rule instanceof CSSStyleRule) {
+                        const ruleSelector = rule.selectorText || ''
+                        if (ruleSelector === selector || ruleSelector.replace(/\s+/g, ' ').trim() === selector.replace(/\s+/g, ' ').trim()) {
+                          const value = rule.style.getPropertyValue(cssProp)
+                          if (checkValueForFallback(value)) {
+                            isUsedAsComponentFallback = true
+                            break
+                          }
+                        }
+                      }
+                    }
+                    if (isUsedAsComponentFallback) break
+                  } catch (e) {
+                    // Cross-origin stylesheets can't be accessed
+                  }
+                }
+                if (isUsedAsComponentFallback) break
+              } catch (e) {
+                // Ignore errors
+              }
+            }
+          }
+        }
+        
         // Check if this variable exists
         const existsInVars = allVars.has(referencedVar)
         let existsInDom = false
@@ -253,7 +329,8 @@ export function auditRecursicaCssVars(): BrokenReference[] {
         }
         
         // If variable doesn't exist, add to broken references
-        if (!existsInVars && !existsInDom) {
+        // Skip variables used as fallbacks for component-level variables
+        if (!existsInVars && !existsInDom && !isUsedAsComponentFallback) {
           const locationStr = Array.from(usageLocations).join(', ')
           broken.push({
             variable: referencedVar,
@@ -271,6 +348,38 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   // Second pass: check for broken references
   for (const [varName, value] of varValues.entries()) {
     if (!value) continue
+    
+    // Skip usage-check entries that are component-instance variables
+    if (varName.startsWith('usage-check:')) {
+      const checkVar = varName.replace('usage-check:', '')
+      if (COMPONENT_INSTANCE_VARS.has(checkVar)) {
+        continue
+      }
+    }
+
+    // Check for brace notation (unresolved JSON references)
+    // This should have been caught in addVar, but check again here as a safety net
+    if (isBraceNotation(value)) {
+      const locations = varLocations.get(varName) || new Set()
+      const locationStr = Array.from(locations).join(', ')
+      const isRoot = locationStr.includes('root')
+      const locationType: BrokenReference['location'] = isRoot ? 'root' : 
+                                                        locationStr.includes('stylesheet') ? 'stylesheet' :
+                                                        locationStr.includes('element') ? 'element' : 'computed'
+      // Only add if not already added (avoid duplicates)
+      const alreadyAdded = broken.some(b => b.variable === varName && b.reason === 'brace-notation')
+      if (!alreadyAdded) {
+        broken.push({
+          variable: varName,
+          value: value,
+          referencedVar: value,
+          reason: 'brace-notation',
+          element: locationStr,
+          location: locationType,
+        })
+      }
+      continue // Skip further processing for brace notation values
+    }
 
     // Check if value is a var() reference
     const varMatch = value.match(/var\s*\(\s*([^)]+)\s*\)/g)
@@ -303,6 +412,11 @@ export function auditRecursicaCssVars(): BrokenReference[] {
 
       // Check if it's a --recursica variable
       if (referencedVarName.startsWith('--recursica-')) {
+        // Skip component-instance variables (calculated values set on component instances)
+        if (COMPONENT_INSTANCE_VARS.has(referencedVarName)) {
+          continue
+        }
+        
         // Check if variable exists in our collected vars
         const existsInVars = allVars.has(referencedVarName)
         
@@ -359,8 +473,29 @@ export function auditRecursicaCssVars(): BrokenReference[] {
           existsInDom = false
         }
         
+        // Check if this variable is used as a fallback for component-level variables
+        let isUsedAsComponentFallback = false
+        if (value) {
+          // Escape special regex characters in the referencedVarName
+          const escapedVar = referencedVarName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          // Pattern: var(--component-var, var(--recursica-...))
+          const fallbackPattern = new RegExp(
+            `var\\s*\\(\\s*(--[a-z0-9-]+)\\s*,\\s*var\\s*\\(\\s*${escapedVar}\\s*\\)\\s*\\)`,
+            'i'
+          )
+          const match = value.match(fallbackPattern)
+          if (match) {
+            const primaryVar = match[1]
+            const componentVarPattern = /^--(toast|button|avatar|badge|switch)-/
+            if (componentVarPattern.test(primaryVar)) {
+              isUsedAsComponentFallback = true
+            }
+          }
+        }
+        
         // If the variable doesn't exist anywhere, it's broken
-        if (!existsInVars && !existsInDom) {
+        // Skip variables used as fallbacks for component-level variables
+        if (!existsInVars && !existsInDom && !isUsedAsComponentFallback) {
           broken.push({
             variable: varName,
             value,
@@ -423,9 +558,120 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     if (usageKey.startsWith('usage:')) {
       const referencedVar = usageKey.replace('usage:', '')
       if (referencedVar.startsWith('--recursica-')) {
+        // Skip component-instance variables (calculated values set on component instances)
+        if (COMPONENT_INSTANCE_VARS.has(referencedVar)) {
+          continue
+        }
+        
         // Check if this variable exists
         const existsInVars = allVars.has(referencedVar)
         let existsInDom = false
+        
+        // Check if this variable is used as a fallback (second argument in var())
+        // Pattern: var(--component-var, var(--recursica-...))
+        // Component-level variables like --toast-text-size, --button-bg are set by components
+        // and use UIKit variables as fallbacks, so fallbacks are valid even if not directly defined
+        let isUsedAsComponentFallback = false
+        
+        // Helper to check if a CSS value uses the referencedVar as a fallback
+        const checkValueForFallback = (value: string): boolean => {
+          if (!value) return false
+          // Pattern: var(--component-var, var(--recursica-...))
+          // Escape special regex characters in the referencedVar
+          const escapedVar = referencedVar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          // Match: var(--component-var, var(--recursica-...))
+          // Allow flexible whitespace
+          const fallbackPattern = new RegExp(
+            `var\\s*\\(\\s*(--[a-z0-9-]+)\\s*,\\s*var\\s*\\(\\s*${escapedVar}\\s*\\)\\s*\\)`,
+            'i'
+          )
+          
+          const match = value.match(fallbackPattern)
+          if (match) {
+            const primaryVar = match[1]
+            // Check if primary variable is a component-level variable
+            // Component-level vars follow pattern: --component-prop (e.g., --toast-text-size, --button-bg)
+            const componentVarPattern = /^--(toast|button|avatar|badge|switch)-/
+            if (componentVarPattern.test(primaryVar)) {
+              return true
+            }
+          }
+          return false
+        }
+        
+        // Check stylesheet locations
+        for (const location of usageLocations) {
+          if (location.includes('stylesheet:')) {
+            // Extract the CSS value from the location
+            const match = location.match(/stylesheet:([^:]+):(.+)/)
+            if (match) {
+              const selector = match[1]
+              const cssProp = match[2]
+              try {
+                const allStyles = Array.from(document.styleSheets)
+                for (const sheet of allStyles) {
+                  try {
+                    const rules = Array.from(sheet.cssRules || [])
+                    for (const rule of rules) {
+                      if (rule instanceof CSSStyleRule) {
+                        // Match selector (may need to normalize)
+                        const ruleSelector = rule.selectorText || ''
+                        if (ruleSelector === selector || ruleSelector.replace(/\s+/g, ' ').trim() === selector.replace(/\s+/g, ' ').trim()) {
+                          const value = rule.style.getPropertyValue(cssProp)
+                          if (checkValueForFallback(value)) {
+                            isUsedAsComponentFallback = true
+                            break
+                          }
+                        }
+                      }
+                    }
+                    if (isUsedAsComponentFallback) break
+                  } catch (e) {
+                    // Cross-origin stylesheets can't be accessed
+                  }
+                }
+                if (isUsedAsComponentFallback) break
+              } catch (e) {
+                // Ignore errors
+              }
+            }
+          } else if (location.includes('element-') || location.includes('used-in:')) {
+            // Also check element inline styles and computed styles
+            try {
+              for (const el of allElements) {
+                const elInline = (el as HTMLElement).style
+                const elComputed = getComputedStyle(el)
+                
+                // Check all CSS properties for this element
+                if (elInline) {
+                  for (let i = 0; i < elInline.length; i++) {
+                    const prop = elInline[i]
+                    const value = elInline.getPropertyValue(prop)
+                    if (checkValueForFallback(value)) {
+                      isUsedAsComponentFallback = true
+                      break
+                    }
+                  }
+                }
+                
+                if (!isUsedAsComponentFallback && elComputed) {
+                  for (let i = 0; i < elComputed.length; i++) {
+                    const prop = elComputed[i]
+                    const value = elComputed.getPropertyValue(prop)
+                    if (checkValueForFallback(value)) {
+                      isUsedAsComponentFallback = true
+                      break
+                    }
+                  }
+                }
+                
+                if (isUsedAsComponentFallback) break
+              }
+            } catch (e) {
+              // Ignore errors
+            }
+          }
+        }
         
         // Check DOM
         try {
@@ -456,7 +702,10 @@ export function auditRecursicaCssVars(): BrokenReference[] {
         }
         
         // If variable doesn't exist, add to broken references
-        if (!existsInVars && !existsInDom) {
+        // Skip component-instance variables (calculated values set on component instances)
+        // Skip variables used as fallbacks for component-level variables (e.g., --toast-text-size uses UIKit var as fallback)
+        if (!existsInVars && !existsInDom && !COMPONENT_INSTANCE_VARS.has(referencedVar) && 
+            !isUsedAsComponentFallback) {
           const locationStr = Array.from(usageLocations).join(', ')
           // Extract stylesheet selector if available
           let element = locationStr
@@ -500,6 +749,7 @@ export function formatBrokenReferencesReport(broken: BrokenReference[]): string 
     'not-defined': [] as BrokenReference[],
     'circular': [] as BrokenReference[],
     'invalid-syntax': [] as BrokenReference[],
+    'brace-notation': [] as BrokenReference[],
   }
 
   for (const ref of broken) {
@@ -530,6 +780,18 @@ export function formatBrokenReferencesReport(broken: BrokenReference[]): string 
     for (const ref of byReason['invalid-syntax']) {
       report += `  • ${ref.variable}\n`
       report += `    → Value: ${ref.value}\n\n`
+    }
+  }
+
+  if (byReason['brace-notation'].length > 0) {
+    report += `🔴 Brace Notation (Unresolved JSON Reference) (${byReason['brace-notation'].length}):\n`
+    for (const ref of byReason['brace-notation']) {
+      report += `  • ${ref.variable}\n`
+      report += `    → Value: ${ref.value}\n`
+      if (ref.element) {
+        report += `    → Location: ${ref.element}\n`
+      }
+      report += `\n`
     }
   }
 

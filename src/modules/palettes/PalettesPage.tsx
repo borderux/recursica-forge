@@ -855,28 +855,28 @@ export default function PalettesPage() {
                   <td>Interactive</td>
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-interactive`}
-                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-interactive`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-interactive`}
-                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-interactive`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-interactive`}
-                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-interactive`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-interactive`}
-                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-interactive`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-interactive`}
-                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-interactive`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-tone`}
                   />
                   <td>
                     <div className="palette-box" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, cursor: 'pointer', position: 'relative' }} onClick={(e) => (window as any).openPicker?.(e.currentTarget, `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`)}>

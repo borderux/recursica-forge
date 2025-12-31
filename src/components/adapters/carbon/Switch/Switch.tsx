@@ -6,9 +6,10 @@
  */
 
 import { Toggle } from '@carbon/react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
-import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
@@ -31,12 +32,12 @@ export default function Switch({
   const toggleRef = useRef<HTMLDivElement>(null)
   
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
-  const thumbSelectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-thumb-selected`, layer)
-  const thumbUnselectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-thumb-unselected`, layer)
-  const trackSelectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-selected`, layer)
-  const trackUnselectedVar = getComponentCssVar('Switch', 'color', `${colorVariant}-track-unselected`, layer)
-  const trackBorderRadiusVar = getComponentCssVar('Switch', 'size', 'track-border-radius', undefined)
-  const thumbBorderRadiusVar = getComponentCssVar('Switch', 'size', 'thumb-border-radius', undefined)
+  const thumbSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-selected`, layer)
+  const thumbUnselectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-unselected`, layer)
+  const trackSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-track-selected`, layer)
+  const trackUnselectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-track-unselected`, layer)
+  const trackBorderRadiusVar = getComponentLevelCssVar('Switch', 'track-border-radius')
+  const thumbBorderRadiusVar = getComponentLevelCssVar('Switch', 'thumb-border-radius')
   const thumbHeightVar = getComponentCssVar('Switch', 'size', 'thumb-height', undefined)
   const thumbWidthVar = getComponentCssVar('Switch', 'size', 'thumb-width', undefined)
   const trackWidthVar = getComponentCssVar('Switch', 'size', 'track-width', undefined)
@@ -60,55 +61,65 @@ export default function Switch({
   const ThumbIconSelected = thumbIconSelectedName ? iconNameToReactComponent(thumbIconSelectedName) : null
   const ThumbIconUnselected = thumbIconUnselectedName ? iconNameToReactComponent(thumbIconUnselectedName) : null
   
-  // Helper function to get elevation box shadow from elevation value
-  const getElevationBoxShadow = (elevationValue: string | undefined): string | undefined => {
-    if (!elevationValue || elevationValue === 'elevation-0') return undefined
-    
-    const elevationMatch = elevationValue.match(/elevation-(\d+)/)
-    if (elevationMatch) {
-      const elevationLevel = elevationMatch[1]
-      return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-    }
-    return undefined
-  }
+  // Reactively read thumb and track elevation from CSS variables
+  const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
+    if (!thumbElevationVar) return undefined
+    const value = readCssVar(thumbElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
   
-  // Determine track elevation to apply - prioritize prop, then UIKit.json
-  const trackElevationBoxShadow = (() => {
-    let elevationToApply: string | undefined = elevation
-    
-    // Check if UIKit.json has a track-elevation set
-    if (!elevationToApply && trackElevationVar) {
-      const uikitElevation = readCssVar(trackElevationVar)
-      if (uikitElevation) {
-        // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
-        const match = uikitElevation.match(/elevations\.(elevation-\d+)/)
-        if (match) {
-          elevationToApply = match[1]
-        } else if (/^elevation-\d+$/.test(uikitElevation)) {
-          elevationToApply = uikitElevation
+  const [trackElevationFromVar, setTrackElevationFromVar] = useState<string | undefined>(() => {
+    if (!trackElevationVar) return undefined
+    const value = readCssVar(trackElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+  
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      // Update if these CSS vars were updated or if no specific vars were specified
+      if (!detail?.cssVars || detail.cssVars.includes(thumbElevationVar) || detail.cssVars.includes(trackElevationVar)) {
+        if (thumbElevationVar) {
+          const value = readCssVar(thumbElevationVar)
+          setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+        }
+        if (trackElevationVar) {
+          const value = readCssVar(trackElevationVar)
+          setTrackElevationFromVar(value ? parseElevationValue(value) : undefined)
         }
       }
     }
     
-    return getElevationBoxShadow(elevationToApply)
-  })()
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      if (thumbElevationVar) {
+        const value = readCssVar(thumbElevationVar)
+        setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+      if (trackElevationVar) {
+        const value = readCssVar(trackElevationVar)
+        setTrackElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [thumbElevationVar, trackElevationVar])
+  
+  // Determine track elevation to apply - prioritize prop, then UIKit.json
+  const trackElevationBoxShadow = getElevationBoxShadow(mode, elevation ?? trackElevationFromVar)
   
   // Determine thumb elevation from UIKit.json
-  const thumbElevationBoxShadow = (() => {
-    if (!thumbElevationVar) return undefined
-    
-    const thumbElevation = readCssVar(thumbElevationVar)
-    if (thumbElevation) {
-      // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
-      const match = thumbElevation.match(/elevations\.(elevation-\d+)/)
-      if (match) {
-        return getElevationBoxShadow(match[1])
-      } else if (/^elevation-\d+$/.test(thumbElevation)) {
-        return getElevationBoxShadow(thumbElevation)
-      }
-    }
-    return undefined
-  })()
+  const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
   
   // Calculate track height: thumb height + 2 * track inner padding
   const trackHeight = `calc(var(${thumbHeightVar}) + 2 * var(${trackInnerPaddingVar}))`
@@ -168,7 +179,7 @@ export default function Switch({
         '--recursica-ui-kit-components-switch-track-unchecked': trackUnselectedColor,
         // Component-level properties are already on :root from UIKit.json - don't create circular refs
         // Only set computed values that depend on them
-        '--recursica-ui-kit-components-switch-track-height': trackHeight,
+        '--recursica-ui-kit-components-switch-track-height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
         '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
         '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
         width: `var(${trackWidthVar})`,

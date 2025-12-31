@@ -1,10 +1,4 @@
 {
-  "variants": {
-    "color": {
-      "icon": "paint-bucket",
-      "label": "Color"
-    }
-  },
   "props": {
     "thumb": {
       "icon": "sliders-horizontal",

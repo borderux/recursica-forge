@@ -1,6 +1,6 @@
 {
   "variants": {
-    "color": {
+    "style": {
       "icon": "diamonds-four",
       "label": "Style"
     }
@@ -21,13 +21,13 @@
           "visible": true
         },
         "text-size": {
-          "label": "Size",
-          "visible": true
+          "label": "Font Size",
+      "visible": true
         }
       }
     },
     "button": {
-      "icon": "square",
+      "icon": "cursor-click",
       "label": "Button",
       "visible": true
     },
@@ -63,7 +63,7 @@
     },
     "spacing": {
       "icon": "split-horizontal",
-      "label": "Gap Between Text and Actions",
+      "label": "Spacing",
       "visible": true
     },
     "icon": {

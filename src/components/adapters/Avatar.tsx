@@ -5,11 +5,12 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense, useMemo } from 'react'
+import { Suspense, useMemo, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
+import { parseElevationValue } from '../utils/brandCssVars'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
@@ -47,7 +48,43 @@ export function Avatar({
   // Get elevation from CSS vars if not provided as props
   // These are set by the toolbar and initialized from UIKit.json
   const elevationVar = getComponentLevelCssVar('Avatar', 'elevation')
-  const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+  
+  // Reactively read elevation from CSS variable
+  const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+    const value = readCssVar(elevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+  
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      // Update if this CSS var was updated or if no specific vars were specified
+      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
+        const value = readCssVar(elevationVar)
+        setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      const value = readCssVar(elevationVar)
+      setElevationFromVar(value ? parseElevationValue(value) : undefined)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [elevationVar])
+  
+  const componentElevation = elevation ?? elevationFromVar ?? undefined
   
   // If variant includes "icon" and no fallback is provided, use the "user" icon from Phosphor
   // If variant is "image" and no src is provided, use the placeholder image

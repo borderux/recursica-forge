@@ -37,6 +37,7 @@ import {
   Columns,
   CopySimple,
   CornersOut,
+  CursorClick,
   Diamond,
   DiamondsFour,
   Download,
@@ -168,6 +169,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'border': FrameCorners,
   'square': Square,
   'square-logo': SquareLogo,
+  'cursor-click': CursorClick,
 }
 
 /**

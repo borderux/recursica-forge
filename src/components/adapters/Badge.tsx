@@ -37,8 +37,8 @@ export function Badge({
   
   if (!Component) {
     // Fallback to native implementation if component not available
-    const bgVar = getComponentCssVar('Badge', 'color', `${variant}-background`, layer)
-    const textVar = getComponentCssVar('Badge', 'color', `${variant}-text`, layer)
+    const bgVar = getComponentCssVar('Badge', 'colors', `${variant}-background`, layer)
+    const textVar = getComponentCssVar('Badge', 'colors', `${variant}-text`, layer)
     const textSizeVar = getComponentLevelCssVar('Badge', 'text-size')
     const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
     const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
@@ -46,7 +46,9 @@ export function Badge({
     const heightVar = getComponentLevelCssVar('Badge', 'height')
     
     // Get size variant CSS variable for min-height (used as fallback if height is not set)
-    const minHeightVar = getComponentCssVar('Badge', 'size', `${size}-min-height`, undefined)
+    // Use 'small' as default if size is undefined
+    const sizeVariant = size || 'small'
+    const minHeightVar = getComponentCssVar('Badge', 'size', `${sizeVariant}-min-height`, undefined)
     
     return (
       <span

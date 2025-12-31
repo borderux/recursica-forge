@@ -529,26 +529,190 @@ export function exportUIKitJson(): object {
       }
     }
     
-    // Handle component paths: components-button-color-layer-0-background-solid
+    // Handle component paths with new structure:
+    // - components-switch-properties-colors-layer-0-thumb-selected
+    // - components-button-variants-styles-solid-properties-colors-layer-0-background
+    // - components-button-variants-sizes-default-properties-height
+    // - components-button-properties-border-radius
     if (path[0] === 'components' && path.length >= 4) {
       path.shift() // Remove 'components'
       const componentName = path[0]
       path.shift() // Remove component name
       
+      // Initialize component if needed
+      if (!result['ui-kit'].components[componentName]) {
+        result['ui-kit'].components[componentName] = {}
+      }
+      
+      // Check the structure based on the path
+      // NEW STRUCTURE patterns:
+      // 1. properties.colors (Switch): components-switch-properties-colors-layer-0-thumb-selected
+      // 2. variants.styles.{variant}.properties.colors: components-button-variants-styles-solid-properties-colors-layer-0-background
+      // 3. variants.sizes.{variant}.properties.{property}: components-button-variants-sizes-default-properties-height
+      // 4. properties.{property}: components-button-properties-border-radius
+      
+      if (path[0] === 'properties') {
+        // Pattern 1 or 4: properties.colors or properties.{property}
+        path.shift() // Remove 'properties'
+        
+        if (path[0] === 'colors') {
+          // Pattern 1: properties.colors (Switch)
+          path.shift() // Remove 'colors'
+          const componentPath = path.join('.')
+          
+          if (!result['ui-kit'].components[componentName]['properties']) {
+            result['ui-kit'].components[componentName]['properties'] = {}
+          }
+          if (!result['ui-kit'].components[componentName]['properties']['colors']) {
+            result['ui-kit'].components[componentName]['properties']['colors'] = {}
+          }
+          
+          const parts = componentPath.split('.')
+          let current = result['ui-kit'].components[componentName]['properties']['colors']
+          
+          for (let i = 0; i < parts.length - 1; i++) {
+            if (!current[parts[i]]) {
+              current[parts[i]] = {}
+            }
+            current = current[parts[i]]
+          }
+          
+          const lastPart = parts[parts.length - 1]
+          const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
+          if (jsonValue !== undefined) {
+            current[lastPart] = {
+              $type: 'color',
+              $value: jsonValue
+            }
+          }
+        } else {
+          // Pattern 4: properties.{property} (component-level properties)
+          const componentPath = path.join('.')
+          
+          if (!result['ui-kit'].components[componentName]['properties']) {
+            result['ui-kit'].components[componentName]['properties'] = {}
+          }
+          
+          const parts = componentPath.split('.')
+          let current = result['ui-kit'].components[componentName]['properties']
+          
+          for (let i = 0; i < parts.length - 1; i++) {
+            if (!current[parts[i]]) {
+              current[parts[i]] = {}
+            }
+            current = current[parts[i]]
+          }
+          
+          const lastPart = parts[parts.length - 1]
+          // Determine type based on property name or default to dimension
+          const type = lastPart.includes('elevation') ? 'elevation' :
+                      lastPart.includes('size') && !lastPart.includes('text') ? 'dimension' :
+                      lastPart.includes('typography') || lastPart.includes('font') ? 'typography' :
+                      'dimension'
+          const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
+          if (jsonValue !== undefined) {
+            current[lastPart] = {
+              $type: type,
+              $value: jsonValue
+            }
+          }
+        }
+      } else if (path[0] === 'variants') {
+        // Pattern 2 or 3: variants.styles or variants.sizes
+        path.shift() // Remove 'variants'
+        
+        if (!result['ui-kit'].components[componentName]['variants']) {
+          result['ui-kit'].components[componentName]['variants'] = {}
+        }
+        
+        if (path[0] === 'styles' || path[0] === 'sizes') {
+          const category = path[0] // 'styles' or 'sizes'
+          path.shift() // Remove category
+          
+          if (!result['ui-kit'].components[componentName]['variants'][category]) {
+            result['ui-kit'].components[componentName]['variants'][category] = {}
+          }
+          
+          // Next should be variant name (e.g., 'solid', 'default')
+          if (path.length > 0) {
+            const variantName = path[0]
+            path.shift() // Remove variant name
+            
+            if (!result['ui-kit'].components[componentName]['variants'][category][variantName]) {
+              result['ui-kit'].components[componentName]['variants'][category][variantName] = {}
+            }
+            
+            // Check if next is 'properties'
+            if (path[0] === 'properties') {
+              path.shift() // Remove 'properties'
+              
+              if (!result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']) {
+                result['ui-kit'].components[componentName]['variants'][category][variantName]['properties'] = {}
+              }
+              
+              if (path[0] === 'colors') {
+                // Pattern 2: variants.styles.{variant}.properties.colors
+                path.shift() // Remove 'colors'
+                const componentPath = path.join('.')
+                
+                if (!result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']['colors']) {
+                  result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']['colors'] = {}
+                }
+                
+                const parts = componentPath.split('.')
+                let current = result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']['colors']
+                
+                for (let i = 0; i < parts.length - 1; i++) {
+                  if (!current[parts[i]]) {
+                    current[parts[i]] = {}
+                  }
+                  current = current[parts[i]]
+                }
+                
+                const lastPart = parts[parts.length - 1]
+                const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
+                if (jsonValue !== undefined) {
+                  current[lastPart] = {
+                    $type: 'color',
+                    $value: jsonValue
+                  }
+                }
+              } else {
+                // Pattern 3: variants.sizes.{variant}.properties.{property}
+                const componentPath = path.join('.')
+                
+                const parts = componentPath.split('.')
+                let current = result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']
+                
+                for (let i = 0; i < parts.length - 1; i++) {
+                  if (!current[parts[i]]) {
+                    current[parts[i]] = {}
+                  }
+                  current = current[parts[i]]
+                }
+                
+                const lastPart = parts[parts.length - 1]
+                const jsonValue = cssValueToJsonValue(cssValue, 'dimension', tokenIndex)
+                if (jsonValue !== undefined) {
+                  current[lastPart] = {
+                    $type: 'dimension',
+                    $value: jsonValue
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else {
+        // Legacy structure: direct category (colors, size)
       let category = path[0] // colors, size
       path.shift() // Remove category
       
       // Map CSS variable category to JSON structure
-      // CSS vars use "size" but JSON uses "sizes"
-      // CSS vars use "colors" but JSON uses "variants" (colors are inside variants)
       const jsonCategory = category === 'size' ? 'sizes' : category === 'colors' ? 'variants' : category
       
       const componentPath = path.join('.')
       
-      // Build structure from CSS vars only
-      if (!result['ui-kit'].components[componentName]) {
-        result['ui-kit'].components[componentName] = {}
-      }
       if (!result['ui-kit'].components[componentName][jsonCategory]) {
         result['ui-kit'].components[componentName][jsonCategory] = {}
       }
@@ -570,6 +734,7 @@ export function exportUIKitJson(): object {
         current[lastPart] = {
           $type: type,
           $value: jsonValue
+          }
         }
       }
     }

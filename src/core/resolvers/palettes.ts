@@ -155,8 +155,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         // If already a CSS var, return it
         if (/^\s*var\(--/.test(resolved)) return resolved.trim()
         // If resolved to a string that's not a CSS var, try to resolve it further
-        const { extractBraceContent } = require('../utils/tokenReferenceParser')
-        if (typeof resolved === 'string' && extractBraceContent(resolved) !== null) {
+        if (typeof resolved === 'string' && resolved.startsWith('{') && resolved.endsWith('}')) {
           return getColorVar(resolved, depth + 1)
         }
       }
