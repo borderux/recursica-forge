@@ -5,9 +5,10 @@
  * based on the current UI kit selection.
  */
 
-import React, { Suspense } from 'react'
+import React, { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { parseElevationValue, getElevationBoxShadow } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
@@ -50,22 +51,57 @@ export function Toast({
   const elevationVar = getComponentLevelCssVar('Toast', 'elevation')
   const alternativeLayerVar = getComponentLevelCssVar('Toast', 'alternative-layer')
   
-  // Parse elevation value from CSS var - could be a brand reference like "{brand.themes.light.elevations.elevation-3}"
-  const elevationFromVar = readCssVar(elevationVar)
-  let parsedElevation: string | undefined = elevation
-  if (!parsedElevation && elevationFromVar) {
-    // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-3}"
-    const match = elevationFromVar.match(/elevations\.(elevation-\d+)/)
-    if (match) {
-      parsedElevation = match[1]
-    } else if (/^elevation-\d+$/.test(elevationFromVar)) {
-      parsedElevation = elevationFromVar
+  // Reactively read elevation from CSS variable
+  const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+    const value = readCssVar(elevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+  
+  // Reactively read alternative layer from CSS variable
+  const [alternativeLayerFromVar, setAlternativeLayerFromVar] = useState<string | null>(() => {
+    const value = readCssVar(alternativeLayerVar)
+    return value === 'none' ? null : (value || null)
+  })
+  
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      // Update if these CSS vars were updated or if no specific vars were specified
+      if (!detail?.cssVars || detail.cssVars.includes(elevationVar) || detail.cssVars.includes(alternativeLayerVar)) {
+        const elevationValue = readCssVar(elevationVar)
+        setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
+        
+        const altLayerValue = readCssVar(alternativeLayerVar)
+        setAlternativeLayerFromVar(altLayerValue === 'none' ? null : (altLayerValue || null))
+      }
     }
-  }
-  const componentElevation = parsedElevation
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      const elevationValue = readCssVar(elevationVar)
+      setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
+      
+      const altLayerValue = readCssVar(alternativeLayerVar)
+      setAlternativeLayerFromVar(altLayerValue === 'none' ? null : (altLayerValue || null))
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [elevationVar, alternativeLayerVar])
+  
+  const componentElevation = elevation ?? elevationFromVar ?? undefined
   const componentAlternativeLayer = alternativeLayer !== undefined 
     ? alternativeLayer 
-    : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
+    : alternativeLayerFromVar
   
   if (!Component) {
     // Fallback to native div if component not available
@@ -85,15 +121,7 @@ export function Toast({
     const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
     
     // Build box-shadow from elevation if set (and not elevation-0)
-    // Use new brand.json structure: --recursica-brand-themes-{mode}-elevations-elevation-{n}-{property}
-    let boxShadow: string | undefined
-    if (componentElevation && componentElevation !== 'elevation-0') {
-      const elevationMatch = componentElevation.match(/elevation-(\d+)/)
-      if (elevationMatch) {
-        const elevationLevel = elevationMatch[1]
-        boxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-      }
-    }
+    const boxShadow = getElevationBoxShadow(mode, componentElevation)
     
     return (
       <div

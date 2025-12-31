@@ -22,7 +22,7 @@
         },
         "text-size": {
           "label": "Font Size",
-          "visible": true
+      "visible": true
         }
       }
     },

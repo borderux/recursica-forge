@@ -55,6 +55,11 @@ export function getComponentCssVar(
     return `--recursica-ui-kit-components-${component.toLowerCase()}-invalid-property`
   }
   
+  // Normalize 'color' (singular) to 'colors' (plural) for backward compatibility
+  if (category === 'color' as any) {
+    category = 'colors'
+  }
+  
   // Properties that are direct children of the component (not under a category)
   // These are siblings of 'size' and 'color' in UIKit.json
   const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
@@ -68,7 +73,9 @@ export function getComponentCssVar(
   const isComponentLevel = componentLevelProperties.includes(property.toLowerCase()) || isToastSizeProperty
   
   if (isComponentLevel) {
-    const parts = ['components', component.toLowerCase()]
+    // Component-level properties are under components.{component}.properties.{property}
+    // This matches the UIKit.json structure: button.properties.font-size
+    const parts = ['components', component.toLowerCase(), 'properties']
     const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
     parts.push(normalizedProperty)
     return toCssVarName(parts.join('.'))

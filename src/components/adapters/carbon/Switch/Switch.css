@@ -65,7 +65,7 @@
   /* Use UIKit variables directly (they're on :root from UIKit.json) */
   width: var(--recursica-ui-kit-components-switch-properties-thumb-width) !important;
   height: var(--recursica-ui-kit-components-switch-properties-thumb-height) !important;
-  border-radius: var(--recursica-ui-kit-components-switch-thumb-border-radius) !important;
+  border-radius: var(--recursica-ui-kit-components-switch-properties-thumb-border-radius) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -113,7 +113,7 @@
 .recursica-carbon-toggle-wrapper .cds--toggle__track {
   background-color: var(--recursica-ui-kit-components-switch-track-unchecked) !important;
   /* Use UIKit variables directly (they're on :root from UIKit.json) */
-  border-radius: var(--recursica-ui-kit-components-switch-track-border-radius) !important;
+  border-radius: var(--recursica-ui-kit-components-switch-properties-track-border-radius) !important;
   opacity: 1 !important;
   cursor: pointer;
   box-shadow: var(--recursica-ui-kit-components-switch-track-elevation) !important;

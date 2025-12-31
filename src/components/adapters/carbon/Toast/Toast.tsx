@@ -8,6 +8,7 @@
 import React from 'react'
 import type { ToastProps as AdapterToastProps } from '../../Toast'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { Button } from '../../Button'
@@ -100,15 +101,7 @@ export default function Toast({
   }
   
   // Build box-shadow from elevation CSS variables if set (and not elevation-0)
-  // Use new brand.json structure: --recursica-brand-themes-{mode}-elevations-elevation-{n}-{property}
-  let boxShadow: string | undefined
-  if (elevationToApply && elevationToApply !== 'elevation-0') {
-    const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
-    if (elevationMatch) {
-      const elevationLevel = elevationMatch[1]
-      boxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-    }
-  }
+  const boxShadow = getElevationBoxShadow(mode, elevationToApply)
   
   const carbonProps = {
     className: `recursica-toast ${className || ''}`,

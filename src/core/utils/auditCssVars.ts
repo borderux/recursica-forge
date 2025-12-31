@@ -558,6 +558,11 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     if (usageKey.startsWith('usage:')) {
       const referencedVar = usageKey.replace('usage:', '')
       if (referencedVar.startsWith('--recursica-')) {
+        // Skip component-instance variables (calculated values set on component instances)
+        if (COMPONENT_INSTANCE_VARS.has(referencedVar)) {
+          continue
+        }
+        
         // Check if this variable exists
         const existsInVars = allVars.has(referencedVar)
         let existsInDom = false

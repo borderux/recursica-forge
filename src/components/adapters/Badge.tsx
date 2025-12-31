@@ -37,8 +37,8 @@ export function Badge({
   
   if (!Component) {
     // Fallback to native implementation if component not available
-    const bgVar = getComponentCssVar('Badge', 'color', `${variant}-background`, layer)
-    const textVar = getComponentCssVar('Badge', 'color', `${variant}-text`, layer)
+    const bgVar = getComponentCssVar('Badge', 'colors', `${variant}-background`, layer)
+    const textVar = getComponentCssVar('Badge', 'colors', `${variant}-text`, layer)
     const textSizeVar = getComponentLevelCssVar('Badge', 'text-size')
     const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
     const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')

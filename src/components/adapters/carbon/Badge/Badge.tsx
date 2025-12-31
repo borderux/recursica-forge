@@ -7,7 +7,7 @@
 
 import type { BadgeProps as AdapterBadgeProps } from '../../Badge'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
-import { getTypographyCssVarsFromValue } from '../../../utils/typographyUtils'
+import { getTypographyCssVarsFromValue, getTypographyCssVars } from '../../../utils/typographyUtils'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Badge.css'
@@ -25,13 +25,8 @@ export default function Badge({
   const { mode } = useThemeMode()
   
   // Get CSS variables
-  const bgVar = getComponentCssVar('Badge', 'color', `${variant}-background`, layer)
-  const textVar = getComponentCssVar('Badge', 'color', `${variant}-text`, layer)
-  
-  // Get size variant CSS variable for min-height
-  // Use 'small' as default if size is undefined
-  const sizeVariant = size || 'small'
-  const minHeightVar = getComponentCssVar('Badge', 'size', `${sizeVariant}-min-height`, undefined)
+  const bgVar = getComponentCssVar('Badge', 'colors', `${variant}-background`, layer)
+  const textVar = getComponentCssVar('Badge', 'colors', `${variant}-text`, layer)
   
   // For typography type properties, we need to extract the typography style name
   // The UIKit.json has: { "$type": "typography", "$value": "{brand.typography.caption}" }
@@ -51,17 +46,7 @@ export default function Badge({
   
   // Always get typography vars - use fallback to 'caption' if extraction fails
   // This ensures the CSS variables are always set, even if the UIKit.json value can't be read
-  const typographyVars = getTypographyCssVarsFromValue(textSizeValue) || getTypographyCssVarsFromValue('{brand.typography.caption}') || {
-    'font-family': '--recursica-brand-typography-caption-font-family',
-    'font-size': '--recursica-brand-typography-caption-font-size',
-    'font-weight': '--recursica-brand-typography-caption-font-weight',
-    'font-letter-spacing': '--recursica-brand-typography-caption-font-letter-spacing',
-    'line-height': '--recursica-brand-typography-caption-line-height',
-  }
-  
-  const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
-  const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
-  const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
+  const typographyVars = getTypographyCssVarsFromValue(textSizeValue) || getTypographyCssVarsFromValue('{brand.typography.caption}') || getTypographyCssVars('caption')
   
   return (
     <span
@@ -78,10 +63,8 @@ export default function Badge({
           '--badge-letter-spacing': `var(${typographyVars['font-letter-spacing']})`,
           '--badge-line-height': `var(${typographyVars['line-height']})`,
         } : {}),
-        // Always use min-height from size variant (not component-level height)
         // Set height to auto to ensure min-height controls the height
         height: 'auto',
-        minHeight: minHeightVar ? `var(${minHeightVar})` : undefined,
         // Only set non-CSS-variable styles here (like display)
         display: 'inline-block',
         ...style,

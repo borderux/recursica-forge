@@ -7,6 +7,7 @@
 import { Button as CarbonButton } from '@carbon/react'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './Button.css'
@@ -38,8 +39,8 @@ export default function Button({
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
   // Use UIKit.json button colors for standard layers
-  const buttonBgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
-  const buttonColorVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
+  const buttonBgVar = getComponentCssVar('Button', 'colors', `${variant}-background`, layer)
+  const buttonColorVar = getComponentCssVar('Button', 'colors', `${variant}-text`, layer)
   
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
@@ -75,7 +76,7 @@ export default function Button({
       backgroundColor: backgroundColorValue,
       color: `var(${buttonColorVar})`,
       fontSize: `var(${fontSizeVar})`,
-      fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      fontWeight: `var(${getBrandTypographyCssVar('button', 'font-weight')})`,
       height: `var(${heightVar})`,
       minWidth: `var(${minWidthVar})`,
       paddingLeft: `var(${horizontalPaddingVar})`,
@@ -106,7 +107,7 @@ export default function Button({
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Carbon's default disabled styles to keep colors unchanged
       ...(disabled && {
-        opacity: `var(--recursica-brand-themes-${mode}-state-disabled)`,
+        opacity: `var(${getBrandStateCssVar(mode, 'disabled')})`,
         backgroundColor: `var(${buttonBgVar}) !important`,
         color: `var(${buttonColorVar}) !important`,
         ...(variant === 'outline' && {
@@ -118,16 +119,8 @@ export default function Button({
       }),
       // Apply elevation if set
       ...(() => {
-        if (elevation && elevation !== 'elevation-0') {
-          const elevationMatch = elevation.match(/elevation-(\d+)/)
-          if (elevationMatch) {
-            const elevationLevel = elevationMatch[1]
-            return {
-              boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-            }
-          }
-        }
-        return {}
+        const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
+        return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
       })(),
       ...style,
     },

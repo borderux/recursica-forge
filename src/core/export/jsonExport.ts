@@ -705,35 +705,35 @@ export function exportUIKitJson(): object {
         }
       } else {
         // Legacy structure: direct category (colors, size)
-        let category = path[0] // colors, size
-        path.shift() // Remove category
-        
-        // Map CSS variable category to JSON structure
-        const jsonCategory = category === 'size' ? 'sizes' : category === 'colors' ? 'variants' : category
-        
-        const componentPath = path.join('.')
-        
-        if (!result['ui-kit'].components[componentName][jsonCategory]) {
-          result['ui-kit'].components[componentName][jsonCategory] = {}
+      let category = path[0] // colors, size
+      path.shift() // Remove category
+      
+      // Map CSS variable category to JSON structure
+      const jsonCategory = category === 'size' ? 'sizes' : category === 'colors' ? 'variants' : category
+      
+      const componentPath = path.join('.')
+      
+      if (!result['ui-kit'].components[componentName][jsonCategory]) {
+        result['ui-kit'].components[componentName][jsonCategory] = {}
+      }
+      
+      const parts = componentPath.split('.')
+      let current = result['ui-kit'].components[componentName][jsonCategory]
+      
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!current[parts[i]]) {
+          current[parts[i]] = {}
         }
-        
-        const parts = componentPath.split('.')
-        let current = result['ui-kit'].components[componentName][jsonCategory]
-        
-        for (let i = 0; i < parts.length - 1; i++) {
-          if (!current[parts[i]]) {
-            current[parts[i]] = {}
-          }
-          current = current[parts[i]]
-        }
-        
-        const lastPart = parts[parts.length - 1]
-        const type = category === 'colors' ? 'color' : 'dimension'
-        const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
-        if (jsonValue !== undefined) {
-          current[lastPart] = {
-            $type: type,
-            $value: jsonValue
+        current = current[parts[i]]
+      }
+      
+      const lastPart = parts[parts.length - 1]
+      const type = category === 'colors' ? 'color' : 'dimension'
+      const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
+      if (jsonValue !== undefined) {
+        current[lastPart] = {
+          $type: type,
+          $value: jsonValue
           }
         }
       }

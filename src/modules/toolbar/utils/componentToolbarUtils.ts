@@ -145,68 +145,56 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         } else {
           // OLD STRUCTURE or direct variants (no styles/sizes categories)
           // This handles cases like variants.solid or variants.text.variants.solid (Avatar)
-          const variantNames = Object.keys(value).filter(k => !k.startsWith('$'))
-          if (variantNames.length > 0) {
-            // Check if this is a nested variant (variants inside variants)
-            const variantCount = currentPath.filter(p => p === 'variants').length
-            const isNestedVariant = variantCount > 1
-            
+        const variantNames = Object.keys(value).filter(k => !k.startsWith('$'))
+        if (variantNames.length > 0) {
+          // Check if this is a nested variant (variants inside variants)
+          const variantCount = currentPath.filter(p => p === 'variants').length
+          const isNestedVariant = variantCount > 1
+          
             // Determine prop name
-            let finalPropName: string
-            if (prefix.length > 0) {
-              const parentName = prefix[prefix.length - 1]
-              if (parentName === 'size') {
-                finalPropName = 'size'
-              } else if (isNestedVariant) {
-                finalPropName = 'style-secondary'
-              } else {
-                if (componentKey === 'avatar') {
-                  finalPropName = 'style'
-                } else {
-                  finalPropName = 'color'
-                }
-              }
+          let finalPropName: string
+          if (prefix.length > 0) {
+            const parentName = prefix[prefix.length - 1]
+            if (parentName === 'size') {
+              finalPropName = 'size'
+            } else if (isNestedVariant) {
+              finalPropName = 'style-secondary'
             } else {
-              if (isNestedVariant) {
-                finalPropName = 'style-secondary'
+              if (componentKey === 'avatar') {
+                finalPropName = 'style'
               } else {
-                if (componentKey === 'avatar') {
-                  finalPropName = 'style'
-                } else {
-                  finalPropName = 'color'
-                }
+                finalPropName = 'color'
               }
             }
-            
-            // Only add variant if we haven't seen this finalPropName before
-            if (!seenVariants.has(finalPropName)) {
-              seenVariants.add(finalPropName)
-              variants.push({
-                propName: finalPropName,
-                variants: variantNames,
-              })
+          } else {
+            if (isNestedVariant) {
+              finalPropName = 'style-secondary'
+            } else {
+              if (componentKey === 'avatar') {
+                finalPropName = 'style'
+              } else {
+                finalPropName = 'color'
+              }
             }
           }
           
-          // Continue traversing into variants
-          let variantPropName = variantProp
-          if (!variantPropName) {
-            if (prefix.length > 0) {
-              const parentName = prefix[prefix.length - 1]
-              if (parentName === 'size') {
-                variantPropName = 'size'
-              } else {
-                const variantCount = currentPath.filter(p => p === 'variants').length
-                if (variantCount > 1) {
-                  variantPropName = 'style-secondary'
-                } else {
-                  if (componentKey === 'avatar') {
-                    variantPropName = 'style'
-                  } else {
-                    variantPropName = 'color'
-                  }
-                }
-              }
+          // Only add variant if we haven't seen this finalPropName before
+          if (!seenVariants.has(finalPropName)) {
+            seenVariants.add(finalPropName)
+            variants.push({
+              propName: finalPropName,
+              variants: variantNames,
+            })
+            }
+          }
+          
+        // Continue traversing into variants
+        let variantPropName = variantProp
+        if (!variantPropName) {
+          if (prefix.length > 0) {
+            const parentName = prefix[prefix.length - 1]
+            if (parentName === 'size') {
+              variantPropName = 'size'
             } else {
               const variantCount = currentPath.filter(p => p === 'variants').length
               if (variantCount > 1) {
@@ -219,8 +207,20 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                 }
               }
             }
+          } else {
+            const variantCount = currentPath.filter(p => p === 'variants').length
+            if (variantCount > 1) {
+              variantPropName = 'style-secondary'
+            } else {
+              if (componentKey === 'avatar') {
+                variantPropName = 'style'
+              } else {
+                variantPropName = 'color'
+              }
+            }
           }
-          traverse(value, currentPath, variantPropName)
+        }
+        traverse(value, currentPath, variantPropName)
         }
         return // Early return after handling variants
       }

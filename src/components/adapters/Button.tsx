@@ -5,9 +5,10 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
@@ -48,7 +49,43 @@ export function Button({
   // Get elevation from CSS vars if not provided as props
   // These are set by the toolbar and initialized from UIKit.json
   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
-  const componentElevation = elevation ?? readCssVar(elevationVar) ?? undefined
+  
+  // Reactively read elevation from CSS variable
+  const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+    const value = readCssVar(elevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+  
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      // Update if this CSS var was updated or if no specific vars were specified
+      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
+        const value = readCssVar(elevationVar)
+        setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      const value = readCssVar(elevationVar)
+      setElevationFromVar(value ? parseElevationValue(value) : undefined)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [elevationVar])
+  
+  const componentElevation = elevation ?? elevationFromVar ?? undefined
   
   if (!Component) {
     // Fallback to native button if component not available
@@ -122,8 +159,8 @@ function getButtonStyles(
   const styles: React.CSSProperties = {}
   
   // Use UIKit.json button colors for standard layers
-  const bgVar = getComponentCssVar('Button', 'color', `${variant}-background`, layer)
-  const textVar = getComponentCssVar('Button', 'color', `${variant}-text`, layer)
+  const bgVar = getComponentCssVar('Button', 'colors', `${variant}-background`, layer)
+  const textVar = getComponentCssVar('Button', 'colors', `${variant}-text`, layer)
   
   const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
@@ -168,25 +205,20 @@ function getButtonStyles(
   styles.paddingRight = paddingVarName ? `var(${paddingVarName})` : '12px'
   styles.borderRadius = borderRadiusVar ? `var(${borderRadiusVar})` : '8px'
   styles.fontSize = fontSizeVar ? `var(${fontSizeVar})` : undefined
-  styles.fontWeight = 'var(--recursica-brand-typography-button-font-weight)'
+  styles.fontWeight = `var(${getBrandTypographyCssVar('button', 'font-weight')})`
   
   // Apply disabled styles - use brand disabled opacity, don't change colors
   if (disabled) {
-    styles.opacity = `var(--recursica-brand-themes-${mode}-state-disabled)`
+    styles.opacity = `var(${getBrandStateCssVar(mode, 'disabled')})`
     styles.cursor = 'not-allowed'
   } else {
     styles.cursor = 'pointer'
   }
   
   // Apply elevation if set (and not elevation-0)
-  if (elevation && elevation !== 'elevation-0') {
-    const elevationMatch = elevation.match(/elevation-(\d+)/)
-    if (elevationMatch) {
-      const elevationLevel = elevationMatch[1]
-      // Build box-shadow from elevation CSS variables
-      // Format: x-axis y-axis blur spread shadow-color
-      styles.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-    }
+  const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
+  if (elevationBoxShadow) {
+    styles.boxShadow = elevationBoxShadow
   }
   
   return styles

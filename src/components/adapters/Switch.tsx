@@ -5,10 +5,11 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 import { toCssVarName, getComponentCssVar } from '../utils/cssVarNames'
+import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 
@@ -52,33 +53,46 @@ export function Switch({
     const borderRadiusVar = toCssVarName(['components', 'switch', 'size', 'variant', sizeVariant, 'border-radius'].join('.'))
     const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
     
+    // Reactively read track elevation from CSS variable
+    const [trackElevationFromVar, setTrackElevationFromVar] = useState<string | undefined>(() => {
+      if (!trackElevationVar) return undefined
+      const value = readCssVar(trackElevationVar)
+      return value ? parseElevationValue(value) : undefined
+    })
+    
+    // Listen for CSS variable updates from the toolbar
+    useEffect(() => {
+      if (!trackElevationVar) return
+      
+      const handleCssVarUpdate = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        // Update if this CSS var was updated or if no specific vars were specified
+        if (!detail?.cssVars || detail.cssVars.includes(trackElevationVar)) {
+          const value = readCssVar(trackElevationVar)
+          setTrackElevationFromVar(value ? parseElevationValue(value) : undefined)
+        }
+      }
+      
+      window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+      
+      // Also watch for direct style changes using MutationObserver
+      const observer = new MutationObserver(() => {
+        const value = readCssVar(trackElevationVar)
+        setTrackElevationFromVar(value ? parseElevationValue(value) : undefined)
+      })
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['style'],
+      })
+      
+      return () => {
+        window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+        observer.disconnect()
+      }
+    }, [trackElevationVar])
+    
     // Determine track elevation to apply - prioritize prop, then UIKit.json
-    const trackElevationBoxShadow = (() => {
-      let elevationToApply: string | undefined = elevation
-      
-      // Check if UIKit.json has a track-elevation set
-      if (!elevationToApply && trackElevationVar) {
-        const uikitElevation = readCssVar(trackElevationVar)
-        if (uikitElevation) {
-          // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
-          const match = uikitElevation.match(/elevations\.(elevation-\d+)/)
-          if (match) {
-            elevationToApply = match[1]
-          } else if (/^elevation-\d+$/.test(uikitElevation)) {
-            elevationToApply = uikitElevation
-          }
-        }
-      }
-      
-      if (elevationToApply && elevationToApply !== 'elevation-0') {
-        const elevationMatch = elevationToApply.match(/elevation-(\d+)/)
-        if (elevationMatch) {
-          const elevationLevel = elevationMatch[1]
-          return `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-        }
-      }
-      return undefined
-    })()
+    const trackElevationBoxShadow = getElevationBoxShadow(mode, elevation ?? trackElevationFromVar)
     
     return (
       <button
