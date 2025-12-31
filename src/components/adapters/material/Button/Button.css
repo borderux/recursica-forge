@@ -24,7 +24,7 @@
 /* Apply truncation to the button's content area */
 .MuiButton-root {
   /* The button itself handles truncation when max-width is set on the root */
-  max-width: calc(var(--button-max-width, var(--recursica-ui-kit-components-button-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  max-width: calc(var(--button-max-width, var(--recursica-ui-kit-components-button-properties-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
 }
 
 /* For buttons with icons, ensure text area can truncate */
@@ -34,7 +34,7 @@
 
 /* For text-only buttons (no icon), use full content max width and center */
 .MuiButton-root:not(:has(.MuiButton-startIcon)) {
-  max-width: var(--button-max-width, var(--recursica-ui-kit-components-button-max-width)) !important;
+  max-width: var(--button-max-width, var(--recursica-ui-kit-components-button-properties-max-width)) !important;
   justify-content: center !important;
 }
 

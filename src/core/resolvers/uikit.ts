@@ -105,8 +105,11 @@ function traverseUIKit(
     // Skip metadata keys
     if (key.startsWith('$')) return
     
-    // Map JSON "sizes" to CSS variable "size" for backward compatibility
-    const cssVarKey = key === 'sizes' ? 'size' : key
+    // NEW STRUCTURE: Keep "sizes" as-is (don't convert to "size")
+    // The new structure uses "variants.sizes" which should remain as "sizes" in CSS var names
+    // Only convert "sizes" to "size" for legacy structures (not under variants)
+    const isNewStructure = prefix.includes('variants')
+    const cssVarKey = (key === 'sizes' && !isNewStructure) ? 'size' : key
     const currentPath = [...prefix, cssVarKey]
     
     // If this is a value object with $type and $value

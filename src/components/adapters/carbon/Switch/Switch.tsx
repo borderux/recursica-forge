@@ -168,7 +168,7 @@ export default function Switch({
         '--recursica-ui-kit-components-switch-track-unchecked': trackUnselectedColor,
         // Component-level properties are already on :root from UIKit.json - don't create circular refs
         // Only set computed values that depend on them
-        '--recursica-ui-kit-components-switch-track-height': trackHeight,
+        '--recursica-ui-kit-components-switch-track-height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
         '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
         '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
         width: `var(${trackWidthVar})`,

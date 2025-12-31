@@ -16,13 +16,13 @@
   /* Use wrapper variables that are set in component's style prop - these reference UIKit vars directly */
   background: var(--recursica-ui-kit-components-switch-thumb-bg-unselected) !important;
   /* Use UIKit variables directly (they're on :root from UIKit.json) */
-  width: var(--recursica-ui-kit-components-switch-thumb-width) !important;
-  height: var(--recursica-ui-kit-components-switch-thumb-height) !important;
+  width: var(--recursica-ui-kit-components-switch-properties-thumb-width) !important;
+  height: var(--recursica-ui-kit-components-switch-properties-thumb-height) !important;
   border-radius: var(--recursica-ui-kit-components-switch-thumb-border-radius) !important;
   box-shadow: var(--recursica-ui-kit-components-switch-thumb-elevation) !important;
   position: absolute !important;
   /* Always position at left edge, use transform to move when checked */
-  left: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
+  left: var(--recursica-ui-kit-components-switch-properties-track-inner-padding) !important;
   top: 50% !important;
   transform: translateY(-50%) translateX(0) !important;
   transition: transform 0.1s ease, background 0.1s ease !important;
@@ -34,7 +34,7 @@
   /* Use wrapper variable that references UIKit var - will update automatically when UIKit var changes */
   background: var(--recursica-ui-kit-components-switch-thumb-bg-selected) !important;
   /* Checked: move thumb to right edge using transform */
-  transform: translateY(-50%) translateX(calc(var(--switch-width) - var(--recursica-ui-kit-components-switch-thumb-width) - 2 * var(--recursica-ui-kit-components-switch-track-inner-padding))) !important;
+  transform: translateY(-50%) translateX(calc(var(--switch-width) - var(--recursica-ui-kit-components-switch-properties-thumb-width) - 2 * var(--recursica-ui-kit-components-switch-properties-track-inner-padding))) !important;
 }
 
 /* Remove the blue dot in the center of the thumb */
@@ -57,7 +57,7 @@
   box-shadow: var(--recursica-ui-kit-components-switch-track-elevation) !important;
   width: var(--switch-width) !important;
   height: var(--recursica-ui-kit-components-switch-track-height) !important;
-  padding: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
+  padding: var(--recursica-ui-kit-components-switch-properties-track-inner-padding) !important;
   box-sizing: border-box !important;
   position: relative !important;
 }

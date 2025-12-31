@@ -230,6 +230,20 @@ export function resolveTokenReferenceToCssVar(
       return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-${state}-${type})`
     }
     
+    // Palette core-colors references with property: palettes.core-colors.success.tone, palettes.core-colors.success.interactive, palettes.core-colors.success.on-tone
+    const paletteCoreColorsPropertyMatch = /^palettes?\.core-colors?\.([a-z0-9-]+)\.(tone|on-tone|interactive)$/i.exec(pathParts.join('.'))
+    if (paletteCoreColorsPropertyMatch) {
+      const [, coreColor, property] = paletteCoreColorsPropertyMatch
+      // Map property names to CSS variable suffixes
+      if (property === 'tone') {
+        return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-tone)`
+      } else if (property === 'on-tone') {
+        return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-on-tone)`
+      } else if (property === 'interactive') {
+        return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-interactive)`
+      }
+    }
+    
     // Palette core-colors references: palettes.core-colors.alert
     const paletteCoreColorsMatch = /^palettes?\.core-colors?\.(alert|warning|success|interactive|black|white)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsMatch) {

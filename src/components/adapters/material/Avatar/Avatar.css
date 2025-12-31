@@ -14,7 +14,7 @@
   height: var(--avatar-size) !important;
   padding: var(--recursica-ui-kit-components-avatar-padding) !important;
   border-radius: var(--recursica-ui-kit-components-avatar-border-radius) !important;
-  font-size: var(--recursica-ui-kit-components-avatar-text-size) !important;
+  font-size: var(--recursica-ui-kit-components-avatar-properties-text-size) !important;
 }
 
 /* Override avatar image */

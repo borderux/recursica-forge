@@ -28,7 +28,7 @@
 
 .cds--avatar-fallback {
   color: var(--avatar-label) !important;
-  font-size: var(--recursica-ui-kit-components-avatar-text-size) !important;
+  font-size: var(--recursica-ui-kit-components-avatar-properties-text-size) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;

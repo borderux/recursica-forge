@@ -26,7 +26,7 @@
 /* Override avatar placeholder/fallback text */
 .mantine-Avatar-placeholder {
   color: var(--avatar-label) !important;
-  font-size: var(--recursica-ui-kit-components-avatar-text-size) !important;
+  font-size: var(--recursica-ui-kit-components-avatar-properties-text-size) !important;
   border-radius: inherit !important;
   background-color: transparent !important;
   border: none !important;

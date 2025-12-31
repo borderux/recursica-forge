@@ -75,21 +75,23 @@ export function Toast({
     const buttonVar = (variant === 'success' || variant === 'error')
       ? getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
       : null
-    const verticalPaddingVar = getComponentCssVar('Toast', 'size', 'default-vertical-padding', undefined)
-    const horizontalPaddingVar = getComponentCssVar('Toast', 'size', 'default-horizontal-padding', undefined)
-    const minWidthVar = getComponentCssVar('Toast', 'size', 'default-min-width', undefined)
-    const maxWidthVar = getComponentCssVar('Toast', 'size', 'default-max-width', undefined)
-    const iconVar = getComponentCssVar('Toast', 'size', 'default-icon', undefined)
-    const spacingVar = getComponentCssVar('Toast', 'size', 'default-spacing', undefined)
+    // Get component-level CSS variables (these are under toast.properties in UIKit.json)
+    const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
+    const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
+    const minWidthVar = getComponentLevelCssVar('Toast', 'min-width')
+    const maxWidthVar = getComponentLevelCssVar('Toast', 'max-width')
+    const iconVar = getComponentLevelCssVar('Toast', 'icon')
+    const spacingVar = getComponentLevelCssVar('Toast', 'spacing')
     const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
     
     // Build box-shadow from elevation if set (and not elevation-0)
+    // Use new brand.json structure: --recursica-brand-themes-{mode}-elevations-elevation-{n}-{property}
     let boxShadow: string | undefined
     if (componentElevation && componentElevation !== 'elevation-0') {
       const elevationMatch = componentElevation.match(/elevation-(\d+)/)
       if (elevationMatch) {
         const elevationLevel = elevationMatch[1]
-        boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+        boxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
       }
     }
     

@@ -23,7 +23,8 @@ export default function ButtonPreview({
   const { mode } = useThemeMode()
   const { tokens } = useVars()
 
-  const colorVariant = selectedVariants.color || 'solid'
+  // Use 'style' instead of 'color' to match the new toolbar structure
+  const styleVariant = selectedVariants.style || 'solid'
   const sizeVariant = selectedVariants.size || 'default'
 
   // Use the selected layer
@@ -45,7 +46,7 @@ export default function ButtonPreview({
     if (!bgColor) return null
 
     // Get button text color for the selected variant
-    const textVar = getComponentCssVar('Button', 'color', `${colorVariant}-text`, selectedLayer)
+    const textVar = getComponentCssVar('Button', 'colors', `${styleVariant}-text`, selectedLayer)
     const textValue = readCssVar(textVar)
     
     if (!textValue) return null
@@ -60,14 +61,14 @@ export default function ButtonPreview({
 
     if (ratio < AA_THRESHOLD) {
       return {
-        variant: colorVariant,
+        variant: styleVariant,
         ratio: ratio.toFixed(2),
         passes: false,
       }
     }
 
     return null
-  }, [bgColor, colorVariant, selectedLayer, tokens])
+  }, [bgColor, styleVariant, selectedLayer, tokens])
 
   // Get icon size and gap CSS variables for proper sizing
   const sizePrefix = sizeVariant === 'small' ? 'small' : 'default'
@@ -114,13 +115,13 @@ export default function ButtonPreview({
         <div className="button-preview-warning">
           ⚠️ WCAG AA contrast warning: {contrastWarning.ratio}:1 (requires 4.5:1)
           <br />
-          Using {colorVariant} variant on {selectedLayer} background may not meet contrast requirements.
+          Using {styleVariant} variant on {selectedLayer} background may not meet contrast requirements.
         </div>
       )}
       <div className="button-preview-row">
         {/* Button with text */}
         <Button
-          variant={colorVariant as any}
+          variant={styleVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
           elevation={componentElevation}
@@ -130,7 +131,7 @@ export default function ButtonPreview({
         
         {/* Button with icon on left */}
         <Button
-          variant={colorVariant as any}
+          variant={styleVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
           elevation={componentElevation}
@@ -141,7 +142,7 @@ export default function ButtonPreview({
         
         {/* Icon-only button */}
         <Button
-          variant={colorVariant as any}
+          variant={styleVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
           elevation={componentElevation}
@@ -150,7 +151,7 @@ export default function ButtonPreview({
         
         {/* Button with icon on right */}
         <Button
-          variant={colorVariant as any}
+          variant={styleVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
           elevation={componentElevation}
@@ -163,7 +164,7 @@ export default function ButtonPreview({
         
         {/* Disabled button */}
         <Button
-          variant={colorVariant as any}
+          variant={styleVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
           elevation={componentElevation}

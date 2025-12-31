@@ -1,39 +1,39 @@
 /* Carbon Toast CSS Overrides */
 
 .recursica-toast {
-  padding: var(--toast-vertical-padding, var(--recursica-ui-kit-components-toast-size-vertical-padding)) var(--toast-horizontal-padding, var(--recursica-ui-kit-components-toast-size-horizontal-padding)) !important;
-  min-width: var(--toast-min-width, var(--recursica-ui-kit-components-toast-size-min-width)) !important;
-  max-width: var(--toast-max-width, var(--recursica-ui-kit-components-toast-size-max-width)) !important;
-  background-color: var(--toast-bg, var(--recursica-ui-kit-components-toast-color-layer-0-variant-default-background)) !important;
-  color: var(--toast-text, var(--recursica-ui-kit-components-toast-color-layer-0-variant-default-text)) !important;
+  padding: var(--toast-vertical-padding, var(--recursica-ui-kit-components-toast-properties-vertical-padding)) var(--toast-horizontal-padding, var(--recursica-ui-kit-components-toast-properties-horizontal-padding)) !important;
+  min-width: var(--toast-min-width, var(--recursica-ui-kit-components-toast-properties-min-width)) !important;
+  max-width: var(--toast-max-width, var(--recursica-ui-kit-components-toast-properties-max-width)) !important;
+  background-color: var(--toast-bg, var(--recursica-ui-kit-components-toast-variants-styles-default-properties-colors-layer-0-background)) !important;
+  color: var(--toast-text, var(--recursica-ui-kit-components-toast-variants-styles-default-properties-colors-layer-0-text)) !important;
   border-radius: 8px !important;
 }
 
 .recursica-toast-content {
   display: flex !important;
   align-items: center !important;
-  gap: var(--toast-spacing, var(--recursica-ui-kit-components-toast-size-spacing)) !important;
+  gap: var(--toast-spacing, var(--recursica-ui-kit-components-toast-properties-spacing)) !important;
   width: 100% !important;
 }
 
 .recursica-toast-icon {
   display: inline-flex !important;
-  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-variant-default-icon)) !important;
-  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-variant-default-icon)) !important;
+  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-properties-icon)) !important;
+  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-properties-icon)) !important;
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;
 }
 
 .recursica-toast-icon svg {
-  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-variant-default-icon)) !important;
-  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-size-variant-default-icon)) !important;
+  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-properties-icon)) !important;
+  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-properties-icon)) !important;
 }
 
 .recursica-toast-message {
   flex: 1 !important;
   min-width: 0 !important;
-  font-size: var(--toast-text-size, var(--recursica-ui-kit-components-toast-text-size)) !important;
+  font-size: var(--toast-text-size, var(--recursica-ui-kit-components-toast-properties-text-size)) !important;
 }
 
 .recursica-toast-action {

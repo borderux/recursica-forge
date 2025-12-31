@@ -10,10 +10,10 @@ export default function BadgePreview({
   selectedVariants,
   selectedLayer,
 }: BadgePreviewProps) {
-  const colorVariant = (selectedVariants.color || 'primary-color') as 'primary-color' | 'warning' | 'success' | 'alert'
-  const sizeVariant = selectedVariants.size as 'small' | 'large' | undefined
+  // Use 'style' instead of 'color' to match the new toolbar structure
+  const styleVariant = (selectedVariants.style || 'primary-color') as 'primary-color' | 'warning' | 'success' | 'alert'
 
-  // Show only the selected color variant
+  // Show only the selected style variant (primary variant)
   const getVariantLabel = (variant: string) => {
     if (variant === 'primary-color') return 'New'
     return variant.charAt(0).toUpperCase() + variant.slice(1)
@@ -29,15 +29,13 @@ export default function BadgePreview({
       padding: 24,
     }}>
       <Badge
-        variant={colorVariant}
-        size={sizeVariant}
+        variant={styleVariant}
         layer={selectedLayer as any}
       >
-        {getVariantLabel(colorVariant)}
+        {getVariantLabel(styleVariant)}
       </Badge>
       <Badge
-        variant={colorVariant}
-        size={sizeVariant}
+        variant={styleVariant}
         layer={selectedLayer as any}
       >
         99

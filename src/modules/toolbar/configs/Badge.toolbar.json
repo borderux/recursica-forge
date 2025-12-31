@@ -1,12 +1,8 @@
 {
   "variants": {
-    "color": {
+    "style": {
       "icon": "diamonds-four",
-      "label": "Color"
-    },
-    "size": {
-      "icon": "resize",
-      "label": "Size"
+      "label": "Style"
     }
   },
   "props": {

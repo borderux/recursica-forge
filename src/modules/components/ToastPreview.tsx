@@ -15,7 +15,8 @@ export default function ToastPreview({
   selectedAltLayer,
   componentElevation,
 }: ToastPreviewProps) {
-  const colorVariant = (selectedVariants.color || 'default') as 'default' | 'success' | 'error'
+  // Use 'style' instead of 'color' to match the new toolbar structure
+  const styleVariant = (selectedVariants.style || 'default') as 'default' | 'success' | 'error'
 
   // Determine the actual layer to use
   const actualLayer = useMemo(() => {
@@ -27,8 +28,9 @@ export default function ToastPreview({
 
   // Icon components for success and error variants
   const CheckIcon = iconNameToReactComponent('check')
-  const XIcon = iconNameToReactComponent('x')
+  const XIcon = iconNameToReactComponent('x-mark')
 
+  // Show only the selected variant (primary variant)
   return (
     <div style={{
       display: 'flex',
@@ -36,52 +38,20 @@ export default function ToastPreview({
       gap: 12,
       width: '100%',
       maxWidth: 600,
+      alignItems: 'center',
+      padding: 24,
     }}>
-      {/* Default variant toast */}
       <Toast
-        variant="default"
+        variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
         alternativeLayer={selectedAltLayer}
+        icon={styleVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : styleVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
+        onClose={styleVariant === 'success' || styleVariant === 'error' ? () => {} : undefined}
       >
-        Default toast message
-      </Toast>
-
-      {/* Success variant toast */}
-      <Toast
-        variant="success"
-        layer={actualLayer}
-        elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
-        icon={CheckIcon ? <CheckIcon /> : <span>✓</span>}
-        onClose={() => {}}
-      >
-        Success toast message
-      </Toast>
-
-      {/* Error variant toast */}
-      <Toast
-        variant="error"
-        layer={actualLayer}
-        elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
-        icon={XIcon ? <XIcon /> : <span>✕</span>}
-        onClose={() => {}}
-      >
-        Error toast message
-      </Toast>
-
-      {/* Toast with action button */}
-      <Toast
-        variant={colorVariant}
-        layer={actualLayer}
-        elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
-        icon={colorVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : colorVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
-        action={<button style={{ padding: '4px 8px', borderRadius: 4, border: 'none', cursor: 'pointer' }}>Action</button>}
-        onClose={() => {}}
-      >
-        Toast with action button
+        {styleVariant === 'default' ? 'Default toast message' : 
+         styleVariant === 'success' ? 'Success toast message' : 
+         'Error toast message'}
       </Toast>
     </div>
   )

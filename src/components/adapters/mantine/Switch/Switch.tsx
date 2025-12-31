@@ -125,7 +125,7 @@ export default function Switch({
         '--recursica-ui-kit-components-switch-thumb-bg-unselected': `var(${thumbUnselectedVar})`,
         '--recursica-ui-kit-components-switch-track-checked': `var(${trackSelectedVar})`,
         '--recursica-ui-kit-components-switch-track-unchecked': `var(${trackUnselectedVar})`,
-        '--recursica-ui-kit-components-switch-track-height': trackHeight,
+        '--recursica-ui-kit-components-switch-track-height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
         '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
         '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
         width: `var(${trackWidthVar})`,

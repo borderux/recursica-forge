@@ -83,10 +83,10 @@ export default function ComponentDetailPage() {
   const captionText = useMemo(() => {
     const parts: string[] = []
     
-    // Add color variant (e.g., "Solid")
-    const colorVariant = selectedVariants.color || 'solid'
-    const colorVariantLabel = colorVariant.charAt(0).toUpperCase() + colorVariant.slice(1)
-    parts.push(colorVariantLabel)
+    // Add style variant (e.g., "Solid") - use 'style' instead of 'color' to match new structure
+    const styleVariant = selectedVariants.style || 'solid'
+    const styleVariantLabel = styleVariant.charAt(0).toUpperCase() + styleVariant.slice(1)
+    parts.push(styleVariantLabel)
     
     // Add size variant (e.g., "Default")
     const sizeVariant = selectedVariants.size || 'default'
