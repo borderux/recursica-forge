@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 import { Tag } from '@carbon/react'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
 import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentCssVar } from '../../../utils/cssVarNames'
+import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Chip.css'
 
@@ -84,16 +85,15 @@ export default function Chip({
       chipIconColorVar = getComponentLevelCssVar('Chip', 'colors.error.icon-color')
     } else {
       chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
-      // Get icon-color if available, otherwise use text color
-      const iconColorVar = buildVariantColorCssVar('Chip', variant, 'icon-color', layer)
-      chipIconColorVar = iconColorVar || chipColorVar
+      // Non-error variants don't have icon colors defined, so use text color for icons
+      chipIconColorVar = chipColorVar
     }
   }
   
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)
   // NEW STRUCTURE: properties.{property}
   // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon
-  const iconSizeVar = getComponentLevelCssVar('Chip', 'icon')
+  const iconSizeVar = getComponentLevelCssVar('Chip', 'icon-size')
   const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
   const horizontalPaddingVar = getComponentLevelCssVar('Chip', 'horizontal-padding')
   const verticalPaddingVar = getComponentLevelCssVar('Chip', 'vertical-padding')
@@ -153,16 +153,10 @@ export default function Chip({
       ...(disabled && {
         opacity: `var(--recursica-brand-${mode}-state-disabled, 0.5)`,
       }),
-      ...(elevation && elevation !== 'elevation-0' ? (() => {
-        const elevationMatch = elevation.match(/elevation-(\d+)/)
-        if (elevationMatch) {
-          const elevationLevel = elevationMatch[1]
-          return {
-            boxShadow: `var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-          }
-        }
-        return {}
-      })() : {}),
+      ...(() => {
+        const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
+        return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
+      })(),
       ...style,
     },
     ...carbon,

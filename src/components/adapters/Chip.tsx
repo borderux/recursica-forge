@@ -98,8 +98,8 @@ export function Chip({
     // Fallback to native element if component not available
     // Chip size properties are nested by layer, not by size variant
     // Icon is a component-level property (not layer-specific)
-    // NEW STRUCTURE: properties.icon
-    const iconSizeVar = getComponentLevelCssVar('Chip', 'icon')
+    // NEW STRUCTURE: properties.icon-size
+    const iconSizeVar = getComponentLevelCssVar('Chip', 'icon-size')
     // icon-text-gap is at component level (not under size) in UIKit.json
     // NEW STRUCTURE: properties.icon-text-gap
     const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')

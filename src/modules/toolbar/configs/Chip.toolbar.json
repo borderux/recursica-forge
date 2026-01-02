@@ -55,7 +55,7 @@
       "label": "Icon/Text Gap",
       "visible": true
     },
-    "icon": {
+    "icon-size": {
       "icon": "diamond",
       "label": "Icon Size",
       "visible": true

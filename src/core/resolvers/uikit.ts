@@ -199,11 +199,32 @@ function traverseUIKit(
         const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
         
         if (resolved) {
+          // Check if this is a UIKit self-reference pointing to a component-level property
+          // If so, skip creating the variant-level CSS variable (it will resolve to the component-level one)
+          // This prevents creating unnecessary variant-level CSS variables for properties like
+          // chip.error.text and chip.error.icon that reference component-level properties
+          if (typeof val === 'string' && val.trim().startsWith('{ui-kit.components.')) {
+            const refPath = val.trim().slice(1, -1).trim()
+            // Check if this is a component-level property reference (not a variant-level one)
+            // Component-level: {ui-kit.components.chip.properties.*}
+            // Variant-level: {ui-kit.components.chip.variants.styles.*}
+            if (refPath.includes('.properties.') && !refPath.includes('.variants.styles.')) {
+              // Skip creating this variant-level CSS variable - it will resolve to the component-level one
+              return
+            }
+          }
           vars[cssVarName] = resolved
         } else if (val != null) {
           // Check if val is a brace reference that couldn't be resolved yet
           // (e.g., UIKit self-reference that doesn't exist yet)
           if (typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')) {
+            const refPath = val.trim().slice(1, -1).trim()
+            // Check if this is a component-level property reference that will be resolved in second pass
+            // If so, skip creating the variant-level CSS variable now
+            if (refPath.startsWith('ui-kit.components.') && refPath.includes('.properties.') && !refPath.includes('.variants.styles.')) {
+              // Skip creating this variant-level CSS variable - it will resolve to the component-level one in second pass
+              return
+            }
             // Preserve the brace reference for second pass resolution
             vars[cssVarName] = val.trim()
           } else {
