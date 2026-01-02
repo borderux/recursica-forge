@@ -162,18 +162,15 @@ export default function TypeStyleSelector({
   const handleTokenChange = useCallback((tokenName: string) => {
     setSelectedToken(tokenName)
     
-    // Extract the typography style name from the CSS var name
-    // e.g., --recursica-brand-typography-body-font-size -> body
-    const styleNameMatch = tokenName.match(/--recursica-brand-typography-([^-]+)-font-size/)
-    const styleName = styleNameMatch ? styleNameMatch[1] : null
-    
-    // Update all CSS vars with a brace reference to the typography style
-    // This allows components to extract the style name and use all typography properties
+    // Update all CSS vars with the typography font-size CSS variable reference
+    // tokenName is already a CSS variable name like --recursica-brand-typography-body-font-size
+    // We set the target CSS vars to reference this typography font-size CSS var
     const allCssVars = [targetCssVar, ...targetCssVars]
     allCssVars.forEach(cssVar => {
-      if (cssVar && styleName) {
-        // Set to brace reference like {brand.typography.body} so components can extract style name
-        updateCssVar(cssVar, `{brand.typography.${styleName}}`)
+      if (cssVar && tokenName) {
+        // Set to valid CSS var() reference, not a brace reference
+        // Brace references are only for JSON configuration, not runtime CSS variables
+        updateCssVar(cssVar, `var(${tokenName})`)
       }
     })
   }, [targetCssVar, targetCssVars])
