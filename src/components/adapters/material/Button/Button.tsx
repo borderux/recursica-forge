@@ -6,9 +6,10 @@
 
 import { Button as MaterialButton } from '@mui/material'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
-import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
+import { useCssVar } from '../../../hooks/useCssVar'
 import './Button.css'
 
 export default function Button({
@@ -40,6 +41,8 @@ export default function Button({
   // Use UIKit.json button colors for standard layers
   const buttonBgVar = getComponentCssVar('Button', 'colors', `${variant}-background`, layer)
   const buttonColorVar = getComponentCssVar('Button', 'colors', `${variant}-text`, layer)
+  // Build border color CSS var path directly to ensure it matches UIKit.json structure
+  const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'colors', layer, 'border')
   
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
@@ -50,6 +53,11 @@ export default function Button({
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
   const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
+  
+  // Get border-size CSS variable (variant-specific property)
+  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'border-size')
+  // Reactively read border-size to trigger re-renders when it changes
+  const borderSizeValue = useCssVar(borderSizeVar, '1px')
   
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
@@ -74,10 +82,11 @@ export default function Button({
         }
       })(),
       color: `var(${buttonColorVar})`,
-      // For outline, use the outline-text CSS var for border color and ensure border is set
-      ...(variant === 'outline' ? {
-        border: `1px solid var(${buttonColorVar})`,
-        borderColor: `var(${buttonColorVar})`,
+      // For solid and outline, use box-shadow for outside border (doesn't affect box model)
+      // Use the reactively read border-size value to ensure updates trigger re-renders
+      ...(variant === 'solid' || variant === 'outline' ? {
+        border: 'none',
+        boxShadow: `0 0 0 ${borderSizeValue || '1px'} var(${buttonBorderColorVar || buttonColorVar})`,
       } : {}),
       // For text variant, explicitly remove border
       ...(variant === 'text' ? {
@@ -107,17 +116,28 @@ export default function Button({
         opacity: `var(${getBrandStateCssVar(mode, 'disabled')})`,
         backgroundColor: `var(${buttonBgVar}) !important`,
         color: `var(${buttonColorVar}) !important`,
-        ...(variant === 'outline' && {
-          borderColor: `var(${buttonColorVar}) !important`,
+        ...((variant === 'solid' || variant === 'outline') && {
+          border: 'none !important',
+          boxShadow: `0 0 0 ${borderSizeValue || '1px'} var(${buttonBorderColorVar || buttonColorVar}) !important`,
         }),
         ...(variant === 'text' && {
           border: 'none !important',
         }),
       }),
-      // Apply elevation if set
+      // Apply elevation if set, combine with border box-shadow if present
       ...(() => {
         const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-        return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
+        const borderShadow = (variant === 'solid' || variant === 'outline')
+          ? `0 0 0 ${borderSizeValue || '1px'} var(${buttonBorderColorVar || buttonColorVar})`
+          : ''
+        if (elevationBoxShadow && borderShadow) {
+          return { boxShadow: `${borderShadow}, ${elevationBoxShadow}` }
+        } else if (elevationBoxShadow) {
+          return { boxShadow: elevationBoxShadow }
+        } else if (borderShadow) {
+          return { boxShadow: borderShadow }
+        }
+        return {}
       })(),
       ...style,
       ...material?.sx,

@@ -249,8 +249,9 @@ globalStyle(
 )
 
 /* Ensure outline variant has a border with the correct color */
+/* Note: --button-bd is set in TSX with border-size CSS var, this is just a fallback */
 globalStyle('.mantine-Button-root[data-variant="outline"]', {
-  '--button-bd': 'calc(0.0625rem * var(--mantine-scale, 1)) solid var(--button-text)',
+  '--button-bd': 'var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-text)',
   border: 'var(--button-bd)',
 } as any)
 

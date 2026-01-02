@@ -57,7 +57,7 @@ export function Badge({
           backgroundColor: `var(${bgVar})`,
           color: `var(${textVar})`,
           fontSize: `var(${textSizeVar})`,
-          padding: `0 var(${paddingHorizontalVar})`,
+          padding: `var(${paddingVerticalVar}, 4px) var(${paddingHorizontalVar}, 8px)`,
           borderRadius: `var(${borderRadiusVar})`,
           // Use height if set, otherwise fall back to min-height from size variant
           height: heightVar ? `var(${heightVar})` : undefined,

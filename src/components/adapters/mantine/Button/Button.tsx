@@ -6,10 +6,11 @@
 
 import { Button as MantineButton } from '@mantine/core'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
-import { getComponentCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
+import { useCssVar } from '../../../hooks/useCssVar'
 import './Button.css'
 
 export default function Button({
@@ -42,14 +43,17 @@ export default function Button({
   const buttonBgVar = getComponentCssVar('Button', 'colors', `${variant}-background`, layer)
   const buttonHoverVar = getComponentCssVar('Button', 'colors', `${variant}-background-hover`, layer)
   const buttonColorVar = getComponentCssVar('Button', 'colors', `${variant}-text`, layer)
+  // Build border color CSS var path directly to ensure it matches UIKit.json structure
+  const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'colors', layer, 'border')
   
   // Get the correct CSS variable reference for button color (used for text and border)
   const buttonColorRef = `var(${buttonColorVar})`
+  const buttonBorderColorRef = buttonBorderColorVar ? `var(${buttonBorderColorVar})` : buttonColorRef
   
-  // For outline buttons, set the border color using the outline-text CSS var
+  // For solid and outline buttons, set the border color using the border CSS var
   // Mantine uses --button-bd for border, which has format: calc(0.0625rem * var(--mantine-scale)) solid <color>
-  const buttonBorderColor = variant === 'outline' 
-    ? buttonColorRef 
+  const buttonBorderColor = (variant === 'solid' || variant === 'outline')
+    ? buttonBorderColorRef 
     : undefined
   
   // Get icon size and gap CSS variables
@@ -61,6 +65,11 @@ export default function Button({
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
   const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
+  
+  // Get border-size CSS variable (variant-specific property)
+  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'border-size')
+  // Reactively read border-size to trigger re-renders when it changes
+  const borderSizeValue = useCssVar(borderSizeVar, '1px')
   
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
@@ -94,7 +103,7 @@ export default function Button({
         ...(disabled && {
           backgroundColor: `var(${buttonBgVar}) !important`,
           color: `${buttonColorRef} !important`,
-          ...(variant === 'outline' && buttonBorderColor && {
+          ...((variant === 'solid' || variant === 'outline') && buttonBorderColor && {
             borderColor: `${buttonBorderColor} !important`,
           }),
           ...(variant === 'text' && {
@@ -136,11 +145,10 @@ export default function Button({
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Set content max width CSS variable for CSS file override
       '--button-max-width': `var(${maxWidthVar})`,
-      // For outline buttons, override Mantine's border color CSS variable
-      // Mantine uses: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-blue-outline)
-      // We override to use our recursica CSS var
-      ...(variant === 'outline' && buttonBorderColor ? {
-        '--button-bd': `calc(0.0625rem * var(--mantine-scale, 1)) solid ${buttonBorderColor}`,
+      // For solid and outline buttons, use box-shadow for outside border (doesn't affect box model)
+      // Set border to none and use box-shadow instead
+      ...((variant === 'solid' || variant === 'outline') && buttonBorderColor ? {
+        '--button-bd': 'none',
       } : {}),
       // For text variant, explicitly remove border
       ...(variant === 'text' ? {
@@ -169,10 +177,20 @@ export default function Button({
       }),
       minWidth: `var(${minWidthVar})`,
       borderRadius: `var(${borderRadiusVar})`,
-      // Apply elevation if set
+      // Apply elevation if set, combine with border box-shadow if present
       ...(() => {
         const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-        return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
+        const borderShadow = (variant === 'solid' || variant === 'outline') && buttonBorderColor
+          ? `0 0 0 ${borderSizeValue || '1px'} ${buttonBorderColor}`
+          : ''
+        if (elevationBoxShadow && borderShadow) {
+          return { boxShadow: `${borderShadow}, ${elevationBoxShadow}` }
+        } else if (elevationBoxShadow) {
+          return { boxShadow: elevationBoxShadow }
+        } else if (borderShadow) {
+          return { boxShadow: borderShadow }
+        }
+        return {}
       })(),
       // Don't apply maxWidth to root - it will be applied to label element only
       ...style,

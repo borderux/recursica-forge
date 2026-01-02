@@ -14,7 +14,17 @@
     "text": {
       "icon": "text-aa",
       "label": "Text",
-      "visible": true
+      "visible": true,
+      "group": {
+        "text-color": {
+          "label": "Color",
+          "visible": true
+        },
+        "font-size": {
+          "label": "Size",
+          "visible": true
+        }
+      }
     },
     "border": {
       "icon": "square",
@@ -74,11 +84,6 @@
           "visible": true
         }
       }
-    },
-    "font-size": {
-      "icon": "text-aa",
-      "label": "Font Size",
-      "visible": true
     },
     "elevation": {
       "icon": "copy-simple",

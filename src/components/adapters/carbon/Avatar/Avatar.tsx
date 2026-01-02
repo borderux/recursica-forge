@@ -11,6 +11,7 @@ import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssV
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { useCssVar } from '../../../hooks/useCssVar'
 import './Avatar.css'
 
 export default function Avatar({
@@ -42,7 +43,10 @@ export default function Avatar({
   
   // Get size and other CSS variables
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
-  const textSizeVar = getComponentLevelCssVar('Avatar', 'text-size')
+  // Get text-size from size variant (e.g., variants.sizes.default.properties.text-size)
+  const textSizeVar = getComponentCssVar('Avatar', 'size', `${sizeVariant}-text-size`, undefined)
+  // Reactively read text-size to trigger re-renders when it changes
+  const textSizeValue = useCssVar(textSizeVar, '')
   const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
   const borderSizeVar = getComponentLevelCssVar('Avatar', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
@@ -60,7 +64,7 @@ export default function Avatar({
         '--avatar-border': `var(${borderVar})`,
         '--avatar-label': `var(${labelVar})`,
         '--avatar-size': `var(${sizeVar})`,
-        '--avatar-text-size': `var(${textSizeVar})`,
+        '--avatar-text-size': textSizeValue || `var(${textSizeVar})`,
         // Only set non-CSS-variable styles here (like borderRadius for circle shape)
         ...(shape === 'circle' ? { borderRadius: '50%' } : {}),
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),

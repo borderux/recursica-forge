@@ -16,7 +16,7 @@
       "label": "Text",
       "visible": true,
       "group": {
-        "text-color": {
+        "text": {
           "label": "Color",
           "visible": true
         },
@@ -33,6 +33,10 @@
       "group": {
         "padding-horizontal": {
           "label": "Horizontal",
+          "visible": true
+        },
+        "padding-vertical": {
+          "label": "Vertical",
           "visible": true
         }
       }

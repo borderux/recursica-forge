@@ -34,13 +34,15 @@ export function useCssVar(varName: string, fallback?: string): string {
       attributeFilter: ['style'],
     })
 
-    // Also listen for CSS variable changes via custom event if needed
+    // Also listen for CSS variable changes via custom events
     const handleVarChange = () => updateValue()
     window.addEventListener('cssvarchange', handleVarChange)
+    window.addEventListener('cssVarsUpdated', handleVarChange)
 
     return () => {
       observer.disconnect()
       window.removeEventListener('cssvarchange', handleVarChange)
+      window.removeEventListener('cssVarsUpdated', handleVarChange)
     }
   }, [varName, fallback])
 
