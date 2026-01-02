@@ -10,7 +10,7 @@ import { Chip } from '@mui/material'
 import type { BadgeProps as AdapterBadgeProps } from '../../Badge'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { getTypographyCssVarsFromValue, getTypographyCssVars } from '../../../utils/typographyUtils'
-import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
+import { useCssVar } from '../../../hooks/useCssVar'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Badge.css'
 
@@ -31,21 +31,13 @@ export default function Badge({
   const textVar = getComponentCssVar('Badge', 'colors', `${variant}-text`, layer)
   
   // For typography type properties, we need to extract the typography style name
-  // The UIKit.json has: { "$type": "typography", "$value": "{brand.typography.caption}" }
-  // The resolver might have set the CSS variable to a var() reference, so we try multiple approaches
+  // When updated via toolbar, it's set to: {brand.typography.body}
+  // The UIKit.json has: { "$type": "typography", "$value": "{brand.typography.body.font-size}" }
   const textSizeUIKitVar = getComponentLevelCssVar('Badge', 'text-size')
-  let textSizeValue = readCssVar(textSizeUIKitVar)
+  const textSizeValue = useCssVar(textSizeUIKitVar)
   
-  // If the CSS variable contains a var() reference, try to extract the style name from it
-  // e.g., var(--recursica-brand-typography-caption-font-size) -> caption
-  if (!textSizeValue || !textSizeValue.includes('{')) {
-    // Try reading the resolved value - it might be a var() reference
-    const resolved = readCssVarResolved(textSizeUIKitVar)
-    if (resolved) {
-      textSizeValue = resolved
-    }
-  }
-  
+  // Extract typography style name from the CSS variable value
+  // It can be a brace reference like {brand.typography.body} or a CSS var reference
   // Always get typography vars - use fallback to 'caption' if extraction fails
   // This ensures the CSS variables are always set, even if the UIKit.json value can't be read
   const typographyVars = getTypographyCssVarsFromValue(textSizeValue) || getTypographyCssVarsFromValue('{brand.typography.caption}') || getTypographyCssVars('caption')

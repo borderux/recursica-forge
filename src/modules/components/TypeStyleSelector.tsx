@@ -92,19 +92,29 @@ export default function TypeStyleSelector({
   const extractTypeStyleName = useCallback((cssVarValue: string): string | null => {
     if (!cssVarValue) return null
     
-    // Check if it's a typography reference
+    // Check if it's a brace reference: {brand.typography.body}
+    const braceMatch = cssVarValue.match(/\{brand\.typography\.([^}]+)\}/)
+    if (braceMatch) {
+      return braceMatch[1].toLowerCase() // Returns 'body', 'button', etc.
+    }
+    
+    // Check if it's a typography CSS var reference
     // Pattern: var(--recursica-brand-typography-{style-name}-font-size)
     const typoMatch = cssVarValue.match(/--recursica-brand-typography-([^-]+)-font-size/)
     if (typoMatch) {
-      return typoMatch[1] // Returns 'body', 'button', etc.
+      return typoMatch[1].toLowerCase() // Returns 'body', 'button', etc.
     }
     
     // Check if it resolves to a typography reference
     const resolved = readCssVarResolved(targetCssVar)
     if (resolved) {
+      const resolvedBraceMatch = resolved.match(/\{brand\.typography\.([^}]+)\}/)
+      if (resolvedBraceMatch) {
+        return resolvedBraceMatch[1].toLowerCase()
+      }
       const resolvedTypoMatch = resolved.match(/--recursica-brand-typography-([^-]+)-font-size/)
       if (resolvedTypoMatch) {
-        return resolvedTypoMatch[1]
+        return resolvedTypoMatch[1].toLowerCase()
       }
     }
     
@@ -152,11 +162,18 @@ export default function TypeStyleSelector({
   const handleTokenChange = useCallback((tokenName: string) => {
     setSelectedToken(tokenName)
     
-    // Update all CSS vars
+    // Extract the typography style name from the CSS var name
+    // e.g., --recursica-brand-typography-body-font-size -> body
+    const styleNameMatch = tokenName.match(/--recursica-brand-typography-([^-]+)-font-size/)
+    const styleName = styleNameMatch ? styleNameMatch[1] : null
+    
+    // Update all CSS vars with a brace reference to the typography style
+    // This allows components to extract the style name and use all typography properties
     const allCssVars = [targetCssVar, ...targetCssVars]
     allCssVars.forEach(cssVar => {
-      if (cssVar) {
-        updateCssVar(cssVar, `var(${tokenName})`)
+      if (cssVar && styleName) {
+        // Set to brace reference like {brand.typography.body} so components can extract style name
+        updateCssVar(cssVar, `{brand.typography.${styleName}}`)
       }
     })
   }, [targetCssVar, targetCssVars])

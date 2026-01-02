@@ -154,6 +154,23 @@ function traverseUIKit(
             }
           }
         }
+      } else if (type === 'typography' && typeof val === 'string') {
+        // Handle typography type: resolve typography reference to CSS var
+        // e.g., {brand.typography.body.font-size} -> var(--recursica-brand-typography-body-font-size)
+        const trimmed = val.trim()
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+          // Try to resolve as a token reference (will resolve to typography CSS var)
+          const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
+          if (resolved) {
+            vars[cssVarName] = resolved
+          } else {
+            // If not resolved, preserve the reference for second pass
+            vars[cssVarName] = val.trim()
+          }
+        } else {
+          // Not a brace reference, use as-is
+          vars[cssVarName] = trimmed
+        }
       } else if (type === 'elevation' && typeof val === 'string') {
         // Handle elevation type: extract elevation name from reference
         // e.g., {brand.themes.light.elevations.elevation-0} -> elevation-0

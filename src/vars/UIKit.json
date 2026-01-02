@@ -1949,10 +1949,17 @@
             "$type": "typography",
             "$value": "{brand.typography.body.font-size}"
           },
-          "padding": {
+          "padding-horizontal": {
             "$type": "dimension",
             "$value": {
               "value": 8,
+              "unit": "px"
+            }
+          },
+          "padding-vertical": {
+            "$type": "dimension",
+            "$value": {
+              "value": 4,
               "unit": "px"
             }
           },
