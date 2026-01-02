@@ -10,7 +10,7 @@
   /* Border uses global CSS variable directly - this is reactive and updates in real time */
   /* CRITICAL: CSS variables in stylesheets are reactive - they update when the variable on documentElement changes */
   /* Use border shorthand to ensure all properties are set together */
-  border: var(--recursica-ui-kit-components-chip-border-size, 1px) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
+  border: var(--recursica-ui-kit-components-chip-properties-border-size, 1px) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
   padding-left: var(--chip-padding-x) !important;
   padding-right: var(--chip-padding-x) !important;
   padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;

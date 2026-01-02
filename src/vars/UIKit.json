@@ -1153,6 +1153,18 @@
           }
         },
         "properties": {
+          "colors": {
+            "error": {
+              "text-color": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.alert}"
+              },
+              "icon-color": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.alert}"
+              }
+            }
+          },
           "border-size": {
             "$type": "dimension",
             "$value": {
