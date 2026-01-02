@@ -7,11 +7,7 @@
 .cds--badge {
   background-color: var(--badge-bg) !important;
   color: var(--badge-text) !important;
-  font-family: var(--badge-font-family) !important;
   font-size: var(--badge-font-size) !important;
-  font-weight: var(--badge-font-weight) !important;
-  letter-spacing: var(--badge-letter-spacing) !important;
-  line-height: var(--badge-line-height) !important;
   padding: var(--recursica-ui-kit-components-badge-properties-padding-vertical, 4px) var(--recursica-ui-kit-components-badge-properties-padding-horizontal, 8px) !important;
   border-radius: var(--recursica-ui-kit-components-badge-properties-border-radius) !important;
   display: inline-block !important;
