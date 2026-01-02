@@ -40,7 +40,7 @@
 
 /* Ensure outline variant has a border with the correct color */
 .MuiButton-outlined {
-  border: 1px solid var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-outline-text)) !important;
+  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-outline-text)) !important;
 }
 
 /* Ensure text variant has no border */

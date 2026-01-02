@@ -7,10 +7,11 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
 import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
+import { useCssVar } from '../hooks/useCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type ButtonProps = {
@@ -161,12 +162,19 @@ function getButtonStyles(
   // Use UIKit.json button colors for standard layers
   const bgVar = getComponentCssVar('Button', 'colors', `${variant}-background`, layer)
   const textVar = getComponentCssVar('Button', 'colors', `${variant}-text`, layer)
+  // Build border color CSS var path directly to ensure it matches UIKit.json structure
+  const borderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'colors', layer, 'border')
   
   const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
   const paddingVar = getComponentCssVar('Button', 'size', 'horizontal-padding', undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
+  
+  // Get border-size CSS variable (variant-specific property)
+  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'border-size')
+  // Reactively read border-size to trigger re-renders when it changes
+  const borderSizeValue = useCssVar(borderSizeVar, '1px')
   
   // Size-specific vars - UIKit.json structure: size.default.height, size.small.height
   const sizePrefix = size === 'small' ? 'small' : 'default'
@@ -184,13 +192,18 @@ function getButtonStyles(
   if (variant === 'solid') {
     styles.backgroundColor = `var(${bgVar})`
     styles.color = `var(${textVar})`
+    // For solid, use box-shadow for outside border (doesn't affect box model)
+    // Use the reactively read border-size value to ensure updates trigger re-renders
     styles.border = 'none'
+    styles.boxShadow = `0 0 0 ${borderSizeValue || '1px'} var(${borderColorVar || textVar})`
   } else if (variant === 'outline') {
     // For outline, use outline-specific CSS variables
     styles.backgroundColor = `var(${bgVar})`
     styles.color = `var(${textVar})`
-    // For outline, use text color as border color (which is the outline-text CSS var)
-    styles.border = `1px solid var(${textVar})`
+    // For outline, use box-shadow for outside border (doesn't affect box model)
+    // Use the reactively read border-size value to ensure updates trigger re-renders
+    styles.border = 'none'
+    styles.boxShadow = `0 0 0 ${borderSizeValue || '1px'} var(${borderColorVar || textVar})`
   } else {
     // text variant
     styles.backgroundColor = `var(${bgVar})`
@@ -215,10 +228,17 @@ function getButtonStyles(
     styles.cursor = 'pointer'
   }
   
-  // Apply elevation if set (and not elevation-0)
+  // Apply elevation if set (and not elevation-0), combine with border box-shadow if present
   const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-  if (elevationBoxShadow) {
+  const borderShadow = (variant === 'solid' || variant === 'outline')
+    ? `0 0 0 ${borderSizeValue || '1px'} var(${borderColorVar || textVar})`
+    : ''
+  if (elevationBoxShadow && borderShadow) {
+    styles.boxShadow = `${borderShadow}, ${elevationBoxShadow}`
+  } else if (elevationBoxShadow) {
     styles.boxShadow = elevationBoxShadow
+  } else if (borderShadow) {
+    styles.boxShadow = borderShadow
   }
   
   return styles

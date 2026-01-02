@@ -314,6 +314,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.on-tone-hover}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     }
                   },
                   "layer-1": {
@@ -332,6 +336,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.on-tone-hover}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.properties.border-color}"
                     }
                   },
                   "layer-2": {
@@ -350,6 +358,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.on-tone-hover}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.properties.border-color}"
                     }
                   },
                   "layer-3": {
@@ -368,7 +380,18 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.on-tone-hover}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.properties.border-color}"
                     }
+                  }
+                },
+                "border-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 1,
+                    "unit": "px"
                   }
                 }
               }
@@ -446,7 +469,18 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.on-tone-hover}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.properties.border-color}"
                     }
+                  }
+                },
+                "border-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 1,
+                    "unit": "px"
                   }
                 }
               }
@@ -470,6 +504,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     }
                   },
                   "layer-1": {
@@ -488,6 +526,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.properties.border-color}"
                     }
                   },
                   "layer-2": {
@@ -506,6 +548,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.properties.border-color}"
                     }
                   },
                   "layer-3": {
@@ -524,7 +570,18 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
+                    },
+                    "border": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.properties.border-color}"
                     }
+                  }
+                },
+                "border-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 1,
+                    "unit": "px"
                   }
                 }
               }
