@@ -515,28 +515,9 @@ export default function PropControl({
     // Check if this prop has a group in the toolbar config
     const groupedPropsConfig = getGroupedProps(componentName, prop.name)
     
-    // Debug: log for border prop to see what's happening
-    if (prop.name === 'border' || prop.name.toLowerCase() === 'border') {
-      console.log(`PropControl: Checking border prop for ${componentName}`)
-      console.log(`  - prop.name:`, prop.name)
-      console.log(`  - groupedPropsConfig:`, groupedPropsConfig)
-      console.log(`  - prop.borderProps:`, prop.borderProps)
-      console.log(`  - prop.borderProps?.size:`, prop.borderProps?.size)
-      console.log(`  - prop.borderProps?.keys:`, prop.borderProps ? Array.from(prop.borderProps.keys()) : 'N/A')
-    }
-    
     // If this is a grouped prop (border, width, etc.), render all grouped properties
     if (groupedPropsConfig && prop.borderProps && prop.borderProps.size > 0) {
       const groupedPropEntries = Object.entries(groupedPropsConfig)
-      
-      // Debug: log what's in the borderProps map for border props
-      if (prop.name === 'border') {
-        console.log(`PropControl: Rendering border props for ${componentName}`)
-        console.log(`  - borderProps map size:`, prop.borderProps.size)
-        console.log(`  - borderProps keys:`, Array.from(prop.borderProps.keys()))
-        console.log(`  - Grouped props config keys:`, Object.keys(groupedPropsConfig))
-        console.log(`  - Grouped props config entries:`, groupedPropEntries.map(([name, config]) => ({ name, visible: config.visible })))
-      }
       
       return (
         <>
