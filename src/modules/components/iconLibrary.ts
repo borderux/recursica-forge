@@ -170,6 +170,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'square': Square,
   'square-logo': SquareLogo,
   'cursor-click': CursorClick,
+  'arrows-horizontal': ArrowsHorizontal,
+  'arrows-vertical': ArrowsVertical,
+  'stack': Stack,
 }
 
 /**

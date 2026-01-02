@@ -163,7 +163,12 @@ export default function ComponentToolbar({
     if (toolbarConfig?.props) {
       for (const [parentPropName, parentPropConfig] of Object.entries(toolbarConfig.props)) {
         if (parentPropConfig.group) {
-          const groupedProps = groupedPropsMap.get(parentPropName.toLowerCase()) || new Map()
+          // Get or create the grouped props map for this parent prop
+          let groupedProps = groupedPropsMap.get(parentPropName.toLowerCase())
+          if (!groupedProps) {
+            groupedProps = new Map()
+            groupedPropsMap.set(parentPropName.toLowerCase(), groupedProps)
+          }
           
           // Also check if the parent prop itself is in the structure (it might be in its own group)
           const parentProp = structure.props.find(p => p.name.toLowerCase() === parentPropName.toLowerCase())
@@ -173,14 +178,27 @@ export default function ComponentToolbar({
           
           // Also add any props from the group config that might not have been found yet
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
-            if (!groupedProps.has(groupedPropName.toLowerCase())) {
+            const groupedPropKey = groupedPropName.toLowerCase()
+            if (!groupedProps.has(groupedPropKey)) {
               // Special case: border-color is stored as "border" in the color category
-              let groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropName.toLowerCase())
-              if (!groupedProp && groupedPropName.toLowerCase() === 'border-color') {
+              let groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
+              if (!groupedProp && groupedPropKey === 'border-color') {
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
               }
+              // If still not found, try to find it by exact name match (case-insensitive)
+              if (!groupedProp) {
+                groupedProp = structure.props.find(p => 
+                  p.name.toLowerCase() === groupedPropKey ||
+                  p.name === groupedPropName
+                )
+              }
               if (groupedProp) {
-                groupedProps.set(groupedPropName.toLowerCase(), groupedProp)
+                groupedProps.set(groupedPropKey, groupedProp)
+                // Also update the groupedPropsMap to ensure consistency
+                groupedPropsMap.set(parentPropName.toLowerCase(), groupedProps)
+              } else {
+                // Debug: log if prop is not found
+                console.warn(`ComponentToolbar: Grouped prop "${groupedPropName}" not found in structure.props for ${componentName}. Available props:`, structure.props.map(p => `${p.name} (${p.isVariantSpecific ? 'variant' : 'component-level'})`))
               }
             }
           }
@@ -200,9 +218,12 @@ export default function ComponentToolbar({
               }
               
               // Use parent prop name as the key
-              if (!seenProps.has(parentPropName.toLowerCase())) {
-                propsMap.set(parentPropName.toLowerCase(), combinedProp)
-                seenProps.add(parentPropName.toLowerCase())
+              const parentPropKey = parentPropName.toLowerCase()
+              // Always set/update the combined prop, even if it already exists
+              // This ensures grouped props have the borderProps map
+              propsMap.set(parentPropKey, combinedProp)
+              if (!seenProps.has(parentPropKey)) {
+                seenProps.add(parentPropKey)
               }
             }
           }

@@ -8,6 +8,7 @@ import ButtonPreview from '../components/ButtonPreview'
 import AvatarPreview from '../components/AvatarPreview'
 import ToastPreview from '../components/ToastPreview'
 import BadgePreview from '../components/BadgePreview'
+import ChipPreview from '../components/ChipPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -277,6 +278,13 @@ export default function ComponentDetailPage() {
             <BadgePreview
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
+              componentElevation={componentElevation}
+            />
+          ) : component.name === 'Chip' ? (
+            <ChipPreview
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+              selectedAltLayer={null}
               componentElevation={componentElevation}
             />
           ) : component.name === 'Toast' ? (

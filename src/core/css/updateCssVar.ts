@@ -46,6 +46,17 @@ export function updateCssVar(
   
   // Apply the update
   root.style.setProperty(cssVarName, trimmedValue)
+  
+  // Dispatch event to notify components of CSS variable updates
+  // This allows components to reactively update when CSS vars change
+  try {
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars: [cssVarName] }
+    }))
+  } catch (e) {
+    // Ignore errors if window is not available (SSR)
+  }
+  
   return true
 }
 
@@ -107,6 +118,15 @@ export function removeCssVar(cssVarName: string): void {
   if (cssVarName.startsWith('--recursica-')) {
     const unprefixed = cssVarName.replace('--recursica-', '--')
     root.style.removeProperty(unprefixed)
+  }
+  
+  // Dispatch event to notify components of CSS variable removal
+  try {
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars: [cssVarName] }
+    }))
+  } catch (e) {
+    // Ignore errors if window is not available (SSR)
   }
 }
 

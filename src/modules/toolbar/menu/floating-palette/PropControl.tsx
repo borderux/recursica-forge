@@ -547,7 +547,7 @@ export default function PropControl({
             }
             
             if (!groupedProp) {
-              console.warn(`PropControl: Grouped prop "${groupedPropName}" not found in borderProps map. Available keys:`, Array.from(prop.borderProps!.keys()))
+              console.warn(`PropControl: Grouped prop "${groupedPropName}" (key: "${groupedPropKey}") not found in borderProps map. Available keys:`, Array.from(prop.borderProps!.keys()))
               return null
             }
             

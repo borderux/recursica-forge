@@ -158,7 +158,9 @@ export function resolveTokenReferenceToCssVar(
   
   // UIKit references → CSS UIKit variables
   if (parsed.type === 'ui-kit') {
-    // Handle UIKit self-references: {ui-kit.0.globals.form.*} or {ui-kit.0.form.*}
+    // Handle UIKit self-references: 
+    // - {ui-kit.0.globals.form.*} (with mode number)
+    // - {ui-kit.components.chip.properties.*} (without mode number)
     // Normalize "ui-kit0" → "ui-kit.0" and ensure proper dot separation
     let normalized = parsed.resolvedPath || parsed.path.join('.')
     normalized = normalized
@@ -167,13 +169,22 @@ export function resolveTokenReferenceToCssVar(
       .replace(/^\.|\.$/g, '') // Remove leading/trailing dots
     
     const parts = normalized.split('.').filter(Boolean)
-    if (parts.length < 3) return null
+    if (parts.length < 2) return null
     
-    // Skip "ui-kit" and mode number (0 or 3), use the rest of the path
-    // {ui-kit.0.globals.form.indicators.colors.required-asterisk} 
-    // → parts: ['ui-kit', '0', 'globals', 'form', 'indicators', 'colors', 'required-asterisk']
-    // → uikitPath: 'globals.form.indicators.colors.required-asterisk'
-    const uikitPath = parts.slice(2).join('.')
+    // Determine if there's a mode number after "ui-kit"
+    // If second part is a number (0 or 3), skip it; otherwise keep all parts after "ui-kit"
+    let uikitPath: string
+    if (parts.length >= 2 && /^[03]$/.test(parts[1])) {
+      // Has mode number: {ui-kit.0.globals.form.*}
+      // Skip "ui-kit" and mode number, use the rest
+      uikitPath = parts.slice(2).join('.')
+    } else {
+      // No mode number: {ui-kit.components.chip.*}
+      // Skip only "ui-kit", keep the rest (including "components")
+      uikitPath = parts.slice(1).join('.')
+    }
+    
+    if (!uikitPath) return null
     
     // Generate CSS var name by joining with hyphens
     const pathParts = uikitPath.split('.').filter(Boolean)

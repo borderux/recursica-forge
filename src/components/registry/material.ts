@@ -25,5 +25,8 @@ registerComponent('material', 'Badge', () => import('../adapters/material/Badge/
 // Toast
 registerComponent('material', 'Toast', () => import('../adapters/material/Toast/Toast'))
 
+// Chip
+registerComponent('material', 'Chip', () => import('../adapters/material/Chip/Chip'))
+
 // Add more components as they're implemented
 

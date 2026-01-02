@@ -1,0 +1,119 @@
+/* Override Mantine Badge styles to use Recursica CSS variables */
+/* Target Mantine Badge with multiple selectors to ensure we catch all variations */
+.recursica-chip-root,
+.mantine-Badge-root,
+[class*="mantine-Badge-root"],
+[class*="Badge-root"],
+.mantine-Badge-root[class*="mantine-Badge"] {
+  background-color: var(--chip-bg, var(--mantine-color-gray-1)) !important;
+  color: var(--chip-color, var(--mantine-color-gray-9)) !important;
+  /* Border uses global CSS variable directly - this is reactive and updates in real time */
+  /* CRITICAL: CSS variables in stylesheets are reactive - they update when the variable on documentElement changes */
+  /* Use border shorthand to ensure all properties are set together */
+  border: var(--recursica-ui-kit-components-chip-properties-border-size, 1px) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
+  padding-left: var(--chip-padding-x) !important;
+  padding-right: var(--chip-padding-x) !important;
+  padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
+  padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
+  /* Override any fixed height from Mantine - let padding and content determine height */
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  border-radius: var(--chip-border-radius, 16px) !important;
+  font-size: var(--chip-font-size, var(--recursica-ui-kit-components-chip-properties-font-size, 16px)) !important;
+  font-weight: var(--recursica-brand-typography-button-font-weight) !important;
+  text-transform: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  cursor: pointer !important;
+  /* Use Chip's min-width and max-width CSS variables */
+  /* This is reactive and updates in real time when the toolbar changes Chip's width */
+  min-width: var(--chip-min-width, var(--recursica-ui-kit-components-chip-properties-min-width)) !important;
+  max-width: var(--chip-max-width, var(--recursica-ui-kit-components-chip-properties-max-width)) !important;
+}
+
+/* Disabled state */
+/* Note: Opacity is now set dynamically in the component's style prop based on theme mode */
+.recursica-chip-root[data-disabled],
+.mantine-Badge-root[data-disabled] {
+  cursor: not-allowed !important;
+}
+
+/* Icon styling - use native leftSection */
+/* CRITICAL: Ensure icon container always has a size when icon exists */
+/* Use very specific selectors to override Mantine defaults */
+.recursica-chip-root .recursica-chip-left-section,
+.recursica-chip-root .mantine-Badge-leftSection,
+.mantine-Badge-root .recursica-chip-left-section,
+.mantine-Badge-root .mantine-Badge-leftSection,
+.recursica-chip-left-section,
+[class*="mantine-Badge-root"] .mantine-Badge-leftSection,
+.mantine-Badge-leftSection,
+/* Even more specific selectors to ensure we override Mantine's inline styles */
+.mantine-Badge-root[class*="mantine-Badge"] .mantine-Badge-leftSection,
+[class*="mantine-Badge-root"][class*="mantine-Badge"] .mantine-Badge-leftSection {
+  color: var(--chip-icon-color, var(--chip-color)) !important;
+  /* Icon size - use CSS variable with fallback to UIKit variable */
+  /* Force exact size - no growth allowed - use fixed pixel fallback */
+  width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  min-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  min-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  max-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  max-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  /* Read UIKit variable directly for real-time updates - CSS variables in stylesheets are reactive */
+  /* When toolbar updates --recursica-ui-kit-components-chip-properties-icon-text-gap on documentElement, this updates automatically */
+  /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-properties-icon-text-gap */
+  margin-inline-end: var(--recursica-ui-kit-components-chip-properties-icon-text-gap, 8px) !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  flex-basis: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+}
+
+/* SVG inside icon container - must respect container size */
+.recursica-chip-root .recursica-chip-left-section svg,
+.recursica-chip-root .mantine-Badge-leftSection svg,
+.mantine-Badge-root .recursica-chip-left-section svg,
+.mantine-Badge-root .mantine-Badge-leftSection svg,
+.recursica-chip-left-section svg,
+[class*="mantine-Badge-root"] .mantine-Badge-leftSection svg,
+.mantine-Badge-leftSection svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  flex-shrink: 0 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  /* Ensure SVG respects container bounds */
+  object-fit: contain !important;
+  /* Prevent SVG from expanding beyond container */
+  overflow: hidden !important;
+}
+
+/* Delete button styling - use native rightSection */
+.recursica-chip-right-section,
+.mantine-Badge-root .mantine-Badge-rightSection,
+.mantine-Badge-rightSection {
+  margin-inline-start: 4px !important;
+}
+
+.recursica-chip-delete {
+  color: inherit !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  opacity: 0.7 !important;
+}
+
+.recursica-chip-delete:hover {
+  opacity: 1 !important;
+}
+
