@@ -5,9 +5,10 @@
  * Note: Carbon uses Tag component for chip-like functionality.
  */
 
+import { useState, useEffect } from 'react'
 import { Tag } from '@carbon/react'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
-import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Chip.css'
 
@@ -29,6 +30,22 @@ export default function Chip({
   ...props
 }: AdapterChipProps) {
   const { mode } = useThemeMode()
+  
+  // Force re-render when CSS vars change (needed for Carbon to pick up CSS var changes)
+  const [, setUpdateKey] = useState(0)
+  
+  useEffect(() => {
+    const handleUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      // Only re-render if chip CSS vars were updated, or if no specific vars were mentioned (global update)
+      if (updatedVars.length === 0 || updatedVars.some((v: string) => v.includes('chip') || v.includes('components-chip'))) {
+        setUpdateKey(prev => prev + 1)
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleUpdate)
+    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+  }, [])
   
   // Map unified size to Carbon size
   const carbonSize = size === 'small' ? 'sm' : 'md'
@@ -57,19 +74,18 @@ export default function Chip({
     chipBorderVar = `var(${layerBase}-border-color)`
   } else {
     // Use UIKit.json chip colors for standard layers
-    // NEW STRUCTURE: variants.styles.{variant}.properties.colors.{layer}.{property}
-    chipBgVar = getComponentCssVar('Chip', 'colors', `${variant}-background`, layer)
-    chipBorderVar = getComponentCssVar('Chip', 'colors', `${variant}-border`, layer)
+    // Use explicit path building instead of parsing variant names from strings
+    chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border', layer)
     
     // For error variant (including error-selected), use component-level error color CSS variables
-    // NEW STRUCTURE: properties.colors.error.text-color
     if (variant === 'error' || variant === 'error-selected') {
       chipColorVar = getComponentLevelCssVar('Chip', 'colors.error.text-color')
       chipIconColorVar = getComponentLevelCssVar('Chip', 'colors.error.icon-color')
     } else {
-      chipColorVar = getComponentCssVar('Chip', 'colors', `${variant}-text`, layer)
+      chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
       // Get icon-color if available, otherwise use text color
-      const iconColorVar = getComponentCssVar('Chip', 'colors', `${variant}-icon-color`, layer)
+      const iconColorVar = buildVariantColorCssVar('Chip', variant, 'icon-color', layer)
       chipIconColorVar = iconColorVar || chipColorVar
     }
   }
@@ -154,6 +170,7 @@ export default function Chip({
   }
   
   // Use native children prop - CSS will handle icon styling
-  return <Tag {...(carbonProps as any)}>{children}</Tag>
+  // Use variant as key to force Carbon to re-render when variant changes
+  return <Tag key={`chip-${variant}-${layer}`} {...(carbonProps as any)}>{children}</Tag>
 }
 

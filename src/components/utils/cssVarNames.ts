@@ -2,7 +2,10 @@
  * CSS Variable Name Utilities
  * 
  * Generates CSS variable names for UIKit components following the pattern:
- * --recursica-ui-kit-components-{component}-{category}-{layer?}-{property}
+ * --recursica-ui-kit-components-{component}-{path-segments}
+ * 
+ * This module provides generic utilities that work with any component structure.
+ * Component-specific logic (like variant parsing) should be handled in component code.
  */
 
 import type { ComponentName, ComponentLayer } from '../registry/types'
@@ -27,20 +30,62 @@ export function toCssVarName(path: string): string {
 }
 
 /**
+ * Builds a CSS variable name from explicit path segments.
+ * This is the generic, component-agnostic way to generate CSS var names.
+ * 
+ * @example
+ * buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
+ * => '--recursica-ui-kit-components-button-variants-styles-solid-properties-colors-layer-0-background'
+ * 
+ * @example
+ * buildComponentCssVarPath('Chip', 'properties', 'horizontal-padding')
+ * => '--recursica-ui-kit-components-chip-properties-horizontal-padding'
+ * 
+ * @param component - Component name (e.g., 'Button', 'Chip')
+ * @param pathSegments - Path segments from UIKit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background'])
+ * @returns CSS variable name
+ */
+export function buildComponentCssVarPath(
+  component: ComponentName,
+  ...pathSegments: string[]
+): string {
+  // Guard against invalid segments
+  const validSegments = pathSegments.filter(segment => 
+    segment && 
+    !segment.includes('undefined') && 
+    !segment.includes('null')
+  )
+  
+  if (validSegments.length === 0) {
+    console.warn(`[buildComponentCssVarPath] No valid path segments for ${component}`)
+    return `--recursica-ui-kit-components-${component.toLowerCase()}-invalid-path`
+  }
+  
+  // Normalize segments: replace dots/spaces with hyphens, lowercase
+  const normalizedSegments = validSegments.map(segment => 
+    segment.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
+  )
+  
+  // Build path: components.{component}.{path-segments}
+  const parts = ['components', component.toLowerCase(), ...normalizedSegments]
+  return toCssVarName(parts.join('.'))
+}
+
+/**
  * Generates CSS variable name for a UIKit component property
  * 
- * @example
- * getComponentCssVar('Button', 'color', 'background-solid', 'layer-0')
- * => '--recursica-ui-kit-components-button-color-layer-0-variant-solid-background'
+ * @deprecated This function contains component-specific logic. 
+ * Prefer using `buildComponentCssVarPath` with explicit path segments.
+ * 
+ * This function attempts to parse variant names from property strings,
+ * which requires hardcoded knowledge of component variants.
  * 
  * @example
- * getComponentCssVar('Button', 'size', 'default-height', undefined)
- * => '--recursica-ui-kit-components-button-size-variant-default-height'
+ * // Instead of:
+ * getComponentCssVar('Chip', 'colors', 'unselected-background', 'layer-0')
  * 
- * @example
- * getComponentCssVar('Button', 'size', 'font-size', undefined)
- * => '--recursica-ui-kit-components-button-font-size'
- * Note: font-size and border-radius are siblings of 'size', not children
+ * // Use:
+ * buildComponentCssVarPath('Chip', 'variants', 'styles', 'unselected', 'properties', 'colors', 'layer-0', 'background')
  */
 export function getComponentCssVar(
   component: ComponentName,
@@ -51,7 +96,6 @@ export function getComponentCssVar(
   // Guard against undefined/null values being stringified into property names
   if (!property || property.includes('undefined') || property.includes('null')) {
     console.warn(`[getComponentCssVar] Invalid property value for ${component}: "${property}"`)
-    // Return a safe fallback variable name
     return `--recursica-ui-kit-components-${component.toLowerCase()}-invalid-property`
   }
   
@@ -60,127 +104,87 @@ export function getComponentCssVar(
     category = 'colors'
   }
   
+  // Component-specific logic - this should be moved to component code
+  // For now, we maintain backward compatibility by attempting to parse variants
+  
   // Properties that are direct children of the component (not under a category)
-  // These are siblings of 'size' and 'color' in UIKit.json
   const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
   
   // Toast-specific: size properties are directly under toast (not under toast.size)
-  // So they should be treated as component-level properties
   const toastSizeProperties = ['vertical-padding', 'horizontal-padding', 'spacing', 'min-width', 'max-width', 'icon']
   const isToastSizeProperty = component.toLowerCase() === 'toast' && category === 'size' && toastSizeProperties.includes(property.toLowerCase())
   
-  // Check if this is a component-level property (not under size/color category)
+  // Check if this is a component-level property
   const isComponentLevel = componentLevelProperties.includes(property.toLowerCase()) || isToastSizeProperty
   
   if (isComponentLevel) {
-    // Component-level properties are under components.{component}.properties.{property}
-    // This matches the UIKit.json structure: button.properties.font-size
-    const parts = ['components', component.toLowerCase(), 'properties']
-    const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-    parts.push(normalizedProperty)
-    return toCssVarName(parts.join('.'))
+    return buildComponentCssVarPath(component, 'properties', property)
   }
   
-  const parts = ['components', component.toLowerCase()]
-  
-  // For size category, use NEW STRUCTURE: variants.sizes.{variant-name}.properties.{property}
-  // For Avatar: variants.sizes.variants.{variant-name}.properties.size
+  // For size category
   if (category === 'size') {
     const variantMatch = property.match(/^(default|small|large)-(.+)$/)
     if (variantMatch) {
       const [, variantName, propName] = variantMatch
-      parts.push('variants', 'sizes', variantName, 'properties', propName)
+      return buildComponentCssVarPath(component, 'variants', 'sizes', variantName, 'properties', propName)
     } else if (/^(default|small|large)$/.test(property)) {
-      // Property is just a variant name (e.g., "default", "small", "large")
-      // NEW STRUCTURE: variants.sizes.{variant}.properties.size
-      // This is used by Avatar where size variants have a "size" property inside "properties"
-      parts.push('variants', 'sizes', property, 'properties', 'size')
+      return buildComponentCssVarPath(component, 'variants', 'sizes', property, 'properties', 'size')
     } else {
-      // Non-variant size property (e.g., "icon", "border-radius", "font-size")
-      // These are now in properties, not variants
-      const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-      parts.push(normalizedProperty)
-    }
-  } else {
-    // For colors category
-    // Check if this is Switch which has colors directly under properties (not under variants)
-    if (component.toLowerCase() === 'switch') {
-      // Switch structure: properties.colors.{layer}.{property}
-      // Note: Switch code may pass properties like "default-thumb-selected", but the actual structure
-      // is just "thumb-selected" under properties.colors (no variant prefix)
-      let propName = property
-      // Strip variant prefix if present (e.g., "default-thumb-selected" -> "thumb-selected")
-      const variantPrefixMatch = property.match(/^(default|small|large|solid|text|outline|primary|ghost|success|error|warning|alert)-(.+)$/)
-      if (variantPrefixMatch) {
-        propName = variantPrefixMatch[2]
-      }
-      parts.push('properties', 'colors')
-      if (layer) {
-        parts.push(layer)
-      }
-      const normalizedProperty = propName.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-      parts.push(normalizedProperty)
-    } else {
-      // For other components, use NEW STRUCTURE: variants.styles.{variant-name}.colors.{layer}.{property}
-      // For nested variants (Avatar): variants.styles.text.variants.solid.colors.layer-0.background
-      // For single variants (Button/Toast/Badge): variants.styles.solid.colors.layer-0.background
-      
-      // Check for nested variants (e.g., "text-solid-background" for Avatar)
-      const nestedVariantMatch = property.match(/^(text|icon)-(solid|ghost)-(.+)$/)
-      if (nestedVariantMatch) {
-        // NEW STRUCTURE: variants.styles.{primary-variant}.variants.{secondary-variant}.properties.colors.{layer}.{property}
-        const [, primaryVariant, secondaryVariant, propName] = nestedVariantMatch
-        parts.push('variants', 'styles', primaryVariant, 'variants', secondaryVariant, 'properties', 'colors')
-        if (layer) {
-          parts.push(layer)
-        }
-        parts.push(propName)
-      } else {
-        // Check for image variant (e.g., "image-background")
-        const imageVariantMatch = property.match(/^image-(.+)$/)
-        if (imageVariantMatch) {
-          const [, propName] = imageVariantMatch
-          parts.push('variants', 'styles', 'image', 'properties', 'colors')
-          if (layer) {
-            parts.push(layer)
-          }
-          parts.push(propName)
-        } else {
-          // Single-level variant (e.g., "solid-background", "outline-text", "default-background", "success-background", "error-background")
-          // Check if property starts with a known variant name followed by a hyphen
-          const knownVariants = ['solid', 'text', 'outline', 'default', 'primary-color', 'primary', 'ghost', 'success', 'error', 'warning', 'alert']
-          let variantName: string | null = null
-          let propName: string | null = null
-          
-          // Try to match known variants at the start of the property (longest match first)
-          const sortedVariants = knownVariants.sort((a, b) => b.length - a.length)
-          for (const variant of sortedVariants) {
-            if (property.startsWith(`${variant}-`)) {
-              variantName = variant
-              propName = property.substring(variant.length + 1) // +1 for the hyphen
-              break
-            }
-          }
-          
-          if (variantName && propName) {
-            // Use new structure: variants.styles.{name}.properties.colors.{layer}.{property}
-            parts.push('variants', 'styles', variantName, 'properties', 'colors')
-            if (layer) {
-              parts.push(layer)
-            }
-            parts.push(propName)
-          } else {
-            // Non-variant color property (legacy support)
-            parts.push(category)
-            const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-            parts.push(normalizedProperty)
-          }
-        }
-      }
+      return buildComponentCssVarPath(component, 'properties', property)
     }
   }
   
-  return toCssVarName(parts.join('.'))
+  // For colors category
+  // Switch has colors directly under properties (not under variants)
+  if (component.toLowerCase() === 'switch') {
+    let propName = property
+    // Strip variant prefix if present
+    const variantPrefixMatch = property.match(/^(default|small|large|solid|text|outline|primary|ghost|success|error|warning|alert)-(.+)$/)
+    if (variantPrefixMatch) {
+      propName = variantPrefixMatch[2]
+    }
+    const pathSegments: string[] = ['properties', 'colors']
+    if (layer) pathSegments.push(layer)
+    pathSegments.push(propName)
+    return buildComponentCssVarPath(component, ...pathSegments)
+  }
+  
+  // Check for nested variants (e.g., "text-solid-background" for Avatar)
+  const nestedVariantMatch = property.match(/^(text|icon)-(solid|ghost)-(.+)$/)
+  if (nestedVariantMatch) {
+    const [, primaryVariant, secondaryVariant, propName] = nestedVariantMatch
+    const pathSegments: string[] = ['variants', 'styles', primaryVariant, 'variants', secondaryVariant, 'properties', 'colors']
+    if (layer) pathSegments.push(layer)
+    pathSegments.push(propName)
+    return buildComponentCssVarPath(component, ...pathSegments)
+  }
+  
+  // Check for image variant
+  const imageVariantMatch = property.match(/^image-(.+)$/)
+  if (imageVariantMatch) {
+    const [, propName] = imageVariantMatch
+    const pathSegments: string[] = ['variants', 'styles', 'image', 'properties', 'colors']
+    if (layer) pathSegments.push(layer)
+    pathSegments.push(propName)
+    return buildComponentCssVarPath(component, ...pathSegments)
+  }
+  
+  // Try to parse single-level variant from property string
+  // NOTE: This requires hardcoded variant names - components should use buildComponentCssVarPath directly
+  const knownVariants = ['solid', 'text', 'outline', 'default', 'primary-color', 'primary', 'ghost', 'success', 'error-selected', 'error', 'warning', 'alert', 'unselected', 'selected']
+  const sortedVariants = knownVariants.sort((a, b) => b.length - a.length)
+  for (const variant of sortedVariants) {
+    if (property.startsWith(`${variant}-`)) {
+      const propName = property.substring(variant.length + 1)
+      const pathSegments: string[] = ['variants', 'styles', variant, 'properties', 'colors']
+      if (layer) pathSegments.push(layer)
+      pathSegments.push(propName)
+      return buildComponentCssVarPath(component, ...pathSegments)
+    }
+  }
+  
+  // Fallback: legacy support
+  return buildComponentCssVarPath(component, category, property)
 }
 
 /**
@@ -208,6 +212,8 @@ export function getFormCssVar(
 /**
  * Generates CSS variable name for component-level properties (elevation, etc.)
  * 
+ * This is a convenience wrapper around `buildComponentCssVarPath` for component-level properties.
+ * 
  * @example
  * getComponentLevelCssVar('Button', 'elevation')
  * => '--recursica-ui-kit-components-button-properties-elevation'
@@ -215,13 +221,51 @@ export function getFormCssVar(
  * @example
  * getComponentLevelCssVar('Toast', 'text-size')
  * => '--recursica-ui-kit-components-toast-properties-text-size'
+ * 
+ * @example
+ * getComponentLevelCssVar('Chip', 'colors.error.text-color')
+ * => '--recursica-ui-kit-components-chip-properties-colors-error-text-color'
  */
 export function getComponentLevelCssVar(
   component: ComponentName,
   property: string
 ): string {
-  // Component-level properties are under components.{component}.properties.{property}
-  const parts = ['components', component.toLowerCase(), 'properties', property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()]
-  return toCssVarName(parts.join('.'))
+  // Handle nested properties (e.g., 'colors.error.text-color')
+  const propertyParts = property.split('.').filter(Boolean)
+  return buildComponentCssVarPath(component, 'properties', ...propertyParts)
+}
+
+/**
+ * Helper function to build CSS var path for variant color properties
+ * 
+ * @example
+ * buildVariantColorCssVar('Chip', 'unselected', 'background', 'layer-0')
+ * => '--recursica-ui-kit-components-chip-variants-styles-unselected-properties-colors-layer-0-background'
+ */
+export function buildVariantColorCssVar(
+  component: ComponentName,
+  variant: string,
+  property: string,
+  layer?: ComponentLayer
+): string {
+  const pathSegments: string[] = ['variants', 'styles', variant, 'properties', 'colors']
+  if (layer) pathSegments.push(layer)
+  pathSegments.push(property)
+  return buildComponentCssVarPath(component, ...pathSegments)
+}
+
+/**
+ * Helper function to build CSS var path for variant size properties
+ * 
+ * @example
+ * buildVariantSizeCssVar('Button', 'default', 'height')
+ * => '--recursica-ui-kit-components-button-variants-sizes-default-properties-height'
+ */
+export function buildVariantSizeCssVar(
+  component: ComponentName,
+  variant: string,
+  property: string
+): string {
+  return buildComponentCssVarPath(component, 'variants', 'sizes', variant, 'properties', property)
 }
 

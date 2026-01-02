@@ -7,7 +7,7 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { buildVariantColorCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -64,7 +64,7 @@ export function Chip({
   useEffect(() => {
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
-      // Update if this CSS var was updated or if no specific vars were specified
+      // Update elevation if it was changed
       if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
         const value = readCssVar(elevationVar)
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
@@ -73,7 +73,7 @@ export function Chip({
     
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     
-    // Also watch for direct style changes using MutationObserver
+    // Also watch for direct style changes using MutationObserver (only for elevation)
     const observer = new MutationObserver(() => {
       const value = readCssVar(elevationVar)
       setElevationFromVar(value ? parseElevationValue(value) : undefined)
@@ -212,16 +212,15 @@ function getChipStyles(
     borderVar = `${layerBase}-border-color`
   } else {
     // Use UIKit.json chip colors for standard layers
-    // NEW STRUCTURE: variants.styles.{variant}.properties.colors.{layer}.{property}
-    bgVar = getComponentCssVar('Chip', 'colors', `${variant}-background`, layer)
-    borderVar = getComponentCssVar('Chip', 'colors', `${variant}-border`, layer)
+    // Use explicit path building instead of parsing variant names from strings
+    bgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    borderVar = buildVariantColorCssVar('Chip', variant, 'border', layer)
     
     // For error variant (including error-selected), use component-level error color CSS variables
-    // NEW STRUCTURE: properties.colors.error.text-color
     if (variant === 'error' || variant === 'error-selected') {
       textVar = getComponentLevelCssVar('Chip', 'colors.error.text-color')
     } else {
-      textVar = getComponentCssVar('Chip', 'colors', `${variant}-text`, layer)
+      textVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
     }
   }
   
