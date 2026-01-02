@@ -13,14 +13,14 @@
   border: var(--recursica-ui-kit-components-chip-border-size, 1px) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
   padding-left: var(--chip-padding-x) !important;
   padding-right: var(--chip-padding-x) !important;
-  padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
-  padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
+  padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
+  padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
   /* Override any fixed height from Mantine - let padding and content determine height */
   height: auto !important;
   min-height: auto !important;
   max-height: none !important;
   border-radius: var(--chip-border-radius, 16px) !important;
-  font-size: var(--chip-font-size, var(--recursica-ui-kit-components-chip-font-size, 16px)) !important;
+  font-size: var(--chip-font-size, var(--recursica-ui-kit-components-chip-properties-font-size, 16px)) !important;
   font-weight: var(--recursica-brand-typography-button-font-weight) !important;
   text-transform: none !important;
   display: inline-flex !important;
@@ -28,8 +28,8 @@
   cursor: pointer !important;
   /* Use Chip's min-width and max-width CSS variables */
   /* This is reactive and updates in real time when the toolbar changes Chip's width */
-  min-width: var(--chip-min-width, var(--recursica-ui-kit-components-chip-min-width)) !important;
-  max-width: var(--chip-max-width, var(--recursica-ui-kit-components-chip-max-width)) !important;
+  min-width: var(--chip-min-width, var(--recursica-ui-kit-components-chip-properties-min-width)) !important;
+  max-width: var(--chip-max-width, var(--recursica-ui-kit-components-chip-properties-max-width)) !important;
 }
 
 /* Disabled state */
@@ -55,19 +55,19 @@
   color: var(--chip-icon-color, var(--chip-color)) !important;
   /* Icon size - use CSS variable with fallback to UIKit variable */
   /* Force exact size - no growth allowed - use fixed pixel fallback */
-  width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
-  height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
-  min-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
-  min-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
-  max-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
-  max-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon, 16px)) !important;
+  height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon, 16px)) !important;
+  min-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon, 16px)) !important;
+  min-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon, 16px)) !important;
+  max-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon, 16px)) !important;
+  max-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon, 16px)) !important;
   /* Read UIKit variable directly for real-time updates - CSS variables in stylesheets are reactive */
-  /* When toolbar updates --recursica-ui-kit-components-chip-icon-text-gap on documentElement, this updates automatically */
-  /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-icon-text-gap */
-  margin-inline-end: var(--recursica-ui-kit-components-chip-icon-text-gap, 8px) !important;
+  /* When toolbar updates --recursica-ui-kit-components-chip-properties-icon-text-gap on documentElement, this updates automatically */
+  /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-properties-icon-text-gap */
+  margin-inline-end: var(--recursica-ui-kit-components-chip-properties-icon-text-gap, 8px) !important;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
-  flex-basis: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-icon, 16px)) !important;
+  flex-basis: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon, 16px)) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;

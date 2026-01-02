@@ -136,8 +136,8 @@ export default function Chip({
       } : {}),
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Don't set --chip-icon-text-gap here - let CSS use UIKit variable directly for real-time updates
-      '--chip-padding-x': `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,
-      '--chip-padding-y': `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
+      '--chip-padding-x': `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,
+      '--chip-padding-y': `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
       '--chip-border-size': `var(${borderSizeVar})`,
       '--chip-border-radius': `var(${borderRadiusVar})`,
       '--chip-font-size': fontSizeVar ? `var(${fontSizeVar})` : undefined,
