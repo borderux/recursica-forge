@@ -163,7 +163,12 @@ export default function ComponentToolbar({
     if (toolbarConfig?.props) {
       for (const [parentPropName, parentPropConfig] of Object.entries(toolbarConfig.props)) {
         if (parentPropConfig.group) {
-          const groupedProps = groupedPropsMap.get(parentPropName.toLowerCase()) || new Map()
+          // Get or create the grouped props map for this parent prop
+          let groupedProps = groupedPropsMap.get(parentPropName.toLowerCase())
+          if (!groupedProps) {
+            groupedProps = new Map()
+            groupedPropsMap.set(parentPropName.toLowerCase(), groupedProps)
+          }
           
           // Also check if the parent prop itself is in the structure (it might be in its own group)
           const parentProp = structure.props.find(p => p.name.toLowerCase() === parentPropName.toLowerCase())
@@ -179,8 +184,18 @@ export default function ComponentToolbar({
               if (!groupedProp && groupedPropName.toLowerCase() === 'border-color') {
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
               }
+              // If still not found, try to find it by exact name match (case-insensitive)
+              if (!groupedProp) {
+                groupedProp = structure.props.find(p => 
+                  p.name.toLowerCase() === groupedPropName.toLowerCase() ||
+                  p.name === groupedPropName
+                )
+              }
               if (groupedProp) {
                 groupedProps.set(groupedPropName.toLowerCase(), groupedProp)
+              } else {
+                // Debug: log if prop is not found
+                console.warn(`ComponentToolbar: Grouped prop "${groupedPropName}" not found in structure.props for ${componentName}. Available props:`, structure.props.map(p => p.name))
               }
             }
           }

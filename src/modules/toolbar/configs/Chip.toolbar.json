@@ -21,10 +21,6 @@
       "label": "Border",
       "visible": true,
       "group": {
-        "border-color": {
-          "label": "Color",
-          "visible": true
-        },
         "border-size": {
           "label": "Size",
           "visible": true
@@ -32,11 +28,15 @@
         "border-radius": {
           "label": "Corner Radius",
           "visible": true
+        },
+        "border-color": {
+          "label": "Color",
+          "visible": true
         }
       }
     },
     "padding": {
-      "icon": "arrows-out",
+      "icon": "square-logo",
       "label": "Padding",
       "visible": true,
       "group": {
@@ -81,7 +81,7 @@
       "visible": true
     },
     "elevation": {
-      "icon": "stack",
+      "icon": "copy-simple",
       "label": "Elevation",
       "visible": true
     }

@@ -59,7 +59,7 @@
       }
     },
     "padding": {
-      "icon": "arrows-pointing-out",
+      "icon": "square-logo",
       "label": "Padding",
       "visible": true
     },
