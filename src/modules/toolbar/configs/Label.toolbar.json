@@ -5,7 +5,7 @@
       "label": "Layout"
     },
     "size": {
-      "icon": "arrows-left-right",
+      "icon": "resize",
       "label": "Size"
     }
   },
@@ -68,16 +68,6 @@
     "label-width": {
       "icon": "arrows-left-right",
       "label": "Label Width",
-      "visible": true
-    },
-    "label-width-large": {
-      "icon": "arrows-left-right",
-      "label": "Label Width (Large)",
-      "visible": true
-    },
-    "label-width-small": {
-      "icon": "arrows-left-right",
-      "label": "Label Width (Small)",
       "visible": true
     }
   }

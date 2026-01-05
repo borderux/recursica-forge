@@ -1972,6 +1972,32 @@
                   "$type": "dimension",
                   "$value": "{ui-kit.components.label.properties.stacked.bottom-padding}"
                 }
+              },
+              "variants": {
+                "sizes": {
+                  "large": {
+                    "properties": {
+                      "width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 224,
+                          "unit": "px"
+                        }
+                      }
+                    }
+                  },
+                  "small": {
+                    "properties": {
+                      "width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 160,
+                          "unit": "px"
+                        }
+                      }
+                    }
+                  }
+                }
               }
             },
             "side-by-side": {
@@ -1979,13 +2005,6 @@
                 "height": {
                   "$type": "dimension",
                   "$value": "{ui-kit.components.label.properties.label-max-height}"
-                },
-                "label-width": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{ui-kit.components.label.properties.label-width-large}",
-                    "unit": "px"
-                  }
                 },
                 "gutter": {
                   "$type": "dimension",
@@ -2001,23 +2020,31 @@
                     "unit": "px"
                   }
                 }
-              }
-            }
-          },
-          "sizes": {
-            "large": {
-              "properties": {
-                "width": {
-                  "$type": "dimension",
-                  "$value": "{ui-kit.components.label.properties.label-width-large}"
-                }
-              }
-            },
-            "small": {
-              "properties": {
-                "width": {
-                  "$type": "dimension",
-                  "$value": "{ui-kit.components.label.properties.label-width-small}"
+              },
+              "variants": {
+                "sizes": {
+                  "large": {
+                    "properties": {
+                      "width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 224,
+                          "unit": "px"
+                        }
+                      }
+                    }
+                  },
+                  "small": {
+                    "properties": {
+                      "width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 160,
+                          "unit": "px"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -2106,14 +2133,28 @@
               "unit": "px"
             }
           },
-          "label-width-large": {
+          "label-width-stacked-large": {
             "$type": "dimension",
             "$value": {
               "value": 224,
               "unit": "px"
             }
           },
-          "label-width-small": {
+          "label-width-stacked-small": {
+            "$type": "dimension",
+            "$value": {
+              "value": 160,
+              "unit": "px"
+            }
+          },
+          "label-width-side-by-side-large": {
+            "$type": "dimension",
+            "$value": {
+              "value": 224,
+              "unit": "px"
+            }
+          },
+          "label-width-side-by-side-small": {
             "$type": "dimension",
             "$value": {
               "value": 160,

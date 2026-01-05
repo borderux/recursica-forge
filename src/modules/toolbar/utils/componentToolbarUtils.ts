@@ -77,6 +77,48 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         return
       }
 
+      // Check if this key is a category container (styles, sizes, layouts) when traversing nested variants
+      // This handles cases like variants.layouts.stacked.variants.sizes where we traverse directly into the nested variants object
+      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts') && 
+                                   typeof value === 'object' && 
+                                   !('$value' in value) &&
+                                   variantProp !== undefined // Only check this when we're inside a variant
+      
+      if (isCategoryContainer) {
+        // This is a category container inside nested variants (e.g., sizes inside layouts.stacked.variants)
+        const categoryKey = key
+        const categoryObj = value
+        const variantNames = Object.keys(categoryObj).filter(k => !k.startsWith('$'))
+        
+        if (variantNames.length > 0) {
+          const finalPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
+          const isNestedSize = finalPropName === 'size' && variantProp === 'layout'
+          const shouldAdd = isNestedSize || !seenVariants.has(finalPropName)
+          
+          if (shouldAdd) {
+            if (!isNestedSize) {
+              seenVariants.add(finalPropName)
+            }
+            
+            const existingVariant = variants.find(v => v.propName === finalPropName)
+            if (existingVariant) {
+              const mergedVariants = Array.from(new Set([...existingVariant.variants, ...variantNames]))
+              existingVariant.variants = mergedVariants
+            } else {
+              variants.push({
+                propName: finalPropName,
+                variants: variantNames,
+              })
+            }
+          }
+        }
+        
+        // Continue traversing into the category container
+        const variantPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
+        traverse(categoryObj, currentPath, variantPropName)
+        return
+      }
+
       // Check if this is a "variants" node
       if (key === 'variants' && typeof value === 'object' && !('$value' in value)) {
         // Check if this variants object contains category containers (styles, sizes, layouts)
@@ -104,13 +146,23 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                 const shouldAdd = isNestedSize || !seenVariants.has(finalPropName)
                 
                 if (shouldAdd) {
+                  // For nested size variants, don't add to seenVariants so we can merge from multiple layouts
                   if (!isNestedSize) {
                     seenVariants.add(finalPropName)
                   }
-                  variants.push({
-                    propName: finalPropName,
-                    variants: variantNames,
-                  })
+                  
+                  // Check if we already have a variant entry for this propName (for nested variants)
+                  const existingVariant = variants.find(v => v.propName === finalPropName)
+                  if (existingVariant) {
+                    // Merge variant names, keeping unique values
+                    const mergedVariants = Array.from(new Set([...existingVariant.variants, ...variantNames]))
+                    existingVariant.variants = mergedVariants
+                  } else {
+                    variants.push({
+                      propName: finalPropName,
+                      variants: variantNames,
+                    })
+                  }
                 }
               }
             }
@@ -130,6 +182,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                   if ('variants' in variantObj && typeof variantObj.variants === 'object') {
                     // Nested variants: variants.layouts.side-by-side.variants.sizes
                     // Traverse the nested variants to detect category containers
+                    // Pass the variantPropName so nested variants know they're inside a parent variant
                     traverse(variantObj.variants, [...currentPath, categoryKey, variantKey, 'variants'], variantPropName)
                     // Also traverse any properties if they exist
                     if ('properties' in variantObj && typeof variantObj.properties === 'object') {

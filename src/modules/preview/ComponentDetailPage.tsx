@@ -82,25 +82,36 @@ export default function ComponentDetailPage() {
   }, [selectedVariants.size])
 
   // Build caption text with variant and layer info
+  // Only show variants that are actually selectable (have more than one option)
   const captionText = useMemo(() => {
     const parts: string[] = []
     
-    // Add style variant (e.g., "Solid") - use 'style' instead of 'color' to match new structure
-    const styleVariant = selectedVariants.style || 'solid'
-    const styleVariantLabel = styleVariant.charAt(0).toUpperCase() + styleVariant.slice(1)
-    parts.push(styleVariantLabel)
-    
-    // Add size variant (e.g., "Default")
-    const sizeVariant = selectedVariants.size || 'default'
-    const sizeVariantLabel = sizeVariant.charAt(0).toUpperCase() + sizeVariant.slice(1)
-    parts.push(sizeVariantLabel)
+    if (componentStructure) {
+      // Only show variants that have more than one option (are selectable)
+      componentStructure.variants.forEach(variant => {
+        if (variant.variants.length > 1) {
+          const variantValue = selectedVariants[variant.propName] || variant.variants[0]
+          
+          // Format variant label based on prop name and value
+          let variantLabel: string
+          if (variant.propName === 'layout' && variantValue === 'side-by-side') {
+            variantLabel = 'Side By Side'
+          } else {
+            // Capitalize first letter
+            variantLabel = variantValue.charAt(0).toUpperCase() + variantValue.slice(1)
+          }
+          
+          parts.push(variantLabel)
+        }
+      })
+    }
     
     // Add layer (e.g., "Layer 0")
     const layerNum = selectedLayer.replace('layer-', '')
     parts.push(`Layer ${layerNum}`)
     
     return parts.join(' / ')
-  }, [selectedVariants, selectedLayer])
+  }, [selectedVariants, selectedLayer, componentStructure])
 
   if (!component) {
     return (

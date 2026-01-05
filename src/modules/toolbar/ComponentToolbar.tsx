@@ -245,17 +245,42 @@ export default function ComponentToolbar({
         }
       }
     }
+    
+    // Fourth pass: create virtual props for props in toolbar config but not in structure
+    // This allows props like "label-width" that are handled specially but don't exist as component-level props
+    if (toolbarConfig?.props) {
+      for (const [propName, propConfig] of Object.entries(toolbarConfig.props)) {
+        const propNameLower = propName.toLowerCase()
+        
+        // Skip if prop already exists or is a grouped prop
+        if (propsMap.has(propNameLower) || propConfig.group) {
+          continue
+        }
+        
+        // Create virtual prop for label-width
+        if (componentName.toLowerCase() === 'label' && propNameLower === 'label-width') {
+          const layoutVariant = selectedVariants.layout || 'stacked'
+          const sizeVariant = selectedVariants.size || 'large'
+          const virtualProp: ComponentProp = {
+            name: 'label-width',
+            category: 'size',
+            type: 'dimension',
+            cssVar: `--recursica-ui-kit-components-label-variants-layouts-${layoutVariant}-variants-sizes-${sizeVariant}-properties-width`,
+            path: ['variants', 'layouts', layoutVariant, 'variants', 'sizes', sizeVariant, 'properties', 'width'],
+            isVariantSpecific: true,
+            variantProp: 'layout',
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+      }
+    }
 
     // Filter props based on selected variants and layer
     const filteredProps = Array.from(propsMap.values()).filter(prop => {
       // Props with groups (borderProps) should never be filtered out - they handle their own variant logic internally
       if (prop.borderProps && prop.borderProps.size > 0) {
         return true
-      }
-      
-      // Special case for Label component: label-width should only show when layout is side-by-side
-      if (componentName.toLowerCase() === 'label' && prop.name.toLowerCase() === 'label-width') {
-        return selectedVariants.layout === 'side-by-side'
       }
       
       // Filter variant-specific props that don't match selected variants
