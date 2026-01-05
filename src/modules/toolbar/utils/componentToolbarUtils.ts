@@ -81,6 +81,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
       if (key === 'variants' && typeof value === 'object' && !('$value' in value)) {
         // Check if this variants object contains category containers (styles, sizes, layouts)
         // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left
+        // Also handles nested: variants.layouts.side-by-side.variants.sizes.large
         const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts'))
         
         if (categoryKeys.length > 0) {
@@ -96,9 +97,16 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                 // Determine prop name based on category
                 const finalPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
                 
-                // Only add variant if we haven't seen this finalPropName before
-                if (!seenVariants.has(finalPropName)) {
-                  seenVariants.add(finalPropName)
+                // For nested variants (e.g., size inside layout), check if we should add it
+                // If we're already inside a layout variant, and this is a size category, add it
+                // Otherwise, only add if we haven't seen this finalPropName before
+                const isNestedSize = finalPropName === 'size' && variantProp === 'layout'
+                const shouldAdd = isNestedSize || !seenVariants.has(finalPropName)
+                
+                if (shouldAdd) {
+                  if (!isNestedSize) {
+                    seenVariants.add(finalPropName)
+                  }
                   variants.push({
                     propName: finalPropName,
                     variants: variantNames,
@@ -118,8 +126,16 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                 if (variantKey.startsWith('$')) return
                 const variantObj = (categoryObj as any)[variantKey]
                 if (variantObj && typeof variantObj === 'object') {
-                  // Check if variant has a "properties" key (new structure)
-                  if ('properties' in variantObj && typeof variantObj.properties === 'object') {
+                  // Check if variant has nested "variants" key first (for nested variant structures)
+                  if ('variants' in variantObj && typeof variantObj.variants === 'object') {
+                    // Nested variants: variants.layouts.side-by-side.variants.sizes
+                    // Traverse the nested variants to detect category containers
+                    traverse(variantObj.variants, [...currentPath, categoryKey, variantKey, 'variants'], variantPropName)
+                    // Also traverse any properties if they exist
+                    if ('properties' in variantObj && typeof variantObj.properties === 'object') {
+                      traverse(variantObj.properties, [...currentPath, categoryKey, variantKey, 'properties'], variantPropName)
+                    }
+                  } else if ('properties' in variantObj && typeof variantObj.properties === 'object') {
                     // New structure: variants.styles.solid.properties.colors...
                     traverse(variantObj.properties, [...currentPath, categoryKey, variantKey, 'properties'], variantPropName)
                   } else {

@@ -33,176 +33,48 @@ export default function LabelPreview({
   const gapValue = gutterVar ? `var(${gutterVar})` : '0px'
 
   if (isSideBySide) {
-    // Show side-by-side layout with all three variants, both left and right aligned
+    // Show side-by-side layout with all three style variants, both alignments, and selected size
+    // If no size is selected, show both sizes
+    const styleVariants: Array<'default' | 'required' | 'optional'> = ['default', 'required', 'optional']
+    const alignments: Array<'left' | 'right'> = ['left', 'right']
+    const sizesToShow: Array<'large' | 'small'> = sizeVariant ? [sizeVariant] : ['large', 'small']
+    
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
-        {/* Left-aligned labels */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Default label - left */}
-          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
-            <Label
-              variant="default"
-              size={sizeVariant}
-              layout={layoutVariant}
-              align="left"
-              layer={selectedLayer as any}
-              htmlFor="input-1-left"
-            >
-              Label
-            </Label>
-            {isSideBySide && (
-              <input
-                id="input-1-left"
-                type="text"
-                placeholder="Input field"
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-                  borderRadius: '4px',
-                }}
-              />
-            )}
-          </div>
-          
-          {/* Required label - left */}
-          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
-            <Label
-              variant="required"
-              size={sizeVariant}
-              layout={layoutVariant}
-              align="left"
-              layer={selectedLayer as any}
-              htmlFor="input-2-left"
-            >
-              Label
-            </Label>
-            {isSideBySide && (
-              <input
-                id="input-2-left"
-                type="text"
-                placeholder="Input field"
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-                  borderRadius: '4px',
-                }}
-              />
-            )}
-          </div>
-          
-          {/* Optional label - left */}
-          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
-            <Label
-              variant="optional"
-              size={sizeVariant}
-              layout={layoutVariant}
-              align="left"
-              layer={selectedLayer as any}
-              htmlFor="input-3-left"
-            >
-              Label
-            </Label>
-            {isSideBySide && (
-              <input
-                id="input-3-left"
-                type="text"
-                placeholder="Input field"
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-                  borderRadius: '4px',
-                }}
-              />
-            )}
-          </div>
-        </div>
-        
-        {/* Right-aligned labels (labels still to left of field, but text is right-aligned) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Default label - right */}
-          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
-            <Label
-              variant="default"
-              size={sizeVariant}
-              layout={layoutVariant}
-              align="right"
-              layer={selectedLayer as any}
-              htmlFor="input-1-right"
-            >
-              Label
-            </Label>
-            {isSideBySide && (
-              <input
-                id="input-1-right"
-                type="text"
-                placeholder="Input field"
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-                  borderRadius: '4px',
-                }}
-              />
-            )}
-          </div>
-          
-          {/* Required label - right */}
-          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
-            <Label
-              variant="required"
-              size={sizeVariant}
-              layout={layoutVariant}
-              align="right"
-              layer={selectedLayer as any}
-              htmlFor="input-2-right"
-            >
-              Label
-            </Label>
-            {isSideBySide && (
-              <input
-                id="input-2-right"
-                type="text"
-                placeholder="Input field"
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-                  borderRadius: '4px',
-                }}
-              />
-            )}
-          </div>
-          
-          {/* Optional label - right */}
-          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
-            <Label
-              variant="optional"
-              size={sizeVariant}
-              layout={layoutVariant}
-              align="right"
-              layer={selectedLayer as any}
-              htmlFor="input-3-right"
-            >
-              Label
-            </Label>
-            {isSideBySide && (
-              <input
-                id="input-3-right"
-                type="text"
-                placeholder="Input field"
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-                  borderRadius: '4px',
-                }}
-              />
-            )}
-          </div>
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+        {sizesToShow.map((size) =>
+          alignments.map((align) => (
+            <div key={`${size}-${align}`} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#666', marginBottom: 4 }}>
+                {size.charAt(0).toUpperCase() + size.slice(1)} Size, {align.charAt(0).toUpperCase() + align.slice(1)} Aligned
+              </div>
+              {styleVariants.map((styleVariant) => (
+                <div key={`${size}-${align}-${styleVariant}`} style={{ display: 'flex', gap: gapValue, alignItems: 'center', width: '100%' }}>
+                  <Label
+                    variant={styleVariant}
+                    size={size}
+                    layout={layoutVariant}
+                    align={align}
+                    layer={selectedLayer as any}
+                    htmlFor={`input-${size}-${align}-${styleVariant}`}
+                  >
+                    Label
+                  </Label>
+                  <input
+                    id={`input-${size}-${align}-${styleVariant}`}
+                    type="text"
+                    placeholder="Input field"
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
+                      borderRadius: '4px',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ))
+        )}
       </div>
     )
   }

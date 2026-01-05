@@ -12,6 +12,7 @@ interface DimensionTokenSelectorProps {
   label: string
   propName: string // e.g., "border-radius", "font-size", "height"
   minPixelValue?: number // Optional minimum value for pixel slider
+  maxPixelValue?: number // Optional maximum value for pixel slider
 }
 
 export default function DimensionTokenSelector({
@@ -20,6 +21,7 @@ export default function DimensionTokenSelector({
   label,
   propName,
   minPixelValue: minPixelValueProp,
+  maxPixelValue: maxPixelValueProp,
 }: DimensionTokenSelectorProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
@@ -667,9 +669,11 @@ export default function DimensionTokenSelector({
     }))
   }
 
-  // Determine max pixel value based on prop name
-  // max-width can go up to 500px, others default to 200px
-  const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
+  // Determine max pixel value based on prop name or provided prop
+  // max-width, label-width-large, label-width-small can go up to 500px, others default to 200px
+  const maxPixelValue = maxPixelValueProp ?? (propName.toLowerCase() === 'max-width' || 
+    propName.toLowerCase() === 'label-width-large' || 
+    propName.toLowerCase() === 'label-width-small' ? 500 : 200)
   const minPixelValue = minPixelValueProp ?? 0
 
   // Render pixel slider for raw pixel values

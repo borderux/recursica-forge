@@ -55,9 +55,10 @@ export default function ComponentToolbar({
     // Only show variants that are explicitly listed in the toolbar config
     if (toolbarConfig?.variants) {
       const configOrder = Object.keys(toolbarConfig.variants)
-      const configVariants = filtered.filter(variant => 
-        configOrder.includes(variant.propName.toLowerCase())
-      )
+      const configVariants = filtered.filter(variant => {
+        const isInConfig = configOrder.includes(variant.propName.toLowerCase())
+        return isInConfig
+      })
       return configVariants.sort((a, b) => {
         const aIndex = configOrder.indexOf(a.propName.toLowerCase())
         const bIndex = configOrder.indexOf(b.propName.toLowerCase())
@@ -67,7 +68,7 @@ export default function ComponentToolbar({
     
     // If no toolbar config, don't show any variants (they should be configured)
     return []
-  }, [structure.variants, toolbarConfig])
+  }, [structure.variants, toolbarConfig, componentName, selectedVariants])
 
   // Close any open dropdowns and prop controls when component changes
   useEffect(() => {
@@ -250,6 +251,11 @@ export default function ComponentToolbar({
       // Props with groups (borderProps) should never be filtered out - they handle their own variant logic internally
       if (prop.borderProps && prop.borderProps.size > 0) {
         return true
+      }
+      
+      // Special case for Label component: label-width should only show when layout is side-by-side
+      if (componentName.toLowerCase() === 'label' && prop.name.toLowerCase() === 'label-width') {
+        return selectedVariants.layout === 'side-by-side'
       }
       
       // Filter variant-specific props that don't match selected variants

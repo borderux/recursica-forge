@@ -317,6 +317,10 @@ export default function PropControl({
       }
       
       // For dimension props, use dimension token selector (only theme values)
+      // Set maxPixelValue for label width props
+      const maxPixelValue = propToRender.name.toLowerCase() === 'label-width-large' || 
+        propToRender.name.toLowerCase() === 'label-width-small' ? 500 : undefined
+      
       return (
         <DimensionTokenSelector
           targetCssVar={primaryVar}
@@ -324,6 +328,7 @@ export default function PropControl({
           label={label}
           propName={propToRender.name}
           minPixelValue={minPixelValue}
+          maxPixelValue={maxPixelValue}
         />
       )
     }
