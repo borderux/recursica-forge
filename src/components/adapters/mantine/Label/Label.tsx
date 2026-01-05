@@ -82,12 +82,12 @@ export default function Label({
     layoutStyles.paddingBottom = `var(${bottomPaddingVar})`
   } else if (layout === 'side-by-side') {
     const heightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'height')
-    const gutterVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
     const verticalPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding')
-    layoutStyles.height = `var(${heightVar})`
-    layoutStyles.marginRight = `var(${gutterVar})`
+    // Use min-height instead of height so the label can grow with content
+    layoutStyles.minHeight = `var(${heightVar})`
     layoutStyles.paddingTop = `var(${verticalPaddingVar})`
     layoutStyles.paddingBottom = `var(${verticalPaddingVar})`
+    // Note: gutter is used by parent container's gap property, not applied to label itself
   }
   
   return (

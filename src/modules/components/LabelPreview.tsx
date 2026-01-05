@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Label } from '../../components/adapters/Label'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 
 interface LabelPreviewProps {
   selectedVariants: Record<string, string> // e.g., { style: "default", layout: "stacked" }
@@ -23,6 +24,13 @@ export default function LabelPreview({
   const isSideBySide = layoutVariant === 'side-by-side'
   const isLarge = sizeVariant === 'large'
   const isSmall = sizeVariant === 'small'
+  
+  // Get gutter CSS variable for side-by-side layout
+  const gutterVar = isSideBySide 
+    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+    : null
+  // Use the CSS variable reference directly so it updates when the gutter prop changes
+  const gapValue = gutterVar ? `var(${gutterVar})` : '0px'
 
   if (isSideBySide) {
     // Show side-by-side layout with all three variants, both left and right aligned
@@ -31,7 +39,7 @@ export default function LabelPreview({
         {/* Left-aligned labels */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Default label - left */}
-          <div style={{ display: 'flex', gap: isSideBySide ? (isLarge ? 16 : 8) : 0, alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
             <Label
               variant="default"
               size={sizeVariant}
@@ -58,7 +66,7 @@ export default function LabelPreview({
           </div>
           
           {/* Required label - left */}
-          <div style={{ display: 'flex', gap: isSideBySide ? (isLarge ? 16 : 8) : 0, alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
             <Label
               variant="required"
               size={sizeVariant}
@@ -85,7 +93,7 @@ export default function LabelPreview({
           </div>
           
           {/* Optional label - left */}
-          <div style={{ display: 'flex', gap: isSideBySide ? (isLarge ? 16 : 8) : 0, alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
             <Label
               variant="optional"
               size={sizeVariant}
@@ -115,7 +123,7 @@ export default function LabelPreview({
         {/* Right-aligned labels (labels still to left of field, but text is right-aligned) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Default label - right */}
-          <div style={{ display: 'flex', gap: isSideBySide ? (isLarge ? 16 : 8) : 0, alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
             <Label
               variant="default"
               size={sizeVariant}
@@ -142,7 +150,7 @@ export default function LabelPreview({
           </div>
           
           {/* Required label - right */}
-          <div style={{ display: 'flex', gap: isSideBySide ? (isLarge ? 16 : 8) : 0, alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
             <Label
               variant="required"
               size={sizeVariant}
@@ -169,7 +177,7 @@ export default function LabelPreview({
           </div>
           
           {/* Optional label - right */}
-          <div style={{ display: 'flex', gap: isSideBySide ? (isLarge ? 16 : 8) : 0, alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', gap: isSideBySide ? gapValue : 0, alignItems: 'center', width: '100%' }}>
             <Label
               variant="optional"
               size={sizeVariant}

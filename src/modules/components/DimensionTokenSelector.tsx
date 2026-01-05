@@ -219,8 +219,9 @@ export default function DimensionTokenSelector({
         })
       }
       
-      // For track-inner-padding or label-switch-gap, only collect general dimensions (default, sm, md, lg, xl)
-      if (propNameLower === 'track-inner-padding' || propNameLower === 'label-switch-gap') {
+      // For track-inner-padding, label-switch-gap, or Label spacing props (bottom-padding, gutter, vertical-padding), only collect general dimensions (default, sm, md, lg, xl)
+      if (propNameLower === 'track-inner-padding' || propNameLower === 'label-switch-gap' || 
+          propNameLower === 'bottom-padding' || propNameLower === 'gutter' || propNameLower === 'vertical-padding') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
         const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
@@ -366,38 +367,62 @@ export default function DimensionTokenSelector({
       }
       
       // First, check if this prop name matches a dimension category (e.g., "border-radius")
-      // Skip border-radius, thumb-border-radius, track-border-radius, track-inner-padding, label-switch-gap, icon, and thumb-icon-size since they're handled above
+      // Skip border-radius, thumb-border-radius, track-border-radius, track-inner-padding, label-switch-gap, icon, thumb-icon-size, height, and Label spacing props since they're handled above or should use general dimensions
       if (propNameLower !== 'border-radius' && propNameLower !== 'thumb-border-radius' && propNameLower !== 'track-border-radius' && 
           propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size' &&
+          propNameLower !== 'height' && propNameLower !== 'bottom-padding' && propNameLower !== 'gutter' && propNameLower !== 'vertical-padding' &&
           dimensions[propNameLower] && typeof dimensions[propNameLower] === 'object') {
         collectDimensions(dimensions[propNameLower], [propNameLower])
       }
       
-      // For non-border-radius, non-horizontal-padding, non-track-inner-padding, non-label-switch-gap, and non-icon props, also collect general dimensions (default, sm, md, lg, xl) from the "general" node
+      // For non-border-radius, non-horizontal-padding, non-track-inner-padding, non-label-switch-gap, non-icon, non-height, and non-Label spacing props, also collect general dimensions (default, sm, md, lg, xl) from the "general" node
+      // Note: height and Label spacing props (bottom-padding, gutter, vertical-padding) should use general dimensions, not icon dimensions
       if (propNameLower !== 'border-radius' && propNameLower !== 'thumb-border-radius' && propNameLower !== 'track-border-radius' &&
           propNameLower !== 'horizontal-padding' && propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size') {
-        const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
-        if (dimensions.general && typeof dimensions.general === 'object') {
-          generalDims.forEach(dim => {
-            if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
-              const cssVar = `--recursica-brand-dimensions-general-${dim}`
-              const cssValue = readCssVar(cssVar)
-              if (cssValue) {
-                options.push({
-                  label: toSentenceCase(dim),
-                  cssVar,
-                  value: `var(${cssVar})`,
-                })
+        // For height and Label spacing props, only collect general dimensions (skip checking dimensions.height, dimensions.gutter, etc.)
+        if (propNameLower === 'height' || propNameLower === 'bottom-padding' || propNameLower === 'gutter' || propNameLower === 'vertical-padding') {
+          const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
+          if (dimensions.general && typeof dimensions.general === 'object') {
+            generalDims.forEach(dim => {
+              if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
+                const cssVar = `--recursica-brand-dimensions-general-${dim}`
+                const cssValue = readCssVar(cssVar)
+                if (cssValue) {
+                  options.push({
+                    label: toSentenceCase(dim),
+                    cssVar,
+                    value: `var(${cssVar})`,
+                  })
+                }
               }
-            }
-          })
+            })
+          }
+        } else {
+          // For other props, collect general dimensions
+          const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
+          if (dimensions.general && typeof dimensions.general === 'object') {
+            generalDims.forEach(dim => {
+              if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
+                const cssVar = `--recursica-brand-dimensions-general-${dim}`
+                const cssValue = readCssVar(cssVar)
+                if (cssValue) {
+                  options.push({
+                    label: toSentenceCase(dim),
+                    cssVar,
+                    value: `var(${cssVar})`,
+                  })
+                }
+              }
+            })
+          }
         }
       }
       
       // Also collect all nested dimensions (like icon.default, spacer.sm, etc.)
-      // But skip this for border-radius, thumb-border-radius, track-border-radius, horizontal-padding, track-inner-padding, label-switch-gap, icon, and thumb-icon-size since we only want specific tokens
+      // But skip this for border-radius, thumb-border-radius, track-border-radius, horizontal-padding, track-inner-padding, label-switch-gap, icon, thumb-icon-size, height, and Label spacing props since we only want specific tokens
       if (propNameLower !== 'border-radius' && propNameLower !== 'thumb-border-radius' && propNameLower !== 'track-border-radius' &&
-          propNameLower !== 'horizontal-padding' && propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size') {
+          propNameLower !== 'horizontal-padding' && propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size' && 
+          propNameLower !== 'height' && propNameLower !== 'bottom-padding' && propNameLower !== 'gutter' && propNameLower !== 'vertical-padding') {
         collectDimensions(dimensions, [])
       }
       

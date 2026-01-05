@@ -48,19 +48,19 @@
       "visible": true,
       "group": {
         "bottom-padding": {
-          "label": "Bottom Padding (Stacked)",
+          "label": "Bottom Padding",
           "visible": true
         },
         "height": {
-          "label": "Height (Side-by-Side)",
+          "label": "Height",
           "visible": true
         },
         "gutter": {
-          "label": "Gutter (Side-by-Side)",
+          "label": "Gutter",
           "visible": true
         },
         "vertical-padding": {
-          "label": "Vertical Padding (Side-by-Side)",
+          "label": "Vertical Padding",
           "visible": true
         }
       }
