@@ -94,7 +94,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   
   return (
     <MantineProvider>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <header
           style={{
             backgroundColor: `var(${layer1Base}-surface)`,
@@ -103,10 +103,10 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             paddingLeft: 'var(--recursica-brand-dimensions-spacer-xl)',
             paddingRight: 'var(--recursica-brand-dimensions-spacer-xl)',
             height: 'auto',
+            flexShrink: 0,
             borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
             borderBottomStyle: 'solid',
             borderBottomColor: `var(${layer1Base}-border-color)`,
-            flexShrink: 0,
           }}
         >
           <Group gap="var(--recursica-brand-dimensions-spacer-xl)" wrap="nowrap" style={{ width: '100%' }}>
@@ -345,12 +345,12 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             })()}
           </Group>
         </header>
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
           {showSidebar && <Sidebar />}
           {showThemeSidebar && <ThemeSidebar />}
           <main style={{ 
-            flex: 1, 
-            overflow: 'auto',
+            flex: 1,
+            minHeight: 0,
             backgroundColor: `var(${layer0Base}-surface)`,
             color: `var(${layer0Base}-element-text-color)`,
           }}>

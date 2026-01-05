@@ -1,3 +1,15 @@
+.component-toolbar-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--recursica-brand-themes-light-layer-layer-0-property-surface);
+  border-left: var(--recursica-brand-themes-light-layer-layer-0-property-border-thickness) solid var(--recursica-brand-themes-light-layer-layer-0-property-border-color);
+}
+
+html[data-theme-mode="dark"] .component-toolbar-panel {
+  background: var(--recursica-brand-themes-dark-layer-layer-0-property-surface);
+  border-left-color: var(--recursica-brand-themes-dark-layer-layer-0-property-border-color);
+}
+
 .component-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -52,31 +64,38 @@ html[data-theme-mode="dark"] .toolbar-section-group {
   border: none;
   border-radius: var(--recursica-brand-dimensions-border-radius-default);
   cursor: pointer;
-  color: var(--recursica-brand-themes-light-layer-layer-2-property-element-text-color);
-  opacity: var(--recursica-brand-themes-light-layer-layer-2-property-element-text-high-emphasis);
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-high-emphasis);
   transition: background-color 0.2s;
   position: relative;
 }
 
+.dropdown-container.full-width .toolbar-icon-button {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0 var(--recursica-brand-dimensions-spacer-sm);
+  gap: var(--recursica-brand-dimensions-spacer-sm);
+}
+
 html[data-theme-mode="dark"] .toolbar-icon-button {
-  color: var(--recursica-brand-themes-dark-layer-layer-2-property-element-text-color);
-  opacity: var(--recursica-brand-themes-dark-layer-layer-2-property-element-text-high-emphasis);
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-high-emphasis);
 }
 
 .toolbar-icon-button:hover {
-  background: var(--recursica-brand-themes-light-layer-layer-2-property-surface-hover);
+  background: var(--recursica-brand-themes-light-layer-layer-0-property-surface-hover);
 }
 
 html[data-theme-mode="dark"] .toolbar-icon-button:hover {
-  background: var(--recursica-brand-themes-dark-layer-layer-2-property-surface-hover);
+  background: var(--recursica-brand-themes-dark-layer-layer-0-property-surface-hover);
 }
 
 .toolbar-icon-button:active {
-  background: var(--recursica-brand-themes-light-layer-layer-2-property-surface-active);
+  background: var(--recursica-brand-themes-light-layer-layer-0-property-surface-active);
 }
 
 html[data-theme-mode="dark"] .toolbar-icon-button:active {
-  background: var(--recursica-brand-themes-dark-layer-layer-2-property-surface-active);
+  background: var(--recursica-brand-themes-dark-layer-layer-0-property-surface-active);
 }
 
 .toolbar-icon-button.active::before {
@@ -105,11 +124,11 @@ html[data-theme-mode="dark"] .toolbar-icon-button.active::before {
 }
 
 .toolbar-reset-button {
-  color: var(--recursica-brand-themes-light-layer-layer-2-property-element-interactive-tone);
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-interactive-tone);
 }
 
 html[data-theme-mode="dark"] .toolbar-reset-button {
-  color: var(--recursica-brand-themes-dark-layer-layer-2-property-element-interactive-tone);
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-interactive-tone);
 }
 
 .toolbar-icon {
