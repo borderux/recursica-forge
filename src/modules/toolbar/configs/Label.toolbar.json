@@ -3,6 +3,10 @@
     "layout": {
       "icon": "layout",
       "label": "Layout"
+    },
+    "size": {
+      "icon": "arrows-left-right",
+      "label": "Size"
     }
   },
   "props": {
@@ -38,29 +42,25 @@
       "label": "Required Indicator Gap",
       "visible": true
     },
-    "layout": {
-      "icon": "layout",
-      "label": "Layout",
+    "spacing": {
+      "icon": "arrows-pointing-out",
+      "label": "Spacing",
       "visible": true,
       "group": {
         "bottom-padding": {
           "label": "Bottom Padding (Stacked)",
           "visible": true
         },
-        "column-width": {
-          "label": "Column Width (Side-by-Side Large)",
-          "visible": true
-        },
         "height": {
-          "label": "Height (Side-by-Side Large)",
+          "label": "Height (Side-by-Side)",
           "visible": true
         },
         "gutter": {
-          "label": "Gutter (Side-by-Side Large)",
+          "label": "Gutter (Side-by-Side)",
           "visible": true
         },
         "vertical-padding": {
-          "label": "Vertical Padding (Side-by-Side Small)",
+          "label": "Vertical Padding (Side-by-Side)",
           "visible": true
         }
       }

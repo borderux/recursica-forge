@@ -247,6 +247,22 @@
               "unit": "px"
             }
           },
+          "width": {
+            "large": {
+              "$type": "dimension",
+              "$value": {
+                "value": 224,
+                "unit": "px"
+              }
+            },
+            "small": {
+              "$type": "dimension",
+              "$value": {
+                "value": 160,
+                "unit": "px"
+              }
+            }
+          },
           "stacked": {
             "bottom-padding": {
               "$type": "dimension",
@@ -2102,73 +2118,30 @@
         "variants": {
           "styles": {
             "default": {
-              "properties": {
-                "colors": {
-                  "layer-0": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-0.default}"
-                    }
-                  },
-                  "layer-1": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-1.default}"
-                    }
-                  },
-                  "layer-2": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-2.default}"
-                    }
-                  },
-                  "layer-3": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-3.default}"
-                    }
-                  }
-                }
-              }
+              "properties": {}
             },
             "required": {
               "properties": {
                 "colors": {
                   "layer-0": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-0.default}"
-                    },
                     "asterisk": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.label.colors.layer-0.required-asterisk}"
                     }
                   },
                   "layer-1": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-1.default}"
-                    },
                     "asterisk": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.label.colors.layer-1.required-asterisk}"
                     }
                   },
                   "layer-2": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-2.default}"
-                    },
                     "asterisk": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.label.colors.layer-2.required-asterisk}"
                     }
                   },
                   "layer-3": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-3.default}"
-                    },
                     "asterisk": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.label.colors.layer-3.required-asterisk}"
@@ -2181,45 +2154,47 @@
               "properties": {
                 "colors": {
                   "layer-0": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-0.default}"
-                    },
                     "optional-text-opacity": {
                       "$type": "number",
                       "$value": "{ui-kit.globals.label.colors.optional-text-opacity}"
                     }
                   },
                   "layer-1": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-1.default}"
-                    },
                     "optional-text-opacity": {
                       "$type": "number",
                       "$value": "{ui-kit.globals.label.colors.optional-text-opacity}"
                     }
                   },
                   "layer-2": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-2.default}"
-                    },
                     "optional-text-opacity": {
                       "$type": "number",
                       "$value": "{ui-kit.globals.label.colors.optional-text-opacity}"
                     }
                   },
                   "layer-3": {
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-3.default}"
-                    },
                     "optional-text-opacity": {
                       "$type": "number",
                       "$value": "{ui-kit.globals.label.colors.optional-text-opacity}"
                     }
                   }
+                }
+              }
+            }
+          },
+          "sizes": {
+            "large": {
+              "properties": {
+                "width": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.label.size.width.large}"
+                }
+              }
+            },
+            "small": {
+              "properties": {
+                "width": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.label.size.width.small}"
                 }
               }
             }
@@ -2233,12 +2208,8 @@
                 }
               }
             },
-            "side-by-side-large": {
+            "side-by-side": {
               "properties": {
-                "column-width": {
-                  "$type": "dimension",
-                  "$value": "{ui-kit.globals.label.size.side-by-side-large.column-width}"
-                },
                 "height": {
                   "$type": "dimension",
                   "$value": "{ui-kit.globals.label.size.side-by-side-large.height}"
@@ -2246,11 +2217,7 @@
                 "gutter": {
                   "$type": "dimension",
                   "$value": "{ui-kit.globals.label.size.side-by-side-large.gutter}"
-                }
-              }
-            },
-            "side-by-side-small": {
-              "properties": {
+                },
                 "vertical-padding": {
                   "$type": "dimension",
                   "$value": "{ui-kit.globals.label.size.side-by-side-small.vertical-padding}"
@@ -2260,6 +2227,32 @@
           }
         },
         "properties": {
+          "colors": {
+            "layer-0": {
+              "text": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.label.colors.layer-0.default}"
+              }
+            },
+            "layer-1": {
+              "text": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.label.colors.layer-1.default}"
+              }
+            },
+            "layer-2": {
+              "text": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.label.colors.layer-2.default}"
+              }
+            },
+            "layer-3": {
+              "text": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.label.colors.layer-3.default}"
+              }
+            }
+          },
           "required-indicator-gap": {
             "$type": "dimension",
             "$value": "{ui-kit.globals.label.size.required-indicator-gap}"

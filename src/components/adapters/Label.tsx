@@ -8,13 +8,15 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
+import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type LabelProps = {
   children?: React.ReactNode
   htmlFor?: string
   variant?: 'default' | 'required' | 'optional'
-  layout?: 'stacked' | 'side-by-side-large' | 'side-by-side-small'
+  size?: 'large' | 'small'
+  layout?: 'stacked' | 'side-by-side'
   align?: 'left' | 'right'
   layer?: ComponentLayer
   className?: string
@@ -26,6 +28,7 @@ export function Label({
   children,
   htmlFor,
   variant = 'default',
+  size,
   layout = 'stacked',
   align = 'left',
   layer = 'layer-0',
@@ -37,18 +40,21 @@ export function Label({
   carbon,
 }: LabelProps) {
   const Component = useComponent('Label')
+  const { mode } = useThemeMode()
   
   // Determine variant based on required prop if not explicitly set
   const styleVariant = variant === 'default' && required ? 'required' : variant
   
-  // Get CSS variables for colors using buildComponentCssVarPath
-  const textColorVar = buildComponentCssVarPath('Label', 'variants', 'styles', styleVariant, 'properties', 'colors', layer, 'text')
+  // Get CSS variables for colors
+  // Text color is at component level, not variant-specific
+  const textColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
   const asteriskColorVar = styleVariant === 'required' 
     ? buildComponentCssVarPath('Label', 'variants', 'styles', styleVariant, 'properties', 'colors', layer, 'asterisk')
     : undefined
-  const optionalTextOpacityVar = styleVariant === 'optional'
-    ? buildComponentCssVarPath('Label', 'variants', 'styles', styleVariant, 'properties', 'colors', layer, 'optional-text-opacity')
-    : undefined
+  
+  // Get CSS variables for text emphasis opacity
+  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+  const lowEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
   
   // Get CSS variables for typography
   const fontSizeVar = getComponentLevelCssVar('Label', 'font-size')
@@ -66,20 +72,23 @@ export function Label({
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
   
+  // Get CSS variable for size-based width
+  let widthVar: string | undefined
+  if (size) {
+    widthVar = buildComponentCssVarPath('Label', 'variants', 'sizes', size, 'properties', 'width')
+  }
+  
   let layoutSizeVars: Record<string, string> = {}
   
   if (layout === 'stacked') {
     const bottomPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'bottom-padding')
     layoutSizeVars['--label-bottom-padding'] = `var(${bottomPaddingVar})`
-  } else if (layout === 'side-by-side-large') {
-    const columnWidthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side-large', 'properties', 'column-width')
-    const heightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side-large', 'properties', 'height')
-    const gutterVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side-large', 'properties', 'gutter')
-    layoutSizeVars['--label-column-width'] = `var(${columnWidthVar})`
+  } else if (layout === 'side-by-side') {
+    const heightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'height')
+    const gutterVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+    const verticalPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding')
     layoutSizeVars['--label-height'] = `var(${heightVar})`
     layoutSizeVars['--label-gutter'] = `var(${gutterVar})`
-  } else if (layout === 'side-by-side-small') {
-    const verticalPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side-small', 'properties', 'vertical-padding')
     layoutSizeVars['--label-vertical-padding'] = `var(${verticalPaddingVar})`
   }
   
@@ -95,30 +104,23 @@ export function Label({
           fontSize: `var(${fontSizeVar})`,
           fontFamily: `var(${fontFamilyVar})`,
           fontWeight: `var(${fontWeightVar})`,
-          letterSpacing: `var(${letterSpacingVar})`,
+          letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
           lineHeight: `var(${lineHeightVar})`,
           textAlign: align,
+          width: widthVar ? `var(${widthVar})` : undefined,
+          opacity: `var(${highEmphasisOpacityVar})`,
           ...layoutSizeVars,
           ...style,
         }}
       >
-        <span style={{ display: 'inline' }}>
-          {children}
-          {styleVariant === 'required' && (
+        {styleVariant === 'optional' ? (
+          <>
+            <span style={{ display: 'block' }}>{children}</span>
             <span
               style={{
-                color: asteriskColorVar ? `var(${asteriskColorVar})` : undefined,
-                marginLeft: `var(${requiredIndicatorGapVar})`,
-              }}
-            >
-              *
-            </span>
-          )}
-          {styleVariant === 'optional' && optionalTextOpacityVar && (
-            <span
-              style={{
-                opacity: `var(${optionalTextOpacityVar})`,
-                marginLeft: `var(${requiredIndicatorGapVar})`,
+                display: 'block',
+                marginTop: `var(${requiredIndicatorGapVar})`,
+                opacity: `var(${lowEmphasisOpacityVar})`,
                 fontSize: `var(${optionalFontSizeVar})`,
                 fontFamily: `var(${optionalFontFamilyVar})`,
                 fontWeight: `var(${optionalFontWeightVar})`,
@@ -128,8 +130,22 @@ export function Label({
             >
               (optional)
             </span>
-          )}
-        </span>
+          </>
+        ) : (
+          <span style={{ display: 'inline' }}>
+            {children}
+            {styleVariant === 'required' && (
+              <span
+                style={{
+                  color: asteriskColorVar ? `var(${asteriskColorVar})` : undefined,
+                  marginLeft: `var(${requiredIndicatorGapVar})`,
+                }}
+              >
+                *
+              </span>
+            )}
+          </span>
+        )}
       </label>
     )
   }
@@ -139,6 +155,7 @@ export function Label({
       <Component
         htmlFor={htmlFor}
         variant={styleVariant}
+        size={size}
         layout={layout}
         align={align}
         layer={layer}

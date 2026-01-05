@@ -8,12 +8,14 @@
 import React, { useState, useEffect } from 'react'
 import type { LabelProps as AdapterLabelProps } from '../../Label'
 import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Label.css'
 
 export default function Label({
   children,
   htmlFor,
   variant = 'default',
+  size,
   layout = 'stacked',
   align = 'left',
   layer = 'layer-0',
@@ -24,6 +26,7 @@ export default function Label({
 }: AdapterLabelProps) {
   // Force re-render when CSS vars change (needed for Mantine to pick up CSS var changes)
   const [, setUpdateKey] = useState(0)
+  const { mode } = useThemeMode()
   
   useEffect(() => {
     const handleUpdate = (e: Event) => {
@@ -39,13 +42,15 @@ export default function Label({
   }, [])
   
   // Get CSS variables for colors
-  const textColorVar = buildComponentCssVarPath('Label', 'variants', 'styles', variant, 'properties', 'colors', layer, 'text')
+  // Text color is at component level, not variant-specific
+  const textColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
   const asteriskColorVar = variant === 'required' 
     ? buildComponentCssVarPath('Label', 'variants', 'styles', variant, 'properties', 'colors', layer, 'asterisk')
     : undefined
-  const optionalTextOpacityVar = variant === 'optional'
-    ? buildComponentCssVarPath('Label', 'variants', 'styles', variant, 'properties', 'colors', layer, 'optional-text-opacity')
-    : undefined
+  
+  // Get CSS variables for text emphasis opacity
+  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+  const lowEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
   
   // Get CSS variables for typography
   const fontSizeVar = getComponentLevelCssVar('Label', 'font-size')
@@ -63,20 +68,23 @@ export default function Label({
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
   
+  // Get CSS variable for size-based width
+  let widthVar: string | undefined
+  if (size) {
+    widthVar = buildComponentCssVarPath('Label', 'variants', 'sizes', size, 'properties', 'width')
+  }
+  
   let layoutSizeVars: Record<string, string> = {}
   
   if (layout === 'stacked') {
     const bottomPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'bottom-padding')
     layoutSizeVars['--label-bottom-padding'] = `var(${bottomPaddingVar})`
-  } else if (layout === 'side-by-side-large') {
-    const columnWidthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side-large', 'properties', 'column-width')
-    const heightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side-large', 'properties', 'height')
-    const gutterVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side-large', 'properties', 'gutter')
-    layoutSizeVars['--label-column-width'] = `var(${columnWidthVar})`
+  } else if (layout === 'side-by-side') {
+    const heightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'height')
+    const gutterVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+    const verticalPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding')
     layoutSizeVars['--label-height'] = `var(${heightVar})`
     layoutSizeVars['--label-gutter'] = `var(${gutterVar})`
-  } else if (layout === 'side-by-side-small') {
-    const verticalPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side-small', 'properties', 'vertical-padding')
     layoutSizeVars['--label-vertical-padding'] = `var(${verticalPaddingVar})`
   }
   
@@ -90,9 +98,11 @@ export default function Label({
         fontSize: `var(${fontSizeVar})`,
         fontFamily: `var(${fontFamilyVar})`,
         fontWeight: `var(${fontWeightVar})`,
-        letterSpacing: `var(${letterSpacingVar})`,
+        letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
         lineHeight: `var(${lineHeightVar})`,
         textAlign: align,
+        width: widthVar ? `var(${widthVar})` : undefined,
+        opacity: `var(${highEmphasisOpacityVar})`,
         ...layoutSizeVars,
         ...style,
         ...mantine?.style,
@@ -100,23 +110,14 @@ export default function Label({
       {...mantine}
       {...props}
     >
-      <span style={{ display: 'inline' }}>
-        {children}
-        {variant === 'required' && asteriskColorVar && (
+      {variant === 'optional' ? (
+        <>
+          <span style={{ display: 'block' }}>{children}</span>
           <span
             style={{
-              color: `var(${asteriskColorVar})`,
-              marginLeft: `var(${requiredIndicatorGapVar})`,
-            }}
-          >
-            *
-          </span>
-        )}
-        {variant === 'optional' && optionalTextOpacityVar && (
-          <span
-            style={{
-              opacity: `var(${optionalTextOpacityVar})`,
-              marginLeft: `var(${requiredIndicatorGapVar})`,
+              display: 'block',
+              marginTop: `var(${requiredIndicatorGapVar})`,
+              opacity: `var(${lowEmphasisOpacityVar})`,
               fontSize: `var(${optionalFontSizeVar})`,
               fontFamily: `var(${optionalFontFamilyVar})`,
               fontWeight: `var(${optionalFontWeightVar})`,
@@ -126,8 +127,22 @@ export default function Label({
           >
             (optional)
           </span>
-        )}
-      </span>
+        </>
+      ) : (
+        <span style={{ display: 'inline' }}>
+          {children}
+          {variant === 'required' && asteriskColorVar && (
+            <span
+              style={{
+                color: `var(${asteriskColorVar})`,
+                marginLeft: `var(${requiredIndicatorGapVar})`,
+              }}
+            >
+              *
+            </span>
+          )}
+        </span>
+      )}
     </label>
   )
 }

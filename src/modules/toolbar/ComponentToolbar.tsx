@@ -48,25 +48,25 @@ export default function ComponentToolbar({
     return loadToolbarConfig(componentName)
   }, [componentName])
 
-  // Filter variants to only show those with more than one option, sorted by config order
+  // Filter variants to only show those with more than one option AND are in the toolbar config, sorted by config order
   const visibleVariants = useMemo(() => {
     const filtered = structure.variants.filter(variant => variant.variants.length > 1)
     
-    // Sort by order in toolbar config
+    // Only show variants that are explicitly listed in the toolbar config
     if (toolbarConfig?.variants) {
       const configOrder = Object.keys(toolbarConfig.variants)
-      return filtered.sort((a, b) => {
+      const configVariants = filtered.filter(variant => 
+        configOrder.includes(variant.propName.toLowerCase())
+      )
+      return configVariants.sort((a, b) => {
         const aIndex = configOrder.indexOf(a.propName.toLowerCase())
         const bIndex = configOrder.indexOf(b.propName.toLowerCase())
-        // If not found in config, keep original order (put at end)
-        if (aIndex === -1 && bIndex === -1) return 0
-        if (aIndex === -1) return 1
-        if (bIndex === -1) return -1
         return aIndex - bIndex
       })
     }
     
-    return filtered
+    // If no toolbar config, don't show any variants (they should be configured)
+    return []
   }, [structure.variants, toolbarConfig])
 
   // Close any open dropdowns and prop controls when component changes
@@ -186,11 +186,25 @@ export default function ComponentToolbar({
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
               }
               // If still not found, try to find it by exact name match (case-insensitive)
+              // For variant-specific props, find the first matching prop regardless of variant
               if (!groupedProp) {
                 groupedProp = structure.props.find(p => 
                   p.name.toLowerCase() === groupedPropKey ||
                   p.name === groupedPropName
                 )
+              }
+              // Special handling: if parent prop is "spacing" or "layout", collect props from all layout variants
+              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'layout')) {
+                // Find props that match the name and are variant-specific for layout
+                const layoutProps = structure.props.filter(p => 
+                  p.name.toLowerCase() === groupedPropKey &&
+                  p.isVariantSpecific &&
+                  p.variantProp === 'layout'
+                )
+                // Use the first one found (they should all have the same name, just different variant paths)
+                if (layoutProps.length > 0) {
+                  groupedProp = layoutProps[0]
+                }
               }
               if (groupedProp) {
                 groupedProps.set(groupedPropKey, groupedProp)

@@ -545,6 +545,25 @@ export default function PropControl({
               // from ComponentToolbar.tsx, so just try to get it directly
               groupedProp = prop.borderProps!.get(groupedPropKey)
             }
+            // Special handling for spacing/layout props: find variant-specific prop matching selected layout
+            if (!groupedProp && (prop.name.toLowerCase() === 'spacing' || prop.name.toLowerCase() === 'layout')) {
+              const structure = parseComponentStructure(componentName)
+              const layoutVariant = selectedVariants['layout']
+              if (layoutVariant) {
+                // Find the prop that matches the name and the selected layout variant
+                const matchingProp = structure.props.find(p => 
+                  p.name.toLowerCase() === groupedPropKey &&
+                  p.isVariantSpecific &&
+                  p.variantProp === 'layout' &&
+                  p.path.includes(layoutVariant)
+                )
+                if (matchingProp) {
+                  groupedProp = matchingProp
+                  // Also add it to the borderProps map for future lookups
+                  prop.borderProps!.set(groupedPropKey, matchingProp)
+                }
+              }
+            }
             
             if (!groupedProp) {
               console.warn(`PropControl: Grouped prop "${groupedPropName}" (key: "${groupedPropKey}") not found in borderProps map. Available keys:`, Array.from(prop.borderProps!.keys()))

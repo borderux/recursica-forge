@@ -207,8 +207,34 @@ export function resolveTokenReferenceToCssVar(
       }
       
       if (firstPart === 'typography') {
-        const typoPath = pathParts.slice(1).join('-')
-        return `var(--recursica-brand-typography-${typoPath})`
+        // Typography CSS variables naming pattern (from typography.ts):
+        // - font-size -> --recursica-brand-typography-{style}-font-size
+        // - font-family -> --recursica-brand-typography-{style}-font-family
+        // - font-weight -> --recursica-brand-typography-{style}-font-weight
+        // - line-height -> --recursica-brand-typography-{style}-line-height (NO "font-" prefix!)
+        // - letter-spacing -> --recursica-brand-typography-{style}-font-letter-spacing
+        const remainingParts = pathParts.slice(1)
+        if (remainingParts.length >= 2) {
+          const styleName = remainingParts[0] // e.g., "body-small"
+          const property = remainingParts.slice(1).join('-') // e.g., "font-size" or "line-height"
+          
+          // Special case: line-height does NOT get "font-" prefix
+          if (property === 'line-height') {
+            return `var(--recursica-brand-typography-${styleName}-line-height)`
+          }
+          
+          // Properties that already start with "font-" use as-is
+          if (property.startsWith('font-')) {
+            return `var(--recursica-brand-typography-${styleName}-${property})`
+          }
+          
+          // Other properties (like letter-spacing) get "font-" prefix
+          return `var(--recursica-brand-typography-${styleName}-font-${property})`
+        } else {
+          // Fallback: join all parts
+          const typoPath = remainingParts.join('-')
+          return `var(--recursica-brand-typography-${typoPath})`
+        }
       }
     }
     
