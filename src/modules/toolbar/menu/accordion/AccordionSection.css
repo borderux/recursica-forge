@@ -1,0 +1,106 @@
+.accordion-section {
+  border-bottom: 1px solid var(--recursica-brand-themes-light-layer-layer-0-property-border-color);
+}
+
+html[data-theme-mode="dark"] .accordion-section {
+  border-bottom-color: var(--recursica-brand-themes-dark-layer-layer-0-property-border-color);
+}
+
+.accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--recursica-brand-dimensions-spacer-md);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+}
+
+.accordion-header:hover {
+  background: var(--recursica-brand-themes-light-layer-layer-0-property-surface-hover, var(--recursica-brand-themes-light-layer-layer-0-property-surface));
+}
+
+html[data-theme-mode="dark"] .accordion-header:hover {
+  background: var(--recursica-brand-themes-dark-layer-layer-0-property-surface-hover, var(--recursica-brand-themes-dark-layer-layer-0-property-surface));
+}
+
+.accordion-header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--recursica-brand-dimensions-spacer-sm);
+  flex: 1;
+}
+
+.accordion-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--recursica-brand-dimensions-spacer-sm);
+}
+
+.accordion-selected-value {
+  font-size: 12px;
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-medium-emphasis);
+}
+
+html[data-theme-mode="dark"] .accordion-selected-value {
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-medium-emphasis);
+}
+
+.accordion-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-medium-emphasis);
+}
+
+html[data-theme-mode="dark"] .accordion-icon {
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-medium-emphasis);
+}
+
+.accordion-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+}
+
+html[data-theme-mode="dark"] .accordion-title {
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+}
+
+.accordion-toggle-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-medium-emphasis);
+  flex-shrink: 0;
+}
+
+html[data-theme-mode="dark"] .accordion-toggle-icon {
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-medium-emphasis);
+}
+
+.accordion-content {
+  margin: var(--recursica-brand-dimensions-spacer-md);
+  margin-top: 0;
+  padding: var(--recursica-brand-themes-light-layer-layer-1-property-padding);
+  background: var(--recursica-brand-themes-light-layer-layer-1-property-surface);
+  border: var(--recursica-brand-themes-light-layer-layer-1-property-border-thickness) solid var(--recursica-brand-themes-light-layer-layer-1-property-border-color);
+  border-radius: var(--recursica-brand-themes-light-layer-layer-1-property-border-radius);
+  box-shadow: var(--recursica-brand-themes-light-elevations-elevation-1-x-axis, 0px) var(--recursica-brand-themes-light-elevations-elevation-1-y-axis, 0px) var(--recursica-brand-themes-light-elevations-elevation-1-blur, 0px) var(--recursica-brand-themes-light-elevations-elevation-1-spread, 0px) var(--recursica-brand-themes-light-elevations-elevation-1-shadow-color, rgba(0, 0, 0, 0.1));
+}
+
+html[data-theme-mode="dark"] .accordion-content {
+  padding: var(--recursica-brand-themes-dark-layer-layer-1-property-padding);
+  background: var(--recursica-brand-themes-dark-layer-layer-1-property-surface);
+  border-color: var(--recursica-brand-themes-dark-layer-layer-1-property-border-color);
+  border-radius: var(--recursica-brand-themes-dark-layer-layer-1-property-border-radius);
+  box-shadow: var(--recursica-brand-themes-dark-elevations-elevation-1-x-axis, 0px) var(--recursica-brand-themes-dark-elevations-elevation-1-y-axis, 0px) var(--recursica-brand-themes-dark-elevations-elevation-1-blur, 0px) var(--recursica-brand-themes-dark-elevations-elevation-1-spread, 0px) var(--recursica-brand-themes-dark-elevations-elevation-1-shadow-color, rgba(0, 0, 0, 0.1));
+}
+

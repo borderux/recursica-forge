@@ -26,14 +26,14 @@ export default function PreviewPage() {
 
   return (
     <DebugModeContext.Provider value={{ debugMode, setDebugMode }}>
-      <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', height: '100%', minHeight: 0 }}>
         <ComponentsSidebar 
           showUnmapped={showUnmapped} 
           onShowUnmappedChange={setShowUnmapped}
           debugMode={debugMode}
           onDebugModeChange={setDebugMode}
         />
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ flex: 1, minHeight: 0 }}>
           <Outlet />
         </div>
       </div>

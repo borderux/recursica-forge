@@ -7,9 +7,10 @@ interface LayerDropdownProps {
   onSelect: (layer: string) => void
   open?: boolean
   onOpenChange?: (isOpen: boolean) => void
+  className?: string
 }
 
-export default function LayerDropdown({ selected, onSelect, open: controlledOpen, onOpenChange }: LayerDropdownProps) {
+export default function LayerDropdown({ selected, onSelect, open: controlledOpen, onOpenChange, className = '' }: LayerDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const ref = useRef<HTMLDivElement>(null)
@@ -47,9 +48,10 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
   // Layer icon (hardcoded since it's system-level, not component-specific)
   const LayerIcon = iconNameToReactComponent('square-3-stack-3d')
   const CaretDownIcon = iconNameToReactComponent('chevron-down')
+  const selectedLabel = selected.charAt(0).toUpperCase() + selected.slice(1).replace('-', ' ')
 
   return (
-    <div className="dropdown-container" ref={ref}>
+    <div className={`dropdown-container ${className}`} ref={ref}>
       <button
         className={`toolbar-icon-button ${open ? 'active' : ''}`}
         onClick={() => setOpen(!open)}
@@ -57,6 +59,10 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
         aria-label="Layer"
       >
         {LayerIcon && <LayerIcon className="toolbar-icon" />}
+        <span className="dropdown-label-value">
+          <span className="dropdown-label">Layer</span>
+        </span>
+        <span className="dropdown-value">{selectedLabel}</span>
         {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />}
       </button>
       {open && (

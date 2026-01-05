@@ -115,7 +115,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
 
   return (
     <Theme theme="g10">
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <header
           aria-label="Recursica Theme Forge"
           style={{
@@ -125,13 +125,13 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             paddingLeft: 'var(--recursica-brand-dimensions-spacer-xl)',
             paddingRight: 'var(--recursica-brand-dimensions-spacer-xl)',
             height: 'auto',
+            flexShrink: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
             borderBottomStyle: 'solid',
             borderBottomColor: `var(${layer1Base}-border-color)`,
-            flexShrink: 0,
           }}
         >
           {/* Logo, Brand, and Navigation Buttons */}
@@ -368,12 +368,12 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           })()}
         </div>
       </header>
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {showSidebar && <Sidebar />}
         {showThemeSidebar && <ThemeSidebar />}
         <main style={{ 
-          flex: 1, 
-          overflow: 'auto',
+          flex: 1,
+          minHeight: 0,
           backgroundColor: `var(${layer0Base}-surface)`,
           color: `var(${layer0Base}-element-text-color)`,
         }}>
