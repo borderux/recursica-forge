@@ -178,7 +178,7 @@ export default function PropControl({
   // For Label width, override to target the size variant's width property based on layout and size
   if (prop.name.toLowerCase() === 'label-width' && componentName.toLowerCase() === 'label') {
     const layoutVariant = selectedVariants.layout || 'stacked'
-    const sizeVariant = selectedVariants.size || 'large'
+    const sizeVariant = selectedVariants.size || 'default'
     // Build CSS var path: variants.layouts.{layout}.variants.sizes.{size}.properties.width
     const widthVar = `--recursica-ui-kit-components-label-variants-layouts-${layoutVariant}-variants-sizes-${sizeVariant}-properties-width`
     primaryCssVar = widthVar
@@ -328,9 +328,7 @@ export default function PropControl({
       
       // For dimension props, use dimension token selector (only theme values)
       // Set maxPixelValue and forcePixelMode for label width props
-      const isLabelWidth = propToRender.name.toLowerCase() === 'label-width' ||
-        propToRender.name.toLowerCase() === 'label-width-large' || 
-        propToRender.name.toLowerCase() === 'label-width-small'
+      const isLabelWidth = propToRender.name.toLowerCase() === 'label-width'
       const maxPixelValue = isLabelWidth ? 500 : undefined
       
       return (

@@ -17,7 +17,7 @@ export type LabelProps = {
   children?: React.ReactNode
   htmlFor?: string
   variant?: 'default' | 'required' | 'optional'
-  size?: 'large' | 'small'
+  size?: 'default' | 'small'
   layout?: 'stacked' | 'side-by-side'
   align?: 'left' | 'right'
   layer?: ComponentLayer

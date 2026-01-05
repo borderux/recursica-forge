@@ -18,11 +18,11 @@ export default function LabelPreview({
 
   // Extract variants from selectedVariants
   const layoutVariant = (selectedVariants.layout || 'stacked') as 'stacked' | 'side-by-side'
-  const sizeVariant = selectedVariants.size as 'large' | 'small' | undefined
+  const sizeVariant = selectedVariants.size as 'default' | 'small' | undefined
 
   // Determine if we're showing side-by-side layout
   const isSideBySide = layoutVariant === 'side-by-side'
-  const isLarge = sizeVariant === 'large'
+  const isDefault = sizeVariant === 'default' || sizeVariant === undefined
   const isSmall = sizeVariant === 'small'
   
   // Get gutter CSS variable for side-by-side layout
@@ -37,16 +37,13 @@ export default function LabelPreview({
     // If no size is selected, show both sizes
     const styleVariants: Array<'default' | 'required' | 'optional'> = ['default', 'required', 'optional']
     const alignments: Array<'left' | 'right'> = ['left', 'right']
-    const sizesToShow: Array<'large' | 'small'> = sizeVariant ? [sizeVariant] : ['large', 'small']
+    const sizesToShow: Array<'default' | 'small'> = sizeVariant ? [sizeVariant] : ['default', 'small']
     
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
         {sizesToShow.map((size) =>
           alignments.map((align) => (
             <div key={`${size}-${align}`} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#666', marginBottom: 4 }}>
-                {size.charAt(0).toUpperCase() + size.slice(1)} Size, {align.charAt(0).toUpperCase() + align.slice(1)} Aligned
-              </div>
               {styleVariants.map((styleVariant) => (
                 <div key={`${size}-${align}-${styleVariant}`} style={{ display: 'flex', gap: gapValue, alignItems: 'center', width: '100%' }}>
                   <Label

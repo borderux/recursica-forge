@@ -1975,7 +1975,7 @@
               },
               "variants": {
                 "sizes": {
-                  "large": {
+                  "default": {
                     "properties": {
                       "width": {
                         "$type": "dimension",
@@ -2023,7 +2023,7 @@
               },
               "variants": {
                 "sizes": {
-                  "large": {
+                  "default": {
                     "properties": {
                       "width": {
                         "$type": "dimension",
@@ -2133,7 +2133,7 @@
               "unit": "px"
             }
           },
-          "label-width-stacked-large": {
+          "label-width-stacked-default": {
             "$type": "dimension",
             "$value": {
               "value": 224,
@@ -2147,7 +2147,7 @@
               "unit": "px"
             }
           },
-          "label-width-side-by-side-large": {
+          "label-width-side-by-side-default": {
             "$type": "dimension",
             "$value": {
               "value": 224,

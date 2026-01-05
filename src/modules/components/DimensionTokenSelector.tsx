@@ -670,10 +670,9 @@ export default function DimensionTokenSelector({
   }
 
   // Determine max pixel value based on prop name or provided prop
-  // max-width, label-width-large, label-width-small can go up to 500px, others default to 200px
+  // max-width, label-width can go up to 500px, others default to 200px
   const maxPixelValue = maxPixelValueProp ?? (propName.toLowerCase() === 'max-width' || 
-    propName.toLowerCase() === 'label-width-large' || 
-    propName.toLowerCase() === 'label-width-small' ? 500 : 200)
+    propName.toLowerCase() === 'label-width' ? 500 : 200)
   const minPixelValue = minPixelValueProp ?? 0
 
   // Render pixel slider for raw pixel values

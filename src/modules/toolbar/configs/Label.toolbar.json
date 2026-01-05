@@ -12,22 +12,34 @@
   "props": {
     "text": {
       "icon": "text-aa",
-      "label": "Text",
+      "label": "Label",
       "visible": true,
       "group": {
         "text": {
           "label": "Color",
+          "visible": true
+        },
+        "label-font": {
+          "label": "Type Style",
           "visible": true
         }
       }
     },
     "asterisk": {
       "icon": "asterisk",
-      "label": "Required Asterisk",
+      "label": "Required",
       "visible": true,
       "group": {
         "asterisk": {
-          "label": "Color",
+          "label": "Indicator Color",
+          "visible": true
+        },
+        "optional-font": {
+          "label": "Optional Type Style",
+          "visible": true
+        },
+        "required-indicator-gap": {
+          "label": "Indicator Gap",
           "visible": true
         }
       }
@@ -35,11 +47,6 @@
     "optional-text-opacity": {
       "icon": "eye",
       "label": "Optional Text Opacity",
-      "visible": true
-    },
-    "required-indicator-gap": {
-      "icon": "split-horizontal",
-      "label": "Required Indicator Gap",
       "visible": true
     },
     "spacing": {

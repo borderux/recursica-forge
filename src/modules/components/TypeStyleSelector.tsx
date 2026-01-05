@@ -92,17 +92,24 @@ export default function TypeStyleSelector({
   const extractTypeStyleName = useCallback((cssVarValue: string): string | null => {
     if (!cssVarValue) return null
     
-    // Check if it's a brace reference: {brand.typography.body}
+    // Check if it's a brace reference: {brand.typography.body-small}
     const braceMatch = cssVarValue.match(/\{brand\.typography\.([^}]+)\}/)
     if (braceMatch) {
-      return braceMatch[1].toLowerCase() // Returns 'body', 'button', etc.
+      return braceMatch[1].toLowerCase() // Returns 'body-small', 'button', etc.
     }
     
     // Check if it's a typography CSS var reference
     // Pattern: var(--recursica-brand-typography-{style-name}-font-size)
-    const typoMatch = cssVarValue.match(/--recursica-brand-typography-([^-]+)-font-size/)
+    // Use greedy match to capture full hyphenated names like "body-small"
+    const typoMatch = cssVarValue.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
     if (typoMatch) {
-      return typoMatch[1].toLowerCase() // Returns 'body', 'button', etc.
+      return typoMatch[1].toLowerCase() // Returns 'body-small', 'button', etc.
+    }
+    
+    // Fallback: match any characters up to a hyphen (for unknown property names)
+    const typoMatchFallback = cssVarValue.match(/--recursica-brand-typography-([a-z0-9-]+)-/)
+    if (typoMatchFallback) {
+      return typoMatchFallback[1].toLowerCase()
     }
     
     // Check if it resolves to a typography reference
@@ -112,9 +119,13 @@ export default function TypeStyleSelector({
       if (resolvedBraceMatch) {
         return resolvedBraceMatch[1].toLowerCase()
       }
-      const resolvedTypoMatch = resolved.match(/--recursica-brand-typography-([^-]+)-font-size/)
+      const resolvedTypoMatch = resolved.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
       if (resolvedTypoMatch) {
         return resolvedTypoMatch[1].toLowerCase()
+      }
+      const resolvedTypoMatchFallback = resolved.match(/--recursica-brand-typography-([a-z0-9-]+)-/)
+      if (resolvedTypoMatchFallback) {
+        return resolvedTypoMatchFallback[1].toLowerCase()
       }
     }
     
@@ -123,28 +134,54 @@ export default function TypeStyleSelector({
 
   // Read initial value and set selected token
   const readInitialValue = useCallback(() => {
+    // Try reading the CSS var (may be null if reset)
     const currentValue = readCssVar(targetCssVar)
-    if (!currentValue) {
-      // Default to 'body' if not set
-      const bodyCssVar = typeStyleTokens.find(t => t.label === 'Body')?.name
-      if (bodyCssVar) {
-        setSelectedToken(bodyCssVar)
-        // Set the default value
-        const allCssVars = [targetCssVar, ...targetCssVars]
-        allCssVars.forEach(cssVar => {
-          if (cssVar) {
-            updateCssVar(cssVar, `var(${bodyCssVar})`)
+    
+    // If no value, try reading the resolved value (falls back to computed/default)
+    const resolvedValue = currentValue || readCssVarResolved(targetCssVar)
+    
+    if (!resolvedValue) {
+      // If still no value, try to get default from UIKit.json
+      // Extract prop name from CSS var (e.g., "label-font" from "--recursica-ui-kit-components-label-properties-label-font")
+      const propMatch = targetCssVar.match(/components-label-properties-([^-]+)/)
+      if (propMatch) {
+        const propName = propMatch[1]
+        try {
+          const uikitRoot: any = (theme as any)?.['ui-kit'] || (theme as any)
+          const labelComponent = uikitRoot?.components?.label
+          const propValue = labelComponent?.properties?.[propName]
+          
+          if (propValue?.$type === 'typography' && propValue?.$value) {
+            // Extract typography style name from default value (e.g., "{brand.typography.body-small}" -> "body-small")
+            const defaultStyleName = extractTypeStyleName(propValue.$value)
+            if (defaultStyleName) {
+              const matchingToken = typeStyleTokens.find(t => {
+                const tokenStyleName = t.name.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)?.[1]
+                return tokenStyleName === defaultStyleName
+              })
+              if (matchingToken) {
+                setSelectedToken(matchingToken.name)
+                return
+              }
+            }
           }
-        })
+        } catch (error) {
+          console.warn('Failed to read default from UIKit.json:', error)
+        }
       }
+      
+      // Fallback to 'body' if not set
+      const bodyCssVar = typeStyleTokens.find(t => t.label === 'Body')?.name
+      setSelectedToken(bodyCssVar)
       return
     }
     
     // Extract type style name from current value
-    const styleName = extractTypeStyleName(currentValue)
+    const styleName = extractTypeStyleName(resolvedValue)
     if (styleName) {
       const matchingToken = typeStyleTokens.find(t => {
-        const tokenStyleName = t.name.match(/--recursica-brand-typography-([^-]+)-font-size/)?.[1]
+        // Use greedy match to capture full hyphenated names like "body-small"
+        const tokenStyleName = t.name.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)?.[1]
         return tokenStyleName === styleName
       })
       setSelectedToken(matchingToken?.name)
@@ -153,11 +190,33 @@ export default function TypeStyleSelector({
       const bodyCssVar = typeStyleTokens.find(t => t.label === 'Body')?.name
       setSelectedToken(bodyCssVar)
     }
-  }, [targetCssVar, targetCssVars, typeStyleTokens, extractTypeStyleName])
+  }, [targetCssVar, targetCssVars, typeStyleTokens, extractTypeStyleName, theme])
 
   useEffect(() => {
     readInitialValue()
   }, [readInitialValue])
+
+  // Listen for CSS var reset events to re-read the initial value
+  useEffect(() => {
+    const handleReset = () => {
+      readInitialValue()
+    }
+    
+    const handleCssVarUpdate = (event: CustomEvent) => {
+      // Re-read if this CSS var was updated
+      if (event.detail?.cssVars?.includes(targetCssVar)) {
+        readInitialValue()
+      }
+    }
+    
+    window.addEventListener('cssVarsReset', handleReset as EventListener)
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    
+    return () => {
+      window.removeEventListener('cssVarsReset', handleReset as EventListener)
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    }
+  }, [targetCssVar, readInitialValue])
 
   const handleTokenChange = useCallback((tokenName: string) => {
     setSelectedToken(tokenName)

@@ -260,7 +260,7 @@ export default function ComponentToolbar({
         // Create virtual prop for label-width
         if (componentName.toLowerCase() === 'label' && propNameLower === 'label-width') {
           const layoutVariant = selectedVariants.layout || 'stacked'
-          const sizeVariant = selectedVariants.size || 'large'
+          const sizeVariant = selectedVariants.size || 'default'
           const virtualProp: ComponentProp = {
             name: 'label-width',
             category: 'size',
