@@ -44,13 +44,8 @@
         }
       }
     },
-    "optional-text-opacity": {
-      "icon": "eye",
-      "label": "Optional Text Opacity",
-      "visible": true
-    },
     "spacing": {
-      "icon": "arrows-pointing-out",
+      "icon": "square-logo",
       "label": "Spacing",
       "visible": true,
       "group": {
