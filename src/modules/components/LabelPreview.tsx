@@ -100,6 +100,7 @@ export default function LabelPreview({
             type="text"
             placeholder="Input field"
             style={{
+              width: '100%',
               padding: '8px 12px',
               border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
               borderRadius: '4px',
@@ -123,6 +124,7 @@ export default function LabelPreview({
             type="text"
             placeholder="Input field"
             style={{
+              width: '100%',
               padding: '8px 12px',
               border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
               borderRadius: '4px',
@@ -146,6 +148,7 @@ export default function LabelPreview({
             type="text"
             placeholder="Input field"
             style={{
+              width: '100%',
               padding: '8px 12px',
               border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
               borderRadius: '4px',
@@ -155,8 +158,8 @@ export default function LabelPreview({
       </div>
       
       {/* Right-aligned labels */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', alignItems: 'flex-end' }}>
           <Label
             variant="default"
             size={sizeVariant}
@@ -172,6 +175,7 @@ export default function LabelPreview({
             type="text"
             placeholder="Input field"
             style={{
+              width: '100%',
               padding: '8px 12px',
               border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
               borderRadius: '4px',
@@ -179,7 +183,7 @@ export default function LabelPreview({
           />
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', alignItems: 'flex-end' }}>
           <Label
             variant="required"
             size={sizeVariant}
@@ -195,6 +199,7 @@ export default function LabelPreview({
             type="text"
             placeholder="Input field"
             style={{
+              width: '100%',
               padding: '8px 12px',
               border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
               borderRadius: '4px',
@@ -202,7 +207,7 @@ export default function LabelPreview({
           />
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', alignItems: 'flex-end' }}>
           <Label
             variant="optional"
             size={sizeVariant}
@@ -218,6 +223,7 @@ export default function LabelPreview({
             type="text"
             placeholder="Input field"
             style={{
+              width: '100%',
               padding: '8px 12px',
               border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
               borderRadius: '4px',

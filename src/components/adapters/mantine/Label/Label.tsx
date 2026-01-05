@@ -82,19 +82,13 @@ export default function Label({
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
   
-  // Get CSS variable for size-based width (only applies to side-by-side layout)
-  // Always get size-based width if size is provided, otherwise fall back to label-width property
+  // Get CSS variable for size-based width based on layout and size variants
+  // Width is nested: variants.layouts.{layout}.variants.sizes.{size}.properties.width
   let widthVar: string | undefined
-  let labelWidthVar: string | undefined
   
-  if (layout === 'side-by-side') {
-    // Get label-width property (override for side-by-side layout)
-    labelWidthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'label-width')
-    
-    // Get size-based width if size is provided (now at top level variants.sizes)
-    if (size) {
-      widthVar = buildComponentCssVarPath('Label', 'variants', 'sizes', size, 'properties', 'width')
-    }
+  if (size) {
+    // Get width from nested variant structure
+    widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layout, 'variants', 'sizes', size, 'properties', 'width')
   }
   
   // Get CSS variables for layout-specific spacing
@@ -113,6 +107,11 @@ export default function Label({
     // Note: gutter is used by parent container's gap property, not applied to label itself
   }
   
+  // Apply width to layoutStyles for both layouts if size is provided
+  if (widthVar) {
+    layoutStyles.width = `var(${widthVar})`
+  }
+  
   return (
     <label
       htmlFor={htmlFor}
@@ -126,10 +125,8 @@ export default function Label({
         letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
         lineHeight: `var(${lineHeightVar})`,
         textAlign: align,
-        width: layout === 'side-by-side' 
-          ? (labelWidthVar ? `var(${labelWidthVar})` : (widthVar ? `var(${widthVar})` : undefined))
-          : undefined,
         opacity: `var(${highEmphasisOpacityVar})`,
+        overflow: 'hidden',
         ...layoutStyles,
         ...style,
         ...mantine?.style,
@@ -139,7 +136,7 @@ export default function Label({
     >
       {variant === 'optional' ? (
         <>
-          <span style={{ display: 'block' }}>{children}</span>
+          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
           <span
             style={{
               display: 'block',
@@ -150,13 +147,16 @@ export default function Label({
               fontWeight: `var(${optionalFontWeightVar})`,
               letterSpacing: `var(${optionalLetterSpacingVar})`,
               lineHeight: `var(${optionalLineHeightVar})`,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             (optional)
           </span>
         </>
       ) : (
-        <span style={{ display: 'inline' }}>
+        <span style={{ display: 'inline', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {children}
           {variant === 'required' && asteriskColorVar && (
             <span
