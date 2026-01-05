@@ -135,13 +135,29 @@ export default function ComponentDebugTable({
       }
       
       // For color props, check if layer matches
-      if (prop.category === 'color') {
+      if (prop.category === 'colors' || prop.category === 'color') {
+        // Check both the prop path and the CSS var name for layer
         const layerInPath = prop.path.find(p => p.startsWith('layer-'))
+        
+        // Check if CSS var contains a layer reference
+        const layerMatch = v.cssVar.match(/layer-(\d+)/)
+        const hasLayerInCssVar = layerMatch !== null
+        
         if (layerInPath) {
           // If this color prop has a layer in its path, it must match the selected layer
           if (layerInPath !== selectedLayer) return false
+        } else if (hasLayerInCssVar) {
+          // If layer is in CSS var name but not in prop path, check CSS var
+          // This handles cases where the CSS var includes layer but prop path doesn't
+          const layerFromCssVar = `layer-${layerMatch![1]}`
+          if (layerFromCssVar !== selectedLayer) return false
+        } else if (v.cssVar.includes('layer-')) {
+          // Fallback: if CSS var contains "layer-" but didn't match the pattern, check if it contains selected layer
+          if (!v.cssVar.includes(selectedLayer)) {
+            return false
+          }
         }
-        // If no layer in path, include it (might be a color prop without layer restriction)
+        // If no layer found anywhere, include it (might be a color prop without layer restriction)
       }
       
       // Include non-variant props (like border-radius, font-size at root level)

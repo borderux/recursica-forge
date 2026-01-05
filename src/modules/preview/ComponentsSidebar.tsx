@@ -56,6 +56,7 @@ export function ComponentsSidebar({
       { name: 'File input', url: `${base}/file-input` },
       { name: 'File upload', url: `${base}/file-upload` },
       { name: 'Hover card', url: `${base}/hover-card` },
+      { name: 'Label', url: `${base}/label` },
       { name: 'Link', url: `${base}/link` },
       { name: 'Loader', url: `${base}/loader` },
       { name: 'Menu', url: `${base}/menu` },

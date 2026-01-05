@@ -1,0 +1,82 @@
+{
+  "variants": {
+    "layout": {
+      "icon": "layout",
+      "label": "Layout"
+    },
+    "size": {
+      "icon": "resize",
+      "label": "Size"
+    }
+  },
+  "props": {
+    "text": {
+      "icon": "text-aa",
+      "label": "Label",
+      "visible": true,
+      "group": {
+        "text": {
+          "label": "Color",
+          "visible": true
+        },
+        "label-font": {
+          "label": "Type Style",
+          "visible": true
+        }
+      }
+    },
+    "asterisk": {
+      "icon": "asterisk",
+      "label": "Required",
+      "visible": true,
+      "group": {
+        "asterisk": {
+          "label": "Indicator Color",
+          "visible": true
+        },
+        "optional-font": {
+          "label": "Optional Type Style",
+          "visible": true
+        },
+        "required-indicator-gap": {
+          "label": "Indicator Gap",
+          "visible": true
+        }
+      }
+    },
+    "optional-text-opacity": {
+      "icon": "eye",
+      "label": "Optional Text Opacity",
+      "visible": true
+    },
+    "spacing": {
+      "icon": "arrows-pointing-out",
+      "label": "Spacing",
+      "visible": true,
+      "group": {
+        "bottom-padding": {
+          "label": "Bottom Padding",
+          "visible": true
+        },
+        "height": {
+          "label": "Height",
+          "visible": true
+        },
+        "gutter": {
+          "label": "Gutter",
+          "visible": true
+        },
+        "vertical-padding": {
+          "label": "Vertical Padding",
+          "visible": true
+        }
+      }
+    },
+    "label-width": {
+      "icon": "arrows-left-right",
+      "label": "Label Width",
+      "visible": true
+    }
+  }
+}
+

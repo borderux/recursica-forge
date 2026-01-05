@@ -28,5 +28,8 @@ registerComponent('material', 'Toast', () => import('../adapters/material/Toast/
 // Chip
 registerComponent('material', 'Chip', () => import('../adapters/material/Chip/Chip'))
 
+// Label
+registerComponent('material', 'Label', () => import('../adapters/material/Label/Label'))
+
 // Add more components as they're implemented
 

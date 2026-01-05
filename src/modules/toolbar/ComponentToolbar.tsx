@@ -48,26 +48,27 @@ export default function ComponentToolbar({
     return loadToolbarConfig(componentName)
   }, [componentName])
 
-  // Filter variants to only show those with more than one option, sorted by config order
+  // Filter variants to only show those with more than one option AND are in the toolbar config, sorted by config order
   const visibleVariants = useMemo(() => {
     const filtered = structure.variants.filter(variant => variant.variants.length > 1)
     
-    // Sort by order in toolbar config
+    // Only show variants that are explicitly listed in the toolbar config
     if (toolbarConfig?.variants) {
       const configOrder = Object.keys(toolbarConfig.variants)
-      return filtered.sort((a, b) => {
+      const configVariants = filtered.filter(variant => {
+        const isInConfig = configOrder.includes(variant.propName.toLowerCase())
+        return isInConfig
+      })
+      return configVariants.sort((a, b) => {
         const aIndex = configOrder.indexOf(a.propName.toLowerCase())
         const bIndex = configOrder.indexOf(b.propName.toLowerCase())
-        // If not found in config, keep original order (put at end)
-        if (aIndex === -1 && bIndex === -1) return 0
-        if (aIndex === -1) return 1
-        if (bIndex === -1) return -1
         return aIndex - bIndex
       })
     }
     
-    return filtered
-  }, [structure.variants, toolbarConfig])
+    // If no toolbar config, don't show any variants (they should be configured)
+    return []
+  }, [structure.variants, toolbarConfig, componentName, selectedVariants])
 
   // Close any open dropdowns and prop controls when component changes
   useEffect(() => {
@@ -186,11 +187,25 @@ export default function ComponentToolbar({
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
               }
               // If still not found, try to find it by exact name match (case-insensitive)
+              // For variant-specific props, find the first matching prop regardless of variant
               if (!groupedProp) {
                 groupedProp = structure.props.find(p => 
                   p.name.toLowerCase() === groupedPropKey ||
                   p.name === groupedPropName
                 )
+              }
+              // Special handling: if parent prop is "spacing" or "layout", collect props from all layout variants
+              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'layout')) {
+                // Find props that match the name and are variant-specific for layout
+                const layoutProps = structure.props.filter(p => 
+                  p.name.toLowerCase() === groupedPropKey &&
+                  p.isVariantSpecific &&
+                  p.variantProp === 'layout'
+                )
+                // Use the first one found (they should all have the same name, just different variant paths)
+                if (layoutProps.length > 0) {
+                  groupedProp = layoutProps[0]
+                }
               }
               if (groupedProp) {
                 groupedProps.set(groupedPropKey, groupedProp)
@@ -227,6 +242,36 @@ export default function ComponentToolbar({
               }
             }
           }
+        }
+      }
+    }
+    
+    // Fourth pass: create virtual props for props in toolbar config but not in structure
+    // This allows props like "label-width" that are handled specially but don't exist as component-level props
+    if (toolbarConfig?.props) {
+      for (const [propName, propConfig] of Object.entries(toolbarConfig.props)) {
+        const propNameLower = propName.toLowerCase()
+        
+        // Skip if prop already exists or is a grouped prop
+        if (propsMap.has(propNameLower) || propConfig.group) {
+          continue
+        }
+        
+        // Create virtual prop for label-width
+        if (componentName.toLowerCase() === 'label' && propNameLower === 'label-width') {
+          const layoutVariant = selectedVariants.layout || 'stacked'
+          const sizeVariant = selectedVariants.size || 'default'
+          const virtualProp: ComponentProp = {
+            name: 'label-width',
+            category: 'size',
+            type: 'dimension',
+            cssVar: `--recursica-ui-kit-components-label-variants-layouts-${layoutVariant}-variants-sizes-${sizeVariant}-properties-width`,
+            path: ['variants', 'layouts', layoutVariant, 'variants', 'sizes', sizeVariant, 'properties', 'width'],
+            isVariantSpecific: true,
+            variantProp: 'layout',
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
         }
       }
     }

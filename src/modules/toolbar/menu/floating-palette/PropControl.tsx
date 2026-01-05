@@ -174,6 +174,16 @@ export default function PropControl({
     primaryCssVar = minHeightVar
     cssVarsForControl = [minHeightVar]
   }
+  
+  // For Label width, override to target the size variant's width property based on layout and size
+  if (prop.name.toLowerCase() === 'label-width' && componentName.toLowerCase() === 'label') {
+    const layoutVariant = selectedVariants.layout || 'stacked'
+    const sizeVariant = selectedVariants.size || 'default'
+    // Build CSS var path: variants.layouts.{layout}.variants.sizes.{size}.properties.width
+    const widthVar = `--recursica-ui-kit-components-label-variants-layouts-${layoutVariant}-variants-sizes-${sizeVariant}-properties-width`
+    primaryCssVar = widthVar
+    cssVarsForControl = [widthVar]
+  }
 
   // Helper to determine contrast color CSS var based on prop name
   const getContrastColorVar = (propToRender: ComponentProp): string | undefined => {
@@ -317,13 +327,20 @@ export default function PropControl({
       }
       
       // For dimension props, use dimension token selector (only theme values)
+      // Set maxPixelValue and forcePixelMode for label width props
+      const isLabelWidth = propToRender.name.toLowerCase() === 'label-width'
+      const maxPixelValue = isLabelWidth ? 500 : undefined
+      
       return (
         <DimensionTokenSelector
+          key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           targetCssVar={primaryVar}
           targetCssVars={[...cssVars, ...additionalCssVars]}
           label={label}
           propName={propToRender.name}
           minPixelValue={minPixelValue}
+          maxPixelValue={maxPixelValue}
+          forcePixelMode={isLabelWidth}
         />
       )
     }
@@ -544,6 +561,38 @@ export default function PropControl({
               // The grouped prop should already be stored with the variant-prefixed key
               // from ComponentToolbar.tsx, so just try to get it directly
               groupedProp = prop.borderProps!.get(groupedPropKey)
+            }
+            // Special handling for spacing/layout props: find variant-specific prop matching selected layout
+            if (!groupedProp && (prop.name.toLowerCase() === 'spacing' || prop.name.toLowerCase() === 'layout')) {
+              const structure = parseComponentStructure(componentName)
+              const layoutVariant = selectedVariants['layout']
+              if (layoutVariant) {
+                // Find the prop that matches the name and the selected layout variant
+                const matchingProp = structure.props.find(p => 
+                  p.name.toLowerCase() === groupedPropKey &&
+                  p.isVariantSpecific &&
+                  p.variantProp === 'layout' &&
+                  p.path.includes(layoutVariant)
+                )
+                if (matchingProp) {
+                  groupedProp = matchingProp
+                  // Also add it to the borderProps map for future lookups
+                  prop.borderProps!.set(groupedPropKey, matchingProp)
+                }
+              }
+            }
+            
+            // Filter spacing props based on selected layout variant
+            // Only show props that belong to the selected layout variant
+            if (prop.name.toLowerCase() === 'spacing' && groupedProp) {
+              const layoutVariant = selectedVariants['layout']
+              if (layoutVariant) {
+                // Check if this prop belongs to the selected layout variant
+                const propBelongsToLayout = groupedProp.path.includes(layoutVariant)
+                if (!propBelongsToLayout) {
+                  return null // Don't render this prop if it doesn't belong to the selected layout
+                }
+              }
             }
             
             if (!groupedProp) {

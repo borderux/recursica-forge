@@ -119,39 +119,58 @@ function traverseUIKit(
       
       const cssVarName = toCssVarName(currentPath.join('.'))
       
-      // Handle dimension type: { value: number | string, unit: string }
-      if (type === 'dimension' && val && typeof val === 'object' && 'value' in val && 'unit' in val) {
-        const dimValue = val.value
-        const unit = val.unit || 'px'
-        
-        // Try to resolve token references in the value
-        const resolved = resolveTokenRef(dimValue, tokenIndex, theme, uikit, 0, vars, mode)
-        
-        if (resolved) {
-          // If resolved to a CSS var, use it directly (it should already have units)
-          vars[cssVarName] = resolved
-        } else if (dimValue != null) {
-          // Check if dimValue is a brace reference that couldn't be resolved yet
-          if (typeof dimValue === 'string' && dimValue.trim().startsWith('{') && dimValue.trim().endsWith('}')) {
-            // Preserve the brace reference for second pass resolution
-            vars[cssVarName] = dimValue.trim()
-          } else {
-            // Use the value with the unit
-            if (typeof dimValue === 'number') {
-              vars[cssVarName] = `${dimValue}${unit}`
-            } else if (typeof dimValue === 'string') {
-              const trimmed = dimValue.trim()
-              // Check if string already has a unit
-              if (/^-?\d+(\.\d+)?(px|em|rem|%|vh|vw|pt|pc|in|cm|mm|ex|ch|vmin|vmax|deg|rad|grad|ms|s|Hz|kHz|dpi|dpcm|dppx)$/i.test(trimmed)) {
-                vars[cssVarName] = trimmed
-              } else if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
-                vars[cssVarName] = `${trimmed}${unit}`
-              } else {
-                vars[cssVarName] = trimmed
-              }
+      // Handle dimension type: { value: number | string, unit: string } OR string token reference
+      if (type === 'dimension') {
+        // Check if it's an object with value and unit properties
+        if (val && typeof val === 'object' && 'value' in val && 'unit' in val) {
+          const dimValue = val.value
+          const unit = val.unit || 'px'
+          
+          // Try to resolve token references in the value
+          const resolved = resolveTokenRef(dimValue, tokenIndex, theme, uikit, 0, vars, mode)
+          
+          if (resolved) {
+            // If resolved to a CSS var, use it directly (it should already have units)
+            vars[cssVarName] = resolved
+          } else if (dimValue != null) {
+            // Check if dimValue is a brace reference that couldn't be resolved yet
+            if (typeof dimValue === 'string' && dimValue.trim().startsWith('{') && dimValue.trim().endsWith('}')) {
+              // Preserve the brace reference for second pass resolution
+              vars[cssVarName] = dimValue.trim()
             } else {
-              vars[cssVarName] = String(dimValue)
+              // Use the value with the unit
+              if (typeof dimValue === 'number') {
+                vars[cssVarName] = `${dimValue}${unit}`
+              } else if (typeof dimValue === 'string') {
+                const trimmed = dimValue.trim()
+                // Check if string already has a unit
+                if (/^-?\d+(\.\d+)?(px|em|rem|%|vh|vw|pt|pc|in|cm|mm|ex|ch|vmin|vmax|deg|rad|grad|ms|s|Hz|kHz|dpi|dpcm|dppx)$/i.test(trimmed)) {
+                  vars[cssVarName] = trimmed
+                } else if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+                  vars[cssVarName] = `${trimmed}${unit}`
+                } else {
+                  vars[cssVarName] = trimmed
+                }
+              } else {
+                vars[cssVarName] = String(dimValue)
+              }
             }
+          }
+        } else if (typeof val === 'string') {
+          // Dimension type with string token reference (e.g., {brand.typography.body-small.letter-spacing})
+          const trimmed = val.trim()
+          if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            // Try to resolve as a token reference
+            const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
+            if (resolved) {
+              vars[cssVarName] = resolved
+            } else {
+              // Preserve the brace reference for second pass resolution
+              vars[cssVarName] = trimmed
+            }
+          } else {
+            // Not a brace reference, use as-is (shouldn't happen for dimension type)
+            vars[cssVarName] = trimmed
           }
         }
       } else if (type === 'typography' && typeof val === 'string') {

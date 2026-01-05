@@ -207,8 +207,39 @@ export function resolveTokenReferenceToCssVar(
       }
       
       if (firstPart === 'typography') {
-        const typoPath = pathParts.slice(1).join('-')
-        return `var(--recursica-brand-typography-${typoPath})`
+        // Typography CSS variables naming pattern (from typography.ts):
+        // - font-size -> --recursica-brand-typography-{style}-font-size
+        // - font-family -> --recursica-brand-typography-{style}-font-family
+        // - font-weight -> --recursica-brand-typography-{style}-font-weight
+        // - line-height -> --recursica-brand-typography-{style}-line-height (NO "font-" prefix!)
+        // - letter-spacing -> --recursica-brand-typography-{style}-font-letter-spacing
+        const remainingParts = pathParts.slice(1)
+        if (remainingParts.length >= 2) {
+          const styleName = remainingParts[0] // e.g., "body-small"
+          const property = remainingParts.slice(1).join('-') // e.g., "font-size" or "line-height"
+          
+          // Special case: line-height does NOT get "font-" prefix
+          if (property === 'line-height') {
+            return `var(--recursica-brand-typography-${styleName}-line-height)`
+          }
+          
+          // Properties that already start with "font-" use as-is
+          if (property.startsWith('font-')) {
+            return `var(--recursica-brand-typography-${styleName}-${property})`
+          }
+          
+          // Other properties (like letter-spacing) get "font-" prefix
+          return `var(--recursica-brand-typography-${styleName}-font-${property})`
+        } else if (remainingParts.length === 1) {
+          // Only style name provided (e.g., {brand.typography.body-small})
+          // Resolve to font-size CSS variable so style name can be extracted
+          const styleName = remainingParts[0]
+          return `var(--recursica-brand-typography-${styleName}-font-size)`
+        } else {
+          // Fallback: join all parts
+          const typoPath = remainingParts.join('-')
+          return `var(--recursica-brand-typography-${typoPath})`
+        }
       }
     }
     
@@ -222,6 +253,14 @@ export function resolveTokenReferenceToCssVar(
     }
     
     // Layer element references: layers.layer-0.elements.text.color
+    // Special handling for text.emphasis.low/high → brand-level text emphasis
+    const layerElementEmphasisMatch = /^layers?\.(?:layer-)?(\d+)\.elements?\.text\.emphasis\.(low|high)$/i.exec(pathParts.join('.'))
+    if (layerElementEmphasisMatch) {
+      const [, , emphasis] = layerElementEmphasisMatch
+      // Text emphasis is stored at brand level, not layer-specific
+      return `var(--recursica-brand-themes-${mode}-text-emphasis-${emphasis.toLowerCase()})`
+    }
+    
     const layerElementMatch = /^layers?\.(?:layer-)?(\d+)\.elements?\.(.+)$/i.exec(pathParts.join('.'))
     if (layerElementMatch) {
       const layerNum = layerElementMatch[1]

@@ -47,6 +47,7 @@ export type ComponentName =
   | 'Divider'
   | 'List'
   | 'HoverCard'
+  | 'Label'
 
 export type ComponentLayer = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 

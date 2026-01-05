@@ -3,6 +3,7 @@ import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
 import { Avatar } from '../../components/adapters/Avatar'
 import { Toast } from '../../components/adapters/Toast'
+import { Label } from '../../components/adapters/Label'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
@@ -270,6 +271,26 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <span title="Extra information appears on hover" style={{ textDecoration: 'underline', cursor: 'help' }}>Hover me</span>
         </div>
       ),
+    },
+    {
+      name: 'Label',
+      url: `${base}/label`,
+      render: (selectedLayers) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <Label variant="default" layout="stacked" align="left" layer={layer as any} htmlFor="label-example-1">
+              Label
+            </Label>
+            <Label variant="required" layout="stacked" align="left" layer={layer as any} htmlFor="label-example-2">
+              Label
+            </Label>
+            <Label variant="optional" layout="stacked" align="left" layer={layer as any} htmlFor="label-example-3">
+              Label
+            </Label>
+          </div>
+        )
+      },
     },
     {
       name: 'Link',

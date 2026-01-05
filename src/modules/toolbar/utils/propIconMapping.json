@@ -24,6 +24,7 @@
   "margin-left": "arrow-left",
   "margin-right": "arrow-right",
   "gap": "split-horizontal",
+  "spacing": "arrows-vertical",
   "height": "arrows-up-down",
   "width": "arrows-right-left",
   "min-width": "arrows-in-line-horizontal",

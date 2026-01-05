@@ -29,6 +29,7 @@ import {
   ArrowsOutLineHorizontal,
   ArrowsOutLineVertical,
   ArrowsVertical,
+  Asterisk,
   CaretDoubleRight,
   CaretDown,
   Check,
@@ -42,12 +43,14 @@ import {
   DiamondsFour,
   Download,
   Equals,
+  Eye,
   FadersHorizontal,
   FileSvg,
   FileText,
   FrameCorners,
   GridFour,
   Info,
+  Layout,
   Link,
   List,
   Moon,
@@ -173,6 +176,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'arrows-horizontal': ArrowsHorizontal,
   'arrows-vertical': ArrowsVertical,
   'stack': Stack,
+  'layout': Layout,
+  'asterisk': Asterisk,
+  'eye': Eye,
 }
 
 /**
