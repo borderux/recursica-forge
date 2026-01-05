@@ -181,9 +181,44 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                   // Check if variant has nested "variants" key first (for nested variant structures)
                   if ('variants' in variantObj && typeof variantObj.variants === 'object') {
                     // Nested variants: variants.layouts.side-by-side.variants.sizes
-                    // Traverse the nested variants to detect category containers
-                    // Pass the variantPropName so nested variants know they're inside a parent variant
-                    traverse(variantObj.variants, [...currentPath, categoryKey, variantKey, 'variants'], variantPropName)
+                    // OR: variants.styles.text.variants.solid (Avatar case)
+                    const nestedVariantsPath = [...currentPath, categoryKey, variantKey, 'variants']
+                    const nestedVariantsObj = variantObj.variants
+                    
+                    // Check if nested variants contain category containers (sizes, layouts, styles)
+                    const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts'))
+                    
+                    if (nestedCategoryKeys.length > 0) {
+                      // Nested variants with category containers: variants.layouts.side-by-side.variants.sizes
+                      traverse(nestedVariantsObj, nestedVariantsPath, variantPropName)
+                    } else {
+                      // Nested variants without category containers: variants.styles.text.variants.solid (Avatar)
+                      // Extract variant names directly (solid, ghost)
+                      const nestedVariantNames = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$'))
+                      
+                      if (nestedVariantNames.length > 0) {
+                        // This is a nested variant structure like Avatar's style-secondary
+                        const nestedVariantPropName = 'style-secondary'
+                        
+                        // Check if we already have this variant prop
+                        const existingNestedVariant = variants.find(v => v.propName === nestedVariantPropName)
+                        if (existingNestedVariant) {
+                          // Merge variant names, keeping unique values
+                          const mergedVariants = Array.from(new Set([...existingNestedVariant.variants, ...nestedVariantNames]))
+                          existingNestedVariant.variants = mergedVariants
+                        } else {
+                          variants.push({
+                            propName: nestedVariantPropName,
+                            variants: nestedVariantNames,
+                          })
+                          seenVariants.add(nestedVariantPropName)
+                        }
+                      }
+                      
+                      // Continue traversing into the nested variants to extract props
+                      traverse(nestedVariantsObj, nestedVariantsPath, 'style-secondary')
+                    }
+                    
                     // Also traverse any properties if they exist
                     if ('properties' in variantObj && typeof variantObj.properties === 'object') {
                       traverse(variantObj.properties, [...currentPath, categoryKey, variantKey, 'properties'], variantPropName)
