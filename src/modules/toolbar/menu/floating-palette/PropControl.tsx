@@ -565,6 +565,19 @@ export default function PropControl({
               }
             }
             
+            // Filter spacing props based on selected layout variant
+            // Only show props that belong to the selected layout variant
+            if (prop.name.toLowerCase() === 'spacing' && groupedProp) {
+              const layoutVariant = selectedVariants['layout']
+              if (layoutVariant) {
+                // Check if this prop belongs to the selected layout variant
+                const propBelongsToLayout = groupedProp.path.includes(layoutVariant)
+                if (!propBelongsToLayout) {
+                  return null // Don't render this prop if it doesn't belong to the selected layout
+                }
+              }
+            }
+            
             if (!groupedProp) {
               console.warn(`PropControl: Grouped prop "${groupedPropName}" (key: "${groupedPropKey}") not found in borderProps map. Available keys:`, Array.from(prop.borderProps!.keys()))
               return null

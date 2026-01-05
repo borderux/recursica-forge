@@ -7,7 +7,8 @@ import { contrastRatio } from '../../modules/theme/contrastUtil'
 import {
   resolveCssVarToHex,
   stepUntilAACompliant,
-  hexToCssVarRef
+  hexToCssVarRef,
+  findColorFamilyAndLevel
 } from './layerColorStepping'
 
 // Helper to blend foreground over background with opacity
@@ -219,6 +220,9 @@ export class AAComplianceWatcher {
       
       // Check core colors
       this.checkCoreColors()
+      
+      // Check component-level asterisk colors
+      this.checkComponentAsteriskColors()
     } finally {
       // Reset flag after a short delay to allow CSS var updates to complete
       setTimeout(() => {
@@ -359,8 +363,139 @@ export class AAComplianceWatcher {
           
           // Core color changes affect ALL layers (0-3) for this mode
           this.updateAllLayers(mode)
+          
+          // If alert color changed, update component-level asterisk colors
+          if (colorName === 'alert') {
+            this.updateComponentAsteriskColors(mode)
+          }
         }
       })
+    }
+  }
+  
+  /**
+   * Check and update component-level asterisk colors for all layers
+   * Called when user changes asterisk color or alert core color changes
+   */
+  private checkComponentAsteriskColors() {
+    // Watch asterisk color for all layers (0-3) in both modes
+    for (const mode of ['light', 'dark'] as const) {
+      for (let layer = 0; layer <= 3; layer++) {
+        const asteriskColorVar = `--recursica-ui-kit-components-label-properties-colors-layer-${layer}-asterisk`
+        const currentValue = readCssVar(asteriskColorVar)
+        const lastValue = this.lastValues.get(asteriskColorVar)
+        
+        // If user changed the asterisk color for any layer, update all layers
+        if (currentValue !== lastValue && lastValue !== undefined) {
+          this.lastValues.set(asteriskColorVar, currentValue)
+          // Update all layers to maintain consistency and AA compliance
+          this.updateAllComponentAsteriskColors(mode, currentValue)
+          break // Only update once per mode
+        } else if (lastValue === undefined && currentValue) {
+          // First time seeing this var - just record it
+          this.lastValues.set(asteriskColorVar, currentValue)
+        }
+      }
+    }
+  }
+  
+  /**
+   * Update all component-level asterisk colors (layers 0-3) based on a changed color
+   * Steps through the palette to maintain AA compliance with each layer's background
+   */
+  private updateAllComponentAsteriskColors(mode: 'light' | 'dark', changedColorValue: string) {
+    // Get the hex value of the changed color
+    const changedColorHex = resolveCssVarToHex(changedColorValue, this.tokenIndex)
+    if (!changedColorHex) return
+    
+    // Find the color family and level from the changed color
+    const colorInfo = findColorFamilyAndLevel(changedColorHex, this.tokens)
+    if (!colorInfo) return
+    
+    // Update asterisk color for each layer (0-3)
+    for (let layer = 0; layer <= 3; layer++) {
+      const surfaceCssVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-surface`
+      const surfaceValue = readCssVar(surfaceCssVar)
+      
+      if (!surfaceValue) continue
+      
+      const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
+      if (!surfaceHex) continue
+      
+      // Get the component-level asterisk color CSS var
+      const asteriskColorVar = `--recursica-ui-kit-components-label-properties-colors-layer-${layer}-asterisk`
+      
+      // Get the base color from the token index using the same family
+      const normalizedLevel = colorInfo.level === '000' ? '050' : colorInfo.level
+      const baseColorHex = this.tokenIndex.get(`color/${colorInfo.family}/${normalizedLevel}`)
+      
+      if (typeof baseColorHex === 'string') {
+        const hex = baseColorHex.startsWith('#') ? baseColorHex.toLowerCase() : `#${baseColorHex.toLowerCase()}`
+        // Step until AA compliant with this layer's surface
+        const steppedHex = stepUntilAACompliant(hex, surfaceHex, 'darker', this.tokens)
+        const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+        updateCssVar(asteriskColorVar, cssVarRef, this.tokens)
+        // Record the new value
+        this.lastValues.set(asteriskColorVar, cssVarRef)
+      }
+    }
+  }
+  
+  /**
+   * Update component-level asterisk colors for all layers (0-3)
+   * Steps through the palette to maintain AA compliance with each layer's background
+   */
+  private updateComponentAsteriskColors(mode: 'light' | 'dark' = 'light') {
+    // Get the alert core color
+    const alertCoreVar = `--recursica-brand-themes-${mode}-palettes-core-alert`
+    const alertCoreValue = readCssVar(alertCoreVar)
+    
+    if (!alertCoreValue) return
+    
+    const alertCoreHex = resolveCssVarToHex(alertCoreValue, this.tokenIndex)
+    if (!alertCoreHex) return
+    
+    // Get the core token for alert
+    const coreToken = parseCoreTokenRef('alert', this.theme, mode)
+    
+    // Update asterisk color for each layer (0-3)
+    for (let layer = 0; layer <= 3; layer++) {
+      const surfaceCssVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-surface`
+      const surfaceValue = readCssVar(surfaceCssVar)
+      
+      if (!surfaceValue) continue
+      
+      const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
+      if (!surfaceHex) continue
+      
+      // Get the component-level asterisk color CSS var
+      const asteriskColorVar = `--recursica-ui-kit-components-label-properties-colors-layer-${layer}-asterisk`
+      
+      // Get opacity for text high emphasis
+      const opacityVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-element-text-high-emphasis`
+      const opacityValue = readCssVar(opacityVar)
+      const opacity = getOpacityValue(opacityValue, this.tokenIndex)
+      
+      // Use the same logic as updateElementColor for alert colors
+      if (coreToken) {
+        // Get the core color hex from the token index
+        const normalizedLevel = coreToken.level === '000' ? '050' : coreToken.level
+        const coreColorHex = this.tokenIndex.get(`color/${coreToken.family}/${normalizedLevel}`)
+        
+        if (typeof coreColorHex === 'string') {
+          const hex = coreColorHex.startsWith('#') ? coreColorHex.toLowerCase() : `#${coreColorHex.toLowerCase()}`
+          // Step until AA compliant
+          const steppedHex = stepUntilAACompliant(hex, surfaceHex, 'darker', this.tokens)
+          const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+          updateCssVar(asteriskColorVar, cssVarRef, this.tokens)
+        } else {
+          // Fallback to findAaCompliantColor if token not found
+          const aaCompliantColor = findAaCompliantColor(surfaceHex, coreToken, opacity, this.tokens)
+          if (aaCompliantColor) {
+            updateCssVar(asteriskColorVar, aaCompliantColor, this.tokens)
+          }
+        }
+      }
     }
   }
 

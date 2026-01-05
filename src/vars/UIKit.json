@@ -272,14 +272,7 @@
               }
             }
           },
-          "side-by-side-large": {
-            "column-width": {
-              "$type": "dimension",
-              "$value": {
-                "value": 224,
-                "unit": "px"
-              }
-            },
+          "side-by-side": {
             "height": {
               "$type": "dimension",
               "$value": {
@@ -293,9 +286,7 @@
                 "value": "{brand.dimensions.gutter.horizontal}",
                 "unit": "px"
               }
-            }
-          },
-          "side-by-side-small": {
+            },
             "vertical-padding": {
               "$type": "dimension",
               "$value": {
@@ -2121,34 +2112,7 @@
               "properties": {}
             },
             "required": {
-              "properties": {
-                "colors": {
-                  "layer-0": {
-                    "asterisk": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-0.required-asterisk}"
-                    }
-                  },
-                  "layer-1": {
-                    "asterisk": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-1.required-asterisk}"
-                    }
-                  },
-                  "layer-2": {
-                    "asterisk": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-2.required-asterisk}"
-                    }
-                  },
-                  "layer-3": {
-                    "asterisk": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.label.colors.layer-3.required-asterisk}"
-                    }
-                  }
-                }
-              }
+              "properties": {}
             },
             "optional": {
               "properties": {
@@ -2212,15 +2176,15 @@
               "properties": {
                 "height": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.label.size.side-by-side-large.height}"
+                  "$value": "{ui-kit.globals.label.size.side-by-side.height}"
                 },
                 "gutter": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.label.size.side-by-side-large.gutter}"
+                  "$value": "{ui-kit.globals.label.size.side-by-side.gutter}"
                 },
                 "vertical-padding": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.label.size.side-by-side-small.vertical-padding}"
+                  "$value": "{ui-kit.globals.label.size.side-by-side.vertical-padding}"
                 }
               }
             }
@@ -2232,24 +2196,40 @@
               "text": {
                 "$type": "color",
                 "$value": "{ui-kit.globals.label.colors.layer-0.default}"
+              },
+              "asterisk": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.label.colors.layer-0.required-asterisk}"
               }
             },
             "layer-1": {
               "text": {
                 "$type": "color",
                 "$value": "{ui-kit.globals.label.colors.layer-1.default}"
+              },
+              "asterisk": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.label.colors.layer-1.required-asterisk}"
               }
             },
             "layer-2": {
               "text": {
                 "$type": "color",
                 "$value": "{ui-kit.globals.label.colors.layer-2.default}"
+              },
+              "asterisk": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.label.colors.layer-2.required-asterisk}"
               }
             },
             "layer-3": {
               "text": {
                 "$type": "color",
                 "$value": "{ui-kit.globals.label.colors.layer-3.default}"
+              },
+              "asterisk": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.label.colors.layer-3.required-asterisk}"
               }
             }
           },

@@ -46,7 +46,7 @@ export default function Label({
   // Text color is at component level, not variant-specific
   const textColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
   const asteriskColorVar = variant === 'required' 
-    ? buildComponentCssVarPath('Label', 'variants', 'styles', variant, 'properties', 'colors', layer, 'asterisk')
+    ? buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'asterisk')
     : undefined
   
   // Get CSS variables for text emphasis opacity
@@ -75,18 +75,20 @@ export default function Label({
     widthVar = buildComponentCssVarPath('Label', 'variants', 'sizes', size, 'properties', 'width')
   }
   
-  let layoutSizeVars: Record<string, string> = {}
+  // Get CSS variables for layout-specific spacing
+  let layoutStyles: Record<string, string> = {}
   
   if (layout === 'stacked') {
     const bottomPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'bottom-padding')
-    layoutSizeVars['--label-bottom-padding'] = `var(${bottomPaddingVar})`
+    layoutStyles.paddingBottom = `var(${bottomPaddingVar})`
   } else if (layout === 'side-by-side') {
     const heightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'height')
     const gutterVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
     const verticalPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding')
-    layoutSizeVars['--label-height'] = `var(${heightVar})`
-    layoutSizeVars['--label-gutter'] = `var(${gutterVar})`
-    layoutSizeVars['--label-vertical-padding'] = `var(${verticalPaddingVar})`
+    layoutStyles.height = `var(${heightVar})`
+    layoutStyles.marginRight = `var(${gutterVar})`
+    layoutStyles.paddingTop = `var(${verticalPaddingVar})`
+    layoutStyles.paddingBottom = `var(${verticalPaddingVar})`
   }
   
   return (
@@ -103,7 +105,7 @@ export default function Label({
         textAlign: align,
         width: widthVar ? `var(${widthVar})` : undefined,
         opacity: `var(${highEmphasisOpacityVar})`,
-        ...layoutSizeVars,
+        ...layoutStyles,
         ...(style as any),
       }}
       {...material}
