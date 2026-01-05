@@ -186,6 +186,16 @@ export default function ComponentToolbar({
               if (!groupedProp && groupedPropKey === 'border-color') {
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
               }
+              // Special case: interactive-color maps to "color" prop from "interactive" variant
+              if (!groupedProp && groupedPropKey === 'interactive-color') {
+                groupedProp = structure.props.find(p => 
+                  p.name.toLowerCase() === 'color' && 
+                  p.category === 'colors' &&
+                  p.isVariantSpecific &&
+                  p.variantProp === 'style' &&
+                  p.path.includes('interactive')
+                )
+              }
               // If still not found, try to find it by exact name match (case-insensitive)
               // For variant-specific props, find the first matching prop regardless of variant
               if (!groupedProp) {

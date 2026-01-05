@@ -1,0 +1,55 @@
+/**
+ * Carbon Breadcrumb CSS Overrides
+ * 
+ * Overrides Carbon Breadcrumb component styles using Recursica CSS variables.
+ */
+
+/* Breadcrumb root */
+.cds--breadcrumb {
+  padding: var(--breadcrumb-padding, 0) !important;
+}
+
+/* Breadcrumb items */
+.recursica-breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--breadcrumb-icon-label-gap, 0px);
+}
+
+/* Breadcrumb separator - use item-gap for spacing between breadcrumb items */
+.cds--breadcrumb-item::after {
+  margin: 0 var(--breadcrumb-item-gap, 0px) !important;
+  display: inline-flex;
+  align-items: center;
+  color: var(--breadcrumb-separator-color, inherit) !important;
+  width: var(--breadcrumb-icon-size, 16px) !important;
+  height: var(--breadcrumb-icon-size, 16px) !important;
+}
+
+/* Custom separator icons */
+.cds--breadcrumb-item[data-separator="chevron"]::after {
+  content: '›' !important;
+}
+
+.cds--breadcrumb-item[data-separator="arrow"]::after {
+  content: '→' !important;
+}
+
+.cds--breadcrumb-item[data-separator="slash"]::after {
+  content: '/' !important;
+}
+
+/* Interactive items (links) */
+.recursica-breadcrumb-item[data-variant="interactive"] {
+  color: var(--breadcrumb-interactive-color) !important;
+}
+
+.recursica-breadcrumb-item[data-variant="interactive"]:hover {
+  text-decoration: underline;
+}
+
+/* Read-only items (last item) */
+.recursica-breadcrumb-item[data-variant="read-only"] {
+  color: var(--breadcrumb-read-only-color) !important;
+}
+

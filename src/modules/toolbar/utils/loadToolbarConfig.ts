@@ -9,6 +9,7 @@ import ToastConfig from '../configs/Toast.toolbar.json'
 import BadgeConfig from '../configs/Badge.toolbar.json'
 import ChipConfig from '../configs/Chip.toolbar.json'
 import LabelConfig from '../configs/Label.toolbar.json'
+import BreadcrumbConfig from '../configs/Breadcrumb.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -52,6 +53,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return ChipConfig as ToolbarConfig
       case 'label':
         return LabelConfig as ToolbarConfig
+      case 'breadcrumb':
+        return BreadcrumbConfig as ToolbarConfig
       default:
         return null
     }

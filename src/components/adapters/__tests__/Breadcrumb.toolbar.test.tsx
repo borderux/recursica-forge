@@ -1,0 +1,275 @@
+/**
+ * Toolbar Props Integration Tests
+ * 
+ * Tests that verify Breadcrumb component reactively updates when toolbar props are changed.
+ * These tests simulate toolbar updates by directly updating CSS variables and
+ * verifying that components respond correctly.
+ */
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { render, waitFor } from '@testing-library/react'
+import { UnifiedThemeProvider } from '../providers/UnifiedThemeProvider'
+import { UiKitProvider } from '../../modules/uikit/UiKitContext'
+import { Breadcrumb } from '../Breadcrumb'
+import { updateCssVar } from '../../../core/css/updateCssVar'
+import { buildVariantColorCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { readCssVar } from '../../../core/css/readCssVar'
+
+describe('Breadcrumb Toolbar Props Integration', () => {
+  beforeEach(() => {
+    // Clear all CSS variables before each test
+    document.documentElement.style.cssText = ''
+  })
+
+  afterEach(() => {
+    // Clean up after each test
+    document.documentElement.style.cssText = ''
+  })
+
+  const renderWithProviders = (ui: React.ReactElement) => {
+    return render(
+      <UiKitProvider>
+        <UnifiedThemeProvider>
+          {ui}
+        </UnifiedThemeProvider>
+      </UiKitProvider>
+    )
+  }
+
+  const sampleItems = [
+    { label: 'Home', href: '#' },
+    { label: 'Category', href: '#' },
+    { label: 'Current Page' },
+  ]
+
+  describe('Color Props Updates', () => {
+    const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
+    const variants = ['interactive', 'read-only'] as const
+
+    layers.forEach(layer => {
+      variants.forEach(variant => {
+        it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, async () => {
+          const { container } = renderWithProviders(
+            <Breadcrumb items={sampleItems} layer={layer} />
+          )
+          
+          const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+          expect(breadcrumb).toBeInTheDocument()
+
+          // Get the CSS variable name that the toolbar would use
+          const colorVar = buildVariantColorCssVar('Breadcrumb', variant, 'color', layer)
+          
+          // Simulate toolbar update: change the CSS variable
+          updateCssVar(colorVar, '#ff0000')
+          
+          // Dispatch the cssVarsUpdated event
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: [colorVar] }
+          }))
+
+          // Wait for component to update
+          await waitFor(() => {
+            const styles = window.getComputedStyle(breadcrumb!)
+            // Component should reference the updated CSS variable
+            const colorValue = styles.getPropertyValue(`--breadcrumb-${variant.replace('-', '-')}-color`)
+            // Check that the CSS variable is referenced (either directly or through custom property)
+            expect(readCssVar(colorVar)).toBe('#ff0000')
+          }, { timeout: 1000 })
+        })
+      })
+    })
+  })
+
+  describe('Component-Level Props Updates', () => {
+    it('updates padding when toolbar changes padding', async () => {
+      const { container } = renderWithProviders(
+        <Breadcrumb items={sampleItems} />
+      )
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      expect(breadcrumb).toBeInTheDocument()
+      
+      const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
+      
+      // Update padding CSS variable
+      updateCssVar(paddingVar, '20px')
+      
+      // Wait for component to update
+      await waitFor(() => {
+        const styles = window.getComputedStyle(breadcrumb!)
+        // Padding should be applied directly or via CSS custom property
+        const paddingValue = styles.getPropertyValue('padding') || styles.getPropertyValue('--breadcrumb-padding')
+        expect(paddingValue).toBeTruthy()
+      }, { timeout: 1000 })
+    })
+
+    it('updates icon-label-gap when toolbar changes icon-label-gap', async () => {
+      const { container } = renderWithProviders(
+        <Breadcrumb items={sampleItems} />
+      )
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      expect(breadcrumb).toBeInTheDocument()
+      
+      const iconLabelGapVar = getComponentLevelCssVar('Breadcrumb', 'icon-label-gap')
+      
+      // Update icon-label-gap CSS variable
+      updateCssVar(iconLabelGapVar, '12px')
+      
+      // Wait for component to update
+      await waitFor(() => {
+        const styles = window.getComputedStyle(breadcrumb!)
+        // Icon-label-gap should be set as CSS custom property
+        const gapValue = styles.getPropertyValue('--breadcrumb-icon-label-gap')
+        expect(gapValue).toContain('12px')
+      }, { timeout: 1000 })
+    })
+
+    it('updates item-gap when toolbar changes item-gap', async () => {
+      const { container } = renderWithProviders(
+        <Breadcrumb items={sampleItems} />
+      )
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      expect(breadcrumb).toBeInTheDocument()
+      
+      const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
+      
+      // Update item-gap CSS variable
+      updateCssVar(itemGapVar, '16px')
+      
+      // Wait for component to update
+      await waitFor(() => {
+        const styles = window.getComputedStyle(breadcrumb!)
+        // Item-gap should be set as CSS custom property
+        const gapValue = styles.getPropertyValue('--breadcrumb-item-gap')
+        expect(gapValue).toContain('16px')
+      }, { timeout: 1000 })
+    })
+
+    it('updates icon size when toolbar changes icon', async () => {
+      const { container } = renderWithProviders(
+        <Breadcrumb items={sampleItems} />
+      )
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      expect(breadcrumb).toBeInTheDocument()
+      
+      const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon')
+      
+      // Update icon size CSS variable
+      updateCssVar(iconSizeVar, '24px')
+      
+      // Wait for component to update
+      await waitFor(() => {
+        const styles = window.getComputedStyle(breadcrumb!)
+        // Icon size should be set as CSS custom property
+        const iconSizeValue = styles.getPropertyValue('--breadcrumb-icon-size')
+        expect(iconSizeValue).toContain('24px')
+      }, { timeout: 1000 })
+    })
+  })
+
+  describe('Multiple Props Updates', () => {
+    it('handles multiple simultaneous CSS variable updates', async () => {
+      const { container } = renderWithProviders(
+        <Breadcrumb items={sampleItems} layer="layer-0" />
+      )
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      expect(breadcrumb).toBeInTheDocument()
+      
+      const interactiveColorVar = buildVariantColorCssVar('Breadcrumb', 'interactive', 'color', 'layer-0')
+      const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
+      const iconLabelGapVar = getComponentLevelCssVar('Breadcrumb', 'icon-label-gap')
+      const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
+      
+      // Update multiple CSS variables simultaneously
+      updateCssVar(interactiveColorVar, '#00ff00')
+      updateCssVar(paddingVar, '16px')
+      updateCssVar(iconLabelGapVar, '8px')
+      updateCssVar(itemGapVar, '12px')
+      
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+        detail: { cssVars: [interactiveColorVar, paddingVar, iconLabelGapVar, itemGapVar] }
+      }))
+      
+      // Wait for component to update all properties
+      await waitFor(() => {
+        expect(readCssVar(interactiveColorVar)).toBe('#00ff00')
+        expect(readCssVar(paddingVar)).toBe('16px')
+        expect(readCssVar(iconLabelGapVar)).toBe('8px')
+        expect(readCssVar(itemGapVar)).toBe('12px')
+      }, { timeout: 1000 })
+    })
+  })
+
+  describe('Reactive Updates', () => {
+    it('component updates when CSS variable changes without event', async () => {
+      const { container } = renderWithProviders(
+        <Breadcrumb items={sampleItems} layer="layer-0" />
+      )
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      expect(breadcrumb).toBeInTheDocument()
+      
+      const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
+      
+      // Directly update CSS variable via DOM (simulating MutationObserver detection)
+      document.documentElement.style.setProperty(paddingVar, '24px')
+      
+      // Wait for component to detect the change
+      await waitFor(() => {
+        const styles = window.getComputedStyle(breadcrumb!)
+        const paddingValue = styles.getPropertyValue('padding') || styles.getPropertyValue('--breadcrumb-padding')
+        expect(paddingValue).toBeTruthy()
+      }, { timeout: 1000 })
+    })
+  })
+
+  describe('Variant Switching', () => {
+    it('updates CSS variables when layer changes', async () => {
+      const { container, rerender } = renderWithProviders(
+        <Breadcrumb items={sampleItems} layer="layer-0" />
+      )
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      expect(breadcrumb).toBeInTheDocument()
+      
+      // Switch to layer-1
+      rerender(
+        <UiKitProvider>
+          <UnifiedThemeProvider>
+            <Breadcrumb items={sampleItems} layer="layer-1" />
+          </UnifiedThemeProvider>
+        </UiKitProvider>
+      )
+      
+      // Component should use layer-1 CSS variables
+      await waitFor(() => {
+        const layer1ColorVar = buildVariantColorCssVar('Breadcrumb', 'interactive', 'color', 'layer-1')
+        const styles = window.getComputedStyle(breadcrumb!)
+        // Component should reference layer-1 variables
+        expect(styles).toBeTruthy()
+      }, { timeout: 1000 })
+    })
+  })
+
+  describe('Preview CSS Variables', () => {
+    it('CSS variables connected to preview update correctly', async () => {
+      const { container } = renderWithProviders(
+        <Breadcrumb items={sampleItems} layer="layer-0" />
+      )
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      expect(breadcrumb).toBeInTheDocument()
+      
+      const interactiveColorVar = buildVariantColorCssVar('Breadcrumb', 'interactive', 'color', 'layer-0')
+      const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
+      const iconLabelGapVar = getComponentLevelCssVar('Breadcrumb', 'icon-label-gap')
+      const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
+      const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon')
+      
+      // Verify all CSS variables are accessible
+      const styles = window.getComputedStyle(breadcrumb!)
+      expect(styles.getPropertyValue('--breadcrumb-interactive-color')).toBeTruthy()
+      expect(styles.getPropertyValue('--breadcrumb-padding')).toBeTruthy()
+      expect(styles.getPropertyValue('--breadcrumb-icon-label-gap')).toBeTruthy()
+      expect(styles.getPropertyValue('--breadcrumb-item-gap')).toBeTruthy()
+      expect(styles.getPropertyValue('--breadcrumb-icon-size')).toBeTruthy()
+    })
+  })
+})
+

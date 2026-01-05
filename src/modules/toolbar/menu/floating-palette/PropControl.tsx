@@ -287,6 +287,16 @@ export default function PropControl({
     }
 
     if (propToRender.type === 'dimension') {
+      // Ensure we have a valid CSS var - use the first from cssVars array or fallback to prop's cssVar
+      const validPrimaryVar = (primaryVar && primaryVar.trim()) || (cssVars.length > 0 && cssVars[0]?.trim()) || propToRender.cssVar
+      const validCssVars = cssVars.length > 0 ? cssVars.filter(v => v && v.trim()) : [propToRender.cssVar].filter(v => v && v.trim())
+      
+      // Only render if we have a valid CSS var
+      if (!validPrimaryVar || !validPrimaryVar.trim()) {
+        console.warn('PropControl: No valid CSS var for dimension prop', propToRender.name, { primaryVar, cssVars, propCssVar: propToRender.cssVar })
+        return null
+      }
+      
       // For font-size prop on Button component, also update the theme typography CSS var
       const additionalCssVars = propToRender.name === 'font-size' && componentName.toLowerCase() === 'button'
         ? ['--recursica-brand-typography-button-font-size']
@@ -333,9 +343,9 @@ export default function PropControl({
       
       return (
         <DimensionTokenSelector
-          key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
-          targetCssVar={primaryVar}
-          targetCssVars={[...cssVars, ...additionalCssVars]}
+          key={`${validPrimaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+          targetCssVar={validPrimaryVar}
+          targetCssVars={[...validCssVars, ...additionalCssVars]}
           label={label}
           propName={propToRender.name}
           minPixelValue={minPixelValue}
@@ -554,6 +564,26 @@ export default function PropControl({
             }
             if (!groupedProp && groupedPropKey === 'text-color') {
               groupedProp = prop.borderProps!.get('text')
+            }
+            // Special case: interactive-color maps to "color" prop from "interactive" variant
+            if (!groupedProp && groupedPropKey === 'interactive-color') {
+              groupedProp = prop.borderProps!.get('color')
+              // If not found, try to find it from structure (it might be variant-specific)
+              if (!groupedProp) {
+                const structure = parseComponentStructure(componentName)
+                const interactiveColorProp = structure.props.find(p => 
+                  p.name.toLowerCase() === 'color' && 
+                  p.category === 'colors' &&
+                  p.isVariantSpecific &&
+                  p.variantProp === 'style' &&
+                  p.path.includes('interactive')
+                )
+                if (interactiveColorProp) {
+                  groupedProp = interactiveColorProp
+                  // Add it to the borderProps map for future lookups
+                  prop.borderProps!.set('interactive-color', interactiveColorProp)
+                }
+              }
             }
             // Special handling for variant-specific props with variant prefix in config name
             // e.g., "small-min-height" should match prop stored with that key

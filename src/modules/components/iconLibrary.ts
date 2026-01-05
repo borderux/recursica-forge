@@ -32,6 +32,7 @@ import {
   Asterisk,
   CaretDoubleRight,
   CaretDown,
+  CaretRight,
   Check,
   CircleHalf,
   CircleHalfTilt,
@@ -49,6 +50,7 @@ import {
   FileText,
   FrameCorners,
   GridFour,
+  House,
   Info,
   Layout,
   Link,
@@ -140,6 +142,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   
   // Other icons used in the app
   'chevron-down': CaretDown,
+  'chevron-right': CaretRight,
+  // Note: Slash icon doesn't exist in Phosphor, using text fallback in components
   'x-mark': X,
   'document-text': FileText,
   'arrow-down-tray': Download,
@@ -163,6 +167,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'angle': Angle,
   'file-svg': FileSvg,
   'check': Check,
+  'house': House,
+  'home': House,
   'info': Info,
   'sliders-horizontal': SlidersHorizontal,
   'faders-horizontal': FadersHorizontal,

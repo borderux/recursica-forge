@@ -569,18 +569,47 @@ export default function DimensionTokenSelector({
   const readInitialValue = useCallback(() => {
     // Read CSS var value - checks inline styles first, then computed styles (from JSON defaults)
     const currentValue = readCssVar(targetCssVar)
+    
+    // If no value found, try to read the resolved value (might be a token reference)
     if (!currentValue) {
+      const resolvedValue = readCssVarResolved(targetCssVar)
+      if (resolvedValue) {
+        // We have a resolved value, treat it as the current value
+        const pxValue = extractPixelValue(resolvedValue)
+        if (pxValue > 0) {
+          setIsPixelMode(true)
+          const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
+          const minPixelValue = minPixelValueProp ?? 0
+          setPixelValue(Math.max(minPixelValue, Math.min(maxPixelValue, pxValue)))
+          return
+        }
+      }
+      
+      // If still no value, default to pixel mode with a reasonable default
+      // This ensures the slider is always functional
       setSelectedToken(undefined)
-      setPixelValue(0)
-      setIsPixelMode(false)
+      const defaultPixelValue = 8 // Default to 8px so slider is movable
+      setPixelValue(defaultPixelValue)
+      setIsPixelMode(true)
       return
     }
     
     // Check if it's a theme var or raw pixel value
     if (isThemeVar(currentValue)) {
       // Theme var mode - find matching token
+      if (dimensionTokens.length === 0) {
+        // No tokens available, fall back to pixel mode
+        setIsPixelMode(true)
+        const resolvedValue = readCssVarResolved(targetCssVar)
+        const pxValue = resolvedValue ? extractPixelValue(resolvedValue) : 8
+        const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
+        const minPixelValue = minPixelValueProp ?? 0
+        setPixelValue(Math.max(minPixelValue, Math.min(maxPixelValue, pxValue || 8)))
+        setSelectedToken(undefined)
+        return
+      }
+      
       setIsPixelMode(false)
-      if (dimensionTokens.length === 0) return
       
       // Resolve the current value to see what it actually points to
       const resolvedValue = readCssVarResolved(targetCssVar)
@@ -606,7 +635,17 @@ export default function DimensionTokenSelector({
         return false
       })
       
-      setSelectedToken(matchingToken?.name)
+      if (matchingToken) {
+        setSelectedToken(matchingToken.name)
+      } else {
+        // Token not found, fall back to pixel mode with resolved value
+        setIsPixelMode(true)
+        const pxValue = resolvedValue ? extractPixelValue(resolvedValue) : 8
+        const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
+        const minPixelValue = minPixelValueProp ?? 0
+        setPixelValue(Math.max(minPixelValue, Math.min(maxPixelValue, pxValue || 8)))
+        setSelectedToken(undefined)
+      }
     } else {
       // Raw pixel mode
       setIsPixelMode(true)
@@ -614,7 +653,7 @@ export default function DimensionTokenSelector({
       // Determine max pixel value based on prop name
       const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
       const minPixelValue = minPixelValueProp ?? 0
-      setPixelValue(Math.max(minPixelValue, Math.min(maxPixelValue, pxValue))) // Clamp to minPixelValue-maxPixelValue
+      setPixelValue(Math.max(minPixelValue, Math.min(maxPixelValue, pxValue || 8))) // Clamp to minPixelValue-maxPixelValue, default to 8 if 0
     }
   }, [targetCssVar, dimensionTokens, propName, minPixelValueProp])
   
@@ -734,6 +773,70 @@ export default function DimensionTokenSelector({
   }
 
   // Render token slider for theme vars
+  // If no tokens available, fall back to pixel mode
+  if (dimensionTokens.length === 0) {
+    // No tokens, use pixel mode
+    const resolvedValue = readCssVarResolved(targetCssVar)
+    const pxValue = resolvedValue ? extractPixelValue(resolvedValue) : (pixelValue || 8)
+    const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
+    const minPixelValue = minPixelValueProp ?? 0
+    const currentPixelValue = Math.max(minPixelValue, Math.min(maxPixelValue, pxValue || 8))
+    
+    return (
+      <div className="control-group">
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input
+              type="range"
+              min={minPixelValue}
+              max={maxPixelValue}
+              step={1}
+              value={currentPixelValue}
+              onChange={(e) => handlePixelChange(Number(e.target.value))}
+              style={{ flex: 1 }}
+            />
+            <input
+              type="number"
+              min={minPixelValue}
+              max={maxPixelValue}
+              step={1}
+              value={currentPixelValue}
+              onChange={(e) => {
+                const value = Number(e.target.value)
+                if (!isNaN(value)) {
+                  const clampedValue = Math.max(minPixelValue, Math.min(maxPixelValue, value))
+                  handlePixelChange(clampedValue)
+                }
+              }}
+              onBlur={(e) => {
+                const value = Number(e.target.value)
+                if (isNaN(value) || value < minPixelValue) {
+                  handlePixelChange(minPixelValue)
+                } else if (value > maxPixelValue) {
+                  handlePixelChange(maxPixelValue)
+                }
+              }}
+              style={{
+                width: 60,
+                padding: '4px 8px',
+                border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`,
+                borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`,
+                background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`,
+                color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`,
+                fontSize: 12,
+                textAlign: 'right',
+              }}
+            />
+            <span style={{ fontSize: 12, opacity: 0.7, minWidth: 20 }}>px</span>
+          </div>
+        </label>
+      </div>
+    )
+  }
+  
   return (
     <TokenSlider
       label={label}
