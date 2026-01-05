@@ -111,7 +111,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <AppBar
           position="static"
           sx={{
@@ -121,11 +121,11 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             paddingLeft: 'var(--recursica-brand-dimensions-spacer-xl)',
             paddingRight: 'var(--recursica-brand-dimensions-spacer-xl)',
             height: 'auto',
+            flexShrink: 0,
             boxShadow: 'none',
             borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
             borderBottomStyle: 'solid',
             borderBottomColor: `var(${layer1Base}-border-color)`,
-            flexShrink: 0,
           }}
         >
           <Toolbar sx={{ gap: 'var(--recursica-brand-dimensions-spacer-xl)', justifyContent: 'space-between', minHeight: 'auto !important', width: '100%' }}>
@@ -418,12 +418,12 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           })()}
         </Toolbar>
       </AppBar>
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {showSidebar && <Sidebar />}
         {showThemeSidebar && <ThemeSidebar />}
         <main style={{ 
-          flex: 1, 
-          overflow: 'auto',
+          flex: 1,
+          minHeight: 0,
           backgroundColor: `var(${layer0Base}-surface)`,
           color: `var(${layer0Base}-element-text-color)`,
         }}>

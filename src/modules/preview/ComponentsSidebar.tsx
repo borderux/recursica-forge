@@ -140,6 +140,7 @@ export function ComponentsSidebar({
         paddingTop: 'var(--recursica-brand-dimensions-spacer-xl)',
         paddingBottom: 'var(--recursica-brand-dimensions-spacer-xl)',
         flexShrink: 0,
+        overflowY: 'auto',
       }}
     >
       {/* Components Heading */}

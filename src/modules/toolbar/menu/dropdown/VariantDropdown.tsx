@@ -12,9 +12,10 @@ interface VariantDropdownProps {
   onSelect: (variant: string) => void
   open?: boolean
   onOpenChange?: (isOpen: boolean) => void
+  className?: string
 }
 
-export default function VariantDropdown({ componentName, propName, variants, selected, onSelect, open: controlledOpen, onOpenChange }: VariantDropdownProps) {
+export default function VariantDropdown({ componentName, propName, variants, selected, onSelect, open: controlledOpen, onOpenChange, className = '' }: VariantDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const ref = useRef<HTMLDivElement>(null)
@@ -58,10 +59,11 @@ export default function VariantDropdown({ componentName, propName, variants, sel
 
   const IconComponent = getIconComponent()
   const CaretDownIcon = iconNameToReactComponent('chevron-down')
-  const variantLabel = getVariantLabel(componentName, propName) || `${toSentenceCase(propName)} variant`
+  const variantLabel = getVariantLabel(componentName, propName) || toSentenceCase(propName)
+  const selectedValue = toSentenceCase(selected)
 
   return (
-    <div className="dropdown-container" ref={ref}>
+    <div className={`dropdown-container ${className}`} ref={ref}>
       <button
         className={`toolbar-icon-button ${open ? 'active' : ''}`}
         onClick={() => setOpen(!open)}
@@ -69,6 +71,10 @@ export default function VariantDropdown({ componentName, propName, variants, sel
         aria-label={variantLabel}
       >
         {IconComponent && <IconComponent className="toolbar-icon" />}
+        <span className="dropdown-label-value">
+          <span className="dropdown-label">{variantLabel}</span>
+        </span>
+        <span className="dropdown-value">{selectedValue}</span>
         {CaretDownIcon && <CaretDownIcon className={`dropdown-chevron ${open ? 'flipped' : ''}`} />}
       </button>
       {open && (

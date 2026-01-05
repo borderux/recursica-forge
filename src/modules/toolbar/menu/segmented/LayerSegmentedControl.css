@@ -1,0 +1,61 @@
+.layer-segmented-control {
+  display: flex;
+  align-items: center;
+  gap: var(--recursica-brand-dimensions-spacer-sm);
+  width: 100%;
+}
+
+.layer-segmented-control-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-medium-emphasis);
+  flex-shrink: 0;
+}
+
+html[data-theme-mode="dark"] .layer-segmented-control-icon {
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-medium-emphasis);
+}
+
+.layer-segmented-control-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  flex-shrink: 0;
+}
+
+html[data-theme-mode="dark"] .layer-segmented-control-label {
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+}
+
+.layer-segmented-control-buttons {
+  display: inline-flex;
+  overflow: hidden;
+  margin-left: auto;
+}
+
+.layer-segmented-control-button {
+  padding: var(--recursica-brand-dimensions-spacer-xs) var(--recursica-brand-dimensions-spacer-sm);
+  border: none;
+  border-right: 1px solid var(--recursica-brand-themes-light-layer-layer-0-property-border-color);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s;
+  min-width: 32px;
+  text-align: center;
+}
+
+html[data-theme-mode="dark"] .layer-segmented-control-button {
+  border-right-color: var(--recursica-brand-themes-dark-layer-layer-0-property-border-color);
+}
+
+.layer-segmented-control-button:last-child {
+  border-right: none;
+}
+
+.layer-segmented-control-button.selected {
+  position: relative;
+  z-index: 1;
+}
+

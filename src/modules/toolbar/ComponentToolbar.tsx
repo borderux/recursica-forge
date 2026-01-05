@@ -8,11 +8,13 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { parseComponentStructure, toSentenceCase, ComponentProp } from './utils/componentToolbarUtils'
 import VariantDropdown from './menu/dropdown/VariantDropdown'
-import LayerDropdown from './menu/dropdown/LayerDropdown'
-import PropControl from './menu/floating-palette/PropControl'
+import LayerSegmentedControl from './menu/segmented/LayerSegmentedControl'
+import AccordionSection from './menu/accordion/AccordionSection'
+import PropControlContent from './menu/floating-palette/PropControlContent'
 import MenuIcon from './menu/MenuIcon'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getPropIcon, getPropLabel, getPropVisible, loadToolbarConfig } from './utils/loadToolbarConfig'
+import { useThemeMode } from '../theme/ThemeModeContext'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
@@ -21,7 +23,6 @@ export interface ComponentToolbarProps {
   selectedLayer: string // e.g., "layer-0"
   onVariantChange: (prop: string, variant: string) => void
   onLayerChange: (layer: string) => void
-  onPropControlChange?: (propName: string | null) => void
 }
 
 export default function ComponentToolbar({
@@ -30,16 +31,10 @@ export default function ComponentToolbar({
   selectedLayer,
   onVariantChange,
   onLayerChange,
-  onPropControlChange,
 }: ComponentToolbarProps) {
-  const [openPropControl, setOpenPropControl] = useState<string | null>(null)
-
-  // Notify parent when prop control opens/closes
-  useEffect(() => {
-    onPropControlChange?.(openPropControl)
-  }, [openPropControl, onPropControlChange])
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null) // Track which dropdown is open: 'variant-{propName}', 'layer'
-  const iconRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const { mode } = useThemeMode()
+  const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
@@ -73,7 +68,7 @@ export default function ComponentToolbar({
   // Close any open dropdowns and prop controls when component changes
   useEffect(() => {
     setOpenDropdown(null)
-    setOpenPropControl(null)
+    setOpenPropControl(new Set())
   }, [componentName])
 
   // Get all unique props (one icon per prop name, regardless of variants or layers)
@@ -458,126 +453,131 @@ export default function ComponentToolbar({
 
 
   return (
-    <div className="component-toolbar" data-layer="layer-1">
-      {/* Consistent Layers Section */}
-      <div className="toolbar-section-group">
-        <span className="toolbar-section-label">Layers</span>
-        <LayerDropdown
+    <div className="component-toolbar-panel">
+      {/* Layers Segmented Control */}
+      <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
+        <LayerSegmentedControl
           selected={selectedLayer}
           onSelect={(layer) => {
             onLayerChange(layer)
-            setOpenDropdown(null)
-          }}
-          open={openDropdown === 'layer'}
-          onOpenChange={(isOpen) => {
-            if (isOpen) {
-              setOpenPropControl(null) // Close any open palette
-              setOpenDropdown('layer')
-            } else {
-              setOpenDropdown(null)
-            }
           }}
         />
       </div>
 
-      {/* Dynamic Variants Section - Only show if there are variants with more than one option */}
+      {/* Variants Dropdowns */}
       {visibleVariants.length > 0 && (
-        <div className="toolbar-section-group">
-          <span className="toolbar-section-label">Variants</span>
-          {visibleVariants.map(variant => (
-            <VariantDropdown
+        <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
+          {visibleVariants.map((variant, index) => (
+            <div 
               key={variant.propName}
-              componentName={componentName}
-              propName={variant.propName}
-              variants={variant.variants}
-              selected={selectedVariants[variant.propName] || variant.variants[0]}
-              onSelect={(variantName) => {
-                onVariantChange(variant.propName, variantName)
-                setOpenDropdown(null)
+              style={{ 
+                marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-spacer-sm)' : 0,
+                paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-spacer-sm)' : 0,
+                borderBottom: index < visibleVariants.length - 1 ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` : 'none'
               }}
-              open={openDropdown === `variant-${variant.propName}`}
-              onOpenChange={(isOpen) => {
-                if (isOpen) {
-                  setOpenPropControl(null) // Close any open palette
-                  setOpenDropdown(`variant-${variant.propName}`)
-                } else {
-                  setOpenDropdown(null)
-                }
-              }}
-            />
+            >
+              <VariantDropdown
+                componentName={componentName}
+                propName={variant.propName}
+                variants={variant.variants}
+                selected={selectedVariants[variant.propName] || variant.variants[0]}
+                onSelect={(variantName) => {
+                  onVariantChange(variant.propName, variantName)
+                }}
+                open={openDropdown === `variant-${variant.propName}`}
+                onOpenChange={(isOpen) => {
+                  if (isOpen) {
+                    setOpenDropdown(`variant-${variant.propName}`)
+                  } else {
+                    setOpenDropdown(null)
+                  }
+                }}
+                className="full-width"
+              />
+            </div>
           ))}
         </div>
       )}
 
-      {/* Dynamic Props Section */}
-      <div className="toolbar-section-group">
-        <span className="toolbar-section-label">Props</span>
-        {allProps.filter(prop => {
-          const propNameLower = prop.name.toLowerCase()
-          // Only show props that are in the config
-          const propConfig = toolbarConfig?.props?.[propNameLower]
-          if (!propConfig) {
-            return false
-          }
-          // Filter out props with visible: false
-          return getPropVisible(componentName, prop.name)
-        }).map(prop => {
-          const Icon = getPropIconComponent(prop)
-          
-          // Ensure all props have an icon - if not, log a warning and skip rendering
-          if (!Icon) {
-            console.warn(`ComponentToolbar: Prop "${prop.name}" does not have an icon and will not be rendered. Add it to ${componentName}.toolbar.json config or ensure it's handled in a floating panel.`)
-            return null
-          }
-          
-          // Use prop name as key instead of cssVar since we have unique prop names now
-          const propKey = prop.name
-          return (
-            <div key={propKey} className="toolbar-icon-wrapper">
-              <MenuIcon
-                ref={(el) => {
-                  if (el) {
-                    iconRefs.current.set(propKey, el)
-                  } else {
-                    iconRefs.current.delete(propKey)
-                  }
-                }}
-                icon={Icon}
-                active={openPropControl === propKey}
-                onClick={() => {
-                  if (openPropControl === propKey) {
-                    setOpenPropControl(null)
-                  } else {
-                    setOpenDropdown(null) // Close any open dropdown
-                    setOpenPropControl(propKey)
-                  }
-                }}
-                title={getPropLabel(componentName, prop.name) || toSentenceCase(prop.name)}
-              />
-              {openPropControl === propKey && iconRefs.current.get(propKey) && (
-                <PropControl
-                  prop={prop}
-                  componentName={componentName}
-                  selectedVariants={selectedVariants}
-                  selectedLayer={selectedLayer}
-                  anchorElement={iconRefs.current.get(propKey)!}
-                  onClose={() => setOpenPropControl(null)}
-                />
-              )}
-            </div>
-          )
-        }).filter(Boolean)}
+      {/* Dynamic Props Section - Accordion Style */}
+      {allProps.filter(prop => {
+        const propNameLower = prop.name.toLowerCase()
+        const propConfig = toolbarConfig?.props?.[propNameLower]
+        if (!propConfig) {
+          return false
+        }
+        return getPropVisible(componentName, prop.name)
+      }).map(prop => {
+        const Icon = getPropIconComponent(prop)
+        const propKey = prop.name
+        const isOpen = openPropControl.has(propKey)
         
-
-      </div>
+        if (!Icon) {
+          return null
+        }
+        
+        return (
+          <AccordionSection
+            key={propKey}
+            title={getPropLabel(componentName, prop.name) || toSentenceCase(prop.name)}
+            icon={Icon}
+            open={isOpen}
+            onToggle={(open) => {
+              if (open) {
+                setOpenPropControl(prev => new Set(prev).add(propKey))
+              } else {
+                setOpenPropControl(prev => {
+                  const next = new Set(prev)
+                  next.delete(propKey)
+                  return next
+                })
+              }
+            }}
+          >
+            <PropControlContent
+              prop={prop}
+              componentName={componentName}
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
+            />
+          </AccordionSection>
+        )
+      }).filter(Boolean)}
 
       {/* Reset Button */}
-      <MenuIcon
-        icon={iconNameToReactComponent('arrow-path')}
-        onClick={handleReset}
-        title="Reset to defaults"
-        className="toolbar-reset-button"
-      />
+      <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-md)', borderTop: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
+        <button
+          onClick={handleReset}
+          style={{
+            width: '100%',
+            padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
+            background: 'transparent',
+            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
+            borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
+            color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-interactive-tone)`,
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 'var(--recursica-brand-dimensions-spacer-xs)',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          {(() => {
+            const ResetIcon = iconNameToReactComponent('arrow-path')
+            return ResetIcon ? <ResetIcon style={{ width: 16, height: 16 }} /> : null
+          })()}
+          Reset to defaults
+        </button>
+      </div>
     </div>
   )
 }

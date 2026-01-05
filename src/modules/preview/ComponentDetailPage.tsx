@@ -63,7 +63,7 @@ export default function ComponentDetailPage() {
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
-  const [openPropControl, setOpenPropControl] = useState<string | null>(null)
+  const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
 
   // Reset variants to first option when component changes
   useEffect(() => {
@@ -173,13 +173,21 @@ export default function ComponentDetailPage() {
   }, [mode, layerNum, theme])
 
   return (
-    <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-xl)' }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100%',
+      minHeight: 0,
+      overflow: 'hidden',
+    }}>
       {/* Header Section */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        marginBottom: 'var(--recursica-brand-dimensions-spacer-lg)',
+        padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+        borderBottom: `1px solid var(${layer1Base}-border-color)`,
+        flexShrink: 0,
       }}>
         <h1 style={{ 
           margin: 0,
@@ -223,134 +231,135 @@ export default function ComponentDetailPage() {
         </a>
       </div>
 
-      {/* Main Content Container */}
+      {/* Main Content Container - Split Layout */}
       <div style={{
-        border: `1px solid var(${layer1Base}-border-color)`,
-        minHeight: '500px',
-        padding: 'var(--recursica-brand-dimensions-spacer-lg)',
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 'var(--recursica-brand-dimensions-spacer-lg)',
+        flex: 1,
+        minHeight: 0,
+        overflow: 'hidden',
       }}>
-        {/* Caption - Above preview showing variant and layer info */}
+        {/* Preview Area - Left Side */}
         <div style={{
-          textAlign: 'center',
-          fontFamily: 'var(--recursica-brand-typography-caption-font-family)',
-          fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-caption-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
-          color: `var(${layer0Base}-element-text-low-emphasis)`,
-        }}>
-          {captionText}
-        </div>
-
-        {/* Preview Section - Centered both vertically and horizontally */}
-        {/* Apply all layer CSS variables: surface, border-color, border-thickness, border-radius, padding, elevation */}
-        <div style={{ 
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 'var(--recursica-brand-dimensions-spacer-md)',
-          // Apply layer properties
-          background: `var(${baseLayerBase}-surface)`,
-          padding: `var(${baseLayerBase}-padding)`,
-          border: layerNum !== '0' 
-            ? `var(${baseLayerBase}-border-thickness, 1px) solid var(${baseLayerBase}-border-color)`
-            : 'none',
-          borderRadius: layerNum !== '0'
-            ? `var(${baseLayerBase}-border-radius)`
-            : undefined,
-          boxShadow: elevationBoxShadow,
-          width: '100%',
-          position: 'relative',
+          padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+          minWidth: 0,
+          minHeight: 0,
+          overflow: 'auto',
         }}>
-          {/* Component Preview */}
-          {component.name === 'Button' ? (
-            <ButtonPreview
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              componentElevation={componentElevation}
-            />
-          ) : component.name === 'Avatar' ? (
-            <AvatarPreview
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              componentElevation={componentElevation}
-            />
-          ) : component.name === 'Toast' ? (
-            <ToastPreview
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              selectedAltLayer={null}
-            />
-          ) : component.name === 'Badge' ? (
-            <BadgePreview
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              componentElevation={componentElevation}
-            />
-          ) : component.name === 'Chip' ? (
-            <ChipPreview
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              selectedAltLayer={null}
-              componentElevation={componentElevation}
-            />
-          ) : component.name === 'Label' ? (
-            <LabelPreview
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              componentElevation={componentElevation}
-            />
-          ) : component.name === 'Breadcrumb' ? (
-            <BreadcrumbPreview
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              componentElevation={componentElevation}
-            />
-          ) : component.name === 'Toast' ? (
-            <ToastPreview
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              selectedAltLayer={null}
-              componentElevation={componentElevation}
-            />
-          ) : (
-            <div style={{
-              minHeight: 200,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              {component.render(new Set([selectedLayer as any]))}
+          {/* Preview Section */}
+          <div style={{ 
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 'var(--recursica-brand-dimensions-spacer-md)',
+            background: `var(${baseLayerBase}-surface)`,
+            padding: `var(${baseLayerBase}-padding)`,
+            border: layerNum !== '0' 
+              ? `var(${baseLayerBase}-border-thickness, 1px) solid var(${baseLayerBase}-border-color)`
+              : 'none',
+            borderRadius: layerNum !== '0'
+              ? `var(${baseLayerBase}-border-radius)`
+              : undefined,
+            boxShadow: elevationBoxShadow,
+            position: 'relative',
+            minHeight: 0,
+          }}>
+            {/* Component Preview */}
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+              {component.name === 'Button' ? (
+                <ButtonPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Avatar' ? (
+                <AvatarPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Toast' ? (
+                <ToastPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  selectedAltLayer={null}
+                />
+              ) : component.name === 'Badge' ? (
+                <BadgePreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Chip' ? (
+                <ChipPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  selectedAltLayer={null}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Label' ? (
+                <LabelPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Breadcrumb' ? (
+                <BreadcrumbPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : (
+                <div style={{
+                  minHeight: 200,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  {component.render(new Set([selectedLayer as any]))}
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Caption - Inside preview at bottom */}
+            <div style={{
+              flexShrink: 0,
+              textAlign: 'center',
+              fontFamily: 'var(--recursica-brand-typography-caption-font-family)',
+              fontSize: 'var(--recursica-brand-typography-caption-font-size)',
+              fontWeight: 'var(--recursica-brand-typography-caption-font-weight)',
+              letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
+              lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
+              color: `var(${layer0Base}-element-text-low-emphasis)`,
+            }}>
+              {captionText}
+            </div>
+          </div>
         </div>
 
-        {/* Toolbar - Below preview, max-width hugs content */}
+        {/* Toolbar Panel - Right Side */}
         <div style={{
-          width: '100%',
+          width: '400px',
+          flexShrink: 0,
           display: 'flex',
-          justifyContent: 'center',
+          flexDirection: 'column',
+          borderLeft: `1px solid var(${layer0Base}-border-color)`,
+          minHeight: 0,
+          overflowY: 'auto',
         }}>
-          <div style={{
-            maxWidth: 'fit-content',
-          }}>
-            <ComponentToolbar
-              componentName={component.name}
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-              onVariantChange={(prop, variant) => {
-                setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
-              }}
-              onLayerChange={setSelectedLayer}
-              onPropControlChange={setOpenPropControl}
-            />
-          </div>
+          <ComponentToolbar
+            componentName={component.name}
+            selectedVariants={selectedVariants}
+            selectedLayer={selectedLayer}
+            onVariantChange={(prop, variant) => {
+              setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
+            }}
+            onLayerChange={setSelectedLayer}
+          />
         </div>
       </div>
 
@@ -358,7 +367,7 @@ export default function ComponentDetailPage() {
       {debugMode && component && (
         <ComponentDebugTable 
           componentName={component.name}
-          openPropControl={openPropControl}
+          openPropControl={openPropControl.size > 0 ? Array.from(openPropControl)[0] : null}
           selectedVariants={selectedVariants}
           selectedLayer={selectedLayer}
         />
