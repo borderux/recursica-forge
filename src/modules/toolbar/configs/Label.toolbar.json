@@ -1,0 +1,70 @@
+{
+  "variants": {
+    "layout": {
+      "icon": "layout",
+      "label": "Layout"
+    }
+  },
+  "props": {
+    "text": {
+      "icon": "text-aa",
+      "label": "Text",
+      "visible": true,
+      "group": {
+        "text": {
+          "label": "Color",
+          "visible": true
+        }
+      }
+    },
+    "asterisk": {
+      "icon": "asterisk",
+      "label": "Required Asterisk",
+      "visible": true,
+      "group": {
+        "asterisk": {
+          "label": "Color",
+          "visible": true
+        }
+      }
+    },
+    "optional-text-opacity": {
+      "icon": "eye",
+      "label": "Optional Text Opacity",
+      "visible": true
+    },
+    "required-indicator-gap": {
+      "icon": "split-horizontal",
+      "label": "Required Indicator Gap",
+      "visible": true
+    },
+    "layout": {
+      "icon": "layout",
+      "label": "Layout",
+      "visible": true,
+      "group": {
+        "bottom-padding": {
+          "label": "Bottom Padding (Stacked)",
+          "visible": true
+        },
+        "column-width": {
+          "label": "Column Width (Side-by-Side Large)",
+          "visible": true
+        },
+        "height": {
+          "label": "Height (Side-by-Side Large)",
+          "visible": true
+        },
+        "gutter": {
+          "label": "Gutter (Side-by-Side Large)",
+          "visible": true
+        },
+        "vertical-padding": {
+          "label": "Vertical Padding (Side-by-Side Small)",
+          "visible": true
+        }
+      }
+    }
+  }
+}
+

@@ -79,12 +79,12 @@ export function parseComponentStructure(componentName: string): ComponentStructu
 
       // Check if this is a "variants" node
       if (key === 'variants' && typeof value === 'object' && !('$value' in value)) {
-        // Check if this variants object contains category containers (styles, sizes)
-        // NEW STRUCTURE: variants.styles.solid or variants.sizes.default
-        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes'))
+        // Check if this variants object contains category containers (styles, sizes, layouts)
+        // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left
+        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts'))
         
         if (categoryKeys.length > 0) {
-          // NEW STRUCTURE: variants.styles and variants.sizes are category containers
+          // NEW STRUCTURE: variants.styles, variants.sizes, and variants.layouts are category containers
           // Extract variants from each category, not the category names themselves
           categoryKeys.forEach(categoryKey => {
             const categoryObj = (value as any)[categoryKey]
@@ -94,7 +94,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
               
               if (variantNames.length > 0) {
                 // Determine prop name based on category
-                const finalPropName = categoryKey === 'styles' ? 'style' : 'size'
+                const finalPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
                 
                 // Only add variant if we haven't seen this finalPropName before
                 if (!seenVariants.has(finalPropName)) {
@@ -111,7 +111,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           // Continue traversing with appropriate variant prop names
           categoryKeys.forEach(categoryKey => {
             const categoryObj = (value as any)[categoryKey]
-            const variantPropName = categoryKey === 'styles' ? 'style' : 'size'
+            const variantPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
             if (categoryObj && typeof categoryObj === 'object') {
               // Traverse each variant within the category
               Object.keys(categoryObj).forEach(variantKey => {
@@ -131,8 +131,8 @@ export function parseComponentStructure(componentName: string): ComponentStructu
             }
           })
           
-          // Also traverse any other keys that aren't styles/sizes (for backward compatibility)
-          const otherKeys = Object.keys(value).filter(k => !k.startsWith('$') && k !== 'styles' && k !== 'sizes')
+          // Also traverse any other keys that aren't styles/sizes/layouts (for backward compatibility)
+          const otherKeys = Object.keys(value).filter(k => !k.startsWith('$') && k !== 'styles' && k !== 'sizes' && k !== 'layouts')
           otherKeys.forEach(otherKey => {
             const otherObj = (value as any)[otherKey]
             if (otherObj && typeof otherObj === 'object') {

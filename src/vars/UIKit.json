@@ -194,13 +194,45 @@
       },
       "label": {
         "colors": {
-          "default": {
-            "$type": "color",
-            "$value": "{brand.layers.layer-0.elements.text.color}"
+          "layer-0": {
+            "default": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-0.elements.text.color}"
+            },
+            "required-asterisk": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-0.elements.text.alert}"
+            }
           },
-          "required-asterisk": {
-            "$type": "color",
-            "$value": "{brand.layers.layer-0.elements.text.alert}"
+          "layer-1": {
+            "default": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-1.elements.text.color}"
+            },
+            "required-asterisk": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-1.elements.text.alert}"
+            }
+          },
+          "layer-2": {
+            "default": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-2.elements.text.color}"
+            },
+            "required-asterisk": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-2.elements.text.alert}"
+            }
+          },
+          "layer-3": {
+            "default": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-3.elements.text.color}"
+            },
+            "required-asterisk": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-3.elements.text.alert}"
+            }
           },
           "optional-text-opacity": {
             "$type": "number",
@@ -2063,6 +2095,214 @@
           "elevation": {
             "$type": "elevation",
             "$value": "{brand.elevations.elevation-0}"
+          }
+        }
+      },
+      "label": {
+        "variants": {
+          "styles": {
+            "default": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-0.default}"
+                    }
+                  },
+                  "layer-1": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-1.default}"
+                    }
+                  },
+                  "layer-2": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-2.default}"
+                    }
+                  },
+                  "layer-3": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-3.default}"
+                    }
+                  }
+                }
+              }
+            },
+            "required": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-0.default}"
+                    },
+                    "asterisk": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-0.required-asterisk}"
+                    }
+                  },
+                  "layer-1": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-1.default}"
+                    },
+                    "asterisk": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-1.required-asterisk}"
+                    }
+                  },
+                  "layer-2": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-2.default}"
+                    },
+                    "asterisk": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-2.required-asterisk}"
+                    }
+                  },
+                  "layer-3": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-3.default}"
+                    },
+                    "asterisk": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-3.required-asterisk}"
+                    }
+                  }
+                }
+              }
+            },
+            "optional": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-0.default}"
+                    },
+                    "optional-text-opacity": {
+                      "$type": "number",
+                      "$value": "{ui-kit.globals.label.colors.optional-text-opacity}"
+                    }
+                  },
+                  "layer-1": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-1.default}"
+                    },
+                    "optional-text-opacity": {
+                      "$type": "number",
+                      "$value": "{ui-kit.globals.label.colors.optional-text-opacity}"
+                    }
+                  },
+                  "layer-2": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-2.default}"
+                    },
+                    "optional-text-opacity": {
+                      "$type": "number",
+                      "$value": "{ui-kit.globals.label.colors.optional-text-opacity}"
+                    }
+                  },
+                  "layer-3": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.label.colors.layer-3.default}"
+                    },
+                    "optional-text-opacity": {
+                      "$type": "number",
+                      "$value": "{ui-kit.globals.label.colors.optional-text-opacity}"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "layouts": {
+            "stacked": {
+              "properties": {
+                "bottom-padding": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.label.size.stacked.bottom-padding}"
+                }
+              }
+            },
+            "side-by-side-large": {
+              "properties": {
+                "column-width": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.label.size.side-by-side-large.column-width}"
+                },
+                "height": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.label.size.side-by-side-large.height}"
+                },
+                "gutter": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.label.size.side-by-side-large.gutter}"
+                }
+              }
+            },
+            "side-by-side-small": {
+              "properties": {
+                "vertical-padding": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.label.size.side-by-side-small.vertical-padding}"
+                }
+              }
+            }
+          }
+        },
+        "properties": {
+          "required-indicator-gap": {
+            "$type": "dimension",
+            "$value": "{ui-kit.globals.label.size.required-indicator-gap}"
+          },
+          "font-size": {
+            "$type": "dimension",
+            "$value": "{brand.typography.body-small.font-size}"
+          },
+          "font-family": {
+            "$type": "string",
+            "$value": "{brand.typography.body-small.font-family}"
+          },
+          "font-weight": {
+            "$type": "number",
+            "$value": "{brand.typography.body-small.font-weight}"
+          },
+          "letter-spacing": {
+            "$type": "dimension",
+            "$value": "{brand.typography.body-small.letter-spacing}"
+          },
+          "line-height": {
+            "$type": "dimension",
+            "$value": "{brand.typography.body-small.line-height}"
+          },
+          "optional-font-size": {
+            "$type": "dimension",
+            "$value": "{brand.typography.caption.font-size}"
+          },
+          "optional-font-family": {
+            "$type": "string",
+            "$value": "{brand.typography.caption.font-family}"
+          },
+          "optional-font-weight": {
+            "$type": "number",
+            "$value": "{brand.typography.caption.font-weight}"
+          },
+          "optional-letter-spacing": {
+            "$type": "dimension",
+            "$value": "{brand.typography.caption.letter-spacing}"
+          },
+          "optional-line-height": {
+            "$type": "dimension",
+            "$value": "{brand.typography.caption.line-height}"
           }
         }
       }

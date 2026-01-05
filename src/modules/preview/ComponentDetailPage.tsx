@@ -9,6 +9,7 @@ import AvatarPreview from '../components/AvatarPreview'
 import ToastPreview from '../components/ToastPreview'
 import BadgePreview from '../components/BadgePreview'
 import ChipPreview from '../components/ChipPreview'
+import LabelPreview from '../components/LabelPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -285,6 +286,12 @@ export default function ComponentDetailPage() {
               selectedVariants={selectedVariants}
               selectedLayer={selectedLayer}
               selectedAltLayer={null}
+              componentElevation={componentElevation}
+            />
+          ) : component.name === 'Label' ? (
+            <LabelPreview
+              selectedVariants={selectedVariants}
+              selectedLayer={selectedLayer}
               componentElevation={componentElevation}
             />
           ) : component.name === 'Toast' ? (

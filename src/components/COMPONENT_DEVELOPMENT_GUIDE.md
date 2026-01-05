@@ -396,6 +396,212 @@ Create implementations for each library simultaneously. Each library implementat
 
 **Adapters must NEVER modify the underlying component structure. Only CSS overrides are allowed.**
 
+### Step 4: Create Component Preview
+
+**File**: `src/modules/components/{ComponentName}Preview.tsx`
+
+Create a preview component that demonstrates the component with different variants and states. This preview is used on the components page.
+
+#### Pattern:
+
+```typescript
+import { useMemo } from 'react'
+import { {ComponentName} } from '../../components/adapters/{ComponentName}'
+import { useThemeMode } from '../theme/ThemeModeContext'
+
+interface {ComponentName}PreviewProps {
+  selectedVariants: Record<string, string> // e.g., { style: "default", layout: "stacked" }
+  selectedLayer: string // e.g., "layer-0"
+  componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
+}
+
+export default function {ComponentName}Preview({
+  selectedVariants,
+  selectedLayer,
+  componentElevation,
+}: {ComponentName}PreviewProps) {
+  const { mode } = useThemeMode()
+
+  // Extract variant values from selectedVariants
+  const styleVariant = (selectedVariants.style || 'default') as 'default' | 'variant1' | 'variant2'
+  const layoutVariant = (selectedVariants.layout || 'default') as 'default' | 'layout1' | 'layout2'
+
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      {/* Example 1 */}
+      <{ComponentName}
+        variant={styleVariant}
+        layout={layoutVariant}
+        layer={selectedLayer as any}
+        elevation={componentElevation}
+      >
+        Example 1
+      </{ComponentName}>
+      
+      {/* Example 2 */}
+      <{ComponentName}
+        variant={styleVariant}
+        layout={layoutVariant}
+        layer={selectedLayer as any}
+        elevation={componentElevation}
+        // Add props for different states
+      >
+        Example 2
+      </{ComponentName}>
+    </div>
+  )
+}
+```
+
+#### Add Preview to Component Detail Page
+
+**File**: `src/modules/preview/ComponentDetailPage.tsx`
+
+1. Import the preview component:
+```typescript
+import {ComponentName}Preview from '../components/{ComponentName}Preview'
+```
+
+2. Add a condition in the preview rendering section:
+```typescript
+{component.name === '{ComponentName}' ? (
+  <{ComponentName}Preview
+    selectedVariants={selectedVariants}
+    selectedLayer={selectedLayer}
+    componentElevation={componentElevation}
+  />
+) : component.name === 'OtherComponent' ? (
+  // ... other components
+) : (
+  // fallback
+)}
+```
+
+#### Add Component to Component Sections
+
+**File**: `src/modules/preview/componentSections.tsx`
+
+Add an entry to the `getComponentSections` function:
+
+```typescript
+{
+  name: '{ComponentName}',
+  url: `${base}/{component-slug}`,
+  render: (selectedLayers) => {
+    const layer = Array.from(selectedLayers)[0] || 'layer-0'
+    return (
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <{ComponentName}
+          variant="default"
+          layer={layer as any}
+        >
+          Example Label
+        </{ComponentName}>
+      </div>
+    )
+  },
+},
+```
+
+### Step 5: Create Toolbar Configuration
+
+**File**: `src/modules/toolbar/configs/{ComponentName}.toolbar.json`
+
+Create a toolbar configuration file that defines:
+- Variant selectors (style, size, layout, etc.)
+- Property controls with icons and labels
+- Property groups for related properties
+
+#### Structure:
+
+```json
+{
+  "variants": {
+    "style": {
+      "icon": "diamonds-four",
+      "label": "Style"
+    },
+    "layout": {
+      "icon": "layout",
+      "label": "Layout"
+    }
+  },
+  "props": {
+    "text": {
+      "icon": "text-aa",
+      "label": "Text",
+      "visible": true,
+      "group": {
+        "text-color": {
+          "label": "Color",
+          "visible": true
+        },
+        "font-size": {
+          "label": "Size",
+          "visible": true
+        }
+      }
+    },
+    "required-indicator-gap": {
+      "icon": "split-horizontal",
+      "label": "Required Indicator Gap",
+      "visible": true
+    }
+  }
+}
+```
+
+#### Key Points:
+
+1. **Variants**: Define variant selectors (style, size, layout, etc.) that match your UIKit.json structure
+2. **Props**: Map to UIKit.json property paths (e.g., `required-indicator-gap` maps to `properties.required-indicator-gap`)
+3. **Groups**: Use groups for related properties (e.g., border properties grouped together)
+4. **Icons**: Use Phosphor icon names (see `src/modules/components/iconUtils.ts` for available icons)
+5. **Visible**: Set `visible: true` for properties that should appear in the toolbar
+
+#### Register Toolbar Config
+
+**File**: `src/modules/toolbar/utils/loadToolbarConfig.ts`
+
+1. Import the config:
+```typescript
+import {ComponentName}ToolbarConfig from '../configs/{ComponentName}.toolbar.json'
+```
+
+2. Add to the switch statement:
+```typescript
+case '{component-name-kebab-case}':
+  return {ComponentName}ToolbarConfig
+```
+
+The component name should be in kebab-case (e.g., `label`, `button`, `chip`).
+
+### Step 6: Add Component to Left Navigation Sidebar
+
+**File**: `src/modules/preview/ComponentsSidebar.tsx`
+
+The sidebar automatically detects mapped components from UIKit.json (components that exist in `ui-kit.components`). However, you need to add the component to the `allComponents` array if it doesn't already exist.
+
+1. **Check if component exists**: Look for your component name in the `allComponents` array (around line 43-81).
+
+2. **If component doesn't exist**, add it to the array in alphabetical order:
+```typescript
+const allComponents = useMemo(() => {
+  const base = 'https://www.recursica.com/docs/components'
+  const components = [
+    { name: 'Accordion', url: `${base}/accordion` },
+    // ... existing components ...
+    { name: '{ComponentName}', url: `${base}/{component-slug}` },
+    // ... rest of components ...
+  ]
+  // ... rest of code ...
+}, [mappedComponents, showUnmapped])
+```
+
+3. **If component already exists**, no changes needed - it will automatically be marked as "mapped" once it's added to UIKit.json.
+
+**Note**: The component name in the array should match the Title Case version (e.g., "Label", "Button", "Text field"). The sidebar automatically converts UIKit.json kebab-case names (e.g., "label", "button", "text-field") to Title Case for comparison.
+
 #### Mandatory Rules
 
 1. **Never Modify Component Structure**

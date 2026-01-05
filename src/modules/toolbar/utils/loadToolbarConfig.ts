@@ -8,6 +8,7 @@ import AvatarConfig from '../configs/Avatar.toolbar.json'
 import ToastConfig from '../configs/Toast.toolbar.json'
 import BadgeConfig from '../configs/Badge.toolbar.json'
 import ChipConfig from '../configs/Chip.toolbar.json'
+import LabelConfig from '../configs/Label.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -49,6 +50,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return BadgeConfig as ToolbarConfig
       case 'chip':
         return ChipConfig as ToolbarConfig
+      case 'label':
+        return LabelConfig as ToolbarConfig
       default:
         return null
     }
