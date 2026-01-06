@@ -49,9 +49,9 @@
     },
     "border-radius": {
       "icon": "corners-out",
-      "label": "Border Radius",
+      "label": "Corner Radius",
       "visible": true,
-      "floatingPaletteLabel": "Border Radius"
+      "floatingPaletteLabel": "Corner Radius"
     },
     "width": {
       "icon": "arrows-left-right",
@@ -94,7 +94,7 @@
       }
     },
     "divider": {
-      "icon": "paint-bucket",
+      "icon": "minus",
       "label": "Divider",
       "visible": true,
       "floatingPaletteLabel": "Divider",
