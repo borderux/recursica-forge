@@ -75,7 +75,8 @@ export default function BrandBorderRadiusSlider({
         }
       })
       
-      // Convert to Token format and sort by value
+      // Convert to Token format and sort by value (lowest to highest)
+      // "none" (0px) will naturally sort first
       const borderRadiusTokens = options
         .map(opt => ({
           name: opt.name,
@@ -83,10 +84,6 @@ export default function BrandBorderRadiusSlider({
           label: opt.label,
         }))
         .sort((a, b) => {
-          // Handle "none" specially - it should be first
-          if (a.label.toLowerCase() === 'none') return -1
-          if (b.label.toLowerCase() === 'none') return 1
-          
           if (a.value !== undefined && b.value !== undefined) {
             return a.value - b.value
           }
@@ -95,30 +92,10 @@ export default function BrandBorderRadiusSlider({
           return a.label.localeCompare(b.label)
         })
       
-      // Add "none" option at the beginning if it doesn't already exist as a token
-      // Check if any token has "none" in its name (CSS var) or label
-      const hasNoneToken = borderRadiusTokens.some(t => 
-        t.name.includes('border-radius-none') || 
-        t.name === 'none' ||
-        t.label.toLowerCase() === 'none'
-      )
-      if (!hasNoneToken) {
-        borderRadiusTokens.unshift({
-          name: 'none',
-          value: -1, // Use -1 to ensure it sorts first
-          label: 'None',
-        })
-      }
-      
       return borderRadiusTokens
     } catch (error) {
       console.error('Error loading border radius tokens for BrandBorderRadiusSlider:', error)
-      // Return just "none" option if there's an error
-      return [{
-        name: 'none',
-        value: -1,
-        label: 'None',
-      }]
+      return []
     }
   }, [theme, mode])
   
@@ -139,7 +116,6 @@ export default function BrandBorderRadiusSlider({
     if (currentValue.trim().startsWith('var(--recursica-')) {
       // Try to find matching token by CSS var name
       const matchingToken = tokens.find(t => {
-        if (t.name === 'none') return false
         // Extract radius name from CSS var (e.g., "--recursica-brand-dimensions-border-radius-sm" -> "sm")
         const radiusName = t.name.replace('--recursica-brand-dimensions-border-radius-', '')
         return currentValue.includes(`border-radius-${radiusName}`) || currentValue.includes(`dimensions-border-radius-${radiusName}`)
@@ -158,7 +134,7 @@ export default function BrandBorderRadiusSlider({
           const pxValue = parseFloat(match[1])
           // Find token with closest matching value
           const matchingToken = tokens
-            .filter(t => t.name !== 'none' && t.value !== undefined)
+            .filter(t => t.value !== undefined)
             .reduce((closest, current) => {
               if (!closest) return current
               const currentDiff = Math.abs((current.value ?? 0) - pxValue)
@@ -174,7 +150,7 @@ export default function BrandBorderRadiusSlider({
       }
     }
     
-    // Default to first token (which should be "none") if no match
+    // Default to first token (which should be "none" at 0px) if no match
     setSelectedToken(tokens[0]?.name)
   }, [targetCssVar, tokens])
   
@@ -199,15 +175,17 @@ export default function BrandBorderRadiusSlider({
     
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
     
-    if (tokenName === 'none') {
-      // Remove CSS var for "none"
-      cssVars.forEach(cssVar => {
-        removeCssVar(cssVar)
-      })
-    } else {
-      // Set CSS var to token reference
-      const token = tokens.find(t => t.name === tokenName)
-      if (token) {
+    // Find the token (including "none" from Brand.json)
+    const token = tokens.find(t => t.name === tokenName)
+    if (token) {
+      // Check if this is the "none" token (value 0px)
+      if (token.value === 0 || token.name.includes('border-radius-none')) {
+        // Remove CSS var for "none" to use CSS fallback
+        cssVars.forEach(cssVar => {
+          removeCssVar(cssVar)
+        })
+      } else {
+        // Set CSS var to token reference
         cssVars.forEach(cssVar => {
           updateCssVar(cssVar, `var(${token.name})`)
         })

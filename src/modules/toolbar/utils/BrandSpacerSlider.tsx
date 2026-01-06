@@ -74,7 +74,8 @@ export default function BrandSpacerSlider({
         }
       })
       
-      // Convert to Token format and sort by value
+      // Convert to Token format and sort by value (lowest to highest)
+      // "none" (0px) will naturally sort first
       const spacerTokens = options
         .map(opt => ({
           name: opt.name,
@@ -90,22 +91,10 @@ export default function BrandSpacerSlider({
           return a.label.localeCompare(b.label)
         })
       
-      // Add "none" option at the beginning
-      spacerTokens.unshift({
-        name: 'none',
-        value: -1, // Use -1 to ensure it sorts first
-        label: 'None',
-      })
-      
       return spacerTokens
     } catch (error) {
       console.error('Error loading spacer tokens for BrandSpacerSlider:', error)
-      // Return just "none" option if there's an error
-      return [{
-        name: 'none',
-        value: -1,
-        label: 'None',
-      }]
+      return []
     }
   }, [theme, mode])
   
@@ -126,7 +115,6 @@ export default function BrandSpacerSlider({
     if (currentValue.trim().startsWith('var(--recursica-')) {
       // Try to find matching token by CSS var name
       const matchingToken = tokens.find(t => {
-        if (t.name === 'none') return false
         // Extract spacer name from CSS var (e.g., "--recursica-brand-dimensions-spacer-sm" -> "sm")
         const spacerName = t.name.replace('--recursica-brand-dimensions-spacer-', '')
         return currentValue.includes(`spacer-${spacerName}`) || currentValue.includes(`dimensions-spacer-${spacerName}`)
@@ -145,7 +133,7 @@ export default function BrandSpacerSlider({
           const pxValue = parseFloat(match[1])
           // Find token with closest matching value
           const matchingToken = tokens
-            .filter(t => t.name !== 'none' && t.value !== undefined)
+            .filter(t => t.value !== undefined)
             .reduce((closest, current) => {
               if (!closest) return current
               const currentDiff = Math.abs((current.value ?? 0) - pxValue)
@@ -161,7 +149,7 @@ export default function BrandSpacerSlider({
       }
     }
     
-    // Default to first token (which should be "none") if no match
+    // Default to first token (which should be "none" at 0px) if no match
     setSelectedToken(tokens[0]?.name)
   }, [targetCssVar, tokens])
   
@@ -186,15 +174,17 @@ export default function BrandSpacerSlider({
     
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
     
-    if (tokenName === 'none') {
-      // Remove CSS var for "none"
-      cssVars.forEach(cssVar => {
-        removeCssVar(cssVar)
-      })
-    } else {
-      // Set CSS var to token reference
-      const token = tokens.find(t => t.name === tokenName)
-      if (token) {
+    // Find the token (including "none" from Brand.json)
+    const token = tokens.find(t => t.name === tokenName)
+    if (token) {
+      // Check if this is the "none" token (value 0px)
+      if (token.value === 0 || token.name.includes('spacer-none')) {
+        // Remove CSS var for "none" to use CSS fallback
+        cssVars.forEach(cssVar => {
+          removeCssVar(cssVar)
+        })
+      } else {
+        // Set CSS var to token reference
         cssVars.forEach(cssVar => {
           updateCssVar(cssVar, `var(${token.name})`)
         })

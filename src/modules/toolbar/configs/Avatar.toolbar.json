@@ -25,14 +25,17 @@
       "visible": true,
       "group": {
         "border-size": {
-          "label": "Size / Width",
+          "icon": "arrows-left-right",
+          "label": "Size",
           "visible": true
         },
         "border-radius": {
-          "label": "Radius",
+          "icon": "corners-out",
+          "label": "Border Radius",
           "visible": true
         },
         "border-color": {
+          "icon": "paint-bucket",
           "label": "Color",
           "visible": true
         }
@@ -66,7 +69,8 @@
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",
-      "visible": true
+      "visible": true,
+      "floatingPaletteLabel": "Elevation"
     }
   }
 }
