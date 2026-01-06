@@ -26,7 +26,7 @@ export default function PreviewPage() {
 
   return (
     <DebugModeContext.Provider value={{ debugMode, setDebugMode }}>
-      <div style={{ display: 'flex', height: '100%', minHeight: 0 }}>
+      <div style={{ display: 'flex', height: debugMode ? 'auto' : '100%', minHeight: debugMode ? '100vh' : '100%' }}>
         <ComponentsSidebar 
           showUnmapped={showUnmapped} 
           onShowUnmappedChange={setShowUnmapped}

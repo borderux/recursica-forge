@@ -115,7 +115,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
 
   return (
     <Theme theme="g10">
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <header
           aria-label="Recursica Theme Forge"
           style={{
