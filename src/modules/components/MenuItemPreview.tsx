@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Menu } from '../../components/adapters/Menu'
 import { MenuItem } from '../../components/adapters/MenuItem'
 import { iconNameToReactComponent } from './iconUtils'
 
@@ -11,6 +12,7 @@ interface MenuItemPreviewProps {
 export default function MenuItemPreview({
   selectedVariants,
   selectedLayer,
+  componentElevation,
 }: MenuItemPreviewProps) {
   const [updateKey, setUpdateKey] = useState(0)
   
@@ -43,57 +45,58 @@ export default function MenuItemPreview({
   return (
     <div style={{ 
       display: 'flex', 
-      flexDirection: 'column', 
-      gap: 4,
+      justifyContent: 'center',
       width: '100%',
       padding: '16px',
-      background: '#ffffff',
-      border: '1px solid #e0e0e0',
-      borderRadius: '4px',
-      minHeight: '200px',
     }}>
-      {/* First item: Default state */}
-      <MenuItem
-        key={`default-${updateKey}`}
-        variant="default"
+      <Menu
+        key={`menu-${updateKey}`}
         layer={selectedLayer as any}
-        leadingIconType="none"
-        trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
-        selected={false}
-        disabled={false}
-        divider="bottom"
+        elevation={componentElevation}
       >
-        Menu item
-      </MenuItem>
-      
-      {/* Second item: Selected state - with leading icon, supporting text, no trailing icon */}
-      <MenuItem
-        key={`selected-${updateKey}`}
-        variant="selected"
-        layer={selectedLayer as any}
-        leadingIcon={FileIcon ? <FileIcon /> : undefined}
-        leadingIconType="icon"
-        supportingText="Supporting value"
-        selected={true}
-        disabled={false}
-        divider="bottom"
-      >
-        Menu item
-      </MenuItem>
-      
-      {/* Third item: Disabled state */}
-      <MenuItem
-        key={`disabled-${updateKey}`}
-        variant="disabled"
-        layer={selectedLayer as any}
-        leadingIconType="none"
-        trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
-        selected={false}
-        disabled={true}
-        divider="bottom"
-      >
-        Menu item
-      </MenuItem>
+        {/* First item: Default state */}
+        <MenuItem
+          key={`default-${updateKey}`}
+          variant="default"
+          layer={selectedLayer as any}
+          leadingIconType="none"
+          trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
+          selected={false}
+          disabled={false}
+          divider="bottom"
+        >
+          Menu item
+        </MenuItem>
+        
+        {/* Second item: Selected state - with leading icon, supporting text, no trailing icon */}
+        <MenuItem
+          key={`selected-${updateKey}`}
+          variant="selected"
+          layer={selectedLayer as any}
+          leadingIcon={FileIcon ? <FileIcon /> : undefined}
+          leadingIconType="icon"
+          supportingText="Supporting value"
+          selected={true}
+          disabled={false}
+          divider="bottom"
+        >
+          Menu item
+        </MenuItem>
+        
+        {/* Third item: Disabled state */}
+        <MenuItem
+          key={`disabled-${updateKey}`}
+          variant="disabled"
+          layer={selectedLayer as any}
+          leadingIconType="none"
+          trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
+          selected={false}
+          disabled={true}
+          divider="bottom"
+        >
+          Menu item
+        </MenuItem>
+      </Menu>
     </div>
   )
 }

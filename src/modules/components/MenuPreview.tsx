@@ -45,8 +45,7 @@ export default function MenuPreview({
   return (
     <div style={{ 
       display: 'flex', 
-      flexDirection: 'column', 
-      gap: 16,
+      justifyContent: 'center',
       width: '100%',
       padding: '16px',
     }}>
