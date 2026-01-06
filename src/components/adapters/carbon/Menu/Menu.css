@@ -1,0 +1,18 @@
+/* Carbon Design System Menu CSS Overrides */
+
+.cds-menu {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--menu-bg, #ffffff);
+  border: 1px solid var(--menu-border, #e0e0e0);
+  border-radius: var(--menu-border-radius, 4px);
+  min-width: var(--menu-min-width, 140px);
+  max-width: var(--menu-max-width, 464px);
+  padding: var(--menu-padding, 4px);
+  overflow: hidden;
+}
+
+.cds-menu > * {
+  width: 100%;
+}
+

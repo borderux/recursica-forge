@@ -10,6 +10,7 @@ import BadgeConfig from '../configs/Badge.toolbar.json'
 import ChipConfig from '../configs/Chip.toolbar.json'
 import LabelConfig from '../configs/Label.toolbar.json'
 import MenuItemConfig from '../configs/MenuItem.toolbar.json'
+import MenuConfig from '../configs/Menu.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -55,6 +56,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return LabelConfig as ToolbarConfig
       case 'menu-item':
         return MenuItemConfig as ToolbarConfig
+      case 'menu':
+        return MenuConfig as ToolbarConfig
       default:
         return null
     }
