@@ -40,6 +40,9 @@ registerComponent('mantine', 'MenuItem', () => import('../adapters/mantine/MenuI
 // Menu
 registerComponent('mantine', 'Menu', () => import('../adapters/mantine/Menu/Menu'))
 
+// Breadcrumb
+registerComponent('mantine', 'Breadcrumb', () => import('../adapters/mantine/Breadcrumb/Breadcrumb'))
+
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))
 // registerComponent('mantine', 'TextField', () => import('../../adapters/mantine/TextField'))

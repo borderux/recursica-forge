@@ -2572,7 +2572,6 @@
               "supporting-text-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.elements.text.color}"
-
               }
             },
             "layer-1": {
@@ -2703,6 +2702,198 @@
           "elevation": {
             "$type": "elevation",
             "$value": "{brand.elevations.elevation-1}"
+          }
+        }
+      },
+      "menu": {
+        "properties": {
+          "border-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
+          "border-radius": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.border-radius.default}",
+              "unit": "px"
+            }
+          },
+          "min-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 140,
+              "unit": "px"
+            }
+          },
+          "max-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 464,
+              "unit": "px"
+            }
+          },
+          "padding": {
+            "$type": "dimension",
+            "$value": null
+          },
+          "item-gap": {
+            "$type": "dimension",
+            "$value": null
+          },
+          "colors": {
+            "layer-0": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.surface}"
+              },
+              "border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.border-color}"
+              }
+            },
+            "layer-1": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
+              }
+            },
+            "layer-2": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.surface}"
+              },
+              "border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
+              }
+            },
+            "layer-3": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              }
+            }
+          },
+          "elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-1}"
+          }
+        }
+      },
+      "breadcrumb": {
+        "variants": {
+          "styles": {
+            "interactive": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    }
+                  },
+                  "layer-1": {
+                    "color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    }
+                  },
+                  "layer-2": {
+                    "color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    }
+                  },
+                  "layer-3": {
+                    "color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    }
+                  }
+                }
+              }
+            },
+            "read-only": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
+                    }
+                  },
+                  "layer-1": {
+                    "color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
+                    }
+                  },
+                  "layer-2": {
+                    "color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
+                    }
+                  },
+                  "layer-3": {
+                    "color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "properties": {
+          "padding": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.gutter.horizontal}",
+              "unit": "px"
+            }
+          },
+          "icon-label-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.gutter.horizontal}",
+              "unit": "px"
+            }
+          },
+          "item-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.gutter.horizontal}",
+              "unit": "px"
+            }
+          },
+          "icon": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.icon.default}",
+              "unit": "px"
+            }
+          },
+          "colors": {
+            "separator-color": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-0.elements.text.color}"
+            },
+            "read-only-color": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-0.elements.text.color}"
+            }
           }
         }
       }

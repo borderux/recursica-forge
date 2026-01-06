@@ -600,10 +600,16 @@ export default function DimensionTokenSelector({
         // These use spacer tokens
         const noneToken = dimensionTokens.find(t => t.name.includes('spacer-none'))
         setSelectedToken(noneToken?.name)
+        setPixelValue(0)
+        setIsPixelMode(false)
+        return
       } else if (propNameLower === 'vertical-padding') {
         // This uses general tokens
         const noneToken = dimensionTokens.find(t => t.name.includes('general-none'))
         setSelectedToken(noneToken?.name)
+        setPixelValue(0)
+        setIsPixelMode(false)
+        return
       } else {
         setSelectedToken(undefined)
         // If still no value, default to pixel mode with a reasonable default
