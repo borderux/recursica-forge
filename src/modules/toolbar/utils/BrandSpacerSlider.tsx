@@ -6,7 +6,7 @@
  * and is used for padding-related properties across all component toolbars.
  */
 
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
 import { updateCssVar, removeCssVar } from '../../../core/css/updateCssVar'
 import { useVars } from '../../vars/VarsContext'
@@ -100,14 +100,28 @@ export default function BrandSpacerSlider({
   
   // Track selected token
   const [selectedToken, setSelectedToken] = useState<string | undefined>(undefined)
+  // Track if we just set a value to prevent immediate re-read
+  const justSetValueRef = useRef<string | null>(null)
   
   // Helper to read CSS var and set initial value
   const readInitialValue = useCallback(() => {
-    const currentValue = readCssVar(targetCssVar)
+    // Check inline style first (user overrides are always inline)
+    const inlineValue = typeof document !== 'undefined' 
+      ? document.documentElement.style.getPropertyValue(targetCssVar).trim()
+      : ''
+    
+    // If we just set this value, don't re-read immediately
+    if (justSetValueRef.current === inlineValue) {
+      return
+    }
+    
+    // Use inline value if available, otherwise fall back to readCssVar (which checks computed)
+    const currentValue = inlineValue || readCssVar(targetCssVar)
     
     if (!currentValue || currentValue === 'null' || currentValue === '') {
-      // Null/empty means "none"
-      setSelectedToken('none')
+      // Null/empty means "none" - find the actual "none" token from Brand.json
+      const noneToken = tokens.find(t => t.name.includes('spacer-none') || (t.value === 0 && t.name.includes('spacer')))
+      setSelectedToken(noneToken?.name || tokens[0]?.name)
       return
     }
     
@@ -131,6 +145,23 @@ export default function BrandSpacerSlider({
         const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
         if (match) {
           const pxValue = parseFloat(match[1])
+          // If resolved to 0px, check if it matches the "none" token
+          if (pxValue === 0) {
+            // First check if the current value is a reference to the "none" token
+            const noneTokenByName = tokens.find(t => currentValue.includes(t.name))
+            if (noneTokenByName && (noneTokenByName.value === 0 || noneTokenByName.name.includes('spacer-none'))) {
+              setSelectedToken(noneTokenByName.name)
+              return
+            }
+            // Otherwise, find the "none" token by name or value
+            const noneToken = tokens.find(t => t.name.includes('spacer-none')) || 
+                             tokens.find(t => t.value === 0 && t.name.includes('spacer'))
+            if (noneToken) {
+              setSelectedToken(noneToken.name)
+              return
+            }
+          }
+          
           // Find token with closest matching value
           const matchingToken = tokens
             .filter(t => t.value !== undefined)
@@ -158,15 +189,30 @@ export default function BrandSpacerSlider({
     readInitialValue()
   }, [readInitialValue])
   
-  // Listen for reset events to re-read initial value
+  // Listen for reset events and CSS var updates to re-read initial value
   useEffect(() => {
     const handleReset = () => {
       readInitialValue()
     }
     
+    const handleCssVarUpdate = (event: CustomEvent) => {
+      // Re-read if this CSS var was updated
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      if (event.detail?.cssVars?.some((cv: string) => cssVars.includes(cv))) {
+        // Small delay to ensure CSS var has been updated
+        setTimeout(() => {
+          readInitialValue()
+        }, 0)
+      }
+    }
+    
     window.addEventListener('cssVarsReset', handleReset)
-    return () => window.removeEventListener('cssVarsReset', handleReset)
-  }, [readInitialValue])
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    return () => {
+      window.removeEventListener('cssVarsReset', handleReset)
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    }
+  }, [readInitialValue, targetCssVar, targetCssVars])
   
   // Handle token change
   const handleTokenChange = (tokenName: string) => {
@@ -177,23 +223,27 @@ export default function BrandSpacerSlider({
     // Find the token (including "none" from Brand.json)
     const token = tokens.find(t => t.name === tokenName)
     if (token) {
-      // Check if this is the "none" token (value 0px)
-      if (token.value === 0 || token.name.includes('spacer-none')) {
-        // Remove CSS var for "none" to use CSS fallback
-        cssVars.forEach(cssVar => {
-          removeCssVar(cssVar)
-        })
-      } else {
-        // Set CSS var to token reference
-        cssVars.forEach(cssVar => {
-          updateCssVar(cssVar, `var(${token.name})`)
-        })
-      }
+      const tokenValue = `var(${token.name})`
+      // Set CSS var to token reference (including "none" token)
+      // This ensures we use the token reference instead of falling back to UIKit.json defaults
+      cssVars.forEach(cssVar => {
+        updateCssVar(cssVar, tokenValue)
+        // Track that we just set this value to prevent immediate re-read
+        justSetValueRef.current = tokenValue
+        // Clear the ref after a short delay to allow re-reads after recomputes
+        setTimeout(() => {
+          justSetValueRef.current = null
+        }, 100)
+      })
+      
+      // Dispatch event after a small delay to ensure DOM has updated
+      // This prevents recomputeAndApplyAll from reading stale values
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars }
+        }))
+      })
     }
-    
-    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars }
-    }))
   }
   
   return (
