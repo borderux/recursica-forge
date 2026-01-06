@@ -203,14 +203,6 @@ export default function ComponentToolbar({
                 })
                 // Use the first matching prop (should only be one)
                 groupedProp = matchingProps[0]
-                // Debug: log if we found multiple or none
-                if (matchingProps.length === 0) {
-                  console.warn(`ComponentToolbar: No interactive-color prop found for ${componentName} at layer ${selectedLayer}`)
-                } else if (matchingProps.length > 1) {
-                  console.warn(`ComponentToolbar: Multiple interactive-color props found for ${componentName} at layer ${selectedLayer}:`, matchingProps.map(p => ({ cssVar: p.cssVar, path: p.path })))
-                } else if (groupedProp) {
-                  console.log(`ComponentToolbar: Found interactive-color prop:`, { cssVar: groupedProp.cssVar, path: groupedProp.path })
-                }
               }
               // Special case: read-only-color maps to "read-only" prop under colors.layer-X.read-only
               if (!groupedProp && groupedPropKey === 'read-only-color') {
@@ -230,14 +222,6 @@ export default function ComponentToolbar({
                 })
                 // Use the first matching prop (should only be one)
                 groupedProp = matchingProps[0]
-                // Debug: log if we found multiple or none
-                if (matchingProps.length === 0) {
-                  console.warn(`ComponentToolbar: No read-only-color prop found for ${componentName} at layer ${selectedLayer}`)
-                } else if (matchingProps.length > 1) {
-                  console.warn(`ComponentToolbar: Multiple read-only-color props found for ${componentName} at layer ${selectedLayer}:`, matchingProps.map(p => ({ cssVar: p.cssVar, path: p.path })))
-                } else if (groupedProp) {
-                  console.log(`ComponentToolbar: Found read-only-color prop:`, { cssVar: groupedProp.cssVar, path: groupedProp.path })
-                }
               }
               // Special case: separator-color maps to "separator-color" prop under colors.layer-X
               if (!groupedProp && groupedPropKey === 'separator-color') {

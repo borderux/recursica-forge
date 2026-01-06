@@ -595,18 +595,6 @@ export default function PropControl({
     if (groupedPropsConfig && prop.borderProps && prop.borderProps.size > 0) {
       const groupedPropEntries = Object.entries(groupedPropsConfig)
       
-      // Debug: Log when rendering grouped props for breadcrumb color
-      if (componentName.toLowerCase() === 'breadcrumb' && prop.name.toLowerCase() === 'color') {
-        console.log('PropControl: Rendering grouped props for breadcrumb color:', {
-          groupedPropEntries: groupedPropEntries.map(([name]) => name),
-          borderPropsKeys: Array.from(prop.borderProps.keys()),
-          borderPropsEntries: Array.from(prop.borderProps.entries()).map(([k, v]) => ({
-            key: k,
-            cssVar: v.cssVar,
-            path: v.path
-          }))
-        })
-      }
       
       return (
         <>
@@ -620,20 +608,9 @@ export default function PropControl({
             const groupedPropKey = groupedPropName.toLowerCase()
             let groupedProp = prop.borderProps!.get(groupedPropKey)
             
-            // Debug: Log what's in the map for breadcrumb colors
+            // For breadcrumb colors, always re-find to ensure correct prop
             if (componentName.toLowerCase() === 'breadcrumb' && 
                 (groupedPropKey === 'interactive-color' || groupedPropKey === 'read-only-color')) {
-              console.log(`PropControl: Retrieved ${groupedPropKey} from map:`, {
-                found: !!groupedProp,
-                cssVar: groupedProp?.cssVar,
-                path: groupedProp?.path,
-                allMapKeys: Array.from(prop.borderProps!.keys()),
-                allMapEntries: Array.from(prop.borderProps!.entries()).map(([k, v]) => ({
-                  key: k,
-                  cssVar: v.cssVar,
-                  path: v.path
-                }))
-              })
               groupedProp = undefined // Force re-find by clearing it
             }
             
@@ -669,12 +646,6 @@ export default function PropControl({
                 groupedProp = interactiveColorProp
                 // Always update the borderProps map with the correct prop
                 prop.borderProps!.set('interactive-color', interactiveColorProp)
-                console.log('PropControl: Re-found interactive-color prop:', {
-                  cssVar: interactiveColorProp.cssVar,
-                  path: interactiveColorProp.path
-                })
-              } else {
-                console.error('PropControl: Could not find interactive-color prop!')
               }
             } else if (groupedPropKey === 'interactive-color' && !groupedProp) {
               // For non-breadcrumb components, use the normal lookup
@@ -705,12 +676,6 @@ export default function PropControl({
                 groupedProp = readOnlyColorProp
                 // Always update the borderProps map with the correct prop
                 prop.borderProps!.set('read-only-color', readOnlyColorProp)
-                console.log('PropControl: Re-found read-only-color prop:', {
-                  cssVar: readOnlyColorProp.cssVar,
-                  path: readOnlyColorProp.path
-                })
-              } else {
-                console.error('PropControl: Could not find read-only-color prop!')
               }
             } else if (groupedPropKey === 'read-only-color' && !groupedProp) {
               // For non-breadcrumb components, use the normal lookup
@@ -811,11 +776,6 @@ export default function PropControl({
                   p.cssVar.includes('read-only') && 
                   !p.cssVar.includes('interactive')
                 ) || allMatchingProps[0]
-                
-                console.log('PropControl: Looking for read-only-color prop:', {
-                  allMatchingProps: allMatchingProps.map(p => ({ cssVar: p.cssVar, path: p.path })),
-                  selectedProp: correctProp ? { cssVar: correctProp.cssVar, path: correctProp.path } : null
-                })
               } else if (groupedPropKey === 'interactive-color') {
                 // Find the interactive prop - must have interactive in path, NOT read-only
                 // AND the CSS variable must contain 'interactive' and NOT 'read-only'
@@ -830,19 +790,14 @@ export default function PropControl({
                   return pathMatches
                 })
                 
-                // Find the one with the correct CSS variable
-                correctProp = allMatchingProps.find(p => 
-                  p.cssVar.includes('interactive') && 
-                  !p.cssVar.includes('read-only')
-                ) || allMatchingProps[0]
-                
-                console.log('PropControl: Looking for interactive-color prop:', {
-                  allMatchingProps: allMatchingProps.map(p => ({ cssVar: p.cssVar, path: p.path })),
-                  selectedProp: correctProp ? { cssVar: correctProp.cssVar, path: correctProp.path } : null
-                })
-              }
-              
-              // Always use the correct prop if found
+              // Find the one with the correct CSS variable
+              correctProp = allMatchingProps.find(p => 
+                p.cssVar.includes('interactive') && 
+                !p.cssVar.includes('read-only')
+              ) || allMatchingProps[0]
+            }
+            
+            // Always use the correct prop if found
               if (correctProp) {
                 groupedProp = correctProp
                 // Update the map with the correct prop
@@ -850,22 +805,8 @@ export default function PropControl({
                 cssVars = [correctProp.cssVar]
                 primaryVar = correctProp.cssVar
                 
-                // Final validation - ensure the CSS variable is correct
-                if (groupedPropKey === 'read-only-color' && 
-                    (!primaryVar.includes('read-only') || primaryVar.includes('interactive'))) {
-                  console.error('PropControl: ERROR - read-only-color has wrong CSS var!', primaryVar)
-                } else if (groupedPropKey === 'interactive-color' && 
-                    (!primaryVar.includes('interactive') || primaryVar.includes('read-only'))) {
-                  console.error('PropControl: ERROR - interactive-color has wrong CSS var!', primaryVar)
-                } else {
-                  console.log(`PropControl: ✓ Using correct ${groupedPropKey} CSS var:`, primaryVar)
-                }
               } else {
-                // Fallback: use what we have, but log a warning
-                console.error(`PropControl: Could not find correct ${groupedPropKey} prop for breadcrumb`, {
-                  currentProp: groupedProp ? { cssVar: groupedProp.cssVar, path: groupedProp.path } : null,
-                  selectedLayer
-                })
+                // Fallback: use what we have
                 cssVars = groupedProp ? [groupedProp.cssVar] : []
                 primaryVar = groupedProp?.cssVar || ''
               }
@@ -875,17 +816,6 @@ export default function PropControl({
               primaryVar = cssVars[0] || groupedProp.cssVar
             }
             const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
-            
-            // Debug: Log the CSS variable being used for breadcrumb colors
-            if (componentName.toLowerCase() === 'breadcrumb' && 
-                (groupedPropKey === 'interactive-color' || groupedPropKey === 'read-only-color')) {
-              console.log(`PropControl: Rendering ${groupedPropKey} with CSS var:`, {
-                primaryVar,
-                groupedPropCssVar: groupedProp.cssVar,
-                cssVars,
-                path: groupedProp.path
-              })
-            }
             
             return (
               <div 
