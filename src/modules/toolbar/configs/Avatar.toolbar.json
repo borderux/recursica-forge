@@ -2,15 +2,15 @@
   "variants": {
     "style": {
       "icon": "diamonds-four",
-      "label": "Style"
+      "label": "Type"
     },
     "style-secondary": {
       "icon": "circle-half",
-      "label": "Style Secondary Variant"
+      "label": "Style"
     },
     "size": {
       "icon": "resize",
-      "label": "Size Variant"
+      "label": "Size"
     }
   },
   "props": {
