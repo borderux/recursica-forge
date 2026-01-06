@@ -2409,7 +2409,7 @@
           "border-radius": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.border-radius.default}",
+              "value": "{brand.dimensions.border-radius.none}",
               "unit": "px"
             }
           },
