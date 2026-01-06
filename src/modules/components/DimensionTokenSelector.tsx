@@ -535,8 +535,21 @@ export default function DimensionTokenSelector({
       }
     })
     
+    // Add "none" option for divider-item-gap prop
+    if (propName.toLowerCase() === 'divider-item-gap') {
+      tokens.unshift({
+        name: 'none',
+        value: 0,
+        label: 'None',
+      })
+    }
+    
     // Sort by numeric value if available, otherwise by label
     return tokens.sort((a, b) => {
+      // Handle "none" specially - it should be first
+      if (a.name === 'none') return -1
+      if (b.name === 'none') return 1
+      
       if (a.value !== undefined && b.value !== undefined) {
         return a.value - b.value
       }
@@ -570,8 +583,8 @@ export default function DimensionTokenSelector({
     // Read CSS var value - checks inline styles first, then computed styles (from JSON defaults)
     const currentValue = readCssVar(targetCssVar)
     
-    // If no value found, try to read the resolved value (might be a token reference)
-    if (!currentValue) {
+    if (!currentValue || currentValue === 'null' || currentValue === '') {
+      // If no value found, try to read the resolved value (might be a token reference)
       const resolvedValue = readCssVarResolved(targetCssVar)
       if (resolvedValue) {
         // We have a resolved value, treat it as the current value
@@ -585,12 +598,17 @@ export default function DimensionTokenSelector({
         }
       }
       
-      // If still no value, default to pixel mode with a reasonable default
-      // This ensures the slider is always functional
-      setSelectedToken(undefined)
-      const defaultPixelValue = 8 // Default to 8px so slider is movable
-      setPixelValue(defaultPixelValue)
-      setIsPixelMode(true)
+      // For divider-item-gap, null means "none"
+      if (propName.toLowerCase() === 'divider-item-gap') {
+        setSelectedToken('none')
+      } else {
+        setSelectedToken(undefined)
+        // If still no value, default to pixel mode with a reasonable default
+        // This ensures the slider is always functional
+        const defaultPixelValue = 8 // Default to 8px so slider is movable
+        setPixelValue(defaultPixelValue)
+        setIsPixelMode(true)
+      }
       return
     }
     
@@ -675,6 +693,19 @@ export default function DimensionTokenSelector({
 
   // One-way binding: slider changes → update local state AND CSS var
   const handleTokenChange = (tokenName: string) => {
+    // Handle "none" option - set to null
+    if (tokenName === 'none') {
+      setSelectedToken('none')
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      cssVars.forEach(cssVar => {
+        updateCssVar(cssVar, null)
+      })
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+        detail: { cssVars }
+      }))
+      return
+    }
+    
     const token = dimensionTokens.find(t => t.name === tokenName)
     if (!token) return
     

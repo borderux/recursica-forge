@@ -52,10 +52,12 @@ export default function MenuItem({
   const minWidthVar = getComponentLevelCssVar('MenuItem', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('MenuItem', 'max-width')
   const verticalPaddingVar = getComponentLevelCssVar('MenuItem', 'vertical-padding')
+  const horizontalPaddingVar = getComponentLevelCssVar('MenuItem', 'horizontal-padding')
   const supportingTextOpacityVar = getComponentLevelCssVar('MenuItem', 'supporting-text-opacity')
   const supportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'supporting-text-color')
   const dividerColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'divider-color')
   const dividerOpacityVar = getComponentLevelCssVar('MenuItem', 'divider-opacity')
+  const dividerItemGapVar = getComponentLevelCssVar('MenuItem', 'divider-item-gap')
   
   // Get hover opacity and overlay color from brand theme (not user-configurable)
   const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
@@ -71,59 +73,68 @@ export default function MenuItem({
   const finalHasBackground = finalBgColorValue && finalBgColorValue !== 'transparent' && finalBgColorValue !== 'null'
   
   return (
-    <button
-      disabled={disabled}
-      onClick={onClick}
-      className={`mui-menu-item ${className || ''} ${effectiveVariant} ${divider === 'bottom' ? 'has-divider' : ''}`}
-      data-variant={effectiveVariant}
-      data-layer={layer}
-      data-selected={selected}
-      data-disabled={disabled}
-      data-leading-icon-type={leadingIconType}
+    <div
+      className={`mui-menu-item-wrapper ${className || ''} ${divider === 'bottom' ? 'has-divider' : ''}`}
       style={{
         // Set CSS custom properties for CSS file to use
-        '--menu-item-bg': finalHasBackground ? `var(${finalBgVar})` : 'transparent',
-        '--menu-item-text': `var(${textVar})`,
-        '--menu-item-border-radius': `var(${borderRadiusVar})`,
-        '--menu-item-min-width': `var(${minWidthVar})`,
-        '--menu-item-max-width': `var(${maxWidthVar})`,
-        '--menu-item-vertical-padding': `var(${verticalPaddingVar})`,
-        '--menu-item-supporting-text-opacity': `var(${supportingTextOpacityVar})`,
-        '--menu-item-supporting-text-color': `var(${supportingTextColorVar})`,
         '--menu-item-divider-color': dividerColor || `var(${dividerColorVar})`,
         '--menu-item-divider-opacity': dividerOpacity !== undefined ? dividerOpacity : `var(${dividerOpacityVar}, 1)`,
-        '--menu-item-opacity': disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : '1',
-        '--menu-item-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-        '--menu-item-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
+        '--menu-item-divider-item-gap': `var(${dividerItemGapVar})`,
         ...style,
       }}
-      {...material}
-      {...props}
     >
-      {leadingIcon && leadingIconType !== 'none' && (
-        <span className="mui-menu-item-leading-icon" data-icon-type={leadingIconType}>
-          {leadingIconType === 'radio' && !leadingIcon && (
-            <span className="mui-menu-item-radio-icon" />
-          )}
-          {leadingIconType === 'checkbox' && !leadingIcon && (
-            <span className="mui-menu-item-checkbox-icon" />
-          )}
-          {leadingIcon && <span className="mui-menu-item-custom-icon">{leadingIcon}</span>}
-        </span>
-      )}
-      <div className="mui-menu-item-content">
-        <span className="mui-menu-item-text">{children}</span>
-        {supportingText && (
-          <span className="mui-menu-item-supporting-text">{supportingText}</span>
+      <button
+        disabled={disabled}
+        onClick={onClick}
+        className={`mui-menu-item ${effectiveVariant}`}
+        data-variant={effectiveVariant}
+        data-layer={layer}
+        data-selected={selected}
+        data-disabled={disabled}
+        data-leading-icon-type={leadingIconType}
+        style={{
+          // Set CSS custom properties for CSS file to use
+          '--menu-item-bg': finalHasBackground ? `var(${finalBgVar})` : 'transparent',
+          '--menu-item-text': `var(${textVar})`,
+          '--menu-item-border-radius': `var(${borderRadiusVar})`,
+          '--menu-item-min-width': `var(${minWidthVar})`,
+          '--menu-item-max-width': `var(${maxWidthVar})`,
+          '--menu-item-vertical-padding': `var(${verticalPaddingVar})`,
+          '--menu-item-horizontal-padding': `var(${horizontalPaddingVar})`,
+          '--menu-item-supporting-text-opacity': `var(${supportingTextOpacityVar})`,
+          '--menu-item-supporting-text-color': `var(${supportingTextColorVar})`,
+          '--menu-item-opacity': disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : '1',
+          '--menu-item-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
+          '--menu-item-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
+        }}
+        {...material}
+        {...props}
+      >
+        {leadingIcon && leadingIconType !== 'none' && (
+          <span className="mui-menu-item-leading-icon" data-icon-type={leadingIconType}>
+            {leadingIconType === 'radio' && !leadingIcon && (
+              <span className="mui-menu-item-radio-icon" />
+            )}
+            {leadingIconType === 'checkbox' && !leadingIcon && (
+              <span className="mui-menu-item-checkbox-icon" />
+            )}
+            {leadingIcon && <span className="mui-menu-item-custom-icon">{leadingIcon}</span>}
+          </span>
         )}
-      </div>
-      {trailingIcon && (
-        <span className="mui-menu-item-trailing-icon">{trailingIcon}</span>
-      )}
+        <div className="mui-menu-item-content">
+          <span className="mui-menu-item-text">{children}</span>
+          {supportingText && (
+            <span className="mui-menu-item-supporting-text">{supportingText}</span>
+          )}
+        </div>
+        {trailingIcon && (
+          <span className="mui-menu-item-trailing-icon">{trailingIcon}</span>
+        )}
+      </button>
       {divider === 'bottom' && (
         <div className="mui-menu-item-divider" />
       )}
-    </button>
+    </div>
   )
 }
 

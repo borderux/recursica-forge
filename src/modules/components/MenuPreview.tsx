@@ -63,19 +63,19 @@ export default function MenuPreview({
           disabled={false}
           divider="bottom"
         >
-          Menu item
+          Default item
         </MenuItem>
         <MenuItem
           variant="selected"
           layer={selectedLayer as any}
           leadingIcon={FileIcon ? <FileIcon /> : undefined}
           leadingIconType="icon"
-          supportingText="Supporting value"
+          supportingText="Supporting text"
           selected={true}
           disabled={false}
           divider="bottom"
         >
-          Menu item
+          Selected item
         </MenuItem>
         <MenuItem
           variant="disabled"
@@ -84,9 +84,9 @@ export default function MenuPreview({
           trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
           selected={false}
           disabled={true}
-          divider="bottom"
+          divider="none"
         >
-          Menu item
+          Disabled item
         </MenuItem>
       </Menu>
     </div>

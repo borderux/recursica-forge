@@ -343,7 +343,26 @@ export default function PropControlContent({
       }
       
       const isLabelWidth = propToRender.name.toLowerCase() === 'label-width'
-      const maxPixelValue = isLabelWidth ? 500 : undefined
+      const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' || 
+                         componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
+                         componentName === 'MenuItem' ||
+                         componentName === 'Menu item'
+      const isMenu = componentName.toLowerCase() === 'menu'
+      const propNameLower = propToRender.name.toLowerCase()
+      
+      let maxPixelValue: number | undefined = undefined
+      
+      // Set custom limits for menu-item and menu width properties
+      if ((isMenuItem || isMenu) && propNameLower === 'min-width') {
+        minPixelValue = 50
+        maxPixelValue = 500
+      } else if ((isMenuItem || isMenu) && propNameLower === 'max-width') {
+        minPixelValue = 200
+        maxPixelValue = 1000
+      } else if (isLabelWidth) {
+        // Default maxPixelValue for label-width
+        maxPixelValue = 500
+      }
       
       return (
         <DimensionTokenSelector

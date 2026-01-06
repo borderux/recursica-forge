@@ -1,5 +1,16 @@
 /* Carbon MenuItem CSS Overrides */
 
+.cds-menu-item-wrapper {
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.cds-menu-item-wrapper.has-divider {
+  padding-bottom: var(--menu-item-divider-item-gap, 0px);
+}
+
 .cds-menu-item {
   display: flex;
   align-items: center;
@@ -9,8 +20,8 @@
   max-width: var(--menu-item-max-width, 464px);
   padding-top: var(--menu-item-vertical-padding, 8px);
   padding-bottom: var(--menu-item-vertical-padding, 8px);
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: var(--menu-item-horizontal-padding, 12px);
+  padding-right: var(--menu-item-horizontal-padding, 12px);
   border: none;
   background-color: var(--menu-item-bg, transparent);
   color: var(--menu-item-text, #000000);
@@ -129,9 +140,5 @@
   height: 1px;
   background-color: var(--menu-item-divider-color, #e0e0e0);
   opacity: var(--menu-item-divider-opacity, 1);
-}
-
-.cds-menu-item.has-divider {
-  margin-bottom: 1px;
 }
 

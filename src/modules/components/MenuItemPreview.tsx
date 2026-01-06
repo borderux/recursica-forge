@@ -65,7 +65,7 @@ export default function MenuItemPreview({
           disabled={false}
           divider="bottom"
         >
-          Menu item
+          Default item
         </MenuItem>
         
         {/* Second item: Selected state - with leading icon, supporting text, no trailing icon */}
@@ -75,12 +75,12 @@ export default function MenuItemPreview({
           layer={selectedLayer as any}
           leadingIcon={FileIcon ? <FileIcon /> : undefined}
           leadingIconType="icon"
-          supportingText="Supporting value"
+          supportingText="Supporting text"
           selected={true}
           disabled={false}
           divider="bottom"
         >
-          Menu item
+          Selected item
         </MenuItem>
         
         {/* Third item: Disabled state */}
@@ -92,9 +92,9 @@ export default function MenuItemPreview({
           trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
           selected={false}
           disabled={true}
-          divider="bottom"
+          divider="none"
         >
-          Menu item
+          Disabled item
         </MenuItem>
       </Menu>
     </div>
