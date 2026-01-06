@@ -12,6 +12,7 @@ import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import OpacitySelector from './OpacitySelector'
+import PaddingSlider from '../../utils/PaddingSlider'
 import './PropControl.css'
 
 // Separate component for elevation control to properly use hooks
@@ -277,6 +278,26 @@ export default function PropControlContent({
     }
 
     if (propToRender.type === 'dimension') {
+      const propNameLower = propToRender.name.toLowerCase()
+      
+      // Use PaddingSlider for padding-related properties
+      const isPaddingProp = propNameLower === 'padding' ||
+                           propNameLower === 'vertical-padding' ||
+                           propNameLower === 'horizontal-padding' ||
+                           propNameLower === 'item-gap' ||
+                           propNameLower === 'divider-item-gap'
+      
+      if (isPaddingProp) {
+        return (
+          <PaddingSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+          />
+        )
+      }
+      
       const additionalCssVars = propToRender.name === 'font-size' && componentName.toLowerCase() === 'button'
         ? ['--recursica-brand-typography-button-font-size']
         : []
@@ -316,7 +337,6 @@ export default function PropControlContent({
                          componentName === 'MenuItem' ||
                          componentName === 'Menu item'
       const isMenu = componentName.toLowerCase() === 'menu'
-      const propNameLower = propToRender.name.toLowerCase()
       
       let maxPixelValue: number | undefined = undefined
       

@@ -2466,6 +2466,7 @@
               "supporting-text-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.elements.text.color}"
+
               }
             },
             "layer-1": {
@@ -2545,17 +2546,11 @@
           },
           "padding": {
             "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.general.xs}",
-              "unit": "px"
-            }
+            "$value": null
           },
           "item-gap": {
             "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.spacer.sm}",
-              "unit": "px"
-            }
+            "$value": null
           },
           "colors": {
             "layer-0": {

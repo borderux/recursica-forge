@@ -8,8 +8,8 @@
   border-radius: var(--menu-border-radius, 4px);
   min-width: var(--menu-min-width, 140px);
   max-width: var(--menu-max-width, 464px);
-  padding: var(--menu-padding, 4px);
-  gap: var(--menu-item-gap, 2px);
+  padding: var(--menu-padding, 0px);
+  gap: var(--menu-item-gap, 0px);
   overflow: hidden;
 }
 

@@ -40,8 +40,13 @@ export default function TokenSlider({
 }: TokenSliderProps) {
   // Sort tokens by value if available, smallest to largest (left to right)
   // Tokens without numeric values go to the end
+  // "none" option is always first
   const sortedTokens = React.useMemo(() => {
     return [...tokens].sort((a, b) => {
+      // Handle "none" specially - it should always be first
+      if (a.name === 'none') return -1
+      if (b.name === 'none') return 1
+      
       if (a.value !== undefined && b.value !== undefined) {
         return a.value - b.value // Smallest to largest
       }
