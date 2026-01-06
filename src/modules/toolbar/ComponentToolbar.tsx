@@ -15,6 +15,9 @@ import MenuIcon from './menu/MenuIcon'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getPropIcon, getPropLabel, getPropVisible, loadToolbarConfig } from './utils/loadToolbarConfig'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { useVars } from '../vars/VarsContext'
+import { buildUIKitVars } from '../../core/resolvers/uikit'
+import { updateCssVar } from '../../core/css/updateCssVar'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
@@ -33,6 +36,7 @@ export default function ComponentToolbar({
   onLayerChange,
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
+  const { tokens, theme, uikit } = useVars()
   const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 
@@ -413,11 +417,35 @@ export default function ComponentToolbar({
   }, [structure.props, componentName, selectedVariants, toolbarConfig])
 
   const handleReset = () => {
-    // Remove all CSS var overrides for this component
-    // This will make them fall back to their computed values (from JSON defaults)
+    // Get all CSS variables for this component from structure
+    const componentCssVars = new Set<string>()
     structure.props.forEach(prop => {
-      // Remove the inline style override to restore to default
-      document.documentElement.style.removeProperty(prop.cssVar)
+      componentCssVars.add(prop.cssVar)
+    })
+
+    // Rebuild UIKit vars from JSON defaults
+    const allUIKitVars = buildUIKitVars(tokens, theme, uikit, mode)
+    
+    // Filter to only this component's CSS variables
+    const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+    const componentDefaults: Record<string, string> = {}
+    
+    Object.entries(allUIKitVars).forEach(([cssVar, value]) => {
+      // Check if this CSS var belongs to this component
+      // Format: --recursica-ui-kit-components-{component}-...
+      if (cssVar.includes(`components-${componentKey}-`)) {
+        componentDefaults[cssVar] = value
+      }
+    })
+
+    // Remove all overrides for this component first
+    componentCssVars.forEach(cssVar => {
+      document.documentElement.style.removeProperty(cssVar)
+    })
+
+    // Then restore defaults from JSON
+    Object.entries(componentDefaults).forEach(([cssVar, value]) => {
+      updateCssVar(cssVar, value, tokens)
     })
 
     // Force a re-render by triggering a custom event

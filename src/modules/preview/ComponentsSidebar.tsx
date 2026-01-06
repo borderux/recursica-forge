@@ -128,7 +128,7 @@ export function ComponentsSidebar({
     <aside
       style={{
         width: '252px',
-        height: debugMode ? '100vh' : '100%',
+        height: debugMode ? 'calc(100vh - var(--header-height, 72px))' : '100%',
         position: 'sticky',
         top: 0,
         alignSelf: 'flex-start',
@@ -143,7 +143,6 @@ export function ComponentsSidebar({
         paddingTop: 'var(--recursica-brand-dimensions-spacer-xl)',
         paddingBottom: 'var(--recursica-brand-dimensions-spacer-xl)',
         flexShrink: 0,
-        overflowY: 'auto',
       }}
     >
       {/* Components Heading */}
