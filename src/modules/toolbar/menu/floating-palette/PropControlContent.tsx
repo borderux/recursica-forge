@@ -722,6 +722,95 @@ export default function PropControlContent({
             cssVars = [defaultTextVar, selectedTextVar, disabledTextVar]
           }
           
+          // For breadcrumb interactive/read-only colors, ALWAYS re-validate the prop
+          // to ensure we have the correct CSS variable
+          if (componentName.toLowerCase() === 'breadcrumb' && 
+              (groupedPropKey === 'interactive-color' || groupedPropKey === 'read-only-color')) {
+            // Always re-find the prop from structure - don't trust anything in the map
+            const structure = parseComponentStructure(componentName)
+            let correctProp: ComponentProp | undefined = undefined
+            
+            if (groupedPropKey === 'read-only-color') {
+              // Find the read-only prop - must have read-only in path, NOT interactive
+              // AND the CSS variable must contain 'read-only' and NOT 'interactive'
+              const allMatchingProps = structure.props.filter(p => {
+                const pathMatches = p.name.toLowerCase() === 'color' && 
+                  p.category === 'colors' &&
+                  !p.isVariantSpecific &&
+                  p.path.includes('colors') &&
+                  p.path.includes('read-only') &&
+                  !p.path.includes('interactive') &&
+                  p.path.includes(selectedLayer)
+                return pathMatches
+              })
+              
+              // Find the one with the correct CSS variable
+              correctProp = allMatchingProps.find(p => 
+                p.cssVar.includes('read-only') && 
+                !p.cssVar.includes('interactive')
+              ) || allMatchingProps[0]
+              
+              console.log('PropControlContent: Looking for read-only-color prop:', {
+                allMatchingProps: allMatchingProps.map(p => ({ cssVar: p.cssVar, path: p.path })),
+                selectedProp: correctProp ? { cssVar: correctProp.cssVar, path: correctProp.path } : null
+              })
+            } else if (groupedPropKey === 'interactive-color') {
+              // Find the interactive prop - must have interactive in path, NOT read-only
+              // AND the CSS variable must contain 'interactive' and NOT 'read-only'
+              const allMatchingProps = structure.props.filter(p => {
+                const pathMatches = p.name.toLowerCase() === 'color' && 
+                  p.category === 'colors' &&
+                  !p.isVariantSpecific &&
+                  p.path.includes('colors') &&
+                  p.path.includes('interactive') &&
+                  !p.path.includes('read-only') &&
+                  p.path.includes(selectedLayer)
+                return pathMatches
+              })
+              
+              // Find the one with the correct CSS variable
+              correctProp = allMatchingProps.find(p => 
+                p.cssVar.includes('interactive') && 
+                !p.cssVar.includes('read-only')
+              ) || allMatchingProps[0]
+              
+              console.log('PropControlContent: Looking for interactive-color prop:', {
+                allMatchingProps: allMatchingProps.map(p => ({ cssVar: p.cssVar, path: p.path })),
+                selectedProp: correctProp ? { cssVar: correctProp.cssVar, path: correctProp.path } : null
+              })
+            }
+            
+            // Always use the correct prop if found
+            if (correctProp) {
+              groupedProp = correctProp
+              // Update the map with the correct prop
+              prop.borderProps!.set(groupedPropKey, correctProp)
+              const correctCssVars = getCssVarsForProp(correctProp)
+              const correctPrimaryVar = correctCssVars[0] || correctProp.cssVar
+              
+              // Final validation - ensure the CSS variable is correct
+              if (groupedPropKey === 'read-only-color' && 
+                  (!correctPrimaryVar.includes('read-only') || correctPrimaryVar.includes('interactive'))) {
+                console.error('PropControlContent: ERROR - read-only-color has wrong CSS var!', correctPrimaryVar)
+              } else if (groupedPropKey === 'interactive-color' && 
+                  (!correctPrimaryVar.includes('interactive') || correctPrimaryVar.includes('read-only'))) {
+                console.error('PropControlContent: ERROR - interactive-color has wrong CSS var!', correctPrimaryVar)
+              } else {
+                console.log(`PropControlContent: ✓ Using correct ${groupedPropKey} CSS var:`, correctPrimaryVar)
+              }
+              
+              const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
+              return (
+                <div 
+                  key={groupedPropName}
+                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-md)' : 0 }}
+                >
+                  {renderControl(correctProp, correctCssVars, correctPrimaryVar, label)}
+                </div>
+              )
+            }
+          }
+          
           const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
           
           return (
