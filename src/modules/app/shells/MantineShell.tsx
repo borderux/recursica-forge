@@ -4,7 +4,7 @@
  * App frame using Mantine components; provides navigation, reset defaults,
  * and import/export of CSS variables.
  */
-import { ReactNode, useEffect, useState, useMemo } from 'react'
+import { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
 import { AppShell, Group, Select, MantineProvider, Modal, Tabs as MantineTabs } from '@mantine/core'
 import '@mantine/core/styles.css'
 import './MantineShell.css'
@@ -91,11 +91,30 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
+  const headerRef = useRef<HTMLElement>(null)
+
+  // Measure header height and set CSS variable
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current) {
+        // Use getBoundingClientRect to get accurate height including borders
+        const rect = headerRef.current.getBoundingClientRect()
+        document.documentElement.style.setProperty('--header-height', `${rect.height}px`)
+      }
+    }
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    requestAnimationFrame(() => {
+      updateHeaderHeight()
+    })
+    window.addEventListener('resize', updateHeaderHeight)
+    return () => window.removeEventListener('resize', updateHeaderHeight)
+  }, [mode])
   
   return (
     <MantineProvider>
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <header
+          ref={headerRef}
           style={{
             backgroundColor: `var(${layer1Base}-surface)`,
             paddingTop: 'var(--recursica-brand-dimensions-spacer-lg)',

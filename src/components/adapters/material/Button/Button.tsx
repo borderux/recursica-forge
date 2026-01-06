@@ -10,6 +10,7 @@ import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath }
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
+import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
 import './Button.css'
 
 export default function Button({

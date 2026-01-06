@@ -4,7 +4,7 @@
  * App frame using Material UI; lazy-loads MUI packages on mount and
  * provides navigation, reset defaults, and download controls.
  */
-import { ReactNode, useEffect, useState, useMemo } from 'react'
+import { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import type { UiKit } from '../../uikit/UiKitContext'
@@ -98,6 +98,25 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
     }
   }, [])
 
+  const headerRef = useRef<HTMLElement>(null)
+
+  // Measure header height and set CSS variable
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current) {
+        // Use getBoundingClientRect to get accurate height including borders
+        const rect = headerRef.current.getBoundingClientRect()
+        document.documentElement.style.setProperty('--header-height', `${rect.height}px`)
+      }
+    }
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    requestAnimationFrame(() => {
+      updateHeaderHeight()
+    })
+    window.addEventListener('resize', updateHeaderHeight)
+    return () => window.removeEventListener('resize', updateHeaderHeight)
+  }, [mode])
+
   if (!mat || !styles) return <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-lg)' }}>Loading Material UI…</div>
 
   const { AppBar, Toolbar, Select, MenuItem, Container, CssBaseline, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions, Box, Tabs, Tab } = mat
@@ -113,6 +132,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
       <CssBaseline />
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <AppBar
+          ref={headerRef}
           position="static"
           sx={{
             backgroundColor: `var(${layer1Base}-surface)`,
