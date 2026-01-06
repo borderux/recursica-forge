@@ -4,7 +4,7 @@
  * App frame using IBM Carbon components; lazy-loads Carbon and wiring for
  * navigation, reset defaults and import/export of CSS variables.
  */
-import { ReactNode, useEffect, useState, useMemo } from 'react'
+import { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import type { UiKit } from '../../uikit/UiKitContext'
@@ -105,6 +105,25 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
     }
   }, [])
 
+  const headerRef = useRef<HTMLElement>(null)
+
+  // Measure header height and set CSS variable
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current) {
+        // Use getBoundingClientRect to get accurate height including borders
+        const rect = headerRef.current.getBoundingClientRect()
+        document.documentElement.style.setProperty('--header-height', `${rect.height}px`)
+      }
+    }
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    requestAnimationFrame(() => {
+      updateHeaderHeight()
+    })
+    window.addEventListener('resize', updateHeaderHeight)
+    return () => window.removeEventListener('resize', updateHeaderHeight)
+  }, [mode])
+
   if (!carbon) return <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-lg)' }}>Loading Carbon…</div>
 
   const { Select, SelectItem, Theme, Grid, Column, ComposedModal, ModalHeader, ModalBody, ModalFooter, Toggle } = carbon
@@ -117,6 +136,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
     <Theme theme="g10">
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <header
+          ref={headerRef}
           aria-label="Recursica Theme Forge"
           style={{
             backgroundColor: `var(${layer1Base}-surface)`,

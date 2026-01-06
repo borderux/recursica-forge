@@ -6,7 +6,6 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { Label as CarbonLabel } from '@carbon/react'
 import type { LabelProps as AdapterLabelProps } from '../../Label'
 import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -114,7 +113,7 @@ export default function Label({
   }
   
   return (
-    <CarbonLabel
+    <label
       htmlFor={htmlFor}
       className={className}
       style={{
@@ -169,7 +168,7 @@ export default function Label({
           )}
         </span>
       )}
-    </CarbonLabel>
+    </label>
   )
 }
 

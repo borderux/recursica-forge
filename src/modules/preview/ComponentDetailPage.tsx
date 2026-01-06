@@ -114,14 +114,6 @@ export default function ComponentDetailPage() {
     return parts.join(' / ')
   }, [selectedVariants, selectedLayer, componentStructure])
 
-  if (!component) {
-    return (
-      <div style={{ padding: 24, textAlign: 'center', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-low-emphasis)` }}>
-        Component not found
-      </div>
-    )
-  }
-
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
 
@@ -133,6 +125,7 @@ export default function ComponentDetailPage() {
   // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}
   // We need to extract the elevation number and build the box-shadow CSS
   const elevationBoxShadow = useMemo(() => {
+    if (!component) return undefined
     let elevationLevel: string | null = null
     
     try {
@@ -170,14 +163,25 @@ export default function ComponentDetailPage() {
     // Build elevation box-shadow from elevation CSS variables
     // Format: x-axis y-axis blur spread shadow-color
     return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-  }, [mode, layerNum, theme])
+  }, [mode, layerNum, theme, component])
+
+  if (!component) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: debugMode ? 'auto' : '100%',
+        minHeight: debugMode ? undefined : 0,
+      }} />
+    )
+  }
 
   return (
     <div style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       height: debugMode ? 'auto' : '100%',
-      minHeight: debugMode ? '100vh' : 0,
+      minHeight: debugMode ? undefined : 0,
     }}>
       {/* Header Section */}
       <div style={{ 
@@ -235,10 +239,11 @@ export default function ComponentDetailPage() {
         display: 'flex',
         flex: debugMode ? undefined : 1,
         minHeight: debugMode ? undefined : 0,
+        width: '100%',
       }}>
         {/* Preview Area - Left Side */}
         <div style={{
-          flex: debugMode ? undefined : 1,
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
           padding: 'var(--recursica-brand-dimensions-spacer-xl)',
