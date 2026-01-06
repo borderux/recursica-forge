@@ -32,10 +32,14 @@ export function ComponentsSidebar({
   const mappedComponents = useMemo(() => {
     const components = (uikitJson as any)?.['ui-kit']?.components || {}
     return new Set(Object.keys(components).map(name => {
-      // Convert "button" -> "Button", "text-field" -> "Text field", etc.
-      return name
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      // Convert "button" -> "Button", "text-field" -> "Text field", "menu-item" -> "Menu item", etc.
+      const words = name.split('-')
+      return words
+        .map((word, index) => 
+          index === 0 
+            ? word.charAt(0).toUpperCase() + word.slice(1) // First word: capitalize first letter
+            : word.toLowerCase() // Subsequent words: lowercase
+        )
         .join(' ')
     }))
   }, [])
@@ -61,6 +65,7 @@ export function ComponentsSidebar({
       { name: 'Link', url: `${base}/link` },
       { name: 'Loader', url: `${base}/loader` },
       { name: 'Menu', url: `${base}/menu` },
+      { name: 'Menu item', url: `${base}/menu-item` },
       { name: 'Modal', url: `${base}/modal` },
       { name: 'Number input', url: `${base}/number-input` },
       { name: 'Pagination', url: `${base}/pagination` },

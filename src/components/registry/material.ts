@@ -31,5 +31,8 @@ registerComponent('material', 'Chip', () => import('../adapters/material/Chip/Ch
 // Label
 registerComponent('material', 'Label', () => import('../adapters/material/Label/Label'))
 
+// MenuItem
+registerComponent('material', 'MenuItem', () => import('../adapters/material/MenuItem/MenuItem'))
+
 // Add more components as they're implemented
 
