@@ -181,14 +181,37 @@ export default function ComponentToolbar({
               if (!groupedProp && groupedPropKey === 'border-color') {
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
               }
-              // Special case: interactive-color maps to "color" prop from "interactive" variant
+              // Special case: interactive-color maps to "color" prop under colors.layer-X.interactive
               if (!groupedProp && groupedPropKey === 'interactive-color') {
                 groupedProp = structure.props.find(p => 
                   p.name.toLowerCase() === 'color' && 
                   p.category === 'colors' &&
-                  p.isVariantSpecific &&
-                  p.variantProp === 'style' &&
-                  p.path.includes('interactive')
+                  !p.isVariantSpecific &&
+                  p.path.includes('colors') &&
+                  p.path.includes('interactive') &&
+                  p.path.some(part => part.startsWith('layer-'))
+                )
+              }
+              // Special case: read-only-color maps to "color" prop under colors.layer-X.read-only
+              if (!groupedProp && groupedPropKey === 'read-only-color') {
+                groupedProp = structure.props.find(p => 
+                  p.name.toLowerCase() === 'color' && 
+                  p.category === 'colors' &&
+                  !p.isVariantSpecific &&
+                  p.path.includes('colors') &&
+                  p.path.includes('read-only') &&
+                  p.path.some(part => part.startsWith('layer-'))
+                )
+              }
+              // Special case: separator-color maps to "separator-color" prop under colors.layer-X
+              if (!groupedProp && groupedPropKey === 'separator-color') {
+                groupedProp = structure.props.find(p => 
+                  p.name.toLowerCase() === 'separator-color' && 
+                  p.category === 'colors' &&
+                  !p.isVariantSpecific &&
+                  p.path.includes('colors') &&
+                  p.path.includes('separator-color') &&
+                  p.path.some(part => part.startsWith('layer-'))
                 )
               }
               // If still not found, try to find it by exact name match (case-insensitive)

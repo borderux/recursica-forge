@@ -24,11 +24,10 @@ export default function Breadcrumb({
   const { mode } = useThemeMode()
   
   // Get CSS variables for colors
-  // Use buildVariantColorCssVar for style variant color properties
-  const interactiveColorVar = buildVariantColorCssVar('Breadcrumb', 'interactive', 'color', layer)
-  // Read-only color is now component-level, not variant-specific
-  const readOnlyColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.read-only-color')
-  const separatorColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.separator-color')
+  // Interactive, read-only, and separator colors are now component-level properties under colors, organized by layer
+  const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.interactive.color`)
+  const readOnlyColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.read-only.color`)
+  const separatorColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.separator-color`)
   
   // Get component-level CSS variables
   const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')

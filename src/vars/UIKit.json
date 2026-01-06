@@ -2171,70 +2171,6 @@
         }
       },
       "breadcrumb": {
-        "variants": {
-          "styles": {
-            "interactive": {
-              "properties": {
-                "colors": {
-                  "layer-0": {
-                    "color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
-                    }
-                  },
-                  "layer-1": {
-                    "color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
-                    }
-                  },
-                  "layer-2": {
-                    "color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
-                    }
-                  },
-                  "layer-3": {
-                    "color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
-                    }
-                  }
-                }
-              }
-            },
-            "read-only": {
-              "properties": {
-                "colors": {
-                  "layer-0": {
-                    "color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.color}"
-                    }
-                  },
-                  "layer-1": {
-                    "color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.color}"
-                    }
-                  },
-                  "layer-2": {
-                    "color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.text.color}"
-                    }
-                  },
-                  "layer-3": {
-                    "color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.text.color}"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
         "properties": {
           "padding": {
             "$type": "dimension",
@@ -2265,13 +2201,77 @@
             }
           },
           "colors": {
-            "separator-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
+            "layer-0": {
+              "interactive": {
+                "color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                }
+              },
+              "read-only": {
+                "color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.elements.text.color}"
+                }
+              },
+              "separator-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              }
             },
-            "read-only-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
+            "layer-1": {
+              "interactive": {
+                "color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                }
+              },
+              "read-only": {
+                "color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.elements.text.color}"
+                }
+              },
+              "separator-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              }
+            },
+            "layer-2": {
+              "interactive": {
+                "color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                }
+              },
+              "read-only": {
+                "color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.elements.text.color}"
+                }
+              },
+              "separator-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              }
+            },
+            "layer-3": {
+              "interactive": {
+                "color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                }
+              },
+              "read-only": {
+                "color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.elements.text.color}"
+                }
+              },
+              "separator-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              }
             }
           }
         }

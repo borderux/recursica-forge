@@ -115,17 +115,21 @@ describe('Breadcrumb Toolbar Config', () => {
       })
     }
     
-    // Color property from variants
-    if (component.variants?.styles) {
-      Object.values(component.variants.styles).forEach((variant: any) => {
-        if (variant.properties?.colors) {
-          Object.values(variant.properties.colors).forEach((layer: any) => {
-            Object.keys(layer || {}).forEach(prop => {
-              if (prop === 'color') {
-                requiredProps.add('color')
-              }
-            })
-          })
+    // Color properties from colors.layer-X.interactive, colors.layer-X.read-only, and colors.layer-X.separator-color
+    if (component.properties?.colors) {
+      // Check if any layer has interactive, read-only, or separator colors
+      const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+      layers.forEach(layer => {
+        if (component.properties.colors[layer]) {
+          if (component.properties.colors[layer].interactive) {
+            requiredProps.add('interactive-color')
+          }
+          if (component.properties.colors[layer]['read-only']) {
+            requiredProps.add('read-only-color')
+          }
+          if (component.properties.colors[layer]['separator-color']) {
+            requiredProps.add('separator-color')
+          }
         }
       })
     }

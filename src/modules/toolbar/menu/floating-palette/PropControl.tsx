@@ -565,23 +565,68 @@ export default function PropControl({
             if (!groupedProp && groupedPropKey === 'text-color') {
               groupedProp = prop.borderProps!.get('text')
             }
-            // Special case: interactive-color maps to "color" prop from "interactive" variant
+            // Special case: interactive-color maps to "color" prop under colors.layer-X.interactive
             if (!groupedProp && groupedPropKey === 'interactive-color') {
-              groupedProp = prop.borderProps!.get('color')
-              // If not found, try to find it from structure (it might be variant-specific)
+              // First check if it's already in the map with the correct key
+              groupedProp = prop.borderProps!.get('interactive-color')
+              // If not found, try to find it from structure (it's now component-level under colors.layer-X.interactive)
               if (!groupedProp) {
                 const structure = parseComponentStructure(componentName)
                 const interactiveColorProp = structure.props.find(p => 
                   p.name.toLowerCase() === 'color' && 
                   p.category === 'colors' &&
-                  p.isVariantSpecific &&
-                  p.variantProp === 'style' &&
-                  p.path.includes('interactive')
+                  !p.isVariantSpecific &&
+                  p.path.includes('colors') &&
+                  p.path.includes('interactive') &&
+                  p.path.some(part => part.startsWith('layer-'))
                 )
                 if (interactiveColorProp) {
                   groupedProp = interactiveColorProp
                   // Add it to the borderProps map for future lookups
                   prop.borderProps!.set('interactive-color', interactiveColorProp)
+                }
+              }
+            }
+            // Special case: read-only-color maps to "color" prop under colors.layer-X.read-only
+            if (!groupedProp && groupedPropKey === 'read-only-color') {
+              // First check if it's already in the map with the correct key
+              groupedProp = prop.borderProps!.get('read-only-color')
+              // If not found, try to find it from structure (it's now component-level under colors.layer-X.read-only)
+              if (!groupedProp) {
+                const structure = parseComponentStructure(componentName)
+                const readOnlyColorProp = structure.props.find(p => 
+                  p.name.toLowerCase() === 'color' && 
+                  p.category === 'colors' &&
+                  !p.isVariantSpecific &&
+                  p.path.includes('colors') &&
+                  p.path.includes('read-only') &&
+                  p.path.some(part => part.startsWith('layer-'))
+                )
+                if (readOnlyColorProp) {
+                  groupedProp = readOnlyColorProp
+                  // Add it to the borderProps map for future lookups
+                  prop.borderProps!.set('read-only-color', readOnlyColorProp)
+                }
+              }
+            }
+            // Special case: separator-color maps to "separator-color" prop under colors.layer-X
+            if (!groupedProp && groupedPropKey === 'separator-color') {
+              groupedProp = prop.borderProps!.get('separator-color')
+              // If not found, try to find it from structure (it's now component-level under colors.layer-X.separator-color)
+              if (!groupedProp) {
+                const structure = parseComponentStructure(componentName)
+                const separatorColorProp = structure.props.find(p => 
+                  p.name.toLowerCase() === 'separator-color' && 
+                  p.category === 'colors' &&
+                  !p.isVariantSpecific &&
+                  p.path.includes('colors') &&
+                  p.path.includes('separator-color') &&
+                  p.path.some(part => part.startsWith('layer-'))
+                )
+                if (separatorColorProp) {
+                  groupedProp = separatorColorProp
+                  // Add it to the borderProps map for future lookups
+                  prop.borderProps!.set('separator-color', separatorColorProp)
                 }
               }
             }
