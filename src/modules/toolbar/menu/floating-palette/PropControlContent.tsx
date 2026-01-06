@@ -12,7 +12,8 @@ import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import OpacitySelector from './OpacitySelector'
-import PaddingSlider from '../../utils/PaddingSlider'
+import BrandSpacerSlider from '../../utils/BrandSpacerSlider'
+import BrandBorderRadiusSlider from '../../utils/BrandBorderRadiusSlider'
 import './PropControl.css'
 
 // Separate component for elevation control to properly use hooks
@@ -280,16 +281,36 @@ export default function PropControlContent({
     if (propToRender.type === 'dimension') {
       const propNameLower = propToRender.name.toLowerCase()
       
-      // Use PaddingSlider for padding-related properties
+      // Use BrandSpacerSlider for padding-related properties that use spacer tokens
       const isPaddingProp = propNameLower === 'padding' ||
                            propNameLower === 'vertical-padding' ||
                            propNameLower === 'horizontal-padding' ||
+                           propNameLower === 'padding-vertical' ||
+                           propNameLower === 'padding-horizontal' ||
+                           propNameLower === 'bottom-padding' ||
                            propNameLower === 'item-gap' ||
-                           propNameLower === 'divider-item-gap'
+                           propNameLower === 'divider-item-gap' ||
+                           propNameLower === 'track-inner-padding'
       
       if (isPaddingProp) {
         return (
-          <PaddingSlider
+          <BrandSpacerSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+          />
+        )
+      }
+      
+      // Use BrandBorderRadiusSlider for border-radius properties
+      const isBorderRadiusProp = propNameLower === 'border-radius' ||
+                                 propNameLower === 'thumb-border-radius' ||
+                                 propNameLower === 'track-border-radius'
+      
+      if (isBorderRadiusProp) {
+        return (
+          <BrandBorderRadiusSlider
             key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
             targetCssVar={primaryVar}
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}

@@ -1,8 +1,9 @@
 /**
- * Reusable Padding Slider Component for Toolbars
+ * Reusable Brand Border Radius Slider Component for Toolbars
  * 
- * This component provides a consistent slider interface for padding-related properties
- * across all component toolbars. It uses spacer brand tokens and includes a "none" option.
+ * This component provides a consistent slider interface for properties that use
+ * brand border radius tokens. It includes a "none" option and is used for
+ * border-radius properties across all component toolbars.
  */
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
@@ -12,34 +13,34 @@ import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import TokenSlider from '../../forms/TokenSlider'
 
-interface PaddingSliderProps {
+interface BrandBorderRadiusSliderProps {
   targetCssVar: string
   targetCssVars?: string[]
   label: string
 }
 
-export default function PaddingSlider({
+export default function BrandBorderRadiusSlider({
   targetCssVar,
   targetCssVars = [],
   label,
-}: PaddingSliderProps) {
+}: BrandBorderRadiusSliderProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
   
-  // Build tokens list from spacer brand tokens
+  // Build tokens list from border radius brand tokens
   const tokens = useMemo(() => {
     const options: Array<{ name: string; value: number; label: string }> = []
     
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const dimensions = root?.dimensions || {}
-      const spacers = dimensions?.spacer || {}
+      const borderRadius = dimensions?.['border-radius'] || {}
       
-      // Collect spacer dimensions (xs, sm, md, lg, xl, default)
-      Object.keys(spacers).forEach(spacerKey => {
-        const spacerValue = spacers[spacerKey]
-        if (spacerValue && typeof spacerValue === 'object' && '$value' in spacerValue) {
-          const cssVar = `--recursica-brand-dimensions-spacer-${spacerKey}`
+      // Collect border radius dimensions
+      Object.keys(borderRadius).forEach(radiusKey => {
+        const radiusValue = borderRadius[radiusKey]
+        if (radiusValue && typeof radiusValue === 'object' && '$value' in radiusValue) {
+          const cssVar = `--recursica-brand-dimensions-border-radius-${radiusKey}`
           const cssValue = readCssVar(cssVar)
           
           // Only add if the CSS var exists (has been generated)
@@ -55,14 +56,15 @@ export default function PaddingSlider({
               }
             }
             
-            // Convert spacer key to label (e.g., "xs" -> "Xs", "sm" -> "Sm")
-            const label = spacerKey === 'xs' ? 'Xs' :
-                         spacerKey === 'sm' ? 'Sm' :
-                         spacerKey === 'md' ? 'Md' :
-                         spacerKey === 'lg' ? 'Lg' :
-                         spacerKey === 'xl' ? 'Xl' :
-                         spacerKey === 'default' ? 'Default' :
-                         spacerKey.charAt(0).toUpperCase() + spacerKey.slice(1)
+            // Convert radius key to label (e.g., "default" -> "Default", "sm" -> "Sm", "2xl" -> "2Xl")
+            const label = radiusKey === 'default' ? 'Default' :
+                         radiusKey === 'sm' ? 'Sm' :
+                         radiusKey === 'md' ? 'Md' :
+                         radiusKey === 'lg' ? 'Lg' :
+                         radiusKey === 'xl' ? 'Xl' :
+                         radiusKey === '2xl' ? '2Xl' :
+                         radiusKey === 'none' ? 'None' :
+                         radiusKey.charAt(0).toUpperCase() + radiusKey.slice(1)
             
             options.push({
               name: cssVar,
@@ -74,13 +76,17 @@ export default function PaddingSlider({
       })
       
       // Convert to Token format and sort by value
-      const spacerTokens = options
+      const borderRadiusTokens = options
         .map(opt => ({
           name: opt.name,
           value: opt.value,
           label: opt.label,
         }))
         .sort((a, b) => {
+          // Handle "none" specially - it should be first
+          if (a.label.toLowerCase() === 'none') return -1
+          if (b.label.toLowerCase() === 'none') return 1
+          
           if (a.value !== undefined && b.value !== undefined) {
             return a.value - b.value
           }
@@ -89,16 +95,24 @@ export default function PaddingSlider({
           return a.label.localeCompare(b.label)
         })
       
-      // Add "none" option at the beginning
-      spacerTokens.unshift({
-        name: 'none',
-        value: -1, // Use -1 to ensure it sorts first
-        label: 'None',
-      })
+      // Add "none" option at the beginning if it doesn't already exist as a token
+      // Check if any token has "none" in its name (CSS var) or label
+      const hasNoneToken = borderRadiusTokens.some(t => 
+        t.name.includes('border-radius-none') || 
+        t.name === 'none' ||
+        t.label.toLowerCase() === 'none'
+      )
+      if (!hasNoneToken) {
+        borderRadiusTokens.unshift({
+          name: 'none',
+          value: -1, // Use -1 to ensure it sorts first
+          label: 'None',
+        })
+      }
       
-      return spacerTokens
+      return borderRadiusTokens
     } catch (error) {
-      console.error('Error loading spacer tokens for PaddingSlider:', error)
+      console.error('Error loading border radius tokens for BrandBorderRadiusSlider:', error)
       // Return just "none" option if there's an error
       return [{
         name: 'none',
@@ -126,9 +140,9 @@ export default function PaddingSlider({
       // Try to find matching token by CSS var name
       const matchingToken = tokens.find(t => {
         if (t.name === 'none') return false
-        // Extract spacer name from CSS var (e.g., "--recursica-brand-dimensions-spacer-sm" -> "sm")
-        const spacerName = t.name.replace('--recursica-brand-dimensions-spacer-', '')
-        return currentValue.includes(`spacer-${spacerName}`) || currentValue.includes(`dimensions-spacer-${spacerName}`)
+        // Extract radius name from CSS var (e.g., "--recursica-brand-dimensions-border-radius-sm" -> "sm")
+        const radiusName = t.name.replace('--recursica-brand-dimensions-border-radius-', '')
+        return currentValue.includes(`border-radius-${radiusName}`) || currentValue.includes(`dimensions-border-radius-${radiusName}`)
       })
       
       if (matchingToken) {
