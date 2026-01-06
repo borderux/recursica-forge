@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
-import { updateCssVar } from '../../core/css/updateCssVar'
+import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 
@@ -160,6 +160,21 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return null
   }, [targetResolvedValue, targetCssVar, paletteKeys, paletteLevels, buildPaletteCssVar])
 
+  // Check if "none" is selected (CSS var is empty, null, or transparent)
+  const isNoneSelected = useMemo(() => {
+    if (!targetCssVar) return false
+    const directValue = readCssVar(targetCssVar)
+    if (!directValue || directValue.trim() === '' || directValue === 'null' || directValue === 'transparent') {
+      return true
+    }
+    // Check if resolved value is transparent
+    const resolved = readCssVarResolved(targetCssVar)
+    if (resolved && (resolved === 'transparent' || resolved === 'rgba(0, 0, 0, 0)' || resolved === 'rgba(255, 255, 255, 0)')) {
+      return true
+    }
+    return false
+  }, [targetCssVar])
+
   // Check if a palette swatch is currently selected
   const isSwatchSelected = (paletteCssVar: string): boolean => {
     if (!targetResolvedValue || !targetCssVar) return false
@@ -213,20 +228,128 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const swatch = 18
   const gap = 1
   const maxLevelCount = Math.max(...Object.values(paletteLevels).map((levels) => levels.length), 0)
-  const overlayWidth = labelCol + maxLevelCount * (swatch + gap) + 32
+  // Calculate width to fit swatches without horizontal scrolling
+  // Use a fixed max width that allows swatches to wrap naturally
+  const swatchAreaWidth = Math.min(maxLevelCount * (swatch + gap), 400) // Max 400px for swatch area
+  const overlayWidth = labelCol + swatchAreaWidth + 32
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
   return createPortal(
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, zIndex: 20000 }}>
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, maxWidth: '90vw', background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, zIndex: 20000 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>Pick palette color</div>
         <button onClick={() => setAnchor(null)} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 6 }}>
+        {/* None option */}
+        <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
+          <div style={{ fontSize: 12, opacity: 0.8 }}>None</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap }}>
+            <div
+              title="None"
+              onClick={(e) => {
+                e.stopPropagation()
+                try {
+                  const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
+                  
+                  // Remove CSS variables for "none" (remove the CSS var to use default/transparent)
+                  cssVarsToUpdate.forEach((cssVar) => {
+                    const prefixedTarget = cssVar.startsWith('--recursica-')
+                      ? cssVar
+                      : cssVar.startsWith('--')
+                        ? `--recursica-${cssVar.slice(2)}`
+                        : `--recursica-${cssVar}`
+                    
+                    // Remove the CSS var to clear the color (falls back to default/transparent)
+                    removeCssVar(prefixedTarget)
+                  })
+                  
+                  try {
+                    window.dispatchEvent(new CustomEvent('cssVarsUpdated', { 
+                      detail: { cssVars: cssVarsToUpdate } 
+                    }))
+                  } catch {}
+                  
+                  onSelect?.('none')
+                } catch (err) {
+                  console.error('Failed to set none:', err)
+                }
+                setAnchor(null)
+                setTargetCssVar(null)
+                setTargetCssVars([])
+              }}
+              style={{
+                position: 'relative',
+                width: swatch,
+                height: swatch,
+                background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
+                cursor: 'pointer',
+                border: `1px solid var(--recursica-brand-themes-${mode}-palettes-neutral-200-tone)`,
+                flex: '0 0 auto',
+              }}
+            >
+              {/* Diagonal line through box */}
+              <svg
+                width={swatch}
+                height={swatch}
+                viewBox={`0 0 ${swatch} ${swatch}`}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  pointerEvents: 'none',
+                }}
+              >
+                <line
+                  x1="2"
+                  y1="2"
+                  x2={swatch - 2}
+                  y2={swatch - 2}
+                  stroke={`var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+              {isNoneSelected && (
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {/* White checkmark with dark shadow for visibility on any background */}
+                  <path
+                    d="M2 6L5 9L10 2"
+                    stroke={`var(--recursica-brand-themes-${mode}-palettes-core-black)`}
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    opacity="0.4"
+                  />
+                  <path
+                    d="M2 6L5 9L10 2"
+                    stroke={`var(--recursica-brand-themes-${mode}-palettes-core-white)`}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </div>
+          </div>
+        </div>
         {paletteKeys.map((pk) => (
           <div key={pk} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
             <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize' }}>{toTitle(pk)}</div>
-            <div style={{ display: 'flex', flexWrap: 'nowrap', gap, overflow: 'auto' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap }}>
               {(paletteLevels[pk] || []).map((level) => {
                 const paletteCssVar = buildPaletteCssVar(pk, level)
                 const isSelected = isSwatchSelected(paletteCssVar)
