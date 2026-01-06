@@ -67,7 +67,7 @@ export default function ComponentDetailPage() {
   // Reset variants to first option when component changes
   useEffect(() => {
     setSelectedVariants(getInitialVariants)
-    setOpenPropControl(null)
+    setOpenPropControl(new Set())
   }, [componentName, location.pathname, getInitialVariants])
 
   // Get layer label for display
@@ -175,9 +175,8 @@ export default function ComponentDetailPage() {
     <div style={{ 
       display: 'flex', 
       flexDirection: 'column', 
-      height: '100%',
-      minHeight: 0,
-      overflow: 'hidden',
+      height: debugMode ? 'auto' : '100%',
+      minHeight: debugMode ? '100vh' : 0,
     }}>
       {/* Header Section */}
       <div style={{ 
@@ -233,23 +232,21 @@ export default function ComponentDetailPage() {
       {/* Main Content Container - Split Layout */}
       <div style={{
         display: 'flex',
-        flex: 1,
-        minHeight: 0,
-        overflow: 'hidden',
+        flex: debugMode ? undefined : 1,
+        minHeight: debugMode ? undefined : 0,
       }}>
         {/* Preview Area - Left Side */}
         <div style={{
-          flex: 1,
+          flex: debugMode ? undefined : 1,
           display: 'flex',
           flexDirection: 'column',
           padding: 'var(--recursica-brand-dimensions-spacer-xl)',
           minWidth: 0,
-          minHeight: 0,
-          overflow: 'auto',
+          minHeight: debugMode ? undefined : 0,
         }}>
           {/* Preview Section */}
           <div style={{ 
-            flex: 1,
+            flex: debugMode ? undefined : 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -265,10 +262,10 @@ export default function ComponentDetailPage() {
               : undefined,
             boxShadow: elevationBoxShadow,
             position: 'relative',
-            minHeight: 0,
+            minHeight: debugMode ? '400px' : 0,
           }}>
             {/* Component Preview */}
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
               {component.name === 'Button' ? (
                 <ButtonPreview
                   selectedVariants={selectedVariants}
@@ -348,8 +345,7 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           borderLeft: `1px solid var(${layer0Base}-border-color)`,
-          minHeight: 0,
-          overflowY: 'auto',
+          minHeight: debugMode ? undefined : 0,
         }}>
           <ComponentToolbar
             componentName={component.name}
@@ -363,14 +359,19 @@ export default function ComponentDetailPage() {
         </div>
       </div>
 
-      {/* Debug Table - Show when debug mode is enabled */}
+      {/* Debug Table - Show when debug mode is enabled, below preview and toolbar */}
       {debugMode && component && (
-        <ComponentDebugTable 
-          componentName={component.name}
-          openPropControl={openPropControl.size > 0 ? Array.from(openPropControl)[0] : null}
-          selectedVariants={selectedVariants}
-          selectedLayer={selectedLayer}
-        />
+        <div style={{
+          padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+          borderTop: `1px solid var(${layer1Base}-border-color)`,
+        }}>
+          <ComponentDebugTable 
+            componentName={component.name}
+            openPropControl={openPropControl.size > 0 ? Array.from(openPropControl)[0] : null}
+            selectedVariants={selectedVariants}
+            selectedLayer={selectedLayer}
+          />
+        </div>
       )}
     </div>
   )

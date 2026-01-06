@@ -128,7 +128,10 @@ export function ComponentsSidebar({
     <aside
       style={{
         width: '252px',
-        height: '100%',
+        height: debugMode ? '100vh' : '100%',
+        position: 'sticky',
+        top: 0,
+        alignSelf: 'flex-start',
         backgroundColor: `var(${layer1Base}-surface)`,
         borderRightWidth: `var(${layer1Base}-border-thickness, 1px)`,
         borderRightStyle: 'solid',

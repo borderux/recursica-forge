@@ -94,7 +94,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   
   return (
     <MantineProvider>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <header
           style={{
             backgroundColor: `var(${layer1Base}-surface)`,
