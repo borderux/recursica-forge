@@ -11,6 +11,7 @@ import { Switch } from '../../components/adapters/Switch'
 import { useMemo, useEffect } from 'react'
 import uikitJson from '../../vars/UIKit.json'
 import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
+import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
 
 export function ComponentsSidebar({ 
   showUnmapped, 
@@ -39,10 +40,10 @@ export function ComponentsSidebar({
     }))
   }, [])
 
-  // All component sections (same as PreviewPage)
-  const allComponents = useMemo(() => {
+  // Base component list (all components, unfiltered)
+  const baseComponents = useMemo(() => {
     const base = 'https://www.recursica.com/docs/components'
-    const components = [
+    return [
       { name: 'Accordion', url: `${base}/accordion` },
       { name: 'Avatar', url: `${base}/avatar` },
       { name: 'Badge', url: `${base}/badge` },
@@ -85,12 +86,15 @@ export function ComponentsSidebar({
         ...comp,
         isMapped: mappedComponents.has(comp.name)
       }))
-    
-    return components.filter(comp => {
+  }, [mappedComponents])
+
+  // All component sections (filtered based on showUnmapped)
+  const allComponents = useMemo(() => {
+    return baseComponents.filter(comp => {
       if (comp.isMapped) return true
       return showUnmapped
     })
-  }, [mappedComponents, showUnmapped])
+  }, [baseComponents, showUnmapped])
 
   // Get current component from URL (convert slug to component name)
   const getCurrentComponent = (): string | null => {
@@ -104,8 +108,10 @@ export function ComponentsSidebar({
 
   const currentComponent = getCurrentComponent()
   const unmappedCount = useMemo(() => {
-    return allComponents.filter(c => !c.isMapped).length
-  }, [allComponents])
+    return baseComponents.filter(c => !c.isMapped).length
+  }, [baseComponents])
+  
+  const totalCount = baseComponents.length
 
   // Redirect to first component if on /components without a component name
   useEffect(() => {
@@ -163,6 +169,8 @@ export function ComponentsSidebar({
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacer-sm)', flex: 1 }}>
         {allComponents.map((component) => {
           const isActive = currentComponent === component.name
+          const isUnmapped = !component.isMapped
+          const disabledOpacity = getBrandStateCssVar(mode, 'disabled')
           
           return (
             <button
@@ -177,7 +185,9 @@ export function ComponentsSidebar({
                 color: `var(${layer1Base}-element-text-color)`,
                 opacity: isActive 
                   ? `var(${layer1Base}-element-text-high-emphasis)` 
-                  : `var(${layer1Base}-element-text-low-emphasis)`,
+                  : isUnmapped
+                    ? `var(${disabledOpacity})`
+                    : `var(${layer1Base}-element-text-low-emphasis)`,
                 cursor: 'pointer',
                 transition: 'opacity 0.2s',
                 position: 'relative',
@@ -185,13 +195,15 @@ export function ComponentsSidebar({
                 fontWeight: isActive ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
               }}
               onMouseEnter={(e) => {
-                if (!isActive) {
+                if (!isActive && !isUnmapped) {
                   e.currentTarget.style.opacity = `var(${layer1Base}-element-text-high-emphasis)`
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.opacity = `var(${layer1Base}-element-text-low-emphasis)`
+                  e.currentTarget.style.opacity = isUnmapped
+                    ? `var(${disabledOpacity})`
+                    : `var(${layer1Base}-element-text-low-emphasis)`
                 }
               }}
             >
@@ -247,7 +259,7 @@ export function ComponentsSidebar({
               cursor: 'pointer',
               flex: 1,
             }}>
-            Show unmapped ({unmappedCount})
+            Show unmapped ({unmappedCount} / {totalCount})
           </label>
         </div>
         <div style={{
