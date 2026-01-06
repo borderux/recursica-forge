@@ -22,15 +22,15 @@ export default function Breadcrumb({
 }: AdapterBreadcrumbProps) {
   // Get CSS variables for colors
   // Interactive, read-only, and separator colors are now component-level properties under colors, organized by layer
-  const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.interactive.color`)
-  const readOnlyColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.read-only.color`)
+  const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.interactive`)
+  const readOnlyColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.read-only`)
   const separatorColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.separator-color`)
   
   // Get component-level CSS variables
   const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
   const iconLabelGapVar = getComponentLevelCssVar('Breadcrumb', 'icon-label-gap')
   const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
-  const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon')
+  const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon-size')
   
   // Get separator icon component
   const separatorIconMap: Record<string, string> = {

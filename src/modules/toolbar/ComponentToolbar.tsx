@@ -185,11 +185,11 @@ export default function ComponentToolbar({
               if (!groupedProp && groupedPropKey === 'border-color') {
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
               }
-              // Special case: interactive-color maps to "color" prop under colors.layer-X.interactive
+              // Special case: interactive-color maps to "interactive" prop under colors.layer-X.interactive
               if (!groupedProp && groupedPropKey === 'interactive-color') {
                 // Find all matching props and ensure we get the interactive one
                 const matchingProps = structure.props.filter(p => {
-                  const pathMatches = p.name.toLowerCase() === 'color' && 
+                  const pathMatches = p.name.toLowerCase() === 'interactive' && 
                     p.category === 'colors' &&
                     !p.isVariantSpecific &&
                     p.path.includes('colors') &&
@@ -212,11 +212,11 @@ export default function ComponentToolbar({
                   console.log(`ComponentToolbar: Found interactive-color prop:`, { cssVar: groupedProp.cssVar, path: groupedProp.path })
                 }
               }
-              // Special case: read-only-color maps to "color" prop under colors.layer-X.read-only
+              // Special case: read-only-color maps to "read-only" prop under colors.layer-X.read-only
               if (!groupedProp && groupedPropKey === 'read-only-color') {
                 // Find all matching props and ensure we get the read-only one
                 const matchingProps = structure.props.filter(p => {
-                  const pathMatches = p.name.toLowerCase() === 'color' && 
+                  const pathMatches = p.name.toLowerCase() === 'read-only' && 
                     p.category === 'colors' &&
                     !p.isVariantSpecific &&
                     p.path.includes('colors') &&

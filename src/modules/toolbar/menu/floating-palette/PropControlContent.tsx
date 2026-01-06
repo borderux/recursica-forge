@@ -321,6 +321,7 @@ export default function PropControlContent({
                            propNameLower === 'padding-horizontal' ||
                            propNameLower === 'bottom-padding' ||
                            propNameLower === 'item-gap' ||
+                           propNameLower === 'icon-label-gap' ||
                            propNameLower === 'divider-item-gap' ||
                            propNameLower === 'track-inner-padding'
       
@@ -617,7 +618,7 @@ export default function PropControlContent({
               // Find the read-only prop - must have read-only in path, NOT interactive
               // AND the CSS variable must contain 'read-only' and NOT 'interactive'
               const allMatchingProps = structure.props.filter(p => {
-                const pathMatches = p.name.toLowerCase() === 'color' && 
+                const pathMatches = p.name.toLowerCase() === 'read-only' && 
                   p.category === 'colors' &&
                   !p.isVariantSpecific &&
                   p.path.includes('colors') &&
@@ -641,7 +642,7 @@ export default function PropControlContent({
               // Find the interactive prop - must have interactive in path, NOT read-only
               // AND the CSS variable must contain 'interactive' and NOT 'read-only'
               const allMatchingProps = structure.props.filter(p => {
-                const pathMatches = p.name.toLowerCase() === 'color' && 
+                const pathMatches = p.name.toLowerCase() === 'interactive' && 
                   p.category === 'colors' &&
                   !p.isVariantSpecific &&
                   p.path.includes('colors') &&
@@ -734,7 +735,7 @@ export default function PropControlContent({
               // Find the read-only prop - must have read-only in path, NOT interactive
               // AND the CSS variable must contain 'read-only' and NOT 'interactive'
               const allMatchingProps = structure.props.filter(p => {
-                const pathMatches = p.name.toLowerCase() === 'color' && 
+                const pathMatches = p.name.toLowerCase() === 'read-only' && 
                   p.category === 'colors' &&
                   !p.isVariantSpecific &&
                   p.path.includes('colors') &&
@@ -758,7 +759,7 @@ export default function PropControlContent({
               // Find the interactive prop - must have interactive in path, NOT read-only
               // AND the CSS variable must contain 'interactive' and NOT 'read-only'
               const allMatchingProps = structure.props.filter(p => {
-                const pathMatches = p.name.toLowerCase() === 'color' && 
+                const pathMatches = p.name.toLowerCase() === 'interactive' && 
                   p.category === 'colors' &&
                   !p.isVariantSpecific &&
                   p.path.includes('colors') &&

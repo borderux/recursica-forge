@@ -57,7 +57,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
           expect(breadcrumb).toBeInTheDocument()
 
           // Get the CSS variable name that the toolbar would use
-          const colorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.${variant}.color`)
+          const colorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.${variant}`)
           
           // Simulate toolbar update: change the CSS variable
           updateCssVar(colorVar, '#ff0000')
@@ -151,7 +151,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
       expect(breadcrumb).toBeInTheDocument()
       
-      const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon')
+      const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon-size')
       
       // Update icon size CSS variable
       updateCssVar(iconSizeVar, '24px')
@@ -174,7 +174,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
       expect(breadcrumb).toBeInTheDocument()
       
-      const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.layer-0.interactive.color')
+      const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.layer-0.interactive')
       const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
       const iconLabelGapVar = getComponentLevelCssVar('Breadcrumb', 'icon-label-gap')
       const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
@@ -240,7 +240,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       
       // Component should use layer-1 CSS variables
       await waitFor(() => {
-        const layer1ColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.layer-1.interactive.color')
+        const layer1ColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.layer-1.interactive')
         const styles = window.getComputedStyle(breadcrumb!)
         // Component should reference layer-1 variables
         expect(styles).toBeTruthy()
@@ -256,11 +256,11 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
       expect(breadcrumb).toBeInTheDocument()
       
-      const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.layer-0.interactive.color')
+      const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.layer-0.interactive')
       const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
       const iconLabelGapVar = getComponentLevelCssVar('Breadcrumb', 'icon-label-gap')
       const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
-      const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon')
+      const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon-size')
       
       // Verify all CSS variables are accessible
       const styles = window.getComputedStyle(breadcrumb!)

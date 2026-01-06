@@ -820,7 +820,7 @@ export default function PropControl({
                 // Find the interactive prop - must have interactive in path, NOT read-only
                 // AND the CSS variable must contain 'interactive' and NOT 'read-only'
                 const allMatchingProps = structure.props.filter(p => {
-                  const pathMatches = p.name.toLowerCase() === 'color' && 
+                  const pathMatches = p.name.toLowerCase() === 'interactive' && 
                     p.category === 'colors' &&
                     !p.isVariantSpecific &&
                     p.path.includes('colors') &&

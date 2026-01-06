@@ -19,8 +19,13 @@
         }
       }
     },
+    "border-radius": {
+      "icon": "corners-out",
+      "label": "Corner Radius",
+      "visible": true
+    },
     "padding": {
-      "icon": "arrows-left-right",
+      "icon": "square-logo",
       "label": "Padding",
       "visible": true
     },

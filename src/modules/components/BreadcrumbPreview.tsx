@@ -28,35 +28,11 @@ export default function BreadcrumbPreview({
   
   return (
     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-      {/* Slash separator with home icon */}
-      <Breadcrumb
-        items={items}
-        separator="slash"
-        showHomeIcon={true}
-        layer={selectedLayer as any}
-      />
-      
       {/* Chevron separator with home icon */}
       <Breadcrumb
         items={items}
         separator="chevron"
         showHomeIcon={true}
-        layer={selectedLayer as any}
-      />
-      
-      {/* Arrow separator with home icon */}
-      <Breadcrumb
-        items={items}
-        separator="arrow"
-        showHomeIcon={true}
-        layer={selectedLayer as any}
-      />
-      
-      {/* Slash separator without home icon */}
-      <Breadcrumb
-        items={items}
-        separator="slash"
-        showHomeIcon={false}
         layer={selectedLayer as any}
       />
     </div>

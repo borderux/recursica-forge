@@ -8,6 +8,8 @@
  * To switch libraries, update the imports and iconMap below.
  */
 
+import React from 'react'
+
 // Import only the icons we actually use - this allows Vite to tree-shake unused icons
 import {
   Angle,
@@ -81,6 +83,11 @@ import {
   X,
 } from '@phosphor-icons/react'
 
+// Simple slash icon component (Phosphor doesn't have a slash icon)
+const SlashIcon: IconComponent = ({ style, ...props }) => {
+  return React.createElement('span', { style: { display: 'inline-block', ...style }, ...props }, '/')
+}
+
 // Type for icon component props
 export type IconComponent = React.ComponentType<{
   className?: string
@@ -147,7 +154,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'chevron-right': CaretRight,
   'caret-down': CaretDown,
   'caret-up': CaretUp,
-  // Note: Slash icon doesn't exist in Phosphor, using text fallback in components
+  'slash': SlashIcon,
   'x-mark': X,
   'document-text': FileText,
   'arrow-down-tray': Download,
