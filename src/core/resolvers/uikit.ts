@@ -121,10 +121,22 @@ function traverseUIKit(
       
       // Handle dimension type: { value: number | string, unit: string } OR string token reference
       if (type === 'dimension') {
+        // Handle null values for dimensions directly (when $value is null)
+        if (val === null || val === undefined) {
+          vars[cssVarName] = '0px'
+          return
+        }
+        
         // Check if it's an object with value and unit properties
         if (val && typeof val === 'object' && 'value' in val && 'unit' in val) {
           const dimValue = val.value
           const unit = val.unit || 'px'
+          
+          // Handle null values for dimensions - set to 0px
+          if (dimValue === null || dimValue === undefined) {
+            vars[cssVarName] = '0px'
+            return
+          }
           
           // Try to resolve token references in the value
           const resolved = resolveTokenRef(dimValue, tokenIndex, theme, uikit, 0, vars, mode)
@@ -227,6 +239,13 @@ function traverseUIKit(
         // This explicitly sets the color to transparent to override any default library component colors
         if (type === 'color' && (val === null || val === undefined)) {
           vars[cssVarName] = 'transparent'
+          return
+        }
+        
+        // For dimension type, null values should be interpreted as 0px
+        // This ensures CSS variables are always generated, allowing components to use "none" option
+        if (type === 'dimension' && (val === null || val === undefined)) {
+          vars[cssVarName] = '0px'
           return
         }
         

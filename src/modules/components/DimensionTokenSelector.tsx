@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
-import { updateCssVar } from '../../core/css/updateCssVar'
+import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
@@ -535,17 +535,33 @@ export default function DimensionTokenSelector({
       }
     })
     
-    // Add "none" option for divider-item-gap prop
-    if (propName.toLowerCase() === 'divider-item-gap') {
-      tokens.unshift({
-        name: 'none',
-        value: 0,
-        label: 'None',
-      })
+    // Add "none" option for divider-item-gap, padding, item-gap, vertical-padding, and horizontal-padding props
+    const propNameLower = propName.toLowerCase()
+    const shouldAddNone = propNameLower === 'divider-item-gap' || 
+        propNameLower === 'padding' || 
+        propNameLower === 'item-gap' ||
+        propNameLower === 'vertical-padding' ||
+        propNameLower === 'horizontal-padding'
+    
+    // Always add "none" first if applicable, even if tokens list is empty
+    // Create a new array to avoid mutating the original
+    const tokensWithNone = [...tokens]
+    if (shouldAddNone) {
+      // Check if "none" already exists to avoid duplicates
+      const noneExists = tokensWithNone.some(t => t.name === 'none')
+      if (!noneExists) {
+        // Add "none" option - use a special name that won't conflict with CSS vars
+        tokensWithNone.unshift({
+          name: 'none',
+          value: -1, // Use -1 to ensure it sorts first (before 0)
+          label: 'None',
+        })
+      }
     }
     
     // Sort by numeric value if available, otherwise by label
-    return tokens.sort((a, b) => {
+    // Ensure "none" is always first
+    return tokensWithNone.sort((a, b) => {
       // Handle "none" specially - it should be first
       if (a.name === 'none') return -1
       if (b.name === 'none') return 1
@@ -582,6 +598,7 @@ export default function DimensionTokenSelector({
   const readInitialValue = useCallback(() => {
     // Read CSS var value - checks inline styles first, then computed styles (from JSON defaults)
     const currentValue = readCssVar(targetCssVar)
+    const propNameLower = propName.toLowerCase()
     
     if (!currentValue || currentValue === 'null' || currentValue === '') {
       // If no value found, try to read the resolved value (might be a token reference)
@@ -591,15 +608,19 @@ export default function DimensionTokenSelector({
         const pxValue = extractPixelValue(resolvedValue)
         if (pxValue > 0) {
           setIsPixelMode(true)
-          const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
+          const maxPixelValue = propNameLower === 'max-width' ? 500 : 200
           const minPixelValue = minPixelValueProp ?? 0
           setPixelValue(Math.max(minPixelValue, Math.min(maxPixelValue, pxValue)))
           return
         }
       }
       
-      // For divider-item-gap, null means "none"
-      if (propName.toLowerCase() === 'divider-item-gap') {
+      // For divider-item-gap, padding, item-gap, vertical-padding, and horizontal-padding, null means "none"
+      if (propNameLower === 'divider-item-gap' || 
+          propNameLower === 'padding' || 
+          propNameLower === 'item-gap' ||
+          propNameLower === 'vertical-padding' ||
+          propNameLower === 'horizontal-padding') {
         setSelectedToken('none')
       } else {
         setSelectedToken(undefined)
@@ -693,12 +714,18 @@ export default function DimensionTokenSelector({
 
   // One-way binding: slider changes → update local state AND CSS var
   const handleTokenChange = (tokenName: string) => {
-    // Handle "none" option - set to null
-    if (tokenName === 'none') {
+    // Handle "none" option - remove CSS var for divider-item-gap, padding, item-gap, vertical-padding, and horizontal-padding
+    const propNameLower = propName.toLowerCase()
+    if (tokenName === 'none' && 
+        (propNameLower === 'divider-item-gap' || 
+         propNameLower === 'padding' || 
+         propNameLower === 'item-gap' ||
+         propNameLower === 'vertical-padding' ||
+         propNameLower === 'horizontal-padding')) {
       setSelectedToken('none')
       const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
       cssVars.forEach(cssVar => {
-        updateCssVar(cssVar, null)
+        removeCssVar(cssVar)
       })
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars }
