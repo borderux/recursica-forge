@@ -187,25 +187,57 @@ export default function ComponentToolbar({
               }
               // Special case: interactive-color maps to "color" prop under colors.layer-X.interactive
               if (!groupedProp && groupedPropKey === 'interactive-color') {
-                groupedProp = structure.props.find(p => 
-                  p.name.toLowerCase() === 'color' && 
-                  p.category === 'colors' &&
-                  !p.isVariantSpecific &&
-                  p.path.includes('colors') &&
-                  p.path.includes('interactive') &&
-                  p.path.some(part => part.startsWith('layer-'))
-                )
+                // Find all matching props and ensure we get the interactive one
+                const matchingProps = structure.props.filter(p => {
+                  const pathMatches = p.name.toLowerCase() === 'color' && 
+                    p.category === 'colors' &&
+                    !p.isVariantSpecific &&
+                    p.path.includes('colors') &&
+                    p.path.includes('interactive') &&
+                    !p.path.includes('read-only') && // Explicitly exclude read-only
+                    p.path.includes(selectedLayer)
+                  // Also validate the CSS variable name contains interactive and NOT read-only
+                  return pathMatches && 
+                    p.cssVar.includes('interactive') && 
+                    !p.cssVar.includes('read-only')
+                })
+                // Use the first matching prop (should only be one)
+                groupedProp = matchingProps[0]
+                // Debug: log if we found multiple or none
+                if (matchingProps.length === 0) {
+                  console.warn(`ComponentToolbar: No interactive-color prop found for ${componentName} at layer ${selectedLayer}`)
+                } else if (matchingProps.length > 1) {
+                  console.warn(`ComponentToolbar: Multiple interactive-color props found for ${componentName} at layer ${selectedLayer}:`, matchingProps.map(p => ({ cssVar: p.cssVar, path: p.path })))
+                } else if (groupedProp) {
+                  console.log(`ComponentToolbar: Found interactive-color prop:`, { cssVar: groupedProp.cssVar, path: groupedProp.path })
+                }
               }
               // Special case: read-only-color maps to "color" prop under colors.layer-X.read-only
               if (!groupedProp && groupedPropKey === 'read-only-color') {
-                groupedProp = structure.props.find(p => 
-                  p.name.toLowerCase() === 'color' && 
-                  p.category === 'colors' &&
-                  !p.isVariantSpecific &&
-                  p.path.includes('colors') &&
-                  p.path.includes('read-only') &&
-                  p.path.some(part => part.startsWith('layer-'))
-                )
+                // Find all matching props and ensure we get the read-only one
+                const matchingProps = structure.props.filter(p => {
+                  const pathMatches = p.name.toLowerCase() === 'color' && 
+                    p.category === 'colors' &&
+                    !p.isVariantSpecific &&
+                    p.path.includes('colors') &&
+                    p.path.includes('read-only') &&
+                    !p.path.includes('interactive') && // Explicitly exclude interactive
+                    p.path.includes(selectedLayer)
+                  // Also validate the CSS variable name contains read-only and NOT interactive
+                  return pathMatches && 
+                    p.cssVar.includes('read-only') && 
+                    !p.cssVar.includes('interactive')
+                })
+                // Use the first matching prop (should only be one)
+                groupedProp = matchingProps[0]
+                // Debug: log if we found multiple or none
+                if (matchingProps.length === 0) {
+                  console.warn(`ComponentToolbar: No read-only-color prop found for ${componentName} at layer ${selectedLayer}`)
+                } else if (matchingProps.length > 1) {
+                  console.warn(`ComponentToolbar: Multiple read-only-color props found for ${componentName} at layer ${selectedLayer}:`, matchingProps.map(p => ({ cssVar: p.cssVar, path: p.path })))
+                } else if (groupedProp) {
+                  console.log(`ComponentToolbar: Found read-only-color prop:`, { cssVar: groupedProp.cssVar, path: groupedProp.path })
+                }
               }
               // Special case: separator-color maps to "separator-color" prop under colors.layer-X
               if (!groupedProp && groupedPropKey === 'separator-color') {

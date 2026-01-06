@@ -365,7 +365,7 @@ export default function ComponentDetailPage() {
       </div>
 
       {/* Debug Table - Show when debug mode is enabled, below preview and toolbar */}
-      {debugMode && component && (
+      {debugMode && component && openPropControl && (
         <div style={{
           padding: 'var(--recursica-brand-dimensions-spacer-xl)',
           borderTop: `1px solid var(${layer1Base}-border-color)`,
