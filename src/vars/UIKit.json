@@ -2331,7 +2331,7 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2341,7 +2341,7 @@
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2351,7 +2351,7 @@
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2361,7 +2361,7 @@
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2377,7 +2377,7 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2387,7 +2387,7 @@
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2397,7 +2397,7 @@
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2407,7 +2407,7 @@
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2423,7 +2423,7 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2433,7 +2433,7 @@
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2443,7 +2443,7 @@
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -2453,7 +2453,7 @@
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.properties.surface-hover}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",

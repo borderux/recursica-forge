@@ -32,14 +32,17 @@
       "visible": true,
       "group": {
         "border-size": {
+          "icon": "arrows-left-right",
           "label": "Size",
           "visible": true
         },
         "border-radius": {
-          "label": "Corner Radius",
+          "icon": "corners-out",
+          "label": "Border Radius",
           "visible": true
         },
         "border-color": {
+          "icon": "paint-bucket",
           "label": "Color",
           "visible": true
         }
@@ -51,11 +54,13 @@
       "visible": true,
       "group": {
         "horizontal-padding": {
-          "label": "Horizontal",
+          "icon": "arrows-left-right",
+          "label": "Horizontal Padding",
           "visible": true
         },
         "vertical-padding": {
-          "label": "Vertical",
+          "icon": "arrows-up-down",
+          "label": "Vertical Padding",
           "visible": true
         }
       }
@@ -76,11 +81,13 @@
       "visible": true,
       "group": {
         "min-width": {
-          "label": "Minimum",
+          "icon": "arrows-in-line-horizontal",
+          "label": "Min Width",
           "visible": true
         },
         "max-width": {
-          "label": "Maximum",
+          "icon": "arrows-out-line-horizontal",
+          "label": "Max Width",
           "visible": true
         }
       }
