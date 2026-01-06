@@ -34,5 +34,8 @@ registerComponent('material', 'Label', () => import('../adapters/material/Label/
 // Breadcrumb
 registerComponent('material', 'Breadcrumb', () => import('../adapters/material/Breadcrumb/Breadcrumb'))
 
+// MenuItem
+registerComponent('material', 'MenuItem', () => import('../adapters/material/MenuItem/MenuItem'))
+
 // Add more components as they're implemented
 

@@ -20,6 +20,14 @@ const COMPONENT_INSTANCE_VARS = new Set([
 ])
 
 /**
+ * Patterns for CSS variables that are set dynamically on component instances
+ * These are valid even if not found on :root during audit
+ */
+const COMPONENT_INSTANCE_VAR_PATTERNS = [
+  /^--recursica-ui-kit-components-menu-item-variants-styles-(hover|selected|focused)-properties-colors-layer-\d+-background$/,
+]
+
+/**
  * Audits all CSS variables with --recursica prefix to find broken references
  * Enhanced to check:
  * - Root element CSS variables
@@ -414,6 +422,11 @@ export function auditRecursicaCssVars(): BrokenReference[] {
       if (referencedVarName.startsWith('--recursica-')) {
         // Skip component-instance variables (calculated values set on component instances)
         if (COMPONENT_INSTANCE_VARS.has(referencedVarName)) {
+          continue
+        }
+        
+        // Check if it matches component-instance variable patterns
+        if (COMPONENT_INSTANCE_VAR_PATTERNS.some(pattern => pattern.test(referencedVarName))) {
           continue
         }
         

@@ -11,6 +11,16 @@
 import type { ComponentName, ComponentLayer } from '../registry/types'
 
 /**
+ * Converts PascalCase component name to kebab-case
+ * Examples: 'MenuItem' -> 'menu-item', 'TextField' -> 'text-field', 'Button' -> 'button'
+ */
+function pascalToKebabCase(str: string): string {
+  return str
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2') // Insert hyphen before capital letters
+    .toLowerCase()
+}
+
+/**
  * Converts a UIKit.json path to a CSS variable name
  * 
  * @example
@@ -58,7 +68,8 @@ export function buildComponentCssVarPath(
   
   if (validSegments.length === 0) {
     console.warn(`[buildComponentCssVarPath] No valid path segments for ${component}`)
-    return `--recursica-ui-kit-components-${component.toLowerCase()}-invalid-path`
+    const componentKebab = pascalToKebabCase(component)
+    return `--recursica-ui-kit-components-${componentKebab}-invalid-path`
   }
   
   // Normalize segments: replace dots/spaces with hyphens, lowercase
@@ -67,7 +78,9 @@ export function buildComponentCssVarPath(
   )
   
   // Build path: components.{component}.{path-segments}
-  const parts = ['components', component.toLowerCase(), ...normalizedSegments]
+  // Convert component name from PascalCase to kebab-case (e.g., 'MenuItem' -> 'menu-item')
+  const componentKebab = pascalToKebabCase(component)
+  const parts = ['components', componentKebab, ...normalizedSegments]
   return toCssVarName(parts.join('.'))
 }
 
@@ -96,7 +109,8 @@ export function getComponentCssVar(
   // Guard against undefined/null values being stringified into property names
   if (!property || property.includes('undefined') || property.includes('null')) {
     console.warn(`[getComponentCssVar] Invalid property value for ${component}: "${property}"`)
-    return `--recursica-ui-kit-components-${component.toLowerCase()}-invalid-property`
+    const componentKebab = pascalToKebabCase(component)
+    return `--recursica-ui-kit-components-${componentKebab}-invalid-property`
   }
   
   // Normalize 'color' (singular) to 'colors' (plural) for backward compatibility
@@ -171,7 +185,7 @@ export function getComponentCssVar(
   
   // Try to parse single-level variant from property string
   // NOTE: This requires hardcoded variant names - components should use buildComponentCssVarPath directly
-  const knownVariants = ['solid', 'text', 'outline', 'default', 'primary-color', 'primary', 'ghost', 'success', 'error-selected', 'error', 'warning', 'alert', 'unselected', 'selected']
+  const knownVariants = ['solid', 'text', 'outline', 'default', 'primary-color', 'primary', 'ghost', 'success', 'error-selected', 'error', 'warning', 'alert', 'unselected', 'selected', 'hover', 'focused', 'disabled']
   const sortedVariants = knownVariants.sort((a, b) => b.length - a.length)
   for (const variant of sortedVariants) {
     if (property.startsWith(`${variant}-`)) {

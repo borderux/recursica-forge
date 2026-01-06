@@ -28,6 +28,7 @@ export type ComponentName =
   | 'Link'
   | 'Loader'
   | 'Menu'
+  | 'MenuItem'
   | 'Modal'
   | 'NumberInput'
   | 'Pagination'
