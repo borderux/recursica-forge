@@ -185,6 +185,55 @@ export default function ComponentToolbar({
               if (!groupedProp && groupedPropKey === 'border-color') {
                 groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
               }
+              // Special case: interactive-color maps to "interactive" prop under colors.layer-X.interactive
+              if (!groupedProp && groupedPropKey === 'interactive-color') {
+                // Find all matching props and ensure we get the interactive one
+                const matchingProps = structure.props.filter(p => {
+                  const pathMatches = p.name.toLowerCase() === 'interactive' && 
+                    p.category === 'colors' &&
+                    !p.isVariantSpecific &&
+                    p.path.includes('colors') &&
+                    p.path.includes('interactive') &&
+                    !p.path.includes('read-only') && // Explicitly exclude read-only
+                    p.path.includes(selectedLayer)
+                  // Also validate the CSS variable name contains interactive and NOT read-only
+                  return pathMatches && 
+                    p.cssVar.includes('interactive') && 
+                    !p.cssVar.includes('read-only')
+                })
+                // Use the first matching prop (should only be one)
+                groupedProp = matchingProps[0]
+              }
+              // Special case: read-only-color maps to "read-only" prop under colors.layer-X.read-only
+              if (!groupedProp && groupedPropKey === 'read-only-color') {
+                // Find all matching props and ensure we get the read-only one
+                const matchingProps = structure.props.filter(p => {
+                  const pathMatches = p.name.toLowerCase() === 'read-only' && 
+                    p.category === 'colors' &&
+                    !p.isVariantSpecific &&
+                    p.path.includes('colors') &&
+                    p.path.includes('read-only') &&
+                    !p.path.includes('interactive') && // Explicitly exclude interactive
+                    p.path.includes(selectedLayer)
+                  // Also validate the CSS variable name contains read-only and NOT interactive
+                  return pathMatches && 
+                    p.cssVar.includes('read-only') && 
+                    !p.cssVar.includes('interactive')
+                })
+                // Use the first matching prop (should only be one)
+                groupedProp = matchingProps[0]
+              }
+              // Special case: separator-color maps to "separator-color" prop under colors.layer-X
+              if (!groupedProp && groupedPropKey === 'separator-color') {
+                groupedProp = structure.props.find(p => 
+                  p.name.toLowerCase() === 'separator-color' && 
+                  p.category === 'colors' &&
+                  !p.isVariantSpecific &&
+                  p.path.includes('colors') &&
+                  p.path.includes('separator-color') &&
+                  p.path.some(part => part.startsWith('layer-'))
+                )
+              }
               // If still not found, try to find it by exact name match (case-insensitive)
               // For variant-specific props, find the first matching prop regardless of variant
               if (!groupedProp) {

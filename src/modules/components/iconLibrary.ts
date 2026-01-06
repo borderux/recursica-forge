@@ -8,6 +8,8 @@
  * To switch libraries, update the imports and iconMap below.
  */
 
+import React from 'react'
+
 // Import only the icons we actually use - this allows Vite to tree-shake unused icons
 import {
   Angle,
@@ -32,6 +34,7 @@ import {
   Asterisk,
   CaretDoubleRight,
   CaretDown,
+  CaretRight,
   CaretUp,
   Check,
   CircleHalf,
@@ -50,6 +53,7 @@ import {
   FileText,
   FrameCorners,
   GridFour,
+  House,
   Info,
   Layout,
   Link,
@@ -78,6 +82,11 @@ import {
   User,
   X,
 } from '@phosphor-icons/react'
+
+// Simple slash icon component (Phosphor doesn't have a slash icon)
+const SlashIcon: IconComponent = ({ style, ...props }) => {
+  return React.createElement('span', { style: { display: 'inline-block', ...style }, ...props }, '/')
+}
 
 // Type for icon component props
 export type IconComponent = React.ComponentType<{
@@ -142,8 +151,10 @@ const phosphorIconMap: Record<string, IconComponent> = {
   
   // Other icons used in the app
   'chevron-down': CaretDown,
+  'chevron-right': CaretRight,
   'caret-down': CaretDown,
   'caret-up': CaretUp,
+  'slash': SlashIcon,
   'x-mark': X,
   'document-text': FileText,
   'arrow-down-tray': Download,
@@ -168,6 +179,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'angle': Angle,
   'file-svg': FileSvg,
   'check': Check,
+  'house': House,
+  'home': House,
   'info': Info,
   'sliders-horizontal': SlidersHorizontal,
   'faders-horizontal': FadersHorizontal,

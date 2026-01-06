@@ -10,6 +10,7 @@ import ToastPreview from '../components/ToastPreview'
 import BadgePreview from '../components/BadgePreview'
 import ChipPreview from '../components/ChipPreview'
 import LabelPreview from '../components/LabelPreview'
+import BreadcrumbPreview from '../components/BreadcrumbPreview'
 import MenuItemPreview from '../components/MenuItemPreview'
 import MenuPreview from '../components/MenuPreview'
 import { slugToComponentName } from './componentUrlUtils'
@@ -322,11 +323,10 @@ export default function ComponentDetailPage() {
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}
                 />
-              ) : component.name === 'Toast' ? (
-                <ToastPreview
+              ) : component.name === 'Breadcrumb' ? (
+                <BreadcrumbPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
-                  selectedAltLayer={null}
                   componentElevation={componentElevation}
                 />
               ) : (
@@ -379,7 +379,7 @@ export default function ComponentDetailPage() {
       </div>
 
       {/* Debug Table - Show when debug mode is enabled, below preview and toolbar */}
-      {debugMode && component && (
+      {debugMode && component && openPropControl && (
         <div style={{
           padding: 'var(--recursica-brand-dimensions-spacer-xl)',
           borderTop: `1px solid var(${layer1Base}-border-color)`,

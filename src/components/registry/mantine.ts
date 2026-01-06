@@ -31,6 +31,9 @@ registerComponent('mantine', 'Chip', () => import('../adapters/mantine/Chip/Chip
 // Label
 registerComponent('mantine', 'Label', () => import('../adapters/mantine/Label/Label'))
 
+// Breadcrumb
+registerComponent('mantine', 'Breadcrumb', () => import('../adapters/mantine/Breadcrumb/Breadcrumb'))
+
 // MenuItem
 registerComponent('mantine', 'MenuItem', () => import('../adapters/mantine/MenuItem/MenuItem'))
 

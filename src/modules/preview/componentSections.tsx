@@ -4,6 +4,7 @@ import { Switch } from '../../components/adapters/Switch'
 import { Avatar } from '../../components/adapters/Avatar'
 import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
+import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
@@ -130,15 +131,23 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Breadcrumb',
       url: `${base}/breadcrumb`,
-      render: (_selectedLayers) => (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <a href="#">Home</a>
-          <span>/</span>
-          <a href="#">Library</a>
-          <span>/</span>
-          <span style={{ opacity: 0.7 }}>Data</span>
-        </div>
-      ),
+      render: (selectedLayers) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <Breadcrumb
+              items={[
+                { label: 'Home', href: '#' },
+                { label: 'Category', href: '#' },
+                { label: 'Current Page' },
+              ]}
+              separator="slash"
+              showHomeIcon={true}
+              layer={layer as any}
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Button',

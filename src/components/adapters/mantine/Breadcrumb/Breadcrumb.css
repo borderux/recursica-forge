@@ -1,0 +1,42 @@
+/**
+ * Mantine Breadcrumb CSS Overrides
+ * 
+ * Overrides Mantine Breadcrumbs component styles using Recursica CSS variables.
+ */
+
+/* Breadcrumb root */
+.mantine-Breadcrumbs-root {
+  padding: var(--breadcrumb-padding, 0) !important;
+}
+
+/* Breadcrumb items */
+.recursica-breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--breadcrumb-icon-label-gap, 0px);
+}
+
+/* Breadcrumb separator - use item-gap for spacing between breadcrumb items */
+.mantine-Breadcrumbs-separator {
+  margin: 0 var(--breadcrumb-item-gap, 0px) !important;
+  display: inline-flex;
+  align-items: center;
+  color: var(--breadcrumb-separator-color, inherit) !important;
+  width: var(--breadcrumb-icon-size, 16px) !important;
+  height: var(--breadcrumb-icon-size, 16px) !important;
+}
+
+/* Interactive items (links) */
+.recursica-breadcrumb-item[data-variant="interactive"] {
+  color: var(--breadcrumb-interactive-color) !important;
+}
+
+.recursica-breadcrumb-item[data-variant="interactive"]:hover {
+  text-decoration: underline;
+}
+
+/* Read-only items (last item) */
+.recursica-breadcrumb-item[data-variant="read-only"] {
+  color: var(--breadcrumb-read-only-color) !important;
+}
+

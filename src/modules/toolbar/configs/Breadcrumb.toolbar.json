@@ -1,0 +1,49 @@
+{
+  "props": {
+    "color": {
+      "icon": "paint-bucket",
+      "label": "Color",
+      "visible": true,
+      "group": {
+        "interactive-color": {
+          "label": "Interactive Color",
+          "visible": true
+        },
+        "separator-color": {
+          "label": "Separator Color",
+          "visible": true
+        },
+        "read-only-color": {
+          "label": "Read Only Color",
+          "visible": true
+        }
+      }
+    },
+    "border-radius": {
+      "icon": "corners-out",
+      "label": "Corner Radius",
+      "visible": true
+    },
+    "padding": {
+      "icon": "square-logo",
+      "label": "Padding",
+      "visible": true
+    },
+    "icon-label-gap": {
+      "icon": "split-horizontal",
+      "label": "Icon Label Gap",
+      "visible": true
+    },
+    "item-gap": {
+      "icon": "arrows-left-right",
+      "label": "Item Gap",
+      "visible": true
+    },
+    "icon": {
+      "icon": "diamond",
+      "label": "Icon Size",
+      "visible": true
+    }
+  }
+}
+
