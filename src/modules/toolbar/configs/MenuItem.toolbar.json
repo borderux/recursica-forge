@@ -53,23 +53,45 @@
       "visible": true,
       "floatingPaletteLabel": "Border Radius"
     },
-    "min-width": {
+    "width": {
       "icon": "arrows-left-right",
-      "label": "Min Width",
+      "label": "Width",
       "visible": true,
-      "floatingPaletteLabel": "Minimum Width"
+      "floatingPaletteLabel": "Width",
+      "group": {
+        "min-width": {
+          "icon": "arrows-left-right",
+          "label": "Min Width",
+          "visible": true,
+          "floatingPaletteLabel": "Minimum Width"
+        },
+        "max-width": {
+          "icon": "arrows-left-right",
+          "label": "Max Width",
+          "visible": true,
+          "floatingPaletteLabel": "Maximum Width"
+        }
+      }
     },
-    "max-width": {
-      "icon": "arrows-left-right",
-      "label": "Max Width",
-      "visible": true,
-      "floatingPaletteLabel": "Maximum Width"
-    },
-    "vertical-padding": {
+    "padding": {
       "icon": "arrows-up-down",
-      "label": "Vertical Padding",
+      "label": "Padding",
       "visible": true,
-      "floatingPaletteLabel": "Vertical Padding"
+      "floatingPaletteLabel": "Padding",
+      "group": {
+        "vertical-padding": {
+          "icon": "arrows-up-down",
+          "label": "Vertical Padding",
+          "visible": true,
+          "floatingPaletteLabel": "Vertical Padding"
+        },
+        "horizontal-padding": {
+          "icon": "arrows-left-right",
+          "label": "Horizontal Padding",
+          "visible": true,
+          "floatingPaletteLabel": "Horizontal Padding"
+        }
+      }
     },
     "divider": {
       "icon": "paint-bucket",
@@ -88,6 +110,12 @@
           "label": "Divider Opacity",
           "visible": true,
           "floatingPaletteLabel": "Divider Opacity"
+        },
+        "divider-item-gap": {
+          "icon": "arrows-up-down",
+          "label": "Item Gap",
+          "visible": true,
+          "floatingPaletteLabel": "Item Gap"
         }
       }
     }

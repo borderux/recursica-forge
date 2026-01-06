@@ -535,8 +535,21 @@ export default function DimensionTokenSelector({
       }
     })
     
+    // Add "none" option for divider-item-gap prop
+    if (propName.toLowerCase() === 'divider-item-gap') {
+      tokens.unshift({
+        name: 'none',
+        value: 0,
+        label: 'None',
+      })
+    }
+    
     // Sort by numeric value if available, otherwise by label
     return tokens.sort((a, b) => {
+      // Handle "none" specially - it should be first
+      if (a.name === 'none') return -1
+      if (b.name === 'none') return 1
+      
       if (a.value !== undefined && b.value !== undefined) {
         return a.value - b.value
       }
@@ -569,8 +582,13 @@ export default function DimensionTokenSelector({
   const readInitialValue = useCallback(() => {
     // Read CSS var value - checks inline styles first, then computed styles (from JSON defaults)
     const currentValue = readCssVar(targetCssVar)
-    if (!currentValue) {
-      setSelectedToken(undefined)
+    if (!currentValue || currentValue === 'null' || currentValue === '') {
+      // For divider-item-gap, null means "none"
+      if (propName.toLowerCase() === 'divider-item-gap') {
+        setSelectedToken('none')
+      } else {
+        setSelectedToken(undefined)
+      }
       setPixelValue(0)
       setIsPixelMode(false)
       return
@@ -636,6 +654,19 @@ export default function DimensionTokenSelector({
 
   // One-way binding: slider changes → update local state AND CSS var
   const handleTokenChange = (tokenName: string) => {
+    // Handle "none" option - set to null
+    if (tokenName === 'none') {
+      setSelectedToken('none')
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      cssVars.forEach(cssVar => {
+        updateCssVar(cssVar, null)
+      })
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+        detail: { cssVars }
+      }))
+      return
+    }
+    
     const token = dimensionTokens.find(t => t.name === tokenName)
     if (!token) return
     

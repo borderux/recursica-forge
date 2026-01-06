@@ -25,10 +25,12 @@ export default function Menu({
   const borderVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'border')
   
   // Get component-level properties
+  const borderSizeVar = getComponentLevelCssVar('Menu', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Menu', 'border-radius')
   const minWidthVar = getComponentLevelCssVar('Menu', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Menu', 'max-width')
   const paddingVar = getComponentLevelCssVar('Menu', 'padding')
+  const itemGapVar = getComponentLevelCssVar('Menu', 'item-gap')
   
   // Compute elevation box-shadow if elevation is provided
   const elevationBoxShadow = elevation && elevation !== 'elevation-0' 
@@ -43,10 +45,12 @@ export default function Menu({
         // Set CSS custom properties for CSS file to use
         '--menu-bg': `var(${bgVar})`,
         '--menu-border': `var(${borderVar})`,
+        '--menu-border-size': `var(${borderSizeVar})`,
         '--menu-border-radius': `var(${borderRadiusVar})`,
         '--menu-min-width': `var(${minWidthVar})`,
         '--menu-max-width': `var(${maxWidthVar})`,
         '--menu-padding': `var(${paddingVar})`,
+        '--menu-item-gap': `var(${itemGapVar})`,
         boxShadow: elevationBoxShadow,
         ...style,
       }}
