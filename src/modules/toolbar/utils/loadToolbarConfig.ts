@@ -11,6 +11,7 @@ import ChipConfig from '../configs/Chip.toolbar.json'
 import LabelConfig from '../configs/Label.toolbar.json'
 import BreadcrumbConfig from '../configs/Breadcrumb.toolbar.json'
 import MenuItemConfig from '../configs/MenuItem.toolbar.json'
+import MenuConfig from '../configs/Menu.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -58,6 +59,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return BreadcrumbConfig as ToolbarConfig
       case 'menu-item':
         return MenuItemConfig as ToolbarConfig
+      case 'menu':
+        return MenuConfig as ToolbarConfig
       default:
         return null
     }

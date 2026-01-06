@@ -336,13 +336,58 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       ),
     },
     {
+      name: 'Menu',
+      url: `${base}/menu`,
+      render: (selectedLayers) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const { Menu } = require('../../components/adapters/Menu')
+        const { MenuItem } = require('../../components/adapters/MenuItem')
+        const { iconNameToReactComponent } = require('../components/iconUtils')
+        const ChevronRightIcon = iconNameToReactComponent('arrow-right')
+        const FileIcon = iconNameToReactComponent('document-text')
+        
+        return (
+          <Menu layer={layer as any}>
+            <MenuItem
+              variant="default"
+              layer={layer as any}
+              leadingIconType="none"
+              trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
+              divider="bottom"
+            >
+              Menu item
+            </MenuItem>
+            <MenuItem
+              variant="selected"
+              layer={layer as any}
+              leadingIcon={FileIcon ? <FileIcon /> : undefined}
+              leadingIconType="icon"
+              supportingText="Supporting value"
+              selected={true}
+              divider="bottom"
+            >
+              Menu item
+            </MenuItem>
+            <MenuItem
+              variant="disabled"
+              layer={layer as any}
+              disabled={true}
+              divider="bottom"
+            >
+              Menu item
+            </MenuItem>
+          </Menu>
+        )
+      },
+    },
+    {
       name: 'Menu item',
       url: `${base}/menu-item`,
       render: (selectedLayers) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
         const { MenuItem } = require('../../components/adapters/MenuItem')
         const { iconNameToReactComponent } = require('../components/iconUtils')
-        const ChevronRightIcon = iconNameToReactComponent('caret-right')
+        const ChevronRightIcon = iconNameToReactComponent('arrow-right')
         
         return (
           <div style={{ 
@@ -359,25 +404,18 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             <MenuItem
               variant="default"
               layer={layer as any}
-              leadingIconType="radio"
+              leadingIconType="none"
               trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
-            >
-              Menu item
-            </MenuItem>
-            <MenuItem
-              variant="hover"
-              layer={layer as any}
-              leadingIconType="checkbox"
-              trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
-              supportingText="Supporting value"
+              divider="bottom"
             >
               Menu item
             </MenuItem>
             <MenuItem
               variant="selected"
               layer={layer as any}
-              selected
+              leadingIconType="icon"
               supportingText="Supporting value"
+              selected={true}
               divider="bottom"
             >
               Menu item
@@ -385,8 +423,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             <MenuItem
               variant="disabled"
               layer={layer as any}
-              disabled
-              leadingIconType="icon"
+              disabled={true}
               divider="bottom"
             >
               Menu item

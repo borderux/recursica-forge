@@ -1,0 +1,48 @@
+{
+  "variants": {},
+  "props": {
+    "background": {
+      "icon": "paint-bucket",
+      "label": "Background",
+      "visible": true,
+      "floatingPaletteLabel": "Background Color"
+    },
+    "border": {
+      "icon": "paint-bucket",
+      "label": "Border",
+      "visible": true,
+      "floatingPaletteLabel": "Border Color"
+    },
+    "border-radius": {
+      "icon": "corners-out",
+      "label": "Border Radius",
+      "visible": true,
+      "floatingPaletteLabel": "Border Radius"
+    },
+    "min-width": {
+      "icon": "arrows-left-right",
+      "label": "Min Width",
+      "visible": true,
+      "floatingPaletteLabel": "Minimum Width"
+    },
+    "max-width": {
+      "icon": "arrows-left-right",
+      "label": "Max Width",
+      "visible": true,
+      "floatingPaletteLabel": "Maximum Width"
+    },
+    "padding": {
+      "icon": "arrows-up-down",
+      "label": "Padding",
+      "visible": true,
+      "floatingPaletteLabel": "Padding"
+    },
+    "elevation": {
+      "icon": "layers",
+      "label": "Elevation",
+      "visible": true,
+      "floatingPaletteLabel": "Elevation"
+    }
+  }
+}
+
