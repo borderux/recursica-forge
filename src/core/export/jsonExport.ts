@@ -759,9 +759,52 @@ function downloadJsonFile(json: object, filename: string): void {
 }
 
 /**
- * Downloads selected JSON files
+ * Downloads a CSS file
  */
-export function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean } = { tokens: true, brand: true, uikit: true }): void {
+function downloadCssFile(css: string, filename: string): void {
+  const blob = new Blob([css], { type: 'text/css' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+/**
+ * Exports all CSS variables to a CSS stylesheet
+ * 
+ * Generates a CSS file with all --recursica- CSS variables
+ * sorted alphabetically in a :root block.
+ */
+export function exportCssStylesheet(): string {
+  const vars = getAllCssVars()
+  
+  // Filter to only --recursica- variables and sort alphabetically
+  const recursicaVars = Object.entries(vars)
+    .filter(([name]) => name.startsWith('--recursica-'))
+    .sort(([a], [b]) => a.localeCompare(b))
+  
+  // Build CSS content
+  let css = ':root {\n'
+  
+  recursicaVars.forEach(([name, value]) => {
+    // Escape any special characters in the value if needed
+    // Keep var() references as-is
+    css += `  ${name}: ${value};\n`
+  })
+  
+  css += '}\n'
+  
+  return css
+}
+
+/**
+ * Downloads selected JSON files and optionally CSS file
+ */
+export function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; css?: boolean } = { tokens: true, brand: true, uikit: true }): void {
   let delay = 0
   
   if (files.tokens) {
@@ -779,6 +822,13 @@ export function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; ui
   if (files.uikit) {
     const uikit = exportUIKitJson()
     setTimeout(() => downloadJsonFile(uikit, 'uikit.json'), delay)
+    delay += 100
+  }
+  
+  // CSS export is independent of JSON exports
+  if (files.css) {
+    const css = exportCssStylesheet()
+    setTimeout(() => downloadCssFile(css, 'recursica-variables.css'), delay)
   }
 }
 

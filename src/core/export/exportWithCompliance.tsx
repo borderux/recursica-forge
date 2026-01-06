@@ -14,25 +14,27 @@ export function useJsonExport() {
   const [showSelectionModal, setShowSelectionModal] = useState(false)
   const [showComplianceModal, setShowComplianceModal] = useState(false)
   const [complianceIssues, setComplianceIssues] = useState<ReturnType<typeof checkAACompliance>>([])
-  const [pendingExportFiles, setPendingExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean } | null>(null)
+  const [pendingExportFiles, setPendingExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null>(null)
   
   const handleExport = () => {
     // Show selection modal first
     setShowSelectionModal(true)
   }
   
-  const handleSelectionConfirm = (files: { tokens: boolean; brand: boolean; uikit: boolean }) => {
+  const handleSelectionConfirm = (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => {
     setShowSelectionModal(false)
     setPendingExportFiles(files)
     
-    // Check compliance before exporting
-    const issues = checkAACompliance()
+    // Check compliance before exporting JSON files (CSS export is independent)
+    // Only check if at least one JSON file is selected
+    const hasJsonFiles = files.tokens || files.brand || files.uikit
+    const issues = hasJsonFiles ? checkAACompliance() : []
     
     if (issues.length > 0) {
       setComplianceIssues(issues)
       setShowComplianceModal(true)
     } else {
-      // No issues, proceed with export
+      // No issues, proceed with export (CSS will be exported independently)
       downloadJsonFiles(files)
       setPendingExportFiles(null)
     }
@@ -90,7 +92,7 @@ export function ExportSelectionModalWrapper({
   onCancel,
 }: {
   show: boolean
-  onConfirm: (files: { tokens: boolean; brand: boolean; uikit: boolean }) => void
+  onConfirm: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
   onCancel: () => void
 }) {
   return <ExportSelectionModal show={show} onExport={onConfirm} onCancel={onCancel} />

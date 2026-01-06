@@ -972,25 +972,25 @@ class VarsStore {
             if (defaultTone) {
               const defaultToneRef = resolveTokenRef(defaultTone)
               if (defaultToneRef) {
-                colors[`--recursica-brand-${mode}-palettes-core-interactive-default-tone`] = defaultToneRef
+                colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`] = defaultToneRef
               }
             }
             if (defaultOnTone) {
               const defaultOnToneRef = resolveTokenRef(defaultOnTone)
               if (defaultOnToneRef) {
-                colors[`--recursica-brand-${mode}-palettes-core-interactive-default-on-tone`] = defaultOnToneRef
+                colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`] = defaultOnToneRef
               }
             }
             if (hoverTone) {
               const hoverToneRef = resolveTokenRef(hoverTone)
               if (hoverToneRef) {
-                colors[`--recursica-brand-${mode}-palettes-core-interactive-hover-tone`] = hoverToneRef
+                colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`] = hoverToneRef
               }
             }
             if (hoverOnTone) {
               const hoverOnToneRef = resolveTokenRef(hoverOnTone)
               if (hoverOnToneRef) {
-                colors[`--recursica-brand-${mode}-palettes-core-interactive-hover-on-tone`] = hoverOnToneRef
+                colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone`] = hoverOnToneRef
               }
             }
           } else if (coreValue && typeof coreValue === 'object' && !coreValue.$value) {

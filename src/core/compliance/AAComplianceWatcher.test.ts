@@ -114,7 +114,7 @@ describe('AAComplianceWatcher', () => {
     watcher.watchCoreColors()
     
     // Change core interactive color
-    updateCssVar('--recursica-brand-light-palettes-core-interactive', '#ff0000')
+    updateCssVar('--recursica-brand-themes-light-palettes-core-interactive', '#ff0000')
     
     // Wait for watcher to process
     setTimeout(() => {
