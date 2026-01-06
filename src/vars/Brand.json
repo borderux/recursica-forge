@@ -1995,13 +1995,13 @@
     },
     "dimensions": {
       "spacer": {
-        "lg": {
+        "none": {
           "$type": "number",
-          "$value": "{tokens.size.2x}"
+          "$value": "{tokens.size.none}"
         },
-        "xl": {
+        "xs": {
           "$type": "number",
-          "$value": "{tokens.size.3x}"
+          "$value": "{tokens.size.0-5x}"
         },
         "sm": {
           "$type": "number",
@@ -2014,6 +2014,14 @@
         "md": {
           "$type": "number",
           "$value": "{tokens.size.1-5x}"
+        },
+        "lg": {
+          "$type": "number",
+          "$value": "{tokens.size.2x}"
+        },
+        "xl": {
+          "$type": "number",
+          "$value": "{tokens.size.3x}"
         }
       },
       "icon": {
@@ -2071,6 +2079,10 @@
         }
       },
       "general": {
+        "none": {
+          "$type": "number",
+          "$value": "{tokens.size.none}"
+        },
         "lg": {
           "$type": "number",
           "$value": "{tokens.size.2x}"

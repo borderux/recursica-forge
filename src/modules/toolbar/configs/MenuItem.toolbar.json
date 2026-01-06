@@ -1,0 +1,124 @@
+{
+  "variants": {},
+  "props": {
+    "background": {
+      "icon": "paint-bucket",
+      "label": "Background",
+      "visible": true,
+      "floatingPaletteLabel": "Background Color",
+      "group": {
+        "background": {
+          "icon": "paint-bucket",
+          "label": "Background",
+          "visible": true,
+          "floatingPaletteLabel": "Background Color"
+        },
+        "selected-background": {
+          "icon": "paint-bucket",
+          "label": "Selected Background",
+          "visible": true,
+          "floatingPaletteLabel": "Selected Background Color"
+        }
+      }
+    },
+    "text": {
+      "icon": "text-aa",
+      "label": "Text",
+      "visible": true,
+      "floatingPaletteLabel": "Text Color",
+      "group": {
+        "text": {
+          "icon": "text-aa",
+          "label": "Text",
+          "visible": true,
+          "floatingPaletteLabel": "Text Color"
+        },
+        "supporting-text-color": {
+          "icon": "text-aa",
+          "label": "Supporting Text Color",
+          "visible": true,
+          "floatingPaletteLabel": "Supporting Text Color"
+        },
+        "supporting-text-opacity": {
+          "icon": "eye",
+          "label": "Supporting Text Opacity",
+          "visible": true,
+          "floatingPaletteLabel": "Supporting Text Opacity"
+        }
+      }
+    },
+    "border-radius": {
+      "icon": "corners-out",
+      "label": "Corner Radius",
+      "visible": true,
+      "floatingPaletteLabel": "Corner Radius"
+    },
+    "width": {
+      "icon": "arrows-left-right",
+      "label": "Width",
+      "visible": true,
+      "floatingPaletteLabel": "Width",
+      "group": {
+        "min-width": {
+          "icon": "arrows-in-line-horizontal",
+          "label": "Min Width",
+          "visible": true,
+          "floatingPaletteLabel": "Minimum Width"
+        },
+        "max-width": {
+          "icon": "arrows-out-line-horizontal",
+          "label": "Max Width",
+          "visible": true,
+          "floatingPaletteLabel": "Maximum Width"
+        }
+      }
+    },
+    "padding": {
+      "icon": "square-logo",
+      "label": "Padding",
+      "visible": true,
+      "floatingPaletteLabel": "Padding",
+      "group": {
+        "vertical-padding": {
+          "icon": "arrows-up-down",
+          "label": "Vertical Padding",
+          "visible": true,
+          "floatingPaletteLabel": "Vertical Padding"
+        },
+        "horizontal-padding": {
+          "icon": "arrows-left-right",
+          "label": "Horizontal Padding",
+          "visible": true,
+          "floatingPaletteLabel": "Horizontal Padding"
+        }
+      }
+    },
+    "divider": {
+      "icon": "minus",
+      "label": "Divider",
+      "visible": true,
+      "floatingPaletteLabel": "Divider",
+      "group": {
+        "divider-color": {
+          "icon": "paint-bucket",
+          "label": "Divider Color",
+          "visible": true,
+          "floatingPaletteLabel": "Divider Color"
+        },
+        "divider-opacity": {
+          "icon": "eye",
+          "label": "Divider Opacity",
+          "visible": true,
+          "floatingPaletteLabel": "Divider Opacity"
+        },
+        "divider-item-gap": {
+          "icon": "split-horizontal",
+          "label": "Item Gap",
+          "visible": true,
+          "floatingPaletteLabel": "Item Gap"
+        }
+      }
+    }
+  }
+}
+

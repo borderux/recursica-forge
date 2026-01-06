@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
 import { getPropLabel, getGroupedProps } from '../../utils/loadToolbarConfig'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
@@ -10,6 +10,10 @@ import TypeStyleSelector from '../../../components/TypeStyleSelector'
 import TokenSlider from '../../../forms/TokenSlider'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
+import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
+import OpacitySelector from './OpacitySelector'
+import BrandSpacerSlider from '../../utils/BrandSpacerSlider'
+import BrandBorderRadiusSlider from '../../utils/BrandBorderRadiusSlider'
 import './PropControl.css'
 
 // Separate component for elevation control to properly use hooks
@@ -138,6 +142,34 @@ export default function PropControlContent({
   let primaryCssVar = baseCssVars[0] || prop.cssVar
   let cssVarsForControl = baseCssVars
   
+  // Special handling for MenuItem background: update all three background CSS variables
+  // Component name can be "Menu item" (display name) or "MenuItem" (component name)
+  const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' || 
+                     componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
+                     componentName === 'MenuItem' ||
+                     componentName === 'Menu item'
+  
+  if (prop.name.toLowerCase() === 'background' && isMenuItem) {
+    const defaultBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'background')
+    const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', selectedLayer, 'selected-background')
+    const disabledBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'disabled', 'properties', 'colors', selectedLayer, 'background')
+    
+    // Use default as primary, but include all three in the control
+    primaryCssVar = defaultBgVar
+    cssVarsForControl = [defaultBgVar, selectedBgVar, disabledBgVar]
+  }
+  
+  // Special handling for MenuItem text: update all variant text colors (default, selected, disabled)
+  if (prop.name.toLowerCase() === 'text' && isMenuItem) {
+    const defaultTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'text')
+    const selectedTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'selected', 'properties', 'colors', selectedLayer, 'text')
+    const disabledTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'disabled', 'properties', 'colors', selectedLayer, 'text')
+    
+    // Use default as primary, but include all three in the control
+    primaryCssVar = defaultTextVar
+    cssVarsForControl = [defaultTextVar, selectedTextVar, disabledTextVar]
+  }
+  
   if (prop.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
     const sizeVariant = selectedVariants.size || 'small'
     const minHeightVar = `--recursica-ui-kit-components-badge-size-variants-${sizeVariant}-min-height`
@@ -247,6 +279,46 @@ export default function PropControlContent({
     }
 
     if (propToRender.type === 'dimension') {
+      const propNameLower = propToRender.name.toLowerCase()
+      
+      // Use BrandSpacerSlider for padding-related properties that use spacer tokens
+      const isPaddingProp = propNameLower === 'padding' ||
+                           propNameLower === 'vertical-padding' ||
+                           propNameLower === 'horizontal-padding' ||
+                           propNameLower === 'padding-vertical' ||
+                           propNameLower === 'padding-horizontal' ||
+                           propNameLower === 'bottom-padding' ||
+                           propNameLower === 'item-gap' ||
+                           propNameLower === 'divider-item-gap' ||
+                           propNameLower === 'track-inner-padding'
+      
+      if (isPaddingProp) {
+        return (
+          <BrandSpacerSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+          />
+        )
+      }
+      
+      // Use BrandBorderRadiusSlider for border-radius properties
+      const isBorderRadiusProp = propNameLower === 'border-radius' ||
+                                 propNameLower === 'thumb-border-radius' ||
+                                 propNameLower === 'track-border-radius'
+      
+      if (isBorderRadiusProp) {
+        return (
+          <BrandBorderRadiusSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+          />
+        )
+      }
+      
       const additionalCssVars = propToRender.name === 'font-size' && componentName.toLowerCase() === 'button'
         ? ['--recursica-brand-typography-button-font-size']
         : []
@@ -281,7 +353,25 @@ export default function PropControlContent({
       }
       
       const isLabelWidth = propToRender.name.toLowerCase() === 'label-width'
-      const maxPixelValue = isLabelWidth ? 500 : undefined
+      const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' || 
+                         componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
+                         componentName === 'MenuItem' ||
+                         componentName === 'Menu item'
+      const isMenu = componentName.toLowerCase() === 'menu'
+      
+      let maxPixelValue: number | undefined = undefined
+      
+      // Set custom limits for menu-item and menu width properties
+      if ((isMenuItem || isMenu) && propNameLower === 'min-width') {
+        minPixelValue = 50
+        maxPixelValue = 500
+      } else if ((isMenuItem || isMenu) && propNameLower === 'max-width') {
+        minPixelValue = 200
+        maxPixelValue = 1000
+      } else if (isLabelWidth) {
+        // Default maxPixelValue for label-width
+        maxPixelValue = 500
+      }
       
       return (
         <DimensionTokenSelector
@@ -305,6 +395,27 @@ export default function PropControlContent({
           elevationOptions={elevationOptions}
           mode={mode}
         />
+      )
+    }
+
+    // For number type properties (like opacity), use OpacitySelector
+    if (propToRender.type === 'number') {
+      const isOpacityProp = propToRender.name.toLowerCase().includes('opacity')
+      
+      if (isOpacityProp) {
+        return <OpacitySelector targetCssVar={primaryVar} label={label} />
+      }
+      
+      // For other number properties, show resolved value if available
+      const resolvedValue = readCssVarResolved(primaryVar)
+      const rawValue = readCssVar(primaryVar) || ''
+      return (
+        <div className="prop-control-content">
+          <label className="prop-control-label">{label}</label>
+          <div className="prop-control-readonly">
+            {resolvedValue || rawValue || 'Not set'}
+          </div>
+        </div>
       )
     }
 
@@ -382,8 +493,34 @@ export default function PropControlContent({
             return null
           }
           
-          const cssVars = getCssVarsForProp(groupedProp)
-          const primaryVar = cssVars[0] || groupedProp.cssVar
+          // Special handling for MenuItem background grouped prop: update all three background CSS variables
+          const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' || 
+                             componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
+                             componentName === 'MenuItem' ||
+                             componentName === 'Menu item'
+          
+          let cssVars = getCssVarsForProp(groupedProp)
+          let primaryVar = cssVars[0] || groupedProp.cssVar
+          
+          if (groupedPropKey === 'background' && isMenuItem) {
+            const defaultBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'background')
+            const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', selectedLayer, 'selected-background')
+            const disabledBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'disabled', 'properties', 'colors', selectedLayer, 'background')
+            
+            primaryVar = defaultBgVar
+            cssVars = [defaultBgVar, selectedBgVar, disabledBgVar]
+          }
+          
+          // Special handling for MenuItem text grouped prop: update all variant text colors
+          if (groupedPropKey === 'text' && isMenuItem) {
+            const defaultTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'text')
+            const selectedTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'selected', 'properties', 'colors', selectedLayer, 'text')
+            const disabledTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'disabled', 'properties', 'colors', selectedLayer, 'text')
+            
+            primaryVar = defaultTextVar
+            cssVars = [defaultTextVar, selectedTextVar, disabledTextVar]
+          }
+          
           const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
           
           return (

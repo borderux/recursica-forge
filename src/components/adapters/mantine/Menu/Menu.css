@@ -1,0 +1,19 @@
+/* Mantine Menu CSS Overrides */
+
+.mantine-menu {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--menu-bg, #ffffff);
+  border: var(--menu-border-size, 1px) solid var(--menu-border, #e0e0e0);
+  border-radius: var(--menu-border-radius, 4px);
+  min-width: var(--menu-min-width, 140px);
+  max-width: var(--menu-max-width, 464px);
+  padding: var(--menu-padding, 0px);
+  gap: var(--menu-item-gap, 0px);
+  overflow: hidden;
+}
+
+.mantine-menu > * {
+  width: 100%;
+}
+

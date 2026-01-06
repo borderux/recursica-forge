@@ -22,10 +22,15 @@ export function componentNameToSlug(name: string): string {
  * - "button" → "Button"
  * - "text-field" → "Text field"
  * - "date-picker" → "Date picker"
+ * - "menu-item" → "Menu item"
  */
 export function slugToComponentName(slug: string): string {
-  return slug
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  const words = slug.split('-')
+  return words
+    .map((word, index) => 
+      index === 0 
+        ? word.charAt(0).toUpperCase() + word.slice(1) // First word: capitalize first letter
+        : word.toLowerCase() // Subsequent words: lowercase
+    )
     .join(' ')
 }

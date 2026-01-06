@@ -37,11 +37,13 @@
       "visible": true,
       "group": {
         "vertical-padding": {
-          "label": "Vertical",
+          "icon": "arrows-up-down",
+          "label": "Vertical Padding",
           "visible": true
         },
         "horizontal-padding": {
-          "label": "Horizontal",
+          "icon": "arrows-left-right",
+          "label": "Horizontal Padding",
           "visible": true
         }
       }

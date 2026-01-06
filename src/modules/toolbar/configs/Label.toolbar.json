@@ -62,6 +62,7 @@
           "visible": true
         },
         "vertical-padding": {
+          "icon": "arrows-up-down",
           "label": "Vertical Padding",
           "visible": true
         }

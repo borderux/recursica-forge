@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
-import { updateCssVar } from '../../core/css/updateCssVar'
+import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
@@ -113,13 +113,14 @@ export default function DimensionTokenSelector({
         })
       }
       
-      // For horizontal-padding prop, only collect spacer dimensions
-      if (propNameLower === 'horizontal-padding') {
+      // For horizontal-padding, padding, item-gap, and divider-item-gap props, only collect spacer dimensions
+      if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' || 
+          propNameLower === 'item-gap' || propNameLower === 'divider-item-gap') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
         const spacers = dimensions?.spacer || {}
         
-        // Collect spacer dimensions (xs, sm, md, lg, xl, default)
+        // Collect spacer dimensions (none, xs, sm, md, lg, xl, default)
         Object.keys(spacers).forEach(spacerKey => {
           const spacerValue = spacers[spacerKey]
           if (spacerValue && typeof spacerValue === 'object' && '$value' in spacerValue) {
@@ -221,12 +222,12 @@ export default function DimensionTokenSelector({
         })
       }
       
-      // For track-inner-padding, label-switch-gap, or Label spacing props (bottom-padding, gutter, vertical-padding), only collect general dimensions (default, sm, md, lg, xl)
+      // For track-inner-padding, label-switch-gap, or Label spacing props (bottom-padding, gutter, vertical-padding), only collect general dimensions (none, default, sm, md, lg, xl)
       if (propNameLower === 'track-inner-padding' || propNameLower === 'label-switch-gap' || 
           propNameLower === 'bottom-padding' || propNameLower === 'gutter' || propNameLower === 'vertical-padding') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
-        const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
+        const generalDims = ['none', 'default', 'sm', 'md', 'lg', 'xl']
         
         // Collect general dimensions
         if (dimensions.general && typeof dimensions.general === 'object') {
@@ -377,13 +378,14 @@ export default function DimensionTokenSelector({
         collectDimensions(dimensions[propNameLower], [propNameLower])
       }
       
-      // For non-border-radius, non-horizontal-padding, non-track-inner-padding, non-label-switch-gap, non-icon, non-height, and non-Label spacing props, also collect general dimensions (default, sm, md, lg, xl) from the "general" node
+      // For non-border-radius, non-horizontal-padding, non-padding, non-item-gap, non-divider-item-gap, non-track-inner-padding, non-label-switch-gap, non-icon, non-height, and non-Label spacing props, also collect general dimensions (none, default, sm, md, lg, xl) from the "general" node
       // Note: height and Label spacing props (bottom-padding, gutter, vertical-padding) should use general dimensions, not icon dimensions
       if (propNameLower !== 'border-radius' && propNameLower !== 'thumb-border-radius' && propNameLower !== 'track-border-radius' &&
-          propNameLower !== 'horizontal-padding' && propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size') {
+          propNameLower !== 'horizontal-padding' && propNameLower !== 'padding' && propNameLower !== 'item-gap' && propNameLower !== 'divider-item-gap' &&
+          propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size') {
         // For height and Label spacing props, only collect general dimensions (skip checking dimensions.height, dimensions.gutter, etc.)
         if (propNameLower === 'height' || propNameLower === 'bottom-padding' || propNameLower === 'gutter' || propNameLower === 'vertical-padding') {
-          const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
+          const generalDims = ['none', 'default', 'sm', 'md', 'lg', 'xl']
           if (dimensions.general && typeof dimensions.general === 'object') {
             generalDims.forEach(dim => {
               if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
@@ -401,7 +403,7 @@ export default function DimensionTokenSelector({
           }
         } else {
           // For other props, collect general dimensions
-          const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
+          const generalDims = ['none', 'default', 'sm', 'md', 'lg', 'xl']
           if (dimensions.general && typeof dimensions.general === 'object') {
             generalDims.forEach(dim => {
               if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
@@ -421,9 +423,10 @@ export default function DimensionTokenSelector({
       }
       
       // Also collect all nested dimensions (like icon.default, spacer.sm, etc.)
-      // But skip this for border-radius, thumb-border-radius, track-border-radius, horizontal-padding, track-inner-padding, label-switch-gap, icon, thumb-icon-size, height, and Label spacing props since we only want specific tokens
+      // But skip this for border-radius, thumb-border-radius, track-border-radius, horizontal-padding, padding, item-gap, divider-item-gap, track-inner-padding, label-switch-gap, icon, thumb-icon-size, height, and Label spacing props since we only want specific tokens
       if (propNameLower !== 'border-radius' && propNameLower !== 'thumb-border-radius' && propNameLower !== 'track-border-radius' &&
-          propNameLower !== 'horizontal-padding' && propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size' && 
+          propNameLower !== 'horizontal-padding' && propNameLower !== 'padding' && propNameLower !== 'item-gap' && propNameLower !== 'divider-item-gap' &&
+          propNameLower !== 'track-inner-padding' && propNameLower !== 'label-switch-gap' && propNameLower !== 'icon' && propNameLower !== 'thumb-icon-size' && 
           propNameLower !== 'height' && propNameLower !== 'bottom-padding' && propNameLower !== 'gutter' && propNameLower !== 'vertical-padding') {
         collectDimensions(dimensions, [])
       }
@@ -452,8 +455,9 @@ export default function DimensionTokenSelector({
           return firstPart === 'border' && cssVarParts[1] === 'radius'
         }
         
-        // For horizontal-padding prop, only keep spacer tokens
-        if (propNameLower === 'horizontal-padding') {
+        // For horizontal-padding, padding, item-gap, and divider-item-gap props, only keep spacer tokens
+        if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' || 
+            propNameLower === 'item-gap' || propNameLower === 'divider-item-gap') {
           // Only keep tokens that start with "spacer-"
           return firstPart === 'spacer'
         }
@@ -535,7 +539,8 @@ export default function DimensionTokenSelector({
       }
     })
     
-    // Sort by numeric value if available, otherwise by label
+    // Sort by numeric value (lowest to highest)
+    // "none" (0px) will naturally sort first
     return tokens.sort((a, b) => {
       if (a.value !== undefined && b.value !== undefined) {
         return a.value - b.value
@@ -569,8 +574,24 @@ export default function DimensionTokenSelector({
   const readInitialValue = useCallback(() => {
     // Read CSS var value - checks inline styles first, then computed styles (from JSON defaults)
     const currentValue = readCssVar(targetCssVar)
-    if (!currentValue) {
-      setSelectedToken(undefined)
+    const propNameLower = propName.toLowerCase()
+    if (!currentValue || currentValue === 'null' || currentValue === '') {
+      // For divider-item-gap, padding, item-gap, vertical-padding, and horizontal-padding, null means "none"
+      // Find the "none" token from Brand.json (spacer-none or general-none)
+      if (propNameLower === 'divider-item-gap' || 
+          propNameLower === 'padding' || 
+          propNameLower === 'item-gap' ||
+          propNameLower === 'horizontal-padding') {
+        // These use spacer tokens
+        const noneToken = dimensionTokens.find(t => t.name.includes('spacer-none'))
+        setSelectedToken(noneToken?.name)
+      } else if (propNameLower === 'vertical-padding') {
+        // This uses general tokens
+        const noneToken = dimensionTokens.find(t => t.name.includes('general-none'))
+        setSelectedToken(noneToken?.name)
+      } else {
+        setSelectedToken(undefined)
+      }
       setPixelValue(0)
       setIsPixelMode(false)
       return
@@ -636,18 +657,27 @@ export default function DimensionTokenSelector({
 
   // One-way binding: slider changes → update local state AND CSS var
   const handleTokenChange = (tokenName: string) => {
-    const token = dimensionTokens.find(t => t.name === tokenName)
-    if (!token) return
-    
-    // Update local state so slider position updates immediately
     setSelectedToken(tokenName)
     
-    // Update CSS vars directly - no global state management, just set CSS vars
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-    cssVars.forEach(cssVar => {
-      updateCssVar(cssVar, `var(${token.name})`)
-    })
-    // Dispatch event to notify components of CSS var updates
+    
+    // Find the token (including "none" from Brand.json)
+    const token = dimensionTokens.find(t => t.name === tokenName)
+    if (token) {
+      // Check if this is the "none" token (value 0px)
+      if (token.value === 0 || token.name.includes('-none')) {
+        // Remove CSS var for "none" to use CSS fallback
+        cssVars.forEach(cssVar => {
+          removeCssVar(cssVar)
+        })
+      } else {
+        // Set CSS var to token reference
+        cssVars.forEach(cssVar => {
+          updateCssVar(cssVar, `var(${token.name})`)
+        })
+      }
+    }
+    
     window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
       detail: { cssVars }
     }))

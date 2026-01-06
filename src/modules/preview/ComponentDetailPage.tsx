@@ -10,6 +10,8 @@ import ToastPreview from '../components/ToastPreview'
 import BadgePreview from '../components/BadgePreview'
 import ChipPreview from '../components/ChipPreview'
 import LabelPreview from '../components/LabelPreview'
+import MenuItemPreview from '../components/MenuItemPreview'
+import MenuPreview from '../components/MenuPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -304,6 +306,18 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Label' ? (
                 <LabelPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Menu' ? (
+                <MenuPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Menu item' ? (
+                <MenuItemPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}

@@ -327,6 +327,103 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       ),
     },
     {
+      name: 'Menu',
+      url: `${base}/menu`,
+      render: (selectedLayers) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const { Menu } = require('../../components/adapters/Menu')
+        const { MenuItem } = require('../../components/adapters/MenuItem')
+        const { iconNameToReactComponent } = require('../components/iconUtils')
+        const ChevronRightIcon = iconNameToReactComponent('arrow-right')
+        const FileIcon = iconNameToReactComponent('document-text')
+        
+        return (
+          <Menu layer={layer as any}>
+            <MenuItem
+              variant="default"
+              layer={layer as any}
+              leadingIconType="none"
+              trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
+              divider="bottom"
+            >
+              Menu item
+            </MenuItem>
+            <MenuItem
+              variant="selected"
+              layer={layer as any}
+              leadingIcon={FileIcon ? <FileIcon /> : undefined}
+              leadingIconType="icon"
+              supportingText="Supporting value"
+              selected={true}
+              divider="bottom"
+            >
+              Menu item
+            </MenuItem>
+            <MenuItem
+              variant="disabled"
+              layer={layer as any}
+              disabled={true}
+              divider="bottom"
+            >
+              Menu item
+            </MenuItem>
+          </Menu>
+        )
+      },
+    },
+    {
+      name: 'Menu item',
+      url: `${base}/menu-item`,
+      render: (selectedLayers) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const { MenuItem } = require('../../components/adapters/MenuItem')
+        const { iconNameToReactComponent } = require('../components/iconUtils')
+        const ChevronRightIcon = iconNameToReactComponent('arrow-right')
+        
+        return (
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 4,
+            width: '100%',
+            maxWidth: '464px',
+            padding: '8px',
+            background: 'white',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+          }}>
+            <MenuItem
+              variant="default"
+              layer={layer as any}
+              leadingIconType="none"
+              trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
+              divider="bottom"
+            >
+              Menu item
+            </MenuItem>
+            <MenuItem
+              variant="selected"
+              layer={layer as any}
+              leadingIconType="icon"
+              supportingText="Supporting value"
+              selected={true}
+              divider="bottom"
+            >
+              Menu item
+            </MenuItem>
+            <MenuItem
+              variant="disabled"
+              layer={layer as any}
+              disabled={true}
+              divider="bottom"
+            >
+              Menu item
+            </MenuItem>
+          </div>
+        )
+      },
+    },
+    {
       name: 'Modal',
       url: `${base}/modal`,
       render: (_selectedLayers) => (

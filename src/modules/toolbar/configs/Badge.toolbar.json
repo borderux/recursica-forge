@@ -32,18 +32,20 @@
       "visible": true,
       "group": {
         "padding-horizontal": {
-          "label": "Horizontal",
+          "icon": "arrows-left-right",
+          "label": "Horizontal Padding",
           "visible": true
         },
         "padding-vertical": {
-          "label": "Vertical",
+          "icon": "arrows-up-down",
+          "label": "Vertical Padding",
           "visible": true
         }
       }
     },
     "border-radius": {
       "icon": "corners-out",
-      "label": "Border Radius",
+      "label": "Corner Radius",
       "visible": true
     },
     "height": {
