@@ -512,6 +512,32 @@ Create a toolbar configuration file that defines:
 - Property controls with icons and labels
 - Property groups for related properties
 
+#### Using Slider Abstractions
+
+The toolbar system provides reusable slider abstractions for common property types. **Use these abstractions instead of generic dimension selectors** when appropriate:
+
+**BrandSpacerSlider** - Use for properties that use brand spacer tokens:
+- `padding`
+- `vertical-padding`
+- `horizontal-padding`
+- `item-gap`
+- `divider-item-gap`
+- Any other property that should use spacer tokens (xs, sm, md, lg, xl, default)
+
+**BrandBorderRadiusSlider** - Use for properties that use brand border radius tokens:
+- `border-radius`
+- `thumb-border-radius`
+- `track-border-radius`
+- Any other property that should use border radius tokens (none, sm, default, lg, xl, 2xl)
+
+These abstractions automatically:
+- Include a "none" option (which removes the CSS variable)
+- Use the appropriate brand tokens
+- Handle CSS variable reading and updating
+- Match current values to tokens correctly
+
+**Implementation**: The slider abstractions are automatically used in `PropControlContent.tsx` based on the property name. You don't need to do anything special in the toolbar config - just define the property normally, and the system will automatically use the appropriate slider.
+
 #### Structure:
 
 ```json
