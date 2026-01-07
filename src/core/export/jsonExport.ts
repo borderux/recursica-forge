@@ -774,21 +774,173 @@ function downloadCssFile(css: string, filename: string): void {
 }
 
 /**
- * Exports all CSS variables to a CSS stylesheet
- * 
- * Generates a CSS file with all --recursica- CSS variables
- * sorted alphabetically in a :root block.
+ * Extract numeric level from color token variable name
+ * Returns the level as a number for sorting (000 -> 0, 050 -> 50, 100 -> 100, etc.)
  */
+function extractColorLevel(varName: string): number {
+  // Pattern: --recursica-tokens-color-{family}-{level}
+  const match = varName.match(/--recursica-tokens-color-[^-]+-(\d+)$/)
+  if (match) {
+    return parseInt(match[1], 10)
+  }
+  return -1
+}
+
+/**
+ * Extract sort key for brand variables to group light/dark together
+ * Returns a key that groups by path structure, then sorts by level, then light before dark
+ */
+function getBrandSortKey(varName: string): string {
+  // Pattern: --recursica-brand-themes-{mode}-{rest}
+  const match = varName.match(/--recursica-brand-themes-(light|dark)-(.*)$/)
+  if (match) {
+    const mode = match[1]
+    const rest = match[2]
+    
+    // Extract numeric level if present (for palettes with levels like 000, 050, 100, etc.)
+    const levelMatch = rest.match(/(\d{3,4})(?:-|$)/)
+    let level = '0000' // Default to 0000 for non-numeric paths
+    if (levelMatch) {
+      level = levelMatch[1].padStart(4, '0') // Pad to 4 digits for proper sorting
+    }
+    
+    // Remove the level from the path to group by structure
+    const pathWithoutLevel = rest.replace(/\d{3,4}/, '')
+    
+    // Create sort key: path + level + mode (0 for light, 1 for dark)
+    // This groups same paths together, sorts by level, then puts light before dark
+    return `${pathWithoutLevel}-${level}-${mode === 'light' ? '0' : '1'}`
+  }
+  return varName
+}
+
 export function exportCssStylesheet(): string {
   const vars = getAllCssVars()
   
-  // Filter to only --recursica- variables and sort alphabetically
-  const recursicaVars = Object.entries(vars)
+  // Filter to only --recursica- variables
+  const allRecursicaVars = Object.entries(vars)
     .filter(([name]) => name.startsWith('--recursica-'))
-    .sort(([a], [b]) => a.localeCompare(b))
+  
+  // Group by category: tokens, brand, ui-kit
+  const tokensVars: Array<[string, string]> = []
+  const brandVars: Array<[string, string]> = []
+  const uikitVars: Array<[string, string]> = []
+  
+  allRecursicaVars.forEach(([name, value]) => {
+    if (name.startsWith('--recursica-tokens-')) {
+      tokensVars.push([name, value])
+    } else if (name.startsWith('--recursica-brand-')) {
+      brandVars.push([name, value])
+    } else if (name.startsWith('--recursica-ui-kit-')) {
+      uikitVars.push([name, value])
+    }
+  })
+  
+  // Sort tokens: group by type (color, size, opacity, font), then by family, then by level (000-1000)
+  tokensVars.sort(([a], [b]) => {
+    // Extract prefix (color, size, opacity, font)
+    const aPrefix = a.match(/--recursica-tokens-([^-]+)/)?.[1] || ''
+    const bPrefix = b.match(/--recursica-tokens-([^-]+)/)?.[1] || ''
+    
+    // First sort by prefix
+    if (aPrefix !== bPrefix) {
+      return aPrefix.localeCompare(bPrefix)
+    }
+    
+    // For color tokens, sort by family first, then by numeric level (000-1000)
+    if (aPrefix === 'color') {
+      // Extract family name
+      const aFamilyMatch = a.match(/--recursica-tokens-color-([^-]+)-/)
+      const bFamilyMatch = b.match(/--recursica-tokens-color-([^-]+)-/)
+      const aFamily = aFamilyMatch ? aFamilyMatch[1] : ''
+      const bFamily = bFamilyMatch ? bFamilyMatch[1] : ''
+      
+      // Sort by family first
+      if (aFamily !== bFamily) {
+        return aFamily.localeCompare(bFamily)
+      }
+      
+      // Then sort by numeric level (000 -> 0, 050 -> 50, 100 -> 100, ... 1000 -> 1000)
+      const aLevel = extractColorLevel(a)
+      const bLevel = extractColorLevel(b)
+      if (aLevel !== -1 && bLevel !== -1) {
+        return aLevel - bLevel
+      }
+      // If level extraction fails, fall back to alphabetical
+      return a.localeCompare(b)
+    }
+    
+    // For other token types, sort alphabetically
+    return a.localeCompare(b)
+  })
+  
+  // Sort brand: group by path structure, then light before dark, then by level
+  brandVars.sort(([a], [b]) => {
+    const aKey = getBrandSortKey(a)
+    const bKey = getBrandSortKey(b)
+    return aKey.localeCompare(bKey)
+  })
+  
+  // Sort UIKit alphabetically
+  uikitVars.sort(([a], [b]) => a.localeCompare(b))
+  
+  // Combine in order: tokens, brand, ui-kit
+  const recursicaVars = [...tokensVars, ...brandVars, ...uikitVars]
+  
+  // Extract metadata from CSS variable names
+  const components = new Set<string>()
+  const colorFamilies = new Set<string>()
+  
+  recursicaVars.forEach(([name]) => {
+    // Extract component names from UIKit variables
+    // Pattern: --recursica-ui-kit-components-{component}-...
+    // Only capture the component name (first part after components-)
+    const uikitMatch = name.match(/--recursica-ui-kit-components-([a-z]+(?:-[a-z]+)*?)(?:-|$)/)
+    if (uikitMatch) {
+      const componentName = uikitMatch[1]
+      // Convert kebab-case to Title Case for display
+      const displayName = componentName
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+      components.add(displayName)
+    }
+    
+    // Extract color families from token variables
+    // Pattern: --recursica-tokens-color-{family}-{level}
+    const tokenColorMatch = name.match(/--recursica-tokens-color-([a-z]+(?:-[a-z]+)*)-/)
+    if (tokenColorMatch) {
+      const family = tokenColorMatch[1]
+      // Convert kebab-case to Title Case
+      const displayFamily = family
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+      colorFamilies.add(displayFamily)
+    }
+  })
+  
+  // Get UTC date/time
+  const buildDate = new Date().toUTCString()
+  
+  // Build header comment
+  const totalVars = recursicaVars.length
+  const componentsList = Array.from(components).sort().join(', ') || 'None'
+  const colorsList = Array.from(colorFamilies).sort().join(', ') || 'None'
+  
+  let css = `/*\n`
+  css += ` * Recursica CSS Variables Export\n`
+  css += ` * Generated: ${buildDate}\n`
+  css += ` *\n`
+  css += ` * Total CSS Variables: ${totalVars}\n`
+  css += ` *\n`
+  css += ` * Components Included: ${componentsList}\n`
+  css += ` *\n`
+  css += ` * Color Families Included: ${colorsList}\n`
+  css += ` */\n\n`
   
   // Build CSS content
-  let css = ':root {\n'
+  css += ':root {\n'
   
   recursicaVars.forEach(([name, value]) => {
     // Escape any special characters in the value if needed
