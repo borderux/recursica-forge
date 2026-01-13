@@ -3,7 +3,7 @@
  * Can be called from browser console: window.auditCssVars()
  */
 
-import { auditRecursicaCssVars } from './auditCssVars'
+import { auditRecursicaCssVars, deepAuditCssVars, type DeepAuditIssue } from './auditCssVars'
 
 export interface AuditSummary {
   totalVars: number
@@ -87,31 +87,81 @@ export function runCssVarAudit(): AuditSummary {
   
   const allVarsArray = Array.from(allVars).sort()
   
-  if (broken.length > 0) {
-    console.log(`❌ Found ${broken.length} broken CSS variable reference(s):\n`)
-    for (const ref of broken) {
-      // Extract location/file information
-      let location = 'unknown'
-      if (ref.element) {
-        // Parse location from element string
-        if (ref.element.includes('root')) {
-          location = 'root'
-        } else if (ref.element.includes('stylesheet:')) {
-          const match = ref.element.match(/stylesheet:(.+)/)
-          location = match ? `stylesheet: ${match[1]}` : 'stylesheet'
-        } else if (ref.element.includes('element-')) {
-          const match = ref.element.match(/element-(?:inline|computed):(.+)/)
-          location = match ? match[1] : 'element'
-        } else {
-          location = ref.element
+  // Run deep audit for detailed issues with fix instructions
+  const deepIssues = deepAuditCssVars()
+  
+  if (broken.length > 0 || deepIssues.length > 0) {
+    const totalIssues = Math.max(broken.length, deepIssues.length)
+    console.log(`❌ Found ${totalIssues} CSS variable issue(s):\n`)
+    
+    // Use deep audit results if available (more detailed)
+    if (deepIssues.length > 0) {
+      // Group by source file for better organization
+      const byFile = new Map<string, DeepAuditIssue[]>()
+      for (const issue of deepIssues) {
+        const file = issue.sourceFile || 'unknown'
+        if (!byFile.has(file)) {
+          byFile.set(file, [])
         }
-      } else if (ref.location) {
-        location = ref.location
+        byFile.get(file)!.push(issue)
       }
-      
-      console.log(`${ref.variable}`)
-      console.log(`  → ${location}`)
+
+      for (const [file, fileIssues] of Array.from(byFile.entries()).sort()) {
+        console.log(`\n📁 ${file} (${fileIssues.length} issue${fileIssues.length > 1 ? 's' : ''}):`)
+        console.log('='.repeat(80))
+        
+        for (const issue of fileIssues) {
+          console.log(`\n🔴 CSS Variable: ${issue.cssVar}`)
+          console.log(`   Property: ${issue.cssProperty}`)
+          console.log(`   Value: ${issue.value}`)
+          console.log(`   Element: ${issue.elementPath}`)
+          console.log(`   Issue Type: ${issue.issueType}`)
+          
+          if (issue.similarVars && issue.similarVars.length > 0) {
+            console.log(`   Similar variables found: ${issue.similarVars.join(', ')}`)
+          }
+          
+          console.log(`\n   🤖 FIX INSTRUCTIONS:`)
+          issue.suggestedFix.forEach((instruction, idx) => {
+            console.log(`   ${instruction}`)
+          })
+        }
+      }
+    } else {
+      // Fall back to basic audit if deep audit didn't find issues
+      for (const ref of broken) {
+        let location = 'unknown'
+        if (ref.element) {
+          if (ref.element.includes('root')) {
+            location = 'root'
+          } else if (ref.element.includes('stylesheet:')) {
+            const match = ref.element.match(/stylesheet:(.+)/)
+            location = match ? `stylesheet: ${match[1]}` : 'stylesheet'
+          } else if (ref.element.includes('element-')) {
+            const match = ref.element.match(/element-(?:inline|computed):(.+)/)
+            location = match ? match[1] : 'element'
+          } else {
+            location = ref.element
+          }
+        } else if (ref.location) {
+          location = ref.location
+        }
+        
+        console.log(`${ref.variable}`)
+        console.log(`  → ${location}`)
+      }
     }
+    
+    console.log(`\n${'='.repeat(80)}`)
+    console.log(`\n📋 SUMMARY:`)
+    console.log(`   Total issues: ${totalIssues}`)
+    console.log(`   Files affected: ${deepIssues.length > 0 ? new Set(deepIssues.map(i => i.sourceFile).filter(Boolean)).size : 'unknown'}`)
+    console.log(`\n💡 Remember:`)
+    console.log(`   - NEVER add fallback values`)
+    console.log(`   - NEVER modify Tokens.json, Brand.json, or UIKit.json`)
+    console.log(`   - Always fix the code using the variable, not the normalization process`)
+    console.log(`   - Never create CSS aliases for the same variable`)
+    console.log(`   - Always normalize CSS variables using utility functions`)
   } else {
     console.log('✅ No broken CSS variable references found!')
   }
@@ -199,6 +249,7 @@ function getAllCssVars(): string[] {
 if (typeof window !== 'undefined') {
   const win = window as any
   win.auditCssVars = runCssVarAudit
+  win.deepAuditCssVars = deepAuditCssVars
   win.getAllCssVars = getAllCssVars
   
   // Auto-run audit on localhost after app fully initializes

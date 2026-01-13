@@ -811,3 +811,586 @@ export function formatBrokenReferencesReport(broken: BrokenReference[]): string 
   return report
 }
 
+/**
+ * Deep audit issue with detailed information for fixing
+ */
+export interface DeepAuditIssue {
+  cssVar: string
+  element: HTMLElement | null
+  elementPath: string // HTML node tree path (e.g., "html > body > div.button-container > button")
+  sourceFile: string | null // Likely source file (e.g., "Button.tsx")
+  cssProperty: string // CSS property using the variable (e.g., "background-color")
+  value: string // The CSS value containing the variable
+  issueType: 'undefined' | 'malformed' | 'wrong-format' | 'wrong-scope' | 'circular'
+  suggestedFix: string[] // Step-by-step fix instructions
+  similarVars?: string[] // Similar variable names that exist (for format mismatches)
+}
+
+/**
+ * Deep audit that checks all DOM elements and traces CSS variable references
+ * Returns detailed issues with fix instructions
+ */
+export function deepAuditCssVars(): DeepAuditIssue[] {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return []
+  }
+
+  const issues: DeepAuditIssue[] = []
+  const allElements = document.querySelectorAll('*')
+  const root = document.documentElement
+  const allDefinedVars = new Set<string>()
+  const varValues = new Map<string, string>()
+  const checkedVars = new Set<string>() // Track which vars we've already checked to avoid duplicates
+
+  // Helper to normalize a key segment (hyphens/underscores -> underscores, lowercase)
+  const normalizeKeySegment = (key: string): string => {
+    return key.replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .toLowerCase()
+  }
+
+  // Helper to get element path for identification
+  const getElementPath = (el: Element): string => {
+    if (el === root) return 'html'
+    const path: string[] = []
+    let current: Element | null = el
+    while (current && current !== root) {
+      let selector = current.tagName.toLowerCase()
+      if (current.id) {
+        selector += `#${current.id}`
+      } else if (current.className && typeof current.className === 'string') {
+        const classes = current.className.trim().split(/\s+/).slice(0, 3).join('.')
+        if (classes) selector += `.${classes}`
+      }
+      path.unshift(selector)
+      current = current.parentElement
+    }
+    return path.length > 0 ? `html > ${path.join(' > ')}` : 'html'
+  }
+
+  // Helper to identify likely source file from element
+  const identifySourceFile = (el: Element): string | null => {
+    // Try React DevTools fiber data
+    const reactKey = Object.keys(el).find(key => key.startsWith('__reactFiber') || key.startsWith('__reactInternalInstance'))
+    if (reactKey) {
+      const fiber = (el as any)[reactKey]
+      if (fiber) {
+        let current = fiber
+        let depth = 0
+        while (current && depth < 10) {
+          if (current._debugSource) {
+            const fileName = current._debugSource.fileName
+            if (fileName) {
+              // Extract just the filename
+              const match = fileName.match(/([^/\\]+\.(tsx?|jsx?))$/)
+              if (match) return match[1]
+            }
+          }
+          if (current.elementType && typeof current.elementType === 'function') {
+            const componentName = current.elementType.name || current.elementType.displayName
+            if (componentName && componentName !== 'Anonymous') {
+              // Infer filename from component name
+              const inferredFile = `${componentName}.tsx`
+              return inferredFile
+            }
+          }
+          current = current.return
+          depth++
+        }
+      }
+    }
+
+    // Try to infer from class names
+    if (el.className && typeof el.className === 'string') {
+      const classes = el.className.split(/\s+/)
+      for (const cls of classes) {
+        // Common patterns: component-name, ComponentName, etc.
+        const componentMatch = cls.match(/^([A-Z][a-zA-Z0-9]+)/)
+        if (componentMatch) {
+          return `${componentMatch[1]}.tsx`
+        }
+      }
+    }
+
+    return null
+  }
+
+  // Helper to check if CSS variable is defined (including scoped variables)
+  const isCssVarDefined = (varName: string, element?: HTMLElement): boolean => {
+    // Check root first
+    const rootValue = getComputedStyle(root).getPropertyValue(varName)
+    if (rootValue !== '') return true
+
+    // Check if it's a scoped variable (theme/layer scoped)
+    // Note: Scoped variables like --recursica-brand-themes-light-palettes-... are NOT on :root
+    // They're defined in scoped stylesheets that only apply with theme classes
+    if (varName.includes('-themes-') && varName.startsWith('--recursica-brand-')) {
+      // Try to get theme from variable name
+      const themeMatch = varName.match(/--recursica-brand-themes-([a-z]+)-/)
+      if (themeMatch) {
+        const theme = themeMatch[1]
+        
+        // Check scoped stylesheets if available via window global
+        try {
+          const win = window as any
+          if (win.__recursicaGetInlineStylesheetManager) {
+            const manager = win.__recursicaGetInlineStylesheetManager('brand')
+            if (manager && typeof manager.getScopedRules === 'function') {
+              const scopedRules = manager.getScopedRules()
+              const themeKey = `${theme}:*`
+              const themeVars = scopedRules.get(themeKey) || {}
+              if (themeVars[varName]) return true
+            }
+          }
+        } catch (e) {
+          // Ignore errors - fall back to DOM check
+        }
+
+        // Check on a temporary element with theme class
+        // This is the most reliable way to check scoped variables
+        const testEl = document.createElement('div')
+        testEl.className = `recursica-theme-${theme}`
+        testEl.setAttribute('data-recursica-theme', theme)
+        testEl.style.display = 'none'
+        testEl.style.visibility = 'hidden'
+        testEl.style.position = 'absolute'
+        document.body.appendChild(testEl)
+        try {
+          const computed = getComputedStyle(testEl).getPropertyValue(varName)
+          document.body.removeChild(testEl)
+          if (computed !== '') return true
+        } catch (e) {
+          document.body.removeChild(testEl)
+        }
+      }
+    }
+
+    // Check all elements
+    for (const el of allElements) {
+      const computed = getComputedStyle(el).getPropertyValue(varName)
+      if (computed !== '') return true
+      const inline = (el as HTMLElement).style
+      if (inline && inline.getPropertyValue(varName) !== '') return true
+    }
+
+    return false
+  }
+
+  // Helper to extract all CSS variable references from a value
+  const extractVarRefs = (value: string): string[] => {
+    const refs: string[] = []
+    const varPattern = /var\s*\(\s*([^,)]+)/g
+    let match
+    while ((match = varPattern.exec(value)) !== null) {
+      const varName = match[1].trim()
+      if (varName.startsWith('--recursica-')) {
+        refs.push(varName)
+      }
+    }
+    return refs
+  }
+
+  // Helper to trace a CSS variable value recursively
+  const traceCssVar = (varName: string, visited: Set<string> = new Set(), depth: number = 0): { resolved: boolean; chain: string[] } => {
+    if (depth > 10 || visited.has(varName)) {
+      return { resolved: false, chain: Array.from(visited) }
+    }
+    visited.add(varName)
+
+    const value = readCssVarValue(varName)
+    if (!value) {
+      return { resolved: false, chain: Array.from(visited) }
+    }
+
+    // If it's not a var() reference, it's resolved
+    if (!value.includes('var(')) {
+      return { resolved: true, chain: Array.from(visited) }
+    }
+
+    // Extract nested var() references
+    const refs = extractVarRefs(value)
+    for (const ref of refs) {
+      const result = traceCssVar(ref, new Set(visited), depth + 1)
+      if (!result.resolved) {
+        return result
+      }
+    }
+
+    return { resolved: true, chain: Array.from(visited) }
+  }
+
+  // Helper to read CSS variable value (checks all elements and scoped variables)
+  const readCssVarValue = (varName: string): string | null => {
+    try {
+      // Check root inline first
+      const rootInline = root.style.getPropertyValue(varName)
+      if (rootInline !== '') return rootInline.trim()
+
+      // Check root computed
+      const rootComputed = getComputedStyle(root).getPropertyValue(varName)
+      if (rootComputed !== '') return rootComputed.trim()
+
+      // Check if it's a scoped variable
+      if (varName.includes('-themes-') && varName.startsWith('--recursica-brand-')) {
+        const themeMatch = varName.match(/--recursica-brand-themes-([a-z]+)-/)
+        if (themeMatch) {
+          const theme = themeMatch[1]
+          const testEl = document.createElement('div')
+          testEl.className = `recursica-theme-${theme}`
+          testEl.setAttribute('data-recursica-theme', theme)
+          testEl.style.display = 'none'
+          testEl.style.visibility = 'hidden'
+          testEl.style.position = 'absolute'
+          document.body.appendChild(testEl)
+          try {
+            const computed = getComputedStyle(testEl).getPropertyValue(varName)
+            document.body.removeChild(testEl)
+            if (computed !== '') return computed.trim()
+          } catch (e) {
+            document.body.removeChild(testEl)
+          }
+        }
+      }
+
+      // Check all elements
+      for (const el of allElements) {
+        const computed = getComputedStyle(el).getPropertyValue(varName)
+        if (computed !== '') return computed.trim()
+        const inline = (el as HTMLElement).style
+        if (inline) {
+          const inlineValue = inline.getPropertyValue(varName)
+          if (inlineValue !== '') return inlineValue.trim()
+        }
+      }
+    } catch (e) {
+      // Ignore errors
+    }
+    return null
+  }
+
+  // Helper to detect malformed variable names
+  const detectMalformedVar = (varName: string): { isMalformed: boolean; issues: string[] } => {
+    const issues: string[] = []
+    
+    // Check for double hyphens
+    if (varName.includes('--')) {
+      const doubleHyphenMatch = varName.match(/--+/g)
+      if (doubleHyphenMatch && doubleHyphenMatch.some(m => m.length > 2)) {
+        issues.push('double-hyphens')
+      }
+    }
+
+    // Check for invalid characters
+    if (!/^--[a-z0-9-]+$/i.test(varName)) {
+      issues.push('invalid-characters')
+    }
+
+    // Check for trailing hyphens
+    if (varName.endsWith('-')) {
+      issues.push('trailing-hyphen')
+    }
+
+    return { isMalformed: issues.length > 0, issues }
+  }
+
+  // Helper to find similar variable names
+  const findSimilarVars = (varName: string, allVars: Set<string>): string[] => {
+    const similar: string[] = []
+    const varParts = varName.split('-')
+    
+    for (const definedVar of allVars) {
+      if (definedVar === varName) continue
+      
+      const definedParts = definedVar.split('-')
+      // Check if they have similar structure (same prefix, similar length)
+      if (varParts.length === definedParts.length) {
+        let differences = 0
+        for (let i = 0; i < Math.min(varParts.length, definedParts.length); i++) {
+          if (varParts[i] !== definedParts[i]) {
+            differences++
+          }
+        }
+        // If only 1-2 segments differ, it's similar
+        if (differences <= 2) {
+          similar.push(definedVar)
+        }
+      }
+    }
+
+    return similar.slice(0, 5) // Return top 5 similar
+  }
+
+  // Helper to generate fix instructions
+  const generateFixInstructions = (
+    varName: string,
+    issueType: DeepAuditIssue['issueType'],
+    element: HTMLElement | null,
+    sourceFile: string | null,
+    similarVars?: string[]
+  ): string[] => {
+    const instructions: string[] = []
+
+    if (issueType === 'undefined') {
+      instructions.push(`1. The CSS variable "${varName}" is not defined anywhere in the DOM or stylesheets.`)
+      
+      // Check if it's a format issue
+      const malformed = detectMalformedVar(varName)
+      if (malformed.isMalformed) {
+        instructions.push(`2. The variable name appears malformed: ${malformed.issues.join(', ')}.`)
+        instructions.push(`3. Fix the variable name in the code that uses it (${sourceFile || 'unknown file'}).`)
+        instructions.push(`4. Ensure the variable name follows the normalization rules: segments joined with hyphens, keys normalized with underscores.`)
+      } else if (similarVars && similarVars.length > 0) {
+        instructions.push(`2. Similar variables exist: ${similarVars.slice(0, 3).join(', ')}.`)
+        instructions.push(`3. Check if you meant to use one of these instead.`)
+        instructions.push(`4. If the variable should exist, verify it's being generated by the parsers (parseBrand.ts, parseUIKit.ts, parseTokens.ts).`)
+      } else {
+        instructions.push(`2. Check if this variable should be generated by the parsers (parseBrand.ts, parseUIKit.ts, parseTokens.ts).`)
+        instructions.push(`3. Verify the JSON structure matches the expected format for this variable.`)
+        instructions.push(`4. If the variable name is incorrect, fix it in ${sourceFile || 'the file using it'}.`)
+      }
+
+      instructions.push(`5. NEVER add fallback values - fix the root cause.`)
+      instructions.push(`6. NEVER modify Tokens.json, Brand.json, or UIKit.json - only fix the code using the variable.`)
+    } else if (issueType === 'malformed') {
+      instructions.push(`1. The CSS variable name "${varName}" is malformed.`)
+      instructions.push(`2. Fix the variable name in ${sourceFile || 'the file using it'}.`)
+      instructions.push(`3. Ensure variable names follow normalization rules: use utility functions (toCssVarName, normalizeKeySegment) instead of manual construction.`)
+    } else if (issueType === 'wrong-format') {
+      instructions.push(`1. The CSS variable "${varName}" uses the wrong format.`)
+      if (similarVars && similarVars.length > 0) {
+        instructions.push(`2. The correct format appears to be: ${similarVars[0]}.`)
+      }
+      instructions.push(`3. Update the variable name in ${sourceFile || 'the file using it'} to match the correct format.`)
+      instructions.push(`4. Check the inline stylesheets in browser DevTools to see the actual variable names being generated.`)
+    } else if (issueType === 'wrong-scope') {
+      instructions.push(`1. The CSS variable "${varName}" may be scoped to a theme/layer that's not active.`)
+      instructions.push(`2. Verify the element has the required theme class (e.g., "recursica-theme-light") or layer class.`)
+      instructions.push(`3. If the variable should be available, check if it's defined in the correct scoped stylesheet.`)
+      instructions.push(`4. Fix the variable name if it's incorrect - do not add theme classes as a workaround.`)
+    } else if (issueType === 'circular') {
+      instructions.push(`1. The CSS variable "${varName}" has a circular reference.`)
+      instructions.push(`2. Trace the reference chain and remove the circular dependency.`)
+      instructions.push(`3. One of the variables in the chain should reference a token or direct value instead of another CSS variable.`)
+    }
+
+    return instructions
+  }
+
+  // First pass: collect all defined CSS variables
+  // Check root
+  for (let i = 0; i < root.style.length; i++) {
+    const prop = root.style[i]
+    if (prop.startsWith('--recursica-')) {
+      allDefinedVars.add(prop)
+      varValues.set(prop, root.style.getPropertyValue(prop).trim())
+    }
+  }
+
+  // Check all elements
+  for (const el of allElements) {
+    const computed = getComputedStyle(el)
+    const inline = (el as HTMLElement).style
+
+    // Check computed styles
+    for (let i = 0; i < computed.length; i++) {
+      const prop = computed[i]
+      if (prop.startsWith('--recursica-')) {
+        allDefinedVars.add(prop)
+        if (!varValues.has(prop)) {
+          varValues.set(prop, computed.getPropertyValue(prop).trim())
+        }
+      }
+    }
+
+    // Check inline styles
+    if (inline) {
+      for (let i = 0; i < inline.length; i++) {
+        const prop = inline[i]
+        if (prop.startsWith('--recursica-')) {
+          allDefinedVars.add(prop)
+          varValues.set(prop, inline.getPropertyValue(prop).trim())
+        }
+      }
+    }
+  }
+
+  // Check stylesheets
+  try {
+    const allStyles = Array.from(document.styleSheets)
+    for (const sheet of allStyles) {
+      try {
+        const rules = Array.from(sheet.cssRules || [])
+        for (const rule of rules) {
+          if (rule instanceof CSSStyleRule) {
+            const style = rule.style
+            for (let i = 0; i < style.length; i++) {
+              const prop = style[i]
+              if (prop.startsWith('--recursica-')) {
+                allDefinedVars.add(prop)
+                if (!varValues.has(prop)) {
+                  varValues.set(prop, style.getPropertyValue(prop).trim())
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // Cross-origin stylesheets can't be accessed
+      }
+    }
+  } catch (e) {
+    // Ignore errors
+  }
+
+  // Second pass: check all elements for CSS variable usage and trace references
+  for (const el of allElements) {
+    const elPath = getElementPath(el)
+    const sourceFile = identifySourceFile(el)
+    const computed = getComputedStyle(el)
+    const inline = (el as HTMLElement).style
+
+    // Check all CSS properties for var() references
+    for (let i = 0; i < computed.length; i++) {
+      const cssProp = computed[i]
+      const value = computed.getPropertyValue(cssProp).trim()
+      
+      if (value && value.includes('--recursica-')) {
+        const varRefs = extractVarRefs(value)
+        
+        for (const varRef of varRefs) {
+          if (checkedVars.has(`${elPath}:${cssProp}:${varRef}`)) continue
+          checkedVars.add(`${elPath}:${cssProp}:${varRef}`)
+
+          // Check if variable is defined
+          const isDefined = isCssVarDefined(varRef, el as HTMLElement)
+          
+          if (!isDefined) {
+            // Trace the variable to see if nested references fail
+            const trace = traceCssVar(varRef)
+            
+            // Determine issue type
+            let issueType: DeepAuditIssue['issueType'] = 'undefined'
+            const malformed = detectMalformedVar(varRef)
+            if (malformed.isMalformed) {
+              issueType = 'malformed'
+            } else if (trace.chain.length > 1 && !trace.resolved) {
+              // Check if it's a circular reference
+              const lastVar = trace.chain[trace.chain.length - 1]
+              if (trace.chain.includes(lastVar) && trace.chain.indexOf(lastVar) < trace.chain.length - 1) {
+                issueType = 'circular'
+              }
+            }
+
+            // Check for format mismatches
+            const similar = findSimilarVars(varRef, allDefinedVars)
+            if (similar.length > 0) {
+              issueType = 'wrong-format'
+            }
+
+            // Check if it's a scoped variable issue
+            if (varRef.includes('-themes-') && !isDefined) {
+              // Check if element has theme class
+              const hasThemeClass = el.classList.toString().includes('recursica-theme-')
+              if (!hasThemeClass) {
+                issueType = 'wrong-scope'
+              }
+            }
+
+            issues.push({
+              cssVar: varRef,
+              element: el as HTMLElement,
+              elementPath: elPath,
+              sourceFile,
+              cssProperty: cssProp,
+              value,
+              issueType,
+              suggestedFix: generateFixInstructions(varRef, issueType, el as HTMLElement, sourceFile, similar),
+              similarVars: similar.length > 0 ? similar : undefined
+            })
+          } else {
+            // Variable is defined, but trace nested references
+            const trace = traceCssVar(varRef)
+            if (!trace.resolved && trace.chain.length > 1) {
+              // Find which nested variable failed
+              const failedVar = trace.chain[trace.chain.length - 1]
+              if (!isCssVarDefined(failedVar, el as HTMLElement)) {
+                if (!checkedVars.has(`${elPath}:${cssProp}:${failedVar}`)) {
+                  checkedVars.add(`${elPath}:${cssProp}:${failedVar}`)
+                  
+                  const similar = findSimilarVars(failedVar, allDefinedVars)
+                  let issueType: DeepAuditIssue['issueType'] = 'undefined'
+                  const malformed = detectMalformedVar(failedVar)
+                  if (malformed.isMalformed) {
+                    issueType = 'malformed'
+                  } else if (similar.length > 0) {
+                    issueType = 'wrong-format'
+                  }
+
+                  issues.push({
+                    cssVar: failedVar,
+                    element: el as HTMLElement,
+                    elementPath: elPath,
+                    sourceFile,
+                    cssProperty: cssProp,
+                    value: readCssVarValue(failedVar) || `var(${failedVar})`,
+                    issueType,
+                    suggestedFix: generateFixInstructions(failedVar, issueType, el as HTMLElement, sourceFile, similar),
+                    similarVars: similar.length > 0 ? similar : undefined
+                  })
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Also check inline styles
+    if (inline) {
+      for (let i = 0; i < inline.length; i++) {
+        const cssProp = inline[i]
+        const value = inline.getPropertyValue(cssProp).trim()
+        
+        if (value && value.includes('--recursica-')) {
+          const varRefs = extractVarRefs(value)
+          
+          for (const varRef of varRefs) {
+            if (checkedVars.has(`${elPath}:inline:${cssProp}:${varRef}`)) continue
+            checkedVars.add(`${elPath}:inline:${cssProp}:${varRef}`)
+
+            const isDefined = isCssVarDefined(varRef, el as HTMLElement)
+            
+            if (!isDefined) {
+              const trace = traceCssVar(varRef)
+              let issueType: DeepAuditIssue['issueType'] = 'undefined'
+              const malformed = detectMalformedVar(varRef)
+              if (malformed.isMalformed) {
+                issueType = 'malformed'
+              }
+              const similar = findSimilarVars(varRef, allDefinedVars)
+              if (similar.length > 0) {
+                issueType = 'wrong-format'
+              }
+
+              issues.push({
+                cssVar: varRef,
+                element: el as HTMLElement,
+                elementPath: elPath,
+                sourceFile,
+                cssProperty: cssProp,
+                value,
+                issueType,
+                suggestedFix: generateFixInstructions(varRef, issueType, el as HTMLElement, sourceFile, similar),
+                similarVars: similar.length > 0 ? similar : undefined
+              })
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return issues
+}
+
+
