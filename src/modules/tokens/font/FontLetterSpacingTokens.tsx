@@ -13,8 +13,9 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.font?.['letter-spacing'] || {}
-      Object.keys(src).forEach((k) => {
+      // Support both plural (letter-spacings) and singular (letter-spacing) for backwards compatibility
+      const src: any = (tokensJson as any)?.tokens?.font?.['letter-spacings'] || (tokensJson as any)?.tokens?.font?.['letter-spacing'] || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `font/letter-spacing/${k}`, value: num })
@@ -50,9 +51,10 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
     // fullName is like 'font/letter-spacing/{short}'
     const short = fullName.replace('font/letter-spacing/','')
     const actual = resolveShortToActual(short)
-    // Read directly from tokensJson
+    // Read directly from tokensJson - support both plural and singular
     try {
-      const v = (tokensJson as any)?.tokens?.font?.['letter-spacing']?.[actual]?.$value
+      const v = (tokensJson as any)?.tokens?.font?.['letter-spacings']?.[actual]?.$value || 
+                (tokensJson as any)?.tokens?.font?.['letter-spacing']?.[actual]?.$value
       const n = typeof v === 'number' ? v : parseFloat(v)
       return Number.isFinite(n) ? n : 0
     } catch {
@@ -104,7 +106,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
         const isTight = keyName === 'tight'
         const isWide = keyName === 'wide'
         const disabled = scaleByTW && !(isDefault || isTight || isWide)
-        const letterSpacingVar = `--recursica-tokens-font-letter-spacing-${keyName === 'tighest' ? 'tightest' : keyName}`
+        const letterSpacingVar = `--recursica-tokens-font-letter-spacings-${keyName === 'tighest' ? 'tightest' : keyName}`
         
         return (
           <div key={it.name} style={{ 

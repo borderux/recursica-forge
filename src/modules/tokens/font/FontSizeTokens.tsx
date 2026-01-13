@@ -14,8 +14,9 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.font?.size || {}
-      Object.keys(src).forEach((k) => {
+      // Support both plural (sizes) and singular (size) for backwards compatibility
+      const src: any = (tokensJson as any)?.tokens?.font?.sizes || (tokensJson as any)?.tokens?.font?.size || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : (typeof v === 'object' && v && typeof v.value === 'number' ? v.value : Number(v))
         if (Number.isFinite(num)) list.push({ name: `font/size/${k}`, value: num })
@@ -45,7 +46,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
       {items.map((it) => {
         const label = toTitle(it.name.replace('font/size/', ''))
         const current = Number(it.value)
-        const fontSizeVar = `--recursica-tokens-font-size-${it.name.replace('font/size/', '')}`
+        const fontSizeVar = `--recursica-tokens-font-sizes-${it.name.replace('font/size/', '')}`
         
         return (
           <div key={it.name} style={{ 

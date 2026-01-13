@@ -24,11 +24,16 @@ export default function OpacityPicker() {
   }, [])
   
   const options = useMemo(() => {
-    const src = (tokensJson as any)?.tokens?.opacity || {}
-    const list: Array<{ name: string; value: number }> = Object.keys(src).map((k) => ({ 
-      name: `opacity/${k}`, 
-      value: Number(src[k]?.$value) 
-    }))
+    // Support both plural (opacities) and singular (opacity) for backwards compatibility
+    const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
+    const list: Array<{ name: string; value: number }> = Object.keys(src)
+      .filter((k) => !k.startsWith('$'))
+      .map((k) => {
+        const v = src[k]?.$value
+        const num = typeof v === 'number' ? v : Number(v)
+        return { name: `opacity/${k}`, value: num }
+      })
+      .filter((it) => Number.isFinite(it.value))
     list.sort((a, b) => a.value - b.value)
     return list
   }, [tokensJson])
@@ -38,8 +43,8 @@ export default function OpacityPicker() {
     try {
       const value = readCssVar(cssVar)
       if (!value) return null
-      // Match patterns like: var(--recursica-tokens-opacity-solid) or var(--tokens-opacity-solid)
-      const match = value.match(/var\(--(?:recursica-)?tokens-opacity-([^)]+)\)/)
+      // Match patterns like: var(--recursica-tokens-opacities-solid) or var(--tokens-opacities-solid) or old format (opacity)
+      const match = value.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
       if (match) return `opacity/${match[1]}`
     } catch {}
     return null
@@ -51,18 +56,21 @@ export default function OpacityPicker() {
     // Extract current token from CSS var value
     const current = extractTokenFromCssVar(cssVar)
     setCurrentToken(current)
+    // Calculate absolute position (relative to document, not viewport)
     const rect = el.getBoundingClientRect()
-    const top = rect.bottom + 8
-    const left = Math.min(rect.left, window.innerWidth - 260)
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop
+    const top = rect.bottom + scrollY + 8
+    const left = Math.min(rect.left + scrollX, window.innerWidth - 260)
     setPos({ top, left })
   }
 
   const handleSelect = (tokenName: string) => {
     if (!targetCssVar) return
     
-    // Build the opacity token CSS variable
+    // Build the opacity token CSS variable - use plural form (opacities)
     const tokenKey = tokenName.replace('opacity/', '')
-    const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
+    const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
     
     // Update the target CSS variable to reference the opacity token
     updateCssVar(targetCssVar, `var(${opacityCssVar})`)
@@ -95,7 +103,8 @@ export default function OpacityPicker() {
           
           // Update the opacity reference in theme JSON
           themes[modeKey]['text-emphasis'][emphasisKey] = {
-            $value: `{tokens.opacity.${tokenKey}}`
+            // Use plural form (opacities) for token references
+            $value: `{tokens.opacities.${tokenKey}}`
           }
         } else if (isHoverOpacity) {
           // Handle hover opacity
@@ -106,7 +115,8 @@ export default function OpacityPicker() {
           // Update the hover opacity reference in theme JSON
           themes[modeKey].states.hover = {
             $type: 'number',
-            $value: `{tokens.opacity.${tokenKey}}`
+            // Use plural form (opacities) for token references
+            $value: `{tokens.opacities.${tokenKey}}`
           }
         } else if (isDisabledOpacity) {
           // Handle disabled opacity
@@ -117,7 +127,8 @@ export default function OpacityPicker() {
           // Update the disabled opacity reference in theme JSON
           themes[modeKey].states.disabled = {
             $type: 'number',
-            $value: `{tokens.opacity.${tokenKey}}`
+            // Use plural form (opacities) for token references
+            $value: `{tokens.opacities.${tokenKey}}`
           }
         } else if (isOverlayOpacity) {
           // Handle overlay opacity
@@ -129,7 +140,8 @@ export default function OpacityPicker() {
           // Update the overlay opacity reference in theme JSON
           themes[modeKey].states.overlay.opacity = {
             $type: 'number',
-            $value: `{tokens.opacity.${tokenKey}}`
+            // Use plural form (opacities) for token references
+            $value: `{tokens.opacities.${tokenKey}}`
           }
         }
         
@@ -159,7 +171,7 @@ export default function OpacityPicker() {
   
   return createPortal(
     <div style={{ 
-      position: 'fixed', 
+      position: 'absolute', 
       top: pos.top, 
       left: pos.left, 
       width: 240, 

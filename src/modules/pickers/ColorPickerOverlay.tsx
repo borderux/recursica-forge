@@ -41,16 +41,24 @@ export function ColorPickerOverlay({
     if (!overlayEl) return
     const overlayW = overlayEl.offsetWidth || 300
     const overlayH = overlayEl.offsetHeight || 320
+    // Calculate absolute position (relative to document, not viewport)
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop
     const candidates = [
-      { top: swatchRect.top - overlayH, left: swatchRect.left - overlayW },
-      { top: swatchRect.top - overlayH, left: swatchRect.right },
-      { top: swatchRect.bottom, left: swatchRect.left - overlayW },
-      { top: swatchRect.bottom, left: swatchRect.right },
+      { top: swatchRect.top + scrollY - overlayH, left: swatchRect.left + scrollX - overlayW },
+      { top: swatchRect.top + scrollY - overlayH, left: swatchRect.right + scrollX },
+      { top: swatchRect.bottom + scrollY, left: swatchRect.left + scrollX - overlayW },
+      { top: swatchRect.bottom + scrollY, left: swatchRect.right + scrollX },
     ]
-    const fits = (p: { top: number; left: number }) => p.left >= 0 && p.left + overlayW <= window.innerWidth && p.top >= 0 && p.top + overlayH <= window.innerHeight
+    // Check if position fits in viewport (for initial positioning)
+    const fits = (p: { top: number; left: number }) => {
+      const viewportTop = p.top - scrollY
+      const viewportLeft = p.left - scrollX
+      return viewportLeft >= 0 && viewportLeft + overlayW <= window.innerWidth && viewportTop >= 0 && viewportTop + overlayH <= window.innerHeight
+    }
     const chosen = candidates.find(fits) || {
-      top: Math.max(0, Math.min(window.innerHeight - overlayH, swatchRect.top)),
-      left: Math.max(0, Math.min(window.innerWidth - overlayW, swatchRect.left)),
+      top: swatchRect.bottom + scrollY,
+      left: swatchRect.left + scrollX,
     }
     setPos(chosen)
   }, [swatchRect.left, swatchRect.top, swatchRect.right, swatchRect.bottom])
@@ -90,7 +98,7 @@ export function ColorPickerOverlay({
   return createPortal(
     <div
       ref={overlayRef}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 20000, background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, display: 'grid', gap: 10, width: 300 }}
+      style={{ position: 'absolute', top: pos.top, left: pos.left, zIndex: 20000, background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, display: 'grid', gap: 10, width: 300 }}
     >
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'move' }}

@@ -49,8 +49,9 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.opacity || {}
-      Object.keys(src).forEach((k) => {
+      // Support both plural (opacities) and singular (opacity) for backwards compatibility
+      const src: any = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `opacity/${k}`, value: num })
@@ -97,8 +98,9 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
       
       const value = readCssVar(prefixedTarget)
       if (!value) return null
-      // Match patterns like: var(--recursica-tokens-opacity-solid) or var(--tokens-opacity-solid)
-      const match = value.match(/var\(--(?:recursica-)?tokens-opacity-([^)]+)\)/)
+      // Match patterns like: var(--recursica-tokens-opacities-solid) or var(--recursica-tokens-opacity-solid) or var(--tokens-opacities-solid)
+      // Support both plural (opacities) and singular (opacity) for backwards compatibility
+      const match = value.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
       if (match) return `opacity/${match[1]}`
     } catch {}
     return null
@@ -125,9 +127,12 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
       setSelectedTokenName(targetTokenNameOrCssVar)
       setCurrentToken(null)
     }
+    // Calculate absolute position (relative to document, not viewport)
     const rect = el.getBoundingClientRect()
-    const top = rect.bottom + 8
-    const left = Math.min(rect.left, window.innerWidth - 400)
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop
+    const top = rect.bottom + scrollY + 8
+    const left = Math.min(rect.left + scrollX, window.innerWidth - 400)
     setPos({ top, left })
   }
 
@@ -139,9 +144,9 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   }
 
   const handleTokenSelect = (tokenName: string, value: number) => {
-    // Build the CSS variable name for the opacity token
+    // Build the CSS variable name for the opacity token - use plural form (opacities)
     const tokenKey = tokenName.replace('opacity/', '')
-    const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
+    const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
     
     // If we have a target CSS variable, set it to reference the opacity token
     if (targetCssVar) {
@@ -179,7 +184,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   return createPortal(
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: pos.top,
         left: pos.left,
         width: 400,
@@ -208,7 +213,8 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
           const currentRaw = (overrides as any)[it.name] ?? it.value
           const current = toPctNumber(currentRaw)
           const tokenKey = it.name.replace('opacity/', '')
-          const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
+          // Use plural form (opacities) for CSS variable
+          const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
           const isClickable = targetCssVar !== null || onSelect !== undefined
           // Use resolvedCurrentToken if available, otherwise fall back to currentToken
           const effectiveCurrentToken = resolvedCurrentToken !== null ? resolvedCurrentToken : currentToken

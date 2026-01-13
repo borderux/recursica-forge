@@ -7,7 +7,8 @@ export default function SizeTokens() {
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.size || {}
+      // Support both plural (sizes) and singular (size) for backwards compatibility
+      const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
       Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw

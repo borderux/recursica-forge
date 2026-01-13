@@ -15,8 +15,9 @@ export default function OpacityTokens() {
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.opacity || {}
-      Object.keys(src).forEach((k) => {
+      // Support both plural (opacities) and singular (opacity) for backwards compatibility
+      const src: any = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `opacity/${k}`, value: num })

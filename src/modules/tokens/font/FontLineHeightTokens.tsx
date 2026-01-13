@@ -13,8 +13,9 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.font?.['line-height'] || {}
-      Object.keys(src).forEach((k) => {
+      // Support both plural (line-heights) and singular (line-height) for backwards compatibility
+      const src: any = (tokensJson as any)?.tokens?.font?.['line-heights'] || (tokensJson as any)?.tokens?.font?.['line-height'] || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `font/line-height/${k}`, value: num })
@@ -29,10 +30,11 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
   const defaultIdx = order.indexOf('default')
 
   const getVal = (name: string): number => {
-    // Read directly from tokensJson
+    // Read directly from tokensJson - support both plural and singular
     const key = name.replace('font/line-height/','')
     try {
-      const v = (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
+      const v = (tokensJson as any)?.tokens?.font?.['line-heights']?.[key]?.$value || 
+                (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
       const n = typeof v === 'number' ? v : parseFloat(v)
       if (Number.isFinite(n)) return n
     } catch {}
@@ -91,7 +93,7 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
         const isShort = k === 'short'
         const isTall = k === 'tall'
         const disabled = scaleByST && !(isDefault || isShort || isTall)
-        const lineHeightVar = `--recursica-tokens-font-line-height-${k}`
+        const lineHeightVar = `--recursica-tokens-font-line-heights-${k}`
         
         return (
           <div key={name} style={{ 
