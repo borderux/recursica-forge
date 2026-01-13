@@ -244,8 +244,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 variant="outline"
                 size="small"
                 icon={(() => {
-                  const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
-                  return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  const UploadIcon = iconNameToReactComponent('arrow-up-tray')
+                  return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
                 })()}
                 onClick={() => setIsModalOpen(true)}
                 title="Import / Export CSS Variables"
@@ -254,8 +254,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 variant="outline"
                 size="small"
                 icon={(() => {
-                  const UploadIcon = iconNameToReactComponent('arrow-up-tray')
-                  return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
+                  return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
                 })()}
                 onClick={handleExport}
                 title="Export JSON Files"

@@ -825,10 +825,18 @@ class VarsStore {
       this.recomputeAndApplyAll()
       
       // Update AA watcher with new state and force check all palette on-tone variables
+      // Use setTimeout to ensure CSS variables are fully applied before checking AA compliance
       if (this.aaWatcher) {
         this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
         // Force check all palette on-tone variables after reset to ensure AA compliance
-        this.aaWatcher.checkAllPaletteOnTones()
+        // Delay to ensure recomputeAndApplyAll has finished applying CSS vars to DOM
+        setTimeout(() => {
+          if (this.aaWatcher) {
+            this.aaWatcher.checkAllPaletteOnTones()
+            // After AA compliance check updates CSS vars, update theme JSON to match
+            this.updateThemeJsonFromOnToneCssVars()
+          }
+        }, 50)
       }
     })
   }
@@ -1965,6 +1973,73 @@ class VarsStore {
       })
     } catch (err) {
       console.error('Failed to update core color on-tones:', err)
+    }
+  }
+
+  /**
+   * Updates theme JSON to match the on-tone CSS variables after AA compliance check
+   * This ensures the theme JSON reflects the AA-compliant on-tone values
+   */
+  private updateThemeJsonFromOnToneCssVars() {
+    try {
+      const themeCopy = JSON.parse(JSON.stringify(this.state.theme))
+      const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+      const themes = root?.themes || root
+      const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
+      let hasChanges = false
+
+      // Check both light and dark modes
+      for (const mode of ['light', 'dark'] as const) {
+        const pal: any = themes?.[mode]?.palettes || {}
+        Object.keys(pal).forEach((paletteKey) => {
+          if (paletteKey === 'core' || paletteKey === 'core-colors') return
+          
+          levels.forEach((level) => {
+            const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
+            const onToneValue = readCssVar(onToneVar)
+            
+            if (onToneValue) {
+              // Extract which core color (black or white) is being used
+              const isWhite = onToneValue.includes('core-white')
+              const isBlack = onToneValue.includes('core-black')
+              
+              if (isWhite || isBlack) {
+                const chosen = isWhite ? 'white' : 'black'
+                
+                // Ensure the palette structure exists
+                if (!themes[mode]) themes[mode] = {}
+                if (!themes[mode].palettes) themes[mode].palettes = {}
+                if (!themes[mode].palettes[paletteKey]) themes[mode].palettes[paletteKey] = {}
+                if (!themes[mode].palettes[paletteKey][level]) themes[mode].palettes[paletteKey][level] = {}
+                
+                // Update the on-tone reference in theme JSON
+                const refPrefix = themes !== root ? 'brand.themes' : 'brand'
+                const newOnToneValue = `{${refPrefix}.${mode}.palettes.core-colors.${chosen}}`
+                
+                const currentOnTone = themes[mode].palettes[paletteKey][level]['on-tone']
+                const currentValue = typeof currentOnTone === 'object' && currentOnTone?.$value 
+                  ? currentOnTone.$value 
+                  : currentOnTone
+                
+                // Only update if the value has changed
+                if (currentValue !== newOnToneValue) {
+                  themes[mode].palettes[paletteKey][level]['on-tone'] = {
+                    $value: newOnToneValue
+                  }
+                  hasChanges = true
+                }
+              }
+            }
+          })
+        })
+      }
+
+      // Only update theme if there were changes
+      if (hasChanges) {
+        this.setTheme(themeCopy)
+      }
+    } catch (err) {
+      console.error('Failed to update theme JSON from on-tone CSS vars:', err)
     }
   }
 }
