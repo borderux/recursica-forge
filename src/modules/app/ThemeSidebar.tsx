@@ -43,7 +43,7 @@ export function ThemeSidebar() {
     <aside
       style={{
         width: '252px',
-        height: '100%',
+        alignSelf: 'stretch',
         backgroundColor: `var(${layer1Base}-surface)`,
         borderRightWidth: `var(${layer1Base}-border-thickness, 1px)`,
         borderRightStyle: 'solid',
@@ -55,6 +55,7 @@ export function ThemeSidebar() {
         paddingTop: 'var(--recursica-brand-dimensions-spacers-xl)',
         paddingBottom: 'var(--recursica-brand-dimensions-spacers-xl)',
         flexShrink: 0,
+        position: 'relative',
       }}
     >
       {/* Theme Heading */}
@@ -72,7 +73,7 @@ export function ThemeSidebar() {
       </h2>
       
       {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-sm)', flex: 1 }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
         {navItems.map((item) => {
           const isActive = currentNavItem === item.key
           
@@ -127,7 +128,7 @@ export function ThemeSidebar() {
         })}
       </nav>
       
-      {/* Footer Links */}
+      {/* Footer Links - Fixed at bottom */}
       <div
         style={{
           display: 'flex',
@@ -138,6 +139,7 @@ export function ThemeSidebar() {
           borderTopWidth: `var(${layer1Base}-border-thickness, 1px)`,
           borderTopStyle: 'solid',
           borderTopColor: `var(${layer1Base}-border-color)`,
+          flexShrink: 0,
         }}
       >
         <a
