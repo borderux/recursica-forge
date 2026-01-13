@@ -584,7 +584,7 @@ export default function ColorTokenPicker() {
         // Directly update interactive color with 'keep' option (keep current hover)
         if (!setTheme || !themeJson || !tokensJson) {
           // Fallback: just update CSS vars if we can't update theme
-          updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode)
+          updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode, themeJson, setTheme)
           setAnchor(null)
           setTargetVar(null)
           // Trigger AA compliance check for core colors
@@ -811,12 +811,11 @@ export default function ColorTokenPicker() {
           setTheme(themeCopy)
           
           // Now update CSS vars - this will match what's in theme JSON, preventing flicker
-          updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode)
-          
+          updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode, themeJson, setTheme)
+
           // Update CSS variables for core color interactive properties
-          // Pass skipSetTheme=true since we already called setTheme above
           if (setTheme && themeCopy) {
-            updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeCopy, setTheme, mode, true)
+            updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeCopy, setTheme, mode)
           }
           
           // After updating interactive color, trigger AA compliance checks for all core and palette on-tone values
@@ -842,7 +841,7 @@ export default function ColorTokenPicker() {
         } catch (err) {
           console.error('Failed to update interactive color:', err)
           // Fallback: just update CSS vars
-          updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode)
+          updateInteractiveColor(normalizedHex, 'keep', tokensJson, mode, themeJson, setTheme)
           if (setTheme && themeJson) {
             updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeJson, setTheme, mode)
           }

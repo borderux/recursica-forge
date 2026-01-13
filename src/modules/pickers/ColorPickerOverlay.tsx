@@ -191,7 +191,8 @@ export function ColorPickerOverlay({
         <input type="checkbox" checked={cascadeUp} onChange={(e) => {
           const next = e.currentTarget.checked
           setCascadeUp(next)
-          if (next) onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), cascadeDown, true)
+          // Always call onChange when checkbox state changes to trigger cascade
+          onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), cascadeDown, next)
         }} />
         Cascade colors upward
       </label>
@@ -199,7 +200,8 @@ export function ColorPickerOverlay({
         <input type="checkbox" checked={cascadeDown} onChange={(e) => {
           const next = e.currentTarget.checked
           setCascadeDown(next)
-          if (next) onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), true, cascadeUp)
+          // Always call onChange when checkbox state changes to trigger cascade
+          onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), next, cascadeUp)
         }} />
         Cascade colors downward
       </label>

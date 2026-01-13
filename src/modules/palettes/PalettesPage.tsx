@@ -855,27 +855,27 @@ export default function PalettesPage() {
                   <td>Interactive</td>
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-tone`}
                   />
                   <td>

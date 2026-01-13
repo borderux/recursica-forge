@@ -521,8 +521,20 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-on-tone`] = onToneValue
       }
       if (colorDef?.interactive) {
-        const interactiveValue = getColorVar(colorDef.interactive)
-        vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive`] = interactiveValue
+        // Handle both old format (interactive as single value) and new format (interactive.on-tone)
+        if (typeof colorDef.interactive === 'object' && !colorDef.interactive.$value && colorDef.interactive['on-tone']) {
+          // New format: interactive.on-tone
+          const interactiveOnToneValue = getColorVar(colorDef.interactive['on-tone'])
+          vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive-on-tone`] = interactiveOnToneValue
+        } else if (typeof colorDef.interactive === 'object' && colorDef.interactive.$value) {
+          // Old format: interactive as single value object { $value: ... }
+          const interactiveValue = getColorVar(colorDef.interactive)
+          vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive`] = interactiveValue
+        } else {
+          // Old format: interactive as direct value
+          const interactiveValue = getColorVar(colorDef.interactive)
+          vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive`] = interactiveValue
+        }
       }
     })
   } catch {}

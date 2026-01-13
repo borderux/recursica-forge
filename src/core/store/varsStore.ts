@@ -806,6 +806,23 @@ class VarsStore {
           writeLSJson('family-friendly-names', names)
           // Dispatch event to notify components of the reset
           try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names })) } catch {}
+          
+          // Reset primary levels and selected families for all palettes
+          try {
+            const allKeys: string[] = []
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i)
+              if (key && (
+                key.startsWith('palette-primary-level:') ||
+                key.startsWith('palette-grid-family:')
+              )) {
+                allKeys.push(key)
+              }
+            }
+            allKeys.forEach(key => {
+              try { localStorage.removeItem(key) } catch {}
+            })
+          } catch {}
         } catch {}
       }
       
@@ -835,6 +852,27 @@ class VarsStore {
             this.aaWatcher.checkAllPaletteOnTones()
             // After AA compliance check updates CSS vars, update theme JSON to match
             this.updateThemeJsonFromOnToneCssVars()
+            
+            // Initialize interactive on-tone values for core colors
+            import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorInteractiveOnTones }) => {
+              const currentMode = this.getCurrentMode()
+              // Get the interactive tone hex
+              const interactiveToneVar = `--recursica-brand-themes-${currentMode}-palettes-core-interactive-default-tone`
+              const interactiveToneValue = readCssVar(interactiveToneVar)
+              if (interactiveToneValue) {
+                import('../../core/compliance/layerColorStepping').then(({ resolveCssVarToHex }) => {
+                  const tokenIndex = buildTokenIndex(this.state.tokens)
+                  const interactiveHex = resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000'
+                  updateCoreColorInteractiveOnTones(interactiveHex, this.state.tokens, this.state.theme, (theme) => {
+                    this.setTheme(theme)
+                  }, currentMode)
+                }).catch((err) => {
+                  console.error('Failed to resolve interactive tone hex:', err)
+                })
+              }
+            }).catch((err) => {
+              console.error('Failed to update core color interactive on-tones:', err)
+            })
           }
         }, 50)
       }
@@ -1963,9 +2001,32 @@ class VarsStore {
   private updateCoreColorOnTonesForAA() {
     try {
       // Dynamically import to avoid circular dependencies
-      import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorOnTones }) => {
+      Promise.all([
+        import('../../modules/pickers/interactiveColorUpdater'),
+        import('../../core/css/readCssVar'),
+        import('../../core/compliance/layerColorStepping'),
+        import('../../core/resolvers/tokens')
+      ]).then(([
+        { updateCoreColorOnTones, updateCoreColorInteractiveOnTones },
+        { readCssVarResolved, readCssVar },
+        { resolveCssVarToHex },
+        { buildTokenIndex }
+      ]) => {
         const currentMode = this.getCurrentMode()
         updateCoreColorOnTones(this.state.tokens, this.state.theme, (theme) => {
+          this.setTheme(theme)
+        }, currentMode)
+        
+        // Also update interactive on-tones for core colors
+        // Get the interactive tone hex to pass to the function
+        const interactiveToneVar = `--recursica-brand-themes-${currentMode}-palettes-core-interactive-default-tone`
+        const tokenIndex = buildTokenIndex(this.state.tokens)
+        const interactiveToneValue = readCssVarResolved(interactiveToneVar) || readCssVar(interactiveToneVar)
+        const interactiveHex = interactiveToneValue 
+          ? (resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000')
+          : '#000000'
+        
+        updateCoreColorInteractiveOnTones(interactiveHex, this.state.tokens, this.state.theme, (theme) => {
           this.setTheme(theme)
         }, currentMode)
       }).catch((err) => {
