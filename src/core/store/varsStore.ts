@@ -514,8 +514,8 @@ class VarsStore {
         if (norm) varsToUpdate[`--recursica-tokens-opacity-${key}`] = norm
       } else if ((category === 'color' || category === 'colors') && rest.length >= 2) {
         const [scaleOrFamily, level] = rest
-        // Normalize level for CSS var (pad to 3 digits, but preserve '1000' as-is)
-        const normalizedLevel = level === '1000' ? '1000' : String(level).padStart(3, '0')
+        // Preserve 000 and 1000 as-is, pad others to 3 digits
+        const normalizedLevel = level === '000' ? '000' : level === '1000' ? '1000' : String(level).padStart(3, '0')
         
         // Handle new format: colors/scale-XX/level or colors/family/level
         if (category === 'colors') {
@@ -1095,8 +1095,8 @@ class VarsStore {
             const levelObj = scale[lvl]
             if (!levelObj || typeof levelObj !== 'object') return
             
-            // Normalize level for CSS var: pad to 3 digits, but preserve '1000' as-is
-            const normalizedLevel = lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
+            // Preserve 000 and 1000 as-is, pad others to 3 digits
+            const normalizedLevel = lvl === '000' ? '000' : lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
             
             // Generate CSS vars for both scale name and alias (if available)
             const scaleCssVarKey = `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`

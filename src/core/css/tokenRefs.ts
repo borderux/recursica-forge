@@ -36,7 +36,16 @@ export function tokenToCssVar(tokenName: string): string | null {
     if (category === 'color' || category === 'colors') {
       if (rest.length >= 2) {
         const [scaleOrFamily, level] = rest
-        const normalizedLevel = normalizeColorLevel(level)
+        // Preserve 000 and 1000 as-is, normalize others
+        let normalizedLevel: string | null
+        if (level === '000') {
+          normalizedLevel = '000'
+        } else if (level === '1000') {
+          normalizedLevel = '1000'
+        } else {
+          normalizedLevel = normalizeColorLevel(level)
+        }
+        
         if (scaleOrFamily && normalizedLevel) {
           // Support both old format (color/family/level) and new format (colors/scale-XX/level)
           if (scaleOrFamily.startsWith('scale-')) {

@@ -26,7 +26,7 @@ export type OpacityPickerOverlayProps = {
 }
 
 export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose, onSelect }: OpacityPickerOverlayProps) {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [selectedTokenName, setSelectedTokenName] = useState<string | undefined>(propTokenName)
@@ -151,7 +151,6 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
     // If we have a target CSS variable, set it to reference the opacity token
     if (targetCssVar) {
       try {
-        const root = document.documentElement
         // Ensure target CSS var has --recursica- prefix if it doesn't already
         const prefixedTarget = targetCssVar.startsWith('--recursica-') 
           ? targetCssVar 
@@ -160,7 +159,83 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
             : `--recursica-${targetCssVar}`
         
         // Set the target CSS variable to reference the opacity token CSS variable
-        updateCssVar(prefixedTarget, `var(${opacityCssVar})`)
+        updateCssVar(prefixedTarget, `var(${opacityCssVar})`, tokensJson)
+        
+        // Persist to theme JSON if this is a text-emphasis opacity, hover opacity, disabled opacity, or overlay opacity
+        const isEmphasisOpacity = prefixedTarget.includes('text-emphasis-high') || 
+                                   prefixedTarget.includes('text-emphasis-low')
+        const isHoverOpacity = prefixedTarget.includes('state-hover')
+        const isDisabledOpacity = prefixedTarget.includes('state-disabled')
+        const isOverlayOpacity = prefixedTarget.includes('state-overlay-opacity')
+        
+        if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && setTheme && themeJson) {
+          try {
+            const themeCopy = JSON.parse(JSON.stringify(themeJson))
+            const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+            const themes = root?.themes || root
+            
+            // Determine which mode (light or dark)
+            const isDark = prefixedTarget.includes('-dark-')
+            const modeKey = isDark ? 'dark' : 'light'
+            
+            if (isEmphasisOpacity) {
+              // Handle text-emphasis opacity
+              const isHigh = prefixedTarget.includes('text-emphasis-high')
+              const emphasisKey = isHigh ? 'high' : 'low'
+              
+              // Ensure text-emphasis structure exists
+              if (!themes[modeKey]) themes[modeKey] = {}
+              if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
+              
+              // Update the opacity reference in theme JSON
+              themes[modeKey]['text-emphasis'][emphasisKey] = {
+                // Use plural form (opacities) for token references
+                $value: `{tokens.opacities.${tokenKey}}`
+              }
+            } else if (isHoverOpacity) {
+              // Handle hover opacity
+              // Ensure states structure exists
+              if (!themes[modeKey]) themes[modeKey] = {}
+              if (!themes[modeKey].states) themes[modeKey].states = {}
+              
+              // Update the hover opacity reference in theme JSON
+              themes[modeKey].states.hover = {
+                $type: 'number',
+                // Use plural form (opacities) for token references
+                $value: `{tokens.opacities.${tokenKey}}`
+              }
+            } else if (isDisabledOpacity) {
+              // Handle disabled opacity
+              // Ensure states structure exists
+              if (!themes[modeKey]) themes[modeKey] = {}
+              if (!themes[modeKey].states) themes[modeKey].states = {}
+              
+              // Update the disabled opacity reference in theme JSON
+              themes[modeKey].states.disabled = {
+                $type: 'number',
+                // Use plural form (opacities) for token references
+                $value: `{tokens.opacities.${tokenKey}}`
+              }
+            } else if (isOverlayOpacity) {
+              // Handle overlay opacity
+              // Ensure states structure exists
+              if (!themes[modeKey]) themes[modeKey] = {}
+              if (!themes[modeKey].states) themes[modeKey].states = {}
+              if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+              
+              // Update the overlay opacity reference in theme JSON
+              themes[modeKey].states.overlay.opacity = {
+                $type: 'number',
+                // Use plural form (opacities) for token references
+                $value: `{tokens.opacities.${tokenKey}}`
+              }
+            }
+            
+            setTheme(themeCopy)
+          } catch (err) {
+            console.error('Failed to update theme JSON for opacity:', err)
+          }
+        }
         
         // Trigger recalculation of resolvedCurrentToken
         setCssVarUpdateTrigger((prev) => prev + 1)
