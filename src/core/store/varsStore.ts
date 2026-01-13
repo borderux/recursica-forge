@@ -512,13 +512,55 @@ class VarsStore {
         }
         const norm = normalize(tokenValue)
         if (norm) varsToUpdate[`--recursica-tokens-opacity-${key}`] = norm
-      } else if (category === 'color' && rest.length >= 2) {
-        const [family, level] = rest
-        const tokenValue = tokensRoot?.color?.[family]?.[level]?.$value
-        if (tokenValue == null) return
+      } else if ((category === 'color' || category === 'colors') && rest.length >= 2) {
+        const [scaleOrFamily, level] = rest
+        // Normalize level for CSS var (pad to 3 digits, but preserve '1000' as-is)
+        const normalizedLevel = level === '1000' ? '1000' : String(level).padStart(3, '0')
         
-        const cssVarKey = `--recursica-tokens-color-${family}-${String(level).padStart(3, '0')}`
-        varsToUpdate[cssVarKey] = String(tokenValue)
+        // Handle new format: colors/scale-XX/level or colors/family/level
+        if (category === 'colors') {
+          let tokenValue: any = null
+          let scaleKey: string | null = null
+          let alias: string | null = null
+          
+          if (scaleOrFamily.startsWith('scale-')) {
+            // Direct scale reference: colors/scale-01/100
+            scaleKey = scaleOrFamily
+            tokenValue = tokensRoot?.colors?.[scaleKey]?.[level]?.$value
+            const scale = tokensRoot?.colors?.[scaleKey]
+            alias = scale?.alias
+          } else {
+            // Alias-based reference: colors/cornflower/100
+            // Find the scale that has this alias
+            scaleKey = Object.keys(tokensRoot?.colors || {}).find(key => {
+              const scale = tokensRoot?.colors?.[key]
+              return scale && typeof scale === 'object' && scale.alias === scaleOrFamily
+            }) || null
+            if (scaleKey) {
+              tokenValue = tokensRoot?.colors?.[scaleKey]?.[level]?.$value
+              alias = scaleOrFamily
+            }
+          }
+          
+          if (tokenValue != null && scaleKey) {
+            // Generate CSS vars for both scale name and alias (if available)
+            const scaleCssVarKey = `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`
+            varsToUpdate[scaleCssVarKey] = String(tokenValue)
+            
+            // Also create alias-based CSS var if alias exists
+            if (alias && typeof alias === 'string') {
+              const aliasCssVarKey = `--recursica-tokens-colors-${alias}-${normalizedLevel}`
+              varsToUpdate[aliasCssVarKey] = String(tokenValue)
+            }
+          }
+        } else {
+          // Old format: color/family/level (backwards compatibility)
+          const tokenValue = tokensRoot?.color?.[scaleOrFamily]?.[level]?.$value
+          if (tokenValue != null) {
+            const cssVarKey = `--recursica-tokens-color-${scaleOrFamily}-${normalizedLevel}`
+            varsToUpdate[cssVarKey] = String(tokenValue)
+          }
+        }
       }
 
       // Apply only the affected CSS variables (with validation)
@@ -548,12 +590,39 @@ class VarsStore {
     try {
       const [category, ...rest] = parts
       
-      if (category === 'color' && rest.length >= 2) {
-        const [family, level] = rest
-        if (!tokensRoot.color) tokensRoot.color = {}
-        if (!tokensRoot.color[family]) tokensRoot.color[family] = {}
-        if (!tokensRoot.color[family][level]) tokensRoot.color[family][level] = {}
-        tokensRoot.color[family][level].$value = String(value)
+      if ((category === 'color' || category === 'colors') && rest.length >= 2) {
+        const [scaleOrFamily, level] = rest
+        // Handle new format: colors/scale-XX/level or colors/family/level
+        if (category === 'colors') {
+          if (!tokensRoot.colors) tokensRoot.colors = {}
+          // Check if it's a scale-XX key or an alias (family name)
+          if (scaleOrFamily.startsWith('scale-')) {
+            // Direct scale reference: colors/scale-01/100
+            if (!tokensRoot.colors[scaleOrFamily]) tokensRoot.colors[scaleOrFamily] = {}
+            if (!tokensRoot.colors[scaleOrFamily][level]) tokensRoot.colors[scaleOrFamily][level] = {}
+            tokensRoot.colors[scaleOrFamily][level].$value = String(value)
+          } else {
+            // Alias-based reference: colors/cornflower/100
+            // Find the scale that has this alias
+            const scaleKey = Object.keys(tokensRoot.colors || {}).find(key => {
+              const scale = tokensRoot.colors?.[key]
+              return scale && typeof scale === 'object' && scale.alias === scaleOrFamily
+            })
+            if (scaleKey) {
+              if (!tokensRoot.colors[scaleKey][level]) tokensRoot.colors[scaleKey][level] = {}
+              tokensRoot.colors[scaleKey][level].$value = String(value)
+            } else {
+              // Scale not found, create it (shouldn't happen normally)
+              console.warn(`[updateToken] Scale with alias "${scaleOrFamily}" not found for token ${tokenName}`)
+            }
+          }
+        } else {
+          // Old format: color/family/level (backwards compatibility)
+          if (!tokensRoot.color) tokensRoot.color = {}
+          if (!tokensRoot.color[scaleOrFamily]) tokensRoot.color[scaleOrFamily] = {}
+          if (!tokensRoot.color[scaleOrFamily][level]) tokensRoot.color[scaleOrFamily][level] = {}
+          tokensRoot.color[scaleOrFamily][level].$value = String(value)
+        }
       } else if (category === 'size' && rest.length >= 1) {
         const [key] = rest
         if (!tokensRoot.size) tokensRoot.size = {}
@@ -622,8 +691,17 @@ class VarsStore {
       this.updateSingleTokenCssVar(tokenName)
       
       // Update core color on-tone values if a core color token changed
-      if (category === 'color' && rest.length >= 2) {
-        const [family, level] = rest
+      if ((category === 'color' || category === 'colors') && rest.length >= 2) {
+        const [scaleOrFamily, level] = rest
+        // For new format, extract family from alias if it's a scale-XX key
+        let family = scaleOrFamily
+        if (category === 'colors' && scaleOrFamily.startsWith('scale-')) {
+          // Find the alias for this scale
+          const scale = tokensRoot.colors?.[scaleOrFamily]
+          if (scale && typeof scale === 'object' && scale.alias) {
+            family = scale.alias
+          }
+        }
         // Check if this token is used by any core color
         const isCoreColorToken = this.isCoreColorToken(family, level)
         if (isCoreColorToken) {

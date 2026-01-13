@@ -140,16 +140,51 @@ export default function ColorTokens() {
     }
     try {
       const t: any = (tokensJson as any)?.tokens || {}
-      const colors = t?.color || {}
-      Object.keys(colors).forEach((family) => {
-        if (family === 'translucent') return
-        const levels = colors[family] || {}
-        Object.keys(levels).forEach((lvl) => {
-          push(`color/${family}/${lvl}`, 'color', levels[lvl]?.$value)
+      
+      // Process new scale structure (colors.scale-XX.level)
+      const colorsRoot = t?.colors || {}
+      if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+        Object.keys(colorsRoot).forEach((scaleKey) => {
+          if (!scaleKey || !scaleKey.startsWith('scale-')) return
+          const scale = colorsRoot[scaleKey]
+          if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
+          
+          const alias = scale.alias // Get the alias (e.g., "cornflower", "gray")
+          const familyName = alias && typeof alias === 'string' ? alias : scaleKey
+          
+          Object.keys(scale).forEach((lvl) => {
+            // Skip the alias property
+            if (lvl === 'alias') return
+            // Accept levels that are: 2-4 digits, or exactly '000' or '050'
+            if (!/^(\d{2,4}|000|050)$/.test(lvl)) return
+            
+            const levelObj = scale[lvl]
+            if (levelObj && typeof levelObj === 'object' && '$value' in levelObj) {
+              // Use alias-based token name for display (e.g., colors/cornflower/100)
+              // Also support scale-based name for backwards compatibility
+              push(`colors/${familyName}/${lvl}`, 'color', levelObj.$value)
+              // Also create scale-based token name (e.g., colors/scale-01/100)
+              if (familyName !== scaleKey) {
+                push(`colors/${scaleKey}/${lvl}`, 'color', levelObj.$value)
+              }
+            }
+          })
         })
-      })
-      if (t?.color?.gray?.['000']) push('color/gray/000', 'color', t.color.gray['000'].$value)
-      if (t?.color?.gray?.['1000']) push('color/gray/1000', 'color', t.color.gray['1000'].$value)
+      }
+      
+      // Backwards compatibility: also process old color structure if it exists
+      const oldColors = t?.color || {}
+      if (oldColors && typeof oldColors === 'object' && !Array.isArray(oldColors)) {
+        Object.keys(oldColors).forEach((family) => {
+          if (family === 'translucent') return
+          const levels = oldColors[family] || {}
+          Object.keys(levels).forEach((lvl) => {
+            push(`color/${family}/${lvl}`, 'color', levels[lvl]?.$value)
+          })
+        })
+        if (oldColors.gray?.['000']) push('color/gray/000', 'color', oldColors.gray['000'].$value)
+        if (oldColors.gray?.['1000']) push('color/gray/1000', 'color', oldColors.gray['1000'].$value)
+      }
     } catch {}
     return list
   }, [tokensJson])
@@ -166,11 +201,15 @@ export default function ColorTokens() {
     const byMode: Record<ModeName, Record<string, Array<{ level: string; entry: TokenEntry }>>> = {}
     flatTokens.forEach((entry) => {
       if (!entry || entry.type !== 'color') return
-      if (!entry.name.startsWith('color/')) return
+      // Support both old format (color/family/level) and new format (colors/family/level or colors/scale-XX/level)
+      if (!entry.name.startsWith('color/') && !entry.name.startsWith('colors/')) return
       const parts = entry.name.split('/')
       if (parts.length < 3) return
       const family = parts[1]
-      if (family === 'translucent') return
+      if (family === 'translucent' || family.startsWith('scale-')) {
+        // Skip scale-XX keys, only use alias-based names for grouping
+        return
+      }
       const rawLevel = parts[2]
       if (!/^\d+$/.test(rawLevel)) return
       const level = rawLevel.length === 2 ? `0${rawLevel}` : rawLevel.length === 1 ? `00${rawLevel}` : rawLevel
@@ -180,11 +219,15 @@ export default function ColorTokens() {
       byMode[mode][family].push({ level, entry })
     })
     Object.keys(values).forEach((name) => {
-      if (!name.startsWith('color/')) return
+      // Support both old format (color/family/level) and new format (colors/family/level)
+      if (!name.startsWith('color/') && !name.startsWith('colors/')) return
       const parts = name.split('/')
       if (parts.length !== 3) return
       const family = parts[1]
-      if (family === 'translucent') return
+      if (family === 'translucent' || family.startsWith('scale-')) {
+        // Skip scale-XX keys, only use alias-based names for grouping
+        return
+      }
       const rawLevel = parts[2]
       if (!/^\d+$/.test(rawLevel)) return
       const level = rawLevel.length === 2 ? `0${rawLevel}` : rawLevel.length === 1 ? `00${rawLevel}` : rawLevel

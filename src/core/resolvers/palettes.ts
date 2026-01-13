@@ -488,6 +488,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     if (defaultState?.tone) {
       const toneValue = getColorVar(defaultState.tone)
       vars[`--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-tone`] = toneValue
+      // Generate base variable for backwards compatibility (without -default-tone suffix)
+      vars[`--recursica-brand-themes-${modeLower}-palettes-core-interactive`] = toneValue
     }
     if (defaultState?.['on-tone']) {
       const onToneValue = getColorVar(defaultState['on-tone'])
@@ -524,6 +526,21 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       }
     })
   } catch {}
+  
+  // Add backwards compatibility aliases for old format (without themes in path)
+  // Old format: --recursica-brand-light-palettes-core-...
+  // New format: --recursica-brand-themes-light-palettes-core-...
+  const backwardsCompatVars: Record<string, string> = {}
+  Object.keys(vars).forEach((newVarName) => {
+    if (newVarName.startsWith(`--recursica-brand-themes-${modeLower}-palettes-`)) {
+      const oldVarName = newVarName.replace(`--recursica-brand-themes-${modeLower}-`, `--recursica-brand-${modeLower}-`)
+      // Only add alias if it doesn't already exist (to avoid overwriting)
+      if (!vars[oldVarName] && !backwardsCompatVars[oldVarName]) {
+        backwardsCompatVars[oldVarName] = vars[newVarName]
+      }
+    }
+  })
+  Object.assign(vars, backwardsCompatVars)
   
   return vars
 }

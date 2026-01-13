@@ -427,7 +427,11 @@ export class AAComplianceWatcher {
       
       // Get the base color from the token index using the same family
       const normalizedLevel = colorInfo.level === '000' ? '050' : colorInfo.level
-      const baseColorHex = this.tokenIndex.get(`color/${colorInfo.family}/${normalizedLevel}`)
+      // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
+      let baseColorHex = this.tokenIndex.get(`colors/${colorInfo.family}/${normalizedLevel}`)
+      if (typeof baseColorHex !== 'string') {
+        baseColorHex = this.tokenIndex.get(`color/${colorInfo.family}/${normalizedLevel}`)
+      }
       
       if (typeof baseColorHex === 'string') {
         const hex = baseColorHex.startsWith('#') ? baseColorHex.toLowerCase() : `#${baseColorHex.toLowerCase()}`
@@ -480,7 +484,11 @@ export class AAComplianceWatcher {
       if (coreToken) {
         // Get the core color hex from the token index
         const normalizedLevel = coreToken.level === '000' ? '050' : coreToken.level
-        const coreColorHex = this.tokenIndex.get(`color/${coreToken.family}/${normalizedLevel}`)
+        // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
+        let coreColorHex = this.tokenIndex.get(`colors/${coreToken.family}/${normalizedLevel}`)
+        if (typeof coreColorHex !== 'string') {
+          coreColorHex = this.tokenIndex.get(`color/${coreToken.family}/${normalizedLevel}`)
+        }
         
         if (typeof coreColorHex === 'string') {
           const hex = coreColorHex.startsWith('#') ? coreColorHex.toLowerCase() : `#${coreColorHex.toLowerCase()}`

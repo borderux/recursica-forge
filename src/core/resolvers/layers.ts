@@ -636,6 +636,19 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     if (layersData && Object.prototype.hasOwnProperty.call(layersData, key)) applyForLayer(layersData[key], lvl)
   })
 
+  // Add backwards compatibility aliases for old format (without themes in path)
+  // Old format: --recursica-brand-light-layer-layer-0-property-...
+  // New format: --recursica-brand-themes-light-layer-layer-0-property-...
+  Object.keys(result).forEach((newVarName) => {
+    if (newVarName.startsWith(`--recursica-brand-themes-${mode}-layer-layer-`)) {
+      const oldVarName = newVarName.replace(`--recursica-brand-themes-${mode}-`, `--recursica-brand-${mode}-`)
+      // Only add alias if it doesn't already exist (to avoid overwriting)
+      if (!result[oldVarName]) {
+        result[oldVarName] = result[newVarName]
+      }
+    }
+  })
+
   // Report layers missing palette surface references (silently via event only)
   if (missingPaletteSurfaces.length > 0) {
     try {
