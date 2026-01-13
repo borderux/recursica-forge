@@ -101,22 +101,47 @@ export default function ColorTokens() {
     try { localStorage.setItem('color-family-order', JSON.stringify(familyOrder)) } catch {}
   }, [familyOrder])
 
-  // Seed family names from tokens
+  // Seed family names from tokens - use alias from JSON for new structure
   useEffect(() => {
     try {
-      const t: any = (tokensJson as any)?.tokens?.color || {}
-      const keys = Object.keys(t).filter((k) => k !== 'translucent')
+      const t: any = (tokensJson as any)?.tokens || {}
       const raw = localStorage.getItem('family-friendly-names')
       const existing = raw ? (JSON.parse(raw) || {}) : {}
       const next: Record<string, string> = { ...existing }
       let changed = false
-      keys.forEach((fam) => {
+      
+      // Process new colors structure (colors.scale-XX with alias)
+      const colorsRoot = t?.colors || {}
+      if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+        Object.keys(colorsRoot).forEach((scaleKey) => {
+          if (!scaleKey.startsWith('scale-')) return
+          const scale = colorsRoot[scaleKey]
+          if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
+          
+          const alias = scale.alias
+          // Use alias as the family name key, and alias value as the friendly name
+          if (alias && typeof alias === 'string') {
+            // Check if we should update (on init/reset, use alias; otherwise preserve existing)
+            // If the existing value is empty or matches the old scale key, update it
+            if (!next[alias] || !String(next[alias]).trim() || next[alias] === toTitleCase(scaleKey)) {
+              next[alias] = toTitleCase(alias)
+              changed = true
+            }
+          }
+        })
+      }
+      
+      // Process old color structure for backwards compatibility
+      const oldColors = t?.color || {}
+      const oldKeys = Object.keys(oldColors).filter((k) => k !== 'translucent')
+      oldKeys.forEach((fam) => {
         const desired = toTitleCase(fam)
         if (!next[fam] || !String(next[fam]).trim()) {
           next[fam] = desired
           changed = true
         }
       })
+      
       if (changed) setFamilyNames(next)
     } catch {}
   }, [tokensJson])

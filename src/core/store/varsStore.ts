@@ -199,6 +199,7 @@ class VarsStore {
   private isRecomputing: boolean = false
   private isLoadingFonts: boolean = false
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
+  private hasRunInitialReset: boolean = false
 
   constructor() {
     const tokensRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
@@ -223,9 +224,32 @@ class VarsStore {
         writeLSJson(STORAGE_KEYS.uikit, uikitImport)
         writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
         try {
-          const colors: any = (tokensImport as any)?.tokens?.color || {}
+          const tokensRoot: any = (tokensImport as any)?.tokens || {}
           const names: Record<string, string> = {}
-          Object.keys(colors).forEach((fam) => { if (fam !== 'translucent') names[fam] = toTitleCase(fam) })
+          
+          // Process new colors structure (colors.scale-XX with alias)
+          const colorsRoot = tokensRoot?.colors || {}
+          if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+            Object.keys(colorsRoot).forEach((scaleKey) => {
+              if (!scaleKey.startsWith('scale-')) return
+              const scale = colorsRoot[scaleKey]
+              if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
+              
+              const alias = scale.alias
+              if (alias && typeof alias === 'string') {
+                names[alias] = toTitleCase(alias)
+              }
+            })
+          }
+          
+          // Process old color structure for backwards compatibility
+          const oldColors = tokensRoot?.color || {}
+          Object.keys(oldColors).forEach((fam) => {
+            if (fam !== 'translucent') {
+              names[fam] = toTitleCase(fam)
+            }
+          })
+          
           writeLSJson('family-friendly-names', names)
         } catch {}
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
@@ -339,6 +363,24 @@ class VarsStore {
       }
     }) as EventListener
     window.addEventListener('tokenOverridesChanged', onTokenChanged)
+    
+    // Run resetAll once after initialization completes
+    // Use setTimeout to ensure all async operations (like initAAWatcher) complete first
+    if (!this.hasRunInitialReset) {
+      this.hasRunInitialReset = true
+      // Wait for AA watcher to be initialized before calling resetAll
+      setTimeout(() => {
+        // Double-check that AA watcher is ready (it's initialized asynchronously)
+        if (this.aaWatcher) {
+          this.resetAll()
+        } else {
+          // If watcher isn't ready yet, wait a bit more and try again
+          setTimeout(() => {
+            this.resetAll()
+          }, 200)
+        }
+      }, 300) // Initial delay to ensure all initialization is complete
+    }
   }
 
   private initAAWatcher() {
@@ -351,7 +393,7 @@ class VarsStore {
         const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
         // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
         const themes = root?.themes || root
-        const levels = ['900','800','700','600','500','400','300','200','100','050']
+        const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
         // Watch both light and dark modes
         for (const mode of ['light', 'dark'] as const) {
           const pal: any = themes?.[mode]?.palettes || {}
@@ -732,6 +774,39 @@ class VarsStore {
         writeLSJson(STORAGE_KEYS.uikit, uikitImport)
         writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
         writeLSJson(STORAGE_KEYS.elevation, this.initElevationState(normalizedTheme as any, this.state.tokens))
+        
+        // Reset family-friendly-names to use aliases from JSON
+        try {
+          const tokensRoot: any = (tokensImport as any)?.tokens || {}
+          const names: Record<string, string> = {}
+          
+          // Process new colors structure (colors.scale-XX with alias)
+          const colorsRoot = tokensRoot?.colors || {}
+          if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+            Object.keys(colorsRoot).forEach((scaleKey) => {
+              if (!scaleKey.startsWith('scale-')) return
+              const scale = colorsRoot[scaleKey]
+              if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
+              
+              const alias = scale.alias
+              if (alias && typeof alias === 'string') {
+                names[alias] = toTitleCase(alias)
+              }
+            })
+          }
+          
+          // Process old color structure for backwards compatibility
+          const oldColors = tokensRoot?.color || {}
+          Object.keys(oldColors).forEach((fam) => {
+            if (fam !== 'translucent') {
+              names[fam] = toTitleCase(fam)
+            }
+          })
+          
+          writeLSJson('family-friendly-names', names)
+          // Dispatch event to notify components of the reset
+          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names })) } catch {}
+        } catch {}
       }
       
       // Reset state
