@@ -118,13 +118,13 @@ export default function DimensionTokenSelector({
           propNameLower === 'item-gap' || propNameLower === 'divider-item-gap') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
-        const spacers = dimensions?.spacer || {}
+        const spacers = dimensions?.spacers || dimensions?.spacer || {}
         
         // Collect spacer dimensions (none, xs, sm, md, lg, xl, default)
         Object.keys(spacers).forEach(spacerKey => {
           const spacerValue = spacers[spacerKey]
           if (spacerValue && typeof spacerValue === 'object' && '$value' in spacerValue) {
-            const cssVar = `--recursica-brand-dimensions-spacer-${spacerKey}`
+            const cssVar = `--recursica-brand-dimensions-spacers-${spacerKey}`
             const cssValue = readCssVar(cssVar)
             
             // Only add if the CSS var exists (has been generated)
@@ -172,13 +172,13 @@ export default function DimensionTokenSelector({
       if (propNameLower === 'icon') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
-        const icons = dimensions?.icon || {}
+        const icons = dimensions?.icons || dimensions?.icon || {}
         
         // Collect icon dimensions (xs, sm, default, lg)
         Object.keys(icons).forEach(iconKey => {
           const iconValue = icons[iconKey]
           if (iconValue && typeof iconValue === 'object' && '$value' in iconValue) {
-            const cssVar = `--recursica-brand-dimensions-icon-${iconKey}`
+            const cssVar = `--recursica-brand-dimensions-icons-${iconKey}`
             const cssValue = readCssVar(cssVar)
             
             // Only add if the CSS var exists (has been generated)

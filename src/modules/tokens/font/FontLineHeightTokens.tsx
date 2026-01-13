@@ -82,7 +82,7 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
       {order.map((k) => {
         const name = `font/line-height/${k}`
         const label = toTitle(k)
@@ -97,7 +97,7 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
           <div key={name} style={{ 
             display: 'grid', 
             gridTemplateColumns: 'auto 1fr auto', 
-            gap: 'var(--recursica-brand-dimensions-spacer-md)',
+            gap: 'var(--recursica-brand-dimensions-spacers-md)',
             alignItems: 'start',
           }}>
             <label htmlFor={name} style={{ 
@@ -105,7 +105,7 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
               minWidth: 80,
-              paddingTop: 'var(--recursica-brand-dimensions-spacer-xs)',
+              paddingTop: 'var(--recursica-brand-dimensions-spacers-xs)',
             }}>
               {label}
             </label>
@@ -116,7 +116,7 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
             }}>
               {exampleText}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
               <StyledSlider
                 id={name}
                 min={0.5}

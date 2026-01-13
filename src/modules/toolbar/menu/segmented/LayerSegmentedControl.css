@@ -1,7 +1,7 @@
 .layer-segmented-control {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacer-sm);
+  gap: var(--recursica-brand-dimensions-spacers-sm);
   width: 100%;
 }
 
@@ -9,13 +9,13 @@
   width: 16px;
   height: 16px;
   color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-medium-emphasis);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-low-emphasis);
   flex-shrink: 0;
 }
 
 html[data-theme-mode="dark"] .layer-segmented-control-icon {
   color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-medium-emphasis);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-low-emphasis);
 }
 
 .layer-segmented-control-label {
@@ -36,7 +36,7 @@ html[data-theme-mode="dark"] .layer-segmented-control-label {
 }
 
 .layer-segmented-control-button {
-  padding: var(--recursica-brand-dimensions-spacer-xs) var(--recursica-brand-dimensions-spacer-sm);
+  padding: var(--recursica-brand-dimensions-spacers-xs) var(--recursica-brand-dimensions-spacers-sm);
   border: none;
   border-right: 1px solid var(--recursica-brand-themes-light-layer-layer-0-property-border-color);
   cursor: pointer;

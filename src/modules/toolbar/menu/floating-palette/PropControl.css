@@ -4,11 +4,11 @@
 .prop-control-content {
   display: flex;
   flex-direction: column;
-  gap: var(--recursica-brand-dimensions-sm);
+  gap: var(--recursica-brand-dimensions-spacers-sm);
 }
 
 .prop-control-content:has(> :nth-child(2)) {
-  gap: var(--recursica-brand-dimensions-md);
+  gap: var(--recursica-brand-dimensions-spacers-md);
 }
 
 .prop-control-label {
@@ -23,12 +23,12 @@ html[data-theme-mode="dark"] .prop-control-label {
 
 .prop-control-input-group {
   display: flex;
-  gap: var(--recursica-brand-dimensions-sm);
+  gap: var(--recursica-brand-dimensions-spacers-sm);
 }
 
 .prop-control-input {
   flex: 1;
-  padding: var(--recursica-brand-dimensions-sm) var(--recursica-brand-dimensions-md);
+  padding: var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md);
   border: var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-light-layer-layer-3-property-border-color, var(--recursica-brand-themes-light-layer-layer-3-property-border-color));
   border-radius: var(--recursica-brand-themes-light-layer-layer-3-property-border-radius, var(--recursica-brand-themes-light-layer-layer-3-property-border-radius));
   background: var(--recursica-brand-themes-light-layer-layer-3-property-surface, var(--recursica-brand-themes-light-layer-layer-3-property-surface));
@@ -52,7 +52,7 @@ html[data-theme-mode="dark"] .prop-control-input:focus {
 }
 
 .prop-control-unit-select {
-  padding: var(--recursica-brand-dimensions-sm) var(--recursica-brand-dimensions-md);
+  padding: var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md);
   border: var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-light-layer-layer-3-property-border-color, var(--recursica-brand-themes-light-layer-layer-3-property-border-color));
   border-radius: var(--recursica-brand-themes-light-layer-layer-3-property-border-radius, var(--recursica-brand-themes-light-layer-layer-3-property-border-radius));
   background: var(--recursica-brand-themes-light-layer-layer-3-property-surface, var(--recursica-brand-themes-light-layer-layer-3-property-surface));
@@ -77,7 +77,7 @@ html[data-theme-mode="dark"] .prop-control-unit-select:focus {
 }
 
 .prop-control-readonly {
-  padding: var(--recursica-brand-dimensions-sm) var(--recursica-brand-dimensions-md);
+  padding: var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md);
   border: var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-light-layer-layer-3-property-border-color, var(--recursica-brand-themes-light-layer-layer-3-property-border-color));
   border-radius: var(--recursica-brand-themes-light-layer-layer-3-property-border-radius, var(--recursica-brand-themes-light-layer-layer-3-property-border-radius));
   background: var(--recursica-brand-themes-light-layer-layer-3-property-surface, var(--recursica-brand-themes-light-layer-layer-3-property-surface));

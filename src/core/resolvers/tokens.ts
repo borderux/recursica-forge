@@ -12,25 +12,48 @@ export function buildTokenIndex(tokens: JsonLike | null | undefined): TokenIndex
     const [head, ...rest] = parts
     switch (head) {
       case 'color': {
-        const [family, level] = rest
-        return root?.color?.[family]?.[level]?.$value
+        // Support both old format (color/family/level) and new format (color/scale-XX/level)
+        const [scaleOrFamily, level] = rest
+        if (scaleOrFamily?.startsWith('scale-')) {
+          // New format: colors.scale-XX.XXX
+          return root?.colors?.[scaleOrFamily]?.[level]?.$value
+        } else {
+          // Old format: color.family.level (for backwards compatibility)
+          return root?.color?.[scaleOrFamily]?.[level]?.$value
+        }
+      }
+      case 'colors': {
+        // New format: colors/scale-XX/level
+        const [scale, level] = rest
+        return root?.colors?.[scale]?.[level]?.$value
       }
       case 'opacity': {
         const [name] = rest
-        return root?.opacity?.[name]?.$value
+        return root?.opacities?.[name]?.$value
+      }
+      case 'opacities': {
+        const [name] = rest
+        return root?.opacities?.[name]?.$value
       }
       case 'size': {
         const [name] = rest
-        return root?.size?.[name]?.$value
+        return root?.sizes?.[name]?.$value
+      }
+      case 'sizes': {
+        const [name] = rest
+        return root?.sizes?.[name]?.$value
       }
       case 'font': {
         const [kind, key] = rest
-        if (kind === 'weight') return root?.font?.weight?.[key]?.$value
-        if (kind === 'size') return root?.font?.size?.[key]?.$value
-        if (kind === 'letter-spacing') return root?.font?.['letter-spacing']?.[key]?.$value
-        if (kind === 'line-height') return root?.font?.['line-height']?.[key]?.$value
+        // Handle pluralized font keys
+        if (kind === 'weights' || kind === 'weight') return root?.font?.weights?.[key]?.$value || root?.font?.weight?.[key]?.$value
+        if (kind === 'sizes' || kind === 'size') return root?.font?.sizes?.[key]?.$value || root?.font?.size?.[key]?.$value
+        if (kind === 'letter-spacings' || kind === 'letter-spacing') return root?.font?.['letter-spacings']?.[key]?.$value || root?.font?.['letter-spacing']?.[key]?.$value
+        if (kind === 'line-heights' || kind === 'line-height') return root?.font?.['line-heights']?.[key]?.$value || root?.font?.['line-height']?.[key]?.$value
+        if (kind === 'typefaces' || kind === 'typeface') return root?.font?.typefaces?.[key]?.$value || root?.font?.typeface?.[key]?.$value
+        if (kind === 'cases') return root?.font?.cases?.[key]?.$value
+        if (kind === 'decorations') return root?.font?.decorations?.[key]?.$value
         if (kind === 'family') return root?.font?.family?.[key]?.$value
-        if (kind === 'typeface') return root?.font?.typeface?.[key]?.$value
         return undefined
       }
       default:

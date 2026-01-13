@@ -24,7 +24,7 @@ export default function BadgePreview({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 'var(--recursica-brand-dimensions-spacer-md)',
+      gap: 'var(--recursica-brand-dimensions-spacers-md)',
       flexWrap: 'wrap',
       padding: 24,
     }}>

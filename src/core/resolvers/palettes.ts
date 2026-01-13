@@ -265,18 +265,16 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       
       const scope = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${pk}-${cssLevel}`
       
-      // Parse tone from JSON - simple brace reference parsing
+      // Parse tone from JSON - use centralized resolver to handle both old and new formats
       let toneVar: string | null = null
       if (toneRaw && typeof toneRaw === 'string') {
-        const parsed = parseTokenReference(toneRaw, context)
-        if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
-          const family = parsed.path[1]
-          const tokenLevel = parsed.path[2] // Use the token level from the JSON, NOT the palette level
-          const level = toLevelString(tokenLevel)
-          toneVar = `var(--recursica-tokens-color-${family}-${level})`
-        } else {
-          // If parsing didn't match token format, try resolving the value to see if it's a valid token reference
-          // This handles edge cases where the reference format might be slightly different
+        // Use resolveTokenReferenceToCssVar to handle both:
+        // - Old format: {tokens.color.family.level} -> --recursica-tokens-color-{family}-{level}
+        // - New format: {tokens.colors.scale-XX.level} -> --recursica-tokens-colors-{scale-XX}-{level}
+        toneVar = resolveTokenReferenceToCssVar(toneRaw, context)
+        
+        // If that didn't work, try resolving to see if it's a valid reference that just resolved to a hex
+        if (!toneVar) {
           try {
             const resolvedValue = resolveTokenReferenceToValue(toneRaw, context)
             if (resolvedValue && typeof resolvedValue === 'string' && resolvedValue.startsWith('#')) {

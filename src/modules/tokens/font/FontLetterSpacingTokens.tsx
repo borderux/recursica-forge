@@ -95,7 +95,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
       {items.map((it) => {
         const keyName = it.name.replace('font/letter-spacing/','')
         const label = keyName === 'tighest' ? 'Tightest' : toTitle(keyName)
@@ -110,7 +110,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
           <div key={it.name} style={{ 
             display: 'grid', 
             gridTemplateColumns: 'auto 1fr auto', 
-            gap: 'var(--recursica-brand-dimensions-spacer-md)',
+            gap: 'var(--recursica-brand-dimensions-spacers-md)',
             alignItems: 'start',
           }}>
             <label htmlFor={it.name} style={{ 
@@ -118,7 +118,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
               minWidth: 80,
-              paddingTop: 'var(--recursica-brand-dimensions-spacer-xs)',
+              paddingTop: 'var(--recursica-brand-dimensions-spacers-xs)',
             }}>
               {label}
             </label>
@@ -130,7 +130,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
             }}>
               {exampleText}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
               <StyledSlider
                 id={it.name}
                 min={-2}

@@ -68,8 +68,26 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
   
   try {
     const src: any = (tokens as any)?.tokens?.font || {}
+    // Map of category names to their plural forms
+    const pluralMap: Record<string, string> = {
+      'size': 'sizes',
+      'sizes': 'sizes',
+      'weight': 'weights',
+      'weights': 'weights',
+      'letter-spacing': 'letter-spacings',
+      'letter-spacings': 'letter-spacings',
+      'line-height': 'line-heights',
+      'line-heights': 'line-heights',
+      'typeface': 'typefaces',
+      'typefaces': 'typefaces',
+      'cases': 'cases',
+      'decorations': 'decorations',
+      'family': 'family' // Keep family as-is
+    }
     const emitCategory = (category: string, unitHint?: string) => {
-      const cat: any = src?.[category] || {}
+      const pluralCategory = pluralMap[category] || category
+      // Try plural first, then singular for backwards compatibility
+      const cat: any = src?.[pluralCategory] || src?.[category] || {}
       Object.keys(cat).forEach((short) => {
         if (short.startsWith('$')) return
         // Skip if this font family/typeface is marked as deleted
@@ -105,7 +123,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         // 1. Explicitly deleted (in deletedFamilies)
         // 2. Override is explicitly null/empty (user deleted it)
         // 3. No value found (neither override nor token has a value)
-        if (category === 'family' || category === 'typeface') {
+        if (category === 'family' || category === 'typeface' || category === 'typefaces') {
           if (overrideValue === null || (overrideValue !== undefined && String(overrideValue).trim() === '')) {
             return
           }
@@ -115,19 +133,26 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         }
         if (typeof valueStr === 'string' && valueStr) {
           // For font families/typefaces, use the cached actual font-family name from CSS
-          if (category === 'family' || category === 'typeface') {
+          if (category === 'family' || category === 'typeface' || category === 'typefaces') {
             valueStr = safeGetCachedFontFamilyName(valueStr)
           }
-          vars[`--tokens-font-${category}-${short}`] = valueStr
+          // Use plural form for CSS var name
+          vars[`--recursica-tokens-font-${pluralCategory}-${short}`] = valueStr
+          // Backwards compatibility: also create singular form if different
+          if (pluralCategory !== category) {
+            vars[`--recursica-tokens-font-${category}-${short}`] = valueStr
+          }
         }
       })
     }
     emitCategory('family')            // string font-family stack
-    emitCategory('typeface')          // specific font family name
-    emitCategory('size', 'px')        // numeric → px
-    emitCategory('weight')            // numeric or named
-    emitCategory('letter-spacing', 'em')
-    emitCategory('line-height')       // unitless or string
+    emitCategory('typefaces')         // specific font family name (plural)
+    emitCategory('sizes', 'px')       // numeric → px (plural)
+    emitCategory('weights')            // numeric or named (plural)
+    emitCategory('letter-spacings', 'em') // (plural)
+    emitCategory('line-heights')      // unitless or string (plural)
+    emitCategory('cases')             // text case values
+    emitCategory('decorations')       // text decoration values
   } catch {}
   
   // Also emit CSS variables from overrides for font families/typefaces
@@ -148,10 +173,15 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         // Empty values mean the font family was deleted
         if (value && value.trim()) {
           // For font families/typefaces, use the cached actual font-family name from CSS
-          const finalValue = (category === 'family' || category === 'typeface')
+          const finalValue = (category === 'family' || category === 'typeface' || category === 'typefaces')
             ? safeGetCachedFontFamilyName(value)
             : value
-          vars[`--tokens-font-${category}-${key}`] = finalValue
+          const pluralCategory = category === 'typeface' ? 'typefaces' : category
+          vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = finalValue
+          // Backwards compatibility
+          if (pluralCategory !== category) {
+            vars[`--recursica-tokens-font-${category}-${key}`] = finalValue
+          }
         }
       }
     })
@@ -205,14 +235,23 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       const s = typeof ref === 'string' ? ref.trim() : (ref && typeof ref === 'object') ? String(((ref as any).$value ?? (ref as any).value) || '').trim() : ''
       if (!s) return null
       const inner = extractBraceContent(s) || s
-      const cats: Array<'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'> = ['family','typeface','size','weight','letter-spacing','line-height']
-      for (const cat of cats) {
-        const re = new RegExp(`^(?:tokens|token)\\.font\\.${cat}\\.([a-z0-9\\-_]+)$`, 'i')
+      // Map of categories to their plural forms for matching
+      const catMap: Array<{ singular: 'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'; plural: string }> = [
+        { singular: 'family', plural: 'families' },
+        { singular: 'typeface', plural: 'typefaces' },
+        { singular: 'size', plural: 'sizes' },
+        { singular: 'weight', plural: 'weights' },
+        { singular: 'letter-spacing', plural: 'letter-spacings' },
+        { singular: 'line-height', plural: 'line-heights' }
+      ]
+      for (const { singular, plural } of catMap) {
+        // Try both singular and plural forms (e.g., tokens.font.typeface.primary or tokens.font.typefaces.primary)
+        const re = new RegExp(`^(?:tokens|token)\\.font\\.(?:${singular}|${plural})\\.([a-z0-9\\-_]+)$`, 'i')
         const m = inner.match(re)
-        if (m) return { category: cat, suffix: m[1] }
-        const varRe = new RegExp(`^var\\(\\s*--tokens-font-${cat}-([a-z0-9\\-_]+)\\s*\\)\\s*$`, 'i')
+        if (m) return { category: singular, suffix: m[1] }
+        const varRe = new RegExp(`^var\\(\\s*--tokens-font-(?:${singular}|${plural})-([a-z0-9\\-_]+)\\s*\\)\\s*$`, 'i')
         const mv = s.match(varRe)
-        if (mv) return { category: cat, suffix: mv[1] }
+        if (mv) return { category: singular, suffix: mv[1] }
       }
     } catch {}
     return null
@@ -285,7 +324,18 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       const valStr = String(value).trim()
       if (!valStr) return null
       try {
-        const src: any = (tokens as any)?.tokens?.font?.[category] || {}
+        // Map singular category to plural for token lookup
+        const categoryToPlural: Record<string, string> = {
+          'family': 'families',
+          'typeface': 'typefaces',
+          'size': 'sizes',
+          'weight': 'weights',
+          'letter-spacing': 'letter-spacings',
+          'line-height': 'line-heights'
+        }
+        const pluralCategory = categoryToPlural[category] || category
+        // Try plural form first, then singular for backwards compatibility
+        const src: any = (tokens as any)?.tokens?.font?.[pluralCategory] || (tokens as any)?.tokens?.font?.[category] || {}
         for (const [key, token] of Object.entries(src)) {
           if (key.startsWith('$')) continue
           const tokenVal = (token as any)?.['$value']
@@ -300,7 +350,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
             else if (typeof v === 'string') tokenValStr = u ? `${v}${u}` : String(v)
           }
           if (tokenValStr && tokenValStr.trim() === valStr) {
-            return `var(--recursica-tokens-font-${category}-${key})`
+            // Use plural form for CSS var name
+            return `var(--recursica-tokens-font-${pluralCategory}-${key})`
           }
         }
       } catch {}
@@ -309,32 +360,58 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     
     const brandPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
     const shortPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
-    if (family != null) {
-      const brandVal = familyToken 
-        ? `var(--recursica-tokens-font-${familyToken.category}-${familyToken.suffix})`
-        : (findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family'))
-      
-      // For brand vars, always use token reference, never raw values
-      if (brandVal) {
-        vars[`${brandPrefix}font-family`] = brandVal
-        vars[`${shortPrefix}font-family`] = brandVal
-      } else {
-        // Fallback to default token reference
-        const defaultFamily = getFontToken('typeface/primary') ?? getFontToken('family/primary')
-        if (defaultFamily) {
-          const defaultToken = findTokenByValue(defaultFamily, 'typeface') || findTokenByValue(defaultFamily, 'family')
-          if (defaultToken) {
-            vars[`${brandPrefix}font-family`] = defaultToken
-            vars[`${shortPrefix}font-family`] = defaultToken
+    // Map singular category to plural form for CSS var names
+    const categoryToPlural: Record<string, string> = {
+      'family': 'families',
+      'typeface': 'typefaces',
+      'size': 'sizes',
+      'weight': 'weights',
+      'letter-spacing': 'letter-spacings',
+      'line-height': 'line-heights'
+    }
+    // Always generate font-family CSS var, even if family is null (use default)
+    let brandVal: string | null = null
+    if (familyToken) {
+      const pluralCategory = categoryToPlural[familyToken.category] || familyToken.category
+      brandVal = `var(--recursica-tokens-font-${pluralCategory}-${familyToken.suffix})`
+    } else if (family != null) {
+      brandVal = findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family')
+    }
+    
+    // For brand vars, always use token reference, never raw values
+    if (brandVal) {
+      vars[`${brandPrefix}font-family`] = brandVal
+      vars[`${shortPrefix}font-family`] = brandVal
+    } else {
+      // Fallback to default token reference - ensure we always have a font-family
+      const defaultFamilyToken = getFontToken('typeface/primary') ?? getFontToken('family/primary')
+      if (defaultFamilyToken) {
+        const defaultToken = findTokenByValue(defaultFamilyToken, 'typeface') || findTokenByValue(defaultFamilyToken, 'family')
+        if (defaultToken) {
+          vars[`${brandPrefix}font-family`] = defaultToken
+          vars[`${shortPrefix}font-family`] = defaultToken
+        } else {
+          // Last resort: use typefaces-primary or families-primary token directly
+          const primaryTypefaceToken = findTokenByValue('primary', 'typeface') || findTokenByValue('primary', 'family')
+          if (primaryTypefaceToken) {
+            vars[`${brandPrefix}font-family`] = primaryTypefaceToken
+            vars[`${shortPrefix}font-family`] = primaryTypefaceToken
           }
         }
+      } else {
+        // Absolute last resort: try to find any typeface token
+        const anyTypefaceToken = findTokenByValue('primary', 'typeface') || findTokenByValue('primary', 'family')
+        if (anyTypefaceToken) {
+          vars[`${brandPrefix}font-family`] = anyTypefaceToken
+          vars[`${shortPrefix}font-family`] = anyTypefaceToken
+        }
       }
-      if (typeof brandVal === 'string' && !brandVal.startsWith('var(')) usedFamilies.add(String(family))
-      else if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
     }
+    if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
+    else if (brandVal && typeof brandVal === 'string' && !brandVal.startsWith('var(')) usedFamilies.add(String(brandVal))
     if (size != null) {
       const brandVal = sizeToken 
-        ? `var(--recursica-tokens-font-${sizeToken.category}-${sizeToken.suffix})`
+        ? `var(--recursica-tokens-font-${categoryToPlural[sizeToken.category] || sizeToken.category}-${sizeToken.suffix})`
         : findTokenByValue(size, 'size')
       
       // For brand vars, always use token reference
@@ -350,15 +427,15 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
             vars[`${brandPrefix}font-size`] = defaultToken
             vars[`${shortPrefix}font-size`] = defaultToken
           } else {
-            vars[`${brandPrefix}font-size`] = 'var(--recursica-tokens-font-size-md)'
-            vars[`${shortPrefix}font-size`] = 'var(--recursica-tokens-font-size-md)'
+            vars[`${brandPrefix}font-size`] = 'var(--recursica-tokens-font-sizes-md)'
+            vars[`${shortPrefix}font-size`] = 'var(--recursica-tokens-font-sizes-md)'
           }
         }
       }
     }
     if (weight != null) {
       const brandVal = weightToken 
-        ? `var(--recursica-tokens-font-${weightToken.category}-${weightToken.suffix})`
+        ? `var(--recursica-tokens-font-${categoryToPlural[weightToken.category] || weightToken.category}-${weightToken.suffix})`
         : findTokenByValue(weight, 'weight')
       
       // For brand vars, always use token reference
@@ -367,13 +444,13 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${shortPrefix}font-weight`] = brandVal
       } else {
         // Fallback to default token reference
-        vars[`${brandPrefix}font-weight`] = 'var(--recursica-tokens-font-weight-regular)'
-        vars[`${shortPrefix}font-weight`] = 'var(--recursica-tokens-font-weight-regular)'
+        vars[`${brandPrefix}font-weight`] = 'var(--recursica-tokens-font-weights-regular)'
+        vars[`${shortPrefix}font-weight`] = 'var(--recursica-tokens-font-weights-regular)'
       }
     }
     if (spacing != null) {
       const brandVal = spacingToken 
-        ? `var(--recursica-tokens-font-${spacingToken.category}-${spacingToken.suffix})`
+        ? `var(--recursica-tokens-font-${categoryToPlural[spacingToken.category] || spacingToken.category}-${spacingToken.suffix})`
         : findTokenByValue(spacing, 'letter-spacing')
       
       // For brand vars, always use token reference
@@ -382,13 +459,13 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${shortPrefix}font-letter-spacing`] = brandVal
       } else {
         // Fallback to default token reference
-        vars[`${brandPrefix}font-letter-spacing`] = 'var(--recursica-tokens-font-letter-spacing-default)'
-        vars[`${shortPrefix}font-letter-spacing`] = 'var(--recursica-tokens-font-letter-spacing-default)'
+        vars[`${brandPrefix}font-letter-spacing`] = 'var(--recursica-tokens-font-letter-spacings-default)'
+        vars[`${shortPrefix}font-letter-spacing`] = 'var(--recursica-tokens-font-letter-spacings-default)'
       }
     }
     if (lineHeight != null) {
       const brandVal = lineHeightToken 
-        ? `var(--recursica-tokens-font-${lineHeightToken.category}-${lineHeightToken.suffix})`
+        ? `var(--recursica-tokens-font-${categoryToPlural[lineHeightToken.category] || lineHeightToken.category}-${lineHeightToken.suffix})`
         : findTokenByValue(lineHeight, 'line-height')
       
       // For brand vars, always use token reference
@@ -397,8 +474,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${shortPrefix}line-height`] = brandVal
       } else {
         // Fallback to default token reference
-        vars[`${brandPrefix}line-height`] = 'var(--recursica-tokens-font-line-height-default)'
-        vars[`${shortPrefix}line-height`] = 'var(--recursica-tokens-font-line-height-default)'
+        vars[`${brandPrefix}line-height`] = 'var(--recursica-tokens-font-line-heights-default)'
+        vars[`${shortPrefix}line-height`] = 'var(--recursica-tokens-font-line-heights-default)'
       }
     }
     if (typeof family === 'string' && family.trim()) usedFamilies.add(family)

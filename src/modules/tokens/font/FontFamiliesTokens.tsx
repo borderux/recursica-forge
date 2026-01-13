@@ -100,7 +100,7 @@ export function AddButton() {
       onClick={handleAdd}
       icon={(() => {
         const PlusIcon = iconNameToReactComponent('plus')
-        return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+        return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
       })()}
       style={{
         backgroundColor: `var(${interactiveColor})`,
@@ -308,8 +308,8 @@ export default function FontFamiliesTokens() {
   const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
+    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
         {rows.map((r, index) => {
           const label = toTitle(ORDER[index] || `custom-${index + 1}`)
           const fontFamilyVar = `--recursica-tokens-font-typeface-${ORDER[index] || `custom-${index + 1}`}`
@@ -322,9 +322,9 @@ export default function FontFamiliesTokens() {
                 background: `var(${layer0Base}-surface)`,
                 border: `1px solid var(${layer1Base}-border-color)`,
                 borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-                padding: 'var(--recursica-brand-dimensions-spacer-lg)',
+                padding: 'var(--recursica-brand-dimensions-spacers-lg)',
                 display: 'grid',
-                gap: 'var(--recursica-brand-dimensions-spacer-md)',
+                gap: 'var(--recursica-brand-dimensions-spacers-md)',
                 position: 'relative',
               }}
             >
@@ -333,12 +333,12 @@ export default function FontFamiliesTokens() {
                   onClick={() => handleDelete(index)}
                   style={{
                     position: 'absolute',
-                    top: 'var(--recursica-brand-dimensions-spacer-md)',
-                    right: 'var(--recursica-brand-dimensions-spacer-md)',
+                    top: 'var(--recursica-brand-dimensions-spacers-md)',
+                    right: 'var(--recursica-brand-dimensions-spacers-md)',
                     border: 'none',
                     background: 'transparent',
                     cursor: 'pointer',
-                    padding: 'var(--recursica-brand-dimensions-spacer-xs)',
+                    padding: 'var(--recursica-brand-dimensions-spacers-xs)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -350,7 +350,7 @@ export default function FontFamiliesTokens() {
                   })()}
                 </button>
               )}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
                 <h3 style={{ 
                   margin: 0,
                   fontSize: 'var(--recursica-brand-typography-h6-font-size)',
@@ -361,7 +361,7 @@ export default function FontFamiliesTokens() {
                   {r.value || 'Select font'}
                 </h3>
                 <span style={{
-                  padding: `calc(var(--recursica-brand-dimensions-spacer-xs) / 2) var(--recursica-brand-dimensions-spacer-default)`,
+                  padding: `calc(var(--recursica-brand-dimensions-spacers-xs) / 2) var(--recursica-brand-dimensions-spacers-default)`,
                   borderRadius: `var(${buttonBorderRadius})`,
                   background: `var(${interactiveColor})`,
                   color: `var(--recursica-brand-${mode}-palettes-core-interactive-text)`,
@@ -380,7 +380,7 @@ export default function FontFamiliesTokens() {
               }}>
                 {EXAMPLE_TEXT}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--recursica-brand-dimensions-spacer-xs)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--recursica-brand-dimensions-spacers-xs)' }}>
                 {FONT_WEIGHTS.map((weight) => {
                   const isSelected = selectedWeight === weight
                   return (
@@ -433,7 +433,7 @@ export default function FontFamiliesTokens() {
                     }, 0)
                   }}
                 style={{
-                  padding: 'var(--recursica-brand-dimensions-spacer-default)',
+                  padding: 'var(--recursica-brand-dimensions-spacers-default)',
                   border: `1px solid var(${layer1Base}-border-color)`,
                   borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                   background: `var(${layer0Base}-surface)`,
@@ -455,9 +455,9 @@ export default function FontFamiliesTokens() {
             style={{
               background: `var(${interactiveColor})`,
               borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-              padding: 'var(--recursica-brand-dimensions-spacer-lg)',
+              padding: 'var(--recursica-brand-dimensions-spacers-lg)',
               display: 'grid',
-              gap: 'var(--recursica-brand-dimensions-spacer-md)',
+              gap: 'var(--recursica-brand-dimensions-spacers-md)',
               position: 'relative',
             }}
           >
@@ -465,12 +465,12 @@ export default function FontFamiliesTokens() {
               onClick={() => setShowInspiration(false)}
               style={{
                 position: 'absolute',
-                top: 'var(--recursica-brand-dimensions-spacer-md)',
-                right: 'var(--recursica-brand-dimensions-spacer-md)',
+                top: 'var(--recursica-brand-dimensions-spacers-md)',
+                right: 'var(--recursica-brand-dimensions-spacers-md)',
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                padding: 'var(--recursica-brand-dimensions-spacer-xs)',
+                padding: 'var(--recursica-brand-dimensions-spacers-xs)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -503,7 +503,7 @@ export default function FontFamiliesTokens() {
               onClick={() => window.open('https://fonts.google.com', '_blank')}
               icon={(() => {
                 const LinkIcon = iconNameToReactComponent('arrow-top-right-on-square')
-                return LinkIcon ? <LinkIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                return LinkIcon ? <LinkIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               style={{
                 backgroundColor: `var(--recursica-brand-${mode}-palettes-core-interactive-text)`,

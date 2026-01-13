@@ -121,27 +121,27 @@ export default function DimensionsPage() {
   }, [dimensions])
 
   return (
-    <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
+    <div style={{ padding: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
       <h2 style={{ marginTop: 0 }}>Dimensions</h2>
       <p style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`, opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)` }}>
         Map brand dimensions to underlying size tokens. Changes will update CSS variables throughout the application.
       </p>
 
       {Object.keys(groupedDimensions).sort().map((category) => (
-        <div key={category} style={{ marginBottom: 'var(--recursica-brand-dimensions-spacer-xl)' }}>
-          <h3 style={{ textTransform: 'capitalize', marginBottom: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+        <div key={category} style={{ marginBottom: 'var(--recursica-brand-dimensions-spacers-xl)' }}>
+          <h3 style={{ textTransform: 'capitalize', marginBottom: 'var(--recursica-brand-dimensions-spacers-default)' }}>
             {category.replace('-', ' ')}
           </h3>
-          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
             {groupedDimensions[category].map((entry) => (
               <div
                 key={entry.cssVar}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '200px 1fr 200px',
-                  gap: 'var(--recursica-brand-dimensions-spacer-default)',
+                  gap: 'var(--recursica-brand-dimensions-spacers-default)',
                   alignItems: 'center',
-                  padding: 'var(--recursica-brand-dimensions-spacer-default)',
+                  padding: 'var(--recursica-brand-dimensions-spacers-default)',
                   backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
                   border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
                   borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
@@ -160,7 +160,7 @@ export default function DimensionsPage() {
                     }
                   }}
                   style={{
-                    padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-default)',
+                    padding: 'var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-default)',
                     border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
                     borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                     backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,

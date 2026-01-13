@@ -46,12 +46,12 @@ export default function FontPropertiesTokens() {
       background: `var(${layer0Base}-surface)`,
       border: `1px solid var(${layer1Base}-border-color)`,
       borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-      padding: 'var(--recursica-brand-dimensions-spacer-lg)',
+      padding: 'var(--recursica-brand-dimensions-spacers-lg)',
       display: 'grid',
-      gap: 'var(--recursica-brand-dimensions-spacer-lg)',
+      gap: 'var(--recursica-brand-dimensions-spacers-lg)',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
           <button
             onClick={() => setActiveTab('size')}
             style={{
@@ -110,19 +110,19 @@ export default function FontPropertiesTokens() {
             Line height
           </button>
         </div>
-        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacer-default)', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacers-default)', alignItems: 'center' }}>
           <Button
             variant="text"
             size="default"
             icon={(() => {
               const RefreshIcon = iconNameToReactComponent('arrow-path')
-              return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+              return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
             })()}
             onClick={handleReset}
           >
             Reset to default
           </Button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
             <span style={{ 
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,
@@ -154,7 +154,7 @@ export default function FontPropertiesTokens() {
       </div>
       <div style={{
         borderTop: `1px solid var(${layer1Base}-border-color)`,
-        paddingTop: 'var(--recursica-brand-dimensions-spacer-lg)',
+        paddingTop: 'var(--recursica-brand-dimensions-spacers-lg)',
       }}>
         {activeTab === 'size' && <FontSizeTokens autoScale={autoScaleSize} />}
         {activeTab === 'letter-spacing' && <FontLetterSpacingTokens autoScale={autoScaleLetterSpacing} />}

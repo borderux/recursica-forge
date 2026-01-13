@@ -35,14 +35,14 @@ export default function TokensPage() {
       maxWidth: 1400, 
       margin: '0 auto', 
       display: 'grid', 
-      gap: 'var(--recursica-brand-dimensions-spacer-lg)',
-      padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+      gap: 'var(--recursica-brand-dimensions-spacers-lg)',
+      padding: 'var(--recursica-brand-dimensions-spacers-xl)',
     }}>
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        marginBottom: selected === 'font' ? 'var(--recursica-brand-dimensions-spacer-lg)' : 0,
+        marginBottom: selected === 'font' ? 'var(--recursica-brand-dimensions-spacers-lg)' : 0,
       }}>
         <h2 style={{ 
           margin: 0,
@@ -57,21 +57,21 @@ export default function TokensPage() {
         </h2>
         {selected === 'font' && <FontAddButton />}
       </div>
-      <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+      <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
         {selected === 'color' && <ColorTokens />}
         {selected === 'font' && (
-          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
+          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
             <FontFamiliesTokens />
             <FontPropertiesTokens />
           </div>
         )}
         {selected === 'opacity' && (
-          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
+          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
             <section style={{ 
               background: `var(${layer0Base}-surface)`, 
               border: `1px solid var(${layer1Base}-border-color)`, 
               borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
-              padding: 'var(--recursica-brand-dimensions-spacer-md)' 
+              padding: 'var(--recursica-brand-dimensions-spacers-md)' 
             }}>
               <OpacityTokens />
             </section>
@@ -79,7 +79,7 @@ export default function TokensPage() {
               background: `var(${layer0Base}-surface)`, 
               border: `1px solid var(${layer1Base}-border-color)`, 
               borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
-              padding: 'var(--recursica-brand-dimensions-spacer-md)' 
+              padding: 'var(--recursica-brand-dimensions-spacers-md)' 
             }}>
               <SizeTokens />
             </section>

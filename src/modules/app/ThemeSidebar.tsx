@@ -50,10 +50,10 @@ export function ThemeSidebar() {
         borderRightColor: `var(${layer1Base}-border-color)`,
         display: 'flex',
         flexDirection: 'column',
-        paddingLeft: 'var(--recursica-brand-dimensions-spacer-xl)',
-        paddingRight: 'var(--recursica-brand-dimensions-spacer-xl)',
-        paddingTop: 'var(--recursica-brand-dimensions-spacer-xl)',
-        paddingBottom: 'var(--recursica-brand-dimensions-spacer-xl)',
+        paddingLeft: 'var(--recursica-brand-dimensions-spacers-xl)',
+        paddingRight: 'var(--recursica-brand-dimensions-spacers-xl)',
+        paddingTop: 'var(--recursica-brand-dimensions-spacers-xl)',
+        paddingBottom: 'var(--recursica-brand-dimensions-spacers-xl)',
         flexShrink: 0,
       }}
     >
@@ -61,7 +61,7 @@ export function ThemeSidebar() {
       <h2
         style={{
           margin: 0,
-          marginBottom: 'var(--recursica-brand-dimensions-spacer-lg)',
+          marginBottom: 'var(--recursica-brand-dimensions-spacers-lg)',
           fontSize: 'var(--recursica-brand-typography-body-font-size)',
           fontWeight: 600,
           color: `var(${layer1Base}-element-text-color)`,
@@ -72,7 +72,7 @@ export function ThemeSidebar() {
       </h2>
       
       {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacer-sm)', flex: 1 }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-sm)', flex: 1 }}>
         {navItems.map((item) => {
           const isActive = currentNavItem === item.key
           
@@ -82,7 +82,7 @@ export function ThemeSidebar() {
               onClick={() => handleNavClick(item.key)}
               style={{
                 textAlign: 'left',
-                padding: 'var(--recursica-brand-dimensions-spacer-default) var(--recursica-brand-dimensions-spacer-md)',
+                padding: 'var(--recursica-brand-dimensions-spacers-default) var(--recursica-brand-dimensions-spacers-md)',
                 borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                 border: 'none',
                 background: 'transparent',
@@ -132,9 +132,9 @@ export function ThemeSidebar() {
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--recursica-brand-dimensions-spacer-sm)',
+          gap: 'var(--recursica-brand-dimensions-spacers-sm)',
           marginTop: 'auto',
-          paddingTop: 'var(--recursica-brand-dimensions-spacer-lg)',
+          paddingTop: 'var(--recursica-brand-dimensions-spacers-lg)',
           borderTopWidth: `var(${layer1Base}-border-thickness, 1px)`,
           borderTopStyle: 'solid',
           borderTopColor: `var(${layer1Base}-border-color)`,
@@ -202,7 +202,7 @@ export function ThemeSidebar() {
       {/* Copyright */}
       <div
         style={{
-          marginTop: 'var(--recursica-brand-dimensions-spacer-md)',
+          marginTop: 'var(--recursica-brand-dimensions-spacers-md)',
           fontSize: 'var(--recursica-brand-typography-caption-font-size)',
           color: `var(${layer1Base}-element-text-color)`,
           opacity: `var(${layer1Base}-element-text-low-emphasis)`,

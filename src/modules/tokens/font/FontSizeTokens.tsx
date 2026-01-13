@@ -41,7 +41,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
       {items.map((it) => {
         const label = toTitle(it.name.replace('font/size/', ''))
         const current = Number(it.value)
@@ -51,7 +51,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
           <div key={it.name} style={{ 
             display: 'grid', 
             gridTemplateColumns: 'auto 1fr auto', 
-            gap: 'var(--recursica-brand-dimensions-spacer-md)',
+            gap: 'var(--recursica-brand-dimensions-spacers-md)',
             alignItems: 'start',
           }}>
             <label htmlFor={it.name} style={{ 
@@ -59,7 +59,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
               minWidth: 60,
-              paddingTop: 'var(--recursica-brand-dimensions-spacer-xs)',
+              paddingTop: 'var(--recursica-brand-dimensions-spacers-xs)',
             }}>
               {label}
             </label>
@@ -71,7 +71,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
             }}>
               {exampleText}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
               <StyledSlider
                 id={it.name}
                 min={8}

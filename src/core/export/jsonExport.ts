@@ -75,29 +75,57 @@ function cssVarToTokenRef(cssVar: string): string | null {
     parts.shift() // Remove 'tokens'
   }
   
-  // Handle color tokens: color-gray-500 -> color.gray.500
+  // Handle color tokens: colors-scale-01-100 -> colors.scale-01.100
+  // Also support old format: color-gray-500 -> color.gray.500
+  if (parts[0] === 'colors' && parts.length >= 3) {
+    const scale = parts[1]
+    const level = parts.slice(2).join('-') // Handle levels like '0-5x'
+    return `{tokens.colors.${scale}.${level}}`
+  }
   if (parts[0] === 'color' && parts.length >= 3) {
     const family = parts[1]
     const level = parts.slice(2).join('-') // Handle levels like '0-5x'
     return `{tokens.color.${family}.${level}}`
   }
   
-  // Handle size tokens: size-default -> size.default
+  // Handle size tokens: sizes-default -> sizes.default
+  // Also support old format: size-default -> size.default
+  if (parts[0] === 'sizes' && parts.length >= 2) {
+    const name = parts.slice(1).join('-')
+    return `{tokens.sizes.${name}}`
+  }
   if (parts[0] === 'size' && parts.length >= 2) {
     const name = parts.slice(1).join('-')
     return `{tokens.size.${name}}`
   }
   
-  // Handle opacity tokens: opacity-solid -> opacity.solid
+  // Handle opacity tokens: opacities-solid -> opacities.solid
+  // Also support old format: opacity-solid -> opacity.solid
+  if (parts[0] === 'opacities' && parts.length >= 2) {
+    const name = parts.slice(1).join('-')
+    return `{tokens.opacities.${name}}`
+  }
   if (parts[0] === 'opacity' && parts.length >= 2) {
     const name = parts.slice(1).join('-')
     return `{tokens.opacity.${name}}`
   }
   
-  // Handle font tokens: font-size-md -> font.size.md
+  // Handle font tokens: font-sizes-md -> font.sizes.md
+  // Also support old format: font-size-md -> font.size.md
   if (parts[0] === 'font' && parts.length >= 3) {
     const category = parts[1]
     const key = parts.slice(2).join('-')
+    // Map plural to singular for backwards compatibility in references
+    const singularMap: Record<string, string> = {
+      'sizes': 'sizes',
+      'weights': 'weights',
+      'letter-spacings': 'letter-spacings',
+      'line-heights': 'line-heights',
+      'typefaces': 'typefaces',
+      'cases': 'cases',
+      'decorations': 'decorations'
+    }
+    // Keep plural form in reference
     return `{tokens.font.${category}.${key}}`
   }
   

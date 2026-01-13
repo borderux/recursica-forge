@@ -190,7 +190,7 @@ export default function ComponentDetailPage() {
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+        padding: 'var(--recursica-brand-dimensions-spacers-xl)',
         borderBottom: `1px solid var(${layer1Base}-border-color)`,
         flexShrink: 0,
       }}>
@@ -212,8 +212,8 @@ export default function ComponentDetailPage() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--recursica-brand-dimensions-spacer-sm)',
-            padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
+            gap: 'var(--recursica-brand-dimensions-spacers-sm)',
+            padding: 'var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md)',
             borderRadius: '999px',
             border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
             color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
@@ -248,7 +248,7 @@ export default function ComponentDetailPage() {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+          padding: 'var(--recursica-brand-dimensions-spacers-xl)',
           minWidth: 0,
           minHeight: debugMode ? undefined : 0,
         }}>
@@ -259,7 +259,7 @@ export default function ComponentDetailPage() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 'var(--recursica-brand-dimensions-spacer-md)',
+            gap: 'var(--recursica-brand-dimensions-spacers-md)',
             background: `var(${baseLayerBase}-surface)`,
             padding: `var(${baseLayerBase}-padding)`,
             border: layerNum !== '0' 
@@ -381,7 +381,7 @@ export default function ComponentDetailPage() {
       {/* Debug Table - Show when debug mode is enabled, below preview and toolbar */}
       {debugMode && component && openPropControl && (
         <div style={{
-          padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+          padding: 'var(--recursica-brand-dimensions-spacers-xl)',
           borderTop: `1px solid var(${layer1Base}-border-color)`,
         }}>
           <ComponentDebugTable 

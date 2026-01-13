@@ -197,13 +197,25 @@ export function resolveTokenReferenceToCssVar(
   if (parsed.type === 'brand') {
     const pathParts = parsed.path
     
-    // Brand-level references (no mode): {brand.dimensions.*}, {brand.typography.*}
+    // Brand-level references (no mode): {brand.dimensions.*}, {brand.typography.*}, {brand.states.*}, {brand.text-emphasis.*}
     if (pathParts.length > 0) {
       const firstPart = pathParts[0].toLowerCase()
       
       if (firstPart === 'dimensions' || firstPart === 'dimension') {
         const dimPath = pathParts.slice(1).join('-')
         return `var(--recursica-brand-dimensions-${dimPath})`
+      }
+      
+      if (firstPart === 'states' || firstPart === 'state') {
+        // States are theme-specific but referenced without theme in JSON
+        const statePath = pathParts.slice(1).join('-')
+        return `var(--recursica-brand-themes-${mode}-state-${statePath})`
+      }
+      
+      if (firstPart === 'text-emphasis' || firstPart === 'textemphasis') {
+        // Text-emphasis is theme-specific but referenced without theme in JSON
+        const emphasisPath = pathParts.slice(1).join('-')
+        return `var(--recursica-brand-themes-${mode}-text-emphasis-${emphasisPath})`
       }
       
       if (firstPart === 'typography') {

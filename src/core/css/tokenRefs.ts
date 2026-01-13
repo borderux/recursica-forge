@@ -33,19 +33,50 @@ export function tokenToCssVar(tokenName: string): string | null {
   const [category, ...rest] = parts
   
   try {
-    if (category === 'color' && rest.length >= 2) {
-      const [family, level] = rest
-      const normalizedLevel = normalizeColorLevel(level)
-      if (family && normalizedLevel) {
-        return `var(--recursica-tokens-color-${family}-${normalizedLevel})`
+    if (category === 'color' || category === 'colors') {
+      if (rest.length >= 2) {
+        const [scaleOrFamily, level] = rest
+        const normalizedLevel = normalizeColorLevel(level)
+        if (scaleOrFamily && normalizedLevel) {
+          // Support both old format (color/family/level) and new format (colors/scale-XX/level)
+          if (scaleOrFamily.startsWith('scale-')) {
+            return `var(--recursica-tokens-colors-${scaleOrFamily}-${normalizedLevel})`
+          } else {
+            // Old format: color/family/level -> try new format first (colors/family/level)
+            // This works because aliases are generated as CSS vars (e.g., colors/gray/900)
+            // Fallback to old format for backwards compatibility
+            return `var(--recursica-tokens-colors-${scaleOrFamily}-${normalizedLevel})`
+          }
+        }
       }
-    } else if (category === 'size' && rest.length >= 1) {
-      return `var(--recursica-tokens-size-${rest[0]})`
-    } else if (category === 'opacity' && rest.length >= 1) {
-      return `var(--recursica-tokens-opacity-${rest[0]})`
+    } else if (category === 'size' || category === 'sizes') {
+      return `var(--recursica-tokens-sizes-${rest[0]})`
+    } else if (category === 'opacity' || category === 'opacities') {
+      return `var(--recursica-tokens-opacities-${rest[0]})`
     } else if (category === 'font' && rest.length >= 2) {
       const [kind, key] = rest
-      return `var(--recursica-tokens-font-${kind}-${key})`
+      // Map singular to plural for font categories
+      const pluralMap: Record<string, string> = {
+        'size': 'sizes',
+        'sizes': 'sizes',
+        'weight': 'weights',
+        'weights': 'weights',
+        'letter-spacing': 'letter-spacings',
+        'letter-spacings': 'letter-spacings',
+        'line-height': 'line-heights',
+        'line-heights': 'line-heights',
+        'typeface': 'typefaces',
+        'typefaces': 'typefaces',
+        'cases': 'cases',
+        'decorations': 'decorations'
+      }
+      const pluralKind = pluralMap[kind] || kind
+      return `var(--recursica-tokens-font-${pluralKind}-${key})`
+    } else if (category === 'colors' && rest.length >= 2) {
+      // New format: colors/scale-XX/level
+      const [scale, level] = rest
+      const normalizedLevel = level === '1000' ? '1000' : String(level).padStart(3, '0')
+      return `var(--recursica-tokens-colors-${scale}-${normalizedLevel})`
     }
   } catch {
     return null
@@ -56,11 +87,12 @@ export function tokenToCssVar(tokenName: string): string | null {
 
 /**
  * Finds a token that matches a given hex color value
+ * Supports both old format (color.family.level) and new format (colors.scale-XX.level)
  */
 export function findTokenByHex(
   hex: string | undefined,
   tokens: any
-): { family: string; level: string } | null {
+): { family: string; level: string; scale?: string } | null {
   if (!hex) return null
   
   try {
@@ -69,19 +101,52 @@ export function findTokenByHex(
     const normalized = h.startsWith('#') ? h : `#${h}`
     
     const tokensRoot: any = tokens?.tokens || {}
-    const colorsRoot: any = tokensRoot?.color || {}
-    const levels = ['900','800','700','600','500','400','300','200','100','050','000']
+    const levels = ['900','800','700','600','500','400','300','200','100','050','000','1000']
     
-    for (const family of Object.keys(colorsRoot)) {
-      if (family === 'translucent') continue
-      for (const level of levels) {
-        const val = colorsRoot[family]?.[level]?.$value
-        if (typeof val === 'string' && val.trim().toLowerCase() === normalized) {
-          return { family, level }
+    // Try new scale structure first (colors.scale-XX.level)
+    const colorsRoot: any = tokensRoot?.colors
+    if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+      for (const scaleKey of Object.keys(colorsRoot)) {
+        if (!scaleKey || !scaleKey.startsWith('scale-')) continue
+        const scale = colorsRoot[scaleKey]
+        if (!scale || typeof scale !== 'object' || Array.isArray(scale)) continue
+        
+        for (const level of levels) {
+          const levelObj = scale[level]
+          if (levelObj && typeof levelObj === 'object') {
+            const val = levelObj.$value
+            if (typeof val === 'string' && val.trim().toLowerCase() === normalized) {
+              const alias = scale.alias
+              // Return alias if available, otherwise scale name
+              return { family: alias || scaleKey, level, scale: scaleKey }
+            }
+          }
         }
       }
     }
-  } catch {}
+    
+    // Fallback to old structure (color.family.level)
+    const oldColorsRoot: any = tokensRoot?.color
+    if (oldColorsRoot && typeof oldColorsRoot === 'object' && !Array.isArray(oldColorsRoot)) {
+      for (const family of Object.keys(oldColorsRoot)) {
+        if (family === 'translucent') continue
+        const familyObj = oldColorsRoot[family]
+        if (!familyObj || typeof familyObj !== 'object' || Array.isArray(familyObj)) continue
+        
+        for (const level of levels) {
+          const levelObj = familyObj[level]
+          if (levelObj && typeof levelObj === 'object') {
+            const val = levelObj.$value
+            if (typeof val === 'string' && val.trim().toLowerCase() === normalized) {
+              return { family, level }
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[findTokenByHex] Error finding token:', e)
+  }
   
   return null
 }

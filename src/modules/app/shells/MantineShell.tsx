@@ -117,10 +117,10 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
           ref={headerRef}
           style={{
             backgroundColor: `var(${layer1Base}-surface)`,
-            paddingTop: 'var(--recursica-brand-dimensions-spacer-lg)',
-            paddingBottom: 'var(--recursica-brand-dimensions-spacer-lg)',
-            paddingLeft: 'var(--recursica-brand-dimensions-spacer-xl)',
-            paddingRight: 'var(--recursica-brand-dimensions-spacer-xl)',
+            paddingTop: 'var(--recursica-brand-dimensions-spacers-lg)',
+            paddingBottom: 'var(--recursica-brand-dimensions-spacers-lg)',
+            paddingLeft: 'var(--recursica-brand-dimensions-spacers-xl)',
+            paddingRight: 'var(--recursica-brand-dimensions-spacers-xl)',
             height: 'auto',
             flexShrink: 0,
             borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
@@ -128,10 +128,10 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             borderBottomColor: `var(${layer1Base}-border-color)`,
           }}
         >
-          <Group gap="var(--recursica-brand-dimensions-spacer-xl)" wrap="nowrap" style={{ width: '100%' }}>
+          <Group gap="var(--recursica-brand-dimensions-spacers-xl)" wrap="nowrap" style={{ width: '100%' }}>
             {/* Chunk 1: Logo and Brand */}
             <div style={{ minWidth: '220px', display: 'flex', alignItems: 'center' }}>
-              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)', textDecoration: 'none' }}>
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)', textDecoration: 'none' }}>
                 <LogoIcon />
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                   <span
@@ -190,7 +190,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                       flex: 1,
                     },
                     list: {
-                      gap: 'var(--recursica-brand-dimensions-spacer-default)',
+                      gap: 'var(--recursica-brand-dimensions-spacers-default)',
                     },
                     tab: {
                       color: `var(${buttonTextText})`,
@@ -226,13 +226,13 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             })()}
 
             {/* Chunk 3: Action Buttons and Framework Dropdown */}
-            <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacer-default)', alignItems: 'center', marginLeft: 'auto' }}>
+            <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacers-default)', alignItems: 'center', marginLeft: 'auto' }}>
               <Button
                 variant="outline"
                 size="small"
                 icon={(() => {
                   const RefreshIcon = iconNameToReactComponent('arrow-path')
-                  return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                  return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
                 })()}
                 onClick={() => {
                   clearOverrides(tokensJson as any)
@@ -245,7 +245,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 size="small"
                 icon={(() => {
                   const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
-                  return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                  return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
                 })()}
                 onClick={() => setIsModalOpen(true)}
                 title="Import / Export CSS Variables"
@@ -255,7 +255,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 size="small"
                 icon={(() => {
                   const UploadIcon = iconNameToReactComponent('arrow-up-tray')
-                  return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                  return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
                 })()}
                 onClick={handleExport}
                 title="Export JSON Files"
@@ -377,9 +377,9 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
           </main>
         </div>
         <Modal opened={isModalOpen} onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} title="Import JSON Files">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-spacer-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
+              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-spacers-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
               <input
                 type="file"
                 accept="application/json,.json"
@@ -388,18 +388,18 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   onFileSelect(e.currentTarget.files)
                   e.currentTarget.value = ''
                 }}
-                style={{ marginBottom: 'var(--recursica-brand-dimensions-spacer-default)' }}
+                style={{ marginBottom: 'var(--recursica-brand-dimensions-spacers-default)' }}
               />
               {selectedFileNames.length > 0 && (
-                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
+                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-spacers-sm)' }}>
                   Selected: {selectedFileNames.join(', ')}
                 </div>
               )}
-              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
+              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-spacers-sm)' }}>
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-            <Group gap="sm" justify="flex-end" style={{ borderTop: `1px solid var(${layer1Base}-border-color)`, paddingTop: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+            <Group gap="sm" justify="flex-end" style={{ borderTop: `1px solid var(${layer1Base}-border-color)`, paddingTop: 'var(--recursica-brand-dimensions-spacers-md)' }}>
               <Button variant="outline" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
                 Cancel
               </Button>

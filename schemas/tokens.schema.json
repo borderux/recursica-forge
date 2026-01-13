@@ -8,11 +8,17 @@
     "tokens": {
       "type": "object",
       "properties": {
-        "color": {
+        "colors": {
           "type": "object",
           "patternProperties": {
-            "^[a-z0-9_-]+$": {
+            "^scale-\\d+$": {
               "type": "object",
+              "required": ["alias"],
+              "properties": {
+                "alias": {
+                  "type": "string"
+                }
+              },
               "patternProperties": {
                 "^\\d{2,4}|000|050|1000$": {
                   "type": "object",
@@ -35,7 +41,7 @@
           },
           "additionalProperties": false
         },
-        "size": {
+        "sizes": {
           "type": "object",
           "patternProperties": {
             "^[a-z0-9_-]+$": {
@@ -86,7 +92,7 @@
           },
           "additionalProperties": true
         },
-        "opacity": {
+        "opacities": {
           "type": "object",
           "patternProperties": {
             "^[a-z0-9_-]+$": {
@@ -109,7 +115,37 @@
         },
         "font": {
           "type": "object",
-          "additionalProperties": true
+          "properties": {
+            "sizes": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "typefaces": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "letter-spacings": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "weights": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "line-heights": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "cases": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "decorations": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": true

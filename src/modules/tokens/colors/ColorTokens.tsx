@@ -754,14 +754,14 @@ export default function ColorTokens() {
       background: `var(${layer0Base}-surface)`, 
       border: `1px solid var(${layer1Base}-border-color)`, 
       borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
-      padding: 'var(--recursica-brand-dimensions-spacer-md)',
+      padding: 'var(--recursica-brand-dimensions-spacers-md)',
     }}>
       {/* Header with Add Color Scale button */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        marginBottom: 'var(--recursica-brand-dimensions-spacer-md)',
+        marginBottom: 'var(--recursica-brand-dimensions-spacers-md)',
       }}>
         <div style={{ flex: 1 }} /> {/* Spacer */}
         <Button
@@ -769,7 +769,7 @@ export default function ColorTokens() {
           onClick={handleAddColor}
           icon={(() => {
             const PlusIcon = iconNameToReactComponent('plus')
-            return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+            return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
           })()}
           style={{
             borderColor: `var(${interactiveColor})`,
@@ -784,13 +784,13 @@ export default function ColorTokens() {
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: `100px repeat(${families.length}, 1fr)`, 
-        columnGap: 'var(--recursica-brand-dimensions-spacer-md)', 
+        columnGap: 'var(--recursica-brand-dimensions-spacers-md)', 
         rowGap: 0, 
         alignItems: 'start' 
       }}>
         {/* Numerical scale column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <div style={{ height: 40, marginBottom: 'var(--recursica-brand-dimensions-spacer-sm)' }} /> {/* Spacer for header */}
+          <div style={{ height: 40, marginBottom: 'var(--recursica-brand-dimensions-spacers-sm)' }} /> {/* Spacer for header */}
           {levelOrder.map((level) => (
             <div 
               key={'label-' + level} 
