@@ -59,6 +59,8 @@ html[data-theme-mode="dark"] .palette-color-control-swatch {
 .palette-color-control-text {
   font-size: 13px;
   text-transform: capitalize;
+  text-align: left;
+  flex: 1;
 }
 
 .palette-color-control-warning {

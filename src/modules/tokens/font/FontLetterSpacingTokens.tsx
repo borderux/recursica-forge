@@ -176,7 +176,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
                   border: `var(${getFormCssVar('field', 'size', 'border-thickness-default')}) solid var(${getFormCssVar('field', 'color', 'border')})`,
                   borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
                   background: `var(${getFormCssVar('field', 'color', 'background')})`,
-                  color: `var(${getFormCssVar('field', 'color', 'text-valued')})`,
+                  color: `var(${getFormCssVar('field', 'colors', 'text-valued')})`,
                   fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                 }}
               />

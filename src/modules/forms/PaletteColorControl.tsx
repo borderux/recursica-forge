@@ -134,32 +134,40 @@ export default function PaletteColorControl({
     if (depth > 5) return null // Prevent infinite loops
     if (visited.has(cssVarName)) return null // Prevent circular references
     visited.add(cssVarName)
-    
+
     const value = readCssVar(cssVarName)
     if (!value) return null
-    
+
     const trimmed = value.trim()
-    
-    // Check if this value directly contains a palette reference
-    const paletteMatch = trimmed.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+
+    // PRIORITY 1: Check for core colors FIRST (before regular palettes)
+    // Match: var(--recursica-brand-themes-{mode}-palettes-core-{colorKey})
+    const coreMatch = trimmed.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone)?)\s*\)/i)
+    if (coreMatch) {
+      return trimmed
+    }
+
+    // PRIORITY 2: Check for regular palette references
+    // Match levels: numeric (000, 050, 100-1000), primary, or default
+    const paletteMatch = trimmed.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
     if (paletteMatch) {
       return trimmed
     }
     
     // Check if this value directly contains a token reference
-    const tokenMatch = trimmed.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/)
+    const tokenMatch = trimmed.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
     if (tokenMatch) {
       return trimmed
     }
     
     // Check for color-mix() functions that contain palette references
-    const colorMixPaletteMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)[^)]*\)/)
+    const colorMixPaletteMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
     if (colorMixPaletteMatch) {
       return trimmed
     }
     
     // Check for color-mix() functions that contain token references
-    const colorMixTokenMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/)
+    const colorMixTokenMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
     if (colorMixTokenMatch) {
       return trimmed
     }
@@ -175,8 +183,23 @@ export default function PaletteColorControl({
     return null
   }
   
-  // Initialize display label by reading CSS variable value immediately
-  const getInitialLabel = (): string => {
+  const [refreshKey, setRefreshKey] = useState(0) // Force re-read when picker closes
+
+  // Listen for CSS variable updates to refresh the label
+  useEffect(() => {
+    const handleCssVarsUpdated = () => {
+      // Force re-computation of display label when CSS vars are updated
+      setRefreshKey(prev => prev + 1)
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarsUpdated)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarsUpdated)
+    }
+  }, [])
+
+  // Compute display label reactively based on CSS variable value
+  const computedDisplayLabel = useMemo(() => {
     // First try to find palette reference in the CSS variable chain
     let paletteValue = findPaletteInChain(displayCssVar)
     let cssValue = paletteValue || readCssVar(displayCssVar)
@@ -208,13 +231,62 @@ export default function PaletteColorControl({
     // If we found a palette value through hex matching, extract and return it
     if (paletteValue) {
       // Extract palette name and level from var() reference
-      const match = paletteValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+      // Try with current mode first, then fallback to any mode
+      const modeLower = mode.toLowerCase()
+      
+      // First check for core colors
+      // Core colors can be: core-black, core-white, core-alert-tone, core-warning-tone, core-success-tone, core-interactive-default-tone, etc.
+      let coreMatch = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\\s*\\)`, 'i'))
+      if (!coreMatch) {
+        coreMatch = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\s*\)/i)
+      }
+      
+      if (coreMatch) {
+        const [, coreKey] = coreMatch
+        // Handle interactive colors
+        if (coreKey === 'interactive-default-tone' || coreKey === 'interactive-default') {
+          return 'Core / Interactive / Default'
+        }
+        if (coreKey === 'interactive-hover-tone' || coreKey === 'interactive-hover') {
+          return 'Core / Interactive / Hover'
+        }
+        if (coreKey === 'interactive' || coreKey === 'interactive-tone') {
+          return 'Core / Interactive'
+        }
+        // Handle other core colors (black, white, alert-tone, warning-tone, success-tone)
+        // Remove -tone suffix if present for display
+        const coreName = coreKey.replace(/-tone$/, '')
+        const formattedCore = formatPaletteName(coreName)
+        return `Core / ${formattedCore}`
+      }
+      
+      let match = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
+      
+      if (!match) {
+        match = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
+      }
+      
       if (match) {
         const [, paletteKey, level] = match
+        
+        // Special handling for core-interactive palette
+        if (paletteKey === 'core-interactive') {
+          if (level === 'default') {
+            return 'Core / Interactive / Default'
+          } else if (level === 'hover') {
+            return 'Core / Interactive / Hover'
+          } else {
+            return `Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`
+          }
+        }
+        
         const formattedPalette = formatPaletteName(paletteKey)
-        const displayLevel = level === 'primary' ? 'primary' : level
-        setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
-        return
+        // Don't show "default" level - it's implied (except for core-interactive which we handle above)
+        if (level === 'default') {
+          return formattedPalette
+        }
+        const displayLevel = level === 'primary' ? 'primary' : level === 'hover' ? 'Hover' : level
+        return `${formattedPalette} / ${displayLevel}`
       }
     }
     
@@ -226,7 +298,41 @@ export default function PaletteColorControl({
         const resolvedHex = readCssVarResolved(displayCssVar, 10)
         if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
           const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
-          // Try to find which palette this hex matches
+          const modeLower = mode.toLowerCase()
+          
+          // PRIORITY 1: Check core colors FIRST (before regular palettes)
+          // Core colors can be: black, white, alert-tone, warning-tone, success-tone, interactive-default-tone, interactive-hover-tone
+          // Also check without -tone suffix for backwards compatibility
+          const coreColorKeys = [
+            'black', 'black-tone',
+            'white', 'white-tone',
+            'interactive-default-tone', 'interactive-default',
+            'interactive-hover-tone', 'interactive-hover',
+            'alert-tone', 'alert',
+            'warning-tone', 'warning',
+            'success-tone', 'success'
+          ]
+          for (const coreKey of coreColorKeys) {
+            const coreCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-${coreKey}`
+            const coreHex = readCssVarResolved(coreCssVar, 10)
+            if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
+              // Found a core color match! Format and return
+              const normalizedKey = coreKey.replace(/-tone$/, '')
+              if (normalizedKey === 'interactive-default') {
+                return 'Core / Interactive / Default'
+              }
+              if (normalizedKey === 'interactive-hover') {
+                return 'Core / Interactive / Hover'
+              }
+              if (normalizedKey === 'interactive') {
+                return 'Core / Interactive'
+              }
+              const formattedCore = formatPaletteName(normalizedKey)
+              return `Core / ${formattedCore}`
+            }
+          }
+          
+          // PRIORITY 2: Only check regular palettes if no core color match was found
           for (const pk of paletteKeys) {
             const levels = paletteLevels[pk] || []
             for (const level of levels) {
@@ -234,8 +340,21 @@ export default function PaletteColorControl({
               const paletteHex = readCssVarResolved(paletteCssVar, 10)
               if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
                 // Found a match! Display the palette name and level
+                // Special handling for core-interactive palette
+                if (pk === 'core-interactive') {
+                  if (level === 'default') {
+                    return 'Core / Interactive / Default'
+                  } else if (level === 'hover') {
+                    return 'Core / Interactive / Hover'
+                  } else {
+                    return `Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`
+                  }
+                }
                 const formattedPalette = formatPaletteName(pk)
-                const displayLevel = level === 'primary' ? 'primary' : level
+                if (level === 'default') {
+                  return formattedPalette
+                }
+                const displayLevel = level === 'primary' ? 'primary' : level === 'hover' ? 'Hover' : level
                 return `${formattedPalette} / ${displayLevel}`
               }
             }
@@ -249,32 +368,62 @@ export default function PaletteColorControl({
     }
     
     // Extract palette name and level from var() reference
-    // Match: var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone)
-    let match = cssValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+    // Match: var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone)
+    // Try with current mode first, then fallback to any mode
+    const modeLower = mode.toLowerCase()
+    
+    // Debug: log the cssValue to see what we're matching against
+    if (cssValue && displayCssVar && (displayCssVar.includes('background') || displayCssVar.includes('Background'))) {
+      console.log('[PaletteColorControl] Matching cssValue:', cssValue, 'for displayCssVar:', displayCssVar)
+    }
+    
+    let match = cssValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
+    
+    // If no match with current mode, try any mode
+    if (!match) {
+      match = cssValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
+    }
     
     // Also check for color-mix() functions that contain palette references
-    // Match: color-mix(in srgb, var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
+    // Match: color-mix(in srgb, var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
     // The palette var can appear anywhere in the color-mix function
     if (!match) {
-      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)[^)]*\)/)
+      match = cssValue.match(new RegExp(`color-mix\\s*\\([^)]*var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)[^)]*\\)`, 'i'))
+    }
+    
+    if (!match) {
+      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
     }
     
     // Also check for token references: var(--recursica-tokens-color-{family}-{level})
     // Match: var(--recursica-tokens-color-{family}-{level})
-    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/)
+    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
     
     // Also check for color-mix() functions that contain token references
     if (!tokenMatch) {
-      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/)
+      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
     }
     
     if (match) {
       const [, paletteKey, level] = match
-      const formattedPalette = paletteKey
-        .replace(/[-_/]+/g, ' ')
-        .replace(/\b\w/g, (m) => m.toUpperCase())
-        .trim()
-      const displayLevel = level === 'primary' ? 'primary' : level
+      
+      // Special handling for core-interactive palette
+      if (paletteKey === 'core-interactive') {
+        if (level === 'default') {
+          return 'Core / Interactive / Default'
+        } else if (level === 'hover') {
+          return 'Core / Interactive / Hover'
+        } else {
+          return `Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`
+        }
+      }
+      
+      const formattedPalette = formatPaletteName(paletteKey)
+      // Don't show "default" level - it's implied
+      if (level === 'default') {
+        return formattedPalette
+      }
+      const displayLevel = level === 'primary' ? 'primary' : level === 'hover' ? 'Hover' : level
       return `${formattedPalette} / ${displayLevel}`
     }
     
@@ -325,10 +474,9 @@ export default function PaletteColorControl({
     }
     
     return fallbackLabel
-  }
+  }, [displayCssVar, paletteKeys, paletteLevels, mode, fallbackLabel, refreshKey])
   
-  const [displayLabel, setDisplayLabel] = useState<string>(getInitialLabel)
-  const [refreshKey, setRefreshKey] = useState(0) // Force re-read when picker closes
+  const [displayLabel, setDisplayLabel] = useState<string>(computedDisplayLabel)
 
   // Helper function to update display label from CSS variable
   const updateDisplayLabel = () => {
@@ -342,20 +490,47 @@ export default function PaletteColorControl({
       const resolvedHex = readCssVarResolved(displayCssVar, 10)
       if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
         const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
-        // Try to find which palette this hex matches
-        for (const pk of paletteKeys) {
-          const levels = paletteLevels[pk] || []
-          for (const level of levels) {
-            const paletteCssVar = buildPaletteCssVar(pk, level)
-            const paletteHex = readCssVarResolved(paletteCssVar, 10)
-            if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
-              // Found a match! Return the palette reference format
-              cssValue = `var(${paletteCssVar})`
-              paletteValue = cssValue
-              break
-            }
+        const modeLower = mode.toLowerCase()
+        
+        // PRIORITY 1: Check core colors FIRST (before regular palettes)
+        // Core colors can be: black, white, alert-tone, warning-tone, success-tone, interactive-default-tone, interactive-hover-tone
+        // Also check without -tone suffix for backwards compatibility
+        const coreColorKeys = [
+          'black', 'black-tone',
+          'white', 'white-tone',
+          'interactive-default-tone', 'interactive-default',
+          'interactive-hover-tone', 'interactive-hover',
+          'alert-tone', 'alert',
+          'warning-tone', 'warning',
+          'success-tone', 'success'
+        ]
+        for (const coreKey of coreColorKeys) {
+          const coreCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-${coreKey}`
+          const coreHex = readCssVarResolved(coreCssVar, 10)
+          if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
+            // Found a core color match! Return the core color reference
+            cssValue = `var(${coreCssVar})`
+            paletteValue = cssValue
+            break
           }
-          if (paletteValue) break
+        }
+        
+        // PRIORITY 2: Only check regular palettes if no core color match was found
+        if (!paletteValue) {
+          for (const pk of paletteKeys) {
+            const levels = paletteLevels[pk] || []
+            for (const level of levels) {
+              const paletteCssVar = buildPaletteCssVar(pk, level)
+              const paletteHex = readCssVarResolved(paletteCssVar, 10)
+              if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
+                // Found a match! Return the palette reference format
+                cssValue = `var(${paletteCssVar})`
+                paletteValue = cssValue
+                break
+              }
+            }
+            if (paletteValue) break
+          }
         }
       }
     }
@@ -363,12 +538,66 @@ export default function PaletteColorControl({
     // If we found a palette value through hex matching, extract and display it immediately
     if (paletteValue) {
       // Extract palette name and level from var() reference
-      const match = paletteValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+      // Try with current mode first, then fallback to any mode
+      const modeLower = mode.toLowerCase()
+      
+      // PRIORITY 1: Check for core colors FIRST
+      let coreMatch = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-core-([a-z0-9-]+(?:-tone)?)\\s*\\)`, 'i'))
+      if (!coreMatch) {
+        coreMatch = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone)?)\s*\)/i)
+      }
+      
+      if (coreMatch) {
+        const [, coreKey] = coreMatch
+        // Handle interactive colors
+        if (coreKey === 'interactive-default-tone' || coreKey === 'interactive-default') {
+          setDisplayLabel('Core / Interactive / Default')
+          return
+        }
+        if (coreKey === 'interactive-hover-tone' || coreKey === 'interactive-hover') {
+          setDisplayLabel('Core / Interactive / Hover')
+          return
+        }
+        if (coreKey === 'interactive' || coreKey === 'interactive-tone') {
+          setDisplayLabel('Core / Interactive')
+          return
+        }
+        // Handle other core colors
+        const formattedCore = formatPaletteName(coreKey.replace(/-tone$/, ''))
+        setDisplayLabel(`Core / ${formattedCore}`)
+        return
+      }
+      
+      // PRIORITY 2: Check for regular palettes
+      let match = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
+      
+      if (!match) {
+        match = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
+      }
+      
       if (match) {
         const [, paletteKey, level] = match
+        
+        // Special handling for core-interactive palette
+        if (paletteKey === 'core-interactive') {
+          if (level === 'default') {
+            setDisplayLabel('Core / Interactive / Default')
+          } else if (level === 'hover') {
+            setDisplayLabel('Core / Interactive / Hover')
+          } else {
+            setDisplayLabel(`Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`)
+          }
+          return
+        }
+        
         const formattedPalette = formatPaletteName(paletteKey)
-        const displayLevel = level === 'primary' ? 'primary' : level
-        setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+        // Don't show "default" level - it's implied (except for core-interactive which we handle above)
+        if (level === 'default') {
+          setDisplayLabel(formattedPalette)
+        } else {
+          const displayLevel = level === 'primary' ? 'primary' : level === 'hover' ? 'Hover' : level
+          setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+        }
         return
       }
     }
@@ -383,7 +612,41 @@ export default function PaletteColorControl({
         const resolvedHex = readCssVarResolved(displayCssVar, 10)
         if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
           const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
-          // Try to find which palette this hex matches
+          const modeLower = mode.toLowerCase()
+          
+          // PRIORITY 1: Check core colors FIRST (before regular palettes)
+          // Core colors can be: black, white, alert-tone, warning-tone, success-tone, interactive-default-tone, interactive-hover-tone
+          // Also check without -tone suffix for backwards compatibility
+          const coreColorKeys = [
+            'black', 'black-tone',
+            'white', 'white-tone',
+            'interactive-default-tone', 'interactive-default',
+            'interactive-hover-tone', 'interactive-hover',
+            'alert-tone', 'alert',
+            'warning-tone', 'warning',
+            'success-tone', 'success'
+          ]
+          for (const coreKey of coreColorKeys) {
+            const coreCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-${coreKey}`
+            const coreHex = readCssVarResolved(coreCssVar, 10)
+            if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
+              // Found a core color match! Format and display
+              const normalizedKey = coreKey.replace(/-tone$/, '')
+              if (normalizedKey === 'interactive-default') {
+                setDisplayLabel('Core / Interactive / Default')
+              } else if (normalizedKey === 'interactive-hover') {
+                setDisplayLabel('Core / Interactive / Hover')
+              } else if (normalizedKey === 'interactive') {
+                setDisplayLabel('Core / Interactive')
+              } else {
+                const formattedCore = formatPaletteName(normalizedKey)
+                setDisplayLabel(`Core / ${formattedCore}`)
+              }
+              return
+            }
+          }
+          
+          // PRIORITY 2: Only check regular palettes if no core color match was found
           for (const pk of paletteKeys) {
             const levels = paletteLevels[pk] || []
             for (const level of levels) {
@@ -391,9 +654,24 @@ export default function PaletteColorControl({
               const paletteHex = readCssVarResolved(paletteCssVar, 10)
               if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
                 // Found a match! Display the palette name and level
+                // Special handling for core-interactive palette
+                if (pk === 'core-interactive') {
+                  if (level === 'default') {
+                    setDisplayLabel('Core / Interactive / Default')
+                  } else if (level === 'hover') {
+                    setDisplayLabel('Core / Interactive / Hover')
+                  } else {
+                    setDisplayLabel(`Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`)
+                  }
+                  return
+                }
                 const formattedPalette = formatPaletteName(pk)
-                const displayLevel = level === 'primary' ? 'primary' : level
-                setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+                if (level === 'default') {
+                  setDisplayLabel(formattedPalette)
+                } else {
+                  const displayLevel = level === 'primary' ? 'primary' : level === 'hover' ? 'Hover' : level
+                  setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+                }
                 return
               }
             }
@@ -411,31 +689,60 @@ export default function PaletteColorControl({
     }
 
     // Extract palette name and level from var() reference
-    // Match: var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone)
+    // Match: var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone)
     // Updated regex to handle 000 and 1000 levels
-    let match = cssValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+    // Try with current mode first, then fallback to any mode
+    const modeLower = mode.toLowerCase()
+    let match = cssValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
+    
+    // If no match with current mode, try any mode
+    if (!match) {
+      match = cssValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
+    }
     
     // Also check for color-mix() functions that contain palette references
-    // Match: color-mix(in srgb, var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
+    // Match: color-mix(in srgb, var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
     // The palette var can appear anywhere in the color-mix function
     if (!match) {
-      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)[^)]*\)/)
+      match = cssValue.match(new RegExp(`color-mix\\s*\\([^)]*var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)[^)]*\\)`, 'i'))
+    }
+    
+    if (!match) {
+      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
     }
     
     // Also check for token references: var(--recursica-tokens-color-{family}-{level})
     // Match: var(--recursica-tokens-color-{family}-{level})
-    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/)
+    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
     
     // Also check for color-mix() functions that contain token references
     if (!tokenMatch) {
-      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/)
+      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
     }
     
     if (match) {
       const [, paletteKey, level] = match
+      
+      // Special handling for core-interactive palette
+      if (paletteKey === 'core-interactive') {
+        if (level === 'default') {
+          setDisplayLabel('Core / Interactive / Default')
+        } else if (level === 'hover') {
+          setDisplayLabel('Core / Interactive / Hover')
+        } else {
+          setDisplayLabel(`Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`)
+        }
+        return
+      }
+      
       const formattedPalette = formatPaletteName(paletteKey)
-      const displayLevel = level === 'primary' ? 'primary' : level
-      setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+      // Don't show "default" level - it's implied
+      if (level === 'default') {
+        setDisplayLabel(formattedPalette)
+      } else {
+        const displayLevel = level === 'primary' ? 'primary' : level === 'hover' ? 'Hover' : level
+        setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+      }
       return
     }
     
@@ -476,9 +783,24 @@ export default function PaletteColorControl({
             const paletteHex = readCssVarResolved(paletteCssVar, 10)
             if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a match! Display the palette name and level
+              // Special handling for core-interactive palette
+              if (pk === 'core-interactive') {
+                if (level === 'default') {
+                  setDisplayLabel('Core / Interactive / Default')
+                } else if (level === 'hover') {
+                  setDisplayLabel('Core / Interactive / Hover')
+                } else {
+                  setDisplayLabel(`Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`)
+                }
+                return
+              }
               const formattedPalette = formatPaletteName(pk)
-              const displayLevel = level === 'primary' ? 'primary' : level
-              setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+              if (level === 'default') {
+                setDisplayLabel(formattedPalette)
+              } else {
+                const displayLevel = level === 'primary' ? 'primary' : level === 'hover' ? 'Hover' : level
+                setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+              }
               return
             }
           }
@@ -495,7 +817,12 @@ export default function PaletteColorControl({
     setDisplayLabel(fallbackLabel)
   }
 
-  // Update display label based on CSS variable value
+  // Sync display label state with computed value
+  useEffect(() => {
+    setDisplayLabel(computedDisplayLabel)
+  }, [computedDisplayLabel])
+  
+  // Update display label based on CSS variable value (for refresh mechanism)
   useEffect(() => {
     // Read immediately
     updateDisplayLabel()
@@ -515,7 +842,7 @@ export default function PaletteColorControl({
       clearTimeout(timeoutId)
       clearTimeout(timeoutId2)
     }
-  }, [displayCssVar, fallbackLabel, refreshKey]) // Include refreshKey to force re-read
+  }, [displayCssVar, fallbackLabel, refreshKey, paletteKeys, paletteLevels, mode]) // Include refreshKey to force re-read
 
   // Check contrast if contrastColorCssVar is provided
   // Use the same approach as ButtonPreview

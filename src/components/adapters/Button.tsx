@@ -169,7 +169,13 @@ function getButtonStyles(
   const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
   const paddingVar = getComponentCssVar('Button', 'size', 'horizontal-padding', undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
-  const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
+  
+  // Get all typography properties from the typography style
+  const fontFamilyVar = getBrandTypographyCssVar('button', 'font-family')
+  const fontSizeVar = getBrandTypographyCssVar('button', 'font-size')
+  const fontWeightVar = getBrandTypographyCssVar('button', 'font-weight')
+  const letterSpacingVar = getBrandTypographyCssVar('button', 'font-letter-spacing')
+  const lineHeightVar = getBrandTypographyCssVar('button', 'line-height')
   
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'border-size')
@@ -217,8 +223,11 @@ function getButtonStyles(
   styles.paddingLeft = paddingVarName ? `var(${paddingVarName})` : '12px'
   styles.paddingRight = paddingVarName ? `var(${paddingVarName})` : '12px'
   styles.borderRadius = borderRadiusVar ? `var(${borderRadiusVar})` : '8px'
-  styles.fontSize = fontSizeVar ? `var(${fontSizeVar})` : undefined
-  styles.fontWeight = `var(${getBrandTypographyCssVar('button', 'font-weight')})`
+  styles.fontFamily = `var(${fontFamilyVar})`
+  styles.fontSize = `var(${fontSizeVar})`
+  styles.fontWeight = `var(${fontWeightVar})`
+  styles.letterSpacing = `var(${letterSpacingVar})`
+  styles.lineHeight = `var(${lineHeightVar})`
   
   // Apply disabled styles - use brand disabled opacity, don't change colors
   if (disabled) {

@@ -11,8 +11,11 @@ import { globalStyle } from '@vanilla-extract/css'
 /* Use !important to override Mantine's default styles */
 globalStyle('.mantine-Button-root', {
   borderRadius: 'var(--button-border-radius) !important',
+  fontFamily: 'var(--button-font-family) !important',
   fontSize: 'var(--button-font-size) !important',
-  fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+  fontWeight: 'var(--button-font-weight) !important',
+  letterSpacing: 'var(--button-letter-spacing) !important',
+  lineHeight: 'var(--button-line-height) !important',
 } as any)
 
 /* Size-specific styles - use CSS variables set on button element (from TSX) */

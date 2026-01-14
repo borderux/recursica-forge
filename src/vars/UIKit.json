@@ -566,12 +566,9 @@
           }
         },
         "properties": {
-          "font-size": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.typography.button.font-size}",
-              "unit": "px"
-            }
+          "font": {
+            "$type": "typography",
+            "$value": "{brand.typography.button}"
           },
           "border-radius": {
             "$type": "dimension",

@@ -63,8 +63,14 @@ export default function Button({
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
-  const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
   const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
+  
+  // Get all typography properties from the typography style
+  const fontFamilyVar = getBrandTypographyCssVar('button', 'font-family')
+  const fontSizeVar = getBrandTypographyCssVar('button', 'font-size')
+  const fontWeightVar = getBrandTypographyCssVar('button', 'font-weight')
+  const letterSpacingVar = getBrandTypographyCssVar('button', 'font-letter-spacing')
+  const lineHeightVar = getBrandTypographyCssVar('button', 'line-height')
   
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'border-size')
@@ -159,12 +165,19 @@ export default function Button({
       '--button-padding': `var(${horizontalPaddingVar})`,
       '--button-padding-x': `var(${horizontalPaddingVar})`,
       '--button-border-radius': `var(${borderRadiusVar})`,
+      '--button-font-family': `var(${fontFamilyVar})`,
       '--button-font-size': `var(${fontSizeVar})`,
       '--button-fz': `var(${fontSizeVar})`,
-      '--button-font-weight': `var(${getBrandTypographyCssVar('button', 'font-weight')})`,
+      '--button-font-weight': `var(${fontWeightVar})`,
+      '--button-letter-spacing': `var(${letterSpacingVar})`,
+      '--button-line-height': `var(${lineHeightVar})`,
       // Directly set color to override Mantine's fallback (var(--button-color, var(--mantine-color-white)))
       color: buttonColorRef,
-      fontWeight: `var(${getBrandTypographyCssVar('button', 'font-weight')})`,
+      fontFamily: `var(${fontFamilyVar})`,
+      fontSize: `var(${fontSizeVar})`,
+      fontWeight: `var(${fontWeightVar})`,
+      letterSpacing: `var(${letterSpacingVar})`,
+      lineHeight: `var(${lineHeightVar})`,
       // For icon-only buttons, ensure flex centering with space-around
       ...(isIconOnly && {
         display: 'flex',

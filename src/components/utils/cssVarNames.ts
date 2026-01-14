@@ -208,7 +208,12 @@ export function getGlobalCssVar(
   category: 'globals' | 'form',
   ...path: string[]
 ): string {
-  const parts = ['ui-kit', category, ...path]
+  // UIKit structure: ui-kit.globals.form.field.size.single-line-input-height
+  // So for 'form' category, we need: globals.form.field.size.single-line-input-height
+  // For 'globals' category, we need: globals.{path}
+  const parts = category === 'form' 
+    ? ['globals', 'form', ...path]
+    : ['globals', ...path]
   return toCssVarName(parts.join('.'))
 }
 

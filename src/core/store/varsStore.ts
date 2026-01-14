@@ -277,9 +277,14 @@ class VarsStore {
     // React to type choice changes and palette changes (centralized)
     // Debounce palette var changes to prevent infinite loops
     const onTypeChoices = () => {
-      if (this.isRecomputing) return // Prevent recursive calls
+      console.log('[VarsStore] typeChoicesChanged event received, recomputing...')
+      if (this.isRecomputing) {
+        console.log('[VarsStore] Already recomputing, skipping')
+        return // Prevent recursive calls
+      }
       this.bumpVersion()
       this.recomputeAndApplyAll()
+      console.log('[VarsStore] Recompute complete')
     }
     let paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
     const onPaletteVarsChanged = () => {
@@ -1639,43 +1644,38 @@ class VarsStore {
       Object.assign(allVars, uikitVars)
     } catch {}
     // Typography
-    const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, this.readTypeChoices())
-    
-    // Preserve typography CSS variables that were set directly by the user (e.g., via TypeStylePanel)
-    // This prevents font-loaded events and recomputes from overwriting user changes
-    Object.keys(typeVars).forEach((cssVar) => {
-      const existingValue = readCssVar(cssVar)
-      const generatedValue = typeVars[cssVar]
-      
-      // Preserve if it exists in DOM and is different from generated (user customization)
-      // This ensures user changes via TypeStylePanel persist across recomputes
-      if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
-        typeVars[cssVar] = existingValue
-      }
-    })
-    
-    // Also check for any brand typography CSS variables that might have been set directly
-    // These are the ones TypeStylePanel modifies (e.g., --recursica-brand-typography-h1-font-family)
-    try {
-      const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'button', 'caption', 'overline']
-      const typographyProperties = ['font-family', 'font-size', 'font-weight', 'font-letter-spacing', 'line-height']
-      
-      typographyPrefixes.forEach((prefix) => {
-        typographyProperties.forEach((property) => {
-          const cssVar = `--recursica-brand-typography-${prefix}-${property}`
-          const existingValue = readCssVar(cssVar)
-          const generatedValue = typeVars[cssVar]
-          
-          // If there's an existing value that differs from generated, preserve it
-          // This catches direct CSS variable changes from TypeStylePanel
-          if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
-            typeVars[cssVar] = existingValue
-          }
-        })
-      })
-    } catch (e) {
-      console.error('[VarsStore] Error preserving typography variables:', e)
+    const typeChoices = this.readTypeChoices()
+    console.log('[VarsStore] Reading type choices:', typeChoices)
+    const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, typeChoices)
+    console.log('[VarsStore] Generated typography vars count:', Object.keys(typeVars).length)
+    // Log a sample of the generated vars for h1
+    const h1Vars = Object.keys(typeVars).filter(k => k.includes('h1'))
+    if (h1Vars.length > 0) {
+      console.log('[VarsStore] Sample h1 vars:', h1Vars.slice(0, 5).map(k => ({ [k]: typeVars[k] })))
     }
+    
+    // Only preserve typography CSS variables that were set DIRECTLY (not via choices system)
+    // If choices exist, the generated values from buildTypographyVars should be used
+    // This allows the choices system to work properly
+    const hasChoices = Object.keys(typeChoices).length > 0
+    if (!hasChoices) {
+      // Only preserve if there are no choices (user might have set CSS vars directly)
+      Object.keys(typeVars).forEach((cssVar) => {
+        const existingValue = readCssVar(cssVar)
+        const generatedValue = typeVars[cssVar]
+        
+        // Preserve if it exists in DOM and is different from generated (user customization)
+        // This ensures direct CSS variable changes persist across recomputes when no choices are set
+        if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
+          typeVars[cssVar] = existingValue
+        }
+      })
+    }
+    
+    // Don't preserve typography CSS variables when choices are set
+    // The choices system should be the source of truth, and buildTypographyVars
+    // already generates the correct CSS variables based on choices
+    // Only preserve if there are no choices (user might have set CSS vars directly via other means)
     
     Object.assign(allVars, typeVars)
     // Ensure fonts load lazily (web fonts, npm fonts, git fonts)
@@ -1925,7 +1925,14 @@ class VarsStore {
       }
     }
     try {
+      console.log('[VarsStore] Applying CSS variables, total count:', Object.keys(allVars).length)
+      // Log a sample of typography vars being applied
+      const typographyVars = Object.keys(allVars).filter(k => k.includes('typography') && k.includes('h1'))
+      if (typographyVars.length > 0) {
+        console.log('[VarsStore] Sample h1 typography vars being applied:', typographyVars.slice(0, 5).map(k => ({ [k]: allVars[k] })))
+      }
       applyCssVars(allVars, this.state.tokens)
+      console.log('[VarsStore] CSS variables applied successfully')
     } catch (e) {
       // Log error but don't let it break the recompute cycle
       console.error('[VarsStore] Error applying CSS variables:', e)

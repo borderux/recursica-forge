@@ -313,10 +313,11 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const lineHeight = (lineHeightChoice != null ? lineHeightChoice : (resolveTokenRef(spec?.lineHeight) ?? spec?.lineHeight ?? defaultLineHeight))
     // Prefer token references where possible - always try to extract from spec first
     const familyToken = extractTokenRef(spec?.fontFamily) || (familyFromChoice ? extractTokenRef(familyFromChoice) : null)
-    const sizeToken = extractTokenRef(spec?.fontSize) || (sizeChoice != null ? extractTokenRef(`{tokens.font.size.${ch.size}}`) : null)
-    const weightToken = extractTokenRef(spec?.fontWeight ?? spec?.weight) || (weightChoice != null ? extractTokenRef(`{tokens.font.weight.${ch.weight}}`) : null)
-    const spacingToken = extractTokenRef(spec?.letterSpacing) || (spacingChoice != null ? extractTokenRef(`{tokens.font.letter-spacing.${ch.spacing}}`) : null)
-    const lineHeightToken = extractTokenRef(spec?.lineHeight) || (lineHeightChoice != null ? extractTokenRef(`{tokens.font.line-height.${(ch as any).lineHeight}}`) : null)
+    // For choices, construct token reference directly from the choice key
+    const sizeToken = extractTokenRef(spec?.fontSize) || (sizeChoice != null ? { category: 'size' as const, suffix: ch.size } : null)
+    const weightToken = extractTokenRef(spec?.fontWeight ?? spec?.weight) || (weightChoice != null ? { category: 'weight' as const, suffix: ch.weight } : null)
+    const spacingToken = extractTokenRef(spec?.letterSpacing) || (spacingChoice != null ? { category: 'letter-spacing' as const, suffix: ch.spacing } : null)
+    const lineHeightToken = extractTokenRef(spec?.lineHeight) || (lineHeightChoice != null ? { category: 'line-height' as const, suffix: (ch as any).lineHeight } : null)
     
     // Helper to find token by value for fallback
     const findTokenByValue = (value: any, category: 'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'): string | null => {

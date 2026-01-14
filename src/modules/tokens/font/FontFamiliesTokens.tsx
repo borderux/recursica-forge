@@ -104,7 +104,7 @@ export function AddButton() {
       })()}
       style={{
         backgroundColor: `var(${interactiveColor})`,
-        color: `var(--recursica-brand-${mode}-palettes-core-interactive-text)`,
+        color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone)`,
       }}
     >
       Add font family
@@ -257,7 +257,7 @@ export default function FontFamiliesTokens() {
       const deletedRow = rows[index]
       const deletedKey = deletedRow.name.replace('font/typeface/', '')
       removeCssVar(`--tokens-font-typeface-${deletedKey}`)
-      removeCssVar(`--recursica-tokens-font-typeface-${deletedKey}`)
+      removeCssVar(`--recursica-tokens-font-typefaces-${deletedKey}`)
     }
     
     rowsToKeep.forEach((row, newIndex) => {
@@ -266,7 +266,7 @@ export default function FontFamiliesTokens() {
       if (row.name !== newName) {
         const oldKey = row.name.replace('font/typeface/', '')
         removeCssVar(`--tokens-font-typeface-${oldKey}`)
-        removeCssVar(`--recursica-tokens-font-typeface-${oldKey}`)
+        removeCssVar(`--recursica-tokens-font-typefaces-${oldKey}`)
       }
     })
     
@@ -312,7 +312,7 @@ export default function FontFamiliesTokens() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
         {rows.map((r, index) => {
           const label = toTitle(ORDER[index] || `custom-${index + 1}`)
-          const fontFamilyVar = `--recursica-tokens-font-typeface-${ORDER[index] || `custom-${index + 1}`}`
+          const fontFamilyVar = `--recursica-tokens-font-typefaces-${ORDER[index] || `custom-${index + 1}`}`
           const selectedWeight = selectedWeights[r.name] || 'regular'
           
           return (
@@ -364,7 +364,7 @@ export default function FontFamiliesTokens() {
                   padding: `calc(var(--recursica-brand-dimensions-spacers-xs) / 2) var(--recursica-brand-dimensions-spacers-default)`,
                   borderRadius: `var(${buttonBorderRadius})`,
                   background: `var(${interactiveColor})`,
-                  color: `var(--recursica-brand-${mode}-palettes-core-interactive-text)`,
+                  color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone)`,
                   fontSize: 'var(--recursica-brand-typography-caption-font-size)',
                   fontWeight: 600,
                 }}>
@@ -478,21 +478,21 @@ export default function FontFamiliesTokens() {
             >
               {(() => {
                 const XIcon = iconNameToReactComponent('x-mark')
-                return XIcon ? <XIcon style={{ width: 20, height: 20, color: `var(--recursica-brand-${mode}-palettes-core-interactive-text)` }} /> : null
+                return XIcon ? <XIcon style={{ width: 20, height: 20, color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone)` }} /> : null
               })()}
             </button>
             <h3 style={{
               margin: 0,
               fontSize: 'var(--recursica-brand-typography-h6-font-size)',
               fontWeight: 'var(--recursica-brand-typography-h6-font-weight)',
-              color: `var(--recursica-brand-${mode}-palettes-core-interactive-text)`,
+              color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone)`,
             }}>
               Need inspiration?
             </h3>
             <p style={{
               margin: 0,
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(--recursica-brand-${mode}-palettes-core-interactive-text)`,
+              color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone)`,
               opacity: 0.9,
             }}>
               Browse the Google Fonts library to find the perfect typeface.
@@ -506,7 +506,7 @@ export default function FontFamiliesTokens() {
                 return LinkIcon ? <LinkIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               style={{
-                backgroundColor: `var(--recursica-brand-${mode}-palettes-core-interactive-text)`,
+                backgroundColor: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone)`,
                 color: `var(${interactiveColor})`,
               }}
             >
