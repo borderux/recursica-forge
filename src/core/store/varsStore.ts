@@ -2026,9 +2026,12 @@ class VarsStore {
           ? (resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000')
           : '#000000'
         
-        updateCoreColorInteractiveOnTones(interactiveHex, this.state.tokens, this.state.theme, (theme) => {
-          this.setTheme(theme)
-        }, currentMode)
+        // Use setTimeout to ensure CSS vars are updated first
+        setTimeout(() => {
+          updateCoreColorInteractiveOnTones(interactiveHex, this.state.tokens, this.state.theme, (theme) => {
+            this.setTheme(theme)
+          }, currentMode)
+        }, 50)
       }).catch((err) => {
         console.error('Failed to update core color on-tones:', err)
       })

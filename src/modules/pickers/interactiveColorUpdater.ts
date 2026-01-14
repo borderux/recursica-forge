@@ -415,6 +415,11 @@ export function updateInteractiveColor(
   
   // Update layer interactive colors with proper stepping
   updateLayerInteractiveColors(normalizedHex, tokens, mode)
+  
+  // Update interactive on-tones for all core colors (black, white, alert, warning, success)
+  if (theme && setTheme) {
+    updateCoreColorInteractiveOnTones(normalizedHex, tokens, theme, setTheme, mode)
+  }
 }
 
 // Update core color interactive on-tone values for AA compliance
@@ -597,7 +602,7 @@ export function updateCoreColorInteractiveOnTones(
         }
       }
       
-      // Step 4: Try white and step up and down through white's token scale
+      // Step 4: Try ALL levels (000->1000) of the white scale
       const whiteToneVar = `--recursica-brand-themes-${mode}-palettes-core-white-tone`
       const whiteToneValue = readCssVar(whiteToneVar)
       let whiteHex = '#ffffff'
@@ -608,9 +613,7 @@ export function updateCoreColorInteractiveOnTones(
       
       const whiteFamily = findColorFamilyAndLevel(whiteHex, tokens)
       if (whiteFamily) {
-        const { family: whiteFamilyName, level: whiteLevel } = whiteFamily
-        const normalizedWhiteLevel = whiteLevel === '000' ? '050' : whiteLevel
-        const whiteStartIdx = LEVELS.indexOf(normalizedWhiteLevel)
+        const { family: whiteFamilyName } = whiteFamily
         
         const buildWhiteTokenRef = (level: string): string => {
           const tokensRoot: any = (tokens as any)?.tokens || {}
@@ -636,44 +639,21 @@ export function updateCoreColorInteractiveOnTones(
           }
         }
         
-        if (whiteStartIdx !== -1) {
-          // Try stepping lighter first
-          for (let i = whiteStartIdx - 1; i >= 0; i--) {
-            const testLevel = LEVELS[i]
-            const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-            const testHex = tokenIndex.get(`colors/${whiteFamilyName}/${normalizedTestLevel}`) || tokenIndex.get(`color/${whiteFamilyName}/${normalizedTestLevel}`)
-            if (typeof testHex === 'string') {
-              const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-              const testContrast = contrastRatio(coreColorToneHex, hex)
-              if (testContrast >= AA) {
-                return buildWhiteTokenRef(normalizedTestLevel)
-              }
-            }
-          }
-          
-          // Try stepping darker
-          for (let i = whiteStartIdx + 1; i < LEVELS.length; i++) {
-            const testLevel = LEVELS[i]
-            const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-            const testHex = tokenIndex.get(`colors/${whiteFamilyName}/${normalizedTestLevel}`) || tokenIndex.get(`color/${whiteFamilyName}/${normalizedTestLevel}`)
-            if (typeof testHex === 'string') {
-              const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-              const testContrast = contrastRatio(coreColorToneHex, hex)
-              if (testContrast >= AA) {
-                return buildWhiteTokenRef(normalizedTestLevel)
-              }
+        // Try ALL levels of white scale (000->1000)
+        for (const testLevel of LEVELS) {
+          const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
+          const testHex = tokenIndex.get(`colors/${whiteFamilyName}/${normalizedTestLevel}`) || tokenIndex.get(`color/${whiteFamilyName}/${normalizedTestLevel}`)
+          if (typeof testHex === 'string') {
+            const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+            const testContrast = contrastRatio(coreColorToneHex, hex)
+            if (testContrast >= AA) {
+              return buildWhiteTokenRef(normalizedTestLevel)
             }
           }
         }
       }
       
-      // Try white directly
-      const whiteContrast = contrastRatio(coreColorToneHex, whiteHex)
-      if (whiteContrast >= AA) {
-        return `{brand.themes.${mode}.palettes.core-colors.white}`
-      }
-      
-      // Step 4: Try black
+      // Step 5: Try ALL levels (000->1000) of the black scale
       const blackToneVar = `--recursica-brand-themes-${mode}-palettes-core-black-tone`
       const blackToneValue = readCssVar(blackToneVar)
       let blackHex = '#000000'
@@ -682,12 +662,61 @@ export function updateCoreColorInteractiveOnTones(
         if (resolved) blackHex = resolved
       }
       
+      const blackFamily = findColorFamilyAndLevel(blackHex, tokens)
+      if (blackFamily) {
+        const { family: blackFamilyName } = blackFamily
+        
+        const buildBlackTokenRef = (level: string): string => {
+          const tokensRoot: any = (tokens as any)?.tokens || {}
+          const colorsRoot: any = tokensRoot?.colors || {}
+          
+          if (blackFamilyName.startsWith('scale-')) {
+            return `{tokens.colors.${blackFamilyName}.${level}}`
+          } else {
+            let scaleKey: string | null = null
+            for (const [key, scale] of Object.entries(colorsRoot)) {
+              if (!key.startsWith('scale-')) continue
+              const scaleObj = scale as any
+              if (scaleObj?.alias === blackFamilyName) {
+                scaleKey = key
+                break
+              }
+            }
+            if (scaleKey) {
+              return `{tokens.colors.${scaleKey}.${level}}`
+            } else {
+              return `{tokens.color.${blackFamilyName}.${level}}`
+            }
+          }
+        }
+        
+        // Try ALL levels of black scale (000->1000)
+        for (const testLevel of LEVELS) {
+          const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
+          const testHex = tokenIndex.get(`colors/${blackFamilyName}/${normalizedTestLevel}`) || tokenIndex.get(`color/${blackFamilyName}/${normalizedTestLevel}`)
+          if (typeof testHex === 'string') {
+            const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+            const testContrast = contrastRatio(coreColorToneHex, hex)
+            if (testContrast >= AA) {
+              return buildBlackTokenRef(normalizedTestLevel)
+            }
+          }
+        }
+      }
+      
+      // If both white and black scales failed, try white and black directly as fallback
+      const whiteContrast = contrastRatio(coreColorToneHex, whiteHex)
       const blackContrast = contrastRatio(coreColorToneHex, blackHex)
+      
+      if (whiteContrast >= AA) {
+        return `{brand.themes.${mode}.palettes.core-colors.white}`
+      }
       if (blackContrast >= AA) {
         return `{brand.themes.${mode}.palettes.core-colors.black}`
       }
       
-      // Fallback: use the one with higher contrast
+      // Both white and black scales failed - return a fallback (this will show as 'x' in UI)
+      // Use the one with higher contrast even if it doesn't pass AA
       return whiteContrast >= blackContrast 
         ? `{brand.themes.${mode}.palettes.core-colors.white}`
         : `{brand.themes.${mode}.palettes.core-colors.black}`
@@ -741,12 +770,13 @@ export function updateCoreColorInteractiveOnTones(
       // Update the interactive on-tone in theme JSON
       colorDef.interactive['on-tone'].$value = onToneRef
       
-      // Update CSS variable
+      // Update CSS variable immediately for visual feedback
+      // Use the updated theme copy for proper resolution of brand references
       const onToneCssVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive-on-tone`
       const contextForCssVar: TokenReferenceContext = {
         currentMode: mode,
         tokenIndex: buildTokenIndex(tokens),
-        theme: { brand: { themes: {} } }
+        theme: themeCopy // Use the updated theme copy so brand references resolve correctly
       }
       const cssVar = resolveTokenReferenceToCssVar(onToneRef, contextForCssVar)
       if (cssVar) {
@@ -754,7 +784,18 @@ export function updateCoreColorInteractiveOnTones(
       }
     }
     
+    // Update theme - this will trigger recomputeAndApplyAll which regenerates all CSS vars from theme JSON
+    // The resolver will pick up the updated interactive.on-tone values and generate the correct CSS variables
+    // This ensures consistency even if the direct update above had any issues
     setTheme(themeCopy)
+    
+    // After setTheme triggers recompute, dispatch event to notify UI components to refresh
+    // The recompute happens synchronously in writeState, but we add a small delay to ensure
+    // all CSS variables are fully applied before UI components read them
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
+      window.dispatchEvent(new CustomEvent('recheckCoreColorInteractiveOnTones'))
+    }, 10)
   } catch (err) {
     console.error('Failed to update core color interactive on-tones:', err)
   }

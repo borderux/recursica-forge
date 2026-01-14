@@ -202,11 +202,37 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       if (trimmed.includes('color-mix') && trimmed.includes(paletteVarName)) {
         return true
       }
+      
+      // If target is a UIKit variable or other var() reference, resolve it and compare hex values
+      if (trimmed.startsWith('var(')) {
+        // Resolve the target CSS variable to hex
+        const targetHex = readCssVarResolved(targetCssVar, 10)
+        if (targetHex && /^#[0-9a-f]{6}$/i.test(targetHex.trim())) {
+          // Resolve the palette CSS variable to hex
+          const paletteHex = readCssVarResolved(paletteCssVar, 10)
+          if (paletteHex && /^#[0-9a-f]{6}$/i.test(paletteHex.trim())) {
+            // Compare hex values (case-insensitive)
+            if (targetHex.trim().toLowerCase() === paletteHex.trim().toLowerCase()) {
+              return true
+            }
+          }
+        }
+      }
     }
     
     // Use the tracked selected swatch to avoid multiple selections
     if (selectedPaletteSwatch) {
       return selectedPaletteSwatch === paletteId
+    }
+    
+    // Fallback: compare resolved hex values
+    if (targetResolvedValue.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
+      const paletteHex = readCssVarResolved(paletteCssVar, 10)
+      if (paletteHex && /^#[0-9a-f]{6}$/i.test(paletteHex.trim())) {
+        if (targetResolvedValue.resolved.trim().toLowerCase() === paletteHex.trim().toLowerCase()) {
+          return true
+        }
+      }
     }
     
     return false
@@ -228,19 +254,36 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const swatch = 18
   const gap = 1
   const maxLevelCount = Math.max(...Object.values(paletteLevels).map((levels) => levels.length), 0)
-  // Calculate width to fit swatches without horizontal scrolling
-  // Use a fixed max width that allows swatches to wrap naturally
-  const swatchAreaWidth = Math.min(maxLevelCount * (swatch + gap), 400) // Max 400px for swatch area
+  // Calculate width to fit all swatches without wrapping - hug the content
+  const swatchAreaWidth = maxLevelCount * (swatch + gap) - gap // Exact width needed for all swatches
   const overlayWidth = labelCol + swatchAreaWidth + 32
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
+  // Get elevation level from layer 3
+  const elevationLevel = useMemo(() => {
+    try {
+      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+      const themes = root?.themes || root
+      const layerSpec: any = themes?.[mode]?.layers?.['layer-3'] || themes?.[mode]?.layer?.['layer-3'] || {}
+      const v: any = layerSpec?.properties?.elevation?.$value
+      if (typeof v === 'string') {
+        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
+        const m = v.match(/elevations?\.(elevation-(\d+))/i)
+        if (m) return m[2]
+      }
+    } catch {}
+    return '3' // Default to elevation-3 if not found
+  }, [themeJson, mode])
+
+  const elevationBoxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0.1))`
+
   return createPortal(
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, maxWidth: '90vw', background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, zIndex: 20000 }}>
+    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: overlayWidth, maxWidth: '90vw', background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: elevationBoxShadow, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, zIndex: 20000 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>Pick palette color</div>
         <button onClick={() => setAnchor(null)} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>
-      <div style={{ display: 'grid', gap: 6 }}>
+      <div style={{ display: 'grid', gap: 4 }}>
         {/* None option */}
         <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
           <div style={{ fontSize: 12, opacity: 0.8 }}>None</div>
@@ -434,7 +477,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       height: swatch,
                       background: `var(${paletteCssVar})`,
                       cursor: 'pointer',
-                      border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
+                      border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
                       flex: '0 0 auto',
                     }}
                   >

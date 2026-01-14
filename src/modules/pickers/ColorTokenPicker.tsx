@@ -371,122 +371,7 @@ export default function ColorTokenPicker() {
             if (!coreColors[colorName]['on-tone']) coreColors[colorName]['on-tone'] = {}
             coreColors[colorName]['on-tone'].$value = `{brand.themes.${mode}.palettes.core-colors.${onToneCore}}`
             
-            // Check and update interactive on-tone color for AA compliance
-            // Get current interactive color reference
-            const currentInteractiveRef = coreColors[colorName].interactive?.$value
-            if (currentInteractiveRef) {
-              // Resolve interactive color to hex
-              const resolveRef = (ref: string): string | null => {
-                const context: TokenReferenceContext = {
-                  currentMode: mode,
-                  tokenIndex: buildTokenIndex(tokensJson),
-                  theme: themeJson
-                }
-                const resolved = resolveTokenReferenceToValue(ref, context)
-                if (typeof resolved === 'string') {
-                  // Check if it's a hex color
-                  if (resolved.startsWith('#')) {
-                    return resolved.toLowerCase()
-                  }
-                  // If it resolved to another reference, try resolving again
-                  if (resolved.startsWith('{')) {
-                    return resolveRef(resolved)
-                  }
-                }
-                return null
-              }
-              
-              const interactiveHex = resolveRef(currentInteractiveRef)
-              if (interactiveHex) {
-                // Check contrast between tone and interactive color
-                const AA = 4.5
-                const contrast = contrastRatio(normalizedToneHex, interactiveHex)
-                
-                let accessibleRef: string | null = null
-                
-                if (contrast >= AA) {
-                  // Current interactive color is accessible, keep it
-                  accessibleRef = currentInteractiveRef
-                } else {
-                  // Need to find an accessible color
-                  const interactiveFamily = findColorFamilyAndLevel(interactiveHex, tokensJson)
-                  
-                  if (interactiveFamily) {
-                    const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
-                    const { family, level } = interactiveFamily
-                    const normalizedLevel = level === '000' ? '050' : level
-                    const startIdx = LEVELS.indexOf(normalizedLevel)
-                    
-                    if (startIdx !== -1) {
-                      // Try lighter first
-                      for (let i = startIdx - 1; i >= 0; i--) {
-                        const testLevel = LEVELS[i]
-                        const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-                        // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
-                        let testHex = tokenIndex.get(`colors/${family}/${normalizedTestLevel}`)
-                        if (typeof testHex !== 'string') {
-                          testHex = tokenIndex.get(`color/${family}/${normalizedTestLevel}`)
-                        }
-                        if (typeof testHex === 'string') {
-                          const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-                          const testContrast = contrastRatio(normalizedToneHex, hex)
-                          if (testContrast >= AA) {
-                            accessibleRef = `{tokens.colors.${family}.${normalizedTestLevel}}`
-                            break
-                          }
-                        }
-                      }
-                      
-                      // If no lighter color found, try darker
-                      if (!accessibleRef) {
-                        for (let i = startIdx + 1; i < LEVELS.length; i++) {
-                          const testLevel = LEVELS[i]
-                          const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-                          // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
-                        let testHex = tokenIndex.get(`colors/${family}/${normalizedTestLevel}`)
-                        if (typeof testHex !== 'string') {
-                          testHex = tokenIndex.get(`color/${family}/${normalizedTestLevel}`)
-                        }
-                          if (typeof testHex === 'string') {
-                            const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-                            const testContrast = contrastRatio(normalizedToneHex, hex)
-                            if (testContrast >= AA) {
-                              accessibleRef = `{tokens.colors.${family}.${normalizedTestLevel}}`
-                              break
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                  
-                  // If still no accessible color found, try white then black
-                  if (!accessibleRef) {
-                    const whiteHex = '#ffffff'
-                    const blackHex = '#000000'
-                    const whiteContrast = contrastRatio(normalizedToneHex, whiteHex)
-                    const blackContrast = contrastRatio(normalizedToneHex, blackHex)
-                    
-                    if (whiteContrast >= AA) {
-                      accessibleRef = `{brand.themes.${mode}.palettes.core-colors.white}`
-                    } else if (blackContrast >= AA) {
-                      accessibleRef = `{brand.themes.${mode}.palettes.core-colors.black}`
-                    } else {
-                      // Neither passes, use the one with higher contrast
-                      accessibleRef = whiteContrast >= blackContrast
-                        ? `{brand.themes.${mode}.palettes.core-colors.white}`
-                        : `{brand.themes.${mode}.palettes.core-colors.black}`
-                    }
-                  }
-                }
-                
-                // Update interactive on-tone color
-                if (accessibleRef) {
-                  if (!coreColors[colorName].interactive) coreColors[colorName].interactive = {}
-                  coreColors[colorName].interactive.$value = accessibleRef
-                }
-              }
-            }
+            // Interactive on-tone will be updated by updateCoreColorInteractiveOnTones below
           }
         }
       }
@@ -498,8 +383,29 @@ export default function ColorTokenPicker() {
       setTimeout(() => {
         try {
           // Update all core color on-tones for AA compliance
-          import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorOnTones }) => {
+          Promise.all([
+            import('../../modules/pickers/interactiveColorUpdater'),
+            import('../../core/css/readCssVar'),
+            import('../../core/compliance/layerColorStepping'),
+            import('../../core/resolvers/tokens')
+          ]).then(([
+            { updateCoreColorOnTones, updateCoreColorInteractiveOnTones },
+            { readCssVarResolved, readCssVar },
+            { resolveCssVarToHex },
+            { buildTokenIndex }
+          ]) => {
             updateCoreColorOnTones(tokensJson, themeCopy, setTheme, mode)
+            
+            // Also update interactive on-tones for all core colors
+            // Get the interactive tone hex
+            const interactiveToneVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const interactiveToneValue = readCssVarResolved(interactiveToneVar) || readCssVar(interactiveToneVar)
+            const interactiveHex = interactiveToneValue 
+              ? (resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000')
+              : '#000000'
+            
+            updateCoreColorInteractiveOnTones(interactiveHex, tokensJson, themeCopy, setTheme, mode)
           }).catch((err) => {
             console.error('Failed to update core color on-tones:', err)
           })

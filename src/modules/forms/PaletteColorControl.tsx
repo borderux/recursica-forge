@@ -6,6 +6,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { contrastRatio } from '../theme/contrastUtil'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
+import './PaletteColorControl.css'
 
 type PaletteColorControlProps = {
   /** The CSS variable name to set when a color is selected */
@@ -49,24 +50,30 @@ export default function PaletteColorControl({
   const paletteKeys = useMemo(() => {
     const dynamic = palettes?.dynamic?.map((p) => p.key) || []
     const staticPalettes: string[] = []
+    const modeLower = mode.toLowerCase()
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const lightPal: any = root?.light?.palettes || {}
-      Object.keys(lightPal).forEach((k) => {
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      const modePal: any = themes?.[modeLower]?.palettes || themes?.[modeLower]?.palette || {}
+      Object.keys(modePal).forEach((k) => {
         if (k !== 'core' && k !== 'core-colors' && !dynamic.includes(k)) {
           staticPalettes.push(k)
         }
       })
     } catch {}
     return Array.from(new Set([...dynamic, ...staticPalettes]))
-  }, [palettes, themeJson])
+  }, [palettes, themeJson, mode])
   
   const paletteLevels = useMemo(() => {
     const levelsByPalette: Record<string, string[]> = {}
+    const modeLower = mode.toLowerCase()
     paletteKeys.forEach((pk) => {
       try {
         const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-        const paletteData: any = root?.light?.palettes?.[pk]
+        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+        const themes = root?.themes || root
+        const paletteData: any = themes?.[modeLower]?.palettes?.[pk] || themes?.[modeLower]?.palette?.[pk]
         if (paletteData) {
           const levels = Object.keys(paletteData).filter((k) => /^(\d{2,4}|000|1000)$/.test(k))
           levels.sort((a, b) => {
@@ -82,10 +89,11 @@ export default function PaletteColorControl({
       }
     })
     return levelsByPalette
-  }, [paletteKeys, themeJson])
+  }, [paletteKeys, themeJson, mode])
   
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
-    return `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
+    const modeLower = mode.toLowerCase()
+    return `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${level}-tone`
   }
   
   // Helper to find palette swatch that matches a token hex
@@ -175,15 +183,17 @@ export default function PaletteColorControl({
     
     // If we didn't find a palette reference in the chain, try resolving to hex and matching
     if (!paletteValue && cssValue) {
-      const resolvedHex = readCssVarResolved(displayCssVar, 5)
+      // Resolve deeper to handle UIKit variables that chain to other variables
+      const resolvedHex = readCssVarResolved(displayCssVar, 10)
       if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
+        const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
         // Try to find which palette this hex matches
         for (const pk of paletteKeys) {
           const levels = paletteLevels[pk] || []
           for (const level of levels) {
             const paletteCssVar = buildPaletteCssVar(pk, level)
-            const paletteHex = readCssVarResolved(paletteCssVar, 5)
-            if (paletteHex && paletteHex.trim().toLowerCase() === resolvedHex.trim().toLowerCase()) {
+            const paletteHex = readCssVarResolved(paletteCssVar, 10)
+            if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a match! Return the palette reference format
               cssValue = `var(${paletteCssVar})`
               paletteValue = cssValue
@@ -195,7 +205,48 @@ export default function PaletteColorControl({
       }
     }
     
-    if (!cssValue) return fallbackLabel
+    // If we found a palette value through hex matching, extract and return it
+    if (paletteValue) {
+      // Extract palette name and level from var() reference
+      const match = paletteValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+      if (match) {
+        const [, paletteKey, level] = match
+        const formattedPalette = formatPaletteName(paletteKey)
+        const displayLevel = level === 'primary' ? 'primary' : level
+        setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+        return
+      }
+    }
+    
+    if (!cssValue) {
+      // Check if the CSS variable exists (even if it's a UIKit variable)
+      const rawValue = readCssVar(displayCssVar)
+      if (rawValue && rawValue.trim()) {
+        // CSS variable is set, but we couldn't parse it - try resolving deeper
+        const resolvedHex = readCssVarResolved(displayCssVar, 10)
+        if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
+          const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
+          // Try to find which palette this hex matches
+          for (const pk of paletteKeys) {
+            const levels = paletteLevels[pk] || []
+            for (const level of levels) {
+              const paletteCssVar = buildPaletteCssVar(pk, level)
+              const paletteHex = readCssVarResolved(paletteCssVar, 10)
+              if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
+                // Found a match! Display the palette name and level
+                const formattedPalette = formatPaletteName(pk)
+                const displayLevel = level === 'primary' ? 'primary' : level
+                return `${formattedPalette} / ${displayLevel}`
+              }
+            }
+          }
+          // It's a valid color but doesn't match any palette
+          return 'Custom color'
+        }
+        return 'Set'
+      }
+      return fallbackLabel
+    }
     
     // Extract palette name and level from var() reference
     // Match: var(--recursica-brand-{light|dark}-palettes-{paletteKey}-{level}-tone)
@@ -245,6 +296,34 @@ export default function PaletteColorControl({
       return 'Custom color'
     }
     
+    // If it's a var() reference but doesn't match our patterns, try resolving deeper
+    // This handles UIKit component variables that chain to palette references
+    if (cssValue.trim().startsWith('var(') || cssValue.trim().includes('var(')) {
+      // Try resolving deeper to find palette references in the chain
+      const resolvedHex = readCssVarResolved(displayCssVar, 10)
+      if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
+        const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
+        // Try to find which palette this hex matches
+        for (const pk of paletteKeys) {
+          const levels = paletteLevels[pk] || []
+          for (const level of levels) {
+            const paletteCssVar = buildPaletteCssVar(pk, level)
+            const paletteHex = readCssVarResolved(paletteCssVar, 10)
+            if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
+              // Found a match! Display the palette name and level
+              const formattedPalette = formatPaletteName(pk)
+              const displayLevel = level === 'primary' ? 'primary' : level
+              return `${formattedPalette} / ${displayLevel}`
+            }
+          }
+        }
+        // It's a valid color but doesn't match any palette
+        return 'Custom color'
+      }
+      // It's a valid CSS variable reference, just not one we can parse nicely
+      return 'Set'
+    }
+    
     return fallbackLabel
   }
   
@@ -259,15 +338,17 @@ export default function PaletteColorControl({
     
     // If we didn't find a palette reference in the chain, try resolving to hex and matching
     if (!paletteValue && cssValue) {
-      const resolvedHex = readCssVarResolved(displayCssVar, 5)
+      // Resolve deeper to handle UIKit variables that chain to other variables
+      const resolvedHex = readCssVarResolved(displayCssVar, 10)
       if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
+        const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
         // Try to find which palette this hex matches
         for (const pk of paletteKeys) {
           const levels = paletteLevels[pk] || []
           for (const level of levels) {
             const paletteCssVar = buildPaletteCssVar(pk, level)
-            const paletteHex = readCssVarResolved(paletteCssVar, 5)
-            if (paletteHex && paletteHex.trim().toLowerCase() === resolvedHex.trim().toLowerCase()) {
+            const paletteHex = readCssVarResolved(paletteCssVar, 10)
+            if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a match! Return the palette reference format
               cssValue = `var(${paletteCssVar})`
               paletteValue = cssValue
@@ -278,8 +359,53 @@ export default function PaletteColorControl({
         }
       }
     }
+    
+    // If we found a palette value through hex matching, extract and display it immediately
+    if (paletteValue) {
+      // Extract palette name and level from var() reference
+      const match = paletteValue.match(/var\s*\(\s*--recursica-brand-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary)-tone\s*\)/)
+      if (match) {
+        const [, paletteKey, level] = match
+        const formattedPalette = formatPaletteName(paletteKey)
+        const displayLevel = level === 'primary' ? 'primary' : level
+        setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+        return
+      }
+    }
 
+    // If cssValue is empty or undefined, check if the CSS variable exists at all
+    // Even if it's a UIKit component variable, it's still "set"
     if (!cssValue) {
+      // Check if the CSS variable exists (even if it's a UIKit variable)
+      const rawValue = readCssVar(displayCssVar)
+      if (rawValue && rawValue.trim()) {
+        // CSS variable is set, but we couldn't parse it - try resolving deeper to find palette match
+        const resolvedHex = readCssVarResolved(displayCssVar, 10)
+        if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
+          const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
+          // Try to find which palette this hex matches
+          for (const pk of paletteKeys) {
+            const levels = paletteLevels[pk] || []
+            for (const level of levels) {
+              const paletteCssVar = buildPaletteCssVar(pk, level)
+              const paletteHex = readCssVarResolved(paletteCssVar, 10)
+              if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
+                // Found a match! Display the palette name and level
+                const formattedPalette = formatPaletteName(pk)
+                const displayLevel = level === 'primary' ? 'primary' : level
+                setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+                return
+              }
+            }
+          }
+          // It's a valid color but doesn't match any palette
+          setDisplayLabel('Custom color')
+          return
+        }
+        // It's set but we can't display it nicely - show a generic "Set" message
+        setDisplayLabel('Set')
+        return
+      }
       setDisplayLabel(fallbackLabel)
       return
     }
@@ -332,6 +458,37 @@ export default function PaletteColorControl({
     // If it's a direct color value
     if (cssValue.startsWith('#') || cssValue.startsWith('rgb')) {
       setDisplayLabel('Custom color')
+      return
+    }
+
+    // If it's a var() reference but doesn't match our patterns, try resolving deeper
+    // This handles UIKit component variables that chain to palette references
+    if (cssValue.trim().startsWith('var(') || cssValue.trim().includes('var(')) {
+      // Try resolving deeper to find palette references in the chain
+      const resolvedHex = readCssVarResolved(displayCssVar, 10)
+      if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
+        const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
+        // Try to find which palette this hex matches
+        for (const pk of paletteKeys) {
+          const levels = paletteLevels[pk] || []
+          for (const level of levels) {
+            const paletteCssVar = buildPaletteCssVar(pk, level)
+            const paletteHex = readCssVarResolved(paletteCssVar, 10)
+            if (paletteHex && paletteHex.trim().toLowerCase() === normalizedResolvedHex) {
+              // Found a match! Display the palette name and level
+              const formattedPalette = formatPaletteName(pk)
+              const displayLevel = level === 'primary' ? 'primary' : level
+              setDisplayLabel(`${formattedPalette} / ${displayLevel}`)
+              return
+            }
+          }
+        }
+        // It's a valid color but doesn't match any palette
+        setDisplayLabel('Custom color')
+        return
+      }
+      // It's a valid CSS variable reference, just not one we can parse nicely
+      setDisplayLabel('Set')
       return
     }
 
@@ -412,7 +569,7 @@ export default function PaletteColorControl({
   return (
     <>
       {label && (
-        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>
+        <label className="palette-color-control-label">
           {label}
         </label>
       )}
@@ -420,48 +577,33 @@ export default function PaletteColorControl({
         ref={buttonRef}
         type="button"
         onClick={handleClick}
+        className="palette-color-control"
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '6px 8px',
-          border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
-          background: 'transparent',
-          borderRadius: 6,
-          cursor: 'pointer',
+          fontSize,
         }}
       >
         <span
           aria-hidden
+          className="palette-color-control-swatch"
           style={{
             width: swatchSize,
             height: swatchSize,
-            borderRadius: 4,
-            border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
-            background: `var(${displayCssVar}, transparent)`,
-            flexShrink: 0,
           }}
-        />
-        <span style={{ fontSize, textTransform: 'capitalize' }}>
+        >
+          <span
+            className="palette-color-control-swatch-inner"
+            style={{
+              background: `var(${displayCssVar}, transparent)`,
+            }}
+          />
+        </span>
+        <span className="palette-color-control-text" style={{ fontSize }}>
           {displayLabel}
         </span>
         {contrastWarning && (
           <span
+            className="palette-color-control-warning"
             title={`Poor contrast: ${contrastWarning.ratio}:1 (WCAG AA requires 4.5:1)`}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '16px',
-              height: '16px',
-              borderRadius: '50%',
-              backgroundColor: '#ff4444',
-              color: '#ffffff',
-              fontSize: '10px',
-              fontWeight: 'bold',
-              marginLeft: '4px',
-              flexShrink: 0,
-            }}
             aria-label={`Poor contrast warning: ${contrastWarning.ratio}:1 ratio`}
           >
             ⚠
