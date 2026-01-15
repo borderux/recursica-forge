@@ -478,118 +478,122 @@ export default function ColorTokens() {
 
   // Check if a color scale is used in palettes
   const isColorScaleUsedInPalettes = useMemo(() => {
-    const mapPaletteToTokenFamily: Record<string, string> = {
-      neutral: 'gray',
-      'palette-1': 'salmon',
-      'palette-2': 'mandarin',
-      'palette-3': 'cornflower',
-      'palette-4': 'greensheen',
-    }
-    
     const usedFamilies = new Set<string>()
     
-    // Helper function to get persisted family from localStorage
-    const getPersistedFamily = (key: string): string | undefined => {
-      try {
-        const raw = localStorage.getItem(`palette-grid-family:${key}`)
-        if (raw) return JSON.parse(raw)
-      } catch {}
-      if (key === 'neutral') return 'gray'
-      if (key === 'palette-1') return 'salmon'
-      if (key === 'palette-2') return 'mandarin'
-      return undefined
-    }
-    
-    // Check dynamic palettes from palettesState
-    try {
-      const dynamicPalettes = palettes?.dynamic || []
-      dynamicPalettes.forEach((p) => {
-        const fam = p.initialFamily || getPersistedFamily(p.key)
-        if (fam) {
-          usedFamilies.add(fam)
-        }
-      })
-    } catch {}
-    
-    // Check which palettes actually exist in theme and add their mapped families
-    try {
-      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      const lightPalettes: any = root?.light?.palettes || {}
-      const paletteKeys = Object.keys(lightPalettes).filter((k) => k !== 'core')
+    // Helper function to extract all family names referenced in palette data
+    const extractReferencedFamilies = (obj: any, mode: 'light' | 'dark'): Set<string> => {
+      const families = new Set<string>()
+      if (!obj || typeof obj !== 'object') return families
       
-      // Only add families for palettes that actually exist
-      paletteKeys.forEach((pk) => {
-        const mappedFamily = mapPaletteToTokenFamily[pk]
-        if (mappedFamily) {
-          usedFamilies.add(mappedFamily)
-        }
-      })
-      
-      // Also check for direct token references in non-core palettes
-      // Extract all family names referenced in specific palette sections (excluding core)
-      const extractReferencedFamilies = (obj: any): Set<string> => {
-        const families = new Set<string>()
-        if (!obj || typeof obj !== 'object') return families
-        
-        if (Array.isArray(obj)) {
-          obj.forEach((item) => {
-            extractReferencedFamilies(item).forEach((f) => families.add(f))
-          })
-          return families
-        }
-        
-        for (const [, value] of Object.entries(obj)) {
-          if (typeof value === 'string') {
-            // Use centralized parser to check for token references
-            const tokenIndex = buildTokenIndex(tokensJson)
-            const context: TokenReferenceContext = { currentMode: 'light', tokenIndex }
-            const parsed = parseTokenReference(value, context)
-            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
-              // Extract family name from token path (e.g., color/gray/100 -> gray)
-              const familyName = parsed.path[1]
-              if (familyName) {
-                families.add(familyName)
-              }
-            }
-          } else if (value && typeof value === 'object') {
-            extractReferencedFamilies(value).forEach((f) => families.add(f))
-          }
-        }
+      if (Array.isArray(obj)) {
+        obj.forEach((item) => {
+          extractReferencedFamilies(item, mode).forEach((f) => families.add(f))
+        })
         return families
       }
       
-      // Check each palette individually (excluding core)
-      paletteKeys.forEach((pk) => {
-        const paletteData = lightPalettes[pk]
-        if (paletteData) {
-          const referencedFamilies = extractReferencedFamilies(paletteData)
-          referencedFamilies.forEach((fam) => {
-            if (fam !== 'translucent') {
-              usedFamilies.add(fam)
+      for (const [, value] of Object.entries(obj)) {
+        if (typeof value === 'string') {
+          // Only check strings that look like token references (contain braces)
+          if (value.includes('{') && value.includes('}')) {
+            // Use centralized parser to check for token references
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
+            const parsed = parseTokenReference(value, context)
+            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'colors') {
+              // New format: colors.scale-XX.level or colors.alias.level
+              const scaleOrAlias = parsed.path[1]
+              if (scaleOrAlias && scaleOrAlias.startsWith('scale-')) {
+                // If it's a scale key, find the alias from tokens
+                const tokensRoot: any = (tokensJson as any)?.tokens || {}
+                const colorsRoot: any = tokensRoot?.colors || {}
+                const scale = colorsRoot?.[scaleOrAlias]
+                if (scale && typeof scale === 'object' && scale.alias && typeof scale.alias === 'string') {
+                  const alias = scale.alias.trim()
+                  if (alias) {
+                    families.add(alias)
+                  }
+                }
+                // Don't add scale key as fallback - only add if we have a valid alias
+              } else if (scaleOrAlias && !scaleOrAlias.startsWith('scale-')) {
+                // It's already an alias - only add if it's a valid non-empty string
+                const alias = scaleOrAlias.trim()
+                if (alias) {
+                  families.add(alias)
+                }
+              }
             }
-          })
+          }
+        } else if (value && typeof value === 'object') {
+          extractReferencedFamilies(value, mode).forEach((f) => families.add(f))
         }
-      })
-      
-      // Check core colors - extract all families used in core palette
-      const corePalette: any = lightPalettes?.core || {}
-      const coreReferencedFamilies = extractReferencedFamilies(corePalette)
-      coreReferencedFamilies.forEach((fam) => {
-        if (fam !== 'translucent') {
-          usedFamilies.add(fam)
-        }
-      })
-    } catch {}
+      }
+      return families
+    }
     
-    return (family: string) => usedFamilies.has(family)
-  }, [theme, tokensJson, palettes])
+    // Check palettes in both light and dark modes - only check actual theme data
+    try {
+      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      
+      // Check both light and dark modes
+      for (const mode of ['light', 'dark'] as const) {
+        const modePalettes: any = themes?.[mode]?.palettes || root?.[mode]?.palettes || {}
+        
+        // Get all palette keys (including core, neutral, and all numbered palettes)
+        const paletteKeys = Object.keys(modePalettes)
+        
+        // Check each palette (including core) for referenced families
+        paletteKeys.forEach((pk) => {
+          const paletteData = modePalettes[pk]
+          if (paletteData && typeof paletteData === 'object') {
+            const referencedFamilies = extractReferencedFamilies(paletteData, mode)
+            referencedFamilies.forEach((fam) => {
+              if (fam && typeof fam === 'string' && fam !== 'translucent' && fam.trim()) {
+                usedFamilies.add(fam)
+              }
+            })
+          }
+        })
+      }
+    } catch (err) {
+      // Silently fail - if we can't check, assume not used (safer for deletion)
+      console.warn('Error checking palette usage:', err)
+    }
+    
+    return (family: string) => {
+      if (!family || typeof family !== 'string') return false
+      return usedFamilies.has(family)
+    }
+  }, [theme, tokensJson])
 
   // Count total color scales (excluding deleted ones)
   const totalColorScales = useMemo(() => {
     try {
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
-      const colorsRoot = tokensRoot?.color || {}
-      return Object.keys(colorsRoot).filter((fam) => fam !== 'translucent' && !deletedFamilies[fam]).length
+      // Check new format (colors) - count scales by their aliases
+      const colorsRoot: any = tokensRoot?.colors || {}
+      const scaleAliases = new Set<string>()
+      Object.keys(colorsRoot).forEach((key) => {
+        if (key.startsWith('scale-')) {
+          const scale = colorsRoot[key]
+          if (scale && typeof scale === 'object' && scale.alias && typeof scale.alias === 'string') {
+            const alias = scale.alias.trim()
+            if (alias && !deletedFamilies[alias]) {
+              scaleAliases.add(alias)
+            }
+          }
+        }
+      })
+      // Also check old format (color) for backwards compatibility
+      const oldColorsRoot = tokensRoot?.color || {}
+      Object.keys(oldColorsRoot).forEach((fam) => {
+        if (fam !== 'translucent' && !deletedFamilies[fam]) {
+          scaleAliases.add(fam)
+        }
+      })
+      return scaleAliases.size
     } catch {
       return 0
     }
@@ -754,15 +758,49 @@ export default function ColorTokens() {
 
   const mode: ModeName = 'Mode 1'
   const familiesData = colorFamiliesByMode[mode] || {}
+  
+  // Helper function to get scale key for a family alias
+  const getScaleKeyForFamily = (familyAlias: string): string | null => {
+    try {
+      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+      const colorsRoot: any = tokensRoot?.colors || {}
+      for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+        if (!scaleKey.startsWith('scale-')) continue
+        const scaleObj = scale as any
+        if (scaleObj?.alias === familyAlias) {
+          return scaleKey
+        }
+      }
+    } catch {}
+    return null
+  }
+  
+  // Helper function to extract scale number from scale key (e.g., "scale-01" -> 1)
+  const getScaleNumber = (scaleKey: string | null): number => {
+    if (!scaleKey || !scaleKey.startsWith('scale-')) return 9999 // Put non-scale families at the end
+    const match = scaleKey.match(/scale-(\d+)/)
+    return match ? parseInt(match[1], 10) : 9999
+  }
+  
+  // Sort families by scale number (scale-01, scale-02, etc.) - always use scale-based ordering
   let families = Object.entries(familiesData).filter(([family]) => family !== 'translucent' && !deletedFamilies[family]).sort(([a], [b]) => {
+    // Gray always comes first
     if (a === 'gray' && b !== 'gray') return -1
     if (b === 'gray' && a !== 'gray') return 1
+    
+    // Sort by scale number (scale-01, scale-02, etc.)
+    const scaleKeyA = getScaleKeyForFamily(a)
+    const scaleKeyB = getScaleKeyForFamily(b)
+    const scaleNumA = getScaleNumber(scaleKeyA)
+    const scaleNumB = getScaleNumber(scaleKeyB)
+    
+    if (scaleNumA !== scaleNumB) {
+      return scaleNumA - scaleNumB
+    }
+    
+    // Fallback to alphabetical if scale numbers are the same (shouldn't happen)
     return a.localeCompare(b)
   })
-
-  const existing = families.filter(([fam]) => !familyOrder.includes(fam))
-  const appended = familyOrder.map((fam) => families.find(([f]) => f === fam)).filter((v): v is typeof families[number] => Array.isArray(v))
-  families = [...existing, ...appended]
 
   const presentLevels = new Set<string>(families.flatMap(([_, lvls]) => lvls.map((l) => l.level)))
   // Include 1000 and 000 in standard levels
@@ -796,6 +834,7 @@ export default function ColorTokens() {
         <div style={{ flex: 1 }} /> {/* Spacer */}
         <Button
           variant="outline"
+          size="small"
           onClick={handleAddColor}
           icon={(() => {
             const PlusIcon = iconNameToReactComponent('plus')

@@ -63,8 +63,9 @@ export function ColorScale({
 
   // Debounced handler for name changes
   const handleNameChange = (newValue: string) => {
-    const v = toTitleCase(newValue)
-    setLocalName(v)
+    // Value is already filtered in onChange - keep raw value in localName for typing
+    // Don't apply toTitleCase while typing, only on blur/debounce
+    setLocalName(newValue)
     
     // Clear existing timer
     if (debounceTimerRef.current) {
@@ -73,6 +74,7 @@ export function ColorScale({
     
     // Set new timer to debounce the actual change
     debounceTimerRef.current = setTimeout(() => {
+      const v = toTitleCase(newValue)
       onFamilyNameChange(family, v)
     }, 1000) // 1000ms debounce
   }
@@ -84,8 +86,10 @@ export function ColorScale({
       clearTimeout(debounceTimerRef.current)
       debounceTimerRef.current = null
     }
-    // Apply the change immediately on blur
-    const v = toTitleCase(localName)
+    // Apply the change immediately on blur - filter to alphanumeric and spaces, then title case
+    const filtered = localName.replace(/[^a-zA-Z0-9\s]/g, '')
+    const v = toTitleCase(filtered)
+    setLocalName(v) // Update local state with title-cased value
     onFamilyNameChange(family, v)
   }
 
@@ -106,7 +110,11 @@ export function ColorScale({
         <input
           required
           value={localName}
-          onChange={(e) => handleNameChange(e.currentTarget.value)}
+          onChange={(e) => {
+            // Filter input to only allow alphanumeric and spaces
+            const filtered = e.currentTarget.value.replace(/[^a-zA-Z0-9\s]/g, '')
+            handleNameChange(filtered)
+          }}
           onBlur={handleBlur}
           onKeyDown={(e) => {
             // Apply immediately on Enter
