@@ -2274,19 +2274,21 @@ class VarsStore {
                 if (!themes[mode].palettes) themes[mode].palettes = {}
                 if (!themes[mode].palettes[paletteKey]) themes[mode].palettes[paletteKey] = {}
                 if (!themes[mode].palettes[paletteKey][level]) themes[mode].palettes[paletteKey][level] = {}
+                if (!themes[mode].palettes[paletteKey][level].color) {
+                  themes[mode].palettes[paletteKey][level].color = {}
+                }
                 
-                // Update the on-tone reference in theme JSON
-                const refPrefix = themes !== root ? 'brand.themes' : 'brand'
-                const newOnToneValue = `{${refPrefix}.${mode}.palettes.core-colors.${chosen}}`
+                // Update the on-tone reference in theme JSON - use short alias format (no theme path)
+                const newOnToneValue = `{brand.palettes.${chosen}}`
                 
-                const currentOnTone = themes[mode].palettes[paletteKey][level]['on-tone']
+                const currentOnTone = themes[mode].palettes[paletteKey][level].color?.['on-tone']
                 const currentValue = typeof currentOnTone === 'object' && currentOnTone?.$value 
                   ? currentOnTone.$value 
                   : currentOnTone
                 
                 // Only update if the value has changed
                 if (currentValue !== newOnToneValue) {
-                  themes[mode].palettes[paletteKey][level]['on-tone'] = {
+                  themes[mode].palettes[paletteKey][level].color['on-tone'] = {
                     $value: newOnToneValue
                   }
                   hasChanges = true

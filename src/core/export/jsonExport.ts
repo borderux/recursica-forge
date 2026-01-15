@@ -13,7 +13,7 @@ import tokensJson from '../../vars/Tokens.json'
 import brandJson from '../../vars/Brand.json'
 import uikitJson from '../../vars/UIKit.json'
 import { getVarsStore } from '../store/varsStore'
-import { validateTokensJson } from '../utils/validateJsonSchemas'
+import { validateTokensJson, validateBrandJson } from '../utils/validateJsonSchemas'
 import JSZip from 'jszip'
 
 /**
@@ -660,204 +660,58 @@ export function exportTokensJson(): object {
 }
 
 /**
+ * Normalizes brand references to use short alias format (no theme paths)
+ * Converts {brand.themes.light.palettes.core-colors.black} -> {brand.palettes.black}
+ */
+function normalizeBrandReferences(obj: any): any {
+  if (typeof obj === 'string') {
+    // Normalize reference strings - convert theme paths to short aliases
+    // {brand.themes.light.palettes.core-colors.black} -> {brand.palettes.core-colors.black}
+    // {brand.themes.dark.palettes.core-colors.white} -> {brand.palettes.core-colors.white}
+    // Also handle old format {brand.light.palettes.core-colors.X} -> {brand.palettes.core-colors.X}
+    // Note: We preserve {brand.palettes.core-colors.X} format as that's what the source uses
+    return obj
+      .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)}/g, '{brand.palettes.core-colors.$2}')
+      .replace(/{brand\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)}/g, '{brand.palettes.core-colors.$2}')
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(normalizeBrandReferences)
+  }
+  
+  if (obj && typeof obj === 'object') {
+    const normalized: any = {}
+    for (const key in obj) {
+      normalized[key] = normalizeBrandReferences(obj[key])
+    }
+    return normalized
+  }
+  
+  return obj
+}
+
+/**
  * Exports brand.json from store state
  * Reads from the VarsStore to ensure all data is exported correctly
+ * Similar to tokens export - reads directly from store state
  */
 export function exportBrandJson(): object {
   const store = getVarsStore()
   const storeState = store.getState()
   const theme = storeState.theme as any
-  const elevation = storeState.elevation
   
-  const result: any = {
-    brand: {
-      themes: {
-        light: { palettes: {}, layers: {}, elevations: {} },
-        dark: { palettes: {}, layers: {}, elevations: {} }
-      }
-    }
+  // Read directly from theme.brand, just like tokens export reads from storeState.tokens
+  if (!theme?.brand) {
+    return { brand: {} }
   }
   
-  // Export from theme state (more reliable than CSS vars)
-  if (theme?.brand?.themes) {
-    const themes = theme.brand.themes
-    
-    // Export for both light and dark modes
-    for (const mode of ['light', 'dark'] as const) {
-      const modeTheme = themes[mode]
-      if (!modeTheme) continue
-      
-      // Export palettes
-      if (modeTheme.palettes) {
-        result.brand.themes[mode].palettes = JSON.parse(JSON.stringify(modeTheme.palettes))
-      }
-      
-      // Export layers
-      if (modeTheme.layers) {
-        result.brand.themes[mode].layers = JSON.parse(JSON.stringify(modeTheme.layers))
-      }
-    }
-  }
+  // Deep clone the brand structure from store
+  const result = JSON.parse(JSON.stringify(theme.brand))
   
-  // Export elevations from elevation state
-  // Elevations use direct values, not token references (based on actual Brand.json structure)
-  if (elevation) {
-    for (const mode of ['light', 'dark'] as const) {
-      if (!result.brand.themes[mode].elevations) {
-        result.brand.themes[mode].elevations = {}
-      }
-      
-      for (let i = 0; i <= 4; i++) {
-        const elevationKey = `elevation-${i}`
-        const ctrl = elevation.controls[elevationKey]
-        if (!ctrl) continue
-        
-        const elevationValue: any = {
-          $type: 'boxShadow',
-          $value: {}
-        }
-        
-        // Get token values from store
-        const storeTokens = (storeState.tokens as any)?.tokens || {}
-        const sizeTokens = storeTokens.size || storeTokens.sizes || {}
-        const opacityTokens = storeTokens.opacity || storeTokens.opacities || {}
-        
-        // Set blur (direct value, not token reference)
-        const blurTokenKey = `elevation-${i}-blur`
-        const blurToken = sizeTokens[blurTokenKey]
-        if (blurToken?.$value != null) {
-          let blurValue: any
-          if (typeof blurToken.$value === 'number') {
-            blurValue = { value: blurToken.$value, unit: 'px' }
-          } else if (typeof blurToken.$value === 'object' && blurToken.$value.value != null) {
-            blurValue = blurToken.$value
-          } else {
-            blurValue = { value: Number(blurToken.$value) || 0, unit: 'px' }
-          }
-          elevationValue.$value.blur = {
-            $type: 'number',
-            $value: blurValue
-          }
-        } else if (ctrl.blur != null) {
-          elevationValue.$value.blur = {
-            $type: 'number',
-            $value: { value: ctrl.blur, unit: 'px' }
-          }
-        }
-        
-        // Set spread (direct value, not token reference)
-        const spreadTokenKey = `elevation-${i}-spread`
-        const spreadToken = sizeTokens[spreadTokenKey]
-        if (spreadToken?.$value != null) {
-          let spreadValue: any
-          if (typeof spreadToken.$value === 'number') {
-            spreadValue = { value: spreadToken.$value, unit: 'px' }
-          } else if (typeof spreadToken.$value === 'object' && spreadToken.$value.value != null) {
-            spreadValue = spreadToken.$value
-          } else {
-            spreadValue = { value: Number(spreadToken.$value) || 0, unit: 'px' }
-          }
-          elevationValue.$value.spread = {
-            $type: 'number',
-            $value: spreadValue
-          }
-        } else if (ctrl.spread != null) {
-          elevationValue.$value.spread = {
-            $type: 'number',
-            $value: { value: ctrl.spread, unit: 'px' }
-          }
-        }
-        
-        // Set x offset (direct value, not token reference)
-        const offsetXTokenKey = `elevation-${i}-offset-x`
-        const offsetXToken = sizeTokens[offsetXTokenKey]
-        const dir = elevation.directions[elevationKey] || { x: elevation.baseXDirection, y: elevation.baseYDirection }
-        const xDirection = dir.x === 'right' ? 1 : -1
-        
-        if (offsetXToken?.$value != null) {
-          let xValue: any
-          if (typeof offsetXToken.$value === 'number') {
-            xValue = { value: Math.abs(offsetXToken.$value), unit: 'px' }
-          } else if (typeof offsetXToken.$value === 'object' && offsetXToken.$value.value != null) {
-            xValue = { value: Math.abs(offsetXToken.$value.value), unit: 'px' }
-          } else {
-            xValue = { value: Math.abs(Number(offsetXToken.$value) || 0), unit: 'px' }
-          }
-          elevationValue.$value.x = {
-            $type: 'number',
-            $value: xValue
-          }
-        } else if (ctrl.offsetX != null) {
-          elevationValue.$value.x = {
-            $type: 'number',
-            $value: { value: Math.abs(ctrl.offsetX), unit: 'px' }
-          }
-        }
-        
-        // Set y offset (direct value, not token reference)
-        const offsetYTokenKey = `elevation-${i}-offset-y`
-        const offsetYToken = sizeTokens[offsetYTokenKey]
-        const yDirection = dir.y === 'down' ? 1 : -1
-        
-        if (offsetYToken?.$value != null) {
-          let yValue: any
-          if (typeof offsetYToken.$value === 'number') {
-            yValue = { value: Math.abs(offsetYToken.$value), unit: 'px' }
-          } else if (typeof offsetYToken.$value === 'object' && offsetYToken.$value.value != null) {
-            yValue = { value: Math.abs(offsetYToken.$value.value), unit: 'px' }
-          } else {
-            yValue = { value: Math.abs(Number(offsetYToken.$value) || 0), unit: 'px' }
-          }
-          elevationValue.$value.y = {
-            $type: 'number',
-            $value: yValue
-          }
-        } else if (ctrl.offsetY != null) {
-          elevationValue.$value.y = {
-            $type: 'number',
-            $value: { value: Math.abs(ctrl.offsetY), unit: 'px' }
-          }
-        }
-        
-        // Set color (token reference or palette reference)
-        const colorToken = elevation.colorTokens[elevationKey] || elevation.shadowColorControl?.colorToken
-        if (colorToken) {
-          elevationValue.$value.color = {
-            $type: 'color',
-            $value: `{tokens.${colorToken.replace(/\//g, '.')}}`
-          }
-        }
-        
-        // Set opacity (direct percentage value, not token reference)
-        const alphaToken = elevation.alphaTokens[elevationKey] || elevation.shadowColorControl?.alphaToken
-        if (alphaToken) {
-          const tokenKey = alphaToken.replace('opacity/', '')
-          const opacityToken = opacityTokens[tokenKey]
-          
-          if (opacityToken?.$value != null) {
-            let opacityValue: number
-            if (typeof opacityToken.$value === 'number') {
-              opacityValue = opacityToken.$value <= 1 ? opacityToken.$value * 100 : opacityToken.$value
-            } else if (typeof opacityToken.$value === 'object' && opacityToken.$value.value != null) {
-              const num = opacityToken.$value.value
-              opacityValue = num <= 1 ? num * 100 : num
-            } else {
-              const num = Number(opacityToken.$value)
-              opacityValue = num <= 1 ? num * 100 : num
-            }
-            elevationValue.$value.opacity = {
-              $type: 'number',
-              $value: { value: opacityValue, unit: 'percentage' }
-            }
-          }
-        }
-        
-        result.brand.themes[mode].elevations[elevationKey] = elevationValue
-      }
-    }
-  }
+  // Normalize all references to use short alias format (no theme paths)
+  const normalized = normalizeBrandReferences(result)
   
-  return result
+  return { brand: normalized }
 }
 
 /**
@@ -1396,6 +1250,13 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
   
   if (files.brand) {
     const brand = exportBrandJson()
+    // Validate brand before adding to export
+    try {
+      validateBrandJson(brand as JsonLike)
+    } catch (error) {
+      console.error('[Export] Brand.json validation failed:', error)
+      throw new Error(`Cannot export brand.json: ${error instanceof Error ? error.message : String(error)}`)
+    }
     selectedFiles.push({ content: brand, filename: 'brand.json', isJson: true })
   }
   

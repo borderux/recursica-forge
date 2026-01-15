@@ -705,21 +705,23 @@ export function updateCoreColorInteractiveOnTones(
       }
       
       // If both white and black scales failed, try white and black directly as fallback
+      // For core-colors interactive, use {brand.palettes.core-colors.white/black} format
       const whiteContrast = contrastRatio(coreColorToneHex, whiteHex)
       const blackContrast = contrastRatio(coreColorToneHex, blackHex)
       
       if (whiteContrast >= AA) {
-        return `{brand.themes.${mode}.palettes.core-colors.white}`
+        return `{brand.palettes.core-colors.white}`
       }
       if (blackContrast >= AA) {
-        return `{brand.themes.${mode}.palettes.core-colors.black}`
+        return `{brand.palettes.core-colors.black}`
       }
       
       // Both white and black scales failed - return a fallback (this will show as 'x' in UI)
       // Use the one with higher contrast even if it doesn't pass AA
+      // Use core-colors format to match source structure
       return whiteContrast >= blackContrast 
-        ? `{brand.themes.${mode}.palettes.core-colors.white}`
-        : `{brand.themes.${mode}.palettes.core-colors.black}`
+        ? `{brand.palettes.core-colors.white}`
+        : `{brand.palettes.core-colors.black}`
     }
     
     // Process each core color
@@ -754,33 +756,40 @@ export function updateCoreColorInteractiveOnTones(
       const coreColorToneHex = resolveRef(toneRef)
       if (!coreColorToneHex) continue
       
-      // Find AA-compliant on-tone starting from interactive tone color
-      const onToneRef = findCoreColorInteractiveOnTone(coreColorToneHex, colorName)
+      // Find AA-compliant interactive color starting from interactive tone color
+      // For individual core colors (black, white, alert, success, warning), interactive should be $value, not on-tone
+      // Only update if interactive value doesn't exist or is a brand palette reference (should be token reference)
+      const existingInteractive = colorDef.interactive?.$value
+      const isBrandPaletteRef = existingInteractive && typeof existingInteractive === 'string' && 
+        (existingInteractive.includes('{brand.palettes.') || existingInteractive.includes('{brand.themes.'))
       
-      // Ensure interactive structure exists and convert from old format if needed
+      // Ensure interactive structure exists - keep $value format (not on-tone)
       if (!colorDef.interactive) {
         colorDef.interactive = {}
-      } else if (colorDef.interactive.$value && !colorDef.interactive['on-tone']) {
-        // Convert from old format (interactive: { $value: "..." }) to new format (interactive: { on-tone: { $value: "..." } })
-        // Delete the old $value property to convert to new structure
-        delete colorDef.interactive.$value
       }
-      if (!colorDef.interactive['on-tone']) colorDef.interactive['on-tone'] = {}
+      // Remove any incorrectly placed on-tone property
+      if (colorDef.interactive['on-tone']) {
+        delete colorDef.interactive['on-tone']
+      }
       
-      // Update the interactive on-tone in theme JSON
-      colorDef.interactive['on-tone'].$value = onToneRef
+      // Only update if no existing value or if existing is a brand palette reference (should be token reference)
+      if (!existingInteractive || isBrandPaletteRef) {
+        const interactiveRef = findCoreColorInteractiveOnTone(coreColorToneHex, colorName)
+        // Update the interactive $value in theme JSON (not on-tone)
+        colorDef.interactive.$value = interactiveRef
+      }
       
       // Update CSS variable immediately for visual feedback
       // Use the updated theme copy for proper resolution of brand references
-      const onToneCssVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive-on-tone`
+      const interactiveCssVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`
       const contextForCssVar: TokenReferenceContext = {
         currentMode: mode,
         tokenIndex: buildTokenIndex(tokens),
         theme: themeCopy // Use the updated theme copy so brand references resolve correctly
       }
-      const cssVar = resolveTokenReferenceToCssVar(onToneRef, contextForCssVar)
+      const cssVar = resolveTokenReferenceToCssVar(interactiveRef, contextForCssVar)
       if (cssVar) {
-        updateCssVar(onToneCssVar, cssVar, tokens)
+        updateCssVar(interactiveCssVar, cssVar, tokens)
       }
     }
     

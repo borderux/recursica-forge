@@ -539,8 +539,11 @@ export default function PaletteColorSelector({
               }
               
               if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
-              root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
-                $value: `{brand.${modeKey}.palettes.core-colors.${onToneCore}}`
+              if (!root[modeKey].palettes[paletteKey][lvl].color) {
+                root[modeKey].palettes[paletteKey][lvl].color = {}
+              }
+              root[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
+                $value: `{brand.palettes.${onToneCore}}`
               }
             }
           })
@@ -725,10 +728,9 @@ export default function PaletteColorSelector({
           if (typeof hex === 'string') {
             const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
             // Update on-tone to reference the correct core color (white or black)
-            // Use themes structure in reference if available
-            const refPrefix = themes !== root ? 'brand.themes' : 'brand'
+            // Use short alias format (no theme path)
             targetRoot[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
-              $value: `{${refPrefix}.${modeKey}.palettes.core-colors.${onToneCore}}`
+              $value: `{brand.palettes.${onToneCore}}`
             }
           }
         })

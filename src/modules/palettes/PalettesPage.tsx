@@ -593,8 +593,8 @@ export default function PalettesPage() {
           }
           
           // Set on-tone to reference white (will be updated by PaletteGrid based on contrast)
-          root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
-            $value: `{brand.${modeKey}.palettes.core-colors.white}`
+          root[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
+            $value: `{brand.palettes.white}`
           }
         })
       }

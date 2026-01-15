@@ -689,15 +689,15 @@ export default function ColorTokenPicker() {
                     }
                   }
                   
-                  // Fallback to white/black
+                  // Fallback to white/black - use core-colors format to match source structure
                   if (!interactiveRef) {
                     const whiteHex = '#ffffff'
                     const blackHex = '#000000'
                     const whiteContrast = contrastRatio(toneHex, whiteHex)
                     const blackContrast = contrastRatio(toneHex, blackHex)
                     interactiveRef = whiteContrast >= blackContrast
-                      ? `{brand.themes.${mode}.palettes.core-colors.white}`
-                      : `{brand.themes.${mode}.palettes.core-colors.black}`
+                      ? `{brand.palettes.core-colors.white}`
+                      : `{brand.palettes.core-colors.black}`
                   }
                   
                   // Update interactive property in theme JSON

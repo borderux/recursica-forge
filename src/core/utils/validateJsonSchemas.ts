@@ -37,6 +37,34 @@ function filterCriticalErrors(errors: any[] | null | undefined): any[] {
 }
 
 /**
+ * Recursively checks for theme references in brand palette $value strings
+ * Theme references like {brand.themes.light.palettes.core-colors.black} should not exist
+ * They should use short alias format like {brand.palettes.black}
+ */
+function checkForThemeReferences(obj: any, path: string = ''): string[] {
+  const errors: string[] = []
+  
+  if (typeof obj === 'string') {
+    // Check if string contains theme reference (both new and old formats)
+    // Theme references should not exist - they should use format like {brand.palettes.core-colors.black}
+    if (obj.includes('{brand.themes.') || obj.includes('{brand.light.') || obj.includes('{brand.dark.')) {
+      errors.push(`Theme reference found at ${path}: "${obj}". Use format like {brand.palettes.core-colors.black} instead.`)
+    }
+  } else if (Array.isArray(obj)) {
+    obj.forEach((item, index) => {
+      errors.push(...checkForThemeReferences(item, `${path}[${index}]`))
+    })
+  } else if (obj && typeof obj === 'object') {
+    for (const key in obj) {
+      const newPath = path ? `${path}.${key}` : key
+      errors.push(...checkForThemeReferences(obj[key], newPath))
+    }
+  }
+  
+  return errors
+}
+
+/**
  * Validates Brand.json against its schema
  */
 export function validateBrandJson(brandJson: JsonLike): void {
@@ -53,6 +81,17 @@ export function validateBrandJson(brandJson: JsonLike): void {
         `First error: ${JSON.stringify(criticalErrors[0])}`
       )
     }
+  }
+  
+  // Additional validation: Check for theme references in brand palette references
+  const themeRefErrors = checkForThemeReferences(brandJson)
+  if (themeRefErrors.length > 0) {
+    console.error('[Schema Validation] Brand.json contains theme references:', themeRefErrors)
+    throw new Error(
+      `Brand.json validation failed: Found ${themeRefErrors.length} theme reference(s). ` +
+      `References should use short alias format (e.g., {brand.palettes.black}) not theme paths (e.g., {brand.themes.light.palettes.core-colors.black}). ` +
+      `First error: ${themeRefErrors[0]}`
+    )
   }
 }
 

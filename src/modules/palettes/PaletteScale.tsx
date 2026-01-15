@@ -309,13 +309,15 @@ export function PaletteScaleHeader({
                       chosen = cBlack >= cWhite ? 'black' : 'white'
                     }
                     
-                    // Update the on-tone value in theme JSON
-                    const refPrefix = themes !== root ? 'brand.themes' : 'brand'
+                    // Update the on-tone value in theme JSON - use short alias format (no theme path)
                     if (!themes[modeKey].palettes[paletteKey][level]) {
                       themes[modeKey].palettes[paletteKey][level] = {}
                     }
-                    themes[modeKey].palettes[paletteKey][level]['on-tone'] = {
-                      $value: `{${refPrefix}.${modeKey}.palettes.core-colors.${chosen}}`
+                    if (!themes[modeKey].palettes[paletteKey][level].color) {
+                      themes[modeKey].palettes[paletteKey][level].color = {}
+                    }
+                    themes[modeKey].palettes[paletteKey][level].color['on-tone'] = {
+                      $value: `{brand.palettes.${chosen}}`
                     }
                     
                     setTheme(themeCopy)
