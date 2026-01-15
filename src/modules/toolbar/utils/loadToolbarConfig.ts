@@ -12,6 +12,7 @@ import LabelConfig from '../configs/Label.toolbar.json'
 import BreadcrumbConfig from '../configs/Breadcrumb.toolbar.json'
 import MenuItemConfig from '../configs/MenuItem.toolbar.json'
 import MenuConfig from '../configs/Menu.toolbar.json'
+import SliderConfig from '../configs/Slider.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -61,6 +62,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return MenuItemConfig as ToolbarConfig
       case 'menu':
         return MenuConfig as ToolbarConfig
+      case 'slider':
+        return SliderConfig as ToolbarConfig
       default:
         return null
     }

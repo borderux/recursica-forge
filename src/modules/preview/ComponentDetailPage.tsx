@@ -13,6 +13,7 @@ import LabelPreview from '../components/LabelPreview'
 import BreadcrumbPreview from '../components/BreadcrumbPreview'
 import MenuItemPreview from '../components/MenuItemPreview'
 import MenuPreview from '../components/MenuPreview'
+import SliderPreview from '../components/SliderPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -325,6 +326,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Breadcrumb' ? (
                 <BreadcrumbPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Slider' ? (
+                <SliderPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}

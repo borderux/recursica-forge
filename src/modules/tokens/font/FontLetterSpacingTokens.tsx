@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { StyledSlider } from './StyledSlider'
-import { getFormCssVar } from '../../../components/utils/cssVarNames'
+import { Slider } from '../../../components/adapters/Slider'
 
 type FontLetterSpacingTokensProps = {
   autoScale?: boolean
@@ -133,51 +132,27 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               {exampleText}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
-              <StyledSlider
-                id={it.name}
+              <Slider
                 min={-2}
                 max={2}
                 step={0.05}
                 disabled={disabled}
                 value={current}
                 onChange={(next) => {
+                  const value = typeof next === 'number' ? next : next[0]
                   if (scaleByTW && (isDefault || isTight || isWide)) {
-                    applyScaled(it.name, next)
+                    applyScaled(it.name, value)
                   } else {
-                    updateToken(it.name, next)
+                    updateToken(it.name, value)
                   }
                 }}
+                layer="layer-0"
+                layout="stacked"
+                showInput={true}
                 style={{ 
                   flex: 1,
                   minWidth: 200,
                   maxWidth: 300,
-                }}
-              />
-              <input
-                type="number"
-                step={0.05}
-                disabled={disabled}
-                value={Number.isFinite(current) ? Number(current.toFixed(2)) : current}
-                onChange={(ev) => {
-                  const next = Number(ev.currentTarget.value)
-                  if (scaleByTW && (isDefault || isTight || isWide)) {
-                    applyScaled(it.name, next)
-                  } else {
-                    updateToken(it.name, next)
-                  }
-                }}
-                style={{ 
-                  width: 60,
-                  height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
-                  paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-                  paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-                  paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-                  paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-                  border: `var(${getFormCssVar('field', 'size', 'border-thickness-default')}) solid var(${getFormCssVar('field', 'color', 'border')})`,
-                  borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
-                  background: `var(${getFormCssVar('field', 'color', 'background')})`,
-                  color: `var(${getFormCssVar('field', 'colors', 'text-valued')})`,
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                 }}
               />
             </div>

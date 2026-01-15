@@ -1,0 +1,7 @@
+/**
+ * Material UI Slider CSS Overrides
+ * 
+ * CSS overrides for Material UI Slider component to use UIKit CSS variables.
+ */
+
+/* Material UI slider styles are handled via sx prop in the component */

@@ -37,6 +37,7 @@ import {
   CaretRight,
   CaretUp,
   Check,
+  Circle,
   CircleHalf,
   CircleHalfTilt,
   Columns,
@@ -198,6 +199,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'layout': Layout,
   'asterisk': Asterisk,
   'eye': Eye,
+  'circle': Circle,
 }
 
 /**

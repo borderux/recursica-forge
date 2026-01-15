@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "layout": {
+      "icon": "layout",
+      "label": "Layout"
+    }
+  },
+  "props": {
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
+      "visible": true,
+      "group": {
+        "track": {
+          "label": "Track",
+          "visible": true
+        },
+        "track-active": {
+          "label": "Active Track",
+          "visible": true
+        },
+        "thumb": {
+          "label": "Thumb",
+          "visible": true
+        }
+      }
+    },
+    "track-height": {
+      "icon": "arrows-up-down",
+      "label": "Track Height",
+      "visible": true
+    },
+    "thumb-size": {
+      "icon": "circle",
+      "label": "Thumb Size",
+      "visible": true
+    },
+    "track-border-radius": {
+      "icon": "corners-out",
+      "label": "Track Corner Radius",
+      "visible": true
+    },
+    "thumb-border-radius": {
+      "icon": "corners-out",
+      "label": "Thumb Corner Radius",
+      "visible": true
+    },
+    "label-slider-gap": {
+      "icon": "split-horizontal",
+      "label": "Label Gap",
+      "visible": true
+    },
+    "input-width": {
+      "icon": "arrows-left-right",
+      "label": "Input Width",
+      "visible": true
+    },
+    "input-gap": {
+      "icon": "split-horizontal",
+      "label": "Input Gap",
+      "visible": true
+    }
+  }
+}

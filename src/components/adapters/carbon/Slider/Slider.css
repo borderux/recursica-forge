@@ -1,0 +1,29 @@
+/**
+ * Carbon Slider CSS Overrides
+ * 
+ * CSS overrides for Carbon Slider component to use UIKit CSS variables.
+ */
+
+.recursica-carbon-slider-wrapper {
+  --cds-slider-track-background: var(--recursica-ui-kit-components-slider-track-color) !important;
+  --cds-slider-fill-background: var(--recursica-ui-kit-components-slider-track-active-color) !important;
+  --cds-slider-thumb-background: var(--recursica-ui-kit-components-slider-thumb-color) !important;
+}
+
+.recursica-carbon-slider-wrapper .cds--slider__track {
+  height: var(--recursica-ui-kit-components-slider-track-height, 4px) !important;
+  border-radius: var(--recursica-ui-kit-components-slider-track-border-radius) !important;
+}
+
+.recursica-carbon-slider-wrapper .cds--slider__filled-track {
+  height: var(--recursica-ui-kit-components-slider-track-height, 4px) !important;
+  border-radius: var(--recursica-ui-kit-components-slider-track-border-radius) !important;
+}
+
+.recursica-carbon-slider-wrapper .cds--slider__thumb {
+  width: var(--recursica-ui-kit-components-slider-thumb-size, 20px) !important;
+  height: var(--recursica-ui-kit-components-slider-thumb-size, 20px) !important;
+  border-radius: var(--recursica-ui-kit-components-slider-thumb-border-radius) !important;
+  border: none !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+}

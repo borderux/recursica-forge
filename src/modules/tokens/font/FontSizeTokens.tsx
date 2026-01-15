@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { StyledSlider } from './StyledSlider'
-import { getFormCssVar } from '../../../components/utils/cssVarNames'
+import { Slider } from '../../../components/adapters/Slider'
 
 type FontSizeTokensProps = {
   autoScale?: boolean
@@ -73,39 +72,19 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
               {exampleText}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
-              <StyledSlider
-                id={it.name}
+              <Slider
                 min={8}
                 max={72}
                 step={1}
                 value={current}
-                onChange={(next) => updateToken(it.name, next)}
+                onChange={(next) => updateToken(it.name, typeof next === 'number' ? next : next[0])}
+                layer="layer-0"
+                layout="stacked"
+                showInput={true}
                 style={{ 
                   flex: 1,
                   minWidth: 200,
                   maxWidth: 300,
-                }}
-              />
-              <input
-                type="number"
-                min={0}
-                value={current}
-                onChange={(ev) => {
-                  const next = Number(ev.currentTarget.value)
-                  updateToken(it.name, next)
-                }}
-                style={{ 
-                  width: 60,
-                  height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
-                  paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-                  paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-                  paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-                  paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-                  border: `var(${getFormCssVar('field', 'size', 'border-thickness-default')}) solid var(${getFormCssVar('field', 'color', 'border')})`,
-                  borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
-                  background: `var(${getFormCssVar('field', 'color', 'background')})`,
-                  color: `var(${getFormCssVar('field', 'colors', 'text-valued')})`,
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                 }}
               />
             </div>
