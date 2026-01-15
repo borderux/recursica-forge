@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { hexToHsv, hsvToHex, toKebabCase } from '../tokens/colors/colorUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { useVars } from '../vars/VarsContext'
 
 export type ColorPickerOverlayProps = {
   tokenName: string
@@ -94,6 +95,54 @@ export function ColorPickerOverlay({
   const thumbTop = `${(1 - hsvState.v) * 100}%`
   const gradientColor = hsvToHex(hsvState.h, 1, 1)
   const { mode } = useThemeMode()
+  const { tokens } = useVars()
+
+  // Extract scale number and level from token name to display "Scale n / level"
+  const scaleDisplayName = useMemo(() => {
+    const parts = tokenName.split('/')
+    if (parts.length !== 3) return tokenName
+    
+    const category = parts[0] // "color" or "colors"
+    const familyOrScale = parts[1] // family alias (e.g., "gray") or scale key (e.g., "scale-06")
+    const level = parts[2] // level (e.g., "700")
+    
+    try {
+      const tokensRoot: any = (tokens as any)?.tokens || {}
+      const colorsRoot: any = tokensRoot?.colors || {}
+      
+      let scaleKey: string | null = null
+      
+      if (familyOrScale.startsWith('scale-')) {
+        // Direct scale reference: colors/scale-06/700
+        scaleKey = familyOrScale
+      } else if (category === 'colors') {
+        // Alias-based reference: colors/gray/700 - find the scale that has this alias
+        scaleKey = Object.keys(colorsRoot).find(key => {
+          if (!key.startsWith('scale-')) return false
+          const scale = colorsRoot[key]
+          return scale && typeof scale === 'object' && scale.alias === familyOrScale
+        }) || null
+      } else if (category === 'color') {
+        // Old format: color/gray/700 - try to find in new structure
+        scaleKey = Object.keys(colorsRoot).find(key => {
+          if (!key.startsWith('scale-')) return false
+          const scale = colorsRoot[key]
+          return scale && typeof scale === 'object' && scale.alias === familyOrScale
+        }) || null
+      }
+      
+      if (scaleKey && scaleKey.startsWith('scale-')) {
+        const match = scaleKey.match(/scale-(\d+)/)
+        if (match) {
+          const scaleNum = parseInt(match[1], 10)
+          return `Scale ${scaleNum} / ${level}`
+        }
+      }
+    } catch {}
+    
+    // Fallback to original display if we can't find scale
+    return tokenName
+  }, [tokenName, tokens])
 
   return createPortal(
     <div
@@ -124,15 +173,7 @@ export function ColorPickerOverlay({
         }}
       >
         <div style={{ fontSize: 12, opacity: 0.8 }}>
-          {(() => {
-            const parts = tokenName.split('/')
-            if (parts.length === 3) {
-              const level = parts[2]
-              const fam = displayFamilyName || parts[1]
-              return `color/${toKebabCase(fam)}/${level}`
-            }
-            return tokenName
-          })()}
+          {scaleDisplayName}
         </div>
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>

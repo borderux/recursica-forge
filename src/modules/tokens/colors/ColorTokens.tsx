@@ -784,10 +784,6 @@ export default function ColorTokens() {
   
   // Sort families by scale number (scale-01, scale-02, etc.) - always use scale-based ordering
   let families = Object.entries(familiesData).filter(([family]) => family !== 'translucent' && !deletedFamilies[family]).sort(([a], [b]) => {
-    // Gray always comes first
-    if (a === 'gray' && b !== 'gray') return -1
-    if (b === 'gray' && a !== 'gray') return 1
-    
     // Sort by scale number (scale-01, scale-02, etc.)
     const scaleKeyA = getScaleKeyForFamily(a)
     const scaleKeyB = getScaleKeyForFamily(b)
