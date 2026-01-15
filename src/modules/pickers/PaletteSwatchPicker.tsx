@@ -388,7 +388,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
           if (!cssVarMatch) return false
           const [, ccKey] = cssVarMatch
           const normalizedCcKey = ccKey.replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
-          return normalizedCcKey === normalizedKey || ccKey === coreKey || cc.cssVar === paletteCssVar || normalizedCcKey === coreColor.key
+          return normalizedCcKey === normalizedKey || ccKey === coreKey || cc.cssVar === paletteCssVar || normalizedCcKey === cc.key
         })
         
         if (matchingCoreColor) {

@@ -1,16 +1,18 @@
 import React from 'react'
 import PaletteColorControl from '../forms/PaletteColorControl'
 import TokenSlider from '../forms/TokenSlider'
+import NumericSlider from '../forms/NumericSlider'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { useVars } from '../vars/VarsContext'
 
 type SizeToken = { name: string; value: number; label: string }
 type OpacityToken = { name: string; value: number; label: string }
 
 export type ElevationControl = {
-  blurToken: string
-  spreadToken: string
-  offsetXToken: string
-  offsetYToken: string
+  blur: number
+  spread: number
+  offsetX: number
+  offsetY: number
 }
 
 export default function ElevationStylePanel({
@@ -33,7 +35,7 @@ export default function ElevationStylePanel({
   availableSizeTokens: SizeToken[]
   availableOpacityTokens: OpacityToken[]
   shadowColorControl: { alphaToken: string; colorToken: string }
-  updateElevationControl: (elevation: string, property: 'blurToken' | 'spreadToken' | 'offsetXToken' | 'offsetYToken', value: string) => void
+  updateElevationControl: (elevation: string, property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => void
   getDirectionForLevel: (elevationKey: string) => { x: 'left' | 'right'; y: 'up' | 'down' }
   setXDirectionForSelected: (dir: 'left' | 'right') => void
   setYDirectionForSelected: (dir: 'up' | 'down') => void
@@ -44,6 +46,7 @@ export default function ElevationStylePanel({
 }) {
   const levelsArr = React.useMemo(() => Array.from(selectedLevels), [selectedLevels])
   const { mode } = useThemeMode()
+  const { tokens: tokensJson, updateToken } = useVars()
 
   const getShadowColorCssVar = React.useCallback((level: number): string => {
     return `--recursica-brand-themes-${mode}-elevations-elevation-${level}-shadow-color`
@@ -54,11 +57,50 @@ export default function ElevationStylePanel({
     return token?.label || tokenName.split('/').pop() || tokenName
   }, [])
 
-  // Calculate zero index for signed sliders
-  const zeroIndex = React.useMemo(() => {
-    const stops = [...availableSizeTokens].sort((a, b) => a.value - b.value)
-    return Math.max(0, stops.findIndex((s) => /(^|\/)none$/.test(s.name) || s.value === 0))
-  }, [availableSizeTokens])
+  // Get current opacity value (0-1) from token and convert to 0-100 for display
+  const getCurrentOpacityValue = React.useCallback((elevationKey: string): number => {
+    const alphaTokenName = getAlphaTokenForLevel(elevationKey)
+    if (!alphaTokenName) return 0
+    
+    // Extract token key from "opacity/veiled" format
+    const tokenKey = alphaTokenName.replace('opacity/', '')
+    
+    // Read token value from tokens.json
+    try {
+      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+      const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+      const tokenValue = opacityRoot[tokenKey]?.$value
+      
+      if (tokenValue != null) {
+        const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
+        if (Number.isFinite(num)) {
+          // Normalize to 0-1 range if needed, then convert to 0-100
+          const normalized = num <= 1 ? num : num / 100
+          return Math.round(normalized * 100)
+        }
+      }
+    } catch {}
+    
+    return 0
+  }, [tokensJson, getAlphaTokenForLevel])
+
+  // Update opacity token value (convert 0-100 to 0-1)
+  const handleOpacityChange = React.useCallback((value: number) => {
+    levelsArr.forEach((lvl) => {
+      const elevationKey = `elevation-${lvl}`
+      const alphaTokenName = getAlphaTokenForLevel(elevationKey)
+      if (!alphaTokenName) return
+      
+      // Extract token key from "opacity/veiled" format
+      const tokenKey = alphaTokenName.replace('opacity/', '')
+      
+      // Convert 0-100 to 0-1
+      const normalizedValue = value / 100
+      
+      // Update the token value
+      updateToken(alphaTokenName, normalizedValue)
+    })
+  }, [levelsArr, getAlphaTokenForLevel, updateToken])
 
   return (
     <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 28vw, 440px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
@@ -74,55 +116,50 @@ export default function ElevationStylePanel({
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        <TokenSlider
+        <NumericSlider
           label="Blur"
-          tokens={availableSizeTokens}
-          currentToken={levelsArr.length ? elevationControls[`elevation-${levelsArr[0]}`]?.blurToken : undefined}
-          onChange={(token) => {
-            levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blurToken', token))
+          value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0) : 0}
+          onChange={(value) => {
+            levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blur', value))
           }}
-          getTokenLabel={(token) => getTokenLabel(token.name, availableSizeTokens)}
+          min={0}
+          max={200}
+          step={1}
+          unit="px"
         />
 
-        <TokenSlider
+        <NumericSlider
           label="Spread"
-          tokens={availableSizeTokens}
-          currentToken={levelsArr.length ? elevationControls[`elevation-${levelsArr[0]}`]?.spreadToken : undefined}
-          onChange={(token) => {
-            levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spreadToken', token))
+          value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0) : 0}
+          onChange={(value) => {
+            levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spread', value))
           }}
-          getTokenLabel={(token) => getTokenLabel(token.name, availableSizeTokens)}
+          min={0}
+          max={200}
+          step={1}
+          unit="px"
         />
 
         {(() => {
           const firstKey = levelsArr.length ? `elevation-${levelsArr[0]}` : ''
           const firstCtrl = firstKey ? elevationControls[firstKey] : undefined
           const dir = firstKey ? getDirectionForLevel(firstKey).x : 'right'
-          const stops = [...availableSizeTokens].sort((a, b) => a.value - b.value)
-          const findIdx = (name?: string): number => {
-            if (!name) return zeroIndex
-            const i = stops.findIndex((s) => s.name === name)
-            return i >= 0 ? i : zeroIndex
-          }
-          const magIdx = findIdx(firstCtrl?.offsetXToken)
-          const signed = (magIdx - zeroIndex) * (dir === 'left' ? -1 : 1)
+          // Convert absolute value with direction to signed value
+          const absValue = Math.abs(firstCtrl?.offsetX ?? 0)
+          const signedValue = dir === 'right' ? absValue : -absValue
           return (
-            <TokenSlider
+            <NumericSlider
               label="Offset X"
-              tokens={availableSizeTokens}
-              currentToken={firstCtrl?.offsetXToken}
-              zeroIndex={zeroIndex}
-              signedValue={signed}
-              onChange={(token) => {
-                levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetXToken', token))
+              value={signedValue}
+              onChange={(value) => {
+                // Store as absolute value, but we'll need to update direction logic
+                // For now, store the signed value directly
+                levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetX', value))
               }}
-              onDirectionChange={(dir) => {
-                if (dir === 'left' || dir === 'right') {
-                  setXDirectionForSelected(dir)
-                }
-              }}
-              getTokenLabel={(token) => getTokenLabel(token.name, availableSizeTokens)}
-              formatDisplayLabel={(label, _, signed) => signed && signed < 0 ? `-${label}` : label}
+              min={-50}
+              max={50}
+              step={1}
+              unit="px"
             />
           )
         })()}
@@ -131,44 +168,60 @@ export default function ElevationStylePanel({
           const firstKey = levelsArr.length ? `elevation-${levelsArr[0]}` : ''
           const firstCtrl = firstKey ? elevationControls[firstKey] : undefined
           const dir = firstKey ? getDirectionForLevel(firstKey).y : 'down'
-          const stops = [...availableSizeTokens].sort((a, b) => a.value - b.value)
-          const findIdx = (name?: string): number => {
-            if (!name) return zeroIndex
-            const i = stops.findIndex((s) => s.name === name)
-            return i >= 0 ? i : zeroIndex
-          }
-          const magIdx = findIdx(firstCtrl?.offsetYToken)
-          const signed = (magIdx - zeroIndex) * (dir === 'up' ? -1 : 1)
+          // Convert absolute value with direction to signed value
+          const absValue = Math.abs(firstCtrl?.offsetY ?? 0)
+          const signedValue = dir === 'down' ? absValue : -absValue
           return (
-            <TokenSlider
+            <NumericSlider
               label="Offset Y"
-              tokens={availableSizeTokens}
-              currentToken={firstCtrl?.offsetYToken}
-              zeroIndex={zeroIndex}
-              signedValue={signed}
-              onChange={(token) => {
-                levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetYToken', token))
+              value={signedValue}
+              onChange={(value) => {
+                // Store as absolute value, but we'll need to update direction logic
+                // For now, store the signed value directly
+                levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetY', value))
               }}
-              onDirectionChange={(dir) => {
-                if (dir === 'up' || dir === 'down') {
-                  setYDirectionForSelected(dir)
-                }
-              }}
-              getTokenLabel={(token) => getTokenLabel(token.name, availableSizeTokens)}
-              formatDisplayLabel={(label, _, signed) => signed && signed < 0 ? `-${label}` : label}
+              min={-50}
+              max={50}
+              step={1}
+              unit="px"
             />
           )
         })()}
 
-        <TokenSlider
-          label="Opacity"
-          tokens={availableOpacityTokens}
-          currentToken={levelsArr.length ? getAlphaTokenForLevel(`elevation-${levelsArr[0]}`) : shadowColorControl.alphaToken}
-          onChange={(token) => {
-            levelsArr.forEach((lvl) => setElevationAlphaToken(`elevation-${lvl}`, token))
-          }}
-          getTokenLabel={(token) => getTokenLabel(token.name, availableOpacityTokens)}
-        />
+        {(() => {
+          // Get current opacity value - use first selected level or fallback to shadowColorControl
+          const currentOpacityValue = levelsArr.length 
+            ? getCurrentOpacityValue(`elevation-${levelsArr[0]}`)
+            : (() => {
+                // Fallback: read from shadowColorControl.alphaToken
+                const tokenKey = shadowColorControl.alphaToken.replace('opacity/', '')
+                try {
+                  const tokensRoot: any = (tokensJson as any)?.tokens || {}
+                  const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+                  const tokenValue = opacityRoot[tokenKey]?.$value
+                  if (tokenValue != null) {
+                    const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
+                    if (Number.isFinite(num)) {
+                      const normalized = num <= 1 ? num : num / 100
+                      return Math.round(normalized * 100)
+                    }
+                  }
+                } catch {}
+                return 0
+              })()
+          
+          return (
+            <NumericSlider
+              label="Opacity"
+              value={currentOpacityValue}
+              onChange={handleOpacityChange}
+              min={0}
+              max={100}
+              step={1}
+              unit="%"
+            />
+          )
+        })()}
         <div className="control-group">
           <PaletteColorControl
             label="Shadow Color"

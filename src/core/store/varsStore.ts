@@ -23,11 +23,15 @@ type PaletteStore = {
   primaryLevels?: Record<string, string>
 }
 
-type ElevationControl = { blurToken: string; spreadToken: string; offsetXToken: string; offsetYToken: string }
+type ElevationControl = { blur: number; spread: number; offsetX: number; offsetY: number }
 export type ElevationState = {
   controls: Record<string, ElevationControl>
   colorTokens: Record<string, string>
   alphaTokens: Record<string, string>
+  blurTokens: Record<string, string>
+  spreadTokens: Record<string, string>
+  offsetXTokens: Record<string, string>
+  offsetYTokens: Record<string, string>
   paletteSelections: Record<string, { paletteKey: string; level: string }>
   baseXDirection: 'left' | 'right'
   baseYDirection: 'up' | 'down'
@@ -210,8 +214,22 @@ class VarsStore {
     const uikit = this.lsAvailable ? readLSJson(STORAGE_KEYS.uikit, uikitImport as any) : (uikitImport as any)
     const palettes = this.lsAvailable ? readLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys()) : migratePaletteLocalKeys()
     // Ensure tokens is defined before passing to initElevationState
+    // initElevationState will create elevation tokens and add them to the tokens object
     const elevation = this.initElevationState(theme as any, tokens || {})
+    // Ensure tokens structure is properly set (initElevationState modifies tokens in place)
+    if (!tokens) tokens = {}
+    if (!(tokens as any).tokens) (tokens as any).tokens = {}
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
+    
+    // Debug: verify elevation tokens are in state
+    if (process.env.NODE_ENV === 'development') {
+      const elevationTokenKeys = Object.keys((this.state.tokens as any)?.tokens?.size || {}).filter(k => k.includes('elevation'))
+      if (elevationTokenKeys.length > 0) {
+        console.log(`[VarsStore] Found ${elevationTokenKeys.length} elevation tokens in state:`, elevationTokenKeys.slice(0, 4).join(', '), '...')
+      } else {
+        console.warn('[VarsStore] No elevation tokens found in state after initElevationState')
+      }
+    }
 
     // Versioning and seeding when bundle changes
     if (this.lsAvailable) {
@@ -885,197 +903,302 @@ class VarsStore {
   }
 
   private initElevationState(theme: any, tokens?: any): ElevationState {
+    let elevationState: ElevationState | null = null
+    
     // Try consolidated key first
     if (this.lsAvailable) {
       try {
         const saved = localStorage.getItem(STORAGE_KEYS.elevation)
-        if (saved) return JSON.parse(saved)
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          // Migrate old elevation state that doesn't have token references
+          if (!parsed.blurTokens || !parsed.spreadTokens || !parsed.offsetXTokens || !parsed.offsetYTokens) {
+            // Initialize token references for existing state
+            const blurTokens: Record<string, string> = {}
+            const spreadTokens: Record<string, string> = {}
+            const offsetXTokens: Record<string, string> = {}
+            const offsetYTokens: Record<string, string> = {}
+            
+            for (let i = 0; i <= 4; i++) {
+              const k = `elevation-${i}`
+              blurTokens[k] = `size/elevation-${i}-blur`
+              spreadTokens[k] = `size/elevation-${i}-spread`
+              offsetXTokens[k] = `size/elevation-${i}-offset-x`
+              offsetYTokens[k] = `size/elevation-${i}-offset-y`
+            }
+            
+            parsed.blurTokens = blurTokens
+            parsed.spreadTokens = spreadTokens
+            parsed.offsetXTokens = offsetXTokens
+            parsed.offsetYTokens = offsetYTokens
+          }
+          elevationState = parsed
+        }
       } catch {}
     }
-    // Build defaults from theme
-    const brand: any = (theme as any)?.brand || (theme as any)
-    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-    const themes = brand?.themes || brand
-    const light: any = themes?.light?.elevations || {}
-    const toSize = (ref?: any): string => {
-      const s: string | undefined = typeof ref === 'string' ? ref : (ref?.['$value'] as any)
-      if (!s) return 'size/none'
-      // Only parse if we have tokens available
-      const tokensToUse = tokens || this.state?.tokens
-      if (!tokensToUse) return 'size/none'
-      const context: TokenReferenceContext = {
-        tokenIndex: buildTokenIndex(tokensToUse)
-      }
-      const parsed = parseTokenReference(s, context)
-      if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && (parsed.path[0] === 'size' || parsed.path[0] === 'sizes')) {
-        const key = parsed.path.slice(1).join('.')
-        return `size/${key}`
-      }
-      return 'size/none'
-    }
-    const controls: Record<string, ElevationControl> = {}
-    for (let i = 0; i <= 4; i++) {
-      const node: any = light[`elevation-${i}`]?.['$value'] || {}
-      controls[`elevation-${i}`] = {
-        blurToken: toSize(node?.blur?.['$value'] ?? node?.blur),
-        spreadToken: toSize(node?.spread?.['$value'] ?? node?.spread),
-        offsetXToken: toSize(node?.x?.['$value'] ?? node?.x),
-        offsetYToken: toSize(node?.y?.['$value'] ?? node?.y),
-      }
-    }
-    const parseOpacity = (s?: string) => {
-      if (!s) return 'opacity/veiled'
-      // Only parse if we have tokens available
-      const tokensToUse = tokens || this.state?.tokens
-      if (!tokensToUse) return 'opacity/veiled'
-      const context: TokenReferenceContext = {
-        tokenIndex: buildTokenIndex(tokensToUse)
-      }
-      const parsed = parseTokenReference(s, context)
-      if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && (parsed.path[0] === 'opacity' || parsed.path[0] === 'opacities')) {
-        return `opacity/${parsed.path[1]}`
-      }
-      return 'opacity/veiled'
-    }
-    const parseColorToken = (s?: string) => {
-      if (!s) return 'color/gray/900'
-      // Only parse if we have tokens available
-      const tokensToUse = tokens || this.state?.tokens
-      if (!tokensToUse) return 'color/gray/900'
-      const context: TokenReferenceContext = {
-        tokenIndex: buildTokenIndex(tokensToUse)
-      }
-      const parsed = parseTokenReference(s, context)
-      if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && (parsed.path[0] === 'color' || parsed.path[0] === 'colors')) {
-        // Handle both old format (color/family/level) and new format (colors/scale-XX/level)
-        if (parsed.path[0] === 'colors' && parsed.path.length >= 3) {
-          return `colors/${parsed.path[1]}/${parsed.path[2]}`
+    // If we loaded from localStorage, use those controls; otherwise build from theme
+    let controls: Record<string, ElevationControl> = {}
+    let colorTokens: Record<string, string> = {}
+    let alphaTokens: Record<string, string> = {}
+    let paletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+    let baseXDirection: 'left' | 'right' = 'right'
+    let baseYDirection: 'up' | 'down' = 'down'
+    let directions: Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }> = {}
+    let shadowColorControl: { colorToken: string; alphaToken: string } = { colorToken: 'color/gray/900', alphaToken: 'opacity/veiled' }
+    
+    if (!elevationState) {
+      // Build defaults from theme
+      const brand: any = (theme as any)?.brand || (theme as any)
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = brand?.themes || brand
+      const light: any = themes?.light?.elevations || {}
+      const toNumeric = (ref?: any): number => {
+        // Handle new structure: { $value: { value: number, unit: "px" }, $type: "number" }
+        if (ref && typeof ref === 'object' && '$value' in ref) {
+          const val = ref.$value
+          if (val && typeof val === 'object' && 'value' in val) {
+            return typeof val.value === 'number' ? val.value : Number(val.value) || 0
+          }
+          // Fallback: try to parse as number directly
+          if (typeof val === 'number') return val
+          if (typeof val === 'string') {
+            const num = Number(val)
+            return Number.isFinite(num) ? num : 0
+          }
         }
-        return `color/${parsed.path[1]}/${parsed.path[2]}`
+        // Handle old structure: direct number or string
+        if (typeof ref === 'number') return ref
+        if (typeof ref === 'string') {
+          const num = Number(ref)
+          return Number.isFinite(num) ? num : 0
+        }
+        return 0
       }
-      return 'color/gray/900'
-    }
-    const parsePaletteSelection = (s?: string): { paletteKey: string; level: string } | null => {
-      if (!s) return null
-      // Only parse if we have tokens available
-      const tokensToUse = tokens || this.state?.tokens
-      if (!tokensToUse) return null
-      const context: TokenReferenceContext = {
-        currentMode: 'light',
-        tokenIndex: buildTokenIndex(tokensToUse),
-        theme: theme
+      controls = {}
+      for (let i = 0; i <= 4; i++) {
+        const node: any = light[`elevation-${i}`]?.['$value'] || {}
+        controls[`elevation-${i}`] = {
+          blur: toNumeric(node?.blur),
+          spread: toNumeric(node?.spread),
+          offsetX: toNumeric(node?.x),
+          offsetY: toNumeric(node?.y),
+        }
       }
-      const parsed = parseTokenReference(s, context)
-      if (parsed && parsed.type === 'brand') {
-        const pathParts = parsed.path
-        // Check if it's a palette reference: palettes.{paletteKey}.{level}.color.tone
-        if (pathParts.length >= 4 && pathParts[0] === 'palettes' && pathParts[2] === 'color' && pathParts[3] === 'tone') {
-          const paletteKey = pathParts[1]
-          let level = pathParts.length >= 5 ? pathParts[4] : undefined
-          // If level is 'default', try to resolve it from the theme
-          if (level === 'default' || !level) {
-            try {
-              // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-              const brandRoot = (theme as any)?.brand || theme
-              const themes = brandRoot?.themes || brandRoot
-              const defaultRef = themes?.light?.palettes?.[paletteKey]?.default
-              if (defaultRef) {
-                let defaultValue: any
-                if (typeof defaultRef === 'object' && defaultRef.$value) {
-                  defaultValue = defaultRef.$value
-                } else if (typeof defaultRef === 'string') {
-                  defaultValue = defaultRef
-                }
-                
-                if (defaultValue && typeof defaultValue === 'string') {
-                  const defaultParsed = parseTokenReference(defaultValue, context)
-                  if (defaultParsed && defaultParsed.type === 'brand') {
-                    const defaultPathParts = defaultParsed.path
-                    // Check if it's a palette reference: palettes.{paletteKey}.{level}
-                    if (defaultPathParts.length >= 2 && defaultPathParts[0] === 'palettes' && defaultPathParts[1] === paletteKey) {
-                      level = defaultPathParts[2] || 'primary'
-                    }
-                  } else {
-                    // Try to extract level number from end of path
-                    const defaultInner = extractBraceContent(defaultValue)
-                    if (defaultInner) {
-                      const levelMatch = /\.(\d+)$/.exec(defaultInner)
-                      if (levelMatch) {
-                        level = levelMatch[1]
+      const parseOpacity = (s?: string) => {
+        if (!s) return 'opacity/veiled'
+        // Only parse if we have tokens available
+        const tokensToUse = tokens || this.state?.tokens
+        if (!tokensToUse) return 'opacity/veiled'
+        const context: TokenReferenceContext = {
+          tokenIndex: buildTokenIndex(tokensToUse)
+        }
+        const parsed = parseTokenReference(s, context)
+        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && (parsed.path[0] === 'opacity' || parsed.path[0] === 'opacities')) {
+          return `opacity/${parsed.path[1]}`
+        }
+        return 'opacity/veiled'
+      }
+      const parseColorToken = (s?: string) => {
+        if (!s) return 'color/gray/900'
+        // Only parse if we have tokens available
+        const tokensToUse = tokens || this.state?.tokens
+        if (!tokensToUse) return 'color/gray/900'
+        const context: TokenReferenceContext = {
+          tokenIndex: buildTokenIndex(tokensToUse)
+        }
+        const parsed = parseTokenReference(s, context)
+        if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && (parsed.path[0] === 'color' || parsed.path[0] === 'colors')) {
+          // Handle both old format (color/family/level) and new format (colors/scale-XX/level)
+          if (parsed.path[0] === 'colors' && parsed.path.length >= 3) {
+            return `colors/${parsed.path[1]}/${parsed.path[2]}`
+          }
+          return `color/${parsed.path[1]}/${parsed.path[2]}`
+        }
+        return 'color/gray/900'
+      }
+      const parsePaletteSelection = (s?: string): { paletteKey: string; level: string } | null => {
+        if (!s) return null
+        // Only parse if we have tokens available
+        const tokensToUse = tokens || this.state?.tokens
+        if (!tokensToUse) return null
+        const context: TokenReferenceContext = {
+          currentMode: 'light',
+          tokenIndex: buildTokenIndex(tokensToUse),
+          theme: theme
+        }
+        const parsed = parseTokenReference(s, context)
+        if (parsed && parsed.type === 'brand') {
+          const pathParts = parsed.path
+          // Check if it's a palette reference: palettes.{paletteKey}.{level}.color.tone
+          if (pathParts.length >= 4 && pathParts[0] === 'palettes' && pathParts[2] === 'color' && pathParts[3] === 'tone') {
+            const paletteKey = pathParts[1]
+            let level = pathParts.length >= 5 ? pathParts[4] : undefined
+            // If level is 'default', try to resolve it from the theme
+            if (level === 'default' || !level) {
+              try {
+                // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+                const brandRoot = (theme as any)?.brand || theme
+                const themes = brandRoot?.themes || brandRoot
+                const defaultRef = themes?.light?.palettes?.[paletteKey]?.default
+                if (defaultRef) {
+                  let defaultValue: any
+                  if (typeof defaultRef === 'object' && defaultRef.$value) {
+                    defaultValue = defaultRef.$value
+                  } else if (typeof defaultRef === 'string') {
+                    defaultValue = defaultRef
+                  }
+                  
+                  if (defaultValue && typeof defaultValue === 'string') {
+                    const defaultParsed = parseTokenReference(defaultValue, context)
+                    if (defaultParsed && defaultParsed.type === 'brand') {
+                      const defaultPathParts = defaultParsed.path
+                      // Check if it's a palette reference: palettes.{paletteKey}.{level}
+                      if (defaultPathParts.length >= 2 && defaultPathParts[0] === 'palettes' && defaultPathParts[1] === paletteKey) {
+                        level = defaultPathParts[2] || 'primary'
+                      }
+                    } else {
+                      // Try to extract level number from end of path
+                      const defaultInner = extractBraceContent(defaultValue)
+                      if (defaultInner) {
+                        const levelMatch = /\.(\d+)$/.exec(defaultInner)
+                        if (levelMatch) {
+                          level = levelMatch[1]
+                        }
                       }
                     }
                   }
                 }
-              }
-              // If we couldn't resolve default, use 'primary' as fallback
-              if (level === 'default' || !level) {
+                // If we couldn't resolve default, use 'primary' as fallback
+                if (level === 'default' || !level) {
+                  level = 'primary'
+                }
+              } catch {
                 level = 'primary'
               }
-            } catch {
-              level = 'primary'
             }
-          }
-          if (level === 'primary') {
-            // Try to get primary level from palette
-            try {
-              // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-              const brandRoot = (theme as any)?.brand || theme
-              const themes = brandRoot?.themes || brandRoot
-              const primaryLevel = themes?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
-              if (typeof primaryLevel === 'string') {
-                level = primaryLevel
-              } else {
-                // Default to 500 if no primary level specified
+            if (level === 'primary') {
+              // Try to get primary level from palette
+              try {
+                // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+                const brandRoot = (theme as any)?.brand || theme
+                const themes = brandRoot?.themes || brandRoot
+                const primaryLevel = themes?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
+                if (typeof primaryLevel === 'string') {
+                  level = primaryLevel
+                } else {
+                  // Default to 500 if no primary level specified
+                  level = '500'
+                }
+              } catch {
                 level = '500'
               }
-            } catch {
-              level = '500'
             }
+            return { paletteKey, level }
           }
-          return { paletteKey, level }
+        }
+        return null
+      }
+      const elev1: any = light?.['elevation-1']?.['$value'] || {}
+      shadowColorControl = { colorToken: parseColorToken(elev1?.color?.['$value'] ?? elev1?.color), alphaToken: parseOpacity(elev1?.opacity?.['$value'] ?? elev1?.opacity) }
+      
+      // Initialize palette selections from brand.json for each elevation
+      const initialPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+      for (let i = 0; i <= 4; i++) {
+        const elev: any = light?.[`elevation-${i}`]?.['$value'] || {}
+        const colorRef = elev?.color?.['$value'] ?? elev?.color
+        const paletteSel = parsePaletteSelection(colorRef)
+        if (paletteSel) {
+          initialPaletteSelections[`elevation-${i}`] = paletteSel
         }
       }
-      return null
+      const baseX = Number((elev1?.['x-direction']?.['$value'] ?? 1))
+      const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
+      baseXDirection = baseX >= 0 ? 'right' : 'left'
+      baseYDirection = baseY >= 0 ? 'down' : 'up'
+      for (let i = 1; i <= 4; i += 1) directions[`elevation-${i}`] = { x: baseXDirection, y: baseYDirection }
+      // Migrate legacy keys
+      paletteSelections = { ...initialPaletteSelections }
+      if (this.lsAvailable) {
+        try { const raw = localStorage.getItem('elevation-color-tokens'); if (raw) colorTokens = JSON.parse(raw) } catch {}
+        try { const raw = localStorage.getItem('elevation-alpha-tokens'); if (raw) alphaTokens = JSON.parse(raw) } catch {}
+        try { 
+          const raw = localStorage.getItem('elevation-palette-selections')
+          if (raw) {
+            // Merge localStorage selections with initial selections (localStorage takes precedence)
+            const savedSelections = JSON.parse(raw)
+            paletteSelections = { ...initialPaletteSelections, ...savedSelections }
+          }
+        } catch {}
+        try { const raw = localStorage.getItem('elevation-directions'); if (raw) Object.assign(directions, JSON.parse(raw)) } catch {}
+        try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') (baseXDirection as any) = raw } catch {}
+        try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') (baseYDirection as any) = raw } catch {}
+      }
     }
-    const elev1: any = light?.['elevation-1']?.['$value'] || {}
-    const shadowColorControl = { colorToken: parseColorToken(elev1?.color?.['$value'] ?? elev1?.color), alphaToken: parseOpacity(elev1?.opacity?.['$value'] ?? elev1?.opacity) }
     
-    // Initialize palette selections from brand.json for each elevation
-    const initialPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+    // Use elevationState from localStorage if available, otherwise use the one we built
+    const finalState = elevationState || { controls, colorTokens, alphaTokens, paletteSelections, baseXDirection, baseYDirection, directions, shadowColorControl }
+    
+    // Always ensure tokens exist and token references are set (even if loaded from localStorage)
+    const blurTokens: Record<string, string> = finalState.blurTokens || {}
+    const spreadTokens: Record<string, string> = finalState.spreadTokens || {}
+    const offsetXTokens: Record<string, string> = finalState.offsetXTokens || {}
+    const offsetYTokens: Record<string, string> = finalState.offsetYTokens || {}
+    
+    // Get or create tokens structure
+    if (!tokens) tokens = {}
+    if (!(tokens as any).tokens) (tokens as any).tokens = {}
+    const tokensRoot: any = (tokens as any).tokens
+    if (!tokensRoot.size) tokensRoot.size = {}
+    
+    // Use controls from finalState (either from localStorage or newly built)
+    const finalControls = finalState.controls || {}
+    
     for (let i = 0; i <= 4; i++) {
-      const elev: any = light?.[`elevation-${i}`]?.['$value'] || {}
-      const colorRef = elev?.color?.['$value'] ?? elev?.color
-      const paletteSel = parsePaletteSelection(colorRef)
-      if (paletteSel) {
-        initialPaletteSelections[`elevation-${i}`] = paletteSel
+      const k = `elevation-${i}`
+      const ctrl = finalControls[k]
+      
+      // Create/ensure tokens exist for each property
+      const blurTokenName = `size/elevation-${i}-blur`
+      const spreadTokenName = `size/elevation-${i}-spread`
+      const offsetXTokenName = `size/elevation-${i}-offset-x`
+      const offsetYTokenName = `size/elevation-${i}-offset-y`
+      
+      // Initialize tokens if they don't exist (use current control value or 0)
+      // Always ensure tokens exist, even if controls are missing
+      const blurValue = ctrl?.blur ?? 0
+      const spreadValue = ctrl?.spread ?? 0
+      const offsetXValue = ctrl?.offsetX ?? 0
+      const offsetYValue = ctrl?.offsetY ?? 0
+      
+      // Ensure token exists and has a valid numeric value
+      if (!tokensRoot.size[`elevation-${i}-blur`] || tokensRoot.size[`elevation-${i}-blur`].$value == null) {
+        tokensRoot.size[`elevation-${i}-blur`] = { $value: typeof blurValue === 'number' ? blurValue : 0 }
       }
+      if (!tokensRoot.size[`elevation-${i}-spread`] || tokensRoot.size[`elevation-${i}-spread`].$value == null) {
+        tokensRoot.size[`elevation-${i}-spread`] = { $value: typeof spreadValue === 'number' ? spreadValue : 0 }
+      }
+      if (!tokensRoot.size[`elevation-${i}-offset-x`] || tokensRoot.size[`elevation-${i}-offset-x`].$value == null) {
+        tokensRoot.size[`elevation-${i}-offset-x`] = { $value: typeof offsetXValue === 'number' ? offsetXValue : 0 }
+      }
+      if (!tokensRoot.size[`elevation-${i}-offset-y`] || tokensRoot.size[`elevation-${i}-offset-y`].$value == null) {
+        tokensRoot.size[`elevation-${i}-offset-y`] = { $value: typeof offsetYValue === 'number' ? offsetYValue : 0 }
+      }
+      
+      // Set token references if not already set
+      if (!blurTokens[k]) blurTokens[k] = blurTokenName
+      if (!spreadTokens[k]) spreadTokens[k] = spreadTokenName
+      if (!offsetXTokens[k]) offsetXTokens[k] = offsetXTokenName
+      if (!offsetYTokens[k]) offsetYTokens[k] = offsetYTokenName
     }
-    const baseX = Number((elev1?.['x-direction']?.['$value'] ?? 1))
-    const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
-    const baseXDirection: 'left' | 'right' = baseX >= 0 ? 'right' : 'left'
-    const baseYDirection: 'up' | 'down' = baseY >= 0 ? 'down' : 'up'
-    const directions: Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }> = {}
-    for (let i = 1; i <= 4; i += 1) directions[`elevation-${i}`] = { x: baseXDirection, y: baseYDirection }
-    // Migrate legacy keys
-    let colorTokens: Record<string, string> = {}
-    let alphaTokens: Record<string, string> = {}
-    let paletteSelections: Record<string, { paletteKey: string; level: string }> = { ...initialPaletteSelections }
-    if (this.lsAvailable) {
-      try { const raw = localStorage.getItem('elevation-color-tokens'); if (raw) colorTokens = JSON.parse(raw) } catch {}
-      try { const raw = localStorage.getItem('elevation-alpha-tokens'); if (raw) alphaTokens = JSON.parse(raw) } catch {}
-      try { 
-        const raw = localStorage.getItem('elevation-palette-selections')
-        if (raw) {
-          // Merge localStorage selections with initial selections (localStorage takes precedence)
-          const savedSelections = JSON.parse(raw)
-          paletteSelections = { ...initialPaletteSelections, ...savedSelections }
-        }
-      } catch {}
-      try { const raw = localStorage.getItem('elevation-directions'); if (raw) Object.assign(directions, JSON.parse(raw)) } catch {}
-      try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') (baseXDirection as any) = raw } catch {}
-      try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') (baseYDirection as any) = raw } catch {}
-    }
-    return { controls, colorTokens, alphaTokens, paletteSelections, baseXDirection, baseYDirection, directions, shadowColorControl }
+    
+    // tokensRoot is now always a reference to (tokens as any).tokens (we ensured it exists above)
+    // So all modifications to tokensRoot.size are already applied to (tokens as any).tokens.size
+    // No merge needed - the tokens are already in the tokens object
+    
+    // Ensure tokens are properly structured for CSS variable generation
+    // The tokens should now be in (tokens as any).tokens.size and will be picked up by recomputeAndApplyAll
+    
+    return { ...finalState, blurTokens, spreadTokens, offsetXTokens, offsetYTokens }
   }
 
   private readTypeChoices(): TypographyChoices {
@@ -1121,10 +1244,60 @@ class VarsStore {
     // Tokens: expose size tokens as CSS vars under --recursica-tokens-sizes-<key>
     try {
       const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
-      const sizesRoot: any = tokensRoot?.sizes || tokensRoot?.size
-      if (!sizesRoot || typeof sizesRoot !== 'object' || Array.isArray(sizesRoot)) {
-        // Skip if sizesRoot is not a valid object
+      
+      // CRITICAL: Ensure elevation tokens exist before processing
+      // They might be missing if state was reloaded from localStorage
+      if (!tokensRoot.size) tokensRoot.size = {}
+      const elevation = this.state.elevation
+      if (elevation && elevation.controls) {
+        for (let i = 0; i <= 4; i++) {
+          const k = `elevation-${i}`
+          const ctrl = elevation.controls[k]
+          if (ctrl) {
+            // Ensure elevation tokens exist with current control values
+            if (!tokensRoot.size[`elevation-${i}-blur`] || tokensRoot.size[`elevation-${i}-blur`].$value == null) {
+              tokensRoot.size[`elevation-${i}-blur`] = { $value: typeof ctrl.blur === 'number' ? ctrl.blur : 0 }
+            }
+            if (!tokensRoot.size[`elevation-${i}-spread`] || tokensRoot.size[`elevation-${i}-spread`].$value == null) {
+              tokensRoot.size[`elevation-${i}-spread`] = { $value: typeof ctrl.spread === 'number' ? ctrl.spread : 0 }
+            }
+            if (!tokensRoot.size[`elevation-${i}-offset-x`] || tokensRoot.size[`elevation-${i}-offset-x`].$value == null) {
+              tokensRoot.size[`elevation-${i}-offset-x`] = { $value: typeof ctrl.offsetX === 'number' ? ctrl.offsetX : 0 }
+            }
+            if (!tokensRoot.size[`elevation-${i}-offset-y`] || tokensRoot.size[`elevation-${i}-offset-y`].$value == null) {
+              tokensRoot.size[`elevation-${i}-offset-y`] = { $value: typeof ctrl.offsetY === 'number' ? ctrl.offsetY : 0 }
+            }
+          }
+        }
+      }
+      
+      // Merge both sizes (plural) and size (singular) to ensure we get all tokens
+      // Elevation tokens are created in 'size', but other tokens might be in 'sizes'
+      const sizesPlural: any = tokensRoot?.sizes
+      const sizesSingular: any = tokensRoot?.size
+      const sizesRoot: any = {}
+      
+      // Merge both into a single object (singular takes precedence for duplicates)
+      if (sizesPlural && typeof sizesPlural === 'object' && !Array.isArray(sizesPlural)) {
+        Object.assign(sizesRoot, sizesPlural)
+      }
+      if (sizesSingular && typeof sizesSingular === 'object' && !Array.isArray(sizesSingular)) {
+        Object.assign(sizesRoot, sizesSingular)
+      }
+      
+      if (!sizesRoot || typeof sizesRoot !== 'object' || Array.isArray(sizesRoot) || Object.keys(sizesRoot).length === 0) {
+        // Skip if sizesRoot is not a valid object or is empty
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[VarsStore] sizesRoot is not valid or empty:', { sizesRoot, tokensRootKeys: Object.keys(tokensRoot), hasSizes: !!tokensRoot?.sizes, hasSize: !!tokensRoot?.size })
+        }
       } else {
+        // Debug: check for elevation tokens
+        if (process.env.NODE_ENV === 'development') {
+          const elevationKeys = Object.keys(sizesRoot).filter(k => k.includes('elevation'))
+          if (elevationKeys.length > 0) {
+            console.log(`[VarsStore] Found ${elevationKeys.length} elevation tokens in sizesRoot, processing...`)
+          }
+        }
         const vars: Record<string, string> = {}
       const toPxString = (v: any): string | undefined => {
         if (v == null) return undefined
@@ -1141,6 +1314,7 @@ class VarsStore {
         }
         return undefined
       }
+        const elevationTokensFound: string[] = []
         Object.keys(sizesRoot).forEach((short) => {
           if (short.startsWith('$')) return
           const sizeObj = sizesRoot[short]
@@ -1153,8 +1327,21 @@ class VarsStore {
             if (!vars[`--recursica-tokens-size-${short}`]) {
               vars[`--recursica-tokens-size-${short}`] = px
             }
+            if (short.includes('elevation')) {
+              elevationTokensFound.push(short)
+            }
           }
         })
+        // Debug: log elevation tokens found
+        if (elevationTokensFound.length > 0 && process.env.NODE_ENV === 'development') {
+          console.log(`[VarsStore] Generated ${elevationTokensFound.length} elevation token CSS variables:`, elevationTokensFound.slice(0, 4).join(', '), '...')
+        } else if (process.env.NODE_ENV === 'development') {
+          // Check if elevation tokens exist but weren't processed
+          const elevationKeysInSizes = Object.keys(sizesRoot).filter(k => k.includes('elevation'))
+          if (elevationKeysInSizes.length > 0) {
+            console.warn(`[VarsStore] Found ${elevationKeysInSizes.length} elevation tokens in sizesRoot but didn't generate CSS vars. Sample:`, elevationKeysInSizes[0], sizesRoot[elevationKeysInSizes[0]])
+          }
+        }
         Object.assign(allVars, vars)
       }
     } catch (e) {
@@ -1836,25 +2023,34 @@ class VarsStore {
             // If even baseCtrl doesn't exist, skip this elevation level
             continue
           }
-          const blurTok = (() => {
-            if (i > 0 && scaleBlur && ctrl.blurToken === baseCtrl?.blurToken) return nextSizeTokenName(ctrl.blurToken, i)
-            return ctrl.blurToken
+          const blurValue = (() => {
+            if (i > 0 && scaleBlur && ctrl.blur === baseCtrl?.blur) {
+              // Scale blur proportionally
+              return Math.round(ctrl.blur * (1 + (i * 0.2)))
+            }
+            return ctrl.blur
           })()
-          const spreadTok = (() => {
-            if (i > 0 && scaleSpread && ctrl.spreadToken === baseCtrl?.spreadToken) return nextSizeTokenName(ctrl.spreadToken, i)
-            return ctrl.spreadToken
+          const spreadValue = (() => {
+            if (i > 0 && scaleSpread && ctrl.spread === baseCtrl?.spread) {
+              return Math.round(ctrl.spread * (1 + (i * 0.2)))
+            }
+            return ctrl.spread
           })()
-          const xTok = (() => {
-            if (i > 0 && scaleX && ctrl.offsetXToken === baseCtrl?.offsetXToken) return nextSizeTokenName(ctrl.offsetXToken, i)
-            return ctrl.offsetXToken
+          const xValue = (() => {
+            if (i > 0 && scaleX && ctrl.offsetX === baseCtrl?.offsetX) {
+              return Math.round(ctrl.offsetX * (1 + (i * 0.2)))
+            }
+            return ctrl.offsetX
           })()
-          const yTok = (() => {
-            if (i > 0 && scaleY && ctrl.offsetYToken === baseCtrl?.offsetYToken) return nextSizeTokenName(ctrl.offsetYToken, i)
-            return ctrl.offsetYToken
+          const yValue = (() => {
+            if (i > 0 && scaleY && ctrl.offsetY === baseCtrl?.offsetY) {
+              return Math.round(ctrl.offsetY * (1 + (i * 0.2)))
+            }
+            return ctrl.offsetY
           })()
           const dir = dirForLevel(i)
-          const sxExpr = dir.x === 'right' ? `var(--recursica-tokens-${xTok.replace(/\//g, '-')})` : `calc(var(--recursica-tokens-${xTok.replace(/\//g, '-')}) * -1)`
-          const syExpr = dir.y === 'down' ? `var(--recursica-tokens-${yTok.replace(/\//g, '-')})` : `calc(var(--recursica-tokens-${yTok.replace(/\//g, '-')}) * -1)`
+          const sxValue = dir.x === 'right' ? xValue : -xValue
+          const syValue = dir.y === 'down' ? yValue : -yValue
           const brandScope = `--brand-themes-${mode}-elevations-elevation-${i}`
           const prefixedScope = `--recursica-${brandScope.slice(2)}`
           
@@ -1897,10 +2093,33 @@ class VarsStore {
             const color = shadowColorForLevel(i, allPaletteVars)
             vars[`${prefixedScope}-shadow-color`] = String(color)
           }
-          vars[`${prefixedScope}-blur`] = `var(--recursica-tokens-${blurTok.replace(/\//g, '-')})`
-          vars[`${prefixedScope}-spread`] = `var(--recursica-tokens-${spreadTok.replace(/\//g, '-')})`
-          vars[`${prefixedScope}-x-axis`] = sxExpr
-          vars[`${prefixedScope}-y-axis`] = syExpr
+          
+          // Use token references for elevation properties
+          const blurTokenName = this.state.elevation.blurTokens[k] || `size/elevation-${i}-blur`
+          const spreadTokenName = this.state.elevation.spreadTokens[k] || `size/elevation-${i}-spread`
+          const offsetXTokenName = this.state.elevation.offsetXTokens[k] || `size/elevation-${i}-offset-x`
+          const offsetYTokenName = this.state.elevation.offsetYTokens[k] || `size/elevation-${i}-offset-y`
+          
+          // Extract the key part from token names (e.g., "size/elevation-0-blur" -> "elevation-0-blur")
+          const getTokenKey = (tokenName: string): string => {
+            const parts = tokenName.split('/')
+            return parts.length > 1 ? parts.slice(1).join('-') : tokenName.replace(/\//g, '-')
+          }
+          
+          const blurKey = getTokenKey(blurTokenName)
+          const spreadKey = getTokenKey(spreadTokenName)
+          const offsetXKey = getTokenKey(offsetXTokenName)
+          const offsetYKey = getTokenKey(offsetYTokenName)
+          
+          vars[`${prefixedScope}-blur`] = `var(--recursica-tokens-size-${blurKey})`
+          vars[`${prefixedScope}-spread`] = `var(--recursica-tokens-size-${spreadKey})`
+          // For x-axis and y-axis, we need to apply direction (signed values)
+          // The token stores the absolute offset, but we need to apply direction
+          // We'll use calc() to apply the sign based on direction
+          const xTokenVar = `var(--recursica-tokens-size-${offsetXKey})`
+          const yTokenVar = `var(--recursica-tokens-size-${offsetYKey})`
+          vars[`${prefixedScope}-x-axis`] = dir.x === 'right' ? xTokenVar : `calc(-1 * ${xTokenVar})`
+          vars[`${prefixedScope}-y-axis`] = dir.y === 'down' ? yTokenVar : `calc(-1 * ${yTokenVar})`
         }
         Object.assign(allVars, vars)
       } catch (e) {
@@ -1931,8 +2150,36 @@ class VarsStore {
       if (typographyVars.length > 0) {
         console.log('[VarsStore] Sample h1 typography vars being applied:', typographyVars.slice(0, 5).map(k => ({ [k]: allVars[k] })))
       }
+      // Debug: verify elevation token CSS variables are in allVars
+      if (process.env.NODE_ENV === 'development') {
+        const elevationTokenVars = Object.keys(allVars).filter(k => k.includes('tokens-size-elevation'))
+        if (elevationTokenVars.length > 0) {
+          console.log(`[VarsStore] Found ${elevationTokenVars.length} elevation token CSS variables in allVars:`, elevationTokenVars.slice(0, 4).join(', '), '...')
+        } else {
+          console.warn('[VarsStore] No elevation token CSS variables found in allVars!')
+        }
+      }
       applyCssVars(allVars, this.state.tokens)
       console.log('[VarsStore] CSS variables applied successfully')
+      
+      // Debug: verify elevation token CSS variables are actually on the DOM
+      if (process.env.NODE_ENV === 'development') {
+        const testVar = '--recursica-tokens-size-elevation-0-blur'
+        const root = document.documentElement
+        const computedValue = getComputedStyle(root).getPropertyValue(testVar)
+        const inlineValue = root.style.getPropertyValue(testVar)
+        if (computedValue || inlineValue) {
+          console.log(`[VarsStore] ✓ Elevation token CSS variable ${testVar} is on DOM:`, computedValue || inlineValue)
+        } else {
+          console.warn(`[VarsStore] ✗ Elevation token CSS variable ${testVar} is NOT on DOM!`)
+          // Check if it's in allVars
+          if (allVars[testVar]) {
+            console.warn(`[VarsStore] But it IS in allVars:`, allVars[testVar])
+          } else {
+            console.warn(`[VarsStore] And it's NOT in allVars either!`)
+          }
+        }
+      }
     } catch (e) {
       // Log error but don't let it break the recompute cycle
       console.error('[VarsStore] Error applying CSS variables:', e)

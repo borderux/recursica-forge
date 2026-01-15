@@ -806,36 +806,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
-                "$value": "{brand.palettes.neutral.600.color.tone}",
+                "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.invisible}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 0,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           },
@@ -843,36 +850,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.0-5x}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 2,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.0-5x}",
-                "unit": "px"
+                "$value": {
+                  "value": 4,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
-                "$value": "{brand.palettes.neutral.600.color.tone}",
+                "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.faint}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 10,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           },
@@ -880,36 +894,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.1-5x}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 4,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.1-5x}",
-                "unit": "px"
+                "$value": {
+                  "value": 8,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
-                "$value": "{brand.palettes.neutral.600.color.tone}",
+                "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.faint}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 10,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           },
@@ -917,36 +938,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.2x}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 8,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.2x}",
-                "unit": "px"
+                "$value": {
+                  "value": 16,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
-                "$value": "{brand.palettes.neutral.600.color.tone}",
+                "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.faint}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 10,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           },
@@ -954,36 +982,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.2x}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 12,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.3x}",
-                "unit": "px"
+                "$value": {
+                  "value": 24,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
-                "$value": "{brand.palettes.neutral.600.color.tone}",
+                "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.faint}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 10,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           }
@@ -1765,36 +1800,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
                 "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.invisible}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 0,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           },
@@ -1802,36 +1844,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.0-5x}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 1,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.0-5x}",
-                "unit": "px"
+                "$value": {
+                  "value": 3,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
                 "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.faint}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 10,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           },
@@ -1839,36 +1888,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.1-5x}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 2,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.1-5x}",
-                "unit": "px"
+                "$value": {
+                  "value": 6,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
                 "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.faint}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 10,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           },
@@ -1876,36 +1932,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.2x}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 4,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.2x}",
-                "unit": "px"
+                "$value": {
+                  "value": 12,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
                 "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.faint}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 10,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           },
@@ -1913,36 +1976,43 @@
             "$type": "boxShadow",
             "$value": {
               "x": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
-              },
-              "y": {
-                "$value": "{tokens.size.2x}",
-                "unit": "px"
-              },
-              "x-direction": {
-                "$value": "1",
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
-              "y-direction": {
-                "$value": "1",
+              "y": {
+                "$value": {
+                  "value": 8,
+                  "unit": "px"
+                },
                 "$type": "number"
               },
               "blur": {
-                "$value": "{tokens.size.3x}",
-                "unit": "px"
+                "$value": {
+                  "value": 24,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "spread": {
-                "$value": "{tokens.size.none}",
-                "unit": "px"
+                "$value": {
+                  "value": 0,
+                  "unit": "px"
+                },
+                "$type": "number"
               },
               "color": {
                 "$value": "{brand.palettes.neutral.default.color.tone}",
                 "$type": "color"
               },
               "opacity": {
-                "$value": "{tokens.opacity.faint}",
-                "$type": "opacity"
+                "$value": {
+                  "value": 10,
+                  "unit": "percentage"
+                },
+                "$type": "number"
               }
             }
           }
