@@ -223,7 +223,8 @@ class VarsStore {
     
     // Debug: verify elevation tokens are in state
     if (process.env.NODE_ENV === 'development') {
-      const elevationTokenKeys = Object.keys((this.state.tokens as any)?.tokens?.size || {}).filter(k => k.includes('elevation'))
+      // Elevation tokens are not in tokens - they're in brand.json
+      const elevationTokenKeys: string[] = []
       if (elevationTokenKeys.length > 0) {
         console.log(`[VarsStore] Found ${elevationTokenKeys.length} elevation tokens in state:`, elevationTokenKeys.slice(0, 4).join(', '), '...')
       } else {
@@ -543,7 +544,7 @@ class VarsStore {
         // via CSS var() references, so we don't need to rebuild them here
       } else if (category === 'size' || category === 'sizes') {
         const [key] = rest
-        const tokenValue = tokensRoot?.sizes?.[key]?.$value || tokensRoot?.size?.[key]?.$value
+        const tokenValue = tokensRoot?.sizes?.[key]?.$value
         if (tokenValue == null) return
         
         const toPxString = (v: any): string | undefined => {
@@ -564,7 +565,7 @@ class VarsStore {
         if (px) varsToUpdate[`--recursica-tokens-size-${key}`] = px
       } else if (category === 'opacity' && rest.length >= 1) {
         const [key] = rest
-        const tokenValue = tokensRoot?.opacity?.[key]?.$value
+        const tokenValue = tokensRoot?.opacities?.[key]?.$value
         if (tokenValue == null) return
         
         const normalize = (v: any): string | undefined => {
@@ -690,14 +691,14 @@ class VarsStore {
         }
       } else if (category === 'size' && rest.length >= 1) {
         const [key] = rest
-        if (!tokensRoot.size) tokensRoot.size = {}
-        if (!tokensRoot.size[key]) tokensRoot.size[key] = {}
-        tokensRoot.size[key].$value = typeof value === 'number' ? value : String(value)
+        if (!tokensRoot.sizes) tokensRoot.sizes = {}
+        if (!tokensRoot.sizes[key]) tokensRoot.sizes[key] = {}
+        tokensRoot.sizes[key].$value = typeof value === 'number' ? value : String(value)
       } else if (category === 'opacity' && rest.length >= 1) {
         const [key] = rest
-        if (!tokensRoot.opacity) tokensRoot.opacity = {}
-        if (!tokensRoot.opacity[key]) tokensRoot.opacity[key] = {}
-        tokensRoot.opacity[key].$value = typeof value === 'number' ? value : String(value)
+        if (!tokensRoot.opacities) tokensRoot.opacities = {}
+        if (!tokensRoot.opacities[key]) tokensRoot.opacities[key] = {}
+        tokensRoot.opacities[key].$value = typeof value === 'number' ? value : String(value)
       } else if (category === 'font' && rest.length >= 2) {
         const [kind, key] = rest
         if (!tokensRoot.font) tokensRoot.font = {}
@@ -1147,56 +1148,28 @@ class VarsStore {
     // Get or create tokens structure
     if (!tokens) tokens = {}
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
-    const tokensRoot: any = (tokens as any).tokens
-    if (!tokensRoot.size) tokensRoot.size = {}
+    
+    // Elevation tokens should NOT be in tokens - they belong in brand.json
+    // CSS variables for elevations are generated directly from brand.json elevations
+    // Token references are still needed for elevation state tracking
     
     // Use controls from finalState (either from localStorage or newly built)
     const finalControls = finalState.controls || {}
     
     for (let i = 0; i <= 4; i++) {
       const k = `elevation-${i}`
-      const ctrl = finalControls[k]
       
-      // Create/ensure tokens exist for each property
+      // Set token references for elevation state tracking (not stored in tokens)
       const blurTokenName = `size/elevation-${i}-blur`
       const spreadTokenName = `size/elevation-${i}-spread`
       const offsetXTokenName = `size/elevation-${i}-offset-x`
       const offsetYTokenName = `size/elevation-${i}-offset-y`
       
-      // Initialize tokens if they don't exist (use current control value or 0)
-      // Always ensure tokens exist, even if controls are missing
-      const blurValue = ctrl?.blur ?? 0
-      const spreadValue = ctrl?.spread ?? 0
-      const offsetXValue = ctrl?.offsetX ?? 0
-      const offsetYValue = ctrl?.offsetY ?? 0
-      
-      // Ensure token exists and has a valid numeric value
-      if (!tokensRoot.size[`elevation-${i}-blur`] || tokensRoot.size[`elevation-${i}-blur`].$value == null) {
-        tokensRoot.size[`elevation-${i}-blur`] = { $value: typeof blurValue === 'number' ? blurValue : 0 }
-      }
-      if (!tokensRoot.size[`elevation-${i}-spread`] || tokensRoot.size[`elevation-${i}-spread`].$value == null) {
-        tokensRoot.size[`elevation-${i}-spread`] = { $value: typeof spreadValue === 'number' ? spreadValue : 0 }
-      }
-      if (!tokensRoot.size[`elevation-${i}-offset-x`] || tokensRoot.size[`elevation-${i}-offset-x`].$value == null) {
-        tokensRoot.size[`elevation-${i}-offset-x`] = { $value: typeof offsetXValue === 'number' ? offsetXValue : 0 }
-      }
-      if (!tokensRoot.size[`elevation-${i}-offset-y`] || tokensRoot.size[`elevation-${i}-offset-y`].$value == null) {
-        tokensRoot.size[`elevation-${i}-offset-y`] = { $value: typeof offsetYValue === 'number' ? offsetYValue : 0 }
-      }
-      
-      // Set token references if not already set
       if (!blurTokens[k]) blurTokens[k] = blurTokenName
       if (!spreadTokens[k]) spreadTokens[k] = spreadTokenName
       if (!offsetXTokens[k]) offsetXTokens[k] = offsetXTokenName
       if (!offsetYTokens[k]) offsetYTokens[k] = offsetYTokenName
     }
-    
-    // tokensRoot is now always a reference to (tokens as any).tokens (we ensured it exists above)
-    // So all modifications to tokensRoot.size are already applied to (tokens as any).tokens.size
-    // No merge needed - the tokens are already in the tokens object
-    
-    // Ensure tokens are properly structured for CSS variable generation
-    // The tokens should now be in (tokens as any).tokens.size and will be picked up by recomputeAndApplyAll
     
     return { ...finalState, blurTokens, spreadTokens, offsetXTokens, offsetYTokens }
   }
@@ -1245,45 +1218,11 @@ class VarsStore {
     try {
       const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
       
-      // CRITICAL: Ensure elevation tokens exist before processing
-      // They might be missing if state was reloaded from localStorage
-      if (!tokensRoot.size) tokensRoot.size = {}
-      const elevation = this.state.elevation
-      if (elevation && elevation.controls) {
-        for (let i = 0; i <= 4; i++) {
-          const k = `elevation-${i}`
-          const ctrl = elevation.controls[k]
-          if (ctrl) {
-            // Ensure elevation tokens exist with current control values
-            if (!tokensRoot.size[`elevation-${i}-blur`] || tokensRoot.size[`elevation-${i}-blur`].$value == null) {
-              tokensRoot.size[`elevation-${i}-blur`] = { $value: typeof ctrl.blur === 'number' ? ctrl.blur : 0 }
-            }
-            if (!tokensRoot.size[`elevation-${i}-spread`] || tokensRoot.size[`elevation-${i}-spread`].$value == null) {
-              tokensRoot.size[`elevation-${i}-spread`] = { $value: typeof ctrl.spread === 'number' ? ctrl.spread : 0 }
-            }
-            if (!tokensRoot.size[`elevation-${i}-offset-x`] || tokensRoot.size[`elevation-${i}-offset-x`].$value == null) {
-              tokensRoot.size[`elevation-${i}-offset-x`] = { $value: typeof ctrl.offsetX === 'number' ? ctrl.offsetX : 0 }
-            }
-            if (!tokensRoot.size[`elevation-${i}-offset-y`] || tokensRoot.size[`elevation-${i}-offset-y`].$value == null) {
-              tokensRoot.size[`elevation-${i}-offset-y`] = { $value: typeof ctrl.offsetY === 'number' ? ctrl.offsetY : 0 }
-            }
-          }
-        }
-      }
+      // Elevation tokens should NOT be in tokens - they belong in brand.json
+      // CSS variables for elevations are generated directly from brand.json elevations
       
-      // Merge both sizes (plural) and size (singular) to ensure we get all tokens
-      // Elevation tokens are created in 'size', but other tokens might be in 'sizes'
-      const sizesPlural: any = tokensRoot?.sizes
-      const sizesSingular: any = tokensRoot?.size
-      const sizesRoot: any = {}
-      
-      // Merge both into a single object (singular takes precedence for duplicates)
-      if (sizesPlural && typeof sizesPlural === 'object' && !Array.isArray(sizesPlural)) {
-        Object.assign(sizesRoot, sizesPlural)
-      }
-      if (sizesSingular && typeof sizesSingular === 'object' && !Array.isArray(sizesSingular)) {
-        Object.assign(sizesRoot, sizesSingular)
-      }
+      // Use sizes (plural) - the store now uses plural consistently
+      const sizesRoot: any = tokensRoot?.sizes || {}
       
       if (!sizesRoot || typeof sizesRoot !== 'object' || Array.isArray(sizesRoot) || Object.keys(sizesRoot).length === 0) {
         // Skip if sizesRoot is not a valid object or is empty
@@ -1350,9 +1289,15 @@ class VarsStore {
     // Tokens: expose opacity tokens as CSS vars under --recursica-tokens-opacities-<key> (normalized 0..1)
     try {
       const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
-      const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity
-      if (!opacityRoot || typeof opacityRoot !== 'object' || Array.isArray(opacityRoot)) {
-        // Skip if opacityRoot is not a valid object
+      
+      // Elevation opacity tokens should NOT be in tokens - they belong in brand.json
+      // CSS variables for elevations are generated directly from brand.json elevations
+      
+      // Use opacities (plural) - the store now uses plural consistently
+      const finalOpacityRoot: any = tokensRoot?.opacities || {}
+      
+      if (!finalOpacityRoot || typeof finalOpacityRoot !== 'object' || Array.isArray(finalOpacityRoot) || Object.keys(finalOpacityRoot).length === 0) {
+        // Skip if opacityRoot is not a valid object or is empty
       } else {
         const vars: Record<string, string> = {}
       const normalize = (v: any): string | undefined => {
@@ -1363,9 +1308,9 @@ class VarsStore {
           return String(Math.max(0, Math.min(1, val)))
         } catch { return undefined }
       }
-        Object.keys(opacityRoot).forEach((short) => {
+        Object.keys(finalOpacityRoot).forEach((short) => {
           if (short.startsWith('$')) return
-          const opacityObj = opacityRoot[short]
+          const opacityObj = finalOpacityRoot[short]
           if (!opacityObj || typeof opacityObj !== 'object') return
           const v = opacityObj.$value
           const norm = normalize(v)

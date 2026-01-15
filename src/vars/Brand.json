@@ -1833,7 +1833,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 0,
+                  "value": 10,
                   "unit": "percentage"
                 },
                 "$type": "number"

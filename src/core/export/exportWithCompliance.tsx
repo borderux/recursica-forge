@@ -35,7 +35,7 @@ export function useJsonExport() {
       setShowComplianceModal(true)
     } else {
       // No issues, proceed with export (CSS will be exported independently)
-      downloadJsonFiles(files)
+      downloadJsonFiles(files).catch(console.error)
       setPendingExportFiles(null)
     }
   }
@@ -47,7 +47,7 @@ export function useJsonExport() {
   const handleAcknowledge = () => {
     setShowComplianceModal(false)
     if (pendingExportFiles) {
-      downloadJsonFiles(pendingExportFiles)
+      downloadJsonFiles(pendingExportFiles).catch(console.error)
       setPendingExportFiles(null)
     }
   }

@@ -195,13 +195,32 @@ export default function LayersPage() {
         const key = `elevation-${lvl}`
         const node: any = light[key]?.['$value'] || {}
         
+        // Get default values from theme
+        const defaultBlur = toNumeric(node?.blur)
+        const defaultSpread = toNumeric(node?.spread)
+        const defaultOffsetX = toNumeric(node?.x)
+        const defaultOffsetY = toNumeric(node?.y)
+        
         // Update controls
         next.controls = { ...next.controls, [key]: {
-          blur: toNumeric(node?.blur),
-          spread: toNumeric(node?.spread),
-          offsetX: toNumeric(node?.x),
-          offsetY: toNumeric(node?.y),
+          blur: defaultBlur,
+          spread: defaultSpread,
+          offsetX: defaultOffsetX,
+          offsetY: defaultOffsetY,
         }}
+
+        // Update token values in tokens.json to match theme defaults
+        // Get token names from elevation state (or use defaults)
+        const blurTokenName = next.blurTokens[key] || `size/elevation-${lvl}-blur`
+        const spreadTokenName = next.spreadTokens[key] || `size/elevation-${lvl}-spread`
+        const offsetXTokenName = next.offsetXTokens[key] || `size/elevation-${lvl}-offset-x`
+        const offsetYTokenName = next.offsetYTokens[key] || `size/elevation-${lvl}-offset-y`
+        
+        // Update the actual token values
+        updateToken(blurTokenName, defaultBlur)
+        updateToken(spreadTokenName, defaultSpread)
+        updateToken(offsetXTokenName, defaultOffsetX)
+        updateToken(offsetYTokenName, defaultOffsetY)
 
         // Update color tokens
         const colorToken = parseColorToken(node?.color)
@@ -224,6 +243,22 @@ export default function LayersPage() {
         const alphaToken = parseOpacityToken(node?.opacity)
         if (alphaToken) {
           next.alphaTokens = { ...next.alphaTokens, [key]: alphaToken }
+          
+          // Also revert the opacity token value if it exists
+          try {
+            const tokensRoot: any = (tokensJson as any)?.tokens || {}
+            const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+            const tokenKey = alphaToken.replace('opacity/', '')
+            const defaultOpacityValue = opacityRoot[tokenKey]?.$value
+            if (defaultOpacityValue != null) {
+              // If there's a unique elevation opacity token, revert it to the default
+              const uniqueTokenName = `opacity/elevation-${lvl}`
+              const uniqueTokenKey = `elevation-${lvl}`
+              if (opacityRoot[uniqueTokenKey]) {
+                updateToken(uniqueTokenName, defaultOpacityValue)
+              }
+            }
+          } catch {}
         } else {
           const { [key]: ___, ...alphaRest } = next.alphaTokens
           next.alphaTokens = alphaRest

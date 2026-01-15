@@ -45,52 +45,33 @@
           "type": "object",
           "patternProperties": {
             "^[a-z0-9_-]+$": {
-              "oneOf": [
-                {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["dimension"]
+                },
+                "$value": {
                   "type": "object",
+                  "required": ["value", "unit"],
                   "properties": {
-                    "$type": {
-                      "type": "string"
-                    },
-                    "$value": {
+                    "value": {
                       "oneOf": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "value": {
-                              "oneOf": [
-                                { "type": "number" },
-                                { "type": "string" }
-                              ]
-                            },
-                            "unit": {
-                              "type": "string"
-                            }
-                          },
-                          "required": ["value"]
-                        }
+                        { "type": "number" },
+                        { "type": "string" }
                       ]
+                    },
+                    "unit": {
+                      "type": "string"
                     }
                   },
-                  "required": ["$type", "$value"],
-                  "additionalProperties": true
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "string"
+                  "additionalProperties": false
                 }
-              ]
+              },
+              "additionalProperties": false
             }
-          },
-          "additionalProperties": true
+          }
         },
         "opacities": {
           "type": "object",
@@ -118,11 +99,58 @@
           "properties": {
             "sizes": {
               "type": "object",
-              "additionalProperties": true
+              "patternProperties": {
+                "^[a-z0-9_-]+$": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["dimension"]
+                    },
+                    "$value": {
+                      "type": "object",
+                      "required": ["value", "unit"],
+                      "properties": {
+                        "value": {
+                          "oneOf": [
+                            { "type": "number" },
+                            { "type": "string" }
+                          ]
+                        },
+                        "unit": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
             },
             "typefaces": {
               "type": "object",
-              "additionalProperties": true
+              "required": ["$type"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["fontFamily"]
+                }
+              },
+              "patternProperties": {
+                "^[a-z0-9_-]+$": {
+                  "type": "object",
+                  "required": ["$value"],
+                  "properties": {
+                    "$value": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
             },
             "letter-spacings": {
               "type": "object",
@@ -138,11 +166,77 @@
             },
             "cases": {
               "type": "object",
-              "additionalProperties": true
+              "required": ["original"],
+              "properties": {
+                "original": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["string"]
+                    },
+                    "$value": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "patternProperties": {
+                "^[a-z0-9_-]+$": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["string"]
+                    },
+                    "$value": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
             },
             "decorations": {
               "type": "object",
-              "additionalProperties": true
+              "required": ["none"],
+              "properties": {
+                "none": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["string"]
+                    },
+                    "$value": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "patternProperties": {
+                "^[a-z0-9_-]+$": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["string"]
+                    },
+                    "$value": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

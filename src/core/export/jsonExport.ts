@@ -13,6 +13,8 @@ import tokensJson from '../../vars/Tokens.json'
 import brandJson from '../../vars/Brand.json'
 import uikitJson from '../../vars/UIKit.json'
 import { getVarsStore } from '../store/varsStore'
+import { validateTokensJson } from '../utils/validateJsonSchemas'
+import JSZip from 'jszip'
 
 /**
  * Gets all CSS variables from the DOM
@@ -247,8 +249,14 @@ function cssValueToJsonValue(
     }
     
     case 'number': {
+      // Handle opacity values that might be normalized (0-1) or percentage (0-100)
       const num = parseFloat(cssValue)
-      return Number.isFinite(num) ? num : cssValue
+      if (Number.isFinite(num)) {
+        // If it's a normalized opacity value (0-1), keep it as-is for tokens
+        // But for brand.json exports, we might need percentage format
+        return num
+      }
+      return cssValue
     }
     
     default:
@@ -285,228 +293,612 @@ export function exportTokensJson(): object {
   const storeState = store.getState()
   const storeTokens = (storeState.tokens as any)?.tokens || {}
   
+  // Match reference structure: sizes (plural), opacities (plural), font with plural categories
   const result: any = {
     tokens: {
-      color: {},
-      size: {},
-      opacity: {},
-      font: {}
+      sizes: {},
+      opacities: {},
+      font: {
+        typefaces: {},
+        sizes: {},
+        weights: {},
+        cases: {},
+        decorations: {},
+        'letter-spacings': {},
+        'line-heights': {}
+      }
     }
   }
   
-  // Process token CSS variables - only include what exists in store AND CSS vars
-  Object.entries(vars).forEach(([cssVar, cssValue]) => {
-    if (!cssVar.startsWith('--recursica-tokens-')) return
+  // Export all tokens from store state (more reliable than CSS vars)
+  // This ensures we get all tokens including dynamically created ones
+  
+  // Export size tokens (export as plural "sizes")
+  // Store uses 'sizes' (plural) consistently
+  const sizeTokens = storeTokens.sizes || {}
+  
+  Object.keys(sizeTokens).forEach((key) => {
+    const token = sizeTokens[key]
+    if (!token || typeof token !== 'object') return
     
-    const path = cssVar.replace('--recursica-tokens-', '').split('-')
-    
-    // Handle color tokens: color-gray-500
-    if (path[0] === 'color' && path.length >= 3) {
-      const family = path[1]
-      const level = path.slice(2).join('-')
+    const tokenValue = token.$value
+    if (tokenValue != null) {
+      let jsonValue: any
+      if (typeof tokenValue === 'number') {
+        jsonValue = { value: tokenValue, unit: 'px' }
+      } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
+        jsonValue = tokenValue
+      } else if (typeof tokenValue === 'string') {
+        // Try to parse string like "10px"
+        const match = tokenValue.match(/^(-?\d+(?:\.\d+)?)(px|rem|em|%)?$/)
+        if (match) {
+          jsonValue = { value: parseFloat(match[1]), unit: match[2] || 'px' }
+        } else {
+          jsonValue = { value: Number(tokenValue) || 0, unit: 'px' }
+        }
+      } else {
+        jsonValue = { value: Number(tokenValue) || 0, unit: 'px' }
+      }
       
-      // Only export if this color family and level exists in the store
-      if (storeTokens.color?.[family]?.[level]) {
-        if (!result.tokens.color[family]) {
-          result.tokens.color[family] = {}
-        }
-        
-        const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
-        if (jsonValue !== undefined) {
-          result.tokens.color[family][level] = {
-            $type: 'color',
-            $value: jsonValue
-          }
-        }
+      result.tokens.sizes[key] = {
+        $type: 'dimension',
+        $value: jsonValue
       }
     }
-    
-    // Handle size tokens: size-default
-    if (path[0] === 'size' && path.length >= 2) {
-      const name = path.slice(1).join('-')
+  })
+  
+  // Also export colors if they exist (reference doesn't show colors, but they should be exported)
+  // Key ordering will be handled by schema-based sorting during validation
+  if (storeTokens.colors) {
+    result.tokens.colors = {}
+    Object.keys(storeTokens.colors).forEach((scaleKey) => {
+      const scale = storeTokens.colors[scaleKey]
+      if (!scale || typeof scale !== 'object') return
       
-      // Only export if this size token exists in the store
-      if (storeTokens.size?.[name]) {
-        const jsonValue = cssValueToJsonValue(cssValue, 'dimension', tokenIndex)
-        if (jsonValue !== undefined) {
-          result.tokens.size[name] = {
+      result.tokens.colors[scaleKey] = {}
+      
+      // Export alias if it exists
+      if (scale.alias) {
+        result.tokens.colors[scaleKey].alias = scale.alias
+      }
+      
+      // Export color levels (will be sorted by schema)
+      Object.keys(scale).forEach((level) => {
+        if (level === 'alias') return
+        const colorToken = scale[level]
+        if (colorToken && typeof colorToken === 'object' && colorToken.$value != null) {
+          result.tokens.colors[scaleKey][level] = {
+            $type: 'color',
+            $value: colorToken.$value
+          }
+        }
+      })
+    })
+  }
+  
+  // Export opacity tokens (export as plural "opacities")
+  // Opacity values should be 0-1 (normalized), not percentage
+  // Store uses 'opacities' (plural) consistently
+  const opacityTokens = storeTokens.opacities || {}
+  
+  Object.keys(opacityTokens).forEach((key) => {
+    const token = opacityTokens[key]
+    if (!token || typeof token !== 'object') return
+    
+    const tokenValue = token.$value
+    if (tokenValue != null) {
+      let jsonValue: number
+      if (typeof tokenValue === 'number') {
+        // Ensure it's normalized 0-1
+        jsonValue = tokenValue <= 1 ? tokenValue : tokenValue / 100
+      } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
+        const num = Number(tokenValue.value)
+        jsonValue = num <= 1 ? num : num / 100
+      } else {
+        const num = Number(tokenValue)
+        jsonValue = num <= 1 ? num : num / 100
+      }
+      
+      result.tokens.opacities[key] = {
+        $type: 'number',
+        $value: jsonValue
+      }
+    }
+  })
+  
+  // Export font tokens from store
+  if (storeTokens.font) {
+    // Font sizes: should be $type: "dimension" with value object containing value and unit
+    const fontSizes = storeTokens.font.sizes || storeTokens.font.size || {}
+    Object.keys(fontSizes).forEach((key) => {
+      const token = fontSizes[key]
+      if (!token || typeof token !== 'object') return
+      
+      const tokenValue = token.$value
+      if (tokenValue != null) {
+        let jsonValue: any
+        if (typeof tokenValue === 'number') {
+          jsonValue = { value: tokenValue, unit: 'px' }
+        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = { value: Number(tokenValue.value), unit: tokenValue.unit || 'px' }
+        } else if (typeof tokenValue === 'string') {
+          // Try to parse string like "10px"
+          const match = tokenValue.match(/^(-?\d+(?:\.\d+)?)(px|rem|em|%)?$/)
+          if (match) {
+            jsonValue = { value: parseFloat(match[1]), unit: match[2] || 'px' }
+          } else {
+            const num = Number(tokenValue)
+            jsonValue = { value: Number.isFinite(num) ? num : 0, unit: 'px' }
+          }
+        } else {
+          const num = Number(tokenValue)
+          jsonValue = { value: Number.isFinite(num) ? num : 0, unit: 'px' }
+        }
+        
+        if (jsonValue.value != null && Number.isFinite(jsonValue.value)) {
+          result.tokens.font.sizes[key] = {
             $type: 'dimension',
             $value: jsonValue
           }
         }
       }
-    }
+    })
     
-    // Handle opacity tokens: opacity-solid
-    if (path[0] === 'opacity' && path.length >= 2) {
-      const name = path.slice(1).join('-')
+    // Font weights: $type: "number" with number value
+    const fontWeights = storeTokens.font.weights || storeTokens.font.weight || {}
+    Object.keys(fontWeights).forEach((key) => {
+      const token = fontWeights[key]
+      if (!token || typeof token !== 'object') return
       
-      // Only export if this opacity token exists in the store
-      if (storeTokens.opacity?.[name]) {
-        const jsonValue = cssValueToJsonValue(cssValue, 'number', tokenIndex)
-        if (jsonValue !== undefined) {
-          result.tokens.opacity[name] = {
+      const tokenValue = token.$value
+      if (tokenValue != null) {
+        let jsonValue: number
+        if (typeof tokenValue === 'number') {
+          jsonValue = tokenValue
+        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = Number(tokenValue.value)
+        } else {
+          jsonValue = Number(tokenValue)
+        }
+        
+        if (Number.isFinite(jsonValue)) {
+          result.tokens.font.weights[key] = {
             $type: 'number',
             $value: jsonValue
           }
         }
       }
-    }
+    })
     
-    // Handle font tokens: font-size-md, font-weight-bold, etc.
-    if (path[0] === 'font' && path.length >= 3) {
-      const category = path[1]
-      const key = path.slice(2).join('-')
+    // Font typefaces: extract only the font name (not the CSS font-family value)
+    // Structure should match source: typefaces has $type at parent, each typeface has just $value
+    const fontTypefaces = storeTokens.font.typefaces || storeTokens.font.typeface || {}
+    const typefaceEntries: Array<[string, string]> = []
+    Object.keys(fontTypefaces).forEach((key) => {
+      const token = fontTypefaces[key]
+      if (!token || typeof token !== 'object') return
       
-      // Only export if this font token exists in the store
-      if (storeTokens.font?.[category]?.[key]) {
-        if (!result.tokens.font[category]) {
-          result.tokens.font[category] = {}
+      const tokenValue = token.$value
+      if (tokenValue != null) {
+        let fontName: string
+        if (typeof tokenValue === 'string') {
+          // Extract font name from CSS font-family value like "Lexend", sans-serif or "Lexend"
+          // Remove quotes and extract the first part before comma
+          const cleaned = tokenValue.replace(/^["']|["']$/g, '').trim()
+          const parts = cleaned.split(',')
+          fontName = parts[0].trim().replace(/^["']|["']$/g, '')
+        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          const str = String(tokenValue.value)
+          const cleaned = str.replace(/^["']|["']$/g, '').trim()
+          const parts = cleaned.split(',')
+          fontName = parts[0].trim().replace(/^["']|["']$/g, '')
+        } else {
+          const str = String(tokenValue)
+          const cleaned = str.replace(/^["']|["']$/g, '').trim()
+          const parts = cleaned.split(',')
+          fontName = parts[0].trim().replace(/^["']|["']$/g, '')
         }
         
-        const type = category === 'size' ? 'dimension' : 'number'
-        const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
-        if (jsonValue !== undefined) {
-          result.tokens.font[category][key] = {
-            $type: type,
+        if (fontName) {
+          typefaceEntries.push([key, fontName])
+        }
+      }
+    })
+    
+    // Set $type at parent level if we have typefaces
+    if (typefaceEntries.length > 0) {
+      result.tokens.font.typefaces = {
+        $type: 'fontFamily'
+      }
+      typefaceEntries.forEach(([key, fontName]) => {
+        result.tokens.font.typefaces[key] = {
+          $value: fontName
+        }
+      })
+    }
+    
+    // Font cases: $type: "string" with string value
+    // Must always include "original" with null value
+    const fontCases = storeTokens.font.cases || {}
+    const caseEntries: Array<[string, string | null]> = []
+    
+    // Always include "original" with null
+    caseEntries.push(['original', null])
+    
+    Object.keys(fontCases).forEach((key) => {
+      if (key === 'original') return // Already added
+      
+      const token = fontCases[key]
+      if (!token || typeof token !== 'object') return
+      
+      const tokenValue = token.$value
+      if (tokenValue != null) {
+        let jsonValue: string
+        if (typeof tokenValue === 'string') {
+          jsonValue = tokenValue
+        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = String(tokenValue.value)
+        } else {
+          jsonValue = String(tokenValue)
+        }
+        
+        caseEntries.push([key, jsonValue])
+      }
+    })
+    
+    caseEntries.forEach(([key, value]) => {
+      result.tokens.font.cases[key] = {
+        $type: 'string',
+        $value: value
+      }
+    })
+    
+    // Font decorations: $type: "string" with string value
+    // Must always include "none" with null value
+    const fontDecorations = storeTokens.font.decorations || {}
+    const decorationEntries: Array<[string, string | null]> = []
+    
+    // Always include "none" with null
+    decorationEntries.push(['none', null])
+    
+    Object.keys(fontDecorations).forEach((key) => {
+      if (key === 'none') return // Already added
+      
+      const token = fontDecorations[key]
+      if (!token || typeof token !== 'object') return
+      
+      const tokenValue = token.$value
+      if (tokenValue != null) {
+        let jsonValue: string
+        if (typeof tokenValue === 'string') {
+          jsonValue = tokenValue
+        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = String(tokenValue.value)
+        } else {
+          jsonValue = String(tokenValue)
+        }
+        
+        decorationEntries.push([key, jsonValue])
+      }
+    })
+    
+    decorationEntries.forEach(([key, value]) => {
+      result.tokens.font.decorations[key] = {
+        $type: 'string',
+        $value: value
+      }
+    })
+    
+    // Font letter-spacings: $type: "number" with number value
+    const fontLetterSpacings = storeTokens.font['letter-spacings'] || storeTokens.font['letter-spacing'] || {}
+    Object.keys(fontLetterSpacings).forEach((key) => {
+      const token = fontLetterSpacings[key]
+      if (!token || typeof token !== 'object') return
+      
+      const tokenValue = token.$value
+      if (tokenValue != null) {
+        let jsonValue: number
+        if (typeof tokenValue === 'number') {
+          jsonValue = tokenValue
+        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = Number(tokenValue.value)
+        } else {
+          jsonValue = Number(tokenValue)
+        }
+        
+        if (Number.isFinite(jsonValue)) {
+          result.tokens.font['letter-spacings'][key] = {
+            $type: 'number',
             $value: jsonValue
           }
         }
       }
-    }
-  })
+    })
+    
+    // Font line-heights: $type: "number" with number value
+    const fontLineHeights = storeTokens.font['line-heights'] || storeTokens.font['line-height'] || {}
+    Object.keys(fontLineHeights).forEach((key) => {
+      const token = fontLineHeights[key]
+      if (!token || typeof token !== 'object') return
+      
+      const tokenValue = token.$value
+      if (tokenValue != null) {
+        let jsonValue: number
+        if (typeof tokenValue === 'number') {
+          jsonValue = tokenValue
+        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = Number(tokenValue.value)
+        } else {
+          jsonValue = Number(tokenValue)
+        }
+        
+        if (Number.isFinite(jsonValue)) {
+          result.tokens.font['line-heights'][key] = {
+            $type: 'number',
+            $value: jsonValue
+          }
+        }
+      }
+    })
+  }
   
   // Remove empty sections
-  if (Object.keys(result.tokens.color).length === 0) delete result.tokens.color
-  if (Object.keys(result.tokens.size).length === 0) delete result.tokens.size
-  if (Object.keys(result.tokens.opacity).length === 0) delete result.tokens.opacity
+  if (result.tokens.colors && Object.keys(result.tokens.colors).length === 0) delete result.tokens.colors
+  if (Object.keys(result.tokens.sizes).length === 0) delete result.tokens.sizes
+  if (Object.keys(result.tokens.opacities).length === 0) delete result.tokens.opacities
+  // Don't delete typefaces if it has $type (it's a special structure)
+  if (result.tokens.font.typefaces && !result.tokens.font.typefaces.$type && Object.keys(result.tokens.font.typefaces).length === 0) delete result.tokens.font.typefaces
+  if (Object.keys(result.tokens.font.sizes).length === 0) delete result.tokens.font.sizes
+  if (Object.keys(result.tokens.font.weights).length === 0) delete result.tokens.font.weights
+  if (Object.keys(result.tokens.font.cases).length === 0) delete result.tokens.font.cases
+  if (Object.keys(result.tokens.font.decorations).length === 0) delete result.tokens.font.decorations
+  if (Object.keys(result.tokens.font['letter-spacings']).length === 0) delete result.tokens.font['letter-spacings']
+  if (Object.keys(result.tokens.font['line-heights']).length === 0) delete result.tokens.font['line-heights']
   if (Object.keys(result.tokens.font).length === 0) delete result.tokens.font
   
   return result
 }
 
 /**
- * Exports brand.json from current CSS variables ONLY
- * Only includes brand data that has corresponding CSS variables
+ * Exports brand.json from store state
+ * Reads from the VarsStore to ensure all data is exported correctly
  */
 export function exportBrandJson(): object {
-  const vars = getAllCssVars()
-  const tokenIndex = buildTokenIndex(tokensJson as JsonLike)
+  const store = getVarsStore()
+  const storeState = store.getState()
+  const theme = storeState.theme as any
+  const elevation = storeState.elevation
+  
   const result: any = {
     brand: {
       themes: {
-        light: { palettes: {}, layers: {} },
-        dark: { palettes: {}, layers: {} }
+        light: { palettes: {}, layers: {}, elevations: {} },
+        dark: { palettes: {}, layers: {}, elevations: {} }
       }
     }
   }
   
-  // Process brand CSS variables
-  Object.entries(vars).forEach(([cssVar, cssValue]) => {
-    if (!cssVar.startsWith('--recursica-brand-')) return
+  // Export from theme state (more reliable than CSS vars)
+  if (theme?.brand?.themes) {
+    const themes = theme.brand.themes
     
-    const path = cssVar.replace('--recursica-brand-', '').split('-')
-    
-    // Handle mode-specific paths: light-palettes-neutral-100-tone
-    if (path.length >= 2 && (path[0] === 'light' || path[0] === 'dark')) {
-      const mode = path[0]
-      path.shift() // Remove mode
+    // Export for both light and dark modes
+    for (const mode of ['light', 'dark'] as const) {
+      const modeTheme = themes[mode]
+      if (!modeTheme) continue
       
-      // Handle palettes: palettes-neutral-100-tone
-      if (path[0] === 'palettes' && path.length >= 4) {
-        path.shift() // Remove 'palettes'
-        const paletteKey = path[0]
-        const level = path[1]
-        const type = path.slice(2).join('-') // tone, on-tone, etc.
-        
-        // Build structure from CSS vars only
-        if (!result.brand.themes[mode].palettes[paletteKey]) {
-          result.brand.themes[mode].palettes[paletteKey] = {}
-        }
-        if (!result.brand.themes[mode].palettes[paletteKey][level]) {
-          result.brand.themes[mode].palettes[paletteKey][level] = {}
-        }
-        
-        if (type === 'tone' || type === 'on-tone') {
-          if (!result.brand.themes[mode].palettes[paletteKey][level].color) {
-            result.brand.themes[mode].palettes[paletteKey][level].color = {}
-          }
-          const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
-          if (jsonValue !== undefined) {
-            result.brand.themes[mode].palettes[paletteKey][level].color[type] = { 
-              $type: 'color', 
-              $value: jsonValue 
-            }
-          }
-        }
+      // Export palettes
+      if (modeTheme.palettes) {
+        result.brand.themes[mode].palettes = JSON.parse(JSON.stringify(modeTheme.palettes))
       }
       
-      // Handle layers: layer-layer-0-property-surface
-      if (path[0] === 'layer' && path[1] === 'layer' && path.length >= 4) {
-        path.shift() // Remove 'layer'
-        path.shift() // Remove 'layer'
-        const layerId = path[0]
-        path.shift() // Remove layer ID
-        
-        // Build structure from CSS vars only
-        if (!result.brand.themes[mode].layers[layerId]) {
-          result.brand.themes[mode].layers[layerId] = { properties: {}, elements: {} }
-        }
-        if (!result.brand.themes[mode].layers[layerId].properties) {
-          result.brand.themes[mode].layers[layerId].properties = {}
-        }
-        if (!result.brand.themes[mode].layers[layerId].elements) {
-          result.brand.themes[mode].layers[layerId].elements = {}
-        }
-        
-        if (path[0] === 'property') {
-          path.shift() // Remove 'property'
-          const propName = path.join('-')
-          
-          const propType = propName.includes('color') ? 'color' : 
-                          propName.includes('radius') || propName.includes('padding') || propName.includes('thickness') ? 'number' :
-                          propName === 'elevation' ? 'elevation' : 'color'
-          
-          const jsonValue = cssValueToJsonValue(cssValue, propType, tokenIndex)
-          if (jsonValue !== undefined) {
-            result.brand.themes[mode].layers[layerId].properties[propName] = { 
-              $type: propType, 
-              $value: jsonValue 
-            }
-          }
-        } else if (path[0] === 'element') {
-          path.shift() // Remove 'element'
-          const elementPath = path.join('-')
-          
-          // Handle nested element paths like text-color, interactive-tone
-          const parts = elementPath.split('-')
-          if (parts.length >= 2) {
-            const elementType = parts[0] // text, interactive
-            const elementProp = parts.slice(1).join('-') // color, tone, etc.
-            
-            if (!result.brand.themes[mode].layers[layerId].elements[elementType]) {
-              result.brand.themes[mode].layers[layerId].elements[elementType] = {}
-            }
-            
-            const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
-            if (jsonValue !== undefined) {
-              result.brand.themes[mode].layers[layerId].elements[elementType][elementProp] = { 
-                $type: 'color', 
-                $value: jsonValue 
-              }
-            }
-          }
-        }
+      // Export layers
+      if (modeTheme.layers) {
+        result.brand.themes[mode].layers = JSON.parse(JSON.stringify(modeTheme.layers))
       }
     }
-    
-    // Handle brand-level paths (no mode): dimensions, typography, etc.
-    if (path[0] === 'dimensions' || path[0] === 'typography' || path[0] === 'layout-grid') {
-      // These are handled separately or may not have CSS vars
+  }
+  
+  // Export elevations from elevation state
+  // Elevations use direct values, not token references (based on actual Brand.json structure)
+  if (elevation) {
+    for (const mode of ['light', 'dark'] as const) {
+      if (!result.brand.themes[mode].elevations) {
+        result.brand.themes[mode].elevations = {}
+      }
+      
+      for (let i = 0; i <= 4; i++) {
+        const elevationKey = `elevation-${i}`
+        const ctrl = elevation.controls[elevationKey]
+        if (!ctrl) continue
+        
+        const elevationValue: any = {
+          $type: 'boxShadow',
+          $value: {}
+        }
+        
+        // Get token values from store
+        const storeTokens = (storeState.tokens as any)?.tokens || {}
+        const sizeTokens = storeTokens.size || storeTokens.sizes || {}
+        const opacityTokens = storeTokens.opacity || storeTokens.opacities || {}
+        
+        // Set blur (direct value, not token reference)
+        const blurTokenKey = `elevation-${i}-blur`
+        const blurToken = sizeTokens[blurTokenKey]
+        if (blurToken?.$value != null) {
+          let blurValue: any
+          if (typeof blurToken.$value === 'number') {
+            blurValue = { value: blurToken.$value, unit: 'px' }
+          } else if (typeof blurToken.$value === 'object' && blurToken.$value.value != null) {
+            blurValue = blurToken.$value
+          } else {
+            blurValue = { value: Number(blurToken.$value) || 0, unit: 'px' }
+          }
+          elevationValue.$value.blur = {
+            $type: 'number',
+            $value: blurValue
+          }
+        } else if (ctrl.blur != null) {
+          elevationValue.$value.blur = {
+            $type: 'number',
+            $value: { value: ctrl.blur, unit: 'px' }
+          }
+        }
+        
+        // Set spread (direct value, not token reference)
+        const spreadTokenKey = `elevation-${i}-spread`
+        const spreadToken = sizeTokens[spreadTokenKey]
+        if (spreadToken?.$value != null) {
+          let spreadValue: any
+          if (typeof spreadToken.$value === 'number') {
+            spreadValue = { value: spreadToken.$value, unit: 'px' }
+          } else if (typeof spreadToken.$value === 'object' && spreadToken.$value.value != null) {
+            spreadValue = spreadToken.$value
+          } else {
+            spreadValue = { value: Number(spreadToken.$value) || 0, unit: 'px' }
+          }
+          elevationValue.$value.spread = {
+            $type: 'number',
+            $value: spreadValue
+          }
+        } else if (ctrl.spread != null) {
+          elevationValue.$value.spread = {
+            $type: 'number',
+            $value: { value: ctrl.spread, unit: 'px' }
+          }
+        }
+        
+        // Set x offset (direct value, not token reference)
+        const offsetXTokenKey = `elevation-${i}-offset-x`
+        const offsetXToken = sizeTokens[offsetXTokenKey]
+        const dir = elevation.directions[elevationKey] || { x: elevation.baseXDirection, y: elevation.baseYDirection }
+        const xDirection = dir.x === 'right' ? 1 : -1
+        
+        if (offsetXToken?.$value != null) {
+          let xValue: any
+          if (typeof offsetXToken.$value === 'number') {
+            xValue = { value: Math.abs(offsetXToken.$value), unit: 'px' }
+          } else if (typeof offsetXToken.$value === 'object' && offsetXToken.$value.value != null) {
+            xValue = { value: Math.abs(offsetXToken.$value.value), unit: 'px' }
+          } else {
+            xValue = { value: Math.abs(Number(offsetXToken.$value) || 0), unit: 'px' }
+          }
+          elevationValue.$value.x = {
+            $type: 'number',
+            $value: xValue
+          }
+        } else if (ctrl.offsetX != null) {
+          elevationValue.$value.x = {
+            $type: 'number',
+            $value: { value: Math.abs(ctrl.offsetX), unit: 'px' }
+          }
+        }
+        
+        // Set y offset (direct value, not token reference)
+        const offsetYTokenKey = `elevation-${i}-offset-y`
+        const offsetYToken = sizeTokens[offsetYTokenKey]
+        const yDirection = dir.y === 'down' ? 1 : -1
+        
+        if (offsetYToken?.$value != null) {
+          let yValue: any
+          if (typeof offsetYToken.$value === 'number') {
+            yValue = { value: Math.abs(offsetYToken.$value), unit: 'px' }
+          } else if (typeof offsetYToken.$value === 'object' && offsetYToken.$value.value != null) {
+            yValue = { value: Math.abs(offsetYToken.$value.value), unit: 'px' }
+          } else {
+            yValue = { value: Math.abs(Number(offsetYToken.$value) || 0), unit: 'px' }
+          }
+          elevationValue.$value.y = {
+            $type: 'number',
+            $value: yValue
+          }
+        } else if (ctrl.offsetY != null) {
+          elevationValue.$value.y = {
+            $type: 'number',
+            $value: { value: Math.abs(ctrl.offsetY), unit: 'px' }
+          }
+        }
+        
+        // Set color (token reference or palette reference)
+        const colorToken = elevation.colorTokens[elevationKey] || elevation.shadowColorControl?.colorToken
+        if (colorToken) {
+          elevationValue.$value.color = {
+            $type: 'color',
+            $value: `{tokens.${colorToken.replace(/\//g, '.')}}`
+          }
+        }
+        
+        // Set opacity (direct percentage value, not token reference)
+        const alphaToken = elevation.alphaTokens[elevationKey] || elevation.shadowColorControl?.alphaToken
+        if (alphaToken) {
+          const tokenKey = alphaToken.replace('opacity/', '')
+          const opacityToken = opacityTokens[tokenKey]
+          
+          if (opacityToken?.$value != null) {
+            let opacityValue: number
+            if (typeof opacityToken.$value === 'number') {
+              opacityValue = opacityToken.$value <= 1 ? opacityToken.$value * 100 : opacityToken.$value
+            } else if (typeof opacityToken.$value === 'object' && opacityToken.$value.value != null) {
+              const num = opacityToken.$value.value
+              opacityValue = num <= 1 ? num * 100 : num
+            } else {
+              const num = Number(opacityToken.$value)
+              opacityValue = num <= 1 ? num * 100 : num
+            }
+            elevationValue.$value.opacity = {
+              $type: 'number',
+              $value: { value: opacityValue, unit: 'percentage' }
+            }
+          }
+        }
+        
+        result.brand.themes[mode].elevations[elevationKey] = elevationValue
+      }
     }
-  })
+  }
   
   return result
+}
+
+/**
+ * Extracts numeric value from CSS value, handling var() references and calc()
+ */
+function extractNumericValue(cssValue: string, tokenIndex: any): number | null {
+  // If it's a direct pixel value like "10px", extract the number
+  const pxMatch = cssValue.match(/(\d+(?:\.\d+)?)\s*px/)
+  if (pxMatch) {
+    return Number(pxMatch[1])
+  }
+  
+  // If it's a calc() with var(), try to resolve the var
+  const calcVarMatch = cssValue.match(/calc\s*\(\s*(-?\d+)\s*\*\s*var\(([^)]+)\)\s*\)/)
+  if (calcVarMatch) {
+    const multiplier = Number(calcVarMatch[1])
+    const varName = calcVarMatch[2]
+    // Try to read the CSS variable value
+    const varValue = readCssVar(varName)
+    if (varValue) {
+      const pxMatch2 = varValue.match(/(\d+(?:\.\d+)?)\s*px/)
+      if (pxMatch2) {
+        return Number(pxMatch2[1]) * multiplier
+      }
+    }
+  }
+  
+  // If it's a var() reference, try to resolve it
+  const varMatch = cssValue.match(/var\(([^)]+)\)/)
+  if (varMatch) {
+    const varName = varMatch[1]
+    const varValue = readCssVar(varName)
+    if (varValue) {
+      const pxMatch2 = varValue.match(/(\d+(?:\.\d+)?)\s*px/)
+      if (pxMatch2) {
+        return Number(pxMatch2[1])
+      }
+    }
+  }
+  
+  return null
 }
 
 /**
@@ -983,32 +1375,73 @@ export function exportCssStylesheet(): string {
 
 /**
  * Downloads selected JSON files and optionally CSS file
+ * If multiple files are selected, they are zipped together
+ * Validates JSON files before export and throws error if validation fails
  */
-export function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; css?: boolean } = { tokens: true, brand: true, uikit: true }): void {
-  let delay = 0
+export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; css?: boolean } = { tokens: true, brand: true, uikit: true }): Promise<void> {
+  // Count how many files are selected
+  const selectedFiles: Array<{ content: string | object; filename: string; isJson: boolean }> = []
   
   if (files.tokens) {
     const tokens = exportTokensJson()
-    downloadJsonFile(tokens, 'tokens.json')
-    delay += 100
+    // Validate tokens before adding to export
+    try {
+      validateTokensJson(tokens as JsonLike)
+    } catch (error) {
+      console.error('[Export] Tokens.json validation failed:', error)
+      throw new Error(`Cannot export tokens.json: ${error instanceof Error ? error.message : String(error)}`)
+    }
+    selectedFiles.push({ content: tokens, filename: 'tokens.json', isJson: true })
   }
   
   if (files.brand) {
     const brand = exportBrandJson()
-    setTimeout(() => downloadJsonFile(brand, 'brand.json'), delay)
-    delay += 100
+    selectedFiles.push({ content: brand, filename: 'brand.json', isJson: true })
   }
   
   if (files.uikit) {
     const uikit = exportUIKitJson()
-    setTimeout(() => downloadJsonFile(uikit, 'uikit.json'), delay)
-    delay += 100
+    selectedFiles.push({ content: uikit, filename: 'uikit.json', isJson: true })
   }
   
-  // CSS export is independent of JSON exports
   if (files.css) {
     const css = exportCssStylesheet()
-    setTimeout(() => downloadCssFile(css, 'recursica-variables.css'), delay)
+    selectedFiles.push({ content: css, filename: 'recursica-variables.css', isJson: false })
+  }
+  
+  // If only one file, download it directly
+  if (selectedFiles.length === 1) {
+    const file = selectedFiles[0]
+    if (file.isJson) {
+      downloadJsonFile(file.content as object, file.filename)
+    } else {
+      downloadCssFile(file.content as string, file.filename)
+    }
+    return
+  }
+  
+  // If multiple files, create a zip
+  if (selectedFiles.length > 1) {
+    const zip = new JSZip()
+    
+    for (const file of selectedFiles) {
+      if (file.isJson) {
+        zip.file(file.filename, JSON.stringify(file.content, null, 2))
+      } else {
+        zip.file(file.filename, file.content as string)
+      }
+    }
+    
+    // Generate zip file and download
+    const zipBlob = await zip.generateAsync({ type: 'blob' })
+    const url = URL.createObjectURL(zipBlob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'recursica-export.zip'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 }
 

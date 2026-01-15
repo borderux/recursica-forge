@@ -46,7 +46,7 @@ export default function ElevationStylePanel({
 }) {
   const levelsArr = React.useMemo(() => Array.from(selectedLevels), [selectedLevels])
   const { mode } = useThemeMode()
-  const { tokens: tokensJson, updateToken } = useVars()
+  const { tokens: tokensJson, updateToken, elevation } = useVars()
 
   const getShadowColorCssVar = React.useCallback((level: number): string => {
     return `--recursica-brand-themes-${mode}-elevations-elevation-${level}-shadow-color`
@@ -84,23 +84,157 @@ export default function ElevationStylePanel({
     return 0
   }, [tokensJson, getAlphaTokenForLevel])
 
+  // Track local slider value for immediate UI feedback
+  const [localOpacityValue, setLocalOpacityValue] = React.useState<number | null>(null)
+  const [isDragging, setIsDragging] = React.useState(false)
+  const dragTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastUpdatedTokenRef = React.useRef<string | null>(null)
+  const lastUpdatedValueRef = React.useRef<number | null>(null)
+
+  // Update local value when selected levels or tokens change (but not while dragging)
+  React.useEffect(() => {
+    if (isDragging) return // Don't update while user is dragging
+    
+    if (levelsArr.length > 0) {
+      const elevationKey = `elevation-${levelsArr[0]}`
+      const alphaTokenName = getAlphaTokenForLevel(elevationKey)
+      
+      // If we just updated a token, check if it matches the current token name
+      // This handles the case where we created a unique token but elevation state hasn't updated yet
+      if (lastUpdatedTokenRef.current && lastUpdatedValueRef.current !== null) {
+        // If the token names match, use the value we set
+        if (lastUpdatedTokenRef.current === alphaTokenName) {
+          setLocalOpacityValue(lastUpdatedValueRef.current)
+          // Clear refs after using them
+          setTimeout(() => {
+            lastUpdatedTokenRef.current = null
+            lastUpdatedValueRef.current = null
+          }, 100)
+          return
+        }
+        // If token names don't match but we're expecting a unique token, keep the local value
+        // This means elevation state hasn't updated yet to reflect the new token name
+        if (lastUpdatedTokenRef.current.startsWith('opacity/elevation-')) {
+          // Keep the current local value until elevation state updates
+          return
+        }
+      }
+      
+      const currentValue = getCurrentOpacityValue(elevationKey)
+      // Only update if we got a valid value (not 0 unless it's actually 0)
+      if (currentValue !== 0 || localOpacityValue === 0 || localOpacityValue === null) {
+        setLocalOpacityValue(currentValue)
+      }
+    } else {
+      // Fallback: read from shadowColorControl.alphaToken
+      const tokenKey = shadowColorControl.alphaToken.replace('opacity/', '')
+      try {
+        const tokensRoot: any = (tokensJson as any)?.tokens || {}
+        const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+        const tokenValue = opacityRoot[tokenKey]?.$value
+        if (tokenValue != null) {
+          const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
+          if (Number.isFinite(num)) {
+            const normalized = num <= 1 ? num : num / 100
+            setLocalOpacityValue(Math.round(normalized * 100))
+          }
+        }
+      } catch {}
+    }
+  }, [levelsArr, tokensJson, getCurrentOpacityValue, shadowColorControl.alphaToken, isDragging, getAlphaTokenForLevel, localOpacityValue])
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (dragTimeoutRef.current) {
+        clearTimeout(dragTimeoutRef.current)
+      }
+    }
+  }, [])
+
   // Update opacity token value (convert 0-100 to 0-1)
+  // Ensure each selected elevation has its own unique opacity token
   const handleOpacityChange = React.useCallback((value: number) => {
+    // Update local state immediately for UI feedback
+    setLocalOpacityValue(value)
+    setIsDragging(true)
+    
+    // Clear any existing timeout
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current)
+    }
+    
+    // Convert 0-100 to 0-1
+    const normalizedValue = value / 100
+    
+    // Track the final token name and value for the first selected elevation
+    let finalTokenName: string | null = null
+    
+    // For each selected elevation, ensure it has its own unique opacity token
     levelsArr.forEach((lvl) => {
       const elevationKey = `elevation-${lvl}`
-      const alphaTokenName = getAlphaTokenForLevel(elevationKey)
-      if (!alphaTokenName) return
+      let alphaTokenName = getAlphaTokenForLevel(elevationKey)
       
-      // Extract token key from "opacity/veiled" format
-      const tokenKey = alphaTokenName.replace('opacity/', '')
+      // Check if this elevation shares a token with other elevations
+      // If it's using the shared shadowColorControl token or a fallback, create a unique one
+      const isSharedToken = !elevation?.alphaTokens?.[elevationKey] || 
+                           alphaTokenName === elevation?.shadowColorControl?.alphaToken ||
+                           alphaTokenName === 'opacity/veiled'
       
-      // Convert 0-100 to 0-1
-      const normalizedValue = value / 100
+      if (isSharedToken) {
+        // Create a unique token name for this elevation
+        const uniqueTokenName = `opacity/elevation-${lvl}`
+        alphaTokenName = uniqueTokenName
+        
+        // Get current value from shared token to initialize the new unique token
+        let initialValue = normalizedValue
+        try {
+          const tokensRoot: any = (tokensJson as any)?.tokens || {}
+          const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+          const currentSharedToken = elevation?.shadowColorControl?.alphaToken || 'opacity/veiled'
+          const sharedTokenKey = currentSharedToken.replace('opacity/', '')
+          const sharedValue = opacityRoot[sharedTokenKey]?.$value
+          if (sharedValue != null) {
+            const num = typeof sharedValue === 'number' ? sharedValue : Number(sharedValue)
+            if (Number.isFinite(num)) {
+              initialValue = num <= 1 ? num : num / 100
+            }
+          }
+        } catch {}
+        
+        // Create the unique token with the new value (updateToken will create it if it doesn't exist)
+        updateToken(uniqueTokenName, normalizedValue)
+        
+        // Set the unique token for this elevation
+        setElevationAlphaToken(elevationKey, uniqueTokenName)
+      } else {
+        // Update the existing token value
+        updateToken(alphaTokenName, normalizedValue)
+      }
       
-      // Update the token value
-      updateToken(alphaTokenName, normalizedValue)
+      // Track the final token name for the first selected elevation
+      if (lvl === levelsArr[0]) {
+        finalTokenName = alphaTokenName
+      }
     })
-  }, [levelsArr, getAlphaTokenForLevel, updateToken])
+    
+    // Track the token and value we just updated
+    if (finalTokenName) {
+      lastUpdatedTokenRef.current = finalTokenName
+      lastUpdatedValueRef.current = value
+    }
+    
+    // Reset dragging flag after a delay to allow token updates to propagate
+    // Use a longer delay to ensure token updates have completed
+    dragTimeoutRef.current = setTimeout(() => {
+      setIsDragging(false)
+      // Keep the refs for a bit longer to ensure useEffect can use them
+      setTimeout(() => {
+        lastUpdatedTokenRef.current = null
+        lastUpdatedValueRef.current = null
+      }, 300)
+    }, 600)
+  }, [levelsArr, getAlphaTokenForLevel, updateToken, setElevationAlphaToken, elevation, tokensJson])
 
   return (
     <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 28vw, 440px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
@@ -189,26 +323,28 @@ export default function ElevationStylePanel({
         })()}
 
         {(() => {
-          // Get current opacity value - use first selected level or fallback to shadowColorControl
-          const currentOpacityValue = levelsArr.length 
-            ? getCurrentOpacityValue(`elevation-${levelsArr[0]}`)
-            : (() => {
-                // Fallback: read from shadowColorControl.alphaToken
-                const tokenKey = shadowColorControl.alphaToken.replace('opacity/', '')
-                try {
-                  const tokensRoot: any = (tokensJson as any)?.tokens || {}
-                  const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
-                  const tokenValue = opacityRoot[tokenKey]?.$value
-                  if (tokenValue != null) {
-                    const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
-                    if (Number.isFinite(num)) {
-                      const normalized = num <= 1 ? num : num / 100
-                      return Math.round(normalized * 100)
-                    }
-                  }
-                } catch {}
-                return 0
-              })()
+          // Use local state if available, otherwise compute from tokens
+          const currentOpacityValue = localOpacityValue !== null 
+            ? localOpacityValue
+            : (levelsArr.length 
+                ? getCurrentOpacityValue(`elevation-${levelsArr[0]}`)
+                : (() => {
+                    // Fallback: read from shadowColorControl.alphaToken
+                    const tokenKey = shadowColorControl.alphaToken.replace('opacity/', '')
+                    try {
+                      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+                      const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+                      const tokenValue = opacityRoot[tokenKey]?.$value
+                      if (tokenValue != null) {
+                        const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
+                        if (Number.isFinite(num)) {
+                          const normalized = num <= 1 ? num : num / 100
+                          return Math.round(normalized * 100)
+                        }
+                      }
+                    } catch {}
+                    return 0
+                  })())
           
           return (
             <NumericSlider
