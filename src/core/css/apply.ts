@@ -135,11 +135,9 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
       }
     })
     
-    // In development, throw to catch issues early
-    if (process.env.NODE_ENV === 'development') {
-      const errorSummary = errors.map(e => `${e.var}: ${e.error}`).join('; ')
-      throw new Error(`CSS variable validation failed: ${errorSummary}`)
-    }
+    // In development, log errors but don't throw to prevent infinite loops
+    // Errors are already logged above, so we just continue
+    // Throwing here was causing infinite recompute loops
   }
   
   // Log warnings with context

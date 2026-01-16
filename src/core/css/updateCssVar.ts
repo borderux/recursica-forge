@@ -11,18 +11,58 @@
 import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
 
+// Global flag to suppress events during bulk updates
+let suppressEvents = false
+let pendingCssVars: Set<string> = new Set()
+let batchTimeout: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * Suppress cssVarsUpdated events during bulk updates
+ */
+export function suppressCssVarEvents(suppress: boolean) {
+  suppressEvents = suppress
+  if (!suppress && pendingCssVars.size > 0) {
+    // Fire batched event when suppression is lifted
+    fireBatchedEvent()
+  }
+}
+
+/**
+ * Fire a batched cssVarsUpdated event with all pending CSS vars
+ */
+function fireBatchedEvent() {
+  if (batchTimeout) {
+    clearTimeout(batchTimeout)
+  }
+  batchTimeout = setTimeout(() => {
+    if (pendingCssVars.size > 0 && !suppressEvents) {
+      try {
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: Array.from(pendingCssVars) }
+        }))
+      } catch (e) {
+        // Ignore errors if window is not available (SSR)
+      }
+      pendingCssVars.clear()
+    }
+    batchTimeout = null
+  }, 50) // Small delay to batch multiple rapid updates
+}
+
 /**
  * Updates a single CSS variable with validation
  * 
  * @param cssVarName - The CSS variable name (e.g., '--recursica-brand-light-palettes-core-black')
  * @param value - The value to set (must be a token reference for brand vars)
  * @param tokens - Optional tokens object for auto-fixing hex values
+ * @param silent - If true, don't dispatch cssVarsUpdated event (for bulk updates)
  * @returns true if update was successful, false if validation failed
  */
 export function updateCssVar(
   cssVarName: string,
   value: string,
-  tokens?: any
+  tokens?: any,
+  silent?: boolean
 ): boolean {
   const root = document.documentElement
   const trimmedValue = value.trim()
@@ -36,6 +76,10 @@ export function updateCssVar(
       if (fixed) {
         console.warn(`Auto-fixed brand CSS variable ${cssVarName}: ${trimmedValue} -> ${fixed}`)
         root.style.setProperty(cssVarName, fixed)
+        if (!silent && !suppressEvents) {
+          pendingCssVars.add(cssVarName)
+          fireBatchedEvent()
+        }
         return true
       } else {
         console.error(`Cannot update brand CSS variable ${cssVarName}: ${validation.error}`)
@@ -49,12 +93,13 @@ export function updateCssVar(
   
   // Dispatch event to notify components of CSS variable updates
   // This allows components to reactively update when CSS vars change
-  try {
-    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars: [cssVarName] }
-    }))
-  } catch (e) {
-    // Ignore errors if window is not available (SSR)
+  // But suppress during bulk updates to prevent infinite loops
+  if (!silent && !suppressEvents) {
+    pendingCssVars.add(cssVarName)
+    fireBatchedEvent()
+  } else if (!silent) {
+    // During suppression, just track the var for later batching
+    pendingCssVars.add(cssVarName)
   }
   
   return true
@@ -65,15 +110,17 @@ export function updateCssVar(
  * 
  * @param vars - Map of CSS variable names to values
  * @param tokens - Optional tokens object for auto-fixing
+ * @param silent - If true, don't dispatch cssVarsUpdated event (for bulk updates)
  * @returns Number of successfully updated variables
  */
 export function updateCssVars(
   vars: Record<string, string>,
-  tokens?: any
+  tokens?: any,
+  silent?: boolean
 ): number {
   let successCount = 0
   for (const [cssVar, value] of Object.entries(vars)) {
-    if (updateCssVar(cssVar, value, tokens)) {
+    if (updateCssVar(cssVar, value, tokens, silent)) {
       successCount++
     }
   }
@@ -109,8 +156,9 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
  * Removes a CSS variable
  * 
  * @param cssVarName - The CSS variable name to remove
+ * @param silent - If true, don't dispatch cssVarsUpdated event (for bulk updates)
  */
-export function removeCssVar(cssVarName: string): void {
+export function removeCssVar(cssVarName: string, silent?: boolean): void {
   const root = document.documentElement
   root.style.removeProperty(cssVarName)
   
@@ -121,12 +169,13 @@ export function removeCssVar(cssVarName: string): void {
   }
   
   // Dispatch event to notify components of CSS variable removal
-  try {
-    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars: [cssVarName] }
-    }))
-  } catch (e) {
-    // Ignore errors if window is not available (SSR)
+  // But suppress during bulk updates to prevent infinite loops
+  if (!silent && !suppressEvents) {
+    pendingCssVars.add(cssVarName)
+    fireBatchedEvent()
+  } else if (!silent) {
+    // During suppression, just track the var for later batching
+    pendingCssVars.add(cssVarName)
   }
 }
 

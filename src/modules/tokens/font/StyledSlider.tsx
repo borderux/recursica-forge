@@ -27,7 +27,7 @@ export function StyledSlider({
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
   const blackColor = `--recursica-brand-${mode}-palettes-core-black`
-  const iconSize = 'var(--recursica-brand-dimensions-icon-default)'
+  const iconSize = 'var(--recursica-brand-dimensions-icons-default)'
   
   // Calculate percentage for the fill
   const percentage = ((value - min) / (max - min)) * 100
@@ -49,7 +49,7 @@ export function StyledSlider({
         width: '100%', 
         display: 'flex', 
         alignItems: 'center', 
-        gap: 'var(--recursica-brand-dimensions-spacer-xs)', 
+        gap: 'var(--recursica-brand-dimensions-spacers-xs)', 
         ...style 
       }}
     >

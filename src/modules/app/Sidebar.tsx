@@ -7,6 +7,8 @@
 
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { Button } from '../../components/adapters/Button'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 type SidebarNavItem = 'color' | 'font' | 'opacity' | 'size'
 
@@ -28,6 +30,7 @@ export function Sidebar() {
   
   const currentNavItem = getCurrentNavItem()
   
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
   
@@ -54,7 +57,7 @@ export function Sidebar() {
     <aside
       style={{
         width: '252px',
-        height: '100%',
+        alignSelf: 'stretch',
         backgroundColor: `var(${layer1Base}-surface)`,
         borderRightWidth: `var(${layer1Base}-border-thickness, 1px)`,
         borderRightStyle: 'solid',
@@ -62,18 +65,19 @@ export function Sidebar() {
         display: 'flex',
         flexDirection: 'column',
         // 48px left and right margins - using spacer-xl which should be 48px (tokens.size.3x)
-        paddingLeft: 'var(--recursica-brand-dimensions-spacer-xl)',
-        paddingRight: 'var(--recursica-brand-dimensions-spacer-xl)',
-        paddingTop: 'var(--recursica-brand-dimensions-spacer-xl)',
-        paddingBottom: 'var(--recursica-brand-dimensions-spacer-xl)',
+        paddingLeft: 'var(--recursica-brand-dimensions-spacers-xl)',
+        paddingRight: 'var(--recursica-brand-dimensions-spacers-xl)',
+        paddingTop: 'var(--recursica-brand-dimensions-spacers-xl)',
+        paddingBottom: 'var(--recursica-brand-dimensions-spacers-xl)',
         flexShrink: 0,
+        position: 'relative',
       }}
     >
       {/* Tokens Heading */}
       <h2
         style={{
           margin: 0,
-          marginBottom: 'var(--recursica-brand-dimensions-spacer-lg)',
+          marginBottom: 'var(--recursica-brand-dimensions-spacers-lg)',
           fontSize: 'var(--recursica-brand-typography-body-font-size)',
           fontWeight: 600,
           color: `var(${layer1Base}-element-text-color)`,
@@ -84,7 +88,7 @@ export function Sidebar() {
       </h2>
       
       {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacer-sm)', flex: 1 }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
         {navItems.map((item) => {
           const isActive = currentNavItem === item.key
           
@@ -94,7 +98,7 @@ export function Sidebar() {
               onClick={() => handleNavClick(item.key)}
               style={{
                 textAlign: 'left',
-                padding: 'var(--recursica-brand-dimensions-spacer-default) var(--recursica-brand-dimensions-spacer-md)',
+                padding: 'var(--recursica-brand-dimensions-spacers-default) var(--recursica-brand-dimensions-spacers-md)',
                 borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                 border: 'none',
                 background: 'transparent',
@@ -139,85 +143,68 @@ export function Sidebar() {
         })}
       </nav>
       
-      {/* Footer Links */}
+      {/* Footer Links - Fixed at bottom */}
       <div
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--recursica-brand-dimensions-spacer-sm)',
+          gap: 'var(--recursica-brand-dimensions-spacers-sm)',
           marginTop: 'auto',
-          paddingTop: 'var(--recursica-brand-dimensions-spacer-lg)',
+          paddingTop: 'var(--recursica-brand-dimensions-spacers-lg)',
           borderTopWidth: `var(${layer1Base}-border-thickness, 1px)`,
           borderTopStyle: 'solid',
           borderTopColor: `var(${layer1Base}-border-color)`,
+          flexShrink: 0,
         }}
       >
-        <a
-          href="https://www.recursica.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: `var(${interactiveColor})`,
-            textDecoration: 'none',
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.8'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1'
-          }}
+        <Button
+          variant="text"
+          size="small"
+          layer="layer-1"
+          onClick={() => window.open('https://www.recursica.com', '_blank', 'noopener,noreferrer')}
+          icon={(() => {
+            const Icon = iconNameToReactComponent('arrow-top-right-on-square')
+            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          })()}
+          style={{ justifyContent: 'flex-start', width: '100%' }}
         >
           Visit Recursica.com
-        </a>
-        <a
-          href="https://www.recursica.com/docs/foundations/colors"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: `var(${interactiveColor})`,
-            textDecoration: 'none',
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.8'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1'
-          }}
+        </Button>
+        <Button
+          variant="text"
+          size="small"
+          layer="layer-1"
+          onClick={() => window.open('https://www.recursica.com/docs/foundations/colors', '_blank', 'noopener,noreferrer')}
+          icon={(() => {
+            const Icon = iconNameToReactComponent('document-text')
+            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          })()}
+          style={{ justifyContent: 'flex-start', width: '100%' }}
         >
           Read documentation
-        </a>
-        <a
-          href="https://join.slack.com/t/recursica/shared_invite/zt-3emx80y9u-DfG5WO~SApkTJjVCiYk0WQ"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: `var(${interactiveColor})`,
-            textDecoration: 'none',
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.8'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1'
-          }}
+        </Button>
+        <Button
+          variant="text"
+          size="small"
+          layer="layer-1"
+          onClick={() => window.open('https://join.slack.com/t/recursica/shared_invite/zt-3emx80y9u-DfG5WO~SApkTJjVCiYk0WQ', '_blank', 'noopener,noreferrer')}
+          icon={(() => {
+            const Icon = iconNameToReactComponent('info')
+            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          })()}
+          style={{ justifyContent: 'flex-start', width: '100%' }}
         >
           Help
-        </a>
+        </Button>
       </div>
       
       {/* Copyright */}
       <div
         style={{
-          marginTop: 'var(--recursica-brand-dimensions-spacer-md)',
-          fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-          color: `var(${layer1Base}-element-text-color)`,
-          opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+          marginTop: 'var(--recursica-brand-dimensions-spacers-md)',
+          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+          color: `var(${layer0Base}-element-text-color)`,
+          opacity: `var(${layer0Base}-element-text-low-emphasis)`,
         }}
       >
         © 2025 Border LLC. All rights reserved.

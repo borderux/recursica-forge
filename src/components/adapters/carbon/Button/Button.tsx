@@ -52,8 +52,14 @@ export default function Button({
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
-  const fontSizeVar = getComponentCssVar('Button', 'size', 'font-size', undefined)
   const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
+  
+  // Get all typography properties from the typography style
+  const fontFamilyVar = getBrandTypographyCssVar('button', 'font-family')
+  const fontSizeVar = getBrandTypographyCssVar('button', 'font-size')
+  const fontWeightVar = getBrandTypographyCssVar('button', 'font-weight')
+  const letterSpacingVar = getBrandTypographyCssVar('button', 'font-letter-spacing')
+  const lineHeightVar = getBrandTypographyCssVar('button', 'line-height')
   
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'border-size')
@@ -84,8 +90,11 @@ export default function Button({
       // If the value is transparent, set it directly to override library defaults
       backgroundColor: backgroundColorValue,
       color: `var(${buttonColorVar})`,
+      fontFamily: `var(${fontFamilyVar})`,
       fontSize: `var(${fontSizeVar})`,
-      fontWeight: `var(${getBrandTypographyCssVar('button', 'font-weight')})`,
+      fontWeight: `var(${fontWeightVar})`,
+      letterSpacing: `var(${letterSpacingVar})`,
+      lineHeight: `var(${lineHeightVar})`,
       height: `var(${heightVar})`,
       minWidth: `var(${minWidthVar})`,
       paddingLeft: `var(${horizontalPaddingVar})`,

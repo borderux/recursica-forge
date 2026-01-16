@@ -117,6 +117,7 @@ export default function Chip({
   const materialProps = {
     size: materialSize,
     disabled,
+    clickable: !!onClick && !disabled,
     onClick: disabled ? undefined : onClick,
     onDelete: deletable && onDelete ? onDelete : undefined,
     // Use native icon prop directly - CSS will handle sizing and spacing

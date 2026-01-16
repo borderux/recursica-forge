@@ -3,6 +3,9 @@ import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import PaletteColorControl from '../forms/PaletteColorControl'
 import TokenSlider from '../forms/TokenSlider'
+import BrandSpacerSlider from '../toolbar/utils/BrandSpacerSlider'
+import BrandBorderRadiusSlider from '../toolbar/utils/BrandBorderRadiusSlider'
+import { readCssVar } from '../../core/css/readCssVar'
 import brandDefault from '../../vars/Brand.json'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
@@ -242,10 +245,10 @@ export default function LayerStylePanel({
   }
   const title = selectedLevels.length === 1 ? `Layer ${selectedLevels[0]}` : `Layers ${selectedLevels.join(', ')}`
   return (
-    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 34vw, 560px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 34vw, 560px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-text-color)`, borderLeft: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, borderRadius: `0 var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) 0`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color, rgba(0, 0, 0, 0.1))`, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-padding)`, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 700 }}>{title}</div>
-        <button onClick={onClose} aria-label="Close" style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
+        <button onClick={onClose} aria-label="Close" style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         {/* Palette color pickers: Surface (all layers, including 0) and Border Color (non-0 layers) */}
@@ -271,52 +274,82 @@ export default function LayerStylePanel({
             }}
           />
         )}
-        <TokenSlider
-          label="Padding"
-          tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
-          currentToken={(() => {
-            const v = (spec as any)?.properties?.padding?.$value
-            if (typeof v !== 'string') return undefined
-            // Use centralized parser to extract size token name
-            const tokenIndex = buildTokenIndex(tokensJson)
-            const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
-            const parsed = parseTokenReference(v, context)
-            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
-              // Extract token name from path (e.g., size/2x -> 2x)
-              return parsed.path.slice(1).join('/')
-            }
-            return undefined
-          })()}
-          onChange={(tokenName) => {
-            const sel = sizeOptions.find((o) => o.label === tokenName)
-            if (sel) updateValue(['properties','padding'], sel.value)
-          }}
-          getTokenLabel={(token) => toTitleCase(token.name)}
-        />
-        {!isOnlyLayer0 && (
-          <TokenSlider
-            label="Border Radius"
-            tokens={sizeOptions.map((o) => ({ name: o.label, label: o.label }))}
-            currentToken={(() => {
-              const v = (spec as any)?.properties?.['border-radius']?.$value
-              if (typeof v !== 'string') return undefined
-              // Use centralized parser to extract size token name
-              const tokenIndex = buildTokenIndex(tokensJson)
-              const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
-              const parsed = parseTokenReference(v, context)
-              if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
-                // Extract token name from path (e.g., size/2x -> 2x)
-                return parsed.path.slice(1).join('/')
+        {(() => {
+          const paddingCssVar = selectedLevels.length > 0
+            ? `--recursica-brand-themes-${mode}-layer-layer-${selectedLevels[0]}-property-padding`
+            : `--recursica-brand-themes-${mode}-layer-layer-${layerKey}-property-padding`
+          
+          // Listen for CSS variable updates and sync to theme JSON
+          React.useEffect(() => {
+            const handleCssVarUpdate = (e: CustomEvent) => {
+              if (e.detail?.cssVars?.includes(paddingCssVar)) {
+                const cssValue = readCssVar(paddingCssVar)
+                if (cssValue && cssValue.trim().startsWith('var(')) {
+                  // Extract spacer name from CSS var (e.g., "--recursica-brand-dimensions-spacers-sm" -> "sm")
+                  const match = cssValue.match(/--recursica-brand-dimensions-spacers-([^)]+)/)
+                  if (match) {
+                    const spacerName = match[1]
+                    // Convert to brand dimension token reference
+                    const tokenRef = `{brand.dimensions.spacers.${spacerName}}`
+                    onUpdate((layerSpec: any) => {
+                      const next = JSON.parse(JSON.stringify(layerSpec || {}))
+                      if (!next.properties) next.properties = {}
+                      next.properties.padding = { $type: 'number', $value: tokenRef }
+                      return next
+                    })
+                  }
+                }
               }
-              return undefined
-            })()}
-            onChange={(tokenName) => {
-              const sel = sizeOptions.find((o) => o.label === tokenName)
-              if (sel) updateValue(['properties','border-radius'], sel.value)
-            }}
-            getTokenLabel={(token) => toTitleCase(token.name)}
-          />
-        )}
+            }
+            window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+            return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+          }, [paddingCssVar, onUpdate])
+          
+          return (
+            <BrandSpacerSlider
+              targetCssVar={paddingCssVar}
+              label="Padding"
+            />
+          )
+        })()}
+        {!isOnlyLayer0 && (() => {
+          const borderRadiusCssVar = selectedLevels.length > 0
+            ? `--recursica-brand-themes-${mode}-layer-layer-${selectedLevels[0]}-property-border-radius`
+            : `--recursica-brand-themes-${mode}-layer-layer-${layerKey}-property-border-radius`
+          
+          // Listen for CSS variable updates and sync to theme JSON
+          React.useEffect(() => {
+            const handleCssVarUpdate = (e: CustomEvent) => {
+              if (e.detail?.cssVars?.includes(borderRadiusCssVar)) {
+                const cssValue = readCssVar(borderRadiusCssVar)
+                if (cssValue && cssValue.trim().startsWith('var(')) {
+                  // Extract border radius name from CSS var (e.g., "--recursica-brand-dimensions-border-radius-sm" -> "sm")
+                  const match = cssValue.match(/--recursica-brand-dimensions-border-radius-([^)]+)/)
+                  if (match) {
+                    const radiusName = match[1]
+                    // Convert to brand dimension token reference
+                    const tokenRef = `{brand.dimensions.border-radius.${radiusName}}`
+                    onUpdate((layerSpec: any) => {
+                      const next = JSON.parse(JSON.stringify(layerSpec || {}))
+                      if (!next.properties) next.properties = {}
+                      next.properties['border-radius'] = { $type: 'number', $value: tokenRef }
+                      return next
+                    })
+                  }
+                }
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+            return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+          }, [borderRadiusCssVar, onUpdate])
+          
+          return (
+            <BrandBorderRadiusSlider
+              targetCssVar={borderRadiusCssVar}
+              label="Border Radius"
+            />
+          )
+        })()}
         {!isOnlyLayer0 && (
           <div className="control-group">
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -381,7 +414,7 @@ export default function LayerStylePanel({
                 }
               })
             }}
-            style={{ padding: '8px 10px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+            style={{ padding: '8px 10px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
           >
             Revert
           </button>

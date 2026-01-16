@@ -7,23 +7,38 @@ import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useVars } from '../../vars/VarsContext'
 import { Button } from '../../../components/adapters/Button'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
-import { Switch } from './Switch'
+import { Switch } from '../../../components/adapters/Switch'
+import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
 
 export default function FontPropertiesTokens() {
   const { mode } = useThemeMode()
-  const { resetAll } = useVars()
+  const { resetAll, tokens: tokensJson } = useVars()
   const [activeTab, setActiveTab] = useState<'size' | 'letter-spacing' | 'line-height'>('size')
   const [autoScaleSize, setAutoScaleSize] = useState(() => {
+    // Default to false - reset any existing 'true' value to establish new default
     const v = localStorage.getItem('font-size-auto-scale')
-    return v === null ? true : v === 'true'
+    if (v === null || v === 'true') {
+      // Reset to false to establish the new default behavior
+      localStorage.setItem('font-size-auto-scale', 'false')
+      return false
+    }
+    // If explicitly set to 'false', respect that
+    return false
   })
   const [autoScaleLetterSpacing, setAutoScaleLetterSpacing] = useState(() => {
     const v = localStorage.getItem('font-letter-scale-by-tight-wide')
-    return v === null ? true : v === 'true'
+    return v === null ? false : v === 'true'
   })
   const [autoScaleLineHeight, setAutoScaleLineHeight] = useState(() => {
+    // Default to false - reset any existing 'true' value to establish new default
     const v = localStorage.getItem('font-line-scale-by-short-tall')
-    return v === null ? false : v === 'true'
+    if (v === null || v === 'true') {
+      // Reset to false to establish the new default behavior
+      localStorage.setItem('font-line-scale-by-short-tall', 'false')
+      return false
+    }
+    // If explicitly set to 'false', respect that
+    return false
   })
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
@@ -37,21 +52,46 @@ export default function FontPropertiesTokens() {
   const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
 
   const handleReset = () => {
-    // Reset logic would go here - for now just call resetAll
-    resetAll()
+    // Remove all font/typeface overrides that aren't in the original JSON
+    const all = readOverrides()
+    const updated: Record<string, any> = {}
+    
+    // Keep all non-font/typeface overrides
+    Object.keys(all).forEach((k) => {
+      if (!k.startsWith('font/typeface/')) {
+        updated[k] = all[k]
+      }
+    })
+    
+    // Restore font/typeface values from JSON only (removes any added fonts)
+    try {
+      const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+      const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
+      Object.keys(typefaces).filter((k) => !k.startsWith('$')).forEach((k) => {
+        const val = typefaces[k]?.$value
+        updated[`font/typeface/${k}`] = typeof val === 'string' && val ? val : ''
+      })
+    } catch {}
+    
+    writeOverrides(updated)
+    
+    // Dispatch event with reset flag to trigger FontFamiliesTokens to rebuild
+    try {
+      window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, reset: true } }))
+    } catch {}
   }
 
   return (
     <div style={{
       background: `var(${layer0Base}-surface)`,
       border: `1px solid var(${layer1Base}-border-color)`,
-      borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-      padding: 'var(--recursica-brand-dimensions-spacer-lg)',
+      borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
+      padding: 0,
       display: 'grid',
-      gap: 'var(--recursica-brand-dimensions-spacer-lg)',
+      gap: 0,
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 350px', gap: 0, alignItems: 'stretch' }}>
+        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacers-default)', paddingTop: 'var(--recursica-brand-dimensions-gutters-vertical)', paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)', paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)', paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)', alignItems: 'center' }}>
           <button
             onClick={() => setActiveTab('size')}
             style={{
@@ -110,19 +150,30 @@ export default function FontPropertiesTokens() {
             Line height
           </button>
         </div>
-        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacer-default)', alignItems: 'center' }}>
+        <div></div>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center', 
+          borderLeft: `1px solid var(${layer1Base}-border-color)`, 
+          width: '350px',
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+          paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+        }}>
           <Button
-            variant="text"
-            size="default"
+            variant="outline"
+            size="small"
             icon={(() => {
               const RefreshIcon = iconNameToReactComponent('arrow-path')
-              return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+              return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
             })()}
             onClick={handleReset}
           >
-            Reset to default
+            Reset all
           </Button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
             <span style={{ 
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,
@@ -148,14 +199,12 @@ export default function FontPropertiesTokens() {
                   localStorage.setItem('font-line-scale-by-short-tall', String(checked))
                 }
               }}
+              layer="layer-0"
             />
           </div>
         </div>
       </div>
-      <div style={{
-        borderTop: `1px solid var(${layer1Base}-border-color)`,
-        paddingTop: 'var(--recursica-brand-dimensions-spacer-lg)',
-      }}>
+      <div>
         {activeTab === 'size' && <FontSizeTokens autoScale={autoScaleSize} />}
         {activeTab === 'letter-spacing' && <FontLetterSpacingTokens autoScale={autoScaleLetterSpacing} />}
         {activeTab === 'line-height' && <FontLineHeightTokens autoScale={autoScaleLineHeight} />}

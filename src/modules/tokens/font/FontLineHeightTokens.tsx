@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { StyledSlider } from './StyledSlider'
-import { getFormCssVar } from '../../../components/utils/cssVarNames'
+import { Slider } from '../../../components/adapters/Slider'
 
 type FontLineHeightTokensProps = {
   autoScale?: boolean
@@ -13,8 +12,9 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.font?.['line-height'] || {}
-      Object.keys(src).forEach((k) => {
+      // Support both plural (line-heights) and singular (line-height) for backwards compatibility
+      const src: any = (tokensJson as any)?.tokens?.font?.['line-heights'] || (tokensJson as any)?.tokens?.font?.['line-height'] || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `font/line-height/${k}`, value: num })
@@ -29,10 +29,11 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
   const defaultIdx = order.indexOf('default')
 
   const getVal = (name: string): number => {
-    // Read directly from tokensJson
+    // Read directly from tokensJson - support both plural and singular
     const key = name.replace('font/line-height/','')
     try {
-      const v = (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
+      const v = (tokensJson as any)?.tokens?.font?.['line-heights']?.[key]?.$value || 
+                (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
       const n = typeof v === 'number' ? v : parseFloat(v)
       if (Number.isFinite(n)) return n
     } catch {}
@@ -79,11 +80,11 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
   const { mode } = useThemeMode()
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
-  const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
+  const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. As the creature soared through the air with remarkable agility, it noticed a shimmering portal opening beneath the ancient oak tree. Without hesitation, the goblin adjusted its trajectory mid-flight, tumbling gracefully through the mystical gateway into a realm where time flowed backwards and colors sang in harmony. The dwarf, momentarily stunned by this unexpected display of acrobatic prowess, slowly rose from his comfortable position and began to chase after the vanishing figure, determined to understand the secrets of this magical transformation that had unfolded before his very eyes."
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
-      {order.map((k) => {
+    <div style={{ display: 'grid', gap: 0 }}>
+      {order.map((k, index) => {
         const name = `font/line-height/${k}`
         const label = toTitle(k)
         const current = getVal(name)
@@ -91,21 +92,27 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
         const isShort = k === 'short'
         const isTall = k === 'tall'
         const disabled = scaleByST && !(isDefault || isShort || isTall)
-        const lineHeightVar = `--recursica-tokens-font-line-height-${k}`
+        const lineHeightVar = `--recursica-tokens-font-line-heights-${k}`
+        const isLast = index === order.length - 1
         
         return (
           <div key={name} style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'auto 1fr auto', 
-            gap: 'var(--recursica-brand-dimensions-spacer-md)',
-            alignItems: 'start',
+            gridTemplateColumns: 'auto 1fr 350px', 
+            gap: 0,
+            alignItems: 'stretch',
           }}>
             <label htmlFor={name} style={{ 
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
               minWidth: 80,
-              paddingTop: 'var(--recursica-brand-dimensions-spacer-xs)',
+              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingRight: 0,
+              display: 'flex',
+              alignItems: 'center',
             }}>
               {label}
             </label>
@@ -113,55 +120,48 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
               lineHeight: `var(${lineHeightVar})`,
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              display: 'flex',
+              alignItems: 'center',
             }}>
               {exampleText}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
-              <StyledSlider
-                id={name}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              gap: 'var(--recursica-brand-dimensions-spacers-default)',
+              borderLeft: `1px solid var(${layer1Base}-border-color)`,
+              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              width: '350px',
+            }}>
+              <Slider
                 min={0.5}
                 max={1.5}
                 step={0.05}
                 disabled={disabled}
                 value={current}
                 onChange={(next) => {
+                  const value = typeof next === 'number' ? next : next[0]
                   if (scaleByST && (isDefault || isShort || isTall)) {
-                    applyScaled(name, next)
+                    applyScaled(name, value)
                   } else {
-                    updateToken(name, next)
+                    updateToken(name, value)
                   }
                 }}
+                layer="layer-0"
+                layout="stacked"
+                showInput={true}
                 style={{ 
                   flex: 1,
                   minWidth: 200,
                   maxWidth: 300,
-                }}
-              />
-              <input
-                type="number"
-                step={0.05}
-                disabled={disabled}
-                value={Number.isFinite(current) ? Number(current.toFixed(2)) : current}
-                onChange={(ev) => {
-                  const next = Number(ev.currentTarget.value)
-                  if (scaleByST && (isDefault || isShort || isTall)) {
-                    applyScaled(name, next)
-                  } else {
-                    updateToken(name, next)
-                  }
-                }}
-                style={{ 
-                  width: 60,
-                  height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
-                  paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-                  paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-                  paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-                  paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-                  border: `var(${getFormCssVar('field', 'size', 'border-thickness-default')}) solid var(${getFormCssVar('field', 'color', 'border')})`,
-                  borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
-                  background: `var(${getFormCssVar('field', 'color', 'background')})`,
-                  color: `var(${getFormCssVar('field', 'color', 'text-valued')})`,
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                 }}
               />
             </div>

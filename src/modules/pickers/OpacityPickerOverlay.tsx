@@ -26,7 +26,7 @@ export type OpacityPickerOverlayProps = {
 }
 
 export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose, onSelect }: OpacityPickerOverlayProps) {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [selectedTokenName, setSelectedTokenName] = useState<string | undefined>(propTokenName)
@@ -49,8 +49,9 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.opacity || {}
-      Object.keys(src).forEach((k) => {
+      // Support both plural (opacities) and singular (opacity) for backwards compatibility
+      const src: any = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `opacity/${k}`, value: num })
@@ -97,8 +98,9 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
       
       const value = readCssVar(prefixedTarget)
       if (!value) return null
-      // Match patterns like: var(--recursica-tokens-opacity-solid) or var(--tokens-opacity-solid)
-      const match = value.match(/var\(--(?:recursica-)?tokens-opacity-([^)]+)\)/)
+      // Match patterns like: var(--recursica-tokens-opacities-solid) or var(--recursica-tokens-opacity-solid) or var(--tokens-opacities-solid)
+      // Support both plural (opacities) and singular (opacity) for backwards compatibility
+      const match = value.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
       if (match) return `opacity/${match[1]}`
     } catch {}
     return null
@@ -125,9 +127,12 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
       setSelectedTokenName(targetTokenNameOrCssVar)
       setCurrentToken(null)
     }
+    // Calculate absolute position (relative to document, not viewport)
     const rect = el.getBoundingClientRect()
-    const top = rect.bottom + 8
-    const left = Math.min(rect.left, window.innerWidth - 400)
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop
+    const top = rect.bottom + scrollY + 8
+    const left = Math.min(rect.left + scrollX, window.innerWidth - 400)
     setPos({ top, left })
   }
 
@@ -139,14 +144,13 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   }
 
   const handleTokenSelect = (tokenName: string, value: number) => {
-    // Build the CSS variable name for the opacity token
+    // Build the CSS variable name for the opacity token - use plural form (opacities)
     const tokenKey = tokenName.replace('opacity/', '')
-    const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
+    const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
     
     // If we have a target CSS variable, set it to reference the opacity token
     if (targetCssVar) {
       try {
-        const root = document.documentElement
         // Ensure target CSS var has --recursica- prefix if it doesn't already
         const prefixedTarget = targetCssVar.startsWith('--recursica-') 
           ? targetCssVar 
@@ -155,7 +159,83 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
             : `--recursica-${targetCssVar}`
         
         // Set the target CSS variable to reference the opacity token CSS variable
-        updateCssVar(prefixedTarget, `var(${opacityCssVar})`)
+        updateCssVar(prefixedTarget, `var(${opacityCssVar})`, tokensJson)
+        
+        // Persist to theme JSON if this is a text-emphasis opacity, hover opacity, disabled opacity, or overlay opacity
+        const isEmphasisOpacity = prefixedTarget.includes('text-emphasis-high') || 
+                                   prefixedTarget.includes('text-emphasis-low')
+        const isHoverOpacity = prefixedTarget.includes('state-hover')
+        const isDisabledOpacity = prefixedTarget.includes('state-disabled')
+        const isOverlayOpacity = prefixedTarget.includes('state-overlay-opacity')
+        
+        if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && setTheme && themeJson) {
+          try {
+            const themeCopy = JSON.parse(JSON.stringify(themeJson))
+            const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+            const themes = root?.themes || root
+            
+            // Determine which mode (light or dark)
+            const isDark = prefixedTarget.includes('-dark-')
+            const modeKey = isDark ? 'dark' : 'light'
+            
+            if (isEmphasisOpacity) {
+              // Handle text-emphasis opacity
+              const isHigh = prefixedTarget.includes('text-emphasis-high')
+              const emphasisKey = isHigh ? 'high' : 'low'
+              
+              // Ensure text-emphasis structure exists
+              if (!themes[modeKey]) themes[modeKey] = {}
+              if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
+              
+              // Update the opacity reference in theme JSON
+              themes[modeKey]['text-emphasis'][emphasisKey] = {
+                // Use plural form (opacities) for token references
+                $value: `{tokens.opacities.${tokenKey}}`
+              }
+            } else if (isHoverOpacity) {
+              // Handle hover opacity
+              // Ensure states structure exists
+              if (!themes[modeKey]) themes[modeKey] = {}
+              if (!themes[modeKey].states) themes[modeKey].states = {}
+              
+              // Update the hover opacity reference in theme JSON
+              themes[modeKey].states.hover = {
+                $type: 'number',
+                // Use plural form (opacities) for token references
+                $value: `{tokens.opacities.${tokenKey}}`
+              }
+            } else if (isDisabledOpacity) {
+              // Handle disabled opacity
+              // Ensure states structure exists
+              if (!themes[modeKey]) themes[modeKey] = {}
+              if (!themes[modeKey].states) themes[modeKey].states = {}
+              
+              // Update the disabled opacity reference in theme JSON
+              themes[modeKey].states.disabled = {
+                $type: 'number',
+                // Use plural form (opacities) for token references
+                $value: `{tokens.opacities.${tokenKey}}`
+              }
+            } else if (isOverlayOpacity) {
+              // Handle overlay opacity
+              // Ensure states structure exists
+              if (!themes[modeKey]) themes[modeKey] = {}
+              if (!themes[modeKey].states) themes[modeKey].states = {}
+              if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+              
+              // Update the overlay opacity reference in theme JSON
+              themes[modeKey].states.overlay.opacity = {
+                $type: 'number',
+                // Use plural form (opacities) for token references
+                $value: `{tokens.opacities.${tokenKey}}`
+              }
+            }
+            
+            setTheme(themeCopy)
+          } catch (err) {
+            console.error('Failed to update theme JSON for opacity:', err)
+          }
+        }
         
         // Trigger recalculation of resolvedCurrentToken
         setCssVarUpdateTrigger((prev) => prev + 1)
@@ -179,7 +259,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   return createPortal(
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: pos.top,
         left: pos.left,
         width: 400,
@@ -208,7 +288,8 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
           const currentRaw = (overrides as any)[it.name] ?? it.value
           const current = toPctNumber(currentRaw)
           const tokenKey = it.name.replace('opacity/', '')
-          const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
+          // Use plural form (opacities) for CSS variable
+          const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
           const isClickable = targetCssVar !== null || onSelect !== undefined
           // Use resolvedCurrentToken if available, otherwise fall back to currentToken
           const effectiveCurrentToken = resolvedCurrentToken !== null ? resolvedCurrentToken : currentToken

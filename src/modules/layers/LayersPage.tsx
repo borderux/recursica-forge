@@ -7,9 +7,10 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import ElevationModule from '../elevation/ElevationModule'
 import ElevationStylePanel from '../elevation/ElevationStylePanel'
 import { removeCssVar } from '../../core/css/updateCssVar'
+import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
 
 export default function LayersPage() {
-  const { tokens: tokensJson, theme, setTheme, elevation, updateElevation } = useVars()
+  const { tokens: tokensJson, theme, setTheme, elevation, updateElevation, updateToken } = useVars()
   const { mode } = useThemeMode()
   const [selectedLayerLevels, setSelectedLayerLevels] = useState<Set<number>>(() => new Set())
   const [selectedLevels, setSelectedLevels] = useState<Set<number>>(() => new Set<number>())
@@ -60,14 +61,61 @@ export default function LayersPage() {
   }, [tokensJson])
 
   // Helper functions that update elevation state directly
-  const updateElevationControl = (elevationKey: string, property: 'blurToken' | 'spreadToken' | 'offsetXToken' | 'offsetYToken', value: string) => {
-    updateElevation((prev) => ({
-      ...prev,
-      controls: {
-        ...prev.controls,
-        [elevationKey]: { ...prev.controls[elevationKey], [property]: value }
+  const updateElevationControl = (elevationKey: string, property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
+    updateElevation((prev) => {
+      const next = { ...prev }
+      
+      // Get token name for this elevation and property
+      const level = elevationKey.replace('elevation-', '')
+      let tokenName: string | null = null
+      let finalValue = value
+      
+      // For offsetX and offsetY, convert signed values to absolute + direction
+      if (property === 'offsetX') {
+        const absValue = Math.abs(value)
+        const direction = value >= 0 ? 'right' : 'left'
+        finalValue = absValue
+        next.controls = {
+          ...next.controls,
+          [elevationKey]: { ...next.controls[elevationKey], offsetX: absValue }
+        }
+        // Update direction
+        const currentY = next.directions[elevationKey]?.y ?? getYDirForLevel(elevationKey)
+        next.directions = { ...next.directions, [elevationKey]: { x: direction, y: currentY } }
+        tokenName = next.offsetXTokens[elevationKey] || `size/elevation-${level}-offset-x`
+      } else if (property === 'offsetY') {
+        const absValue = Math.abs(value)
+        const direction = value >= 0 ? 'down' : 'up'
+        finalValue = absValue
+        next.controls = {
+          ...next.controls,
+          [elevationKey]: { ...next.controls[elevationKey], offsetY: absValue }
+        }
+        // Update direction
+        const currentX = next.directions[elevationKey]?.x ?? getXDirForLevel(elevationKey)
+        next.directions = { ...next.directions, [elevationKey]: { x: currentX, y: direction } }
+        tokenName = next.offsetYTokens[elevationKey] || `size/elevation-${level}-offset-y`
+      } else if (property === 'blur') {
+        next.controls = {
+          ...next.controls,
+          [elevationKey]: { ...next.controls[elevationKey], blur: value }
+        }
+        tokenName = next.blurTokens[elevationKey] || `size/elevation-${level}-blur`
+      } else if (property === 'spread') {
+        next.controls = {
+          ...next.controls,
+          [elevationKey]: { ...next.controls[elevationKey], spread: value }
+        }
+        tokenName = next.spreadTokens[elevationKey] || `size/elevation-${level}-spread`
       }
-    }))
+      
+      // Update the token if we have a token name
+      if (tokenName) {
+        updateToken(tokenName, finalValue)
+      }
+      
+      return next
+    })
   }
 
   const setElevationAlphaToken = (elevationKey: string, token: string) => {
@@ -95,23 +143,32 @@ export default function LayersPage() {
     const themes = brand?.themes || brand
     const light: any = themes?.[mode]?.elevations || brand?.[mode]?.elevations || {}
     
-    const toSize = (ref?: any): string => {
-      const s: string | undefined = typeof ref === 'string' ? ref : (ref?.['$value'] as any)
-      if (!s) return 'size/none'
-      const { extractBraceContent, parseTokenReference } = require('../../core/utils/tokenReferenceParser')
-      const inner = extractBraceContent(s) || s
-      const parsed = parseTokenReference(s, {})
-      if (parsed && parsed.type === 'token' && parsed.path[0] === 'size') {
-        const key = parsed.path.slice(1).join('.')
-        return `size/${key}`
+    const toNumeric = (ref?: any): number => {
+      // Handle new structure: { $value: { value: number, unit: "px" }, $type: "number" }
+      if (ref && typeof ref === 'object' && '$value' in ref) {
+        const val = ref.$value
+        if (val && typeof val === 'object' && 'value' in val) {
+          return typeof val.value === 'number' ? val.value : Number(val.value) || 0
+        }
+        // Fallback: try to parse as number directly
+        if (typeof val === 'number') return val
+        if (typeof val === 'string') {
+          const num = Number(val)
+          return Number.isFinite(num) ? num : 0
+        }
       }
-      return 'size/none'
+      // Handle old structure: direct number or string
+      if (typeof ref === 'number') return ref
+      if (typeof ref === 'string') {
+        const num = Number(ref)
+        return Number.isFinite(num) ? num : 0
+      }
+      return 0
     }
 
     const parseColorToken = (s?: any): string | undefined => {
       const v: string | undefined = typeof s === 'string' ? s : (s?.['$value'] as any)
       if (!v) return undefined
-      const { parseTokenReference } = require('../../core/utils/tokenReferenceParser')
       const parsed = parseTokenReference(v, {})
       if (parsed && parsed.type === 'token' && parsed.path[0] === 'color' && parsed.path.length >= 3) {
         return `color/${parsed.path[1]}/${parsed.path[2]}`
@@ -122,7 +179,6 @@ export default function LayersPage() {
     const parseOpacityToken = (s?: any): string | undefined => {
       const v: string | undefined = typeof s === 'string' ? s : (s?.['$value'] as any)
       if (!v) return undefined
-      const { parseTokenReference } = require('../../core/utils/tokenReferenceParser')
       const parsed = parseTokenReference(v, {})
       if (parsed && parsed.type === 'token' && parsed.path[0] === 'opacity' && parsed.path.length >= 2) {
         return `opacity/${parsed.path[1]}`
@@ -139,13 +195,32 @@ export default function LayersPage() {
         const key = `elevation-${lvl}`
         const node: any = light[key]?.['$value'] || {}
         
+        // Get default values from theme
+        const defaultBlur = toNumeric(node?.blur)
+        const defaultSpread = toNumeric(node?.spread)
+        const defaultOffsetX = toNumeric(node?.x)
+        const defaultOffsetY = toNumeric(node?.y)
+        
         // Update controls
         next.controls = { ...next.controls, [key]: {
-          blurToken: toSize(node?.blur?.['$value'] ?? node?.blur),
-          spreadToken: toSize(node?.spread?.['$value'] ?? node?.spread),
-          offsetXToken: toSize(node?.x?.['$value'] ?? node?.x),
-          offsetYToken: toSize(node?.y?.['$value'] ?? node?.y),
+          blur: defaultBlur,
+          spread: defaultSpread,
+          offsetX: defaultOffsetX,
+          offsetY: defaultOffsetY,
         }}
+
+        // Update token values in tokens.json to match theme defaults
+        // Get token names from elevation state (or use defaults)
+        const blurTokenName = next.blurTokens[key] || `size/elevation-${lvl}-blur`
+        const spreadTokenName = next.spreadTokens[key] || `size/elevation-${lvl}-spread`
+        const offsetXTokenName = next.offsetXTokens[key] || `size/elevation-${lvl}-offset-x`
+        const offsetYTokenName = next.offsetYTokens[key] || `size/elevation-${lvl}-offset-y`
+        
+        // Update the actual token values
+        updateToken(blurTokenName, defaultBlur)
+        updateToken(spreadTokenName, defaultSpread)
+        updateToken(offsetXTokenName, defaultOffsetX)
+        updateToken(offsetYTokenName, defaultOffsetY)
 
         // Update color tokens
         const colorToken = parseColorToken(node?.color)
@@ -168,6 +243,22 @@ export default function LayersPage() {
         const alphaToken = parseOpacityToken(node?.opacity)
         if (alphaToken) {
           next.alphaTokens = { ...next.alphaTokens, [key]: alphaToken }
+          
+          // Also revert the opacity token value if it exists
+          try {
+            const tokensRoot: any = (tokensJson as any)?.tokens || {}
+            const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+            const tokenKey = alphaToken.replace('opacity/', '')
+            const defaultOpacityValue = opacityRoot[tokenKey]?.$value
+            if (defaultOpacityValue != null) {
+              // If there's a unique elevation opacity token, revert it to the default
+              const uniqueTokenName = `opacity/elevation-${lvl}`
+              const uniqueTokenKey = `elevation-${lvl}`
+              if (opacityRoot[uniqueTokenKey]) {
+                updateToken(uniqueTokenName, defaultOpacityValue)
+              }
+            }
+          } catch {}
         } else {
           const { [key]: ___, ...alphaRest } = next.alphaTokens
           next.alphaTokens = alphaRest

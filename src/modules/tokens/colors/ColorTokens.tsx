@@ -21,6 +21,144 @@ type TokenEntry = {
 
 type ModeName = 'Mode 1' | 'Mode 2' | string
 
+// Export AddButton component for use in header
+export function AddColorScaleButton() {
+  const { mode: themeMode } = useThemeMode()
+  const [showAddColorModal, setShowAddColorModal] = useState(false)
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-themes-light-palettes-core-black)')
+  const { setTokens } = useVars()
+
+  const handleAddColor = () => {
+    // Generate a random default color
+    const baseHSV = { h: Math.random() * 360, s: 0.6 + Math.random() * 0.35, v: 0.6 + Math.random() * 0.35 }
+    const seedHex = hsvToHex(baseHSV.h, Math.max(0.6, baseHSV.s), Math.max(0.6, baseHSV.v))
+    
+    // Show modal with default color
+    setPendingColorHex(seedHex)
+    setShowAddColorModal(true)
+  }
+
+  const createColorScale = async (seedHex: string) => {
+    try {
+      // Parse the seed hex to get HSV values for generating the scale
+      const seedHsv = hexToHsv(seedHex)
+      const newHue = seedHsv.h
+      
+      // Get friendly name and convert to slug
+      const friendlyName = await getFriendlyNamePreferNtc(seedHex)
+      const newFamilySlug = toKebabCase(friendlyName)
+      
+      // Generate all color levels using the same logic as the main component
+      const seedS = seedHsv.s
+      const seedV = seedHsv.v
+      const endS000 = 0.02
+      const endV000 = 0.98
+      const endS1000 = clamp(seedS * 1.2, 0, 1)
+      const endV1000 = clamp(Math.max(0.03, seedV * 0.08), 0, 1)
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+      
+      // Store all the hex values we're creating
+      const tokenValues: Record<string, string> = {}
+      LEVELS_ASC.forEach((lvl) => {
+        const idx = IDX_MAP[lvl]
+        if (idx === undefined) return
+        
+        let hex: string
+        if (idx === 6) {
+          hex = seedHex
+        } else if (idx < 6) {
+          const t = idx / 6
+          const s = clamp(lerp(endS000, seedS, t), 0, 1)
+          const v = clamp(lerp(endV000, seedV, t), 0, 1)
+          hex = hsvToHex(newHue, s, v)
+        } else {
+          const t = (idx - 6) / (11 - 6)
+          const s = clamp(lerp(seedS, endS1000, t), 0, 1)
+          const v = clamp(lerp(seedV, endV1000, t), 0, 1)
+          hex = hsvToHex(newHue, s, v)
+        }
+        const levelStr = String(lvl).padStart(3, '0')
+        tokenValues[levelStr] = hex
+      })
+
+      // Wait for next tick to ensure any pending updates complete
+      await new Promise(resolve => setTimeout(resolve, 0))
+      
+      // Read fresh tokens directly from the store
+      const store = getVarsStore()
+      const currentState = store.getState()
+      const currentTokens = currentState.tokens
+      const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
+      const tokensRoot = nextTokens?.tokens || {}
+      
+      // Find the next available scale number
+      const colorsRoot = tokensRoot?.colors || {}
+      let scaleNumber = 1
+      while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
+        scaleNumber++
+      }
+      const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
+      
+      // Create the new scale in the new format with alias
+      if (!tokensRoot.colors) tokensRoot.colors = {}
+      tokensRoot.colors[scaleKey] = {
+        alias: newFamilySlug,
+        ...Object.fromEntries(
+          Object.entries(tokenValues).map(([level, hex]) => [
+            level,
+            { $type: 'color', $value: hex }
+          ])
+        )
+      }
+      
+      // Update tokens structure
+      if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
+      setTokens(nextTokens)
+      
+      // Create token entries for each level
+      Object.entries(tokenValues).forEach(([level, hex]) => {
+        const aliasTokenName = `colors/${newFamilySlug}/${level}`
+        const scaleTokenName = `colors/${scaleKey}/${level}`
+        store.updateToken(scaleTokenName, hex)
+        store.updateToken(aliasTokenName, hex)
+      })
+      
+      // Update family names map
+      const names: Record<string, string> = JSON.parse(localStorage.getItem('family-friendly-names') || '{}')
+      names[newFamilySlug] = toTitleCase(friendlyName)
+      localStorage.setItem('family-friendly-names', JSON.stringify(names))
+      window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names }))
+    } catch (error) {
+      console.error('Failed to create color scale:', error)
+    }
+  }
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="small"
+        onClick={handleAddColor}
+        icon={(() => {
+          const PlusIcon = iconNameToReactComponent('plus')
+          return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+        })()}
+      >
+        Add color scale
+      </Button>
+      <ColorPickerModal
+        open={showAddColorModal}
+        defaultHex={pendingColorHex}
+        onClose={() => setShowAddColorModal(false)}
+        onAccept={(hex) => {
+          setShowAddColorModal(false)
+          createColorScale(hex)
+        }}
+      />
+    </>
+  )
+}
+
 export default function ColorTokens() {
   const { tokens: tokensJson, updateToken, setTokens, theme, palettes } = useVars()
   const { mode: themeMode } = useThemeMode()
@@ -101,22 +239,47 @@ export default function ColorTokens() {
     try { localStorage.setItem('color-family-order', JSON.stringify(familyOrder)) } catch {}
   }, [familyOrder])
 
-  // Seed family names from tokens
+  // Seed family names from tokens - use alias from JSON for new structure
   useEffect(() => {
     try {
-      const t: any = (tokensJson as any)?.tokens?.color || {}
-      const keys = Object.keys(t).filter((k) => k !== 'translucent')
+      const t: any = (tokensJson as any)?.tokens || {}
       const raw = localStorage.getItem('family-friendly-names')
       const existing = raw ? (JSON.parse(raw) || {}) : {}
       const next: Record<string, string> = { ...existing }
       let changed = false
-      keys.forEach((fam) => {
+      
+      // Process new colors structure (colors.scale-XX with alias)
+      const colorsRoot = t?.colors || {}
+      if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+        Object.keys(colorsRoot).forEach((scaleKey) => {
+          if (!scaleKey.startsWith('scale-')) return
+          const scale = colorsRoot[scaleKey]
+          if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
+          
+          const alias = scale.alias
+          // Use alias as the family name key, and alias value as the friendly name
+          if (alias && typeof alias === 'string') {
+            // Check if we should update (on init/reset, use alias; otherwise preserve existing)
+            // If the existing value is empty or matches the old scale key, update it
+            if (!next[alias] || !String(next[alias]).trim() || next[alias] === toTitleCase(scaleKey)) {
+              next[alias] = toTitleCase(alias)
+              changed = true
+            }
+          }
+        })
+      }
+      
+      // Process old color structure for backwards compatibility
+      const oldColors = t?.color || {}
+      const oldKeys = Object.keys(oldColors).filter((k) => k !== 'translucent')
+      oldKeys.forEach((fam) => {
         const desired = toTitleCase(fam)
         if (!next[fam] || !String(next[fam]).trim()) {
           next[fam] = desired
           changed = true
         }
       })
+      
       if (changed) setFamilyNames(next)
     } catch {}
   }, [tokensJson])
@@ -140,16 +303,51 @@ export default function ColorTokens() {
     }
     try {
       const t: any = (tokensJson as any)?.tokens || {}
-      const colors = t?.color || {}
-      Object.keys(colors).forEach((family) => {
-        if (family === 'translucent') return
-        const levels = colors[family] || {}
-        Object.keys(levels).forEach((lvl) => {
-          push(`color/${family}/${lvl}`, 'color', levels[lvl]?.$value)
+      
+      // Process new scale structure (colors.scale-XX.level)
+      const colorsRoot = t?.colors || {}
+      if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+        Object.keys(colorsRoot).forEach((scaleKey) => {
+          if (!scaleKey || !scaleKey.startsWith('scale-')) return
+          const scale = colorsRoot[scaleKey]
+          if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
+          
+          const alias = scale.alias // Get the alias (e.g., "cornflower", "gray")
+          const familyName = alias && typeof alias === 'string' ? alias : scaleKey
+          
+          Object.keys(scale).forEach((lvl) => {
+            // Skip the alias property
+            if (lvl === 'alias') return
+            // Accept levels that are: 2-4 digits, or exactly '000' or '050'
+            if (!/^(\d{2,4}|000|050)$/.test(lvl)) return
+            
+            const levelObj = scale[lvl]
+            if (levelObj && typeof levelObj === 'object' && '$value' in levelObj) {
+              // Use alias-based token name for display (e.g., colors/cornflower/100)
+              // Also support scale-based name for backwards compatibility
+              push(`colors/${familyName}/${lvl}`, 'color', levelObj.$value)
+              // Also create scale-based token name (e.g., colors/scale-01/100)
+              if (familyName !== scaleKey) {
+                push(`colors/${scaleKey}/${lvl}`, 'color', levelObj.$value)
+              }
+            }
+          })
         })
-      })
-      if (t?.color?.gray?.['000']) push('color/gray/000', 'color', t.color.gray['000'].$value)
-      if (t?.color?.gray?.['1000']) push('color/gray/1000', 'color', t.color.gray['1000'].$value)
+      }
+      
+      // Backwards compatibility: also process old color structure if it exists
+      const oldColors = t?.color || {}
+      if (oldColors && typeof oldColors === 'object' && !Array.isArray(oldColors)) {
+        Object.keys(oldColors).forEach((family) => {
+          if (family === 'translucent') return
+          const levels = oldColors[family] || {}
+          Object.keys(levels).forEach((lvl) => {
+            push(`color/${family}/${lvl}`, 'color', levels[lvl]?.$value)
+          })
+        })
+        if (oldColors.gray?.['000']) push('color/gray/000', 'color', oldColors.gray['000'].$value)
+        if (oldColors.gray?.['1000']) push('color/gray/1000', 'color', oldColors.gray['1000'].$value)
+      }
     } catch {}
     return list
   }, [tokensJson])
@@ -166,11 +364,15 @@ export default function ColorTokens() {
     const byMode: Record<ModeName, Record<string, Array<{ level: string; entry: TokenEntry }>>> = {}
     flatTokens.forEach((entry) => {
       if (!entry || entry.type !== 'color') return
-      if (!entry.name.startsWith('color/')) return
+      // Support both old format (color/family/level) and new format (colors/family/level or colors/scale-XX/level)
+      if (!entry.name.startsWith('color/') && !entry.name.startsWith('colors/')) return
       const parts = entry.name.split('/')
       if (parts.length < 3) return
       const family = parts[1]
-      if (family === 'translucent') return
+      if (family === 'translucent' || family.startsWith('scale-')) {
+        // Skip scale-XX keys, only use alias-based names for grouping
+        return
+      }
       const rawLevel = parts[2]
       if (!/^\d+$/.test(rawLevel)) return
       const level = rawLevel.length === 2 ? `0${rawLevel}` : rawLevel.length === 1 ? `00${rawLevel}` : rawLevel
@@ -180,11 +382,15 @@ export default function ColorTokens() {
       byMode[mode][family].push({ level, entry })
     })
     Object.keys(values).forEach((name) => {
-      if (!name.startsWith('color/')) return
+      // Support both old format (color/family/level) and new format (colors/family/level)
+      if (!name.startsWith('color/') && !name.startsWith('colors/')) return
       const parts = name.split('/')
       if (parts.length !== 3) return
       const family = parts[1]
-      if (family === 'translucent') return
+      if (family === 'translucent' || family.startsWith('scale-')) {
+        // Skip scale-XX keys, only use alias-based names for grouping
+        return
+      }
       const rawLevel = parts[2]
       if (!/^\d+$/.test(rawLevel)) return
       const level = rawLevel.length === 2 ? `0${rawLevel}` : rawLevel.length === 1 ? `00${rawLevel}` : rawLevel
@@ -278,20 +484,6 @@ export default function ColorTokens() {
     })()
   }
 
-  const handleAddColor = () => {
-    setOpenPicker(null)
-    const families = Object.entries(colorFamiliesByMode['Mode 1'] || {}).filter(([family]) => family !== 'translucent' && !deletedFamilies[family])
-    if (!families.length) return
-
-    // Generate a random default color
-    const baseHSV = { h: Math.random() * 360, s: 0.6 + Math.random() * 0.35, v: 0.6 + Math.random() * 0.35 }
-    const seedHex = hsvToHex(baseHSV.h, Math.max(0.6, baseHSV.s), Math.max(0.6, baseHSV.v))
-    
-    // Show modal with default color
-    setPendingColorHex(seedHex)
-    setShowAddColorModal(true)
-  }
-
   const createColorScale = async (seedHex: string) => {
     setOpenPicker(null)
     const families = Object.entries(colorFamiliesByMode['Mode 1'] || {}).filter(([family]) => family !== 'translucent' && !deletedFamilies[family])
@@ -301,15 +493,12 @@ export default function ColorTokens() {
     const seedHsv = hexToHsv(seedHex)
 
     const newHue = seedHsv.h
-    const tempFamily = `custom-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`
-    const write = (name: string, hex: string) => { handleChange(name, hex) }
-    write(`color/${tempFamily}/500`, seedHex)
-
+    
     // Get friendly name and convert to slug
     const friendlyName = await getFriendlyNamePreferNtc(seedHex)
     const newFamilySlug = toKebabCase(friendlyName)
     
-    // Generate all color levels with temporary family name first
+    // Generate all color levels
     const seedS = seedHsv.s
     const seedV = seedHsv.v
     const endS000 = 0.02
@@ -319,7 +508,7 @@ export default function ColorTokens() {
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t
     
     // Store all the hex values we're creating
-    const tempTokenValues: Record<string, string> = {}
+    const tokenValues: Record<string, string> = {}
     LEVELS_ASC.forEach((lvl) => {
       const idx = IDX_MAP[lvl]
       let hex: string
@@ -337,229 +526,198 @@ export default function ColorTokens() {
         hex = hsvToHex(newHue, s, v)
       }
       const levelStr = String(lvl).padStart(3, '0')
-      const tempTokenName = `color/${tempFamily}/${levelStr}`
-      tempTokenValues[tempTokenName] = hex
-      write(tempTokenName, hex)
+      tokenValues[levelStr] = hex
     })
 
-    // Now rename all tokens from tempFamily to newFamilySlug
-    if (newFamilySlug && newFamilySlug !== tempFamily && newFamilySlug.length > 0) {
-      // Wait for next tick to ensure all updateToken() calls have completed
-      await new Promise(resolve => setTimeout(resolve, 0))
+    // Wait for next tick to ensure any pending updates complete
+    await new Promise(resolve => setTimeout(resolve, 0))
+    
+    try {
+      // Read fresh tokens directly from the store
+      const store = getVarsStore()
+      const currentState = store.getState()
+      const currentTokens = currentState.tokens
+      const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
+      const tokensRoot = nextTokens?.tokens || {}
       
-      try {
-        // Read fresh tokens directly from the store (tokensJson prop might be stale due to React async updates)
-        const store = getVarsStore()
-        const currentState = store.getState()
-        const currentTokens = currentState.tokens
-        const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
-        const tokensRoot = nextTokens?.tokens || {}
-        const colorsRoot = tokensRoot?.color || {}
-        
-        // Get all levels for the temp family
-        const tempFamilyData = colorsRoot[tempFamily]
-        if (tempFamilyData && typeof tempFamilyData === 'object') {
-          // Create new family with all levels
-          if (!tokensRoot.color) tokensRoot.color = {}
-          tokensRoot.color[newFamilySlug] = { ...tempFamilyData }
-          
-          // Delete temp family
-          delete tokensRoot.color[tempFamily]
-          
-          // Update tokens structure
-          if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
-          setTokens(nextTokens)
-          
-          // Remove old CSS variables for the temp family
-          Object.keys(tempTokenValues).forEach((tempTokenName) => {
-            const parts = tempTokenName.split('/')
-            if (parts.length === 3) {
-              const level = parts[2]
-              const levelStr = String(level).padStart(3, '0')
-              const oldCssVar = `--recursica-tokens-color-${tempFamily}-${levelStr}`
-              removeCssVar(oldCssVar)
-            }
-          })
-          
-          // Update local values state - rename all tokens
-          // The tokens JSON structure is already updated above with setTokens(), which triggers recomputeAndApplyAll()
-          // So we just need to update the local values state to match the new token names
-          const newValues = { ...values }
-          Object.keys(tempTokenValues).forEach((tempTokenName) => {
-            const parts = tempTokenName.split('/')
-            if (parts.length === 3) {
-              const level = parts[2]
-              const newTokenName = `color/${newFamilySlug}/${level}`
-              // Use the value we stored when creating the token
-              const value = tempTokenValues[tempTokenName]
-              // Remove old temp token name
-              delete newValues[tempTokenName]
-              // Add new token name with the same value
-              newValues[newTokenName] = value
-            }
-          })
-          setValues(newValues)
-          
-          // Update family order - always append new family to the end, not sorted alphabetically
-          setFamilyOrder((prev) => {
-            const updated = prev.map(f => f === tempFamily ? newFamilySlug : f).filter(f => f !== tempFamily)
-            // If newFamilySlug is not already in the order, append it to the end
-            if (!updated.includes(newFamilySlug)) {
-              return [...updated, newFamilySlug]
-            }
-            return updated
-          })
-          
-          // Update family names map
-          const updatedFamilyNames = { ...familyNames }
-          delete updatedFamilyNames[tempFamily]
-          updatedFamilyNames[newFamilySlug] = toTitleCase(friendlyName)
-          setFamilyNames(updatedFamilyNames)
-          
-          // Update localStorage
-          try {
-            const raw = localStorage.getItem('family-friendly-names')
-            const map = raw ? JSON.parse(raw) || {} : {}
-            delete map[tempFamily]
-            map[newFamilySlug] = toTitleCase(friendlyName)
-            localStorage.setItem('family-friendly-names', JSON.stringify(map))
-            try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
-          } catch {}
-        } else {
-          // Fallback: if rename failed, just update the display name
-          setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
-          // Always append to end, not sorted alphabetically
-          setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
-        }
-      } catch (error) {
-        console.error('Failed to rename color family after creation:', error)
-        // Fallback: just update the display name
-        setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
-        // Always append to end, not sorted alphabetically
-        setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
+      // Find the next available scale number
+      const colorsRoot = tokensRoot?.colors || {}
+      let scaleNumber = 1
+      while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
+        scaleNumber++
       }
-    } else {
-      // If slug generation failed, just use temp name with friendly display name
-      setFamilyNames((prev) => ({ ...prev, [tempFamily]: toTitleCase(friendlyName) }))
-      // Always append to end, not sorted alphabetically
-      setFamilyOrder((prev) => (prev.includes(tempFamily) ? prev : [...prev, tempFamily]))
+      const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
+      
+      // Create the new scale in the new format with alias
+      if (!tokensRoot.colors) tokensRoot.colors = {}
+      tokensRoot.colors[scaleKey] = {
+        alias: newFamilySlug,
+        ...Object.fromEntries(
+          Object.entries(tokenValues).map(([level, hex]) => [
+            level,
+            { $type: 'color', $value: hex }
+          ])
+        )
+      }
+      
+      // Update tokens structure
+      if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
+      setTokens(nextTokens)
+      
+      // Update local values state - use alias-based token names for display
+      const newValues = { ...values }
+      Object.entries(tokenValues).forEach(([level, hex]) => {
+        const aliasTokenName = `colors/${newFamilySlug}/${level}`
+        const scaleTokenName = `colors/${scaleKey}/${level}`
+        newValues[aliasTokenName] = hex
+        newValues[scaleTokenName] = hex
+      })
+      setValues(newValues)
+      
+      // Update family order - always append new family to the end
+      setFamilyOrder((prev) => {
+        if (!prev.includes(newFamilySlug)) {
+          return [...prev, newFamilySlug]
+        }
+        return prev
+      })
+      
+      // Update family names map
+      const updatedFamilyNames = { ...familyNames }
+      updatedFamilyNames[newFamilySlug] = toTitleCase(friendlyName)
+      setFamilyNames(updatedFamilyNames)
+      
+      // Update localStorage
+      try {
+        const raw = localStorage.getItem('family-friendly-names')
+        const map = raw ? JSON.parse(raw) || {} : {}
+        map[newFamilySlug] = toTitleCase(friendlyName)
+        localStorage.setItem('family-friendly-names', JSON.stringify(map))
+        try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+      } catch {}
+    } catch (error) {
+      console.error('Failed to create color scale:', error)
     }
   }
 
   // Check if a color scale is used in palettes
   const isColorScaleUsedInPalettes = useMemo(() => {
-    const mapPaletteToTokenFamily: Record<string, string> = {
-      neutral: 'gray',
-      'palette-1': 'salmon',
-      'palette-2': 'mandarin',
-      'palette-3': 'cornflower',
-      'palette-4': 'greensheen',
-    }
-    
     const usedFamilies = new Set<string>()
     
-    // Helper function to get persisted family from localStorage
-    const getPersistedFamily = (key: string): string | undefined => {
-      try {
-        const raw = localStorage.getItem(`palette-grid-family:${key}`)
-        if (raw) return JSON.parse(raw)
-      } catch {}
-      if (key === 'neutral') return 'gray'
-      if (key === 'palette-1') return 'salmon'
-      if (key === 'palette-2') return 'mandarin'
-      return undefined
-    }
-    
-    // Check dynamic palettes from palettesState
-    try {
-      const dynamicPalettes = palettes?.dynamic || []
-      dynamicPalettes.forEach((p) => {
-        const fam = p.initialFamily || getPersistedFamily(p.key)
-        if (fam) {
-          usedFamilies.add(fam)
-        }
-      })
-    } catch {}
-    
-    // Check which palettes actually exist in theme and add their mapped families
-    try {
-      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      const lightPalettes: any = root?.light?.palettes || {}
-      const paletteKeys = Object.keys(lightPalettes).filter((k) => k !== 'core')
+    // Helper function to extract all family names referenced in palette data
+    const extractReferencedFamilies = (obj: any, mode: 'light' | 'dark'): Set<string> => {
+      const families = new Set<string>()
+      if (!obj || typeof obj !== 'object') return families
       
-      // Only add families for palettes that actually exist
-      paletteKeys.forEach((pk) => {
-        const mappedFamily = mapPaletteToTokenFamily[pk]
-        if (mappedFamily) {
-          usedFamilies.add(mappedFamily)
-        }
-      })
-      
-      // Also check for direct token references in non-core palettes
-      // Extract all family names referenced in specific palette sections (excluding core)
-      const extractReferencedFamilies = (obj: any): Set<string> => {
-        const families = new Set<string>()
-        if (!obj || typeof obj !== 'object') return families
-        
-        if (Array.isArray(obj)) {
-          obj.forEach((item) => {
-            extractReferencedFamilies(item).forEach((f) => families.add(f))
-          })
-          return families
-        }
-        
-        for (const [, value] of Object.entries(obj)) {
-          if (typeof value === 'string') {
-            // Use centralized parser to check for token references
-            const tokenIndex = buildTokenIndex(tokensJson)
-            const context: TokenReferenceContext = { currentMode: 'light', tokenIndex }
-            const parsed = parseTokenReference(value, context)
-            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
-              // Extract family name from token path (e.g., color/gray/100 -> gray)
-              const familyName = parsed.path[1]
-              if (familyName) {
-                families.add(familyName)
-              }
-            }
-          } else if (value && typeof value === 'object') {
-            extractReferencedFamilies(value).forEach((f) => families.add(f))
-          }
-        }
+      if (Array.isArray(obj)) {
+        obj.forEach((item) => {
+          extractReferencedFamilies(item, mode).forEach((f) => families.add(f))
+        })
         return families
       }
       
-      // Check each palette individually (excluding core)
-      paletteKeys.forEach((pk) => {
-        const paletteData = lightPalettes[pk]
-        if (paletteData) {
-          const referencedFamilies = extractReferencedFamilies(paletteData)
-          referencedFamilies.forEach((fam) => {
-            if (fam !== 'translucent') {
-              usedFamilies.add(fam)
+      for (const [, value] of Object.entries(obj)) {
+        if (typeof value === 'string') {
+          // Only check strings that look like token references (contain braces)
+          if (value.includes('{') && value.includes('}')) {
+            // Use centralized parser to check for token references
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
+            const parsed = parseTokenReference(value, context)
+            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'colors') {
+              // New format: colors.scale-XX.level or colors.alias.level
+              const scaleOrAlias = parsed.path[1]
+              if (scaleOrAlias && scaleOrAlias.startsWith('scale-')) {
+                // If it's a scale key, find the alias from tokens
+                const tokensRoot: any = (tokensJson as any)?.tokens || {}
+                const colorsRoot: any = tokensRoot?.colors || {}
+                const scale = colorsRoot?.[scaleOrAlias]
+                if (scale && typeof scale === 'object' && scale.alias && typeof scale.alias === 'string') {
+                  const alias = scale.alias.trim()
+                  if (alias) {
+                    families.add(alias)
+                  }
+                }
+                // Don't add scale key as fallback - only add if we have a valid alias
+              } else if (scaleOrAlias && !scaleOrAlias.startsWith('scale-')) {
+                // It's already an alias - only add if it's a valid non-empty string
+                const alias = scaleOrAlias.trim()
+                if (alias) {
+                  families.add(alias)
+                }
+              }
             }
-          })
+          }
+        } else if (value && typeof value === 'object') {
+          extractReferencedFamilies(value, mode).forEach((f) => families.add(f))
         }
-      })
-      
-      // Check core colors - extract all families used in core palette
-      const corePalette: any = lightPalettes?.core || {}
-      const coreReferencedFamilies = extractReferencedFamilies(corePalette)
-      coreReferencedFamilies.forEach((fam) => {
-        if (fam !== 'translucent') {
-          usedFamilies.add(fam)
-        }
-      })
-    } catch {}
+      }
+      return families
+    }
     
-    return (family: string) => usedFamilies.has(family)
-  }, [theme, tokensJson, palettes])
+    // Check palettes in both light and dark modes - only check actual theme data
+    try {
+      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      
+      // Check both light and dark modes
+      for (const mode of ['light', 'dark'] as const) {
+        const modePalettes: any = themes?.[mode]?.palettes || root?.[mode]?.palettes || {}
+        
+        // Get all palette keys (including core, neutral, and all numbered palettes)
+        const paletteKeys = Object.keys(modePalettes)
+        
+        // Check each palette (including core) for referenced families
+        paletteKeys.forEach((pk) => {
+          const paletteData = modePalettes[pk]
+          if (paletteData && typeof paletteData === 'object') {
+            const referencedFamilies = extractReferencedFamilies(paletteData, mode)
+            referencedFamilies.forEach((fam) => {
+              if (fam && typeof fam === 'string' && fam !== 'translucent' && fam.trim()) {
+                usedFamilies.add(fam)
+              }
+            })
+          }
+        })
+      }
+    } catch (err) {
+      // Silently fail - if we can't check, assume not used (safer for deletion)
+      console.warn('Error checking palette usage:', err)
+    }
+    
+    return (family: string) => {
+      if (!family || typeof family !== 'string') return false
+      return usedFamilies.has(family)
+    }
+  }, [theme, tokensJson])
 
   // Count total color scales (excluding deleted ones)
   const totalColorScales = useMemo(() => {
     try {
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
-      const colorsRoot = tokensRoot?.color || {}
-      return Object.keys(colorsRoot).filter((fam) => fam !== 'translucent' && !deletedFamilies[fam]).length
+      // Check new format (colors) - count scales by their aliases
+      const colorsRoot: any = tokensRoot?.colors || {}
+      const scaleAliases = new Set<string>()
+      Object.keys(colorsRoot).forEach((key) => {
+        if (key.startsWith('scale-')) {
+          const scale = colorsRoot[key]
+          if (scale && typeof scale === 'object' && scale.alias && typeof scale.alias === 'string') {
+            const alias = scale.alias.trim()
+            if (alias && !deletedFamilies[alias]) {
+              scaleAliases.add(alias)
+            }
+          }
+        }
+      })
+      // Also check old format (color) for backwards compatibility
+      const oldColorsRoot = tokensRoot?.color || {}
+      Object.keys(oldColorsRoot).forEach((fam) => {
+        if (fam !== 'translucent' && !deletedFamilies[fam]) {
+          scaleAliases.add(fam)
+        }
+      })
+      return scaleAliases.size
     } catch {
       return 0
     }
@@ -724,15 +882,45 @@ export default function ColorTokens() {
 
   const mode: ModeName = 'Mode 1'
   const familiesData = colorFamiliesByMode[mode] || {}
+  
+  // Helper function to get scale key for a family alias
+  const getScaleKeyForFamily = (familyAlias: string): string | null => {
+    try {
+      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+      const colorsRoot: any = tokensRoot?.colors || {}
+      for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+        if (!scaleKey.startsWith('scale-')) continue
+        const scaleObj = scale as any
+        if (scaleObj?.alias === familyAlias) {
+          return scaleKey
+        }
+      }
+    } catch {}
+    return null
+  }
+  
+  // Helper function to extract scale number from scale key (e.g., "scale-01" -> 1)
+  const getScaleNumber = (scaleKey: string | null): number => {
+    if (!scaleKey || !scaleKey.startsWith('scale-')) return 9999 // Put non-scale families at the end
+    const match = scaleKey.match(/scale-(\d+)/)
+    return match ? parseInt(match[1], 10) : 9999
+  }
+  
+  // Sort families by scale number (scale-01, scale-02, etc.) - always use scale-based ordering
   let families = Object.entries(familiesData).filter(([family]) => family !== 'translucent' && !deletedFamilies[family]).sort(([a], [b]) => {
-    if (a === 'gray' && b !== 'gray') return -1
-    if (b === 'gray' && a !== 'gray') return 1
+    // Sort by scale number (scale-01, scale-02, etc.)
+    const scaleKeyA = getScaleKeyForFamily(a)
+    const scaleKeyB = getScaleKeyForFamily(b)
+    const scaleNumA = getScaleNumber(scaleKeyA)
+    const scaleNumB = getScaleNumber(scaleKeyB)
+    
+    if (scaleNumA !== scaleNumB) {
+      return scaleNumA - scaleNumB
+    }
+    
+    // Fallback to alphabetical if scale numbers are the same (shouldn't happen)
     return a.localeCompare(b)
   })
-
-  const existing = families.filter(([fam]) => !familyOrder.includes(fam))
-  const appended = familyOrder.map((fam) => families.find(([f]) => f === fam)).filter((v): v is typeof families[number] => Array.isArray(v))
-  families = [...existing, ...appended]
 
   const presentLevels = new Set<string>(families.flatMap(([_, lvls]) => lvls.map((l) => l.level)))
   // Include 1000 and 000 in standard levels
@@ -752,45 +940,19 @@ export default function ColorTokens() {
   return (
     <section style={{ 
       background: `var(${layer0Base}-surface)`, 
-      border: `1px solid var(${layer1Base}-border-color)`, 
-      borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
-      padding: 'var(--recursica-brand-dimensions-spacer-md)',
+      padding: 'var(--recursica-brand-dimensions-spacers-md)',
     }}>
-      {/* Header with Add Color Scale button */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: 'var(--recursica-brand-dimensions-spacer-md)',
-      }}>
-        <div style={{ flex: 1 }} /> {/* Spacer */}
-        <Button
-          variant="outline"
-          onClick={handleAddColor}
-          icon={(() => {
-            const PlusIcon = iconNameToReactComponent('plus')
-            return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
-          })()}
-          style={{
-            borderColor: `var(${interactiveColor})`,
-            color: `var(${interactiveColor})`,
-          }}
-        >
-          Add color scale
-        </Button>
-      </div>
-
       {/* Color scales grid */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: `100px repeat(${families.length}, 1fr)`, 
-        columnGap: 'var(--recursica-brand-dimensions-spacer-md)', 
+        columnGap: 'var(--recursica-brand-dimensions-spacers-md)', 
         rowGap: 0, 
         alignItems: 'start' 
       }}>
         {/* Numerical scale column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <div style={{ height: 40, marginBottom: 'var(--recursica-brand-dimensions-spacer-sm)' }} /> {/* Spacer for header */}
+          <div style={{ height: 40, marginBottom: 'var(--recursica-brand-dimensions-spacers-sm)' }} /> {/* Spacer for header */}
           {levelOrder.map((level) => (
             <div 
               key={'label-' + level} 

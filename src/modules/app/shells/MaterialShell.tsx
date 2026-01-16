@@ -117,7 +117,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
     return () => window.removeEventListener('resize', updateHeaderHeight)
   }, [mode])
 
-  if (!mat || !styles) return <div style={{ padding: 'var(--recursica-brand-dimensions-spacer-lg)' }}>Loading Material UI…</div>
+  if (!mat || !styles) return <div style={{ padding: 'var(--recursica-brand-dimensions-spacers-lg)' }}>Loading Material UI…</div>
 
   const { AppBar, Toolbar, Select, MenuItem, Container, CssBaseline, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions, Box, Tabs, Tab } = mat
   const { ThemeProvider, createTheme } = styles
@@ -136,10 +136,10 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           position="static"
           sx={{
             backgroundColor: `var(${layer1Base}-surface)`,
-            paddingTop: 'var(--recursica-brand-dimensions-spacer-lg)',
-            paddingBottom: 'var(--recursica-brand-dimensions-spacer-lg)',
-            paddingLeft: 'var(--recursica-brand-dimensions-spacer-xl)',
-            paddingRight: 'var(--recursica-brand-dimensions-spacer-xl)',
+            paddingTop: 'var(--recursica-brand-dimensions-spacers-lg)',
+            paddingBottom: 'var(--recursica-brand-dimensions-spacers-lg)',
+            paddingLeft: 'var(--recursica-brand-dimensions-spacers-xl)',
+            paddingRight: 'var(--recursica-brand-dimensions-spacers-xl)',
             height: 'auto',
             flexShrink: 0,
             boxShadow: 'none',
@@ -148,10 +148,10 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             borderBottomColor: `var(${layer1Base}-border-color)`,
           }}
         >
-          <Toolbar sx={{ gap: 'var(--recursica-brand-dimensions-spacer-xl)', justifyContent: 'space-between', minHeight: 'auto !important', width: '100%' }}>
+          <Toolbar sx={{ gap: 'var(--recursica-brand-dimensions-spacers-xl)', justifyContent: 'space-between', minHeight: 'auto !important', width: '100%' }}>
             {/* Chunk 1: Logo and Brand */}
             <Box sx={{ minWidth: '220px', display: 'flex', alignItems: 'center' }}>
-              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)', textDecoration: 'none' }}>
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)', textDecoration: 'none' }}>
                 <LogoIcon />
                 <Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                 <Box
@@ -276,13 +276,13 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             })()}
 
           {/* Chunk 3: Action Buttons and Framework Dropdown */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)', marginLeft: 'auto' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)', marginLeft: 'auto' }}>
             <Button
               variant="outline"
               size="small"
               icon={(() => {
                 const RefreshIcon = iconNameToReactComponent('arrow-path')
-                return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={() => {
                 clearOverrides(tokensJson as any)
@@ -294,8 +294,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               variant="outline"
               size="small"
               icon={(() => {
-                const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
-                return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                const UploadIcon = iconNameToReactComponent('arrow-up-tray')
+                return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={() => setIsDialogOpen(true)}
               title="Import / Export CSS Variables"
@@ -304,8 +304,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               variant="outline"
               size="small"
               icon={(() => {
-                const UploadIcon = iconNameToReactComponent('arrow-up-tray')
-                return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icon-default)', height: 'var(--recursica-brand-dimensions-icon-default)' }} /> : null
+                const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
+                return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={handleExport}
               title="Export JSON Files"
@@ -453,9 +453,9 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
       <Dialog open={isDialogOpen} onClose={() => { setIsDialogOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
         <DialogTitle>Import JSON Files</DialogTitle>
         <DialogContent>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacer-md)', minWidth: 400 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-md)', minWidth: 400 }}>
             <div>
-              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-spacer-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
+              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-spacers-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
               <input
                 type="file"
                 accept="application/json,.json"
@@ -464,14 +464,14 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                   onFileSelect(e.currentTarget.files)
                   e.currentTarget.value = ''
                 }}
-                style={{ marginBottom: 'var(--recursica-brand-dimensions-spacer-default)', width: '100%' }}
+                style={{ marginBottom: 'var(--recursica-brand-dimensions-spacers-default)', width: '100%' }}
               />
               {selectedFileNames.length > 0 && (
-                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
+                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-spacers-sm)' }}>
                   Selected: {selectedFileNames.join(', ')}
                 </div>
               )}
-              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-spacer-sm)' }}>
+              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-spacers-sm)' }}>
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>

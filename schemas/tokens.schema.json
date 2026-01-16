@@ -8,11 +8,17 @@
     "tokens": {
       "type": "object",
       "properties": {
-        "color": {
+        "colors": {
           "type": "object",
           "patternProperties": {
-            "^[a-z0-9_-]+$": {
+            "^scale-\\d+$": {
               "type": "object",
+              "required": ["alias"],
+              "properties": {
+                "alias": {
+                  "type": "string"
+                }
+              },
               "patternProperties": {
                 "^\\d{2,4}|000|050|1000$": {
                   "type": "object",
@@ -35,58 +41,39 @@
           },
           "additionalProperties": false
         },
-        "size": {
+        "sizes": {
           "type": "object",
           "patternProperties": {
             "^[a-z0-9_-]+$": {
-              "oneOf": [
-                {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["dimension"]
+                },
+                "$value": {
                   "type": "object",
+                  "required": ["value", "unit"],
                   "properties": {
-                    "$type": {
-                      "type": "string"
-                    },
-                    "$value": {
+                    "value": {
                       "oneOf": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "value": {
-                              "oneOf": [
-                                { "type": "number" },
-                                { "type": "string" }
-                              ]
-                            },
-                            "unit": {
-                              "type": "string"
-                            }
-                          },
-                          "required": ["value"]
-                        }
+                        { "type": "number" },
+                        { "type": "string" }
                       ]
+                    },
+                    "unit": {
+                      "type": "string"
                     }
                   },
-                  "required": ["$type", "$value"],
-                  "additionalProperties": true
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "string"
+                  "additionalProperties": false
                 }
-              ]
+              },
+              "additionalProperties": false
             }
-          },
-          "additionalProperties": true
+          }
         },
-        "opacity": {
+        "opacities": {
           "type": "object",
           "patternProperties": {
             "^[a-z0-9_-]+$": {
@@ -109,7 +96,150 @@
         },
         "font": {
           "type": "object",
-          "additionalProperties": true
+          "properties": {
+            "sizes": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9_-]+$": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["dimension"]
+                    },
+                    "$value": {
+                      "type": "object",
+                      "required": ["value", "unit"],
+                      "properties": {
+                        "value": {
+                          "oneOf": [
+                            { "type": "number" },
+                            { "type": "string" }
+                          ]
+                        },
+                        "unit": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "typefaces": {
+              "type": "object",
+              "required": ["$type"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["fontFamily"]
+                }
+              },
+              "patternProperties": {
+                "^[a-z0-9_-]+$": {
+                  "type": "object",
+                  "required": ["$value"],
+                  "properties": {
+                    "$value": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "letter-spacings": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "weights": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "line-heights": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "cases": {
+              "type": "object",
+              "required": ["original"],
+              "properties": {
+                "original": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["string"]
+                    },
+                    "$value": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "patternProperties": {
+                "^[a-z0-9_-]+$": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["string"]
+                    },
+                    "$value": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "decorations": {
+              "type": "object",
+              "required": ["none"],
+              "properties": {
+                "none": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["string"]
+                    },
+                    "$value": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "patternProperties": {
+                "^[a-z0-9_-]+$": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["string"]
+                    },
+                    "$value": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": true

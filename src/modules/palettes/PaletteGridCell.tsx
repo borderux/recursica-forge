@@ -74,7 +74,7 @@ export function PaletteEmphasisCell({
   }, [])
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const cellRef = useRef<HTMLTableCellElement>(null)
-  const { updateToken } = useVars()
+  const { updateToken, theme, setTheme } = useVars()
   const { mode } = useThemeMode()
   const AA = 4.5
 
@@ -446,6 +446,52 @@ export function PaletteEmphasisCell({
                 }).catch((err) => {
                   console.warn('Failed to cascade color:', err)
                 })
+              }
+              
+              // Update on-tone value in theme JSON for AA compliance
+              if (paletteKey && level && theme && setTheme) {
+                try {
+                  const themeCopy = JSON.parse(JSON.stringify(theme))
+                  const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                  const themes = root?.themes || root
+                  const modeKey = mode.toLowerCase()
+                  const modeLabel = mode === 'light' ? 'Light' : 'Dark'
+                  
+                  if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
+                    // Calculate the correct on-tone value using the same logic as updatePaletteOnTone
+                    const black = '#000000'
+                    const white = '#ffffff'
+                    const cBlack = contrastRatio(hex, black)
+                    const cWhite = contrastRatio(hex, white)
+                    const AA = 4.5
+                    
+                    let chosen: 'black' | 'white'
+                    if (cBlack >= AA && cWhite >= AA) {
+                      chosen = cBlack >= cWhite ? 'black' : 'white'
+                    } else if (cBlack >= AA) {
+                      chosen = 'black'
+                    } else if (cWhite >= AA) {
+                      chosen = 'white'
+                    } else {
+                      chosen = cBlack >= cWhite ? 'black' : 'white'
+                    }
+                    
+                    // Update the on-tone value in theme JSON - use short alias format (no theme path)
+                    if (!themes[modeKey].palettes[paletteKey][level]) {
+                      themes[modeKey].palettes[paletteKey][level] = {}
+                    }
+                    if (!themes[modeKey].palettes[paletteKey][level].color) {
+                      themes[modeKey].palettes[paletteKey][level].color = {}
+                    }
+                    themes[modeKey].palettes[paletteKey][level].color['on-tone'] = {
+                      $value: `{brand.palettes.${chosen}}`
+                    }
+                    
+                    setTheme(themeCopy)
+                  }
+                } catch (err) {
+                  console.error('Failed to update on-tone in theme JSON:', err)
+                }
               }
               
               // Trigger AA compliance re-check

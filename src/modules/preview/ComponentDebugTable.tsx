@@ -405,7 +405,7 @@ export default function ComponentDebugTable({
                   <td style={{
                     padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
                     color: isChanged 
-                      ? `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)`
+                      ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`
                       : `var(${layer0Base}-element-text-color)`,
                     background: isChanged 
                       ? `var(${layer1Base}-surface)`

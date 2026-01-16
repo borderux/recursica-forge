@@ -31,7 +31,20 @@ export default function ButtonPreview({
   const actualLayer = selectedLayer as any
 
   // Get background color for contrast checking
+  // For solid buttons, use the button's background color
+  // For other variants (outline, ghost), use the layer surface color
   const bgColor = useMemo(() => {
+    if (styleVariant === 'solid') {
+      // For solid buttons, use the button's background color
+      const buttonBgVar = getComponentCssVar('Button', 'colors', `${styleVariant}-background`, selectedLayer)
+      const buttonBgValue = readCssVar(buttonBgVar)
+      if (buttonBgValue) {
+        const tokenIndex = buildTokenIndex(tokens || {})
+        return resolveCssVarToHex(buttonBgValue, tokenIndex)
+      }
+    }
+    
+    // For non-solid buttons, use the layer surface color
     const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${selectedLayer.replace('layer-', '')}-property-surface`
     const surfaceValue = readCssVar(surfaceVar)
     if (surfaceValue) {
@@ -39,7 +52,7 @@ export default function ButtonPreview({
       return resolveCssVarToHex(surfaceValue, tokenIndex)
     }
     return null
-  }, [selectedLayer, mode, tokens])
+  }, [selectedLayer, mode, tokens, styleVariant])
 
   // Check contrast for the selected variant
   const contrastWarning = useMemo(() => {

@@ -642,7 +642,7 @@ export default function PropControlContent({
               return (
                 <div 
                   key={groupedPropName}
-                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-md)' : 0 }}
+                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}
                 >
                   {renderControl(correctProp, correctCssVars, correctPrimaryVar, label)}
                 </div>
@@ -738,7 +738,7 @@ export default function PropControlContent({
               return (
                 <div 
                   key={groupedPropName}
-                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-md)' : 0 }}
+                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}
                 >
                   {renderControl(correctProp, correctCssVars, correctPrimaryVar, label)}
                 </div>
@@ -751,7 +751,7 @@ export default function PropControlContent({
           return (
             <div 
               key={groupedPropName}
-              style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-md)' : 0 }}
+              style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}
             >
               {renderControl(groupedProp, cssVars, primaryVar, label)}
             </div>
@@ -794,7 +794,7 @@ export default function PropControlContent({
           />
         )}
         {prop.trackUnselectedProp && trackUnselectedPrimaryVar && (
-          <div style={{ marginTop: prop.trackSelectedProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+          <div style={{ marginTop: prop.trackSelectedProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
             <PaletteColorControl
               targetCssVar={trackUnselectedPrimaryVar}
               targetCssVars={trackUnselectedCssVars.length > 1 ? trackUnselectedCssVars : undefined}
@@ -805,7 +805,7 @@ export default function PropControlContent({
           </div>
         )}
         {trackWidthProp && (
-          <div style={{ marginTop: prop.trackUnselectedProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+          <div style={{ marginTop: prop.trackUnselectedProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(trackWidthProp)
               const primaryVar = cssVars[0] || trackWidthProp.cssVar
@@ -821,7 +821,7 @@ export default function PropControlContent({
           </div>
         )}
         {trackInnerPaddingProp && (
-          <div style={{ marginTop: trackWidthProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+          <div style={{ marginTop: trackWidthProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(trackInnerPaddingProp)
               const primaryVar = cssVars[0] || trackInnerPaddingProp.cssVar
@@ -837,7 +837,7 @@ export default function PropControlContent({
           </div>
         )}
         {trackBorderRadiusProp && (
-          <div style={{ marginTop: trackInnerPaddingProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+          <div style={{ marginTop: trackInnerPaddingProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(trackBorderRadiusProp)
               const primaryVar = cssVars[0] || trackBorderRadiusProp.cssVar
@@ -883,7 +883,7 @@ export default function PropControlContent({
           </>
         )}
         {thumbUnselectedProp && (
-          <div style={{ marginTop: thumbSelectedProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+          <div style={{ marginTop: thumbSelectedProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(thumbUnselectedProp)
               const primaryVar = cssVars[0] || thumbUnselectedProp.cssVar
@@ -899,7 +899,7 @@ export default function PropControlContent({
           </div>
         )}
         {thumbHeightProp && (
-          <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+          <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(thumbHeightProp)
               const primaryVar = cssVars[0] || thumbHeightProp.cssVar
@@ -915,7 +915,7 @@ export default function PropControlContent({
           </div>
         )}
         {thumbWidthProp && (
-          <div style={{ marginTop: thumbHeightProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+          <div style={{ marginTop: thumbHeightProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(thumbWidthProp)
               const primaryVar = cssVars[0] || thumbWidthProp.cssVar
@@ -931,7 +931,7 @@ export default function PropControlContent({
           </div>
         )}
         {thumbBorderRadiusProp && (
-          <div style={{ marginTop: thumbWidthProp ? 'var(--recursica-brand-dimensions-md)' : 0 }}>
+          <div style={{ marginTop: thumbWidthProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(thumbBorderRadiusProp)
               const primaryVar = cssVars[0] || thumbBorderRadiusProp.cssVar

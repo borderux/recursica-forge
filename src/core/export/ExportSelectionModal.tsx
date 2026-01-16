@@ -2,13 +2,14 @@
  * Export Selection Modal Component
  * 
  * Allows users to select which JSON files to export (tokens, brand, uikit)
+ * and optionally export CSS variables as a stylesheet
  */
 
 import { useState } from 'react'
 
 interface ExportSelectionModalProps {
   show: boolean
-  onExport: (files: { tokens: boolean; brand: boolean; uikit: boolean }) => void
+  onExport: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
   onCancel: () => void
 }
 
@@ -17,13 +18,14 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
     tokens: true,
     brand: true,
     uikit: true,
+    css: false,
   })
   
   if (!show) return null
   
   const handleExport = () => {
-    // Ensure at least one file is selected
-    if (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit) {
+    // Ensure at least one file is selected (CSS is independent, so check JSON files)
+    if (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) {
       return
     }
     onExport(selectedFiles)
@@ -64,7 +66,7 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
         </h2>
         
         <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
-          Choose which JSON files you want to export:
+          Choose which files you want to export:
         </p>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
@@ -103,6 +105,18 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
               <strong>uikit.json</strong> - UI Kit component styles
             </span>
           </label>
+          
+          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={selectedFiles.css}
+              onChange={(e) => setSelectedFiles({ ...selectedFiles, css: e.target.checked })}
+              style={{ marginRight: '8px', width: '18px', height: '18px' }}
+            />
+            <span style={{ fontSize: '14px' }}>
+              <strong>recursica-variables.css</strong> - All CSS variables in one stylesheet
+            </span>
+          </label>
         </div>
         
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
@@ -120,14 +134,14 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
           </button>
           <button
             onClick={handleExport}
-            disabled={!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit}
+            disabled={!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css}
             style={{
               padding: '8px 16px',
               border: 'none',
               borderRadius: '4px',
-              backgroundColor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit) ? '#ccc' : '#0066cc',
+              backgroundColor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) ? '#ccc' : '#0066cc',
               color: 'white',
-              cursor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit) ? 'not-allowed' : 'pointer',
+              cursor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) ? 'not-allowed' : 'pointer',
             }}
           >
             Export Selected

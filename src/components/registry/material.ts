@@ -40,5 +40,8 @@ registerComponent('material', 'MenuItem', () => import('../adapters/material/Men
 // Menu
 registerComponent('material', 'Menu', () => import('../adapters/material/Menu/Menu'))
 
+// Slider
+registerComponent('material', 'Slider', () => import('../adapters/material/Slider/Slider'))
+
 // Add more components as they're implemented
 

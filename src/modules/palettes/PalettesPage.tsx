@@ -593,8 +593,8 @@ export default function PalettesPage() {
           }
           
           // Set on-tone to reference white (will be updated by PaletteGrid based on contrast)
-          root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
-            $value: `{brand.${modeKey}.palettes.core-colors.white}`
+          root[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
+            $value: `{brand.palettes.white}`
           }
         })
       }
@@ -756,7 +756,7 @@ export default function PalettesPage() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ margin: 0 }}>Core</h3>
-          <button type="button" onClick={addPalette} disabled={!canAddPalette} style={{ padding: '6px 10px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: canAddPalette ? 'pointer' : 'not-allowed', opacity: canAddPalette ? 1 : `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>Add Palette</button>
+          <button type="button" onClick={addPalette} disabled={!canAddPalette} style={{ padding: '6px 10px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: canAddPalette ? 'pointer' : 'not-allowed', opacity: canAddPalette ? 1 : `var(--recursica-brand-themes-${mode}-state-disabled)` }}>Add Palette</button>
           </div>
 
           <div className="palette-container">
@@ -855,27 +855,27 @@ export default function PalettesPage() {
                   <td>Interactive</td>
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-black-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-white-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-alert-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-warning-tone`}
                   />
                   <CoreInteractiveCell
                     toneCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-tone`}
-                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`}
+                    interactiveCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-interactive-on-tone`}
                     pickerCssVar={`--recursica-brand-themes-${mode}-palettes-core-success-tone`}
                   />
                   <td>

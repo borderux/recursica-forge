@@ -1,8 +1,8 @@
 .icon-picker {
   display: flex;
   flex-direction: column;
-  gap: var(--recursica-brand-dimensions-md);
-  padding: var(--recursica-brand-dimensions-md);
+  gap: var(--recursica-brand-dimensions-spacers-md);
+  padding: var(--recursica-brand-dimensions-spacers-md);
 }
 
 .icon-picker-label {
@@ -13,7 +13,7 @@
 }
 
 .icon-picker-select {
-  padding: var(--recursica-brand-dimensions-sm);
+  padding: var(--recursica-brand-dimensions-spacers-sm);
   border: 1px solid var(--recursica-brand-themes-light-layer-layer-2-property-element-border-color);
   border-radius: var(--recursica-brand-dimensions-border-radius-default);
   font-size: var(--recursica-brand-typography-body-small-font-size);
@@ -32,7 +32,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--recursica-brand-dimensions-sm);
+  padding: var(--recursica-brand-dimensions-spacers-sm);
   background: var(--recursica-brand-themes-light-layer-layer-1-property-surface);
   border-radius: var(--recursica-brand-dimensions-border-radius-default);
   min-height: 40px;

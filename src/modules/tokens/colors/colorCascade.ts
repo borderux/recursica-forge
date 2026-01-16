@@ -19,6 +19,9 @@ export function cascadeColor(
 ): void {
   const parts = tokenName.split('/')
   if (parts.length !== 3) return
+  
+  // Detect whether token uses "color" (singular) or "colors" (plural) format
+  const category = parts[0] // "color" or "colors"
   const family = parts[1]
   const levelStrRaw = parts[2]
   const levelNum = parseLevel(levelStrRaw)
@@ -40,7 +43,8 @@ export function cascadeColor(
       const t = i / span
       const s = clamp(lerp(endS000, baseHsv.s, t), 0, 1)
       const v = clamp(lerp(endV000, baseHsv.v, t), 0, 1)
-      const name = `color/${family}/${String(LEVELS_ASC[i]).padStart(3, '0')}`
+      // Preserve the original category format (color or colors)
+      const name = `${category}/${family}/${String(LEVELS_ASC[i]).padStart(3, '0')}`
       const nextHex = hsvToHex(baseHsv.h, s, v)
       onChange(name, nextHex)
     }
@@ -52,7 +56,8 @@ export function cascadeColor(
       const t = (i - startIdx) / span
       const s = clamp(lerp(baseHsv.s, endS1000, t), 0, 1)
       const v = clamp(lerp(baseHsv.v, endV1000, t), 0, 1)
-      const name = `color/${family}/${String(LEVELS_ASC[i]).padStart(3, '0')}`
+      // Preserve the original category format (color or colors)
+      const name = `${category}/${family}/${String(LEVELS_ASC[i]).padStart(3, '0')}`
       const nextHex = hsvToHex(baseHsv.h, s, v)
       onChange(name, nextHex)
     }
@@ -70,6 +75,8 @@ export function computeLevel500Hex(
 ): string | undefined {
   const parts = tokenName.split('/')
   if (parts.length !== 3) return undefined
+  // Detect whether token uses "color" (singular) or "colors" (plural) format
+  const category = parts[0] // "color" or "colors"
   const family = parts[1]
 
   const normHex = (h: string | undefined) => {
@@ -100,7 +107,8 @@ export function computeLevel500Hex(
     const v = clamp(lerp(baseHsv.v, clamp(Math.max(0.03, baseHsv.v * 0.08), 0, 1), t), 0, 1)
     return hsvToHex(baseHsv.h, s, v)
   } else {
-    const fiveKey = `color/${family}/500`
+    // Preserve the original category format (color or colors)
+    const fiveKey = `${category}/${family}/500`
     return normHex(String(values[fiveKey] as any))
   }
 }

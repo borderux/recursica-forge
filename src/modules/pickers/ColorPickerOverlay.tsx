@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { hexToHsv, hsvToHex, toKebabCase } from '../tokens/colors/colorUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { useVars } from '../vars/VarsContext'
 
 export type ColorPickerOverlayProps = {
   tokenName: string
@@ -41,16 +42,24 @@ export function ColorPickerOverlay({
     if (!overlayEl) return
     const overlayW = overlayEl.offsetWidth || 300
     const overlayH = overlayEl.offsetHeight || 320
+    // Calculate absolute position (relative to document, not viewport)
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop
     const candidates = [
-      { top: swatchRect.top - overlayH, left: swatchRect.left - overlayW },
-      { top: swatchRect.top - overlayH, left: swatchRect.right },
-      { top: swatchRect.bottom, left: swatchRect.left - overlayW },
-      { top: swatchRect.bottom, left: swatchRect.right },
+      { top: swatchRect.top + scrollY - overlayH, left: swatchRect.left + scrollX - overlayW },
+      { top: swatchRect.top + scrollY - overlayH, left: swatchRect.right + scrollX },
+      { top: swatchRect.bottom + scrollY, left: swatchRect.left + scrollX - overlayW },
+      { top: swatchRect.bottom + scrollY, left: swatchRect.right + scrollX },
     ]
-    const fits = (p: { top: number; left: number }) => p.left >= 0 && p.left + overlayW <= window.innerWidth && p.top >= 0 && p.top + overlayH <= window.innerHeight
+    // Check if position fits in viewport (for initial positioning)
+    const fits = (p: { top: number; left: number }) => {
+      const viewportTop = p.top - scrollY
+      const viewportLeft = p.left - scrollX
+      return viewportLeft >= 0 && viewportLeft + overlayW <= window.innerWidth && viewportTop >= 0 && viewportTop + overlayH <= window.innerHeight
+    }
     const chosen = candidates.find(fits) || {
-      top: Math.max(0, Math.min(window.innerHeight - overlayH, swatchRect.top)),
-      left: Math.max(0, Math.min(window.innerWidth - overlayW, swatchRect.left)),
+      top: swatchRect.bottom + scrollY,
+      left: swatchRect.left + scrollX,
     }
     setPos(chosen)
   }, [swatchRect.left, swatchRect.top, swatchRect.right, swatchRect.bottom])
@@ -86,11 +95,59 @@ export function ColorPickerOverlay({
   const thumbTop = `${(1 - hsvState.v) * 100}%`
   const gradientColor = hsvToHex(hsvState.h, 1, 1)
   const { mode } = useThemeMode()
+  const { tokens } = useVars()
+
+  // Extract scale number and level from token name to display "Scale n / level"
+  const scaleDisplayName = useMemo(() => {
+    const parts = tokenName.split('/')
+    if (parts.length !== 3) return tokenName
+    
+    const category = parts[0] // "color" or "colors"
+    const familyOrScale = parts[1] // family alias (e.g., "gray") or scale key (e.g., "scale-06")
+    const level = parts[2] // level (e.g., "700")
+    
+    try {
+      const tokensRoot: any = (tokens as any)?.tokens || {}
+      const colorsRoot: any = tokensRoot?.colors || {}
+      
+      let scaleKey: string | null = null
+      
+      if (familyOrScale.startsWith('scale-')) {
+        // Direct scale reference: colors/scale-06/700
+        scaleKey = familyOrScale
+      } else if (category === 'colors') {
+        // Alias-based reference: colors/gray/700 - find the scale that has this alias
+        scaleKey = Object.keys(colorsRoot).find(key => {
+          if (!key.startsWith('scale-')) return false
+          const scale = colorsRoot[key]
+          return scale && typeof scale === 'object' && scale.alias === familyOrScale
+        }) || null
+      } else if (category === 'color') {
+        // Old format: color/gray/700 - try to find in new structure
+        scaleKey = Object.keys(colorsRoot).find(key => {
+          if (!key.startsWith('scale-')) return false
+          const scale = colorsRoot[key]
+          return scale && typeof scale === 'object' && scale.alias === familyOrScale
+        }) || null
+      }
+      
+      if (scaleKey && scaleKey.startsWith('scale-')) {
+        const match = scaleKey.match(/scale-(\d+)/)
+        if (match) {
+          const scaleNum = parseInt(match[1], 10)
+          return `Scale ${scaleNum} / ${level}`
+        }
+      }
+    } catch {}
+    
+    // Fallback to original display if we can't find scale
+    return tokenName
+  }, [tokenName, tokens])
 
   return createPortal(
     <div
       ref={overlayRef}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 20000, background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, display: 'grid', gap: 10, width: 300 }}
+      style={{ position: 'absolute', top: pos.top, left: pos.left, zIndex: 20000, background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, display: 'grid', gap: 10, width: 300 }}
     >
       <div
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'move' }}
@@ -116,15 +173,7 @@ export function ColorPickerOverlay({
         }}
       >
         <div style={{ fontSize: 12, opacity: 0.8 }}>
-          {(() => {
-            const parts = tokenName.split('/')
-            if (parts.length === 3) {
-              const level = parts[2]
-              const fam = displayFamilyName || parts[1]
-              return `color/${toKebabCase(fam)}/${level}`
-            }
-            return tokenName
-          })()}
+          {scaleDisplayName}
         </div>
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>
@@ -183,7 +232,8 @@ export function ColorPickerOverlay({
         <input type="checkbox" checked={cascadeUp} onChange={(e) => {
           const next = e.currentTarget.checked
           setCascadeUp(next)
-          if (next) onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), cascadeDown, true)
+          // Always call onChange when checkbox state changes to trigger cascade
+          onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), cascadeDown, next)
         }} />
         Cascade colors upward
       </label>
@@ -191,7 +241,8 @@ export function ColorPickerOverlay({
         <input type="checkbox" checked={cascadeDown} onChange={(e) => {
           const next = e.currentTarget.checked
           setCascadeDown(next)
-          if (next) onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), true, cascadeUp)
+          // Always call onChange when checkbox state changes to trigger cascade
+          onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), next, cascadeUp)
         }} />
         Cascade colors downward
       </label>

@@ -5,6 +5,7 @@ import { Avatar } from '../../components/adapters/Avatar'
 import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
+import { Slider } from '../../components/adapters/Slider'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
@@ -597,9 +598,22 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Slider',
       url: `${base}/slider`,
-      render: (_selectedLayers) => (
-        <input type="range" min={0} max={100} defaultValue={25} />
-      ),
+      render: (selectedLayers) => {
+        const layer = selectedLayers.size > 0 
+          ? Array.from(selectedLayers)[0] as string
+          : 'layer-0'
+        
+        return (
+          <Slider
+            value={25}
+            onChange={() => {}}
+            min={0}
+            max={100}
+            layer={layer as any}
+            layout="stacked"
+          />
+        )
+      },
     },
     {
       name: 'Stepper',

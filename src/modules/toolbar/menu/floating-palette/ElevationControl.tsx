@@ -94,7 +94,7 @@ export default function ElevationControl({
               return opt?.label || token.label || token.name
             }}
           />
-          <div style={{ marginTop: 'var(--recursica-brand-dimensions-md)' }}>
+          <div style={{ marginTop: 'var(--recursica-brand-dimensions-spacers-md)' }}>
             <TokenSlider
               label="Track Elevation"
               tokens={elevationOptions.map(opt => ({ name: opt.name, label: opt.label }))}

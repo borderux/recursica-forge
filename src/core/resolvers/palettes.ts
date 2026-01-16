@@ -265,18 +265,16 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       
       const scope = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${pk}-${cssLevel}`
       
-      // Parse tone from JSON - simple brace reference parsing
+      // Parse tone from JSON - use centralized resolver to handle both old and new formats
       let toneVar: string | null = null
       if (toneRaw && typeof toneRaw === 'string') {
-        const parsed = parseTokenReference(toneRaw, context)
-        if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
-          const family = parsed.path[1]
-          const tokenLevel = parsed.path[2] // Use the token level from the JSON, NOT the palette level
-          const level = toLevelString(tokenLevel)
-          toneVar = `var(--recursica-tokens-color-${family}-${level})`
-        } else {
-          // If parsing didn't match token format, try resolving the value to see if it's a valid token reference
-          // This handles edge cases where the reference format might be slightly different
+        // Use resolveTokenReferenceToCssVar to handle both:
+        // - Old format: {tokens.color.family.level} -> --recursica-tokens-color-{family}-{level}
+        // - New format: {tokens.colors.scale-XX.level} -> --recursica-tokens-colors-{scale-XX}-{level}
+        toneVar = resolveTokenReferenceToCssVar(toneRaw, context)
+        
+        // If that didn't work, try resolving to see if it's a valid reference that just resolved to a hex
+        if (!toneVar) {
           try {
             const resolvedValue = resolveTokenReferenceToValue(toneRaw, context)
             if (resolvedValue && typeof resolvedValue === 'string' && resolvedValue.startsWith('#')) {
@@ -490,6 +488,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     if (defaultState?.tone) {
       const toneValue = getColorVar(defaultState.tone)
       vars[`--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-tone`] = toneValue
+      // Generate base variable for backwards compatibility (without -default-tone suffix)
+      vars[`--recursica-brand-themes-${modeLower}-palettes-core-interactive`] = toneValue
     }
     if (defaultState?.['on-tone']) {
       const onToneValue = getColorVar(defaultState['on-tone'])
@@ -521,11 +521,38 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-on-tone`] = onToneValue
       }
       if (colorDef?.interactive) {
-        const interactiveValue = getColorVar(colorDef.interactive)
-        vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive`] = interactiveValue
+        // Handle both old format (interactive as single value) and new format (interactive.on-tone)
+        if (typeof colorDef.interactive === 'object' && !colorDef.interactive.$value && colorDef.interactive['on-tone']) {
+          // New format: interactive.on-tone
+          const interactiveOnToneValue = getColorVar(colorDef.interactive['on-tone'])
+          vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive-on-tone`] = interactiveOnToneValue
+        } else if (typeof colorDef.interactive === 'object' && colorDef.interactive.$value) {
+          // Old format: interactive as single value object { $value: ... }
+          const interactiveValue = getColorVar(colorDef.interactive)
+          vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive`] = interactiveValue
+        } else {
+          // Old format: interactive as direct value
+          const interactiveValue = getColorVar(colorDef.interactive)
+          vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive`] = interactiveValue
+        }
       }
     })
   } catch {}
+  
+  // Add backwards compatibility aliases for old format (without themes in path)
+  // Old format: --recursica-brand-light-palettes-core-...
+  // New format: --recursica-brand-themes-light-palettes-core-...
+  const backwardsCompatVars: Record<string, string> = {}
+  Object.keys(vars).forEach((newVarName) => {
+    if (newVarName.startsWith(`--recursica-brand-themes-${modeLower}-palettes-`)) {
+      const oldVarName = newVarName.replace(`--recursica-brand-themes-${modeLower}-`, `--recursica-brand-${modeLower}-`)
+      // Only add alias if it doesn't already exist (to avoid overwriting)
+      if (!vars[oldVarName] && !backwardsCompatVars[oldVarName]) {
+        backwardsCompatVars[oldVarName] = vars[newVarName]
+      }
+    }
+  })
+  Object.assign(vars, backwardsCompatVars)
   
   return vars
 }

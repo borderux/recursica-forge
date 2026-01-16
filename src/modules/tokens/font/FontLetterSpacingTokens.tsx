@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { StyledSlider } from './StyledSlider'
-import { getFormCssVar } from '../../../components/utils/cssVarNames'
+import { Slider } from '../../../components/adapters/Slider'
 
 type FontLetterSpacingTokensProps = {
   autoScale?: boolean
@@ -13,8 +12,9 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
-      const src: any = (tokensJson as any)?.tokens?.font?.['letter-spacing'] || {}
-      Object.keys(src).forEach((k) => {
+      // Support both plural (letter-spacings) and singular (letter-spacing) for backwards compatibility
+      const src: any = (tokensJson as any)?.tokens?.font?.['letter-spacings'] || (tokensJson as any)?.tokens?.font?.['letter-spacing'] || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `font/letter-spacing/${k}`, value: num })
@@ -50,9 +50,10 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
     // fullName is like 'font/letter-spacing/{short}'
     const short = fullName.replace('font/letter-spacing/','')
     const actual = resolveShortToActual(short)
-    // Read directly from tokensJson
+    // Read directly from tokensJson - support both plural and singular
     try {
-      const v = (tokensJson as any)?.tokens?.font?.['letter-spacing']?.[actual]?.$value
+      const v = (tokensJson as any)?.tokens?.font?.['letter-spacings']?.[actual]?.$value || 
+                (tokensJson as any)?.tokens?.font?.['letter-spacing']?.[actual]?.$value
       const n = typeof v === 'number' ? v : parseFloat(v)
       return Number.isFinite(n) ? n : 0
     } catch {
@@ -95,8 +96,8 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
-      {items.map((it) => {
+    <div style={{ display: 'grid', gap: 0 }}>
+      {items.map((it, index) => {
         const keyName = it.name.replace('font/letter-spacing/','')
         const label = keyName === 'tighest' ? 'Tightest' : toTitle(keyName)
         const current = Number(it.value)
@@ -104,21 +105,27 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
         const isTight = keyName === 'tight'
         const isWide = keyName === 'wide'
         const disabled = scaleByTW && !(isDefault || isTight || isWide)
-        const letterSpacingVar = `--recursica-tokens-font-letter-spacing-${keyName === 'tighest' ? 'tightest' : keyName}`
+        const letterSpacingVar = `--recursica-tokens-font-letter-spacings-${keyName === 'tighest' ? 'tightest' : keyName}`
+        const isLast = index === items.length - 1
         
         return (
           <div key={it.name} style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'auto 1fr auto', 
-            gap: 'var(--recursica-brand-dimensions-spacer-md)',
-            alignItems: 'start',
+            gridTemplateColumns: 'auto 1fr 350px', 
+            gap: 0,
+            alignItems: 'stretch',
           }}>
             <label htmlFor={it.name} style={{ 
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
               minWidth: 80,
-              paddingTop: 'var(--recursica-brand-dimensions-spacer-xs)',
+              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingRight: 0,
+              display: 'flex',
+              alignItems: 'center',
             }}>
               {label}
             </label>
@@ -127,55 +134,48 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
               lineHeight: 1.5,
+              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              display: 'flex',
+              alignItems: 'center',
             }}>
               {exampleText}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacer-default)' }}>
-              <StyledSlider
-                id={it.name}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              gap: 'var(--recursica-brand-dimensions-spacers-default)',
+              borderLeft: `1px solid var(${layer1Base}-border-color)`,
+              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              width: '350px',
+            }}>
+              <Slider
                 min={-2}
                 max={2}
                 step={0.05}
                 disabled={disabled}
                 value={current}
                 onChange={(next) => {
+                  const value = typeof next === 'number' ? next : next[0]
                   if (scaleByTW && (isDefault || isTight || isWide)) {
-                    applyScaled(it.name, next)
+                    applyScaled(it.name, value)
                   } else {
-                    updateToken(it.name, next)
+                    updateToken(it.name, value)
                   }
                 }}
+                layer="layer-0"
+                layout="stacked"
+                showInput={true}
                 style={{ 
                   flex: 1,
                   minWidth: 200,
                   maxWidth: 300,
-                }}
-              />
-              <input
-                type="number"
-                step={0.05}
-                disabled={disabled}
-                value={Number.isFinite(current) ? Number(current.toFixed(2)) : current}
-                onChange={(ev) => {
-                  const next = Number(ev.currentTarget.value)
-                  if (scaleByTW && (isDefault || isTight || isWide)) {
-                    applyScaled(it.name, next)
-                  } else {
-                    updateToken(it.name, next)
-                  }
-                }}
-                style={{ 
-                  width: 60,
-                  height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
-                  paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-                  paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-                  paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-                  paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-                  border: `var(${getFormCssVar('field', 'size', 'border-thickness-default')}) solid var(${getFormCssVar('field', 'color', 'border')})`,
-                  borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
-                  background: `var(${getFormCssVar('field', 'color', 'background')})`,
-                  color: `var(${getFormCssVar('field', 'color', 'text-valued')})`,
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                 }}
               />
             </div>

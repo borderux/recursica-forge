@@ -11,7 +11,7 @@ html[data-theme-mode="dark"] .menu-header-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--recursica-brand-dimensions-spacer-md);
+  padding: var(--recursica-brand-dimensions-spacers-md);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -30,7 +30,7 @@ html[data-theme-mode="dark"] .menu-header:hover {
 .menu-header-content {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacer-sm);
+  gap: var(--recursica-brand-dimensions-spacers-sm);
   flex: 1;
 }
 
@@ -38,12 +38,12 @@ html[data-theme-mode="dark"] .menu-header:hover {
   width: 16px;
   height: 16px;
   color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-medium-emphasis);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-low-emphasis);
 }
 
 html[data-theme-mode="dark"] .menu-header-icon {
   color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-medium-emphasis);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-low-emphasis);
 }
 
 .menu-header-title {
@@ -59,17 +59,17 @@ html[data-theme-mode="dark"] .menu-header-title {
 .menu-header-right {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacer-sm);
+  gap: var(--recursica-brand-dimensions-spacers-sm);
 }
 
 .menu-header-selected-value {
   font-size: 12px;
   color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-medium-emphasis);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-low-emphasis);
 }
 
 html[data-theme-mode="dark"] .menu-header-selected-value {
   color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-medium-emphasis);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-low-emphasis);
 }
 

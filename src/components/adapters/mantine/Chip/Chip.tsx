@@ -135,10 +135,13 @@ export default function Chip({
   ) : undefined
   
   // Merge library-specific props
+  // Note: Mantine Badge doesn't support onClick directly, so use component="button" when onClick is provided
   const mantineProps = {
     size: mantineSize,
     disabled,
     'data-disabled': disabled ? true : undefined,
+    component: onClick && !disabled ? 'button' : undefined,
+    type: onClick && !disabled ? 'button' : undefined,
     onClick: disabled ? undefined : onClick,
     // Use native leftSection prop for icon - wrap in container with explicit sizing
     // Ensure icon is always passed when provided

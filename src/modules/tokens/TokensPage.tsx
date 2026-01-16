@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import OpacityTokens from './opacity/OpacityTokens'
 import SizeTokens from './size/SizeTokens'
-import FontFamiliesTokens, { AddButton as FontAddButton } from './font/FontFamiliesTokens'
+import FontFamiliesTokens from './font/FontFamiliesTokens'
+import { AddButtonWrapper as FontAddButton } from './font/FontFamiliesTokens'
 import FontPropertiesTokens from './font/FontPropertiesTokens'
-import ColorTokens from './colors/ColorTokens'
+import ColorTokens, { AddColorScaleButton } from './colors/ColorTokens'
 import { useThemeMode } from '../theme/ThemeModeContext'
 
 type NavItem = 'color' | 'font' | 'opacity'
@@ -35,51 +36,60 @@ export default function TokensPage() {
       maxWidth: 1400, 
       margin: '0 auto', 
       display: 'grid', 
-      gap: 'var(--recursica-brand-dimensions-spacer-lg)',
-      padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+      gap: 'var(--recursica-brand-dimensions-spacers-lg)',
+      padding: 'var(--recursica-brand-dimensions-spacers-xl)',
     }}>
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        marginBottom: selected === 'font' ? 'var(--recursica-brand-dimensions-spacer-lg)' : 0,
+        marginBottom: selected === 'font' ? 'var(--recursica-brand-dimensions-spacers-lg)' : (selected === 'opacity' ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0),
       }}>
-        <h2 style={{ 
+        <h1 style={{ 
           margin: 0,
-          fontSize: 'var(--recursica-brand-typography-h5-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
+          fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h1-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
           color: `var(${layer0Base}-element-text-color)`,
           opacity: `var(${layer0Base}-element-text-high-emphasis)`,
         }}>
           {selected === 'color' && 'Color'}
           {selected === 'font' && 'Font'}
           {selected === 'opacity' && 'Opacity & Size'}
-        </h2>
+        </h1>
+        {selected === 'color' && <AddColorScaleButton />}
         {selected === 'font' && <FontAddButton />}
       </div>
-      <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-md)' }}>
+      <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
         {selected === 'color' && <ColorTokens />}
         {selected === 'font' && (
-          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
+          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
             <FontFamiliesTokens />
             <FontPropertiesTokens />
           </div>
         )}
         {selected === 'opacity' && (
-          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacer-lg)' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr 1fr',
+            gap: 'var(--recursica-brand-dimensions-spacers-lg)',
+            alignItems: 'start',
+          }}>
             <section style={{ 
               background: `var(${layer0Base}-surface)`, 
-              border: `1px solid var(${layer1Base}-border-color)`, 
-              borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
-              padding: 'var(--recursica-brand-dimensions-spacer-md)' 
+              border: `1px solid var(${layer1Base}-border-color)`,
+              borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)', 
+              padding: 'var(--recursica-brand-dimensions-spacers-xl)',
             }}>
               <OpacityTokens />
             </section>
             <section style={{ 
               background: `var(${layer0Base}-surface)`, 
-              border: `1px solid var(${layer1Base}-border-color)`, 
-              borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
-              padding: 'var(--recursica-brand-dimensions-spacer-md)' 
+              border: `1px solid var(${layer1Base}-border-color)`,
+              borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)', 
+              padding: 'var(--recursica-brand-dimensions-spacers-xl)',
             }}>
               <SizeTokens />
             </section>

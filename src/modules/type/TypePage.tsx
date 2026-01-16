@@ -77,7 +77,7 @@ export function TypePage() {
           alignItems: 'center', 
           gap: 12, 
           cursor: 'pointer',
-          boxShadow: selectedElevation || `var(--recursica-brand-themes-${mode}-layer-layer-1-property-elevation)`,
+          boxShadow: selectedElevation || `var(--recursica-brand-themes-${mode}-elevations-elevation-1-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-1-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-1-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-1-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-1-shadow-color, rgba(0, 0, 0, 0))`,
         }}
       >
         <input type="checkbox" checked={isSelected} onClick={(e) => e.stopPropagation()} onChange={(e) => onToggle((e.target as HTMLInputElement).checked)} aria-label="Select type sample" />

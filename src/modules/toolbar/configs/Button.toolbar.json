@@ -66,11 +66,6 @@
         }
       }
     },
-    "font-size": {
-      "icon": "text-aa",
-      "label": "Font Size",
-      "visible": true
-    },
     "height": {
       "icon": "arrows-up-down",
       "label": "Height",

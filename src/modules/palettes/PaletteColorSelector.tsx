@@ -159,9 +159,32 @@ export default function PaletteColorSelector({
           const tokenIndex = buildTokenIndex(tokensJson)
           const context: TokenReferenceContext = { currentMode: 'light', tokenIndex }
           const parsed = parseTokenReference(toneRaw, context)
-          if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
-            // Extract family name from token path (e.g., color/gray/100 -> gray)
-            const familyName = parsed.path[1]
+          if (parsed && parsed.type === 'token') {
+            let familyName: string | null = null
+            
+            // Handle new colors format (colors.scale-XX.level or colors.alias.level)
+            if (parsed.path.length >= 2 && parsed.path[0] === 'colors') {
+              const scaleOrAlias = parsed.path[1]
+              // If it's a scale key, find the alias
+              if (scaleOrAlias.startsWith('scale-')) {
+                const tokensRoot: any = (tokensJson as any)?.tokens || {}
+                const colorsRoot: any = tokensRoot?.colors || {}
+                const scale = colorsRoot?.[scaleOrAlias]
+                if (scale && typeof scale === 'object' && scale.alias) {
+                  familyName = scale.alias
+                } else {
+                  familyName = scaleOrAlias // Fallback to scale key if no alias
+                }
+              } else {
+                // It's already an alias
+                familyName = scaleOrAlias
+              }
+            } 
+            // Handle old color format (color.family.level)
+            else if (parsed.path.length >= 2 && parsed.path[0] === 'color') {
+              familyName = parsed.path[1]
+            }
+            
             if (familyName) {
               usedBy[pk] = familyName
               break // Found family for this palette, move to next
@@ -176,20 +199,52 @@ export default function PaletteColorSelector({
 
   // Get available color families
   const allFamilies = useMemo(() => {
-    const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))
+    const fams = new Set<string>()
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    
+    // Add families from new colors structure (use scale keys, not aliases, for internal tracking)
+    const colorsRoot: any = tokensRoot?.colors || {}
+    if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+      Object.keys(colorsRoot).forEach((scaleKey) => {
+        if (scaleKey.startsWith('scale-')) {
+          fams.add(scaleKey) // Use scale key for internal tracking
+        }
+      })
+    }
+    
+    // Also add from old color structure for backwards compatibility
+    const oldColors = tokensRoot?.color || {}
+    Object.keys(oldColors).forEach((fam) => {
+      if (fam !== 'translucent') fams.add(fam)
+    })
+    
+    // Add from overrides
     try {
       const overrides = readOverrides() as Record<string, any>
       Object.keys(overrides || {}).forEach((name) => {
         if (typeof name !== 'string') return
-        if (!name.startsWith('color/')) return
-        const parts = name.split('/')
-        const fam = parts[1]
-        if (fam && fam !== 'translucent') fams.add(fam)
+        if (name.startsWith('color/')) {
+          const parts = name.split('/')
+          const fam = parts[1]
+          if (fam && fam !== 'translucent') fams.add(fam)
+        } else if (name.startsWith('colors/')) {
+          const parts = name.split('/')
+          const scaleOrAlias = parts[1]
+          if (scaleOrAlias && scaleOrAlias.startsWith('scale-')) {
+            fams.add(scaleOrAlias)
+          }
+        }
       })
     } catch {}
+    
     fams.delete('translucent')
     const list = Array.from(fams)
     list.sort((a, b) => {
+      // Sort scale keys together, then other families
+      const aIsScale = a.startsWith('scale-')
+      const bIsScale = b.startsWith('scale-')
+      if (aIsScale && !bIsScale) return 1
+      if (!aIsScale && bIsScale) return -1
       if (a === 'gray' && b !== 'gray') return -1
       if (b === 'gray' && a !== 'gray') return 1
       return a.localeCompare(b)
@@ -215,20 +270,61 @@ export default function PaletteColorSelector({
   // Get token value by name - memoize to prevent unnecessary recalculations
   const getTokenValueByName = useCallback((tokenName: string): string | number | undefined => {
     const parts = tokenName.split('/')
+    const overrideMap = readOverrides()
+    
+    // Check overrides first
+    if ((overrideMap as any)[tokenName]) return (overrideMap as any)[tokenName]
+    
+    // Handle new format: colors/scale-XX/level or colors/alias/level
+    if (parts[0] === 'colors' && parts.length >= 3) {
+      const scaleOrAlias = parts[1]
+      const level = parts[2]
+      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+      const colorsRoot: any = tokensRoot?.colors || {}
+      
+      // If it's a scale key (starts with "scale-"), get directly
+      if (scaleOrAlias.startsWith('scale-')) {
+        return colorsRoot?.[scaleOrAlias]?.[level]?.$value
+      } else {
+        // It's an alias - find the scale that has this alias
+        for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+          if (!scaleKey.startsWith('scale-')) continue
+          const scaleObj = scale as any
+          if (scaleObj?.alias === scaleOrAlias) {
+            return scaleObj?.[level]?.$value
+          }
+        }
+      }
+    }
+    
+    // Handle old format: color/family/level
     if (parts[0] === 'color' && parts.length >= 3) {
       const family = parts[1]
       const level = parts[2]
-      const overrideMap = readOverrides()
-      if ((overrideMap as any)[tokenName]) return (overrideMap as any)[tokenName]
       return (tokensJson as any)?.tokens?.color?.[family]?.[level]?.$value
     }
+    
     return undefined
   }, [tokensJson, overrideVersion])
 
   // Detect current family from theme (use the already computed familiesUsedByPalettes)
+  // Convert scale keys to aliases for display
   const detectFamilyFromTheme = useMemo(() => {
-    return familiesUsedByPalettes[paletteKey] || null
-  }, [familiesUsedByPalettes, paletteKey])
+    const detected = familiesUsedByPalettes[paletteKey]
+    if (!detected) return null
+    
+    // If it's a scale key, find the alias
+    if (detected.startsWith('scale-')) {
+      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+      const colorsRoot: any = tokensRoot?.colors || {}
+      const scale = colorsRoot?.[detected]
+      if (scale && typeof scale === 'object' && scale.alias) {
+        return scale.alias
+      }
+    }
+    
+    return detected
+  }, [familiesUsedByPalettes, paletteKey, tokensJson])
 
   const [selectedFamily, setSelectedFamily] = useState<string>(() => {
     const detected = detectFamilyFromTheme
@@ -443,8 +539,11 @@ export default function PaletteColorSelector({
               }
               
               if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
-              root[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
-                $value: `{brand.${modeKey}.palettes.core-colors.${onToneCore}}`
+              if (!root[modeKey].palettes[paletteKey][lvl].color) {
+                root[modeKey].palettes[paletteKey][lvl].color = {}
+              }
+              root[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
+                $value: `{brand.palettes.${onToneCore}}`
               }
             }
           })
@@ -511,9 +610,36 @@ export default function PaletteColorSelector({
     const rootEl = document.documentElement
     const modeLower = mode.toLowerCase()
     headerLevels.forEach((lvl) => {
-      // Get the actual token level from Brand.json (not the palette level)
-      const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
-      const tokenName = `color/${selectedFamily}/${tokenLevel}`
+      // Use palette level directly (getTokenLevelForPaletteLevel is only for reading existing mappings)
+      const tokenLevel = lvl
+      
+      // Determine the correct token name format based on family type
+      let tokenName: string
+      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+      const colorsRoot: any = tokensRoot?.colors || {}
+      
+      if (selectedFamily.startsWith('scale-')) {
+        // Direct scale reference: use colors format
+        tokenName = `colors/${selectedFamily}/${tokenLevel}`
+      } else {
+        // Check if it's an alias that maps to a scale
+        let isScaleAlias = false
+        for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+          if (!scaleKey.startsWith('scale-')) continue
+          const scaleObj = scale as any
+          if (scaleObj?.alias === selectedFamily) {
+            // Use the scale key for the token name
+            tokenName = `colors/${scaleKey}/${tokenLevel}`
+            isScaleAlias = true
+            break
+          }
+        }
+        if (!isScaleAlias) {
+          // Fallback to old color format
+          tokenName = `color/${selectedFamily}/${tokenLevel}`
+        }
+      }
+      
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
         // Set tone CSS variable - only for this specific palette
@@ -558,32 +684,42 @@ export default function PaletteColorSelector({
           if (!targetRoot[modeKey].palettes[paletteKey][lvl]) targetRoot[modeKey].palettes[paletteKey][lvl] = {}
           if (!targetRoot[modeKey].palettes[paletteKey][lvl].color) targetRoot[modeKey].palettes[paletteKey][lvl].color = {}
           
-          // Get the actual token level from Brand.json (preserve the mapping, e.g., 1000 -> 050 for dark mode)
-          // For the current mode, use getTokenLevelForPaletteLevel; for other mode, read from theme index
-          let tokenLevel = lvl
-          if (modeKey === mode.toLowerCase()) {
-            tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
+          // When switching families, use the palette level directly (don't preserve old family's mapping)
+          // The new family should have the same level structure
+          const tokenLevel = lvl
+          
+          // Determine the correct token reference format based on family type
+          // If family is a scale key (starts with "scale-"), use colors format
+          // Otherwise, check if it's an alias that maps to a scale, or use old color format
+          let tokenRef: string
+          const tokensRoot: any = (tokensJson as any)?.tokens || {}
+          const colorsRoot: any = tokensRoot?.colors || {}
+          
+          if (family.startsWith('scale-')) {
+            // Direct scale reference: use colors format
+            tokenRef = `{tokens.colors.${family}.${tokenLevel}}`
           } else {
-            // For other mode, read from theme index
-            const otherModeLabel = modeKey === 'light' ? 'Light' : 'Dark'
-            const toneName = `palette/${paletteKey}/${lvl}/color/tone`
-            const toneRaw = themeIndex[`${otherModeLabel}::${toneName}`]?.value
-            if (typeof toneRaw === 'string') {
-              const context: TokenReferenceContext = {
-                currentMode: otherModeLabel.toLowerCase() as 'light' | 'dark',
-                tokenIndex: buildTokenIndex(tokensJson),
-                theme: themeJson
+            // Check if it's an alias that maps to a scale
+            let isScaleAlias = false
+            for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+              if (!scaleKey.startsWith('scale-')) continue
+              const scaleObj = scale as any
+              if (scaleObj?.alias === family) {
+                // Use the scale key for the reference
+                tokenRef = `{tokens.colors.${scaleKey}.${tokenLevel}}`
+                isScaleAlias = true
+                break
               }
-              const parsed = parseTokenReference(toneRaw, context)
-              if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
-                tokenLevel = parsed.path[2]
-              }
+            }
+            if (!isScaleAlias) {
+              // Fallback to old color format
+              tokenRef = `{tokens.color.${family}.${tokenLevel}}`
             }
           }
           
-          // Update tone to reference the new family token (using the correct token level)
+          // Update tone to reference the new family token
           targetRoot[modeKey].palettes[paletteKey][lvl].color.tone = {
-            $value: `{tokens.color.${family}.${tokenLevel}}`
+            $value: tokenRef
           }
           
           // Determine on-tone color considering opacity for AA compliance
@@ -592,10 +728,9 @@ export default function PaletteColorSelector({
           if (typeof hex === 'string') {
             const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
             // Update on-tone to reference the correct core color (white or black)
-            // Use themes structure in reference if available
-            const refPrefix = themes !== root ? 'brand.themes' : 'brand'
+            // Use short alias format (no theme path)
             targetRoot[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
-              $value: `{${refPrefix}.${modeKey}.palettes.core-colors.${onToneCore}}`
+              $value: `{brand.palettes.${onToneCore}}`
             }
           }
         })
@@ -605,9 +740,36 @@ export default function PaletteColorSelector({
       // This ensures CSS vars are set before theme update triggers re-renders
       const modeLower = mode.toLowerCase()
       headerLevels.forEach((lvl) => {
-        // Get the actual token level from Brand.json (not the palette level)
-        const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
-        const tokenName = `color/${family}/${tokenLevel}`
+        // Use palette level directly when switching families (don't use old family's mapping)
+        const tokenLevel = lvl
+        
+        // Determine the correct token name format based on family type
+        let tokenName: string
+        const tokensRoot: any = (tokensJson as any)?.tokens || {}
+        const colorsRoot: any = tokensRoot?.colors || {}
+        
+        if (family.startsWith('scale-')) {
+          // Direct scale reference: use colors format
+          tokenName = `colors/${family}/${tokenLevel}`
+        } else {
+          // Check if it's an alias that maps to a scale
+          let isScaleAlias = false
+          for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+            if (!scaleKey.startsWith('scale-')) continue
+            const scaleObj = scale as any
+            if (scaleObj?.alias === family) {
+              // Use the scale key for the token name
+              tokenName = `colors/${scaleKey}/${tokenLevel}`
+              isScaleAlias = true
+              break
+            }
+          }
+          if (!isScaleAlias) {
+            // Fallback to old color format
+            tokenName = `color/${family}/${tokenLevel}`
+          }
+        }
+        
         const hex = getTokenValueByName(tokenName)
         if (typeof hex === 'string') {
           // Set tone CSS variable - only for this specific palette
@@ -648,15 +810,69 @@ export default function PaletteColorSelector({
     }
   }
 
+  // Helper to get alias name and 500 tone color for a family/scale
+  const getFamilyInfo = useCallback((fam: string): { alias: string; primaryHex: string | undefined } => {
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
+    const overrideMap = readOverrides()
+    const level500 = '500' // Always use 500 tone for the swatch
+    
+    // Check if it's a scale key (starts with "scale-")
+    if (fam.startsWith('scale-')) {
+      const scale = colorsRoot?.[fam]
+      if (scale && typeof scale === 'object') {
+        const alias = scale.alias || fam
+        // Try to get 500 tone color from overrides first
+        const overrideTokenName = `colors/${fam}/${level500}`
+        const overrideValue = (overrideMap as any)[overrideTokenName]
+        if (overrideValue && typeof overrideValue === 'string' && /^#?[0-9a-f]{6}$/i.test(overrideValue)) {
+          return { alias, primaryHex: (overrideValue.startsWith('#') ? overrideValue : `#${overrideValue}`).toLowerCase() }
+        }
+        // Get 500 tone color from the scale
+        const tone500Value = scale[level500]?.$value || scale[level500]
+        const primaryHex = typeof tone500Value === 'string' && /^#?[0-9a-f]{6}$/i.test(tone500Value)
+          ? (tone500Value.startsWith('#') ? tone500Value : `#${tone500Value}`).toLowerCase()
+          : getTokenValueByName(`colors/${fam}/${level500}`) as string | undefined
+        return { alias, primaryHex }
+      }
+    } else {
+      // It's an alias or old format family - find the scale that has this alias
+      for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+        if (!scaleKey.startsWith('scale-')) continue
+        const scaleObj = scale as any
+        if (scaleObj?.alias === fam) {
+          // Try to get 500 tone color from overrides first
+          const overrideTokenName = `colors/${scaleKey}/${level500}`
+          const overrideValue = (overrideMap as any)[overrideTokenName]
+          if (overrideValue && typeof overrideValue === 'string' && /^#?[0-9a-f]{6}$/i.test(overrideValue)) {
+            return { alias: fam, primaryHex: (overrideValue.startsWith('#') ? overrideValue : `#${overrideValue}`).toLowerCase() }
+          }
+          const tone500Value = scaleObj[level500]?.$value || scaleObj[level500]
+          const primaryHex = typeof tone500Value === 'string' && /^#?[0-9a-f]{6}$/i.test(tone500Value)
+            ? (tone500Value.startsWith('#') ? tone500Value : `#${tone500Value}`).toLowerCase()
+            : getTokenValueByName(`colors/${scaleKey}/${level500}`) as string | undefined
+          return { alias: fam, primaryHex }
+        }
+      }
+    }
+    
+    // Fallback to old structure
+    const overrideTokenName = `color/${fam}/${level500}`
+    const overrideValue = (overrideMap as any)[overrideTokenName]
+    if (overrideValue && typeof overrideValue === 'string' && /^#?[0-9a-f]{6}$/i.test(overrideValue)) {
+      return { alias: fam, primaryHex: (overrideValue.startsWith('#') ? overrideValue : `#${overrideValue}`).toLowerCase() }
+    }
+    const primaryHex = getTokenValueByName(`color/${fam}/${level500}`) as string | undefined
+    return { alias: fam, primaryHex }
+  }, [tokensJson, getTokenValueByName])
+
   return (
     <FamilyDropdown
       paletteKey={paletteKey}
       families={families}
       selectedFamily={selectedFamily}
       onSelect={handleFamilySelect}
-      getSwatchHex={(fam) => {
-        return getTokenValueByName(`color/${fam}/${primaryLevel}`) as string | undefined
-      }}
+      getFamilyInfo={getFamilyInfo}
     />
   )
 }
@@ -667,13 +883,13 @@ function FamilyDropdown({
   families,
   selectedFamily,
   onSelect,
-  getSwatchHex,
+  getFamilyInfo,
 }: {
   paletteKey: string
   families: string[]
   selectedFamily: string
   onSelect: (fam: string) => void
-  getSwatchHex: (fam: string) => string | undefined
+  getFamilyInfo: (fam: string) => { alias: string; primaryHex: string | undefined }
 }) {
   const { mode } = useThemeMode()
   const [open, setOpen] = useState(false)
@@ -730,13 +946,14 @@ function FamilyDropdown({
         const map = raw ? JSON.parse(raw || '{}') || {} : {}
         let changed = false
         for (const fam of families) {
-          if (map[fam]) continue
-          const hex = getSwatchHex(fam)
-          if (typeof hex === 'string' && /^#?[0-9a-fA-F]{6}$/.test(hex.trim())) {
-            const normalized = hex.startsWith('#') ? hex : `#${hex}`
+          const { alias, primaryHex } = getFamilyInfo(fam)
+          // Use alias as the key for friendly names
+          if (map[alias]) continue
+          if (typeof primaryHex === 'string' && /^#?[0-9a-fA-F]{6}$/.test(primaryHex.trim())) {
+            const normalized = primaryHex.startsWith('#') ? primaryHex : `#${primaryHex}`
             const label = await getNtcName(normalized)
             if (label && label.trim()) {
-              map[fam] = label.trim()
+              map[alias] = label.trim()
               changed = true
             }
           }
@@ -748,23 +965,25 @@ function FamilyDropdown({
         }
       } catch {}
     })()
-  }, [families, getSwatchHex])
+  }, [families, getFamilyInfo])
   
   const titleCase = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
   
   const getFriendlyName = (family: string): string => {
+    const { alias } = getFamilyInfo(family)
     try {
       const raw = localStorage.getItem('family-friendly-names')
       if (raw) {
         const map = JSON.parse(raw)
-        const v = map?.[family]
+        const v = map?.[alias]
         if (typeof v === 'string' && v.trim()) return v
       }
     } catch {}
-    return titleCase(family)
+    return titleCase(alias)
   }
   
-  const currentHex = getSwatchHex(selectedFamily)
+  const selectedInfo = getFamilyInfo(selectedFamily)
+  const currentHex = selectedInfo.primaryHex
   
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-token-version={tokenVersion}>
@@ -786,14 +1005,14 @@ function FamilyDropdown({
           <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1200, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: `var(--recursica-brand-${mode.toLowerCase()}-elevations-elevation-3-shadow-color)`, padding: 6, minWidth: 200 }}>
             <div style={{ maxHeight: 280, overflow: 'auto', display: 'grid' }}>
               {families.map((fam) => {
-                const hex = getSwatchHex(fam)
+                const { alias, primaryHex } = getFamilyInfo(fam)
                 return (
                   <button
                     key={fam}
                     onClick={() => { onSelect(fam); setOpen(false) }}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}
                   >
-                    <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: hex || 'transparent' }} />
+                    <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: primaryHex || 'transparent' }} />
                     <span>{getFriendlyName(fam)}</span>
                   </button>
                 )

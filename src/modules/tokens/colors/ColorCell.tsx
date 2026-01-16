@@ -1,4 +1,5 @@
 import { ColorPickerOverlay } from '../../pickers/ColorPickerOverlay'
+import { tokenToCssVar } from '../../../core/css/tokenRefs'
 
 export type ColorCellProps = {
   tokenName: string | undefined
@@ -40,8 +41,17 @@ export function ColorCell({
   const activeShadow = isActive ? (isDark ? 'inset 0 0 0 2px rgba(255,255,255,0.8)' : isLight ? 'inset 0 0 0 2px rgba(0,0,0,0.8)' : undefined) : undefined
   const boxShadow = activeShadow || hoverShadow || undefined
 
-  // Convert token name (e.g., "color/gray/100") to CSS variable (e.g., "--recursica-tokens-color-gray-100")
-  const cssVar = tokenName ? `--recursica-tokens-${tokenName.replace(/\//g, '-')}` : null
+  // Convert token name (e.g., "color/gray/100" or "colors/cornflower/100") to CSS variable
+  // Use tokenToCssVar to handle both old and new formats properly
+  const cssVar = tokenName ? (() => {
+    const cssVarRef = tokenToCssVar(tokenName)
+    if (cssVarRef) {
+      // Extract CSS var name from var(--name) format
+      return cssVarRef.replace(/^var\s*\(\s*|\)\s*$/g, '')
+    }
+    // Fallback to simple conversion
+    return `--recursica-tokens-${tokenName.replace(/\//g, '-')}`
+  })() : null
 
   return (
     <div>

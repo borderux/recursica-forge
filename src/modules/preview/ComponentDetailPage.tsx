@@ -13,6 +13,7 @@ import LabelPreview from '../components/LabelPreview'
 import BreadcrumbPreview from '../components/BreadcrumbPreview'
 import MenuItemPreview from '../components/MenuItemPreview'
 import MenuPreview from '../components/MenuPreview'
+import SliderPreview from '../components/SliderPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -190,7 +191,7 @@ export default function ComponentDetailPage() {
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+        padding: 'var(--recursica-brand-dimensions-spacers-xl)',
         borderBottom: `1px solid var(${layer1Base}-border-color)`,
         flexShrink: 0,
       }}>
@@ -212,11 +213,11 @@ export default function ComponentDetailPage() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--recursica-brand-dimensions-spacer-sm)',
-            padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
+            gap: 'var(--recursica-brand-dimensions-spacers-sm)',
+            padding: 'var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md)',
             borderRadius: '999px',
-            border: `1px solid var(--recursica-brand-${mode}-palettes-core-interactive)`,
-            color: `var(--recursica-brand-${mode}-palettes-core-interactive)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
+            color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
             textDecoration: 'none',
             fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
             transition: 'opacity 0.2s',
@@ -248,7 +249,7 @@ export default function ComponentDetailPage() {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+          padding: 'var(--recursica-brand-dimensions-spacers-xl)',
           minWidth: 0,
           minHeight: debugMode ? undefined : 0,
         }}>
@@ -259,7 +260,7 @@ export default function ComponentDetailPage() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 'var(--recursica-brand-dimensions-spacer-md)',
+            gap: 'var(--recursica-brand-dimensions-spacers-md)',
             background: `var(${baseLayerBase}-surface)`,
             padding: `var(${baseLayerBase}-padding)`,
             border: layerNum !== '0' 
@@ -329,6 +330,12 @@ export default function ComponentDetailPage() {
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}
                 />
+              ) : component.name === 'Slider' ? (
+                <SliderPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
               ) : (
                 <div style={{
                   minHeight: 200,
@@ -381,7 +388,7 @@ export default function ComponentDetailPage() {
       {/* Debug Table - Show when debug mode is enabled, below preview and toolbar */}
       {debugMode && component && openPropControl && (
         <div style={{
-          padding: 'var(--recursica-brand-dimensions-spacer-xl)',
+          padding: 'var(--recursica-brand-dimensions-spacers-xl)',
           borderTop: `1px solid var(${layer1Base}-border-color)`,
         }}>
           <ComponentDebugTable 

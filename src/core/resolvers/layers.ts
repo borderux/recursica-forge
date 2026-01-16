@@ -284,6 +284,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     const surf = resolveRef(surfRaw)
     const padRaw = spec?.properties?.padding
     const padSizeKey = parseSizeTokenRef(padRaw)
+    const padVarRef = coerceToVarRef(padRaw) // Handle {brand.dimensions.spacers.xxx} references
     const pad = resolveRef(padRaw)
     // Preserve only var references for border color; avoid emitting hex
     // Extract border color value - handle both direct values and $value wrapper
@@ -297,6 +298,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     const bth = resolveRef(bthRaw)
     const bradRaw = spec?.properties?.['border-radius']
     const bradSizeKey = parseSizeTokenRef(bradRaw)
+    const bradVarRef = coerceToVarRef(bradRaw) // Handle {brand.dimensions.border-radius.xxx} references
     const brad = resolveRef(bradRaw)
     if (surfPalette) {
       // Use palette tone var directly (no CSS var reading during resolution)
@@ -347,7 +349,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       } catch {}
       return null
     }
-    if (padSizeKey) {
+    if (padVarRef) {
+      // Handle brand dimension references like {brand.dimensions.spacers.sm}
+      result[`${brandBase}padding`] = padVarRef
+    } else if (padSizeKey) {
       result[`${brandBase}padding`] = `var(--recursica-tokens-size-${padSizeKey})`
     } else if (pad != null) {
       const mapped = pickSizeTokenByNumeric(pad)
@@ -363,7 +368,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       // Border thickness should always use direct pixel values, not tokens
       const v = toCssValue(bth, 'px')!; result[`${brandBase}border-thickness`] = v
     }
-    if (bradSizeKey) {
+    if (bradVarRef) {
+      // Handle brand dimension references like {brand.dimensions.border-radius.md}
+      result[`${brandBase}border-radius`] = bradVarRef
+    } else if (bradSizeKey) {
       result[`${brandBase}border-radius`] = `var(--recursica-tokens-size-${bradSizeKey})`
     } else if (brad != null) {
       const mapped = pickSizeTokenByNumeric(brad)
@@ -634,6 +642,19 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
   ;['0','1','2','3','4'].forEach((lvl) => {
     const key = `layer-${lvl}`
     if (layersData && Object.prototype.hasOwnProperty.call(layersData, key)) applyForLayer(layersData[key], lvl)
+  })
+
+  // Add backwards compatibility aliases for old format (without themes in path)
+  // Old format: --recursica-brand-light-layer-layer-0-property-...
+  // New format: --recursica-brand-themes-light-layer-layer-0-property-...
+  Object.keys(result).forEach((newVarName) => {
+    if (newVarName.startsWith(`--recursica-brand-themes-${mode}-layer-layer-`)) {
+      const oldVarName = newVarName.replace(`--recursica-brand-themes-${mode}-`, `--recursica-brand-${mode}-`)
+      // Only add alias if it doesn't already exist (to avoid overwriting)
+      if (!result[oldVarName]) {
+        result[oldVarName] = result[newVarName]
+      }
+    }
   })
 
   // Report layers missing palette surface references (silently via event only)

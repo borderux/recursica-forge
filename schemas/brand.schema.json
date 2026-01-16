@@ -25,7 +25,7 @@
         "dimensions": {
           "$ref": "#/definitions/dimensions"
         },
-        "layout-grid": {
+        "layout-grids": {
           "type": "object"
         },
         "typography": {
@@ -317,12 +317,6 @@
             },
             "neutral": {
               "$ref": "#/definitions/palette"
-            },
-            "palette-1": {
-              "$ref": "#/definitions/palette"
-            },
-            "palette-2": {
-              "$ref": "#/definitions/palette"
             }
           },
           "patternProperties": {
@@ -442,6 +436,10 @@
                 "$value": {
                   "type": "string"
                 },
+                "$type": {
+                  "type": "string",
+                  "enum": ["color"]
+                },
                 "color": false
               },
               "required": ["$value"],
@@ -477,12 +475,20 @@
     "dimensions": {
       "type": "object",
       "properties": {
-        "lg": { "$ref": "#/definitions/dimensionValue" },
-        "md": { "$ref": "#/definitions/dimensionValue" },
-        "sm": { "$ref": "#/definitions/dimensionValue" },
-        "default": { "$ref": "#/definitions/dimensionValue" },
-        "xl": { "$ref": "#/definitions/dimensionValue" },
-        "icon": {
+        "general": {
+          "type": "object",
+          "properties": {
+            "lg": { "$ref": "#/definitions/dimensionValue" },
+            "md": { "$ref": "#/definitions/dimensionValue" },
+            "sm": { "$ref": "#/definitions/dimensionValue" },
+            "default": { "$ref": "#/definitions/dimensionValue" },
+            "xl": { "$ref": "#/definitions/dimensionValue" },
+            "2xl": { "$ref": "#/definitions/dimensionValue" },
+            "none": { "$ref": "#/definitions/dimensionValue" }
+          },
+          "additionalProperties": false
+        },
+        "icons": {
           "type": "object",
           "properties": {
             "sm": { "$ref": "#/definitions/dimensionValue" },
@@ -492,7 +498,7 @@
           },
           "additionalProperties": false
         },
-        "gutter": {
+        "gutters": {
           "type": "object",
           "properties": {
             "horizontal": { "$ref": "#/definitions/dimensionValue" },
@@ -500,25 +506,28 @@
           },
           "additionalProperties": false
         },
-        "border-radius": {
+        "border-radii": {
           "type": "object",
           "properties": {
             "xl": { "$ref": "#/definitions/dimensionValue" },
             "none": { "$ref": "#/definitions/dimensionValue" },
             "sm": { "$ref": "#/definitions/dimensionValue" },
             "default": { "$ref": "#/definitions/dimensionValue" },
-            "lg": { "$ref": "#/definitions/dimensionValue" }
+            "lg": { "$ref": "#/definitions/dimensionValue" },
+            "2xl": { "$ref": "#/definitions/dimensionValue" }
           },
           "additionalProperties": false
         },
-        "spacer": {
+        "spacers": {
           "type": "object",
           "properties": {
             "lg": { "$ref": "#/definitions/dimensionValue" },
             "xl": { "$ref": "#/definitions/dimensionValue" },
             "sm": { "$ref": "#/definitions/dimensionValue" },
             "default": { "$ref": "#/definitions/dimensionValue" },
-            "md": { "$ref": "#/definitions/dimensionValue" }
+            "md": { "$ref": "#/definitions/dimensionValue" },
+            "xs": { "$ref": "#/definitions/dimensionValue" },
+            "none": { "$ref": "#/definitions/dimensionValue" }
           },
           "additionalProperties": false
         }
@@ -539,58 +548,107 @@
           "properties": {
             "x": {
               "type": "object",
+              "required": ["$value", "$type"],
               "properties": {
                 "$value": {
-                  "type": "string"
+                  "type": "object",
+                  "required": ["value", "unit"],
+                  "properties": {
+                    "value": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": ["px"]
+                    }
+                  },
+                  "additionalProperties": false
                 },
-                "unit": {
+                "$type": {
                   "type": "string",
-                  "enum": ["px"]
+                  "enum": ["number"]
                 }
               },
-              "required": ["$value"]
+              "additionalProperties": false
             },
             "y": {
               "type": "object",
+              "required": ["$value", "$type"],
               "properties": {
                 "$value": {
-                  "type": "string"
+                  "type": "object",
+                  "required": ["value", "unit"],
+                  "properties": {
+                    "value": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": ["px"]
+                    }
+                  },
+                  "additionalProperties": false
                 },
-                "unit": {
+                "$type": {
                   "type": "string",
-                  "enum": ["px"]
+                  "enum": ["number"]
                 }
               },
-              "required": ["$value"]
+              "additionalProperties": false
             },
             "blur": {
               "type": "object",
+              "required": ["$value", "$type"],
               "properties": {
                 "$value": {
-                  "type": "string"
+                  "type": "object",
+                  "required": ["value", "unit"],
+                  "properties": {
+                    "value": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": ["px"]
+                    }
+                  },
+                  "additionalProperties": false
                 },
-                "unit": {
+                "$type": {
                   "type": "string",
-                  "enum": ["px"]
+                  "enum": ["number"]
                 }
               },
-              "required": ["$value"]
+              "additionalProperties": false
             },
             "spread": {
               "type": "object",
+              "required": ["$value", "$type"],
               "properties": {
                 "$value": {
-                  "type": "string"
+                  "type": "object",
+                  "required": ["value", "unit"],
+                  "properties": {
+                    "value": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": ["px"]
+                    }
+                  },
+                  "additionalProperties": false
                 },
-                "unit": {
+                "$type": {
                   "type": "string",
-                  "enum": ["px"]
+                  "enum": ["number"]
                 }
               },
-              "required": ["$value"]
+              "additionalProperties": false
             },
             "color": {
               "type": "object",
+              "required": ["$value", "$type"],
               "properties": {
                 "$value": {
                   "type": "string"
@@ -600,23 +658,35 @@
                   "enum": ["color"]
                 }
               },
-              "required": ["$value"]
+              "additionalProperties": false
             },
             "opacity": {
               "type": "object",
+              "required": ["$value", "$type"],
               "properties": {
                 "$value": {
-                  "type": "string"
+                  "type": "object",
+                  "required": ["value", "unit"],
+                  "properties": {
+                    "value": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": ["percentage"]
+                    }
+                  },
+                  "additionalProperties": false
                 },
                 "$type": {
                   "type": "string",
-                  "enum": ["opacity"]
+                  "enum": ["number"]
                 }
               },
-              "required": ["$value"]
+              "additionalProperties": false
             }
           },
-          "additionalProperties": true
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

@@ -3,6 +3,7 @@ import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
 import { hexToHsv, hsvToHex } from '../../modules/tokens/colors/colorUtils'
+import { tokenToCssVar } from '../css/tokenRefs'
 
 const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
 
@@ -27,11 +28,16 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>,
       }
     }
     
-    const tokenMatch = trimmed.match(/--recursica-tokens-color-([a-z0-9-]+)-(\d+|050|000)/)
+    // Support both old format (--recursica-tokens-color-...) and new format (--recursica-tokens-colors-...)
+    const tokenMatch = trimmed.match(/--recursica-tokens-colors?-([a-z0-9-]+)-(\d+|050|000)/)
     if (tokenMatch) {
       const [, family, level] = tokenMatch
       const normalizedLevel = level === '000' ? '050' : level
-      const hex = tokenIndex.get(`color/${family}/${normalizedLevel}`)
+      // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
+      let hex = tokenIndex.get(`colors/${family}/${normalizedLevel}`)
+      if (typeof hex !== 'string') {
+        hex = tokenIndex.get(`color/${family}/${normalizedLevel}`)
+      }
       if (typeof hex === 'string') {
         const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
         return h
@@ -59,9 +65,30 @@ export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family
   const tokenIndex = buildTokenIndex(tokens)
   const normalizedHex = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
   
-  // Search through all color families and levels
-  const jsonColors: any = (tokens as any)?.tokens?.color || {}
-  for (const [family, levels] of Object.entries(jsonColors)) {
+  // Search through new colors structure (colors.scale-XX.level)
+  const jsonColors: any = (tokens as any)?.tokens?.colors || {}
+  for (const [scaleKey, scale] of Object.entries(jsonColors)) {
+    if (!scaleKey.startsWith('scale-')) continue
+    const scaleObj = scale as any
+    const alias = scaleObj?.alias // Get the alias (e.g., "cornflower", "gray")
+    const familyName = alias && typeof alias === 'string' ? alias : scaleKey
+    
+    // Skip the alias property
+    for (const [level, value] of Object.entries(scaleObj)) {
+      if (level === 'alias') continue
+      const tokenValue = (value as any)?.$value || value
+      if (typeof tokenValue === 'string') {
+        const tokenHex = tokenValue.startsWith('#') ? tokenValue.toLowerCase() : `#${tokenValue.toLowerCase()}`
+        if (tokenHex === normalizedHex) {
+          return { family: familyName, level }
+        }
+      }
+    }
+  }
+  
+  // Fallback: search through old color structure for backwards compatibility
+  const oldColors: any = (tokens as any)?.tokens?.color || {}
+  for (const [family, levels] of Object.entries(oldColors)) {
     if (family === 'translucent') continue
     const familyObj = levels as any
     for (const [level, value] of Object.entries(familyObj)) {
@@ -121,7 +148,11 @@ export function getSteppedColor(
   
   const targetLevel = LEVELS[targetIdx]
   const tokenIndex = buildTokenIndex(tokens)
-  const targetHex = tokenIndex.get(`color/${family}/${targetLevel}`)
+  // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
+  let targetHex = tokenIndex.get(`colors/${family}/${targetLevel}`)
+  if (typeof targetHex !== 'string') {
+    targetHex = tokenIndex.get(`color/${family}/${targetLevel}`)
+  }
   
   if (typeof targetHex === 'string') {
     return targetHex.startsWith('#') ? targetHex.toLowerCase() : `#${targetHex.toLowerCase()}`
@@ -180,15 +211,97 @@ export function stepUntilAACompliant(
 }
 
 /**
- * Converts a hex color to a CSS variable reference if possible, otherwise returns the hex
+ * Calculates the color distance between two hex colors (Euclidean distance in RGB space)
+ */
+function colorDistance(hex1: string, hex2: string): number {
+  try {
+    const toRgb = (h: string): [number, number, number] => {
+      const s = h.startsWith('#') ? h.slice(1) : h
+      return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)]
+    }
+    const [r1, g1, b1] = toRgb(hex1)
+    const [r2, g2, b2] = toRgb(hex2)
+    return Math.sqrt(Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2))
+  } catch {
+    return Infinity
+  }
+}
+
+/**
+ * Finds the closest matching color token for a given hex value
+ */
+function findClosestColorToken(hex: string, tokens: JsonLike): { family: string; level: string } | null {
+  const normalizedHex = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+  let closest: { family: string; level: string; distance: number } | null = null
+  
+  // Search through new colors structure (colors.scale-XX.level)
+  const jsonColors: any = (tokens as any)?.tokens?.colors || {}
+  for (const [scaleKey, scale] of Object.entries(jsonColors)) {
+    if (!scaleKey.startsWith('scale-')) continue
+    const scaleObj = scale as any
+    const alias = scaleObj?.alias
+    const familyName = alias && typeof alias === 'string' ? alias : scaleKey
+    
+    for (const [level, value] of Object.entries(scaleObj)) {
+      if (level === 'alias') continue
+      const tokenValue = (value as any)?.$value || value
+      if (typeof tokenValue === 'string') {
+        const tokenHex = tokenValue.startsWith('#') ? tokenValue.toLowerCase() : `#${tokenValue.toLowerCase()}`
+        const distance = colorDistance(normalizedHex, tokenHex)
+        if (!closest || distance < closest.distance) {
+          closest = { family: familyName, level, distance }
+        }
+      }
+    }
+  }
+  
+  // Fallback: search through old color structure
+  const oldColors: any = (tokens as any)?.tokens?.color || {}
+  for (const [family, levels] of Object.entries(oldColors)) {
+    if (family === 'translucent') continue
+    const familyObj = levels as any
+    for (const [level, value] of Object.entries(familyObj)) {
+      const tokenValue = (value as any)?.$value || value
+      if (typeof tokenValue === 'string') {
+        const tokenHex = tokenValue.startsWith('#') ? tokenValue.toLowerCase() : `#${tokenValue.toLowerCase()}`
+        const distance = colorDistance(normalizedHex, tokenHex)
+        if (!closest || distance < closest.distance) {
+          closest = { family, level, distance }
+        }
+      }
+    }
+  }
+  
+  return closest ? { family: closest.family, level: closest.level } : null
+}
+
+/**
+ * Converts a hex color to a CSS variable reference if possible, otherwise finds the closest match
  */
 export function hexToCssVarRef(hex: string, tokens: JsonLike): string {
-  const found = findColorFamilyAndLevel(hex, tokens)
+  // First try to find an exact match
+  let found = findColorFamilyAndLevel(hex, tokens)
+  
+  // If no exact match, find the closest matching token
+  if (!found) {
+    found = findClosestColorToken(hex, tokens)
+  }
+  
   if (found) {
     const normalizedLevel = found.level === '000' ? '050' : found.level
-    return `var(--recursica-tokens-color-${found.family}-${normalizedLevel})`
+    // Use tokenToCssVar to get the correct format (handles both old and new token structures)
+    const tokenName = `colors/${found.family}/${normalizedLevel}`
+    const cssVar = tokenToCssVar(tokenName)
+    if (cssVar) {
+      return cssVar
+    }
+    // Fallback to new format if tokenToCssVar doesn't work
+    return `var(--recursica-tokens-colors-${found.family}-${normalizedLevel})`
   }
-  // Custom color not in tokens - return hex directly
-  return hex
+  
+  // If we still can't find a match, this shouldn't happen, but return a fallback
+  // Use a default token reference (gray-500) as a last resort
+  console.warn(`[hexToCssVarRef] Could not find token for hex ${hex}, using fallback`)
+  return `var(--recursica-tokens-colors-gray-500)`
 }
 
