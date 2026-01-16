@@ -222,15 +222,6 @@ class VarsStore {
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
     
     // Debug: verify elevation tokens are in state
-    if (process.env.NODE_ENV === 'development') {
-      // Elevation tokens are not in tokens - they're in brand.json
-      const elevationTokenKeys: string[] = []
-      if (elevationTokenKeys.length > 0) {
-        console.log(`[VarsStore] Found ${elevationTokenKeys.length} elevation tokens in state:`, elevationTokenKeys.slice(0, 4).join(', '), '...')
-      } else {
-        console.warn('[VarsStore] No elevation tokens found in state after initElevationState')
-      }
-    }
 
     // Versioning and seeding when bundle changes
     if (this.lsAvailable) {
@@ -296,14 +287,11 @@ class VarsStore {
     // React to type choice changes and palette changes (centralized)
     // Debounce palette var changes to prevent infinite loops
     const onTypeChoices = () => {
-      console.log('[VarsStore] typeChoicesChanged event received, recomputing...')
       if (this.isRecomputing) {
-        console.log('[VarsStore] Already recomputing, skipping')
         return // Prevent recursive calls
       }
       this.bumpVersion()
       this.recomputeAndApplyAll()
-      console.log('[VarsStore] Recompute complete')
     }
     let paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
     const onPaletteVarsChanged = () => {
@@ -679,7 +667,6 @@ class VarsStore {
               tokensRoot.colors[scaleKey][level].$value = String(value)
             } else {
               // Scale not found, create it (shouldn't happen normally)
-              console.warn(`[updateToken] Scale with alias "${scaleOrFamily}" not found for token ${tokenName}`)
             }
           }
         } else {
@@ -1252,18 +1239,7 @@ class VarsStore {
       const sizesRoot: any = tokensRoot?.sizes || {}
       
       if (!sizesRoot || typeof sizesRoot !== 'object' || Array.isArray(sizesRoot) || Object.keys(sizesRoot).length === 0) {
-        // Skip if sizesRoot is not a valid object or is empty
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('[VarsStore] sizesRoot is not valid or empty:', { sizesRoot, tokensRootKeys: Object.keys(tokensRoot), hasSizes: !!tokensRoot?.sizes, hasSize: !!tokensRoot?.size })
-        }
       } else {
-        // Debug: check for elevation tokens
-        if (process.env.NODE_ENV === 'development') {
-          const elevationKeys = Object.keys(sizesRoot).filter(k => k.includes('elevation'))
-          if (elevationKeys.length > 0) {
-            console.log(`[VarsStore] Found ${elevationKeys.length} elevation tokens in sizesRoot, processing...`)
-          }
-        }
         const vars: Record<string, string> = {}
       const toPxString = (v: any): string | undefined => {
         if (v == null) return undefined
@@ -1298,16 +1274,6 @@ class VarsStore {
             }
           }
         })
-        // Debug: log elevation tokens found
-        if (elevationTokensFound.length > 0 && process.env.NODE_ENV === 'development') {
-          console.log(`[VarsStore] Generated ${elevationTokensFound.length} elevation token CSS variables:`, elevationTokensFound.slice(0, 4).join(', '), '...')
-        } else if (process.env.NODE_ENV === 'development') {
-          // Check if elevation tokens exist but weren't processed
-          const elevationKeysInSizes = Object.keys(sizesRoot).filter(k => k.includes('elevation'))
-          if (elevationKeysInSizes.length > 0) {
-            console.warn(`[VarsStore] Found ${elevationKeysInSizes.length} elevation tokens in sizesRoot but didn't generate CSS vars. Sample:`, elevationKeysInSizes[0], sizesRoot[elevationKeysInSizes[0]])
-          }
-        }
         Object.assign(allVars, vars)
       }
     } catch (e) {
@@ -1587,7 +1553,6 @@ class VarsStore {
           
           // Last resort fallback
           if (!tokenRef) {
-            console.warn(`Could not resolve token reference for ${cssVar}, using gray-500 as fallback`)
             tokenRef = 'var(--recursica-tokens-color-gray-500)'
           }
           
@@ -1804,14 +1769,7 @@ class VarsStore {
     } catch {}
     // Typography
     const typeChoices = this.readTypeChoices()
-    console.log('[VarsStore] Reading type choices:', typeChoices)
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, typeChoices)
-    console.log('[VarsStore] Generated typography vars count:', Object.keys(typeVars).length)
-    // Log a sample of the generated vars for h1
-    const h1Vars = Object.keys(typeVars).filter(k => k.includes('h1'))
-    if (h1Vars.length > 0) {
-      console.log('[VarsStore] Sample h1 vars:', h1Vars.slice(0, 5).map(k => ({ [k]: typeVars[k] })))
-    }
     
     // Only preserve typography CSS variables that were set DIRECTLY (not via choices system)
     // If choices exist, the generated values from buildTypographyVars should be used
@@ -2108,50 +2066,9 @@ class VarsStore {
         '--recursica-brand-typography-caption-font-family',
         '--recursica-brand-dimensions-spacers-sm'
       ]
-      const missing = criticalVars.filter(v => !allVars[v])
-      if (missing.length > 0) {
-        console.warn(`[VarsStore] Missing critical CSS variables:`, missing)
-        console.warn(`[VarsStore] Total vars generated:`, Object.keys(allVars).length)
-        console.warn(`[VarsStore] Sample vars:`, Object.keys(allVars).slice(0, 20))
-      }
     }
     try {
-      console.log('[VarsStore] Applying CSS variables, total count:', Object.keys(allVars).length)
-      // Log a sample of typography vars being applied
-      const typographyVars = Object.keys(allVars).filter(k => k.includes('typography') && k.includes('h1'))
-      if (typographyVars.length > 0) {
-        console.log('[VarsStore] Sample h1 typography vars being applied:', typographyVars.slice(0, 5).map(k => ({ [k]: allVars[k] })))
-      }
-      // Debug: verify elevation token CSS variables are in allVars
-      if (process.env.NODE_ENV === 'development') {
-        const elevationTokenVars = Object.keys(allVars).filter(k => k.includes('tokens-size-elevation'))
-        if (elevationTokenVars.length > 0) {
-          console.log(`[VarsStore] Found ${elevationTokenVars.length} elevation token CSS variables in allVars:`, elevationTokenVars.slice(0, 4).join(', '), '...')
-        } else {
-          console.warn('[VarsStore] No elevation token CSS variables found in allVars!')
-        }
-      }
       applyCssVars(allVars, this.state.tokens)
-      console.log('[VarsStore] CSS variables applied successfully')
-      
-      // Debug: verify elevation token CSS variables are actually on the DOM
-      if (process.env.NODE_ENV === 'development') {
-        const testVar = '--recursica-tokens-size-elevation-0-blur'
-        const root = document.documentElement
-        const computedValue = getComputedStyle(root).getPropertyValue(testVar)
-        const inlineValue = root.style.getPropertyValue(testVar)
-        if (computedValue || inlineValue) {
-          console.log(`[VarsStore] ✓ Elevation token CSS variable ${testVar} is on DOM:`, computedValue || inlineValue)
-        } else {
-          console.warn(`[VarsStore] ✗ Elevation token CSS variable ${testVar} is NOT on DOM!`)
-          // Check if it's in allVars
-          if (allVars[testVar]) {
-            console.warn(`[VarsStore] But it IS in allVars:`, allVars[testVar])
-          } else {
-            console.warn(`[VarsStore] And it's NOT in allVars either!`)
-          }
-        }
-      }
     } catch (e) {
       // Log error but don't let it break the recompute cycle
       console.error('[VarsStore] Error applying CSS variables:', e)

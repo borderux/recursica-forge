@@ -773,10 +773,14 @@ export function updateCoreColorInteractiveOnTones(
       }
       
       // Only update if no existing value or if existing is a brand palette reference (should be token reference)
+      let interactiveRef: string
       if (!existingInteractive || isBrandPaletteRef) {
-        const interactiveRef = findCoreColorInteractiveOnTone(coreColorToneHex, colorName)
+        interactiveRef = findCoreColorInteractiveOnTone(coreColorToneHex, colorName)
         // Update the interactive $value in theme JSON (not on-tone)
         colorDef.interactive.$value = interactiveRef
+      } else {
+        // Use existing interactive value
+        interactiveRef = existingInteractive
       }
       
       // Update CSS variable immediately for visual feedback
