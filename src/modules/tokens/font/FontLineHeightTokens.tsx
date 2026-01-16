@@ -80,10 +80,10 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
   const { mode } = useThemeMode()
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
-  const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
+  const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. As the creature soared through the air with remarkable agility, it noticed a shimmering portal opening beneath the ancient oak tree. Without hesitation, the goblin adjusted its trajectory mid-flight, tumbling gracefully through the mystical gateway into a realm where time flowed backwards and colors sang in harmony. The dwarf, momentarily stunned by this unexpected display of acrobatic prowess, slowly rose from his comfortable position and began to chase after the vanishing figure, determined to understand the secrets of this magical transformation that had unfolded before his very eyes."
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
+    <div style={{ display: 'grid', gap: 'calc(var(--recursica-brand-dimensions-spacers-md) * 2)' }}>
       {order.map((k) => {
         const name = `font/line-height/${k}`
         const label = toTitle(k)

@@ -1455,7 +1455,7 @@
           "input-width": {
             "$type": "dimension",
             "$value": {
-              "value": 60,
+              "value": 90,
               "unit": "px"
             }
           },

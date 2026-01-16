@@ -24,16 +24,72 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
     return list
   }, [tokensJson])
 
+  const order = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'] as const
+  const defaultIdx = order.indexOf('md')
+
   const items = useMemo(() => {
-    const order = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl']
     const weight = (n: string) => {
       const key = n.replace('font/size/', '')
-      const idx = order.indexOf(key)
+      const idx = order.indexOf(key as any)
       return idx === -1 ? Number.POSITIVE_INFINITY : idx
     }
     return flattened.slice().sort((a, b) => weight(a.name) - weight(b.name))
   }, [flattened])
 
+  const getVal = (name: string): number => {
+    const key = name.replace('font/size/', '')
+    try {
+      const v = (tokensJson as any)?.tokens?.font?.sizes?.[key]?.$value || 
+                (tokensJson as any)?.tokens?.font?.size?.[key]?.$value
+      const num = typeof v === 'number' ? v : (typeof v === 'object' && v && typeof v.value === 'number' ? v.value : Number(v))
+      return Number.isFinite(num) ? num : 16
+    } catch {
+      return 16
+    }
+  }
+
+  const computeLogRatio = () => {
+    const def = getVal('font/size/md')
+    const sm = getVal('font/size/sm')
+    // Calculate logarithmic ratio: log(def) - log(sm) = log(def/sm)
+    // This gives us the step size in log space
+    return Math.log(def) - Math.log(sm)
+  }
+
+  const applyScaled = (changed: string, nextVal: number) => {
+    const def = changed === 'font/size/md' ? nextVal : getVal('font/size/md')
+    let logStep = computeLogRatio()
+    if (changed === 'font/size/sm') {
+      logStep = Math.log(def) - Math.log(nextVal)
+    }
+
+    const updates: Record<string, number> = {}
+    // Process all sizes from items (which includes all sizes in the data)
+    items.forEach((it) => {
+      const keyName = it.name.replace('font/size/', '')
+      const idx = order.indexOf(keyName as any)
+      
+      if (keyName === 'md') {
+        updates[it.name] = def
+      } else if (keyName === 'sm') {
+        updates[it.name] = def / Math.exp(logStep)
+      } else if (idx !== -1) {
+        // Only scale if the size is in the order array
+        const offset = idx - defaultIdx
+        // Logarithmic scaling: each step is exp(logStep) times the previous
+        // For sizes smaller than md: def / exp(logStep * |offset|)
+        // For sizes larger than md: def * exp(logStep * offset)
+        if (offset < 0) {
+          updates[it.name] = def / Math.exp(logStep * Math.abs(offset))
+        } else {
+          updates[it.name] = def * Math.exp(logStep * offset)
+        }
+      }
+    })
+    Object.entries(updates).forEach(([n, v]) => updateToken(n, Math.round(v)))
+  }
+
+  const scaleByDefault = autoScale
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
@@ -41,11 +97,15 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
+    <div style={{ display: 'grid', gap: 'calc(var(--recursica-brand-dimensions-spacers-md) * 2)' }}>
       {items.map((it) => {
-        const label = toTitle(it.name.replace('font/size/', ''))
-        const current = Number(it.value)
-        const fontSizeVar = `--recursica-tokens-font-sizes-${it.name.replace('font/size/', '')}`
+        const keyName = it.name.replace('font/size/', '')
+        const label = toTitle(keyName)
+        const current = getVal(it.name)
+        const isDefault = keyName === 'md'
+        const isSmall = keyName === 'sm'
+        const disabled = scaleByDefault && !(isDefault || isSmall)
+        const fontSizeVar = `--recursica-tokens-font-sizes-${keyName}`
         
         return (
           <div key={it.name} style={{ 
@@ -77,7 +137,15 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
                 max={72}
                 step={1}
                 value={current}
-                onChange={(next) => updateToken(it.name, typeof next === 'number' ? next : next[0])}
+                disabled={disabled}
+                onChange={(next) => {
+                  const value = typeof next === 'number' ? next : next[0]
+                  if (scaleByDefault && (isDefault || isSmall)) {
+                    applyScaled(it.name, value)
+                  } else {
+                    updateToken(it.name, value)
+                  }
+                }}
                 layer="layer-0"
                 layout="stacked"
                 showInput={true}

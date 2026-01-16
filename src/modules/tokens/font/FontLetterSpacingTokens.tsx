@@ -96,7 +96,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
+    <div style={{ display: 'grid', gap: 'calc(var(--recursica-brand-dimensions-spacers-md) * 2)' }}>
       {items.map((it) => {
         const keyName = it.name.replace('font/letter-spacing/','')
         const label = keyName === 'tighest' ? 'Tightest' : toTitle(keyName)
