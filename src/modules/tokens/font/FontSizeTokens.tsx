@@ -97,8 +97,8 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
-    <div style={{ display: 'grid', gap: 'calc(var(--recursica-brand-dimensions-spacers-md) * 2)' }}>
-      {items.map((it) => {
+    <div style={{ display: 'grid', gap: 0 }}>
+      {items.map((it, index) => {
         const keyName = it.name.replace('font/size/', '')
         const label = toTitle(keyName)
         const current = getVal(it.name)
@@ -106,20 +106,26 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
         const isSmall = keyName === 'sm'
         const disabled = scaleByDefault && !(isDefault || isSmall)
         const fontSizeVar = `--recursica-tokens-font-sizes-${keyName}`
+        const isLast = index === items.length - 1
         
         return (
           <div key={it.name} style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'auto 1fr auto', 
-            gap: 'var(--recursica-brand-dimensions-spacers-md)',
-            alignItems: 'start',
+            gridTemplateColumns: 'auto 1fr 350px', 
+            gap: 0,
+            alignItems: 'stretch',
           }}>
             <label htmlFor={it.name} style={{ 
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
               minWidth: 60,
-              paddingTop: 'var(--recursica-brand-dimensions-spacers-xs)',
+              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingRight: 0,
+              display: 'flex',
+              alignItems: 'center',
             }}>
               {label}
             </label>
@@ -128,10 +134,27 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
               lineHeight: 1.5,
+              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              display: 'flex',
+              alignItems: 'center',
             }}>
               {exampleText}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              gap: 'var(--recursica-brand-dimensions-spacers-default)',
+              borderLeft: `1px solid var(${layer1Base}-border-color)`,
+              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              width: '350px',
+            }}>
               <Slider
                 min={8}
                 max={72}

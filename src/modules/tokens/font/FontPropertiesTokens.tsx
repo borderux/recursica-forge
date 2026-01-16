@@ -59,13 +59,13 @@ export default function FontPropertiesTokens() {
     <div style={{
       background: `var(${layer0Base}-surface)`,
       border: `1px solid var(${layer1Base}-border-color)`,
-      borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-      padding: 'var(--recursica-brand-dimensions-spacers-lg)',
+      borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
+      padding: 0,
       display: 'grid',
-      gap: 'var(--recursica-brand-dimensions-spacers-lg)',
+      gap: 0,
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 350px', gap: 0, alignItems: 'stretch' }}>
+        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacers-default)', paddingTop: 'var(--recursica-brand-dimensions-gutters-vertical)', paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)', paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)', paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)', alignItems: 'center' }}>
           <button
             onClick={() => setActiveTab('size')}
             style={{
@@ -124,7 +124,18 @@ export default function FontPropertiesTokens() {
             Line height
           </button>
         </div>
-        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacers-default)', alignItems: 'center' }}>
+        <div></div>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center', 
+          borderLeft: `1px solid var(${layer1Base}-border-color)`, 
+          width: '350px',
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+          paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+        }}>
           <Button
             variant="outline"
             size="small"
@@ -167,10 +178,7 @@ export default function FontPropertiesTokens() {
           </div>
         </div>
       </div>
-      <div style={{
-        borderTop: `1px solid var(${layer1Base}-border-color)`,
-        paddingTop: 'var(--recursica-brand-dimensions-spacers-lg)',
-      }}>
+      <div>
         {activeTab === 'size' && <FontSizeTokens autoScale={autoScaleSize} />}
         {activeTab === 'letter-spacing' && <FontLetterSpacingTokens autoScale={autoScaleLetterSpacing} />}
         {activeTab === 'line-height' && <FontLineHeightTokens autoScale={autoScaleLineHeight} />}
