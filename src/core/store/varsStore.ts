@@ -217,7 +217,6 @@ class VarsStore {
     // initElevationState will create elevation tokens and add them to the tokens object
     const elevation = this.initElevationState(theme as any, tokens || {})
     // Ensure tokens structure is properly set (initElevationState modifies tokens in place)
-    if (!tokens) tokens = {}
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
     
