@@ -850,13 +850,16 @@ class VarsStore {
         } catch {}
       }
       
-      // Reset state
+      // Initialize elevation state (this will create elevation tokens in sortedTokens)
+      const elevation = this.initElevationState(normalizedTheme as any, sortedTokens)
+      
+      // Reset state (elevation tokens are now in sortedTokens from initElevationState)
       this.state = {
         tokens: sortedTokens,
         theme: normalizedTheme as any,
         uikit: uikitImport as any,
         palettes: migratePaletteLocalKeys(),
-        elevation: this.initElevationState(normalizedTheme as any, this.state.tokens),
+        elevation,
         version: (this.state?.version || 0) + 1
       }
       
@@ -1149,17 +1152,19 @@ class VarsStore {
     if (!tokens) tokens = {}
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
     
-    // Elevation tokens should NOT be in tokens - they belong in brand.json
-    // CSS variables for elevations are generated directly from brand.json elevations
-    // Token references are still needed for elevation state tracking
+    // Ensure size tokens structure exists (use plural 'sizes' to match updateToken)
+    if (!(tokens as any).tokens.sizes) (tokens as any).tokens.sizes = {}
+    const sizeTokens = (tokens as any).tokens.sizes
     
     // Use controls from finalState (either from localStorage or newly built)
     const finalControls = finalState.controls || {}
+    const baseCtrl = finalControls['elevation-0']
     
     for (let i = 0; i <= 4; i++) {
       const k = `elevation-${i}`
+      const ctrl = finalControls[k] || baseCtrl
       
-      // Set token references for elevation state tracking (not stored in tokens)
+      // Set token references for elevation state tracking
       const blurTokenName = `size/elevation-${i}-blur`
       const spreadTokenName = `size/elevation-${i}-spread`
       const offsetXTokenName = `size/elevation-${i}-offset-x`
@@ -1169,6 +1174,28 @@ class VarsStore {
       if (!spreadTokens[k]) spreadTokens[k] = spreadTokenName
       if (!offsetXTokens[k]) offsetXTokens[k] = offsetXTokenName
       if (!offsetYTokens[k]) offsetYTokens[k] = offsetYTokenName
+      
+      // Create elevation tokens in the tokens structure if they don't exist
+      // These tokens are needed for CSS variable generation (referenced as --recursica-tokens-size-elevation-X-blur, etc.)
+      if (ctrl) {
+        const blurKey = `elevation-${i}-blur`
+        const spreadKey = `elevation-${i}-spread`
+        const offsetXKey = `elevation-${i}-offset-x`
+        const offsetYKey = `elevation-${i}-offset-y`
+        
+        if (!sizeTokens[blurKey]) {
+          sizeTokens[blurKey] = { $type: 'number', $value: ctrl.blur || 0 }
+        }
+        if (!sizeTokens[spreadKey]) {
+          sizeTokens[spreadKey] = { $type: 'number', $value: ctrl.spread || 0 }
+        }
+        if (!sizeTokens[offsetXKey]) {
+          sizeTokens[offsetXKey] = { $type: 'number', $value: ctrl.offsetX || 0 }
+        }
+        if (!sizeTokens[offsetYKey]) {
+          sizeTokens[offsetYKey] = { $type: 'number', $value: ctrl.offsetY || 0 }
+        }
+      }
     }
     
     return { ...finalState, blurTokens, spreadTokens, offsetXTokens, offsetYTokens }
