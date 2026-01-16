@@ -13,6 +13,7 @@ import './Slider.css'
 export default function Slider({
   value,
   onChange,
+  onChangeCommitted,
   min = 0,
   max = 100,
   step = 1,
@@ -57,6 +58,16 @@ export default function Slider({
     }
   }
   
+  const handleChangeCommitted = (_event: Event | React.SyntheticEvent, val: number | number[]) => {
+    if (onChangeCommitted) {
+      if (isRange && Array.isArray(val)) {
+        onChangeCommitted(val as [number, number])
+      } else if (!isRange && typeof val === 'number') {
+        onChangeCommitted(val)
+      }
+    }
+  }
+  
   const trackColor = `var(${trackVar})`
   const trackActiveColor = `var(${trackActiveVar})`
   const thumbColor = `var(${thumbVar})`
@@ -66,6 +77,7 @@ export default function Slider({
       <MaterialSlider
         value={singleValue}
         onChange={handleChange}
+        onChangeCommitted={handleChangeCommitted}
         min={min}
         max={max}
         step={step}

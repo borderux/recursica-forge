@@ -13,6 +13,7 @@ import './Slider.css'
 export default function Slider({
   value,
   onChange,
+  onChangeCommitted,
   min = 0,
   max = 100,
   step = 1,
@@ -57,11 +58,22 @@ export default function Slider({
     }
   }
   
+  const handleChangeEnd = (val: number | number[]) => {
+    if (onChangeCommitted) {
+      if (isRange && Array.isArray(val)) {
+        onChangeCommitted(val as [number, number])
+      } else if (!isRange && typeof val === 'number') {
+        onChangeCommitted(val)
+      }
+    }
+  }
+  
   const sliderElement = (
     <div style={{ display: 'flex', alignItems: 'center', gap: showInput ? `var(${inputGapVar}, 8px)` : 0, width: '100%' }}>
       <MantineSlider
         value={singleValue}
         onChange={handleChange}
+        onChangeEnd={handleChangeEnd}
         min={min}
         max={max}
         step={step}

@@ -574,16 +574,18 @@ export default function FontFamiliesTokens() {
                 >
                   {label}
                 </Chip>
-                <h3 style={{ 
+                <h2 style={{ 
                   margin: 0,
                   fontFamily: `var(${fontFamilyVar})`,
-                  fontSize: 'var(--recursica-brand-typography-h6-font-size)',
-                  fontWeight: 'var(--recursica-brand-typography-h6-font-weight)',
+                  fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+                  fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+                  letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+                  lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
                   color: `var(${layer1Base}-element-text-color)`,
                   opacity: `var(${layer1Base}-element-text-high-emphasis)`,
                 }}>
                   {r.value || 'Select font'}
-                </h3>
+                </h2>
               </div>
               <div style={{
                 fontFamily: `var(${fontFamilyVar})`,

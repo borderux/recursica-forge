@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { readOverrides, setOverride, writeOverrides } from '../../theme/tokenOverrides'
+import tokensImport from '../../../vars/Tokens.json'
 import OpacityPickerOverlay from '../../pickers/OpacityPickerOverlay'
 import { Slider } from '../../../components/adapters/Slider'
 import { Button } from '../../../components/adapters/Button'
@@ -15,8 +16,22 @@ function toTitleCase(label: string): string {
 }
 
 export default function OpacityTokens() {
-  const { tokens: tokensJson, resetAll } = useVars()
+  const { tokens: tokensJson, resetAll, updateToken } = useVars()
   const { mode } = useThemeMode()
+  // Store original values from JSON import
+  const originalValues = useMemo(() => {
+    const map: Record<string, number> = {}
+    try {
+      const src: any = (tokensImport as any)?.tokens?.opacities || (tokensImport as any)?.tokens?.opacity || {}
+      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+        const v = src[k]?.$value
+        const num = typeof v === 'number' ? v : Number(v)
+        if (Number.isFinite(num)) map[`opacity/${k}`] = num
+      })
+    } catch {}
+    return map
+  }, []) // Only compute once on mount
+  
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -31,23 +46,35 @@ export default function OpacityTokens() {
     return list
   }, [tokensJson])
 
+  // Local state to track slider values during drag (for smooth UI feedback)
+  const [sliderValues, setSliderValues] = useState<Record<string, number>>({})
+  
   // Reflect latest overrides; listen to tokenOverridesChanged events
   const [version, setVersion] = useState(0)
   useEffect(() => {
-    const handler = () => setVersion((v) => v + 1)
+    const handler = (ev: CustomEvent) => {
+      // Clear local slider values on reset
+      if (ev.detail?.reset) {
+        setSliderValues({})
+      }
+      setVersion((v) => v + 1)
+    }
     window.addEventListener('tokenOverridesChanged', handler as any)
     return () => window.removeEventListener('tokenOverridesChanged', handler as any)
   }, [])
   const overrides = useMemo(() => readOverrides(), [version])
+  
+  // Force re-render when tokensJson changes (from store updates)
+  useEffect(() => {
+    // This ensures the component re-reads values when tokens are updated via updateToken
+    // Also clear slider values when store resets
+    setSliderValues({})
+    setVersion((v) => v + 1)
+  }, [tokensJson])
 
   const items = useMemo(() => {
-    const out: Array<{ name: string; value: number | string }> = flattened
-    const toPct = (v: any) => {
-      const n = typeof v === 'number' ? v : parseFloat(v)
-      if (!Number.isFinite(n)) return Number.POSITIVE_INFINITY
-      return n <= 1 ? n * 100 : n
-    }
-    return out.sort((a, b) => toPct(a.value) - toPct(b.value))
+    // Return items in their original order without sorting
+    return flattened
   }, [flattened])
 
   const toPctNumber = (v: any) => {
@@ -57,6 +84,21 @@ export default function OpacityTokens() {
   }
 
   const handleReset = () => {
+    // Clear local slider values so they read from store
+    setSliderValues({})
+    
+    // Restore opacity values from original values and update tokens in store
+    Object.keys(originalValues).forEach((tokenName) => {
+      const num = originalValues[tokenName]
+      if (Number.isFinite(num)) {
+        // Update token in store (this updates CSS vars)
+        updateToken(tokenName, num)
+        // Also update override for backwards compatibility
+        setOverride(tokenName, num)
+      }
+    })
+    
+    // Remove all opacity overrides that aren't in the original JSON
     const all = readOverrides()
     const updated: Record<string, any> = {}
     
@@ -67,17 +109,10 @@ export default function OpacityTokens() {
       }
     })
     
-    // Restore opacity values from JSON only
-    try {
-      const src: any = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
-        const v = src[k]?.$value
-        const num = typeof v === 'number' ? v : Number(v)
-        if (Number.isFinite(num)) {
-          updated[`opacity/${k}`] = num
-        }
-      })
-    } catch {}
+    // Add back only the original opacity values
+    Object.keys(originalValues).forEach((tokenName) => {
+      updated[tokenName] = originalValues[tokenName]
+    })
     
     writeOverrides(updated)
     
@@ -131,8 +166,19 @@ export default function OpacityTokens() {
           {items.map((it, index) => {
             const rawName = it.name.replace('opacity/', '')
             const label = toTitleCase(rawName)
-            const currentRaw = (overrides as any)[it.name] ?? it.value
-            const current = toPctNumber(currentRaw)
+            // Read current value from store (tokensJson) first, then fall back to overrides, then original value
+            const storeValue = (() => {
+              try {
+                const src: any = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
+                const v = src[rawName]?.$value
+                const num = typeof v === 'number' ? v : Number(v)
+                if (Number.isFinite(num)) return num
+              } catch {}
+              return null
+            })()
+            const currentRaw = storeValue ?? (overrides as any)[it.name] ?? it.value
+            // Use local slider value if dragging, otherwise use store/override value
+            const current = sliderValues[it.name] ?? toPctNumber(currentRaw)
             const isDisabled = rawName === 'invisible' || rawName === 'solid'
             const isLast = index === items.length - 1
             
@@ -157,8 +203,24 @@ export default function OpacityTokens() {
                   <Slider
                     value={current}
                     onChange={(val) => {
+                      // Update local state for smooth UI feedback during drag
                       const num = typeof val === 'number' ? val : val[0]
-                      setOverride(it.name, num)
+                      setSliderValues((prev) => ({ ...prev, [it.name]: num }))
+                    }}
+                    onChangeCommitted={(val) => {
+                      const num = typeof val === 'number' ? val : val[0]
+                      // Convert percentage (0-100) to decimal (0-1) for token storage
+                      const decimalValue = num / 100
+                      // Update store and CSS variables
+                      updateToken(it.name, decimalValue)
+                      // Also update override for backwards compatibility
+                      setOverride(it.name, decimalValue)
+                      // Clear local slider value so it reads from store
+                      setSliderValues((prev) => {
+                        const next = { ...prev }
+                        delete next[it.name]
+                        return next
+                      })
                     }}
                     min={0}
                     max={100}
@@ -176,7 +238,11 @@ export default function OpacityTokens() {
                   onChange={(ev) => { 
                     const next = Number(ev.currentTarget.value)
                     if (Number.isFinite(next) && next >= 0 && next <= 100) {
-                      setOverride(it.name, next)
+                      // Convert percentage (0-100) to decimal (0-1) for token storage
+                      const decimalValue = next / 100
+                      updateToken(it.name, decimalValue)
+                      // Also update override for backwards compatibility
+                      setOverride(it.name, decimalValue)
                     }
                   }}
                   style={{ 

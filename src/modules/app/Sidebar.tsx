@@ -7,6 +7,8 @@
 
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { Button } from '../../components/adapters/Button'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 type SidebarNavItem = 'color' | 'font' | 'opacity' | 'size'
 
@@ -28,6 +30,7 @@ export function Sidebar() {
   
   const currentNavItem = getCurrentNavItem()
   
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
   
@@ -154,72 +157,54 @@ export function Sidebar() {
           flexShrink: 0,
         }}
       >
-        <a
-          href="https://www.recursica.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: `var(${interactiveColor})`,
-            textDecoration: 'none',
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.8'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1'
-          }}
+        <Button
+          variant="text"
+          size="small"
+          layer="layer-1"
+          onClick={() => window.open('https://www.recursica.com', '_blank', 'noopener,noreferrer')}
+          icon={(() => {
+            const Icon = iconNameToReactComponent('arrow-top-right-on-square')
+            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          })()}
+          style={{ justifyContent: 'flex-start', width: '100%' }}
         >
           Visit Recursica.com
-        </a>
-        <a
-          href="https://www.recursica.com/docs/foundations/colors"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: `var(${interactiveColor})`,
-            textDecoration: 'none',
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.8'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1'
-          }}
+        </Button>
+        <Button
+          variant="text"
+          size="small"
+          layer="layer-1"
+          onClick={() => window.open('https://www.recursica.com/docs/foundations/colors', '_blank', 'noopener,noreferrer')}
+          icon={(() => {
+            const Icon = iconNameToReactComponent('document-text')
+            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          })()}
+          style={{ justifyContent: 'flex-start', width: '100%' }}
         >
           Read documentation
-        </a>
-        <a
-          href="https://join.slack.com/t/recursica/shared_invite/zt-3emx80y9u-DfG5WO~SApkTJjVCiYk0WQ"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: `var(${interactiveColor})`,
-            textDecoration: 'none',
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.8'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1'
-          }}
+        </Button>
+        <Button
+          variant="text"
+          size="small"
+          layer="layer-1"
+          onClick={() => window.open('https://join.slack.com/t/recursica/shared_invite/zt-3emx80y9u-DfG5WO~SApkTJjVCiYk0WQ', '_blank', 'noopener,noreferrer')}
+          icon={(() => {
+            const Icon = iconNameToReactComponent('info')
+            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          })()}
+          style={{ justifyContent: 'flex-start', width: '100%' }}
         >
           Help
-        </a>
+        </Button>
       </div>
       
       {/* Copyright */}
       <div
         style={{
           marginTop: 'var(--recursica-brand-dimensions-spacers-md)',
-          fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-          color: `var(${layer1Base}-element-text-color)`,
-          opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+          color: `var(${layer0Base}-element-text-color)`,
+          opacity: `var(${layer0Base}-element-text-low-emphasis)`,
         }}
       >
         © 2025 Border LLC. All rights reserved.

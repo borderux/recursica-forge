@@ -15,6 +15,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 export type SliderProps = {
   value: number | [number, number]
   onChange: (value: number | [number, number]) => void
+  onChangeCommitted?: (value: number | [number, number]) => void
   min?: number
   max?: number
   step?: number
@@ -30,6 +31,7 @@ export type SliderProps = {
 export function Slider({
   value,
   onChange,
+  onChangeCommitted,
   min = 0,
   max = 100,
   step = 1,
@@ -283,6 +285,7 @@ export function Slider({
       <Component
         value={value}
         onChange={onChange}
+        onChangeCommitted={onChangeCommitted}
         min={min}
         max={max}
         step={step}

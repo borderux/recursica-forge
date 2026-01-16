@@ -13,6 +13,7 @@ import './Slider.css'
 export default function Slider({
   value,
   onChange,
+  onChangeCommitted,
   min = 0,
   max = 100,
   step = 1,
@@ -57,6 +58,16 @@ export default function Slider({
     }
   }
   
+  const handleRelease = (val: { value: number | number[] }) => {
+    if (onChangeCommitted) {
+      if (isRange && Array.isArray(val.value)) {
+        onChangeCommitted(val.value as [number, number])
+      } else if (!isRange && typeof val.value === 'number') {
+        onChangeCommitted(val.value)
+      }
+    }
+  }
+  
   const trackColor = `var(${trackVar})`
   const trackActiveColor = `var(${trackActiveVar})`
   const thumbColor = `var(${thumbVar})`
@@ -79,6 +90,7 @@ export default function Slider({
         <CarbonSlider
           value={singleValue}
           onChange={handleChange}
+          onRelease={handleRelease}
           min={min}
           max={max}
           step={step}
