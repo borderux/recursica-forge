@@ -5,7 +5,7 @@ import SizeTokens from './size/SizeTokens'
 import FontFamiliesTokens from './font/FontFamiliesTokens'
 import { AddButtonWrapper as FontAddButton } from './font/FontFamiliesTokens'
 import FontPropertiesTokens from './font/FontPropertiesTokens'
-import ColorTokens from './colors/ColorTokens'
+import ColorTokens, { AddColorScaleButton } from './colors/ColorTokens'
 import { useThemeMode } from '../theme/ThemeModeContext'
 
 type NavItem = 'color' | 'font' | 'opacity'
@@ -59,6 +59,7 @@ export default function TokensPage() {
           {selected === 'font' && 'Font'}
           {selected === 'opacity' && 'Opacity & Size'}
         </h1>
+        {selected === 'color' && <AddColorScaleButton />}
         {selected === 'font' && <FontAddButton />}
       </div>
       <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>

@@ -21,6 +21,144 @@ type TokenEntry = {
 
 type ModeName = 'Mode 1' | 'Mode 2' | string
 
+// Export AddButton component for use in header
+export function AddColorScaleButton() {
+  const { mode: themeMode } = useThemeMode()
+  const [showAddColorModal, setShowAddColorModal] = useState(false)
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-themes-light-palettes-core-black)')
+  const { setTokens } = useVars()
+
+  const handleAddColor = () => {
+    // Generate a random default color
+    const baseHSV = { h: Math.random() * 360, s: 0.6 + Math.random() * 0.35, v: 0.6 + Math.random() * 0.35 }
+    const seedHex = hsvToHex(baseHSV.h, Math.max(0.6, baseHSV.s), Math.max(0.6, baseHSV.v))
+    
+    // Show modal with default color
+    setPendingColorHex(seedHex)
+    setShowAddColorModal(true)
+  }
+
+  const createColorScale = async (seedHex: string) => {
+    try {
+      // Parse the seed hex to get HSV values for generating the scale
+      const seedHsv = hexToHsv(seedHex)
+      const newHue = seedHsv.h
+      
+      // Get friendly name and convert to slug
+      const friendlyName = await getFriendlyNamePreferNtc(seedHex)
+      const newFamilySlug = toKebabCase(friendlyName)
+      
+      // Generate all color levels using the same logic as the main component
+      const seedS = seedHsv.s
+      const seedV = seedHsv.v
+      const endS000 = 0.02
+      const endV000 = 0.98
+      const endS1000 = clamp(seedS * 1.2, 0, 1)
+      const endV1000 = clamp(Math.max(0.03, seedV * 0.08), 0, 1)
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+      
+      // Store all the hex values we're creating
+      const tokenValues: Record<string, string> = {}
+      LEVELS_ASC.forEach((lvl) => {
+        const idx = IDX_MAP[lvl]
+        if (idx === undefined) return
+        
+        let hex: string
+        if (idx === 6) {
+          hex = seedHex
+        } else if (idx < 6) {
+          const t = idx / 6
+          const s = clamp(lerp(endS000, seedS, t), 0, 1)
+          const v = clamp(lerp(endV000, seedV, t), 0, 1)
+          hex = hsvToHex(newHue, s, v)
+        } else {
+          const t = (idx - 6) / (11 - 6)
+          const s = clamp(lerp(seedS, endS1000, t), 0, 1)
+          const v = clamp(lerp(seedV, endV1000, t), 0, 1)
+          hex = hsvToHex(newHue, s, v)
+        }
+        const levelStr = String(lvl).padStart(3, '0')
+        tokenValues[levelStr] = hex
+      })
+
+      // Wait for next tick to ensure any pending updates complete
+      await new Promise(resolve => setTimeout(resolve, 0))
+      
+      // Read fresh tokens directly from the store
+      const store = getVarsStore()
+      const currentState = store.getState()
+      const currentTokens = currentState.tokens
+      const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
+      const tokensRoot = nextTokens?.tokens || {}
+      
+      // Find the next available scale number
+      const colorsRoot = tokensRoot?.colors || {}
+      let scaleNumber = 1
+      while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
+        scaleNumber++
+      }
+      const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
+      
+      // Create the new scale in the new format with alias
+      if (!tokensRoot.colors) tokensRoot.colors = {}
+      tokensRoot.colors[scaleKey] = {
+        alias: newFamilySlug,
+        ...Object.fromEntries(
+          Object.entries(tokenValues).map(([level, hex]) => [
+            level,
+            { $type: 'color', $value: hex }
+          ])
+        )
+      }
+      
+      // Update tokens structure
+      if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
+      setTokens(nextTokens)
+      
+      // Create token entries for each level
+      Object.entries(tokenValues).forEach(([level, hex]) => {
+        const aliasTokenName = `colors/${newFamilySlug}/${level}`
+        const scaleTokenName = `colors/${scaleKey}/${level}`
+        store.updateToken(scaleTokenName, hex)
+        store.updateToken(aliasTokenName, hex)
+      })
+      
+      // Update family names map
+      const names: Record<string, string> = JSON.parse(localStorage.getItem('family-friendly-names') || '{}')
+      names[newFamilySlug] = toTitleCase(friendlyName)
+      localStorage.setItem('family-friendly-names', JSON.stringify(names))
+      window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names }))
+    } catch (error) {
+      console.error('Failed to create color scale:', error)
+    }
+  }
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="small"
+        onClick={handleAddColor}
+        icon={(() => {
+          const PlusIcon = iconNameToReactComponent('plus')
+          return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+        })()}
+      >
+        Add color scale
+      </Button>
+      <ColorPickerModal
+        open={showAddColorModal}
+        defaultHex={pendingColorHex}
+        onClose={() => setShowAddColorModal(false)}
+        onAccept={(hex) => {
+          setShowAddColorModal(false)
+          createColorScale(hex)
+        }}
+      />
+    </>
+  )
+}
+
 export default function ColorTokens() {
   const { tokens: tokensJson, updateToken, setTokens, theme, palettes } = useVars()
   const { mode: themeMode } = useThemeMode()
@@ -344,20 +482,6 @@ export default function ColorTokens() {
         } catch {}
       }
     })()
-  }
-
-  const handleAddColor = () => {
-    setOpenPicker(null)
-    const families = Object.entries(colorFamiliesByMode['Mode 1'] || {}).filter(([family]) => family !== 'translucent' && !deletedFamilies[family])
-    if (!families.length) return
-
-    // Generate a random default color
-    const baseHSV = { h: Math.random() * 360, s: 0.6 + Math.random() * 0.35, v: 0.6 + Math.random() * 0.35 }
-    const seedHex = hsvToHex(baseHSV.h, Math.max(0.6, baseHSV.s), Math.max(0.6, baseHSV.v))
-    
-    // Show modal with default color
-    setPendingColorHex(seedHex)
-    setShowAddColorModal(true)
   }
 
   const createColorScale = async (seedHex: string) => {
@@ -816,35 +940,8 @@ export default function ColorTokens() {
   return (
     <section style={{ 
       background: `var(${layer0Base}-surface)`, 
-      border: `1px solid var(${layer1Base}-border-color)`, 
-      borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
       padding: 'var(--recursica-brand-dimensions-spacers-md)',
     }}>
-      {/* Header with Add Color Scale button */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: 'var(--recursica-brand-dimensions-spacers-md)',
-      }}>
-        <div style={{ flex: 1 }} /> {/* Spacer */}
-        <Button
-          variant="outline"
-          size="small"
-          onClick={handleAddColor}
-          icon={(() => {
-            const PlusIcon = iconNameToReactComponent('plus')
-            return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-          })()}
-          style={{
-            borderColor: `var(${interactiveColor})`,
-            color: `var(${interactiveColor})`,
-          }}
-        >
-          Add color scale
-        </Button>
-      </div>
-
       {/* Color scales grid */}
       <div style={{ 
         display: 'grid', 
