@@ -43,7 +43,7 @@ export default function TokensPage() {
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        marginBottom: selected === 'font' ? 'var(--recursica-brand-dimensions-spacers-lg)' : 0,
+        marginBottom: selected === 'font' ? 'var(--recursica-brand-dimensions-spacers-lg)' : (selected === 'opacity' ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0),
       }}>
         <h1 style={{ 
           margin: 0,
@@ -71,20 +71,25 @@ export default function TokensPage() {
           </div>
         )}
         {selected === 'opacity' && (
-          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr 1fr',
+            gap: 'var(--recursica-brand-dimensions-spacers-lg)',
+            alignItems: 'start',
+          }}>
             <section style={{ 
               background: `var(${layer0Base}-surface)`, 
-              border: `1px solid var(${layer1Base}-border-color)`, 
-              borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
-              padding: 'var(--recursica-brand-dimensions-spacers-md)' 
+              border: `1px solid var(${layer1Base}-border-color)`,
+              borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)', 
+              padding: 'var(--recursica-brand-dimensions-spacers-xl)',
             }}>
               <OpacityTokens />
             </section>
             <section style={{ 
               background: `var(${layer0Base}-surface)`, 
-              border: `1px solid var(${layer1Base}-border-color)`, 
-              borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
-              padding: 'var(--recursica-brand-dimensions-spacers-md)' 
+              border: `1px solid var(${layer1Base}-border-color)`,
+              borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)', 
+              padding: 'var(--recursica-brand-dimensions-spacers-xl)',
             }}>
               <SizeTokens />
             </section>
