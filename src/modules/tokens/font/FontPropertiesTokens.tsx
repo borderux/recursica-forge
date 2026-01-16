@@ -8,10 +8,11 @@ import { useVars } from '../../vars/VarsContext'
 import { Button } from '../../../components/adapters/Button'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { Switch } from '../../../components/adapters/Switch'
+import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
 
 export default function FontPropertiesTokens() {
   const { mode } = useThemeMode()
-  const { resetAll } = useVars()
+  const { resetAll, tokens: tokensJson } = useVars()
   const [activeTab, setActiveTab] = useState<'size' | 'letter-spacing' | 'line-height'>('size')
   const [autoScaleSize, setAutoScaleSize] = useState(() => {
     // Default to false - reset any existing 'true' value to establish new default
@@ -51,8 +52,33 @@ export default function FontPropertiesTokens() {
   const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
 
   const handleReset = () => {
-    // Reset logic would go here - for now just call resetAll
-    resetAll()
+    // Remove all font/typeface overrides that aren't in the original JSON
+    const all = readOverrides()
+    const updated: Record<string, any> = {}
+    
+    // Keep all non-font/typeface overrides
+    Object.keys(all).forEach((k) => {
+      if (!k.startsWith('font/typeface/')) {
+        updated[k] = all[k]
+      }
+    })
+    
+    // Restore font/typeface values from JSON only (removes any added fonts)
+    try {
+      const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+      const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
+      Object.keys(typefaces).filter((k) => !k.startsWith('$')).forEach((k) => {
+        const val = typefaces[k]?.$value
+        updated[`font/typeface/${k}`] = typeof val === 'string' && val ? val : ''
+      })
+    } catch {}
+    
+    writeOverrides(updated)
+    
+    // Dispatch event with reset flag to trigger FontFamiliesTokens to rebuild
+    try {
+      window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, reset: true } }))
+    } catch {}
   }
 
   return (

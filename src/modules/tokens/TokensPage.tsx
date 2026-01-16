@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import OpacityTokens from './opacity/OpacityTokens'
 import SizeTokens from './size/SizeTokens'
-import FontFamiliesTokens, { AddButton as FontAddButton } from './font/FontFamiliesTokens'
+import FontFamiliesTokens from './font/FontFamiliesTokens'
+import { AddButtonWrapper as FontAddButton } from './font/FontFamiliesTokens'
 import FontPropertiesTokens from './font/FontPropertiesTokens'
 import ColorTokens from './colors/ColorTokens'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -44,23 +45,26 @@ export default function TokensPage() {
         alignItems: 'center',
         marginBottom: selected === 'font' ? 'var(--recursica-brand-dimensions-spacers-lg)' : 0,
       }}>
-        <h2 style={{ 
+        <h1 style={{ 
           margin: 0,
-          fontSize: 'var(--recursica-brand-typography-h5-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
+          fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h1-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
           color: `var(${layer0Base}-element-text-color)`,
           opacity: `var(${layer0Base}-element-text-high-emphasis)`,
         }}>
           {selected === 'color' && 'Color'}
           {selected === 'font' && 'Font'}
           {selected === 'opacity' && 'Opacity & Size'}
-        </h2>
+        </h1>
         {selected === 'font' && <FontAddButton />}
       </div>
       <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
         {selected === 'color' && <ColorTokens />}
         {selected === 'font' && (
-          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
+          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
             <FontFamiliesTokens />
             <FontPropertiesTokens />
           </div>
