@@ -28,7 +28,7 @@ export function GoogleFontsModal({
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
-  const layer2Base = `--recursica-brand-themes-${mode}-layer-layer-2-property`
+  const layer3Base = `--recursica-brand-themes-${mode}-layer-layer-3-property`
 
   // Fetch Google Fonts
   useEffect(() => {
@@ -147,7 +147,7 @@ export function GoogleFontsModal({
           color: `var(${layer2Base}-element-text-color)`,
           border: `1px solid var(${layer2Base}-border-color)`,
           borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
-          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color)`,
+          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
           padding: `var(${layer2Base}-padding)`,
           display: 'grid',
           gap: 'var(--recursica-brand-dimensions-spacers-lg)',

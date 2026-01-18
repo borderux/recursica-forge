@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
 import { useVars } from '../vars/VarsContext'
 import PaletteColorControl from '../forms/PaletteColorControl'
-import TokenSlider from '../forms/TokenSlider'
+import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
 import uikitJson from '../../vars/UIKit.json'
 import { useThemeMode } from '../theme/ThemeModeContext'
 
@@ -193,8 +194,8 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
         right: 0, 
         height: '100vh', 
         width: 'clamp(260px, 34vw, 560px)', 
-        background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`, 
-        borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
+        background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, 
+        borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, 
         boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, 
         transform: open ? 'translateX(0)' : 'translateX(100%)', 
         transition: 'transform 200ms ease', 
@@ -209,7 +210,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
           onClick={onClose} 
           aria-label="Close" 
           style={{ 
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
+            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, 
             background: 'transparent', 
             cursor: 'pointer', 
             borderRadius: 6, 
@@ -295,17 +296,39 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                           const isNumeric = type === 'px' || type === 'number' || isDimension
                           
                           if (isNumeric && availableSizeTokens.length > 0) {
+                            const sortedTokens = [...availableSizeTokens].sort((a, b) => (a.value || 0) - (b.value || 0))
+                            const currentTokenName = extractTokenFromCssVar(currentValue || '') || undefined
+                            const currentIdx = sortedTokens.findIndex(t => t.name === currentTokenName) || 0
+                            const getValueLabel = useCallback((value: number) => {
+                              const token = sortedTokens[Math.round(value)]
+                              return token?.label || token?.name || String(value)
+                            }, [sortedTokens])
+                            const minToken = sortedTokens[0]
+                            const maxToken = sortedTokens[sortedTokens.length - 1]
                             return (
-                              <TokenSlider
+                              <Slider
                                 key={cssVar}
-                                label={propertyName}
-                                tokens={availableSizeTokens}
-                                currentToken={extractTokenFromCssVar(currentValue || '') || undefined}
-                                onChange={(tokenName) => {
-                                  const tokenKey = tokenName.replace('size/', '')
-                                  updateCssVar(cssVar, `var(--recursica-tokens-size-${tokenKey})`)
-                                  setUpdateKey(k => k + 1)
+                                value={currentIdx}
+                                onChange={(val) => {
+                                  const idx = typeof val === 'number' ? val : val[0]
+                                  const token = sortedTokens[Math.round(idx)]
+                                  if (token) {
+                                    const tokenKey = token.name.replace('size/', '')
+                                    updateCssVar(cssVar, `var(--recursica-tokens-size-${tokenKey})`)
+                                    setUpdateKey(k => k + 1)
+                                  }
                                 }}
+                                min={0}
+                                max={sortedTokens.length - 1}
+                                step={1}
+                                layer="layer-3"
+                                layout="stacked"
+                                showInput={false}
+                                showValueLabel={true}
+                                valueLabel={getValueLabel}
+                                minLabel={minToken?.label || 'Xs'}
+                                maxLabel={maxToken?.label || 'Xl'}
+                                label={<Label layer="layer-3" layout="stacked">{propertyName}</Label>}
                               />
                             )
                           }
@@ -361,17 +384,39 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                 }
                 
                 if (isNumeric && availableSizeTokens.length > 0) {
+                  const sortedTokens = [...availableSizeTokens].sort((a, b) => (a.value || 0) - (b.value || 0))
+                  const currentTokenName = extractTokenFromCssVar(currentValue || '') || undefined
+                  const currentIdx = sortedTokens.findIndex(t => t.name === currentTokenName) || 0
+                  const getValueLabel = useCallback((value: number) => {
+                    const token = sortedTokens[Math.round(value)]
+                    return token?.label || token?.name || String(value)
+                  }, [sortedTokens])
+                  const minToken = sortedTokens[0]
+                  const maxToken = sortedTokens[sortedTokens.length - 1]
                   return (
-                    <TokenSlider
+                    <Slider
                       key={cssVar}
-                      label={propertyName}
-                      tokens={availableSizeTokens}
-                      currentToken={extractTokenFromCssVar(currentValue || '') || undefined}
-                      onChange={(tokenName) => {
-                        const tokenKey = tokenName.replace('size/', '')
-                        updateCssVar(cssVar, `var(--recursica-tokens-size-${tokenKey})`)
-                        setUpdateKey(k => k + 1)
+                      value={currentIdx}
+                      onChange={(val) => {
+                        const idx = typeof val === 'number' ? val : val[0]
+                        const token = sortedTokens[Math.round(idx)]
+                        if (token) {
+                          const tokenKey = token.name.replace('size/', '')
+                          updateCssVar(cssVar, `var(--recursica-tokens-size-${tokenKey})`)
+                          setUpdateKey(k => k + 1)
+                        }
                       }}
+                      min={0}
+                      max={sortedTokens.length - 1}
+                      step={1}
+                      layer="layer-3"
+                      layout="stacked"
+                      showInput={false}
+                      showValueLabel={true}
+                      valueLabel={getValueLabel}
+                      minLabel={minToken?.label || 'Xs'}
+                      maxLabel={maxToken?.label || 'Xl'}
+                      label={<Label layer="layer-3" layout="stacked">{propertyName}</Label>}
                     />
                   )
                 }

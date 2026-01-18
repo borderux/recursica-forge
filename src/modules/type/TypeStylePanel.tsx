@@ -1,8 +1,9 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar as updateCssVarUtil, removeCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
-import TokenSlider from '../forms/TokenSlider'
+import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { readChoices, writeChoices } from './TypeControls'
 
@@ -525,7 +526,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   if (!open) return null
   
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(240px, 36vw, 520px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(240px, 36vw, 520px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 700 }}>{title}</div>
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
@@ -553,65 +554,149 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 </select>
               </label>
               
-              {sizeOptions.length > 0 ? (
-                <TokenSlider
-                  label="Font Size"
-                  tokens={sizeOptions.map((o) => ({ name: o.short, label: o.label, value: o.value }))}
-                  currentToken={sizeCurrentToken}
-                  onChange={(tokenName) => {
-                    console.log('[TypeStylePanel] Font size changed:', tokenName)
-                    updateCssVarValue('font-size', tokenName)
-                  }}
-                />
-              ) : (
+              {sizeOptions.length > 0 ? (() => {
+                const sortedTokens = [...sizeOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+                const currentIdx = sortedTokens.findIndex(t => t.short === sizeCurrentToken) || 0
+                const getValueLabel = useCallback((value: number) => {
+                  const token = sortedTokens[Math.round(value)]
+                  return token?.label || token?.short || String(value)
+                }, [sortedTokens])
+                return (
+                  <Slider
+                    value={currentIdx}
+                    onChange={(val) => {
+                      const idx = typeof val === 'number' ? val : val[0]
+                      const token = sortedTokens[Math.round(idx)]
+                      if (token) {
+                        console.log('[TypeStylePanel] Font size changed:', token.short)
+                        updateCssVarValue('font-size', token.short)
+                      }
+                    }}
+                    min={0}
+                    max={sortedTokens.length - 1}
+                    step={1}
+                    layer="layer-3"
+                    layout="stacked"
+                    showInput={false}
+                    showValueLabel={true}
+                    valueLabel={getValueLabel}
+                    minLabel={sortedTokens[0]?.label || 'Xs'}
+                    maxLabel={sortedTokens[sortedTokens.length - 1]?.label || 'Xl'}
+                    label={<Label layer="layer-3" layout="stacked">Font Size</Label>}
+                  />
+                )
+              })() : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
                   No font size tokens available
                 </div>
               )}
               
-              {weightOptions.length > 0 ? (
-                <TokenSlider
-                  label="Font Weight"
-                  tokens={weightOptions.map((o) => ({ name: o.short, label: o.label, value: o.value }))}
-                  currentToken={weightCurrentToken}
-                  onChange={(tokenName) => {
-                    console.log('[TypeStylePanel] Font weight changed:', tokenName)
-                    updateCssVarValue('font-weight', tokenName)
-                  }}
-                />
-              ) : (
+              {weightOptions.length > 0 ? (() => {
+                const sortedTokens = [...weightOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+                const currentIdx = sortedTokens.findIndex(t => t.short === weightCurrentToken) || 0
+                const getValueLabel = useCallback((value: number) => {
+                  const token = sortedTokens[Math.round(value)]
+                  return token?.label || token?.short || String(value)
+                }, [sortedTokens])
+                return (
+                  <Slider
+                    value={currentIdx}
+                    onChange={(val) => {
+                      const idx = typeof val === 'number' ? val : val[0]
+                      const token = sortedTokens[Math.round(idx)]
+                      if (token) {
+                        console.log('[TypeStylePanel] Font weight changed:', token.short)
+                        updateCssVarValue('font-weight', token.short)
+                      }
+                    }}
+                    min={0}
+                    max={sortedTokens.length - 1}
+                    step={1}
+                    layer="layer-3"
+                    layout="stacked"
+                    showInput={false}
+                    showValueLabel={true}
+                    valueLabel={getValueLabel}
+                    minLabel={sortedTokens[0]?.label || 'Thin'}
+                    maxLabel={sortedTokens[sortedTokens.length - 1]?.label || 'Black'}
+                    label={<Label layer="layer-3" layout="stacked">Font Weight</Label>}
+                  />
+                )
+              })() : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
                   No font weight tokens available
                 </div>
               )}
               
-              {spacingOptions.length > 0 ? (
-                <TokenSlider
-                  label="Letter Spacing"
-                  tokens={spacingOptions.map((o) => ({ name: o.short, label: o.label, value: o.value }))}
-                  currentToken={spacingCurrentToken}
-                  onChange={(tokenName) => {
-                    console.log('[TypeStylePanel] Letter spacing changed:', tokenName)
-                    updateCssVarValue('font-letter-spacing', tokenName)
-                  }}
-                />
-              ) : (
+              {spacingOptions.length > 0 ? (() => {
+                const sortedTokens = [...spacingOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+                const currentIdx = sortedTokens.findIndex(t => t.short === spacingCurrentToken) || 0
+                const getValueLabel = useCallback((value: number) => {
+                  const token = sortedTokens[Math.round(value)]
+                  return token?.label || token?.short || String(value)
+                }, [sortedTokens])
+                return (
+                  <Slider
+                    value={currentIdx}
+                    onChange={(val) => {
+                      const idx = typeof val === 'number' ? val : val[0]
+                      const token = sortedTokens[Math.round(idx)]
+                      if (token) {
+                        console.log('[TypeStylePanel] Letter spacing changed:', token.short)
+                        updateCssVarValue('font-letter-spacing', token.short)
+                      }
+                    }}
+                    min={0}
+                    max={sortedTokens.length - 1}
+                    step={1}
+                    layer="layer-3"
+                    layout="stacked"
+                    showInput={false}
+                    showValueLabel={true}
+                    valueLabel={getValueLabel}
+                    minLabel={sortedTokens[0]?.label || 'Tightest'}
+                    maxLabel={sortedTokens[sortedTokens.length - 1]?.label || 'Widest'}
+                    label={<Label layer="layer-3" layout="stacked">Letter Spacing</Label>}
+                  />
+                )
+              })() : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
                   No letter spacing tokens available
                 </div>
               )}
               
-              {lineHeightOptions.length > 0 ? (
-                <TokenSlider
-                  label="Line Height"
-                  tokens={lineHeightOptions.map((o) => ({ name: o.short, label: o.label, value: o.value }))}
-                  currentToken={lineHeightCurrentToken}
-                  onChange={(tokenName) => {
-                    console.log('[TypeStylePanel] Line height changed:', tokenName)
-                    updateCssVarValue('line-height', tokenName)
-                  }}
-                />
-              ) : (
+              {lineHeightOptions.length > 0 ? (() => {
+                const sortedTokens = [...lineHeightOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+                const currentIdx = sortedTokens.findIndex(t => t.short === lineHeightCurrentToken) || 0
+                const getValueLabel = useCallback((value: number) => {
+                  const token = sortedTokens[Math.round(value)]
+                  return token?.label || token?.short || String(value)
+                }, [sortedTokens])
+                return (
+                  <Slider
+                    value={currentIdx}
+                    onChange={(val) => {
+                      const idx = typeof val === 'number' ? val : val[0]
+                      const token = sortedTokens[Math.round(idx)]
+                      if (token) {
+                        console.log('[TypeStylePanel] Line height changed:', token.short)
+                        updateCssVarValue('line-height', token.short)
+                      }
+                    }}
+                    min={0}
+                    max={sortedTokens.length - 1}
+                    step={1}
+                    layer="layer-3"
+                    layout="stacked"
+                    showInput={false}
+                    showValueLabel={true}
+                    valueLabel={getValueLabel}
+                    minLabel={sortedTokens[0]?.label || 'Shortest'}
+                    maxLabel={sortedTokens[sortedTokens.length - 1]?.label || 'Tallest'}
+                    label={<Label layer="layer-3" layout="stacked">Line Height</Label>}
+                  />
+                )
+              })() : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
                   No line height tokens available
                 </div>

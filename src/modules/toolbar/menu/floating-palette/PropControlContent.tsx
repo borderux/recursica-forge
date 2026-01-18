@@ -6,7 +6,6 @@ import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
-import TokenSlider from '../../../forms/TokenSlider'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
@@ -520,69 +519,161 @@ function TypographySliderInline({
   )
 }
 
-// Separate component for elevation control to properly use hooks
-function ElevationPropControl({
+// Inline elevation slider component
+function ElevationSliderInline({
   primaryVar,
   label,
   elevationOptions,
   mode,
+  layer = 'layer-1',
 }: {
   primaryVar: string
   label: string
   elevationOptions: Array<{ name: string; label: string }>
   mode: 'light' | 'dark'
+  layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 }) {
-  const [currentElevation, setCurrentElevation] = React.useState(() => {
-    const value = readCssVar(primaryVar)
-    if (value) {
-      const match = value.match(/elevations\.(elevation-\d+)/)
-      if (match) return match[1]
-      if (/^elevation-\d+$/.test(value)) return value
+  const [selectedIndex, setSelectedIndex] = useState<number>(0)
+  const justSetValueRef = useRef<string | null>(null)
+  
+  // Build tokens list from elevation options
+  const tokens = useMemo(() => {
+    return elevationOptions.map((opt, index) => ({
+      name: opt.name,
+      label: opt.label,
+      index,
+    }))
+  }, [elevationOptions])
+  
+  const readInitialValue = useCallback(() => {
+    const inlineValue = typeof document !== 'undefined' 
+      ? document.documentElement.style.getPropertyValue(primaryVar).trim()
+      : ''
+    
+    if (justSetValueRef.current === inlineValue) {
+      return
     }
-    return 'elevation-0'
-  })
-
-  React.useEffect(() => {
+    
+    const currentValue = inlineValue || readCssVar(primaryVar)
+    
+    if (!currentValue) {
+      setSelectedIndex(0)
+      return
+    }
+    
+    // Extract elevation name from value
+    let elevationName = 'elevation-0'
+    if (currentValue) {
+      const match = currentValue.match(/elevations\.(elevation-\d+)/)
+      if (match) {
+        elevationName = match[1]
+      } else if (/^elevation-\d+$/.test(currentValue)) {
+        elevationName = currentValue
+      }
+    }
+    
+    const matchingIndex = tokens.findIndex(t => t.name === elevationName)
+    setSelectedIndex(matchingIndex >= 0 ? matchingIndex : 0)
+  }, [primaryVar, tokens])
+  
+  useEffect(() => {
+    readInitialValue()
+  }, [readInitialValue])
+  
+  useEffect(() => {
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       if (!detail?.cssVars || detail.cssVars.includes(primaryVar)) {
-        const value = readCssVar(primaryVar)
-        if (value) {
-          const match = value.match(/elevations\.(elevation-\d+)/)
-          if (match) {
-            setCurrentElevation(match[1])
-            return
-          }
-          if (/^elevation-\d+$/.test(value)) {
-            setCurrentElevation(value)
-            return
-          }
-        }
-        setCurrentElevation('elevation-0')
+        setTimeout(() => {
+          readInitialValue()
+        }, 0)
       }
     }
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-  }, [primaryVar])
-
-  const handleElevationChange = (elevationName: string) => {
-    updateCssVar(primaryVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
-    setCurrentElevation(elevationName)
-    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars: [primaryVar] }
-    }))
+  }, [readInitialValue, primaryVar])
+  
+  const handleSliderChange = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
+    setSelectedIndex(clampedIndex)
+    
+    const selectedToken = tokens[clampedIndex]
+    if (selectedToken) {
+      const elevationValue = `{brand.themes.${mode}.elevations.${selectedToken.name}}`
+      updateCssVar(primaryVar, elevationValue)
+      justSetValueRef.current = elevationValue
+      setTimeout(() => {
+        justSetValueRef.current = null
+      }, 100)
+      
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [primaryVar] }
+        }))
+      })
+    }
   }
-
+  
+  if (tokens.length === 0) {
+    return (
+      <div style={{ padding: '8px', fontSize: 12, opacity: 0.7 }}>
+        Loading tokens...
+      </div>
+    )
+  }
+  
+  const safeSelectedIndex = Math.max(0, Math.min(selectedIndex, tokens.length - 1))
+  const currentToken = tokens[safeSelectedIndex]
+  
+  const minToken = tokens[0]
+  const maxToken = tokens[tokens.length - 1]
+  
+  // Extract elevation number from token name (e.g., "elevation-0" -> 0, "elevation-4" -> 4)
+  const getElevationNumber = (token: typeof tokens[0] | undefined): number => {
+    if (!token) return 0
+    const match = token.name.match(/elevation-(\d+)/)
+    return match ? parseInt(match[1], 10) : 0
+  }
+  
+  // Min label: "None" for elevation-0, otherwise the number
+  const minElevationNum = getElevationNumber(minToken)
+  const minLabel = minElevationNum === 0 ? 'None' : String(minElevationNum)
+  
+  // Max label: just the number
+  const maxElevationNum = getElevationNumber(maxToken)
+  const maxLabel = String(maxElevationNum)
+  
+  // Create a function that calculates the value label from the current slider value
+  const getValueLabel = useCallback((value: number) => {
+    const index = Math.max(0, Math.min(Math.round(value), tokens.length - 1))
+    const token = tokens[index]
+    if (!token) return 'None'
+    const elevationNum = getElevationNumber(token)
+    return elevationNum === 0 ? 'None' : String(elevationNum)
+  }, [tokens])
+  
   return (
-    <TokenSlider
-      label={label}
-      tokens={elevationOptions.map(opt => ({ name: opt.name, label: opt.label }))}
-      currentToken={currentElevation}
-      onChange={handleElevationChange}
-      getTokenLabel={(token) => {
-        const opt = elevationOptions.find((o) => o.name === token.name)
-        return opt?.label || token.label || token.name
-      }}
+    <Slider
+      value={safeSelectedIndex}
+      onChange={handleSliderChange}
+      min={0}
+      max={tokens.length - 1}
+      step={1}
+      layer={layer}
+      layout="stacked"
+      showInput={false}
+      showValueLabel={true}
+      valueLabel={getValueLabel}
+      tooltipText={(() => {
+        if (!currentToken) return 'None'
+        const match = currentToken.name.match(/elevation-(\d+)/)
+        const elevationNum = match ? parseInt(match[1], 10) : 0
+        return elevationNum === 0 ? 'None' : String(elevationNum)
+      })()}
+      minLabel={minLabel}
+      maxLabel={maxLabel}
+      label={<Label layer={layer} layout="stacked">{label}</Label>}
     />
   )
 }
@@ -972,11 +1063,12 @@ export default function PropControlContent({
 
     if (propToRender.type === 'elevation') {
       return (
-        <ElevationPropControl
+        <ElevationSliderInline
           primaryVar={primaryVar}
           label={label}
           elevationOptions={elevationOptions}
           mode={mode}
+          layer="layer-1"
         />
       )
     }

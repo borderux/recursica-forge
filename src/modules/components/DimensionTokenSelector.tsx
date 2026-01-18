@@ -4,7 +4,8 @@ import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
-import TokenSlider from '../forms/TokenSlider'
+import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
 
 interface DimensionTokenSelectorProps {
   targetCssVar: string
@@ -873,13 +874,46 @@ export default function DimensionTokenSelector({
     )
   }
   
+  const sortedTokens = useMemo(() => {
+    return [...dimensionTokens].sort((a, b) => {
+      if (a.value !== undefined && b.value !== undefined) {
+        return a.value - b.value
+      }
+      if (a.value !== undefined) return -1
+      if (b.value !== undefined) return 1
+      return 0
+    })
+  }, [dimensionTokens])
+  
+  const currentIdx = sortedTokens.findIndex(t => t.name === selectedToken) || 0
+  const getValueLabel = useCallback((value: number) => {
+    const token = sortedTokens[Math.round(value)]
+    return token?.label || token?.name.split('-').pop() || token?.name || String(value)
+  }, [sortedTokens])
+  const minToken = sortedTokens[0]
+  const maxToken = sortedTokens[sortedTokens.length - 1]
+  
   return (
-    <TokenSlider
-      label={label}
-      tokens={dimensionTokens}
-      currentToken={selectedToken}
-      onChange={handleTokenChange}
-      getTokenLabel={(token) => token.label || token.name.split('-').pop() || token.name}
+    <Slider
+      value={currentIdx}
+      onChange={(val) => {
+        const idx = typeof val === 'number' ? val : val[0]
+        const token = sortedTokens[Math.round(idx)]
+        if (token) {
+          handleTokenChange(token.name)
+        }
+      }}
+      min={0}
+      max={sortedTokens.length - 1}
+      step={1}
+      layer="layer-3"
+      layout="stacked"
+      showInput={false}
+      showValueLabel={true}
+      valueLabel={getValueLabel}
+      minLabel={minToken?.label || 'None'}
+      maxLabel={maxToken?.label || 'Xl'}
+      label={<Label layer="layer-3" layout="stacked">{label}</Label>}
     />
   )
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 import PaletteColorControl from '../forms/PaletteColorControl'
-import TokenSlider from '../forms/TokenSlider'
-import NumericSlider from '../forms/NumericSlider'
+import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 
@@ -237,7 +237,7 @@ export default function ElevationStylePanel({
   }, [levelsArr, getAlphaTokenForLevel, updateToken, setElevationAlphaToken, elevation, tokensJson])
 
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 28vw, 440px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 28vw, 440px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 600 }}>
           {(() => {
@@ -250,28 +250,38 @@ export default function ElevationStylePanel({
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        <NumericSlider
-          label="Blur"
+        <Slider
           value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0) : 0}
-          onChange={(value) => {
+          onChange={(val) => {
+            const value = typeof val === 'number' ? val : val[0]
             levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blur', value))
           }}
           min={0}
           max={200}
           step={1}
-          unit="px"
+          layer="layer-3"
+          layout="stacked"
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}px`}
+          label={<Label layer="layer-3" layout="stacked">Blur</Label>}
         />
 
-        <NumericSlider
-          label="Spread"
+        <Slider
           value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0) : 0}
-          onChange={(value) => {
+          onChange={(val) => {
+            const value = typeof val === 'number' ? val : val[0]
             levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spread', value))
           }}
           min={0}
           max={200}
           step={1}
-          unit="px"
+          layer="layer-3"
+          layout="stacked"
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}px`}
+          label={<Label layer="layer-3" layout="stacked">Spread</Label>}
         />
 
         {(() => {
@@ -282,18 +292,21 @@ export default function ElevationStylePanel({
           const absValue = Math.abs(firstCtrl?.offsetX ?? 0)
           const signedValue = dir === 'right' ? absValue : -absValue
           return (
-            <NumericSlider
-              label="Offset X"
+            <Slider
               value={signedValue}
-              onChange={(value) => {
-                // Store as absolute value, but we'll need to update direction logic
-                // For now, store the signed value directly
+              onChange={(val) => {
+                const value = typeof val === 'number' ? val : val[0]
                 levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetX', value))
               }}
               min={-50}
               max={50}
               step={1}
-              unit="px"
+              layer="layer-3"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={(val) => `${val}px`}
+              label={<Label layer="layer-3" layout="stacked">Offset X</Label>}
             />
           )
         })()}
@@ -306,18 +319,21 @@ export default function ElevationStylePanel({
           const absValue = Math.abs(firstCtrl?.offsetY ?? 0)
           const signedValue = dir === 'down' ? absValue : -absValue
           return (
-            <NumericSlider
-              label="Offset Y"
+            <Slider
               value={signedValue}
-              onChange={(value) => {
-                // Store as absolute value, but we'll need to update direction logic
-                // For now, store the signed value directly
+              onChange={(val) => {
+                const value = typeof val === 'number' ? val : val[0]
                 levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetY', value))
               }}
               min={-50}
               max={50}
               step={1}
-              unit="px"
+              layer="layer-3"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={(val) => `${val}px`}
+              label={<Label layer="layer-3" layout="stacked">Offset Y</Label>}
             />
           )
         })()}
@@ -347,14 +363,21 @@ export default function ElevationStylePanel({
                   })())
           
           return (
-            <NumericSlider
-              label="Opacity"
+            <Slider
               value={currentOpacityValue}
-              onChange={handleOpacityChange}
+              onChange={(val) => {
+                const value = typeof val === 'number' ? val : val[0]
+                handleOpacityChange(value)
+              }}
               min={0}
               max={100}
               step={1}
-              unit="%"
+              layer="layer-3"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={(val) => `${val}%`}
+              label={<Label layer="layer-3" layout="stacked">Opacity</Label>}
             />
           )
         })()}
