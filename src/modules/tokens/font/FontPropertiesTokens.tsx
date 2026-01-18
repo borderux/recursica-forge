@@ -91,7 +91,7 @@ export default function FontPropertiesTokens() {
       gap: 0,
     }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 350px', gap: 0, alignItems: 'stretch' }}>
-        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacers-default)', paddingTop: 'var(--recursica-brand-dimensions-gutters-vertical)', paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)', paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)', paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-general-default)', paddingTop: 'var(--recursica-brand-dimensions-gutters-vertical)', paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)', paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)', paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)', alignItems: 'center' }}>
           <button
             onClick={() => setActiveTab('size')}
             style={{
@@ -173,7 +173,7 @@ export default function FontPropertiesTokens() {
           >
             Reset all
           </Button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
             <span style={{ 
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,

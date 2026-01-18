@@ -96,17 +96,24 @@ export function buildDimensionVars(
     // Generate CSS vars without mode prefix since dimensions are shared
     traverseDimensions(dimensions, [], vars, tokenIndex, theme, mode)
     
-    // Add backwards compatibility aliases for spacer dimensions
-    // Old format: --recursica-brand-dimensions-spacer-sm
-    // New format: --recursica-brand-dimensions-spacers-sm
+    // Add backwards compatibility aliases for spacer dimensions (now using general)
+    // Old format: --recursica-brand-dimensions-spacer-sm or --recursica-brand-dimensions-spacers-sm
+    // New format: --recursica-brand-dimensions-general-sm
     // Generate aliases so old references still work
-    if (dimensions.spacers && typeof dimensions.spacers === 'object') {
-      const spacerKeys = Object.keys(dimensions.spacers).filter(k => !k.startsWith('$'))
-      spacerKeys.forEach(spacerKey => {
-        const newVarName = `--recursica-brand-dimensions-spacers-${spacerKey}`
-        const oldVarName = `--recursica-brand-dimensions-spacer-${spacerKey}`
-        if (vars[newVarName] && !vars[oldVarName]) {
-          vars[oldVarName] = vars[newVarName]
+    if (dimensions.general && typeof dimensions.general === 'object') {
+      const generalKeys = Object.keys(dimensions.general).filter(k => !k.startsWith('$'))
+      generalKeys.forEach(generalKey => {
+        const newVarName = `--recursica-brand-dimensions-general-${generalKey}`
+        // Support old spacer references
+        const oldSpacerVarName = `--recursica-brand-dimensions-spacers-${generalKey}`
+        const oldSpacerSingularVarName = `--recursica-brand-dimensions-spacer-${generalKey}`
+        if (vars[newVarName]) {
+          if (!vars[oldSpacerVarName]) {
+            vars[oldSpacerVarName] = vars[newVarName]
+          }
+          if (!vars[oldSpacerSingularVarName]) {
+            vars[oldSpacerSingularVarName] = vars[newVarName]
+          }
         }
       })
     }

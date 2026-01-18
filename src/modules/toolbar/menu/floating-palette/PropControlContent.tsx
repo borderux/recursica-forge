@@ -45,7 +45,7 @@ function BrandDimensionSliderInline({
   targetCssVar: string
   targetCssVars?: string[]
   label: string
-  dimensionCategory: 'spacers' | 'border-radii' | 'icons' | 'general'
+  dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size'
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 }) {
   const { theme } = useVars()
@@ -147,7 +147,7 @@ function BrandDimensionSliderInline({
         const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
         if (match) {
           const pxValue = parseFloat(match[1])
-          if (pxValue === 0 && (dimensionCategory === 'spacers' || dimensionCategory === 'border-radii' || dimensionCategory === 'general')) {
+          if (pxValue === 0 && (dimensionCategory === 'border-radii' || dimensionCategory === 'general')) {
             const noneIndex = tokens.findIndex(t => t.key === 'none')
             if (noneIndex >= 0) {
               setSelectedIndex(noneIndex)
@@ -1058,7 +1058,7 @@ export default function PropControlContent({
         return <AvatarTextSizeSlider key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`} />
       }
       
-      // Use brand dimension slider for padding-related properties that use spacer tokens
+      // Use brand dimension slider for padding-related properties that use general tokens
       const isPaddingProp = propNameLower === 'padding' ||
                            propNameLower === 'vertical-padding' ||
                            propNameLower === 'horizontal-padding' ||
@@ -1077,7 +1077,7 @@ export default function PropControlContent({
             targetCssVar={primaryVar}
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
-            dimensionCategory="spacers"
+            dimensionCategory="general"
             layer="layer-1"
           />
         )
@@ -1098,6 +1098,97 @@ export default function PropControlContent({
             label={label}
             dimensionCategory="border-radii"
             layer="layer-1"
+          />
+        )
+      }
+      
+      // Use pixel slider for label-width (raw pixel values, not tokens)
+      // Toolbar sliders ALWAYS use stacked layout
+      // When Label is side-by-side, only update CSS var on drag end
+      if (propNameLower === 'label-width' && componentName.toLowerCase() === 'label') {
+        const LabelWidthSlider = () => {
+          const minValue = 0
+          const maxValue = 500
+          const isLabelSideBySide = selectedVariants.layout === 'side-by-side'
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar])
+          
+          const updateCssVars = useCallback((clampedValue: number) => {
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [cssVars, primaryVar])
+          
+          const handleChange = (newValue: number | [number, number]) => {
+            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
+            setValue(clampedValue)
+            
+            // Only update CSS vars immediately if Label is in stacked mode
+            if (!isLabelSideBySide) {
+              updateCssVars(clampedValue)
+            }
+          }
+          
+          const handleChangeCommitted = (newValue: number | [number, number]) => {
+            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
+            
+            // Always update CSS vars on drag end, especially for side-by-side mode
+            updateCssVars(clampedValue)
+          }
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel="0px"
+              maxLabel="500px"
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return (
+          <LabelWidthSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           />
         )
       }
@@ -1190,7 +1281,6 @@ export default function PropControlContent({
           propName={propToRender.name}
           minPixelValue={minPixelValue}
           maxPixelValue={maxPixelValue}
-          forcePixelMode={isLabelWidth}
         />
       )
     }
@@ -1418,7 +1508,7 @@ export default function PropControlContent({
               return (
                 <div 
                   key={groupedPropName}
-                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}
+                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}
                 >
                   {renderControl(correctProp, correctCssVars, correctPrimaryVar, label)}
                 </div>
@@ -1514,7 +1604,7 @@ export default function PropControlContent({
               return (
                 <div 
                   key={groupedPropName}
-                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}
+                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}
                 >
                   {renderControl(correctProp, correctCssVars, correctPrimaryVar, label)}
                 </div>
@@ -1527,7 +1617,7 @@ export default function PropControlContent({
           return (
             <div 
               key={groupedPropName}
-              style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}
+              style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}
             >
               {renderControl(groupedProp, cssVars, primaryVar, label)}
             </div>
@@ -1570,7 +1660,7 @@ export default function PropControlContent({
           />
         )}
         {prop.trackUnselectedProp && trackUnselectedPrimaryVar && (
-          <div style={{ marginTop: prop.trackSelectedProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
+          <div style={{ marginTop: prop.trackSelectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
             <PaletteColorControl
               targetCssVar={trackUnselectedPrimaryVar}
               targetCssVars={trackUnselectedCssVars.length > 1 ? trackUnselectedCssVars : undefined}
@@ -1581,7 +1671,7 @@ export default function PropControlContent({
           </div>
         )}
         {trackWidthProp && (
-          <div style={{ marginTop: prop.trackUnselectedProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
+          <div style={{ marginTop: prop.trackUnselectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(trackWidthProp)
               const primaryVar = cssVars[0] || trackWidthProp.cssVar
@@ -1597,7 +1687,7 @@ export default function PropControlContent({
           </div>
         )}
         {trackInnerPaddingProp && (
-          <div style={{ marginTop: trackWidthProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
+          <div style={{ marginTop: trackWidthProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(trackInnerPaddingProp)
               const primaryVar = cssVars[0] || trackInnerPaddingProp.cssVar
@@ -1613,7 +1703,7 @@ export default function PropControlContent({
           </div>
         )}
         {trackBorderRadiusProp && (
-          <div style={{ marginTop: trackInnerPaddingProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
+          <div style={{ marginTop: trackInnerPaddingProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(trackBorderRadiusProp)
               const primaryVar = cssVars[0] || trackBorderRadiusProp.cssVar
@@ -1659,7 +1749,7 @@ export default function PropControlContent({
           </>
         )}
         {thumbUnselectedProp && (
-          <div style={{ marginTop: thumbSelectedProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
+          <div style={{ marginTop: thumbSelectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(thumbUnselectedProp)
               const primaryVar = cssVars[0] || thumbUnselectedProp.cssVar
@@ -1675,7 +1765,7 @@ export default function PropControlContent({
           </div>
         )}
         {thumbHeightProp && (
-          <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
+          <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(thumbHeightProp)
               const primaryVar = cssVars[0] || thumbHeightProp.cssVar
@@ -1691,7 +1781,7 @@ export default function PropControlContent({
           </div>
         )}
         {thumbWidthProp && (
-          <div style={{ marginTop: thumbHeightProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
+          <div style={{ marginTop: thumbHeightProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(thumbWidthProp)
               const primaryVar = cssVars[0] || thumbWidthProp.cssVar
@@ -1707,7 +1797,7 @@ export default function PropControlContent({
           </div>
         )}
         {thumbBorderRadiusProp && (
-          <div style={{ marginTop: thumbWidthProp ? 'var(--recursica-brand-dimensions-spacers-md)' : 0 }}>
+          <div style={{ marginTop: thumbWidthProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
             {(() => {
               const cssVars = getCssVarsForProp(thumbBorderRadiusProp)
               const primaryVar = cssVars[0] || thumbBorderRadiusProp.cssVar

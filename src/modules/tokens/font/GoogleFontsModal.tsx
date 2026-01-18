@@ -150,7 +150,7 @@ export function GoogleFontsModal({
           boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
           padding: `var(${layer2Base}-padding)`,
           display: 'grid',
-          gap: 'var(--recursica-brand-dimensions-spacers-lg)',
+          gap: 'var(--recursica-brand-dimensions-general-lg)',
           width: 600,
           maxWidth: '90vw',
           maxHeight: '80vh',
@@ -174,7 +174,7 @@ export function GoogleFontsModal({
               border: 'none',
               background: 'transparent',
               cursor: 'pointer',
-              padding: 'var(--recursica-brand-dimensions-spacers-xs)',
+              padding: 'var(--recursica-brand-dimensions-general-xs)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -197,7 +197,7 @@ export function GoogleFontsModal({
               setError('') // Clear error when typing
             }}
             style={{
-              padding: 'var(--recursica-brand-dimensions-spacers-default)',
+              padding: 'var(--recursica-brand-dimensions-general-default)',
               border: `1px solid ${error ? `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)` : `var(${layer1Base}-border-color)`}`,
               borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
               background: `var(${layer1Base}-surface)`,
@@ -208,7 +208,7 @@ export function GoogleFontsModal({
           />
           {error && (
             <div style={{
-              marginTop: 'var(--recursica-brand-dimensions-spacers-xs)',
+              marginTop: 'var(--recursica-brand-dimensions-general-xs)',
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
             }}>
@@ -222,12 +222,12 @@ export function GoogleFontsModal({
             overflowY: 'auto',
             maxHeight: '400px',
             display: 'grid',
-            gap: 'var(--recursica-brand-dimensions-spacers-xs)',
+            gap: 'var(--recursica-brand-dimensions-general-xs)',
           }}
         >
           {loading ? (
             <div style={{
-              padding: 'var(--recursica-brand-dimensions-spacers-lg)',
+              padding: 'var(--recursica-brand-dimensions-general-lg)',
               textAlign: 'center',
               color: `var(${layer2Base}-element-text-color)`,
               opacity: `var(${layer2Base}-element-text-low-emphasis)`,
@@ -236,7 +236,7 @@ export function GoogleFontsModal({
             </div>
           ) : filteredFonts.length === 0 ? (
             <div style={{
-              padding: 'var(--recursica-brand-dimensions-spacers-lg)',
+              padding: 'var(--recursica-brand-dimensions-general-lg)',
               textAlign: 'center',
               color: `var(${layer2Base}-element-text-color)`,
               opacity: `var(${layer2Base}-element-text-low-emphasis)`,
@@ -261,7 +261,7 @@ export function GoogleFontsModal({
                   }}
                   disabled={isDuplicate}
                   style={{
-                    padding: 'var(--recursica-brand-dimensions-spacers-default)',
+                    padding: 'var(--recursica-brand-dimensions-general-default)',
                     border: `1px solid var(${layer1Base}-border-color)`,
                     borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
                     background: selectedFont === font.family
@@ -289,7 +289,7 @@ export function GoogleFontsModal({
           )}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
           <Button
             variant="outline"
             size="default"

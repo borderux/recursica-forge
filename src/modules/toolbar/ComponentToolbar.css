@@ -14,7 +14,7 @@ html[data-theme-mode="dark"] .component-toolbar-panel {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacers-lg);
+  gap: var(--recursica-brand-dimensions-general-lg);
   padding: var(--recursica-brand-themes-light-layer-layer-1-property-padding);
   background: var(--recursica-brand-themes-light-layer-layer-1-property-surface);
   border: var(--recursica-brand-themes-light-layer-layer-1-property-border-thickness) solid var(--recursica-brand-themes-light-layer-layer-1-property-border-color);
@@ -73,8 +73,8 @@ html[data-theme-mode="dark"] .toolbar-section-group {
 .dropdown-container.full-width .toolbar-icon-button {
   width: 100%;
   justify-content: flex-start;
-  padding: 0 var(--recursica-brand-dimensions-spacers-sm);
-  gap: var(--recursica-brand-dimensions-spacers-sm);
+  padding: 0 var(--recursica-brand-dimensions-general-sm);
+  gap: var(--recursica-brand-dimensions-general-sm);
 }
 
 html[data-theme-mode="dark"] .toolbar-icon-button {

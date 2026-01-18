@@ -1,7 +1,7 @@
 .dimension-token-selector {
   display: flex;
   flex-direction: column;
-  gap: var(--recursica-brand-dimensions-spacers-sm);
+  gap: var(--recursica-brand-dimensions-general-sm);
 }
 
 .dimension-token-label {
@@ -23,7 +23,7 @@ html[data-theme-mode="dark"] .dimension-token-label {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md);
+  padding: var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md);
   border: var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-light-layer-layer-3-property-border-color, var(--recursica-brand-themes-light-layer-layer-3-property-border-color));
   border-radius: var(--recursica-brand-themes-light-layer-layer-3-property-border-radius, var(--recursica-brand-themes-light-layer-layer-3-property-border-radius));
   background: var(--recursica-brand-themes-light-layer-layer-3-property-surface, var(--recursica-brand-themes-light-layer-layer-3-property-surface));
@@ -54,7 +54,7 @@ html[data-theme-mode="dark"] .dimension-token-button:hover {
 
 .dimension-token-chevron {
   opacity: 0.6;
-  margin-left: var(--recursica-brand-dimensions-spacers-sm);
+  margin-left: var(--recursica-brand-dimensions-general-sm);
 }
 
 .dimension-token-menu {
@@ -83,7 +83,7 @@ html[data-theme-mode="dark"] .dimension-token-menu {
 }
 
 .dimension-token-option {
-  padding: var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md);
+  padding: var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md);
   background: transparent;
   border: none;
   border-radius: var(--recursica-brand-themes-light-layer-layer-3-property-border-radius, var(--recursica-brand-themes-light-layer-layer-3-property-border-radius));
@@ -118,7 +118,7 @@ html[data-theme-mode="dark"] .dimension-token-option.selected {
 }
 
 .dimension-token-empty {
-  padding: var(--recursica-brand-dimensions-spacers-md);
+  padding: var(--recursica-brand-dimensions-general-md);
   text-align: center;
   color: var(--recursica-brand-themes-light-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-light-layer-layer-3-property-element-text-color));
   opacity: var(--recursica-brand-themes-light-layer-layer-3-property-element-text-low-emphasis, var(--recursica-brand-themes-light-layer-layer-3-property-element-text-low-emphasis));

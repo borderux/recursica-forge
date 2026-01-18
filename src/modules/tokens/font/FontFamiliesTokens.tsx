@@ -511,8 +511,8 @@ export default function FontFamiliesTokens() {
   const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
+    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-lg)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--recursica-brand-dimensions-general-lg)' }}>
         {rows.map((r, index) => {
           // Extract the key from the name (e.g., "font/typeface/primary" -> "primary")
           const key = r.name.replace('font/typeface/', '')
@@ -529,7 +529,7 @@ export default function FontFamiliesTokens() {
                 borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
                 padding: `var(${layer1Base}-padding)`,
                 display: 'grid',
-                gap: 'var(--recursica-brand-dimensions-spacers-md)',
+                gap: 'var(--recursica-brand-dimensions-general-md)',
                 position: 'relative',
               }}
             >
@@ -542,12 +542,12 @@ export default function FontFamiliesTokens() {
                 }}
                 style={{
                   position: 'absolute',
-                  top: 'var(--recursica-brand-dimensions-spacers-md)',
-                  right: 'var(--recursica-brand-dimensions-spacers-md)',
+                  top: 'var(--recursica-brand-dimensions-general-md)',
+                  right: 'var(--recursica-brand-dimensions-general-md)',
                   border: 'none',
                   background: 'transparent',
                   cursor: 'pointer',
-                  padding: 'var(--recursica-brand-dimensions-spacers-xs)',
+                  padding: 'var(--recursica-brand-dimensions-general-xs)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -566,7 +566,7 @@ export default function FontFamiliesTokens() {
                   return null
                 })()}
               </button>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-xs)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
                 <Chip
                   variant="unselected"
                   size="small"
@@ -597,7 +597,7 @@ export default function FontFamiliesTokens() {
               }}>
                 {EXAMPLE_TEXT}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--recursica-brand-dimensions-spacers-xs)' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
                 {(availableWeights[r.name] || FONT_WEIGHTS).map((weight) => {
                   return (
                     <Chip
@@ -631,12 +631,12 @@ export default function FontFamiliesTokens() {
               onClick={() => setShowInspiration(false)}
               style={{
                 position: 'absolute',
-                top: 'var(--recursica-brand-dimensions-spacers-md)',
-                right: 'var(--recursica-brand-dimensions-spacers-md)',
+                top: 'var(--recursica-brand-dimensions-general-md)',
+                right: 'var(--recursica-brand-dimensions-general-md)',
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                padding: 'var(--recursica-brand-dimensions-spacers-xs)',
+                padding: 'var(--recursica-brand-dimensions-general-xs)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -658,7 +658,7 @@ export default function FontFamiliesTokens() {
               </h3>
               <p style={{
                 margin: 0,
-                marginTop: 'var(--recursica-brand-dimensions-spacers-md)',
+                marginTop: 'var(--recursica-brand-dimensions-general-md)',
                 fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                 color: `var(--recursica-brand-themes-${mode}-palettes-palette-2-200-on-tone)`,
                 opacity: `var(--recursica-brand-themes-${mode}-palettes-palette-2-200-high-emphasis)`,

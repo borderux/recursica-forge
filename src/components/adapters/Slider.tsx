@@ -11,6 +11,7 @@ import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, 
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Label } from './Label'
+import { getTypographyCssVar, extractTypographyStyleName } from '../utils/typographyUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type SliderProps = {
@@ -59,6 +60,19 @@ export function Slider({
 }: SliderProps) {
   const Component = useComponent('Slider')
   const { mode } = useThemeMode()
+  
+  // Get label typography styles (not using Label component, just the typography)
+  // Calculate these unconditionally to avoid hook order issues
+  const labelFontVar = getComponentLevelCssVar('Label', 'label-font')
+  const labelFontValue = readCssVar(labelFontVar)
+  const labelFontStyle = extractTypographyStyleName(labelFontValue) || 'body-small'
+  const labelFontSizeVar = getTypographyCssVar(labelFontStyle, 'font-size')
+  const labelFontFamilyVar = getTypographyCssVar(labelFontStyle, 'font-family')
+  const labelFontWeightVar = getTypographyCssVar(labelFontStyle, 'font-weight')
+  const labelLetterSpacingVar = getTypographyCssVar(labelFontStyle, 'font-letter-spacing')
+  const labelLineHeightVar = getTypographyCssVar(labelFontStyle, 'line-height')
+  const labelTextColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
+  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
   
   if (!Component) {
     // Fallback to native input range
@@ -300,24 +314,17 @@ export function Slider({
     
     if (layout === 'side-by-side' && label) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVar}, 8px)`, ...style }}>
-          {label && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {label}
-              {showValueLabel && (
-                <span style={{ 
-                  fontSize: 12, 
-                  opacity: 0.7, 
-                  color: 'inherit',
-                  width: maxValueWidth,
-                  textAlign: 'right',
-                }}>
-                  {valueLabel ? (typeof valueLabel === 'function' ? valueLabel(singleValue) : valueLabel) : singleValue}
-                </span>
-              )}
-            </div>
-          )}
-          {sliderElement}
+        <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
+          <div style={{ flexShrink: 0, minWidth: 100, width: 100 }}>
+            {label}
+          </div>
+          <div style={{ 
+            flex: 1, 
+            display: 'flex',
+            alignItems: 'center',
+          }}>
+            {sliderElement}
+          </div>
         </div>
       )
     }
@@ -412,25 +419,27 @@ export function Slider({
   const finalDisplayValue = (displayValueStr && displayValueStr.trim() !== '') 
     ? displayValueStr 
     : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '0')
-  
+
   const valueLabelElement = showValueLabel ? (
-    <Label 
-      layer={layer} 
-      layout={layout} 
-      align="right"
+    <span
       style={{ 
         flexShrink: 1,
         whiteSpace: 'nowrap',
         minWidth: 0,
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        // Override any width constraints from Label component
-        width: 'auto',
-        maxWidth: 'none',
+        fontSize: `var(${labelFontSizeVar})`,
+        fontFamily: `var(${labelFontFamilyVar})`,
+        fontWeight: `var(${labelFontWeightVar})`,
+        letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
+        lineHeight: `var(${labelLineHeightVar})`,
+        color: `var(${labelTextColorVar})`,
+        opacity: `var(${highEmphasisOpacityVar})`,
+        textAlign: 'right',
       }}
     >
       {finalDisplayValue}
-    </Label>
+    </span>
   ) : null
   
   // When using library components, they handle their own label rendering
@@ -441,11 +450,9 @@ export function Slider({
     return sliderComponent
   }
   
-  // When showValueLabel is true, we handle the label row ourselves
-  // In side-by-side layout, hide the readonly value and let the library component handle the label
-  if (layout === 'side-by-side' && label) {
-    // In side-by-side, don't show the readonly value - just pass the label to the component
-    // so it can handle the side-by-side layout with proper vertical centering
+  // When layout is side-by-side, always let the Component handle it
+  // This ensures proper side-by-side rendering regardless of showValueLabel
+  if (layout === 'side-by-side' && label && Component) {
     return (
       <Suspense fallback={<div style={{ width: '100%', height: 20 }} />}>
         <Component
@@ -460,9 +467,11 @@ export function Slider({
           layer={layer}
           label={label}
           showInput={showInput}
-          showValueLabel={false}
+          showValueLabel={showValueLabel}
           valueLabel={valueLabel}
           tooltipText={tooltipText}
+          minLabel={minLabel}
+          maxLabel={maxLabel}
           className={className}
           style={style}
           mantine={mantine}

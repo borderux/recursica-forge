@@ -149,10 +149,10 @@ export function ComponentsSidebar({
         borderRightColor: `var(${layer1Base}-border-color)`,
         display: 'flex',
         flexDirection: 'column',
-        paddingLeft: 'var(--recursica-brand-dimensions-spacers-xl)',
-        paddingRight: 'var(--recursica-brand-dimensions-spacers-xl)',
-        paddingTop: 'var(--recursica-brand-dimensions-spacers-xl)',
-        paddingBottom: 'var(--recursica-brand-dimensions-spacers-xl)',
+        paddingLeft: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingTop: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingBottom: 'var(--recursica-brand-dimensions-general-xl)',
         flexShrink: 0,
       }}
     >
@@ -160,7 +160,7 @@ export function ComponentsSidebar({
       <h2
         style={{
           margin: 0,
-          marginBottom: 'var(--recursica-brand-dimensions-spacers-lg)',
+          marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
           fontSize: 'var(--recursica-brand-typography-body-font-size)',
           fontWeight: 600,
           color: `var(${layer1Base}-element-text-color)`,
@@ -171,7 +171,7 @@ export function ComponentsSidebar({
       </h2>
       
       {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-sm)', flex: 1 }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', flex: 1 }}>
         {allComponents.map((component) => {
           const isActive = currentComponent === component.name
           const isUnmapped = !component.isMapped
@@ -183,7 +183,7 @@ export function ComponentsSidebar({
               onClick={() => handleNavClick(component.name)}
               style={{
                 textAlign: 'left',
-                padding: 'var(--recursica-brand-dimensions-spacers-default) var(--recursica-brand-dimensions-spacers-md)',
+                padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
                 borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                 border: 'none',
                 background: 'transparent',
@@ -237,9 +237,9 @@ export function ComponentsSidebar({
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--recursica-brand-dimensions-spacers-sm)',
+          gap: 'var(--recursica-brand-dimensions-general-sm)',
           marginTop: 'auto',
-          paddingTop: 'var(--recursica-brand-dimensions-spacers-lg)',
+          paddingTop: 'var(--recursica-brand-dimensions-general-lg)',
           borderTopWidth: `var(${layer1Base}-border-thickness, 1px)`,
           borderTopStyle: 'solid',
           borderTopColor: `var(${layer1Base}-border-color)`,
@@ -248,7 +248,7 @@ export function ComponentsSidebar({
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 'var(--recursica-brand-dimensions-spacers-default)',
+          gap: 'var(--recursica-brand-dimensions-general-default)',
         }}>
           <Switch
             checked={showUnmapped}
@@ -270,7 +270,7 @@ export function ComponentsSidebar({
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 'var(--recursica-brand-dimensions-spacers-default)',
+          gap: 'var(--recursica-brand-dimensions-general-default)',
         }}>
           <Switch
             checked={debugMode}

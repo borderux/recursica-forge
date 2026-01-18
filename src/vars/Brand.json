@@ -2064,36 +2064,6 @@
       }
     },
     "dimensions": {
-      "spacers": {
-        "none": {
-          "$type": "number",
-          "$value": "{tokens.size.none}"
-        },
-        "xs": {
-          "$type": "number",
-          "$value": "{tokens.size.0-5x}"
-        },
-        "sm": {
-          "$type": "number",
-          "$value": "{tokens.size.0-5x}"
-        },
-        "default": {
-          "$type": "number",
-          "$value": "{tokens.size.default}"
-        },
-        "md": {
-          "$type": "number",
-          "$value": "{tokens.size.1-5x}"
-        },
-        "lg": {
-          "$type": "number",
-          "$value": "{tokens.size.2x}"
-        },
-        "xl": {
-          "$type": "number",
-          "$value": "{tokens.size.3x}"
-        }
-      },
       "icons": {
         "sm": {
           "$type": "number",
@@ -2153,21 +2123,25 @@
           "$type": "number",
           "$value": "{tokens.size.none}"
         },
-        "lg": {
+        "xs": {
           "$type": "number",
-          "$value": "{tokens.size.2x}"
-        },
-        "md": {
-          "$type": "number",
-          "$value": "{tokens.size.1-5x}"
+          "$value": "{tokens.size.0-5x}"
         },
         "sm": {
           "$type": "number",
           "$value": "{tokens.size.0-5x}"
         },
+        "md": {
+          "$type": "number",
+          "$value": "{tokens.size.1-5x}"
+        },
         "default": {
           "$type": "number",
           "$value": "{tokens.size.default}"
+        },
+        "lg": {
+          "$type": "number",
+          "$value": "{tokens.size.2x}"
         },
         "xl": {
           "$type": "number",
@@ -2176,6 +2150,52 @@
         "2xl": {
           "$type": "number",
           "$value": "{tokens.size.4x}"
+        }
+      },
+      "text-size": {
+        "2xs": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.2xs}"
+        },
+        "xs": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.xs}"
+        },
+        "sm": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.sm}"
+        },
+        "md": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.md}"
+        },
+        "lg": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.lg}"
+        },
+        "xl": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.xl}"
+        },
+        "2xl": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.2xl}"
+        },
+        "3xl": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.3xl}"
+        },
+        "4xl": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.4xl}"
+        },
+        "5xl": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.5xl}"
+        },
+        "6xl": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.6xl}"
         }
       }
     },

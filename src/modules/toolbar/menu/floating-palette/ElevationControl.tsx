@@ -132,7 +132,7 @@ export default function ElevationControl({
               />
             )
           })()}
-          <div style={{ marginTop: 'var(--recursica-brand-dimensions-spacers-md)' }}>
+          <div style={{ marginTop: 'var(--recursica-brand-dimensions-general-md)' }}>
             {(() => {
               const tokens = elevationOptions.map((opt, index) => ({ name: opt.name, label: opt.label, index }))
               const trackIdx = tokens.findIndex(t => t.name === (currentTrackElevation || 'elevation-0')) || 0

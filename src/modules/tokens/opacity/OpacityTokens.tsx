@@ -186,7 +186,7 @@ export default function OpacityTokens() {
               <div key={it.name} style={{ 
                 display: 'grid', 
                 gridTemplateColumns: 'auto 1fr auto auto', 
-                gap: 'var(--recursica-brand-dimensions-spacers-md)',
+                gap: 'var(--recursica-brand-dimensions-general-md)',
                 alignItems: 'center',
                 paddingTop: 0,
                 paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-gutters-vertical)',

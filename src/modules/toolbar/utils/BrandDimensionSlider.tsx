@@ -2,7 +2,7 @@
  * Reusable Brand Dimension Slider Component for Toolbars and Panels
  * 
  * This component provides a consistent slider interface for properties that use
- * brand dimension tokens (spacers, border-radii, icons, gutters, general, etc.).
+ * brand dimension tokens (general, border-radii, icons, gutters, text-size, etc.).
  * It sorts tokens by relative name rather than pixel value, and displays the value as a read-only label.
  */
 
@@ -13,7 +13,7 @@ import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
 
-export type DimensionCategory = 'spacers' | 'border-radii' | 'icons' | 'gutters' | 'general'
+export type DimensionCategory = 'border-radii' | 'icons' | 'gutters' | 'general' | 'text-size'
 
 interface BrandDimensionSliderProps {
   targetCssVar: string
@@ -25,11 +25,11 @@ interface BrandDimensionSliderProps {
 
 // Define sort orders for different dimension categories by relative name (not pixel value)
 const DIMENSION_ORDERS: Record<DimensionCategory, string[]> = {
-  'spacers': ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl'],
   'border-radii': ['none', 'sm', 'default', 'lg', 'xl', '2xl'],
   'icons': ['xs', 'sm', 'default', 'lg'],
   'gutters': ['horizontal', 'vertical'],
   'general': ['none', 'sm', 'md', 'default', 'lg', 'xl', '2xl'],
+  'text-size': ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
 }
 
 // Helper to get sort order for a dimension key
@@ -172,7 +172,7 @@ export default function BrandDimensionSlider({
     if (currentValue.trim().startsWith('var(--recursica-')) {
       // Try to find matching token by CSS var name
       const matchingIndex = tokens.findIndex(t => {
-        // Extract dimension name from CSS var (e.g., "--recursica-brand-dimensions-spacers-sm" -> "sm")
+        // Extract dimension name from CSS var (e.g., "--recursica-brand-dimensions-general-sm" -> "sm")
         const dimensionName = t.name.replace(`--recursica-brand-dimensions-${dimensionCategory}-`, '')
         return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
       })
@@ -189,7 +189,7 @@ export default function BrandDimensionSlider({
         if (match) {
           const pxValue = parseFloat(match[1])
           // If resolved to 0px, check if it matches the "none" token (if category supports it)
-          if (pxValue === 0 && (dimensionCategory === 'spacers' || dimensionCategory === 'border-radii' || dimensionCategory === 'general')) {
+          if (pxValue === 0 && (dimensionCategory === 'border-radii' || dimensionCategory === 'general')) {
             const noneIndex = tokens.findIndex(t => t.key === 'none')
             if (noneIndex >= 0) {
               setSelectedIndex(noneIndex)

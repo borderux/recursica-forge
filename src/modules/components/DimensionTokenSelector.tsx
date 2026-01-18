@@ -35,7 +35,7 @@ export default function DimensionTokenSelector({
     // Pattern: var(--recursica-brand-dimensions-{category}-{size})
     const brandMatch = cssVarValue.match(/--recursica-brand-dimensions-([^-]+)/)
     if (brandMatch) {
-      return brandMatch[1] // Returns 'icon', 'general', 'spacer', etc.
+      return brandMatch[1] // Returns 'icon', 'general', etc.
     }
     
     // Check if it resolves to a brand dimension reference
@@ -114,24 +114,24 @@ export default function DimensionTokenSelector({
         })
       }
       
-      // For horizontal-padding, padding, item-gap, and divider-item-gap props, only collect spacer dimensions
+      // For horizontal-padding, padding, item-gap, and divider-item-gap props, only collect general dimensions
       if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' || 
           propNameLower === 'item-gap' || propNameLower === 'divider-item-gap') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
-        const spacers = dimensions?.spacers || dimensions?.spacer || {}
+        const general = dimensions?.general || {}
         
-        // Collect spacer dimensions (none, xs, sm, md, lg, xl, default)
-        Object.keys(spacers).forEach(spacerKey => {
-          const spacerValue = spacers[spacerKey]
-          if (spacerValue && typeof spacerValue === 'object' && '$value' in spacerValue) {
-            const cssVar = `--recursica-brand-dimensions-spacers-${spacerKey}`
+        // Collect general dimensions (none, xs, sm, md, lg, xl, default)
+        Object.keys(general).forEach(generalKey => {
+          const generalValue = general[generalKey]
+          if (generalValue && typeof generalValue === 'object' && '$value' in generalValue) {
+            const cssVar = `--recursica-brand-dimensions-general-${generalKey}`
             const cssValue = readCssVar(cssVar)
             
             // Only add if the CSS var exists (has been generated)
             if (cssValue) {
               options.push({
-                label: toSentenceCase(spacerKey),
+                label: toSentenceCase(generalKey),
                 cssVar,
                 value: `var(${cssVar})`,
               })
@@ -140,7 +140,7 @@ export default function DimensionTokenSelector({
         })
         
         // Convert to Token format with numeric values for sorting
-        const spacerTokens = options.map(opt => {
+        const generalTokens = options.map(opt => {
           const resolvedValue = readCssVarResolved(opt.cssVar)
           let numericValue: number | undefined
           
@@ -159,7 +159,7 @@ export default function DimensionTokenSelector({
         })
         
         // Sort by numeric value (smallest to largest)
-        return spacerTokens.sort((a, b) => {
+        return generalTokens.sort((a, b) => {
           if (a.value !== undefined && b.value !== undefined) {
             return a.value - b.value
           }
@@ -423,7 +423,7 @@ export default function DimensionTokenSelector({
         }
       }
       
-      // Also collect all nested dimensions (like icon.default, spacer.sm, etc.)
+      // Also collect all nested dimensions (like icon.default, general.sm, etc.)
       // But skip this for border-radius, thumb-border-radius, track-border-radius, horizontal-padding, padding, item-gap, divider-item-gap, track-inner-padding, label-switch-gap, icon, thumb-icon-size, height, and Label spacing props since we only want specific tokens
       if (propNameLower !== 'border-radius' && propNameLower !== 'thumb-border-radius' && propNameLower !== 'track-border-radius' &&
           propNameLower !== 'horizontal-padding' && propNameLower !== 'padding' && propNameLower !== 'item-gap' && propNameLower !== 'divider-item-gap' &&
@@ -456,11 +456,11 @@ export default function DimensionTokenSelector({
           return firstPart === 'border' && cssVarParts[1] === 'radius'
         }
         
-        // For horizontal-padding, padding, item-gap, and divider-item-gap props, only keep spacer tokens
+        // For horizontal-padding, padding, item-gap, and divider-item-gap props, only keep general tokens
         if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' || 
             propNameLower === 'item-gap' || propNameLower === 'divider-item-gap') {
-          // Only keep tokens that start with "spacer-"
-          return firstPart === 'spacer'
+          // Only keep tokens that start with "general-"
+          return firstPart === 'general'
         }
         
         // For icon or thumb-icon-size prop, only keep icon tokens
@@ -490,8 +490,8 @@ export default function DimensionTokenSelector({
           }
         }
         
-        // Keep common spacing/sizing categories (spacer.*, icon.*)
-        const commonCategories = ['spacer', 'icon']
+        // Keep common spacing/sizing categories (general.*, icon.*)
+        const commonCategories = ['general', 'icon']
         if (commonCategories.includes(firstPart)) {
           return true
         }
@@ -593,13 +593,13 @@ export default function DimensionTokenSelector({
       }
       
       // For divider-item-gap, padding, item-gap, vertical-padding, and horizontal-padding, null means "none"
-      // Find the "none" token from Brand.json (spacer-none or general-none)
+      // Find the "none" token from Brand.json (general-none)
       if (propNameLower === 'divider-item-gap' || 
           propNameLower === 'padding' || 
           propNameLower === 'item-gap' ||
           propNameLower === 'horizontal-padding') {
-        // These use spacer tokens
-        const noneToken = dimensionTokens.find(t => t.name.includes('spacer-none'))
+        // These use general tokens
+        const noneToken = dimensionTokens.find(t => t.name.includes('general-none'))
         setSelectedToken(noneToken?.name)
         setPixelValue(0)
         setIsPixelMode(false)
@@ -751,6 +751,29 @@ export default function DimensionTokenSelector({
     propName.toLowerCase() === 'label-width' ? 500 : 200)
   const minPixelValue = minPixelValueProp ?? 0
 
+  // Calculate sortedTokens and getValueLabel BEFORE any early returns
+  // This ensures hooks are always called in the same order
+  const sortedTokens = useMemo(() => {
+    return [...dimensionTokens].sort((a, b) => {
+      if (a.value !== undefined && b.value !== undefined) {
+        return a.value - b.value
+      }
+      if (a.value !== undefined) return -1
+      if (b.value !== undefined) return 1
+      return 0
+    })
+  }, [dimensionTokens])
+  
+  const foundIdx = sortedTokens.length > 0 ? sortedTokens.findIndex(t => t.name === selectedToken) : -1
+  const currentIdx = foundIdx >= 0 ? foundIdx : 0
+  const getValueLabel = useCallback((value: number) => {
+    if (sortedTokens.length === 0) return '—'
+    const token = sortedTokens[Math.round(value)]
+    return token?.label || token?.name.split('-').pop() || token?.name || String(value)
+  }, [sortedTokens])
+  const minToken = sortedTokens[0]
+  const maxToken = sortedTokens.length > 0 ? sortedTokens[sortedTokens.length - 1] : undefined
+
   // Render pixel slider for raw pixel values
   if (isPixelMode) {
     return (
@@ -874,24 +897,10 @@ export default function DimensionTokenSelector({
     )
   }
   
-  const sortedTokens = useMemo(() => {
-    return [...dimensionTokens].sort((a, b) => {
-      if (a.value !== undefined && b.value !== undefined) {
-        return a.value - b.value
-      }
-      if (a.value !== undefined) return -1
-      if (b.value !== undefined) return 1
-      return 0
-    })
-  }, [dimensionTokens])
-  
-  const currentIdx = sortedTokens.findIndex(t => t.name === selectedToken) || 0
-  const getValueLabel = useCallback((value: number) => {
-    const token = sortedTokens[Math.round(value)]
-    return token?.label || token?.name.split('-').pop() || token?.name || String(value)
-  }, [sortedTokens])
-  const minToken = sortedTokens[0]
-  const maxToken = sortedTokens[sortedTokens.length - 1]
+  // Don't render if no tokens available
+  if (sortedTokens.length === 0) {
+    return null
+  }
   
   return (
     <Slider
@@ -904,7 +913,7 @@ export default function DimensionTokenSelector({
         }
       }}
       min={0}
-      max={sortedTokens.length - 1}
+      max={Math.max(0, sortedTokens.length - 1)}
       step={1}
       layer="layer-3"
       layout="stacked"

@@ -133,7 +133,7 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              gap: 'var(--recursica-brand-dimensions-spacers-default)',
+              gap: 'var(--recursica-brand-dimensions-general-default)',
               borderLeft: `1px solid var(${layer1Base}-border-color)`,
               paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
               paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',

@@ -8,6 +8,8 @@ import { Slider as MantineSlider } from '@mantine/core'
 import type { SliderProps as AdapterSliderProps } from '../../Slider'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../../../core/css/readCssVar'
+import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
 import './Slider.css'
 
 export default function Slider({
@@ -73,8 +75,40 @@ export default function Slider({
     }
   }
   
+  // Calculate display value for readonly label
+  let displayValue: string | number | undefined
+  try {
+    if (valueLabel) {
+      if (typeof valueLabel === 'function') {
+        displayValue = valueLabel(singleValue)
+      } else {
+        displayValue = valueLabel
+      }
+    } else {
+      displayValue = singleValue
+    }
+  } catch (error) {
+    console.warn('Error calculating value label:', error)
+    displayValue = singleValue
+  }
+  const displayValueStr = (displayValue !== undefined && displayValue !== null && String(displayValue).trim() !== '') 
+    ? String(displayValue).trim() 
+    : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '—')
+
+  // Get label typography styles (not using Label component, just the typography)
+  const labelFontVar = getComponentLevelCssVar('Label', 'label-font')
+  const labelFontValue = readCssVar(labelFontVar)
+  const labelFontStyle = extractTypographyStyleName(labelFontValue) || 'body-small'
+  const labelFontSizeVar = getTypographyCssVar(labelFontStyle, 'font-size')
+  const labelFontFamilyVar = getTypographyCssVar(labelFontStyle, 'font-family')
+  const labelFontWeightVar = getTypographyCssVar(labelFontStyle, 'font-weight')
+  const labelLetterSpacingVar = getTypographyCssVar(labelFontStyle, 'font-letter-spacing')
+  const labelLineHeightVar = getTypographyCssVar(labelFontStyle, 'line-height')
+  const labelTextColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
+  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+
   const sliderElement = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: showInput ? `var(${inputGapVar}, 8px)` : 0, width: '100%', minWidth: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: (showInput || showValueLabel) ? `var(${inputGapVar}, 8px)` : 0, width: '100%', minWidth: 0 }}>
       {/* Min value display */}
       <span style={{ 
         fontSize: 12, 
@@ -153,6 +187,22 @@ export default function Slider({
             opacity: disabled ? 0.5 : 1,
           }}
         />
+      )}
+      {showValueLabel && !showInput && (
+        <span
+          style={{
+            fontSize: `var(${labelFontSizeVar})`,
+            fontFamily: `var(${labelFontFamilyVar})`,
+            fontWeight: `var(${labelFontWeightVar})`,
+            letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
+            lineHeight: `var(${labelLineHeightVar})`,
+            color: `var(${labelTextColorVar})`,
+            opacity: disabled ? 0.5 : `var(${highEmphasisOpacityVar})`,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {displayValueStr}
+        </span>
       )}
     </div>
   )

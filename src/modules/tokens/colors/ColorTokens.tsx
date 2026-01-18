@@ -940,19 +940,19 @@ export default function ColorTokens() {
   return (
     <section style={{ 
       background: `var(${layer0Base}-surface)`, 
-      padding: 'var(--recursica-brand-dimensions-spacers-md)',
+      padding: 'var(--recursica-brand-dimensions-general-md)',
     }}>
       {/* Color scales grid */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: `100px repeat(${families.length}, 1fr)`, 
-        columnGap: 'var(--recursica-brand-dimensions-spacers-md)', 
+        columnGap: 'var(--recursica-brand-dimensions-general-md)', 
         rowGap: 0, 
         alignItems: 'start' 
       }}>
         {/* Numerical scale column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <div style={{ height: 40, marginBottom: 'var(--recursica-brand-dimensions-spacers-sm)' }} /> {/* Spacer for header */}
+          <div style={{ height: 40, marginBottom: 'var(--recursica-brand-dimensions-general-sm)' }} /> {/* Spacer for header */}
           {levelOrder.map((level) => (
             <div 
               key={'label-' + level} 

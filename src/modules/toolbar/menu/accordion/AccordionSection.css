@@ -11,7 +11,7 @@ html[data-theme-mode="dark"] .accordion-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--recursica-brand-dimensions-spacers-md);
+  padding: var(--recursica-brand-dimensions-general-md);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -30,14 +30,14 @@ html[data-theme-mode="dark"] .accordion-header:hover {
 .accordion-header-content {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacers-sm);
+  gap: var(--recursica-brand-dimensions-general-sm);
   flex: 1;
 }
 
 .accordion-header-right {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacers-sm);
+  gap: var(--recursica-brand-dimensions-general-sm);
 }
 
 .accordion-selected-value {
@@ -87,7 +87,7 @@ html[data-theme-mode="dark"] .accordion-toggle-icon {
 }
 
 .accordion-content {
-  margin: var(--recursica-brand-dimensions-spacers-md);
+  margin: var(--recursica-brand-dimensions-general-md);
   margin-top: 0;
   padding: var(--recursica-brand-themes-light-layer-layer-1-property-padding);
   background: var(--recursica-brand-themes-light-layer-layer-1-property-surface);

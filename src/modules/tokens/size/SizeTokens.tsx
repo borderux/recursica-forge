@@ -197,7 +197,7 @@ export default function SizeTokens() {
         }}>
           Size
         </h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
           <Button
             variant="outline"
             size="small"
@@ -209,7 +209,7 @@ export default function SizeTokens() {
           >
             Reset all
           </Button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-sm)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
             <span style={{
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,
@@ -315,7 +315,7 @@ export default function SizeTokens() {
             <div key={it.name} style={{ 
               display: 'grid', 
               gridTemplateColumns: 'auto 1fr auto auto', 
-              gap: 'var(--recursica-brand-dimensions-spacers-md)',
+              gap: 'var(--recursica-brand-dimensions-general-md)',
               alignItems: 'center',
               paddingTop: 0,
               paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-gutters-vertical)',

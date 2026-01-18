@@ -301,7 +301,7 @@ export default function ComponentDebugTable({
   if (componentVars.length === 0) {
     return (
       <div style={{
-        padding: 'var(--recursica-brand-dimensions-spacer-md)',
+        padding: 'var(--recursica-brand-dimensions-general-md)',
         color: `var(${layer0Base}-element-text-low-emphasis)`,
         fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
       }}>
@@ -312,14 +312,14 @@ export default function ComponentDebugTable({
 
   return (
     <div style={{
-      marginTop: 'var(--recursica-brand-dimensions-spacer-lg)',
+      marginTop: 'var(--recursica-brand-dimensions-general-lg)',
       border: `1px solid var(${layer1Base}-border-color)`,
       borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
       overflow: 'hidden',
       width: '100%',
     }}>
       <div style={{
-        padding: 'var(--recursica-brand-dimensions-spacer-md)',
+        padding: 'var(--recursica-brand-dimensions-general-md)',
         background: `var(${layer1Base}-surface)`,
         borderBottom: `1px solid var(${layer1Base}-border-color)`,
       }}>
@@ -349,7 +349,7 @@ export default function ComponentDebugTable({
               zIndex: 1,
             }}>
               <th style={{
-                padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
+                padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
                 textAlign: 'left',
                 fontWeight: 600,
                 color: `var(${layer0Base}-element-text-color)`,
@@ -358,7 +358,7 @@ export default function ComponentDebugTable({
                 CSS Variable
               </th>
               <th style={{
-                padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
+                padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
                 textAlign: 'left',
                 fontWeight: 600,
                 color: `var(${layer0Base}-element-text-color)`,
@@ -367,7 +367,7 @@ export default function ComponentDebugTable({
                 Current Value
               </th>
               <th style={{
-                padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
+                padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
                 textAlign: 'center',
                 fontWeight: 600,
                 color: `var(${layer0Base}-element-text-color)`,
@@ -393,7 +393,7 @@ export default function ComponentDebugTable({
                   }}
                 >
                   <td style={{
-                    padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
+                    padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
                     color: `var(${layer0Base}-element-text-color)`,
                     fontFamily: 'monospace',
                     fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
@@ -403,7 +403,7 @@ export default function ComponentDebugTable({
                     {v.cssVar}
                   </td>
                   <td style={{
-                    padding: 'var(--recursica-brand-dimensions-spacer-sm) var(--recursica-brand-dimensions-spacer-md)',
+                    padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
                     color: isChanged 
                       ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`
                       : `var(${layer0Base}-element-text-color)`,
@@ -417,7 +417,7 @@ export default function ComponentDebugTable({
                     {v.currentValue || <span style={{ opacity: 0.5 }}>—</span>}
                   </td>
                 <td style={{
-                  padding: 'var(--recursica-brand-dimensions-spacer-sm)',
+                  padding: 'var(--recursica-brand-dimensions-general-sm)',
                   textAlign: 'center',
                 }}>
                   <Button

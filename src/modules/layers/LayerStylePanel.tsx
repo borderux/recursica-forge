@@ -37,7 +37,7 @@ function BrandDimensionSliderInline({
 }: {
   targetCssVar: string
   label: string
-  dimensionCategory: 'spacers' | 'border-radii'
+  dimensionCategory: 'border-radii' | 'general'
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
   onUpdate?: (cssVar: string, tokenValue: string) => void
 }) {
@@ -537,10 +537,10 @@ export default function LayerStylePanel({
       if (e.detail?.cssVars?.includes(paddingCssVar)) {
         const cssValue = readCssVar(paddingCssVar)
         if (cssValue && cssValue.trim().startsWith('var(')) {
-          const match = cssValue.match(/--recursica-brand-dimensions-spacers-([^)]+)/)
+          const match = cssValue.match(/--recursica-brand-dimensions-general-([^)]+)/)
           if (match) {
-            const spacerName = match[1]
-            const tokenRef = `{brand.dimensions.spacers.${spacerName}}`
+            const generalName = match[1]
+            const tokenRef = `{brand.dimensions.general.${generalName}}`
             onUpdate((layerSpec: any) => {
               const next = JSON.parse(JSON.stringify(layerSpec || {}))
               if (!next.properties) next.properties = {}
@@ -770,16 +770,16 @@ export default function LayerStylePanel({
           <BrandDimensionSliderInline
             targetCssVar={paddingCssVar}
             label="Padding"
-            dimensionCategory="spacers"
+            dimensionCategory="general"
             layer="layer-1"
             onUpdate={(cssVar, tokenValue) => {
               // Sync to theme JSON when CSS var updates
               const cssValue = readCssVar(cssVar)
               if (cssValue && cssValue.trim().startsWith('var(')) {
-                const match = cssValue.match(/--recursica-brand-dimensions-spacers-([^)]+)/)
+                const match = cssValue.match(/--recursica-brand-dimensions-general-([^)]+)/)
                 if (match) {
-                  const spacerName = match[1]
-                  const tokenRef = `{brand.dimensions.spacers.${spacerName}}`
+                  const generalName = match[1]
+                  const tokenRef = `{brand.dimensions.general.${generalName}}`
                   onUpdate((layerSpec: any) => {
                     const next = JSON.parse(JSON.stringify(layerSpec || {}))
                     if (!next.properties) next.properties = {}
