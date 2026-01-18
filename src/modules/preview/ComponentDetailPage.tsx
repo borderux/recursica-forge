@@ -366,7 +366,7 @@ export default function ComponentDetailPage() {
 
         {/* Toolbar Panel - Right Side */}
         <div style={{
-          width: '250px',
+          width: '320px',
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',

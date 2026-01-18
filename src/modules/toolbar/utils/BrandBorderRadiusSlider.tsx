@@ -8,21 +8,23 @@
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
-import { updateCssVar, removeCssVar } from '../../../core/css/updateCssVar'
+import { updateCssVar } from '../../../core/css/updateCssVar'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import TokenSlider from '../../forms/TokenSlider'
+import { Slider } from '../../../components/adapters/Slider'
 
 interface BrandBorderRadiusSliderProps {
   targetCssVar: string
   targetCssVars?: string[]
   label: string
+  layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 }
 
 export default function BrandBorderRadiusSlider({
   targetCssVar,
   targetCssVars = [],
   label,
+  layer = 'layer-1',
 }: BrandBorderRadiusSliderProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
@@ -34,13 +36,13 @@ export default function BrandBorderRadiusSlider({
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const dimensions = root?.dimensions || {}
-      const borderRadius = dimensions?.['border-radius'] || {}
+      const borderRadius = dimensions?.['border-radii'] || {}
       
       // Collect border radius dimensions
       Object.keys(borderRadius).forEach(radiusKey => {
         const radiusValue = borderRadius[radiusKey]
         if (radiusValue && typeof radiusValue === 'object' && '$value' in radiusValue) {
-          const cssVar = `--recursica-brand-dimensions-border-radius-${radiusKey}`
+          const cssVar = `--recursica-brand-dimensions-border-radii-${radiusKey}`
           const cssValue = readCssVar(cssVar)
           
           // Only add if the CSS var exists (has been generated)
@@ -99,8 +101,8 @@ export default function BrandBorderRadiusSlider({
     }
   }, [theme, mode])
   
-  // Track selected token
-  const [selectedToken, setSelectedToken] = useState<string | undefined>(undefined)
+  // Track selected token index
+  const [selectedIndex, setSelectedIndex] = useState<number>(0)
   // Track if we just set a value to prevent immediate re-read
   const justSetValueRef = useRef<string | null>(null)
   
@@ -120,23 +122,23 @@ export default function BrandBorderRadiusSlider({
     const currentValue = inlineValue || readCssVar(targetCssVar)
     
     if (!currentValue || currentValue === 'null' || currentValue === '') {
-      // Null/empty means "none" - find the actual "none" token from Brand.json
-      const noneToken = tokens.find(t => t.name.includes('border-radius-none') || (t.value === 0 && t.name.includes('border-radius')))
-      setSelectedToken(noneToken?.name || tokens[0]?.name)
+      // Null/empty means "none" - find the "none" token if it exists
+      const noneIndex = tokens.findIndex(t => t.name.includes('border-radii-none') || (t.value === 0 && t.name.includes('border-radii')))
+      setSelectedIndex(noneIndex >= 0 ? noneIndex : 0)
       return
     }
     
     // Check if it's a CSS var reference
     if (currentValue.trim().startsWith('var(--recursica-')) {
       // Try to find matching token by CSS var name
-      const matchingToken = tokens.find(t => {
-        // Extract radius name from CSS var (e.g., "--recursica-brand-dimensions-border-radius-sm" -> "sm")
-        const radiusName = t.name.replace('--recursica-brand-dimensions-border-radius-', '')
-        return currentValue.includes(`border-radius-${radiusName}`) || currentValue.includes(`dimensions-border-radius-${radiusName}`)
+      const matchingIndex = tokens.findIndex(t => {
+        // Extract radius name from CSS var (e.g., "--recursica-brand-dimensions-border-radii-sm" -> "sm")
+        const radiusName = t.name.replace('--recursica-brand-dimensions-border-radii-', '')
+        return currentValue.includes(`border-radii-${radiusName}`) || currentValue.includes(`dimensions-border-radii-${radiusName}`)
       })
       
-      if (matchingToken) {
-        setSelectedToken(matchingToken.name)
+      if (matchingIndex >= 0) {
+        setSelectedIndex(matchingIndex)
         return
       }
       
@@ -146,43 +148,33 @@ export default function BrandBorderRadiusSlider({
         const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
         if (match) {
           const pxValue = parseFloat(match[1])
-          // If resolved to 0px, check if it matches the "none" token
+          // If resolved to 0px, check if it matches the "none" token (if category supports it)
           if (pxValue === 0) {
-            // First check if the current value is a reference to the "none" token
-            const noneTokenByName = tokens.find(t => currentValue.includes(t.name))
-            if (noneTokenByName && (noneTokenByName.value === 0 || noneTokenByName.name.includes('border-radius-none'))) {
-              setSelectedToken(noneTokenByName.name)
-              return
-            }
-            // Otherwise, find the "none" token by name or value
-            const noneToken = tokens.find(t => t.name.includes('border-radius-none')) || 
-                             tokens.find(t => t.value === 0 && t.name.includes('border-radius'))
-            if (noneToken) {
-              setSelectedToken(noneToken.name)
+            const noneIndex = tokens.findIndex(t => t.name.includes('border-radii-none'))
+            if (noneIndex >= 0) {
+              setSelectedIndex(noneIndex)
               return
             }
           }
           
           // Find token with closest matching value
-          const matchingToken = tokens
-            .filter(t => t.value !== undefined)
+          const matchingIndex = tokens
+            .map((t, idx) => ({ token: t, index: idx, diff: Math.abs((t.value ?? 0) - pxValue) }))
             .reduce((closest, current) => {
               if (!closest) return current
-              const currentDiff = Math.abs((current.value ?? 0) - pxValue)
-              const closestDiff = Math.abs((closest.value ?? 0) - pxValue)
-              return currentDiff < closestDiff ? current : closest
-            }, undefined as typeof tokens[0] | undefined)
+              return current.diff < closest.diff ? current : closest
+            }, undefined as { token: typeof tokens[0]; index: number; diff: number } | undefined)
           
-          if (matchingToken && Math.abs((matchingToken.value ?? 0) - pxValue) < 1) {
-            setSelectedToken(matchingToken.name)
+          if (matchingIndex && matchingIndex.diff < 1) {
+            setSelectedIndex(matchingIndex.index)
             return
           }
         }
       }
     }
     
-    // Default to first token (which should be "none" at 0px) if no match
-    setSelectedToken(tokens[0]?.name)
+    // Default to first token (which should be "none") if no match
+    setSelectedIndex(0)
   }, [targetCssVar, tokens])
   
   // Read initial value when component mounts or targetCssVar changes
@@ -215,18 +207,18 @@ export default function BrandBorderRadiusSlider({
     }
   }, [readInitialValue, targetCssVar, targetCssVars])
   
-  // Handle token change
-  const handleTokenChange = (tokenName: string) => {
-    setSelectedToken(tokenName)
+  // Handle slider change
+  const handleSliderChange = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
+    setSelectedIndex(clampedIndex)
     
-    const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-    
-    // Find the token (including "none" from Brand.json)
-    const token = tokens.find(t => t.name === tokenName)
-    if (token) {
-      const tokenValue = `var(${token.name})`
-      // Set CSS var to token reference (including "none" token)
-      // This ensures we use the token reference instead of falling back to UIKit.json defaults
+    const selectedToken = tokens[clampedIndex]
+    if (selectedToken) {
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      const tokenValue = `var(${selectedToken.name})`
+      
+      // Set CSS var to token reference
       cssVars.forEach(cssVar => {
         updateCssVar(cssVar, tokenValue)
         // Track that we just set this value to prevent immediate re-read
@@ -238,7 +230,6 @@ export default function BrandBorderRadiusSlider({
       })
       
       // Dispatch event after a small delay to ensure DOM has updated
-      // This prevents recomputeAndApplyAll from reading stale values
       requestAnimationFrame(() => {
         window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
           detail: { cssVars }
@@ -247,14 +238,32 @@ export default function BrandBorderRadiusSlider({
     }
   }
   
+  const currentToken = tokens[selectedIndex]
+  const displayLabel = currentToken ? currentToken.label : ''
+  const minToken = tokens[0]
+  const maxToken = tokens[tokens.length > 0 ? tokens.length - 1 : 0]
+  const minLabel = minToken ? minToken.label : '0'
+  const maxLabel = maxToken ? maxToken.label : '0'
+  
   return (
-    <TokenSlider
-      label={label}
-      tokens={tokens}
-      currentToken={selectedToken}
-      onChange={handleTokenChange}
-      getTokenLabel={(token) => token.label || token.name.split('-').pop() || token.name}
-    />
+    <div className="control-group">
+      <Slider
+        value={selectedIndex}
+        onChange={handleSliderChange}
+        min={0}
+        max={tokens.length > 0 ? tokens.length - 1 : 0}
+        step={1}
+        layer={layer}
+        layout="stacked"
+        showInput={false}
+        showValueLabel={true}
+        valueLabel={displayLabel}
+        tooltipText={displayLabel}
+        minLabel={minLabel}
+        maxLabel={maxLabel}
+        label={label ? <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span> : undefined}
+      />
+    </div>
   )
 }
 

@@ -67,7 +67,7 @@ export default function BrandDimensionSlider({
   targetCssVars = [],
   label,
   dimensionCategory,
-  layer = 'layer-3',
+  layer = 'layer-1',
 }: BrandDimensionSliderProps) {
   const { theme } = useVars()
   const { mode } = useThemeMode()
@@ -116,14 +116,21 @@ export default function BrandDimensionSlider({
         }
       })
       
-      // Sort by relative name order (not pixel value)
+      // Sort by pixel value (smallest to largest) to match brand dimensions order
+      // "none" (0px) will naturally sort first
       const sortedTokens = options.sort((a, b) => {
-        const orderA = getDimensionOrder(a.key, dimensionCategory)
-        const orderB = getDimensionOrder(b.key, dimensionCategory)
-        if (orderA !== orderB) {
-          return orderA - orderB
+        // Always put "none" first if it exists
+        if (a.key === 'none') return -1
+        if (b.key === 'none') return 1
+        
+        // Then sort by pixel value
+        if (a.value !== undefined && b.value !== undefined) {
+          return a.value - b.value
         }
-        // If same order, fall back to label comparison
+        if (a.value !== undefined) return -1
+        if (b.value !== undefined) return 1
+        
+        // Fall back to label comparison
         return a.label.localeCompare(b.label)
       })
       
@@ -273,13 +280,13 @@ export default function BrandDimensionSlider({
   
   const currentToken = tokens[selectedIndex]
   const displayLabel = currentToken ? currentToken.label : ''
+  const minToken = tokens[0]
+  const maxToken = tokens[tokens.length > 0 ? tokens.length - 1 : 0]
+  const minLabel = minToken ? minToken.label : '0'
+  const maxLabel = maxToken ? maxToken.label : '0'
   
   return (
     <div className="control-group">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span>
-        <span style={{ fontSize: 12, opacity: 0.7 }}>{displayLabel}</span>
-      </div>
       <Slider
         value={selectedIndex}
         onChange={handleSliderChange}
@@ -287,8 +294,14 @@ export default function BrandDimensionSlider({
         max={tokens.length > 0 ? tokens.length - 1 : 0}
         step={1}
         layer={layer}
+        layout="stacked"
         showInput={false}
+        showValueLabel={true}
+        valueLabel={displayLabel}
         tooltipText={displayLabel}
+        minLabel={minLabel}
+        maxLabel={maxLabel}
+        label={label ? <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span> : undefined}
       />
     </div>
   )

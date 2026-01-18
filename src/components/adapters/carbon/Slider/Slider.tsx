@@ -50,12 +50,6 @@ export default function Slider({
   const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
   const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
   
-  // Get min/max gap
-  const minMaxGapVar = getComponentLevelCssVar('Slider', 'min-max-slider-gap')
-  
-  // Get min/max gap
-  const minMaxGapVar = getComponentLevelCssVar('Slider', 'min-max-slider-gap')
-  
   const isRange = Array.isArray(value)
   const singleValue = isRange ? value[0] : value
   
@@ -88,10 +82,10 @@ export default function Slider({
         fontSize: 12, 
         opacity: 0.7, 
         flexShrink: 0,
-        marginRight: `var(${minMaxGapVar}, 8px)`,
+        marginRight: '8px',
         color: 'inherit',
       }}>
-        {min}
+        {minLabel ?? min}
       </span>
       <div
         className="recursica-carbon-slider-wrapper"
@@ -127,10 +121,10 @@ export default function Slider({
         fontSize: 12, 
         opacity: 0.7, 
         flexShrink: 0,
-        marginLeft: `var(${minMaxGapVar}, 8px)`,
+        marginLeft: '8px',
         color: 'inherit',
       }}>
-        {max}
+        {maxLabel ?? max}
       </span>
       {showInput && (
         <input

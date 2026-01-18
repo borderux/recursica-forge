@@ -1,20 +1,524 @@
 // Extract the rendering logic from PropControl for use in accordions
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
 import { getPropLabel, getGroupedProps } from '../../utils/loadToolbarConfig'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
-import TypeStyleSelector from '../../../components/TypeStyleSelector'
 import TokenSlider from '../../../forms/TokenSlider'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import OpacitySelector from './OpacitySelector'
-import BrandSpacerSlider from '../../utils/BrandSpacerSlider'
-import BrandBorderRadiusSlider from '../../utils/BrandBorderRadiusSlider'
+import { Slider } from '../../../../components/adapters/Slider'
+import { Label } from '../../../../components/adapters/Label'
 import './PropControl.css'
+
+// Helper to format dimension label from key
+const formatDimensionLabel = (key: string): string => {
+  if (key === 'default') return 'Default'
+  if (key === 'none') return 'None'
+  if (key === '2xl') return '2Xl'
+  if (key === 'horizontal') return 'Horizontal'
+  if (key === 'vertical') return 'Vertical'
+  
+  const sizeMap: Record<string, string> = {
+    'xs': 'Xs',
+    'sm': 'Sm',
+    'md': 'Md',
+    'lg': 'Lg',
+    'xl': 'Xl',
+  }
+  if (sizeMap[key]) return sizeMap[key]
+  
+  return key.charAt(0).toUpperCase() + key.slice(1)
+}
+
+// Inline brand dimension slider component
+function BrandDimensionSliderInline({
+  targetCssVar,
+  targetCssVars = [],
+  label,
+  dimensionCategory,
+  layer = 'layer-1',
+}: {
+  targetCssVar: string
+  targetCssVars?: string[]
+  label: string
+  dimensionCategory: 'spacers' | 'border-radii' | 'icons' | 'general'
+  layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
+}) {
+  const { theme } = useVars()
+  const { mode } = useThemeMode()
+  
+  // Build tokens list from brand dimension tokens, sorted by pixel value
+  const tokens = useMemo(() => {
+    const options: Array<{ name: string; value: number; label: string; key: string }> = []
+    
+    try {
+      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const dimensions = root?.dimensions || {}
+      const dimensionCategoryData = dimensions[dimensionCategory] || {}
+      
+      // Collect dimension tokens
+      Object.keys(dimensionCategoryData).forEach(dimensionKey => {
+        const dimensionValue = dimensionCategoryData[dimensionKey]
+        if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
+          const cssVar = `--recursica-brand-dimensions-${dimensionCategory}-${dimensionKey}`
+          const cssValue = readCssVar(cssVar)
+          
+          if (cssValue) {
+            const resolvedValue = readCssVarResolved(cssVar)
+            let numericValue: number | undefined
+            
+            if (resolvedValue) {
+              const match = resolvedValue.match(/^(-?\d+(?:\.\d+)?)/)
+              if (match) {
+                numericValue = parseFloat(match[1])
+              }
+            }
+            
+            const displayLabel = formatDimensionLabel(dimensionKey)
+            
+            options.push({
+              name: cssVar,
+              value: numericValue ?? 0,
+              label: displayLabel,
+              key: dimensionKey,
+            })
+          }
+        }
+      })
+      
+      // Sort by pixel value (smallest to largest), "none" first
+      const sortedTokens = options.sort((a, b) => {
+        if (a.key === 'none') return -1
+        if (b.key === 'none') return 1
+        
+        if (a.value !== undefined && b.value !== undefined) {
+          return a.value - b.value
+        }
+        if (a.value !== undefined) return -1
+        if (b.value !== undefined) return 1
+        
+        return a.label.localeCompare(b.label)
+      })
+      
+      return sortedTokens
+    } catch (error) {
+      console.error(`Error loading ${dimensionCategory} tokens:`, error)
+      return []
+    }
+  }, [theme, mode, dimensionCategory])
+  
+  const [selectedIndex, setSelectedIndex] = useState<number>(0)
+  const justSetValueRef = useRef<string | null>(null)
+  
+  const readInitialValue = useCallback(() => {
+    const inlineValue = typeof document !== 'undefined' 
+      ? document.documentElement.style.getPropertyValue(targetCssVar).trim()
+      : ''
+    
+    if (justSetValueRef.current === inlineValue) {
+      return
+    }
+    
+    const currentValue = inlineValue || readCssVar(targetCssVar)
+    
+    if (!currentValue || currentValue === 'null' || currentValue === '') {
+      const noneIndex = tokens.findIndex(t => t.key === 'none')
+      setSelectedIndex(noneIndex >= 0 ? noneIndex : 0)
+      return
+    }
+    
+    if (currentValue.trim().startsWith('var(--recursica-')) {
+      const matchingIndex = tokens.findIndex(t => {
+        const dimensionName = t.name.replace(`--recursica-brand-dimensions-${dimensionCategory}-`, '')
+        return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
+      })
+      
+      if (matchingIndex >= 0) {
+        setSelectedIndex(matchingIndex)
+        return
+      }
+      
+      const resolved = readCssVarResolved(targetCssVar)
+      if (resolved) {
+        const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
+        if (match) {
+          const pxValue = parseFloat(match[1])
+          if (pxValue === 0 && (dimensionCategory === 'spacers' || dimensionCategory === 'border-radii' || dimensionCategory === 'general')) {
+            const noneIndex = tokens.findIndex(t => t.key === 'none')
+            if (noneIndex >= 0) {
+              setSelectedIndex(noneIndex)
+              return
+            }
+          }
+          
+          const matchingIndex = tokens
+            .map((t, idx) => ({ token: t, index: idx, diff: Math.abs((t.value ?? 0) - pxValue) }))
+            .reduce((closest, current) => {
+              if (!closest) return current
+              return current.diff < closest.diff ? current : closest
+            }, undefined as { token: typeof tokens[0]; index: number; diff: number } | undefined)
+          
+          if (matchingIndex && matchingIndex.diff < 1) {
+            setSelectedIndex(matchingIndex.index)
+            return
+          }
+        }
+      }
+    }
+    
+    setSelectedIndex(0)
+  }, [targetCssVar, tokens, dimensionCategory])
+  
+  useEffect(() => {
+    readInitialValue()
+  }, [readInitialValue])
+  
+  useEffect(() => {
+    const handleReset = () => {
+      readInitialValue()
+    }
+    
+    const handleCssVarUpdate = (event: CustomEvent) => {
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      if (event.detail?.cssVars?.some((cv: string) => cssVars.includes(cv))) {
+        setTimeout(() => {
+          readInitialValue()
+        }, 0)
+      }
+    }
+    
+    window.addEventListener('cssVarsReset', handleReset)
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    return () => {
+      window.removeEventListener('cssVarsReset', handleReset)
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    }
+  }, [readInitialValue, targetCssVar, targetCssVars])
+  
+  const handleSliderChange = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
+    setSelectedIndex(clampedIndex)
+    
+    const selectedToken = tokens[clampedIndex]
+    if (selectedToken) {
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      const tokenValue = `var(${selectedToken.name})`
+      
+      cssVars.forEach(cssVar => {
+        updateCssVar(cssVar, tokenValue)
+        justSetValueRef.current = tokenValue
+        setTimeout(() => {
+          justSetValueRef.current = null
+        }, 100)
+      })
+      
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars }
+        }))
+      })
+    }
+  }
+  
+  // Ensure we have valid tokens before rendering
+  if (tokens.length === 0) {
+    return (
+      <div style={{ padding: '8px', fontSize: 12, opacity: 0.7 }}>
+        Loading tokens...
+      </div>
+    )
+  }
+  
+  // Ensure selectedIndex is within bounds
+  const safeSelectedIndex = Math.max(0, Math.min(selectedIndex, tokens.length - 1))
+  const currentToken = tokens[safeSelectedIndex]
+  
+  const minToken = tokens[0]
+  const maxToken = tokens[tokens.length - 1]
+  const minLabel = minToken?.label || 'None'
+  const maxLabel = maxToken?.label || 'Xl'
+  
+  // Create a function that calculates the value label from the current slider value
+  // This ensures it updates when the slider changes
+  const getValueLabel = useCallback((value: number) => {
+    const index = Math.max(0, Math.min(Math.round(value), tokens.length - 1))
+    const token = tokens[index]
+    if (token) {
+      // Always return a non-empty string
+      const label = token.label || (token.key ? formatDimensionLabel(token.key) : '')
+      return label || String(index)
+    }
+    return String(index)
+  }, [tokens])
+  
+  return (
+    <Slider
+      value={safeSelectedIndex}
+      onChange={handleSliderChange}
+      min={0}
+      max={tokens.length - 1}
+      step={1}
+      layer={layer}
+      layout="stacked"
+      showInput={false}
+      showValueLabel={true}
+      valueLabel={getValueLabel}
+      tooltipText={currentToken?.label || (currentToken?.key ? formatDimensionLabel(currentToken.key) : String(safeSelectedIndex))}
+      minLabel={minLabel}
+      maxLabel={maxLabel}
+      label={<Label layer={layer} layout="stacked">{label}</Label>}
+    />
+  )
+}
+
+// Inline typography slider component
+function TypographySliderInline({
+  targetCssVar,
+  targetCssVars = [],
+  label,
+  layer = 'layer-1',
+}: {
+  targetCssVar: string
+  targetCssVars?: string[]
+  label: string
+  layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
+}) {
+  const { theme } = useVars()
+  const { mode } = useThemeMode()
+  
+  // Build tokens list from typography tokens, sorted by font-size
+  const tokens = useMemo(() => {
+    const options: Array<{ name: string; label: string; fontSize: number }> = []
+    
+    try {
+      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const typography = root?.typography || {}
+      
+      // Collect all type styles (body, body-small, button, caption, etc.)
+      Object.keys(typography).forEach(styleName => {
+        if (styleName.startsWith('$')) return
+        
+        const styleValue = typography[styleName]
+        if (styleValue && typeof styleValue === 'object' && '$type' in styleValue && styleValue.$type === 'typography') {
+          const cssVar = `--recursica-brand-typography-${styleName}-font-size`
+          const cssValue = readCssVar(cssVar)
+          
+          if (cssValue) {
+            const resolvedValue = readCssVarResolved(cssVar)
+            let fontSize = 0
+            
+            if (resolvedValue) {
+              const match = resolvedValue.match(/([\d.]+)(px|rem|em)/)
+              if (match) {
+                const value = parseFloat(match[1])
+                const unit = match[2]
+                
+                if (unit === 'px') {
+                  fontSize = value
+                } else if (unit === 'rem' || unit === 'em') {
+                  fontSize = value * 16
+                }
+              } else {
+                const numMatch = resolvedValue.match(/([\d.]+)/)
+                if (numMatch) {
+                  fontSize = parseFloat(numMatch[1])
+                }
+              }
+            }
+            
+            // Format label from style name (e.g., "body-small" -> "Body Small")
+            const formattedLabel = styleName
+              .split('-')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ')
+            
+            options.push({
+              name: cssVar,
+              label: formattedLabel,
+              fontSize,
+            })
+          }
+        }
+      })
+    } catch (error) {
+      console.error('Error loading typography tokens:', error)
+      return []
+    }
+    
+    // Sort by font-size from smallest to largest
+    return options.sort((a, b) => a.fontSize - b.fontSize)
+  }, [theme, mode])
+  
+  const [selectedIndex, setSelectedIndex] = useState<number>(0)
+  const justSetValueRef = useRef<string | null>(null)
+  
+  const extractTypeStyleName = useCallback((cssVarValue: string): string | null => {
+    if (!cssVarValue) return null
+    
+    const braceMatch = cssVarValue.match(/\{brand\.typography\.([^}]+)\}/)
+    if (braceMatch) {
+      return braceMatch[1].toLowerCase()
+    }
+    
+    const typoMatch = cssVarValue.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
+    if (typoMatch) {
+      return typoMatch[1].toLowerCase()
+    }
+    
+    const resolved = readCssVarResolved(targetCssVar)
+    if (resolved) {
+      const resolvedBraceMatch = resolved.match(/\{brand\.typography\.([^}]+)\}/)
+      if (resolvedBraceMatch) {
+        return resolvedBraceMatch[1].toLowerCase()
+      }
+      const resolvedTypoMatch = resolved.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
+      if (resolvedTypoMatch) {
+        return resolvedTypoMatch[1].toLowerCase()
+      }
+    }
+    
+    return null
+  }, [targetCssVar])
+  
+  const readInitialValue = useCallback(() => {
+    const inlineValue = typeof document !== 'undefined' 
+      ? document.documentElement.style.getPropertyValue(targetCssVar).trim()
+      : ''
+    
+    if (justSetValueRef.current === inlineValue) {
+      return
+    }
+    
+    const currentValue = inlineValue || readCssVar(targetCssVar)
+    
+    if (!currentValue) {
+      const resolvedValue = readCssVarResolved(targetCssVar)
+      if (!resolvedValue) {
+        // Default to first token (usually smallest)
+        setSelectedIndex(0)
+        return
+      }
+    }
+    
+    const styleName = extractTypeStyleName(currentValue || readCssVarResolved(targetCssVar) || '')
+    if (styleName) {
+      const matchingIndex = tokens.findIndex(t => {
+        const tokenStyleName = t.name.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)?.[1]
+        return tokenStyleName === styleName
+      })
+      
+      if (matchingIndex >= 0) {
+        setSelectedIndex(matchingIndex)
+        return
+      }
+    }
+    
+    setSelectedIndex(0)
+  }, [targetCssVar, tokens, extractTypeStyleName])
+  
+  useEffect(() => {
+    readInitialValue()
+  }, [readInitialValue])
+  
+  useEffect(() => {
+    const handleReset = () => {
+      readInitialValue()
+    }
+    
+    const handleCssVarUpdate = (event: CustomEvent) => {
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      if (event.detail?.cssVars?.some((cv: string) => cssVars.includes(cv))) {
+        setTimeout(() => {
+          readInitialValue()
+        }, 0)
+      }
+    }
+    
+    window.addEventListener('cssVarsReset', handleReset)
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    return () => {
+      window.removeEventListener('cssVarsReset', handleReset)
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    }
+  }, [readInitialValue, targetCssVar, targetCssVars])
+  
+  const handleSliderChange = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
+    setSelectedIndex(clampedIndex)
+    
+    const selectedToken = tokens[clampedIndex]
+    if (selectedToken) {
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      const tokenValue = `var(${selectedToken.name})`
+      
+      cssVars.forEach(cssVar => {
+        updateCssVar(cssVar, tokenValue)
+        justSetValueRef.current = tokenValue
+        setTimeout(() => {
+          justSetValueRef.current = null
+        }, 100)
+      })
+      
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars }
+        }))
+      })
+    }
+  }
+  
+  if (tokens.length === 0) {
+    return (
+      <div style={{ padding: '8px', fontSize: 12, opacity: 0.7 }}>
+        Loading tokens...
+      </div>
+    )
+  }
+  
+  const safeSelectedIndex = Math.max(0, Math.min(selectedIndex, tokens.length - 1))
+  const currentToken = tokens[safeSelectedIndex]
+  
+  const minToken = tokens[0]
+  const maxToken = tokens[tokens.length - 1]
+  const minLabel = minToken?.label || 'Body'
+  const maxLabel = maxToken?.label || 'Heading'
+  
+  // Create a function that calculates the value label from the current slider value
+  // This ensures it updates when the slider changes
+  const getValueLabel = useCallback((value: number) => {
+    const index = Math.max(0, Math.min(Math.round(value), tokens.length - 1))
+    const token = tokens[index]
+    // Always return a non-empty string
+    const label = token?.label || ''
+    return label || String(index)
+  }, [tokens])
+  
+  return (
+    <Slider
+      value={safeSelectedIndex}
+      onChange={handleSliderChange}
+      min={0}
+      max={tokens.length - 1}
+      step={1}
+      layer={layer}
+      layout="stacked"
+      showInput={false}
+      showValueLabel={true}
+      valueLabel={getValueLabel}
+      tooltipText={currentToken?.label || String(safeSelectedIndex)}
+      minLabel={minLabel}
+      maxLabel={maxLabel}
+      label={<Label layer={layer} layout="stacked">{label}</Label>}
+    />
+  )
+}
 
 // Separate component for elevation control to properly use hooks
 function ElevationPropControl({
@@ -302,10 +806,11 @@ export default function PropControlContent({
 
     if (propToRender.type === 'typography') {
       return (
-        <TypeStyleSelector
+        <TypographySliderInline
           targetCssVar={primaryVar}
-          targetCssVars={cssVars}
+          targetCssVars={cssVars.length > 0 ? cssVars : undefined}
           label={label}
+          layer="layer-1"
         />
       )
     }
@@ -313,7 +818,22 @@ export default function PropControlContent({
     if (propToRender.type === 'dimension') {
       const propNameLower = propToRender.name.toLowerCase()
       
-      // Use BrandSpacerSlider for padding-related properties that use spacer tokens
+      // Use typography slider for text-size and font-size properties that reference typography tokens
+      const isTypographySizeProp = propNameLower === 'text-size' || propNameLower === 'font-size'
+      
+      if (isTypographySizeProp) {
+        return (
+          <TypographySliderInline
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+            layer="layer-1"
+          />
+        )
+      }
+      
+      // Use brand dimension slider for padding-related properties that use spacer tokens
       const isPaddingProp = propNameLower === 'padding' ||
                            propNameLower === 'vertical-padding' ||
                            propNameLower === 'horizontal-padding' ||
@@ -327,27 +847,57 @@ export default function PropControlContent({
       
       if (isPaddingProp) {
         return (
-          <BrandSpacerSlider
+          <BrandDimensionSliderInline
             key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
             targetCssVar={primaryVar}
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
+            dimensionCategory="spacers"
+            layer="layer-1"
           />
         )
       }
       
-      // Use BrandBorderRadiusSlider for border-radius properties
+      // Use brand dimension slider for border-radius properties
       const isBorderRadiusProp = propNameLower === 'border-radius' ||
                                  propNameLower === 'thumb-border-radius' ||
-                                 propNameLower === 'track-border-radius'
+                                 propNameLower === 'track-border-radius' ||
+                                 propNameLower === 'corner-radius'
       
       if (isBorderRadiusProp) {
         return (
-          <BrandBorderRadiusSlider
+          <BrandDimensionSliderInline
             key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
             targetCssVar={primaryVar}
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
+            dimensionCategory="border-radii"
+            layer="layer-1"
+          />
+        )
+      }
+      
+      // Use brand dimension slider for size-related properties that use general dimension tokens
+      const isSizeProp = propNameLower === 'size' ||
+                         propNameLower === 'border-size' ||
+                         propNameLower === 'width' ||
+                         propNameLower === 'height' ||
+                         (propNameLower.includes('size') && !propNameLower.includes('font-size') && !propNameLower.includes('text-size'))
+      
+      // Check if this is an icon-related size (for Avatar, Button icons, etc.)
+      const isIconSize = (componentName.toLowerCase() === 'avatar' && propNameLower === 'size') ||
+                         (componentName.toLowerCase() === 'button' && propNameLower.includes('icon'))
+      
+      if (isSizeProp) {
+        const dimensionCategory: 'icons' | 'general' = isIconSize ? 'icons' : 'general'
+        return (
+          <BrandDimensionSliderInline
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+            dimensionCategory={dimensionCategory}
+            layer="layer-1"
           />
         )
       }

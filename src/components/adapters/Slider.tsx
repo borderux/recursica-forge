@@ -28,6 +28,8 @@ export type SliderProps = {
   showValueLabel?: boolean
   valueLabel?: string | ((value: number) => string)
   tooltipText?: string
+  minLabel?: string
+  maxLabel?: string
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -47,6 +49,8 @@ export function Slider({
   showValueLabel = false,
   valueLabel,
   tooltipText,
+  minLabel,
+  maxLabel,
   className,
   style,
   mantine,
@@ -79,9 +83,6 @@ export function Slider({
     const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
     const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
     
-    // Get min/max gap
-    const minMaxGapVar = getComponentLevelCssVar('Slider', 'min-max-slider-gap')
-    
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = Number(e.target.value)
       if (isRange) {
@@ -112,7 +113,7 @@ export function Slider({
           fontSize: 12, 
           opacity: 0.7, 
           flexShrink: 0,
-          marginRight: `var(${minMaxGapVar}, 8px)`,
+          marginRight: '8px',
           color: 'inherit',
         }}>
           {min}
@@ -247,7 +248,7 @@ export function Slider({
           fontSize: 12, 
           opacity: 0.7, 
           flexShrink: 0,
-          marginLeft: `var(${minMaxGapVar}, 8px)`,
+          marginLeft: '8px',
           color: 'inherit',
         }}>
           {max}
@@ -346,7 +347,26 @@ export function Slider({
   
   const isRange = Array.isArray(value)
   const singleValue = isRange ? value[0] : value
-  const displayValue = valueLabel ? (typeof valueLabel === 'function' ? valueLabel(singleValue) : valueLabel) : singleValue
+  // Calculate display value - call function if provided, otherwise use value directly
+  let displayValue: string | number | undefined
+  try {
+    if (valueLabel) {
+      if (typeof valueLabel === 'function') {
+        displayValue = valueLabel(singleValue)
+      } else {
+        displayValue = valueLabel
+      }
+    } else {
+      displayValue = singleValue
+    }
+  } catch (error) {
+    console.warn('Error calculating value label:', error)
+    displayValue = singleValue
+  }
+  // Ensure displayValue is always a non-empty string for rendering
+  const displayValueStr = (displayValue !== undefined && displayValue !== null && String(displayValue).trim() !== '') 
+    ? String(displayValue).trim() 
+    : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '—')
   
   // Calculate the width of the max value display to align value label above it
   const maxValueWidth = 30 // Approximate width for max value display
@@ -372,6 +392,8 @@ export function Slider({
         showValueLabel={false}
         valueLabel={valueLabel}
         tooltipText={tooltipText}
+        minLabel={minLabel}
+        maxLabel={maxLabel}
         className={className}
         style={style}
         mantine={mantine}
@@ -385,9 +407,29 @@ export function Slider({
   const labelSliderGapVarForLibrary = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'label-slider-gap')
   
   // Render value label using Label component to match label styling
+  // Always show the value label when showValueLabel is true
+  // Ensure we always have a non-empty value to display
+  const finalDisplayValue = (displayValueStr && displayValueStr.trim() !== '') 
+    ? displayValueStr 
+    : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '0')
+  
   const valueLabelElement = showValueLabel ? (
-    <Label layer={layer} layout={layout} align="right" style={{ width: maxValueWidth, flexShrink: 0 }}>
-      {displayValue}
+    <Label 
+      layer={layer} 
+      layout={layout} 
+      align="right"
+      style={{ 
+        flexShrink: 1,
+        whiteSpace: 'nowrap',
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        // Override any width constraints from Label component
+        width: 'auto',
+        maxWidth: 'none',
+      }}
+    >
+      {finalDisplayValue}
     </Label>
   ) : null
   
@@ -433,9 +475,9 @@ export function Slider({
   
   // For stacked layout, show the label and value label on top
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVarForLibrary}, 8px)`, ...style }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-        <div style={{ flex: 1 }}>{label}</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVarForLibrary}, 8px)`, width: '100%', minWidth: 0, ...style }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minWidth: 0, gap: '8px' }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>{label}</div>
         {valueLabelElement}
       </div>
       {sliderComponent}

@@ -1,4 +1,6 @@
 import React from 'react'
+import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
 
 export interface NumericSliderProps {
   label: string
@@ -22,61 +24,28 @@ export default function NumericSlider({
   formatValue,
 }: NumericSliderProps) {
   const displayValue = formatValue ? formatValue(value) : value.toString()
-  const displayLabel = unit ? `${displayValue} ${unit}` : displayValue
+  const displayLabel = unit ? `${displayValue}${unit}` : displayValue
 
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = Number(e.currentTarget.value)
-    onChange(newValue)
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = Number(e.currentTarget.value)
-    if (Number.isFinite(newValue)) {
-      const clamped = Math.max(min, Math.min(max, newValue))
-      onChange(clamped)
-    }
+  const handleSliderChange = (newValue: number | [number, number]) => {
+    const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+    onChange(numValue)
   }
 
   return (
     <div className="control-group">
-      {label && (
-        <label style={{ display: 'block', marginBottom: 4, fontSize: 13, fontWeight: 500 }}>
-          {label}
-        </label>
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={handleSliderChange}
-          style={{ flex: 1, minWidth: 0 }}
-        />
-        <input
-          type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={handleInputChange}
-          style={{
-            width: 70,
-            padding: '4px 8px',
-            border: '1px solid var(--recursica-brand-themes-light-layer-layer-1-property-border-color)',
-            borderRadius: 4,
-            background: 'var(--recursica-brand-themes-light-layer-layer-1-property-surface)',
-            color: 'var(--recursica-brand-themes-light-layer-layer-1-property-element-text-color)',
-            fontSize: 13,
-          }}
-        />
-        {unit && (
-          <span style={{ fontSize: 13, color: 'var(--recursica-brand-themes-light-layer-layer-1-property-element-text-color)', opacity: 0.7 }}>
-            {unit}
-          </span>
-        )}
-      </div>
+      <Slider
+        value={value}
+        onChange={handleSliderChange}
+        min={min}
+        max={max}
+        step={step}
+        layer="layer-3"
+        layout="stacked"
+        showInput={false}
+        showValueLabel={true}
+        valueLabel={displayLabel}
+        label={label ? <Label layer="layer-3" layout="stacked">{label}</Label> : undefined}
+      />
     </div>
   )
 }

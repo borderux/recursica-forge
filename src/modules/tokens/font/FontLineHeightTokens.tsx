@@ -157,7 +157,9 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
                 }}
                 layer="layer-0"
                 layout="stacked"
-                showInput={true}
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={(val) => val.toFixed(2)}
                 style={{ 
                   flex: 1,
                   minWidth: 200,

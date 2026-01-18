@@ -171,7 +171,9 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
                 }}
                 layer="layer-0"
                 layout="stacked"
-                showInput={true}
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={(val) => `${val}px`}
                 style={{ 
                   flex: 1,
                   minWidth: 200,

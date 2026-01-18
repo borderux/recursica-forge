@@ -40,61 +40,69 @@ export default function SliderPreview({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32, width: '100%', maxWidth: 600 }}>
       {/* Single Value Sliders */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* With label, with input */}
+        {/* With label, with readonly value label */}
         <Slider
           value={value1}
           onChange={setValue1}
           min={0}
           max={100}
-          layout={layoutVariant}
+          layout="stacked"
           layer={actualLayer}
           label={labelElement}
-          showInput={true}
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}`}
         />
         
-        {/* With label, without input */}
+        {/* With label, with readonly value label */}
         <Slider
           value={value2}
           onChange={setValue2}
           min={0}
           max={100}
-          layout={layoutVariant}
+          layout="stacked"
           layer={actualLayer}
           label={labelElement}
           showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}`}
         />
         
-        {/* Without label, with input */}
+        {/* Without label, with readonly value label */}
         <Slider
           value={value3}
           onChange={setValue3}
           min={0}
           max={100}
-          layout={layoutVariant}
+          layout="stacked"
           layer={actualLayer}
-          showInput={true}
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}`}
         />
         
-        {/* Disabled */}
+        {/* Disabled with readonly value label */}
         <Slider
           value={value4}
           onChange={setValue4}
           min={0}
           max={100}
-          layout={layoutVariant}
+          layout="stacked"
           layer={actualLayer}
           label={labelElement}
-          showInput={true}
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}`}
           disabled
         />
         
-        {/* With label, with readonly value label (no input) */}
+        {/* With label, with readonly value label */}
         <Slider
           value={value5}
           onChange={setValue5}
           min={0}
           max={100}
-          layout={layoutVariant}
+          layout="stacked"
           layer={actualLayer}
           label={labelElement}
           showInput={false}

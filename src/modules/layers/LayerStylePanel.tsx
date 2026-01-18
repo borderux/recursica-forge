@@ -6,6 +6,7 @@ import TokenSlider from '../forms/TokenSlider'
 import BrandSpacerSlider from '../toolbar/utils/BrandSpacerSlider'
 import BrandBorderRadiusSlider from '../toolbar/utils/BrandBorderRadiusSlider'
 import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { readCssVar } from '../../core/css/readCssVar'
 import { updateCssVar as updateCssVarFn } from '../../core/css/updateCssVar'
@@ -389,7 +390,6 @@ export default function LayerStylePanel({
           
           return (
             <Slider
-              label="Border Thickness"
               value={currentValue}
               onChange={(value) => {
                 const numValue = typeof value === 'number' ? value : value[0]
@@ -400,8 +400,12 @@ export default function LayerStylePanel({
               min={0}
               max={20}
               step={1}
-              showInput={true}
-              layer="layer-2"
+              layer="layer-3"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={(val) => `${val}px`}
+              label={<Label layer="layer-3" layout="stacked">Border Thickness</Label>}
             />
           )
         })()}

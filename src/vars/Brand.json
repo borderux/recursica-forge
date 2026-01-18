@@ -83,7 +83,7 @@
               },
               "elevation": {
                 "$type": "elevation",
-                "$value": "{brand.elevations.elevation-1}"
+                "$value": "{brand.elevations.elevation-0}"
               },
               "border-radius": {
                 "$type": "number",
@@ -145,7 +145,7 @@
             "properties": {
               "elevation": {
                 "$type": "elevation",
-                "$value": "{brand.elevations.elevation-2}"
+                "$value": "{brand.elevations.elevation-4}"
               },
               "border-radius": {
                 "$type": "number",
@@ -260,7 +260,7 @@
               },
               "elevation": {
                 "$type": "elevation",
-                "$value": "{brand.elevations.elevation-3}"
+                "$value": "{brand.elevations.elevation-2}"
               },
               "border-radius": {
                 "$type": "number",
@@ -1098,7 +1098,7 @@
               },
               "elevation": {
                 "$type": "elevation",
-                "$value": "{brand.elevations.elevation-1}"
+                "$value": "{brand.elevations.elevation-0}"
               },
               "border-radius": {
                 "$type": "number",
@@ -1152,7 +1152,7 @@
             "properties": {
               "elevation": {
                 "$type": "elevation",
-                "$value": "{brand.elevations.elevation-2}"
+                "$value": "{brand.elevations.elevation-4}"
               },
               "border-radius": {
                 "$type": "number",
@@ -1251,7 +1251,7 @@
               },
               "elevation": {
                 "$type": "elevation",
-                "$value": "{brand.elevations.elevation-3}"
+                "$value": "{brand.elevations.elevation-2}"
               },
               "border-radius": {
                 "$type": "number",

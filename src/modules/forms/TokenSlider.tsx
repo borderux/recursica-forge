@@ -22,6 +22,8 @@ type TokenSliderProps = {
   signedValue?: number
   /** Optional callback when direction changes (for signed sliders) */
   onDirectionChange?: (direction: 'left' | 'right' | 'up' | 'down') => void
+  /** Optional layer for the slider (defaults to layer-1 for toolbar usage) */
+  layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 }
 
 /**
@@ -38,6 +40,7 @@ export default function TokenSlider({
   zeroIndex,
   signedValue,
   onDirectionChange,
+  layer = 'layer-1',
 }: TokenSliderProps) {
   // Sort tokens by value if available, smallest to largest (left to right)
   // Tokens without numeric values go to the end
@@ -128,8 +131,11 @@ export default function TokenSlider({
         min={min}
         max={max}
         step={1}
-        layer="layer-3"
+        layer={layer}
+        layout="stacked"
         showInput={false}
+        showValueLabel={true}
+        valueLabel={displayLabel}
         tooltipText={displayLabel}
       />
     </div>

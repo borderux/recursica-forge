@@ -69,11 +69,6 @@
           "icon": "split-horizontal",
           "label": "Input Gap",
           "visible": true
-        },
-        "min-max-slider-gap": {
-          "icon": "split-horizontal",
-          "label": "Min/Max Gap",
-          "visible": true
         }
       }
     },

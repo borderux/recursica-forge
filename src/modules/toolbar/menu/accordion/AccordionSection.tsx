@@ -1,5 +1,6 @@
 import { useState, ReactNode, useEffect } from 'react'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
+import { useThemeMode } from '../../../theme/ThemeModeContext'
 import './AccordionSection.css'
 
 export interface AccordionSectionProps {
@@ -23,9 +24,13 @@ export default function AccordionSection({
   className = '',
   selectedValue,
 }: AccordionSectionProps) {
+  const { mode } = useThemeMode()
   const [internalOpen, setInternalOpen] = useState(defaultOpen)
   const isControlled = controlledOpen !== undefined
   const isOpen = isControlled ? controlledOpen : internalOpen
+  
+  // Layer1 base for expanded content
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   
   useEffect(() => {
     if (!isControlled && defaultOpen) {
@@ -64,7 +69,13 @@ export default function AccordionSection({
         </div>
       </button>
       {isOpen && (
-        <div className="accordion-content">
+        <div 
+          className="accordion-content"
+          style={{
+            background: `var(${layer1Base}-surface)`,
+            borderTop: `1px solid var(${layer1Base}-border-color)`,
+          }}
+        >
           {children}
         </div>
       )}

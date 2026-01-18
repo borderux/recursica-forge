@@ -227,45 +227,12 @@ export default function OpacityTokens() {
                     step={1}
                     disabled={isDisabled}
                     layer="layer-0"
+                    layout="stacked"
+                    showInput={false}
+                    showValueLabel={true}
+                    valueLabel={(val) => `${val}%`}
                   />
                 </div>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={current}
-                  disabled={isDisabled}
-                  onChange={(ev) => { 
-                    const next = Number(ev.currentTarget.value)
-                    if (Number.isFinite(next) && next >= 0 && next <= 100) {
-                      // Convert percentage (0-100) to decimal (0-1) for token storage
-                      const decimalValue = next / 100
-                      updateToken(it.name, decimalValue)
-                      // Also update override for backwards compatibility
-                      setOverride(it.name, decimalValue)
-                    }
-                  }}
-                  style={{ 
-                    width: 60,
-                    padding: 'var(--recursica-brand-dimensions-spacers-xs) var(--recursica-brand-dimensions-spacers-sm)',
-                    border: `1px solid var(${layer1Base}-border-color)`,
-                    borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                    background: `var(${layer0Base}-surface)`,
-                    color: `var(${layer0Base}-element-text-color)`,
-                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                    textAlign: 'center',
-                    opacity: isDisabled ? 0.5 : 1,
-                    cursor: isDisabled ? 'not-allowed' : 'text',
-                  }}
-                />
-                <span style={{ 
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
-                  minWidth: 20,
-                }}>
-                  %
-                </span>
               </div>
             )
           })}

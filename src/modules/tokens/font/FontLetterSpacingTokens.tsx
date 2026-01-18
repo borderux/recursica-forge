@@ -171,7 +171,9 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
                 }}
                 layer="layer-0"
                 layout="stacked"
-                showInput={true}
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={(val) => `${val >= 0 ? '+' : ''}${val.toFixed(2)}px`}
                 style={{ 
                   flex: 1,
                   minWidth: 200,
