@@ -1785,28 +1785,22 @@ class VarsStore {
     const typeChoices = this.readTypeChoices()
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, typeChoices)
     
-    // Only preserve typography CSS variables that were set DIRECTLY (not via choices system)
-    // If choices exist, the generated values from buildTypographyVars should be used
-    // This allows the choices system to work properly
-    const hasChoices = Object.keys(typeChoices).length > 0
-    if (!hasChoices) {
-      // Only preserve if there are no choices (user might have set CSS vars directly)
-      Object.keys(typeVars).forEach((cssVar) => {
-        const existingValue = readCssVar(cssVar)
-        const generatedValue = typeVars[cssVar]
-        
-        // Preserve if it exists in DOM and is different from generated (user customization)
-        // This ensures direct CSS variable changes persist across recomputes when no choices are set
-        if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
-          typeVars[cssVar] = existingValue
-        }
-      })
-    }
-    
-    // Don't preserve typography CSS variables when choices are set
-    // The choices system should be the source of truth, and buildTypographyVars
-    // already generates the correct CSS variables based on choices
-    // Only preserve if there are no choices (user might have set CSS vars directly via other means)
+    // Always preserve typography CSS variables that were set DIRECTLY (user customization via UI)
+    // This allows direct CSS variable updates (like from TypeStylePanel) to persist across recomputes
+    // Direct CSS variable overrides take precedence over generated values from choices/defaults
+    Object.keys(typeVars).forEach((cssVar) => {
+      // Check inline style directly (direct updates are always inline)
+      const inlineValue = typeof document !== 'undefined' 
+        ? document.documentElement.style.getPropertyValue(cssVar).trim()
+        : ''
+      const generatedValue = typeVars[cssVar]
+      
+      // Preserve if it exists in inline style and is different from generated (user customization)
+      // Inline styles take precedence as they represent direct user updates
+      if (inlineValue !== '' && inlineValue !== generatedValue) {
+        typeVars[cssVar] = inlineValue
+      }
+    })
     
     Object.assign(allVars, typeVars)
     // Ensure fonts load lazily (web fonts, npm fonts, git fonts)

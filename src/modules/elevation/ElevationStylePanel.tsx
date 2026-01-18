@@ -2,6 +2,7 @@ import React from 'react'
 import PaletteColorControl from '../forms/PaletteColorControl'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
+import { Button } from '../../components/adapters/Button'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 
@@ -239,15 +240,23 @@ export default function ElevationStylePanel({
   return (
     <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 28vw, 440px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ fontWeight: 600 }}>
+        <h2 style={{ 
+          margin: 0,
+          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+          color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
+        }}>
           {(() => {
             if (levelsArr.length === 0) return 'Elevation'
             if (levelsArr.length === 1) return `Elevation ${levelsArr[0]}`
             const list = levelsArr.slice().sort((a,b) => a-b).join(', ')
             return `Elevations ${list}`
           })()}
-        </div>
-        <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
+        </h2>
+        <Button onClick={onClose} variant="text" layer="layer-2" aria-label="Close">&times;</Button>
       </div>
       <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
         <Slider

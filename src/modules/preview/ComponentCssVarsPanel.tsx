@@ -5,6 +5,7 @@ import { useVars } from '../vars/VarsContext'
 import PaletteColorControl from '../forms/PaletteColorControl'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
+import { Button } from '../../components/adapters/Button'
 import uikitJson from '../../vars/UIKit.json'
 import { useThemeMode } from '../theme/ThemeModeContext'
 
@@ -185,6 +186,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
   }
   
   const { mode } = useThemeMode()
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   return (
     <div 
       aria-hidden={!open} 
@@ -205,20 +207,16 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h2 style={{ margin: 0, fontWeight: 700 }}>{componentName}</h2>
-        <button 
-          onClick={onClose} 
-          aria-label="Close" 
-          style={{ 
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, 
-            background: 'transparent', 
-            cursor: 'pointer', 
-            borderRadius: 6, 
-            padding: '4px 8px' 
-          }}
-        >
-          &times;
-        </button>
+        <h2 style={{ 
+          margin: 0,
+          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+          color: `var(${layer0Base}-element-text-color)`,
+        }}>{componentName}</h2>
+        <Button onClick={onClose} variant="text" layer="layer-2" aria-label="Close">&times;</Button>
       </div>
       
       {componentVars.length === 0 ? (
