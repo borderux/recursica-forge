@@ -486,7 +486,6 @@
           "type": "object",
           "properties": {
             "none": { "$ref": "#/definitions/dimensionValue" },
-            "xs": { "$ref": "#/definitions/dimensionValue" },
             "sm": { "$ref": "#/definitions/dimensionValue" },
             "md": { "$ref": "#/definitions/dimensionValue" },
             "default": { "$ref": "#/definitions/dimensionValue" },

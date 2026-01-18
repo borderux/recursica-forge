@@ -452,7 +452,8 @@ export default function LayerStylePanel({
     const out: Array<{ label: string; value: string }> = []
     try {
       const rec: any = (tokensJson as any)?.tokens?.size || {}
-      Object.keys(rec).forEach((k) => out.push({ label: k, value: `{tokens.size.${k}}` }))
+      // Exclude elevation tokens - those are only in brand, not tokens
+      Object.keys(rec).filter((k) => !k.startsWith('elevation-')).forEach((k) => out.push({ label: k, value: `{tokens.size.${k}}` }))
     } catch {}
     return out
   }, [tokensJson])

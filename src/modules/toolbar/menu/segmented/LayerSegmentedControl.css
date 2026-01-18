@@ -36,7 +36,7 @@ html[data-theme-mode="dark"] .layer-segmented-control-label {
 }
 
 .layer-segmented-control-button {
-  padding: var(--recursica-brand-dimensions-general-xs) var(--recursica-brand-dimensions-general-sm);
+  padding: var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm);
   border: none;
   border-right: 1px solid var(--recursica-brand-themes-light-layer-layer-0-property-border-color);
   cursor: pointer;

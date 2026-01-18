@@ -200,6 +200,7 @@ export default function Slider({
       {showValueLabel && !showInput && (
         <span
           style={{
+            minWidth: `var(${inputWidthVar}, 60px)`,
             fontSize: `var(${labelFontSizeVar})`,
             fontFamily: `var(${labelFontFamilyVar})`,
             fontWeight: `var(${labelFontWeightVar})`,
@@ -208,6 +209,7 @@ export default function Slider({
             color: `var(${labelTextColorVar})`,
             opacity: disabled ? 0.5 : `var(${highEmphasisOpacityVar})`,
             whiteSpace: 'nowrap',
+            textAlign: 'right',
           }}
         >
           {displayValueStr}

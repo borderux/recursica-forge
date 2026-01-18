@@ -2118,7 +2118,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 160,
+                          "value": 80,
                           "unit": "px"
                         }
                       }
@@ -2131,7 +2131,10 @@
               "properties": {
                 "height": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.components.label.properties.label-max-height}"
+                  "$value": {
+                    "value": 48,
+                    "unit": "px"
+                  }
                 },
                 "gutter": {
                   "$type": "dimension",
@@ -2166,7 +2169,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 160,
+                          "value": 80,
                           "unit": "px"
                         }
                       }
@@ -2257,41 +2260,6 @@
             "$type": "dimension",
             "$value": {
               "value": "{brand.dimensions.general.default}",
-              "unit": "px"
-            }
-          },
-          "label-width-stacked-default": {
-            "$type": "dimension",
-            "$value": {
-              "value": 224,
-              "unit": "px"
-            }
-          },
-          "label-width-stacked-small": {
-            "$type": "dimension",
-            "$value": {
-              "value": 160,
-              "unit": "px"
-            }
-          },
-          "label-width-side-by-side-default": {
-            "$type": "dimension",
-            "$value": {
-              "value": 224,
-              "unit": "px"
-            }
-          },
-          "label-width-side-by-side-small": {
-            "$type": "dimension",
-            "$value": {
-              "value": 160,
-              "unit": "px"
-            }
-          },
-          "label-max-height": {
-            "$type": "dimension",
-            "$value": {
-              "value": 48,
               "unit": "px"
             }
           }

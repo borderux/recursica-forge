@@ -628,7 +628,7 @@ export default function ComponentToolbar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 'var(--recursica-brand-dimensions-general-xs)',
+            gap: 'var(--recursica-brand-dimensions-general-default)',
             transition: 'background-color 0.2s',
           }}
           onMouseEnter={(e) => {

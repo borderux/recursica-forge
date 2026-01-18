@@ -149,12 +149,12 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
     })
   }
   
-  // Get available size tokens for sliders
+  // Get available size tokens for sliders (exclude elevation tokens - those are only in brand, not tokens)
   const availableSizeTokens = useMemo(() => {
     const tokens: Array<{ name: string; value: number; label: string }> = []
     try {
       const src: any = (tokensJson as any)?.tokens?.size || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)

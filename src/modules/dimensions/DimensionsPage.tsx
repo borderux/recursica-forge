@@ -9,6 +9,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 
@@ -63,12 +64,12 @@ export default function DimensionsPage() {
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
 
-  // Get available size tokens
+  // Get available size tokens (exclude elevation tokens - those are only in brand, not tokens)
   const availableSizeTokens = useMemo(() => {
     const tokens: Array<{ name: string; value: number; label: string }> = []
     try {
       const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)
@@ -80,11 +81,7 @@ export default function DimensionsPage() {
       })
     } catch {}
     return tokens.sort((a, b) => {
-      // Sort: none first, then default, then numeric order
-      if (a.name === 'none') return -1
-      if (b.name === 'none') return 1
-      if (a.name === 'default') return -1
-      if (b.name === 'default') return 1
+      // Sort by numeric value only (lowest to highest) so slider stops are in increasing order
       return a.value - b.value
     })
   }, [tokensJson])
@@ -212,14 +209,21 @@ export default function DimensionsPage() {
   }, [dimensions])
 
   // Define section order (matching actual category names from dimensions)
-  const sectionOrder = ['general', 'text-size', 'icons', 'gutters', 'border-radii']
+  // Note: 'text-size' is excluded as users cannot change text sizes
+  const sectionOrder = ['general', 'icons', 'gutters', 'border-radii']
   
   // Sort category keys according to section order, then alphabetically for any not in the order
+  // Filter out 'text-size' category completely
   const categoryKeys = useMemo(() => {
     const ordered: (string | undefined)[] = new Array(sectionOrder.length).fill(undefined)
     const unordered: string[] = []
     
     Object.keys(groupedDimensions).forEach((key) => {
+      // Hide text-size category completely
+      if (key.toLowerCase() === 'text-size') {
+        return
+      }
+      
       const normalizedKey = key.toLowerCase()
       const orderIndex = sectionOrder.findIndex(orderedKey => normalizedKey === orderedKey.toLowerCase())
       if (orderIndex !== -1) {
@@ -349,6 +353,14 @@ export default function DimensionsPage() {
                   const minToken = availableSizeTokens[0]
                   const maxToken = availableSizeTokens[availableSizeTokens.length - 1]
                   
+                  // Get tooltip text - show token name (key) in tooltip
+                  // availableSizeTokens have a 'name' property which is the token key (e.g., 'sm', 'md', 'lg')
+                  // Extract just the key part if it's in format "size/key"
+                  const tokenKey = currentToken?.name?.includes('/') 
+                    ? currentToken.name.split('/').pop() || currentToken.name
+                    : currentToken?.name || ''
+                  const tooltipText = tokenKey || currentToken?.label || '—'
+                  
                   return (
                     <Slider
                       key={entry.cssVar}
@@ -379,7 +391,8 @@ export default function DimensionsPage() {
                       step={1}
                       layer="layer-0"
                       layout="side-by-side"
-                      label={toTitleCase(entry.label)}
+                      tooltipText={tooltipText}
+                      label={<Label layer="layer-0" layout="side-by-side" size="small">{toTitleCase(entry.label)}</Label>}
                       showInput={false}
                       showValueLabel={true}
                       valueLabel={getValueLabel}

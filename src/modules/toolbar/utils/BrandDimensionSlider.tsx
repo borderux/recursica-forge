@@ -12,6 +12,7 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
+import { Label } from '../../../components/adapters/Label'
 
 export type DimensionCategory = 'border-radii' | 'icons' | 'gutters' | 'general' | 'text-size'
 
@@ -280,10 +281,14 @@ export default function BrandDimensionSlider({
   
   const currentToken = tokens[selectedIndex]
   const displayLabel = currentToken ? currentToken.label : ''
+  const tokenName = currentToken ? currentToken.key : ''
   const minToken = tokens[0]
   const maxToken = tokens[tokens.length > 0 ? tokens.length - 1 : 0]
   const minLabel = minToken ? minToken.label : '0'
   const maxLabel = maxToken ? maxToken.label : '0'
+  
+  // Get tooltip text - show token name (key) in tooltip
+  const tooltipText = tokenName || displayLabel
   
   return (
     <div className="control-group">
@@ -298,10 +303,10 @@ export default function BrandDimensionSlider({
         showInput={false}
         showValueLabel={true}
         valueLabel={displayLabel}
-        tooltipText={displayLabel}
+        tooltipText={tooltipText}
         minLabel={minLabel}
         maxLabel={maxLabel}
-        label={label ? <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span> : undefined}
+        label={label ? <Label layer={layer} layout="side-by-side" size="small">{label}</Label> : undefined}
       />
     </div>
   )

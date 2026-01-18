@@ -547,7 +547,7 @@ export default function FontFamiliesTokens() {
                   border: 'none',
                   background: 'transparent',
                   cursor: 'pointer',
-                  padding: 'var(--recursica-brand-dimensions-general-xs)',
+                  padding: 'var(--recursica-brand-dimensions-general-default)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -566,7 +566,7 @@ export default function FontFamiliesTokens() {
                   return null
                 })()}
               </button>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
                 <Chip
                   variant="unselected"
                   size="small"
@@ -597,7 +597,7 @@ export default function FontFamiliesTokens() {
               }}>
                 {EXAMPLE_TEXT}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
                 {(availableWeights[r.name] || FONT_WEIGHTS).map((weight) => {
                   return (
                     <Chip
@@ -636,7 +636,7 @@ export default function FontFamiliesTokens() {
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                padding: 'var(--recursica-brand-dimensions-general-xs)',
+                padding: 'var(--recursica-brand-dimensions-general-default)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

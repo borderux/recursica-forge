@@ -11,12 +11,12 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 export default function SizeTokens() {
   const { tokens: tokensJson, resetAll, updateToken } = useVars()
   const { mode } = useThemeMode()
-  // Store original values from JSON import
+  // Store original values from JSON import (exclude elevation tokens - those are only in brand, not tokens)
   const originalValues = useMemo(() => {
     const map: Record<string, number> = {}
     try {
       const src: any = (tokensImport as any)?.tokens?.sizes || (tokensImport as any)?.tokens?.size || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)
@@ -30,8 +30,9 @@ export default function SizeTokens() {
     const list: Array<{ name: string; value: number }> = []
     try {
       // Support both plural (sizes) and singular (size) for backwards compatibility
+      // Exclude elevation tokens - those are only in brand, not tokens
       const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)

@@ -17,7 +17,7 @@
 .dropdown-label-value {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-general-xs);
+  gap: var(--recursica-brand-dimensions-general-default);
   flex: 1;
   text-align: left;
 }
@@ -29,7 +29,7 @@
 .dropdown-value {
   font-weight: 400;
   margin-left: auto;
-  margin-right: var(--recursica-brand-dimensions-general-xs);
+  margin-right: var(--recursica-brand-dimensions-general-default);
 }
 
 .dropdown-chevron {

@@ -2123,10 +2123,6 @@
           "$type": "number",
           "$value": "{tokens.size.none}"
         },
-        "xs": {
-          "$type": "number",
-          "$value": "{tokens.size.0-5x}"
-        },
         "sm": {
           "$type": "number",
           "$value": "{tokens.size.0-5x}"

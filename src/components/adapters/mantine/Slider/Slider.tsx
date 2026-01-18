@@ -191,6 +191,7 @@ export default function Slider({
       {showValueLabel && !showInput && (
         <span
           style={{
+            minWidth: `var(${inputWidthVar}, 60px)`,
             fontSize: `var(${labelFontSizeVar})`,
             fontFamily: `var(${labelFontFamilyVar})`,
             fontWeight: `var(${labelFontWeightVar})`,
@@ -199,6 +200,7 @@ export default function Slider({
             color: `var(${labelTextColorVar})`,
             opacity: disabled ? 0.5 : `var(${highEmphasisOpacityVar})`,
             whiteSpace: 'nowrap',
+            textAlign: 'right',
           }}
         >
           {displayValueStr}
@@ -208,9 +210,6 @@ export default function Slider({
   )
   
   if (layout === 'side-by-side' && label) {
-    // Get min-width CSS variable for slider if it exists
-    const sliderMinWidthVar = getComponentLevelCssVar('Slider', 'min-width')
-    
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
         <div style={{ flexShrink: 0 }}>
@@ -218,7 +217,7 @@ export default function Slider({
         </div>
         <div style={{ 
           flex: 1, 
-          minWidth: sliderMinWidthVar ? `var(${sliderMinWidthVar})` : 0,
+          minWidth: 0,
           display: 'flex',
           alignItems: 'center',
         }}>

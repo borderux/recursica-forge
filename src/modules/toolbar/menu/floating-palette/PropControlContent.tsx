@@ -243,6 +243,9 @@ function BrandDimensionSliderInline({
   const minLabel = minToken?.label || 'None'
   const maxLabel = maxToken?.label || 'Xl'
   
+  // Get tooltip text - show token name (key) in tooltip
+  const tooltipText = currentToken?.key || currentToken?.label || String(safeSelectedIndex)
+  
   // Create a function that calculates the value label from the current slider value
   // This ensures it updates when the slider changes
   const getValueLabel = useCallback((value: number) => {
@@ -268,10 +271,10 @@ function BrandDimensionSliderInline({
       showInput={false}
       showValueLabel={true}
       valueLabel={getValueLabel}
-      tooltipText={currentToken?.label || (currentToken?.key ? formatDimensionLabel(currentToken.key) : String(safeSelectedIndex))}
+      tooltipText={tooltipText}
       minLabel={minLabel}
       maxLabel={maxLabel}
-      label={<Label layer={layer} layout="stacked">{label}</Label>}
+      label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
     />
   )
 }
@@ -514,7 +517,7 @@ function TypographySliderInline({
       tooltipText={currentToken?.label || String(safeSelectedIndex)}
       minLabel={minLabel}
       maxLabel={maxLabel}
-      label={<Label layer={layer} layout="stacked">{label}</Label>}
+      label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
     />
   )
 }
@@ -673,7 +676,7 @@ function ElevationSliderInline({
       })()}
       minLabel={minLabel}
       maxLabel={maxLabel}
-      label={<Label layer={layer} layout="stacked">{label}</Label>}
+      label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
     />
   )
 }

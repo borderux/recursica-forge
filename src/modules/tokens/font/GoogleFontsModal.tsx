@@ -174,7 +174,7 @@ export function GoogleFontsModal({
               border: 'none',
               background: 'transparent',
               cursor: 'pointer',
-              padding: 'var(--recursica-brand-dimensions-general-xs)',
+              padding: 'var(--recursica-brand-dimensions-general-default)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -208,7 +208,7 @@ export function GoogleFontsModal({
           />
           {error && (
             <div style={{
-              marginTop: 'var(--recursica-brand-dimensions-general-xs)',
+              marginTop: 'var(--recursica-brand-dimensions-general-default)',
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
             }}>
@@ -222,7 +222,7 @@ export function GoogleFontsModal({
             overflowY: 'auto',
             maxHeight: '400px',
             display: 'grid',
-            gap: 'var(--recursica-brand-dimensions-general-xs)',
+            gap: 'var(--recursica-brand-dimensions-general-default)',
           }}
         >
           {loading ? (
