@@ -22,6 +22,9 @@ export default function Slider({
   layer = 'layer-0',
   label,
   showInput = false,
+  showValueLabel = false,
+  valueLabel,
+  tooltipText,
   className,
   style,
   material,
@@ -46,6 +49,12 @@ export default function Slider({
   // Get input width and gap if showing input
   const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
   const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
+  
+  // Get min/max gap
+  const minMaxGapVar = getComponentLevelCssVar('Slider', 'min-max-slider-gap')
+  
+  // Get min/max gap
+  const minMaxGapVar = getComponentLevelCssVar('Slider', 'min-max-slider-gap')
   
   const isRange = Array.isArray(value)
   const singleValue = isRange ? value[0] : value
@@ -73,7 +82,17 @@ export default function Slider({
   const thumbColor = `var(${thumbVar})`
   
   const sliderElement = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: showInput ? `var(${inputGapVar}, 8px)` : 0, width: '100%' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: showInput ? `var(${inputGapVar}, 8px)` : 0, width: '100%', minWidth: 0 }}>
+      {/* Min value display */}
+      <span style={{ 
+        fontSize: 12, 
+        opacity: 0.7, 
+        flexShrink: 0,
+        marginRight: `var(${minMaxGapVar}, 8px)`,
+        color: 'inherit',
+      }}>
+        {min}
+      </span>
       <MaterialSlider
         value={singleValue}
         onChange={handleChange}
@@ -82,6 +101,8 @@ export default function Slider({
         max={max}
         step={step}
         disabled={disabled}
+        valueLabelDisplay="auto"
+        valueLabelFormat={tooltipText ? () => tooltipText : undefined}
         className={className}
         sx={{
           color: trackActiveColor,
@@ -117,6 +138,16 @@ export default function Slider({
         {...material}
         {...props}
       />
+      {/* Max value display */}
+      <span style={{ 
+        fontSize: 12, 
+        opacity: 0.7, 
+        flexShrink: 0,
+        marginLeft: `var(${minMaxGapVar}, 8px)`,
+        color: 'inherit',
+      }}>
+        {max}
+      </span>
       {showInput && (
         <input
           type="number"
@@ -158,16 +189,28 @@ export default function Slider({
   )
   
   if (layout === 'side-by-side' && label) {
+    // Get min-width CSS variable for slider if it exists
+    const sliderMinWidthVar = getComponentLevelCssVar('Slider', 'min-width')
+    
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, ...style }}>
-        {label}
-        {sliderElement}
+      <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
+        <div style={{ flexShrink: 0 }}>
+          {label}
+        </div>
+        <div style={{ 
+          flex: 1, 
+          minWidth: sliderMinWidthVar ? `var(${sliderMinWidthVar})` : 0,
+          display: 'flex',
+          alignItems: 'center',
+        }}>
+          {sliderElement}
+        </div>
       </div>
     )
   }
   
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVar}, 8px)`, ...style }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
       {label && <div>{label}</div>}
       {sliderElement}
     </div>

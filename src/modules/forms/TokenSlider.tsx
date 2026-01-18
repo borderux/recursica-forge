@@ -1,4 +1,5 @@
 import React from 'react'
+import { Slider } from '../../components/adapters/Slider'
 
 type Token = { name: string; value?: number; label?: string }
 
@@ -90,76 +91,47 @@ export default function TokenSlider({
     ? formatDisplayLabel(baseLabel, currentIdx, displaySignedValue)
     : baseLabel
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.currentTarget.value)
+  const handleChange = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
     
     if (zeroIndex !== undefined) {
       // Signed slider
       if (onDirectionChange) {
         // Determine direction based on label and value sign
         const isX = label.toLowerCase().includes('x') || label.toLowerCase().includes('offset x')
-        const nextDir = value < 0 
+        const nextDir = numValue < 0 
           ? (isX ? 'left' : 'up')
           : (isX ? 'right' : 'down')
         onDirectionChange(nextDir)
       }
-      const idx = zeroIndex + Math.abs(value)
+      const idx = zeroIndex + Math.abs(numValue)
       const token = sortedTokens[idx]?.name || sortedTokens[zeroIndex]?.name || ''
       onChange(token)
     } else {
       // Simple slider
-      const token = sortedTokens[value]?.name || sortedTokens[0]?.name || ''
+      const token = sortedTokens[numValue]?.name || sortedTokens[0]?.name || ''
       onChange(token)
     }
   }
 
-  // Calculate positions for visual stops
-  const totalSteps = max - min
-  const stopPositions = sortedTokens.map((_, idx) => {
-    const sliderValue = zeroIndex !== undefined ? idx - zeroIndex : idx
-    return totalSteps > 0 ? ((sliderValue - min) / totalSteps) * 100 : 0
-  })
+  const sliderValue = displaySignedValue !== undefined ? displaySignedValue : currentIdx
 
   return (
     <div className="control-group">
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>{displayLabel}</span>
-        </div>
-        <div style={{ position: 'relative', width: '100%', paddingTop: '4px', paddingBottom: '4px' }}>
-          {/* Visual stops/tick marks for each token */}
-          {stopPositions.map((position, idx) => (
-            <div
-              key={idx}
-              style={{
-                position: 'absolute',
-                left: `${position}%`,
-                top: '50%',
-                width: '2px',
-                height: '8px',
-                backgroundColor: 'var(--recursica-brand-themes-light-layer-layer-3-property-element-text-low-emphasis, var(--recursica-brand-themes-light-layer-layer-3-property-element-text-low-emphasis))',
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none',
-                zIndex: 0,
-              }}
-            />
-          ))}
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={1}
-          value={displaySignedValue !== undefined ? displaySignedValue : currentIdx}
-          onChange={handleChange}
-            style={{
-              position: 'relative',
-              zIndex: 1,
-              width: '100%',
-            }}
-        />
-        </div>
-      </label>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+        <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span>
+        <span style={{ fontSize: 12, opacity: 0.7 }}>{displayLabel}</span>
+      </div>
+      <Slider
+        value={sliderValue}
+        onChange={handleChange}
+        min={min}
+        max={max}
+        step={1}
+        layer="layer-3"
+        showInput={false}
+        tooltipText={displayLabel}
+      />
     </div>
   )
 }

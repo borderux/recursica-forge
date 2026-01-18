@@ -87,10 +87,15 @@ export default function Label({
   // Width is nested: variants.layouts.{layout}.variants.sizes.{size}.properties.width
   let widthVar: string | undefined
   
-  if (size) {
-    // Get width from nested variant structure
-    widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layout, 'variants', 'sizes', size, 'properties', 'width')
-  }
+  // Use provided size or default to 'default' if not provided
+  const effectiveSize = size || 'default'
+  
+  // Get width from nested variant structure
+  widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layout, 'variants', 'sizes', effectiveSize, 'properties', 'width')
+  
+  // Also check for general label-width property at component level as fallback
+  const labelWidthVar = getComponentLevelCssVar('Label', 'label-width')
+  const effectiveWidthVar = widthVar || labelWidthVar
   
   // Get CSS variables for layout-specific spacing
   let layoutStyles: Record<string, string> = {}
@@ -105,12 +110,21 @@ export default function Label({
     layoutStyles.minHeight = `var(${heightVar})`
     layoutStyles.paddingTop = `var(${verticalPaddingVar})`
     layoutStyles.paddingBottom = `var(${verticalPaddingVar})`
+    // Use flexbox to center content vertically
+    layoutStyles.display = 'flex'
+    layoutStyles.alignItems = 'center'
     // Note: gutter is used by parent container's gap property, not applied to label itself
   }
   
-  // Apply width to layoutStyles for both layouts if size is provided
-  if (widthVar) {
-    layoutStyles.width = `var(${widthVar})`
+  // Apply width/minWidth to layoutStyles
+  if (effectiveWidthVar) {
+    if (layout === 'side-by-side') {
+      // In side-by-side, use minWidth to respect min-width but allow growth
+      layoutStyles.minWidth = `var(${effectiveWidthVar})`
+    } else {
+      // In stacked, use width
+      layoutStyles.width = `var(${effectiveWidthVar})`
+    }
   }
   
   return (
@@ -134,7 +148,12 @@ export default function Label({
       {...props}
     >
       {variant === 'optional' ? (
-        <>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center',
+          alignItems: layout === 'side-by-side' ? 'flex-start' : 'stretch',
+        }}>
           <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
           <span
             style={{
@@ -153,7 +172,7 @@ export default function Label({
           >
             (optional)
           </span>
-        </>
+        </div>
       ) : (
         <span style={{ display: 'inline', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {children}

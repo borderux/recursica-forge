@@ -4,6 +4,8 @@ import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
+import { Menu } from '../../../../components/adapters/Menu'
+import { MenuItem } from '../../../../components/adapters/MenuItem'
 
 interface OpacitySelectorProps {
   targetCssVar: string
@@ -134,48 +136,26 @@ export default function OpacitySelector({ targetCssVar, label }: OpacitySelector
             width: '260px',
             maxHeight: '300px',
             overflowY: 'auto',
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, #ffffff)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, #e0e0e0)`,
-            borderRadius: '8px',
-            padding: '8px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
             zIndex: 10000,
           }}
         >
-          <div style={{ display: 'grid', gap: 6 }}>
+          <Menu layer="layer-3">
             {opacityTokens.map((token) => {
               const isSelected = currentToken === token.name
               return (
-                <button
+                <MenuItem
                   key={token.name}
                   onClick={() => handleSelect(token.name)}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    width: '100%',
-                    border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, #e0e0e0)`,
-                    background: isSelected 
-                      ? `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface-hover, #f0f0f0)` 
-                      : 'transparent',
-                    color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, #000000)`,
-                    borderRadius: 6,
-                    padding: '6px 8px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
+                  selected={isSelected}
+                  leadingIconType={isSelected ? 'radio' : 'none'}
+                  supportingText={`${Math.round(token.value * 100)}%`}
+                  layer="layer-3"
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {isSelected && (
-                      <span style={{ fontSize: 14, color: `var(--recursica-brand-themes-${mode}-palettes-palette-1-default-color-tone, #0066cc)` }}>✓</span>
-                    )}
-                    <span>{token.label}</span>
-                  </span>
-                  <span>{`${Math.round(token.value * 100)}%`}</span>
-                </button>
+                  {token.label}
+                </MenuItem>
               )
             })}
-          </div>
+          </Menu>
         </div>,
         document.body
       )}

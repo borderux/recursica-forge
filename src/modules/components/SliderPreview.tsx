@@ -27,6 +27,7 @@ export default function SliderPreview({
   const [value2, setValue2] = useState(25)
   const [value3, setValue3] = useState(25)
   const [value4, setValue4] = useState(25)
+  const [value5, setValue5] = useState(25)
 
   // Label component
   const labelElement = (
@@ -85,6 +86,20 @@ export default function SliderPreview({
           label={labelElement}
           showInput={true}
           disabled
+        />
+        
+        {/* With label, with readonly value label (no input) */}
+        <Slider
+          value={value5}
+          onChange={setValue5}
+          min={0}
+          max={100}
+          layout={layoutVariant}
+          layer={actualLayer}
+          label={labelElement}
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}%`}
         />
       </div>
     </div>

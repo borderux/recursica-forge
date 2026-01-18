@@ -5,7 +5,10 @@ import PaletteColorControl from '../forms/PaletteColorControl'
 import TokenSlider from '../forms/TokenSlider'
 import BrandSpacerSlider from '../toolbar/utils/BrandSpacerSlider'
 import BrandBorderRadiusSlider from '../toolbar/utils/BrandBorderRadiusSlider'
+import { Slider } from '../../components/adapters/Slider'
+import { Button } from '../../components/adapters/Button'
 import { readCssVar } from '../../core/css/readCssVar'
+import { updateCssVar as updateCssVarFn } from '../../core/css/updateCssVar'
 import brandDefault from '../../vars/Brand.json'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
@@ -247,7 +250,7 @@ export default function LayerStylePanel({
   return (
     <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 34vw, 560px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-text-color)`, borderLeft: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, borderRadius: `0 var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) 0`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color, rgba(0, 0, 0, 0.1))`, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-padding)`, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ fontWeight: 700 }}>{title}</div>
+        <h3 style={{ margin: 0, fontWeight: 700 }}>{title}</h3>
         <button onClick={onClose} aria-label="Close" style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
@@ -350,38 +353,61 @@ export default function LayerStylePanel({
             />
           )
         })()}
-        {!isOnlyLayer0 && (
-          <div className="control-group">
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, opacity: 0.7 }}>Border Thickness</span>
-                <span style={{ fontSize: 12, opacity: 0.7 }}>
-                  {(() => {
-                    const v = (spec as any)?.properties?.['border-thickness']?.$value
-                    return typeof v === 'number' ? `${v}px` : '0px'
-                  })()}
-                </span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={20}
-                step={1}
-                value={(() => {
-                  const v = (spec as any)?.properties?.['border-thickness']?.$value
-                  return typeof v === 'number' ? v : 0
-                })()}
-                onChange={(e) => {
-                  const n = parseInt(e.currentTarget.value || '0', 10)
-                  updateValue(['properties','border-thickness'], String(Number.isFinite(n) ? n : 0))
-                }}
-              />
-            </label>
-          </div>
-        )}
+        {!isOnlyLayer0 && (() => {
+          const borderThicknessCssVar = selectedLevels.length > 0
+            ? `--recursica-brand-themes-${mode}-layer-layer-${selectedLevels[0]}-property-border-thickness`
+            : `--recursica-brand-themes-${mode}-layer-layer-${layerKey}-property-border-thickness`
+          
+          const currentValue = (() => {
+            const v = (spec as any)?.properties?.['border-thickness']?.$value
+            return typeof v === 'number' ? v : 0
+          })()
+          
+          // Listen for CSS variable updates and sync to theme JSON
+          React.useEffect(() => {
+            const handleCssVarUpdate = (e: CustomEvent) => {
+              if (e.detail?.cssVars?.includes(borderThicknessCssVar)) {
+                const cssValue = readCssVar(borderThicknessCssVar)
+                if (cssValue) {
+                  // Extract numeric value from CSS (e.g., "2px" -> 2)
+                  const match = cssValue.match(/^(\d+(?:\.\d+)?)px$/)
+                  if (match) {
+                    const pxValue = parseFloat(match[1])
+                    onUpdate((layerSpec: any) => {
+                      const next = JSON.parse(JSON.stringify(layerSpec || {}))
+                      if (!next.properties) next.properties = {}
+                      next.properties['border-thickness'] = { $type: 'number', $value: pxValue }
+                      return next
+                    })
+                  }
+                }
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+            return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+          }, [borderThicknessCssVar, onUpdate])
+          
+          return (
+            <Slider
+              label="Border Thickness"
+              value={currentValue}
+              onChange={(value) => {
+                const numValue = typeof value === 'number' ? value : value[0]
+                updateValue(['properties','border-thickness'], String(Number.isFinite(numValue) ? numValue : 0))
+                // Also update CSS var directly
+                updateCssVarFn(borderThicknessCssVar, `${numValue}px`, tokensJson)
+              }}
+              min={0}
+              max={20}
+              step={1}
+              showInput={true}
+              layer="layer-2"
+            />
+          )
+        })()}
         <div>
-          <button
-            type="button"
+          <Button
+            variant="outline"
             onClick={() => {
               const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
               // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
@@ -414,10 +440,10 @@ export default function LayerStylePanel({
                 }
               })
             }}
-            style={{ padding: '8px 10px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+            layer="layer-2"
           >
             Revert
-          </button>
+          </Button>
         </div>
       </div>
     </div>
