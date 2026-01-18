@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
@@ -15,6 +15,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const firstHexMatchRef = useRef<string | null>(null)
 
   // Close picker when mode changes
   useEffect(() => {
@@ -179,17 +180,26 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       const coreMatch = trimmedValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\s*\)/i)
       if (coreMatch) {
         const [, coreKey] = coreMatch
-        // Normalize: remove -tone suffix if present for matching
-        const normalizedKey = coreKey.replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
-        // Check if this matches any of our core colors
+        // For interactive colors, preserve -default and -hover suffixes
+        // Normalize: remove -tone suffix if present, but keep -default and -hover
+        let normalizedKey = coreKey
+        if (coreKey.endsWith('-tone') && !coreKey.includes('-default-tone') && !coreKey.includes('-hover-tone')) {
+          normalizedKey = coreKey.replace(/-tone$/, '')
+        }
+        // Check if this matches any of our core colors - exact match first
         for (const coreColor of coreColors) {
+          // Exact match (including -default-tone, -hover-tone)
+          if (coreKey === coreColor.key || normalizedKey === coreColor.key) {
+            return `core-${coreColor.key}`
+          }
+          // Match without -tone suffix for non-interactive colors
           const colorKey = coreColor.key.replace(/-tone$/, '')
-          if (normalizedKey === colorKey || coreKey === coreColor.key || normalizedKey === coreColor.key) {
+          if (normalizedKey === colorKey && !coreColor.key.includes('-default') && !coreColor.key.includes('-hover')) {
             return `core-${coreColor.key}`
           }
         }
         // If we found a core color reference but it doesn't match our list, still return it
-        return `core-${coreKey}`
+        return `core-${normalizedKey}`
       }
       
       // Check if this value directly contains a palette reference
@@ -214,19 +224,30 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     // Check if target directly references a core color
     // Match patterns like: var(--recursica-brand-themes-light-palettes-core-black)
     // or: var(--recursica-brand-themes-light-palettes-core-interactive-default-tone)
+    // or: var(--recursica-brand-themes-light-palettes-core-interactive-hover-tone)
     const directCoreMatch = trimmed.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\s*\)/i)
     if (directCoreMatch) {
       const [, coreKey] = directCoreMatch
-      // Normalize: remove -tone suffix if present for matching
-      const normalizedKey = coreKey.replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
-      // Check if this matches any of our core colors
+      // For interactive colors, preserve -default and -hover suffixes
+      // Normalize: remove -tone suffix if present, but keep -default and -hover
+      let normalizedKey = coreKey
+      if (coreKey.endsWith('-tone') && !coreKey.includes('-default-tone') && !coreKey.includes('-hover-tone')) {
+        normalizedKey = coreKey.replace(/-tone$/, '')
+      }
+      // Check if this matches any of our core colors - exact match first
       for (const coreColor of coreColors) {
+        // Exact match (including -default-tone, -hover-tone)
+        if (coreKey === coreColor.key || normalizedKey === coreColor.key) {
+          return `core-${coreColor.key}`
+        }
+        // Match without -tone suffix for non-interactive colors
         const colorKey = coreColor.key.replace(/-tone$/, '')
-        if (normalizedKey === colorKey || coreKey === coreColor.key || normalizedKey === coreColor.key) {
+        if (normalizedKey === colorKey && !coreColor.key.includes('-default') && !coreColor.key.includes('-hover')) {
           return `core-${coreColor.key}`
         }
       }
-      return `core-${coreKey}`
+      // If no exact match found, return the normalized key
+      return `core-${normalizedKey}`
     }
     
     // If direct match didn't work, try following the chain (for UIKit variables)
@@ -272,12 +293,18 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       const tokenMatch = trimmed.match(/var\(--recursica-tokens-color-([a-z0-9-]+)-(\d+|050|000)\)/)
       if (tokenMatch) {
         const [, family, level] = tokenMatch
-        // Resolve the token directly (not the color-mix result which includes opacity)
+        // Try to follow the chain first
         const tokenCssVar = `--recursica-tokens-color-${family}-${level}`
+        const chainResult = findPaletteInChain(tokenCssVar)
+        if (chainResult) {
+          return chainResult
+        }
+        // If chain doesn't work, try hex matching as fallback
+        // Resolve the token directly (not the color-mix result which includes opacity)
         const tokenHex = readCssVarResolved(tokenCssVar)
         if (tokenHex && /^#[0-9a-f]{6}$/i.test(tokenHex)) {
           const targetHex = tokenHex.toLowerCase().trim()
-          // First check core colors
+          // First check core colors - return immediately on first match
           for (const coreColor of coreColors) {
             const coreResolved = readCssVarResolved(coreColor.cssVar)
             if (coreResolved && /^#[0-9a-f]{6}$/i.test(coreResolved)) {
@@ -287,7 +314,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               }
             }
           }
-          // Find the first palette swatch that matches this hex
+          // Find the first palette swatch that matches this hex - return immediately on first match
           for (const pk of paletteKeys) {
             const levels = paletteLevels[pk] || []
             for (const level of levels) {
@@ -305,30 +332,39 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       }
     }
     
-    // If target is a direct token reference (not in color-mix), find the first matching palette swatch
+    // If target is a direct token reference (not in color-mix), try to follow the chain first
     const isTokenReference = trimmed.startsWith('var(--recursica-tokens-color-')
-    if (isTokenReference && targetResolvedValue.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
-      const targetHex = targetResolvedValue.resolved.toLowerCase().trim()
-      // First check core colors
-      for (const coreColor of coreColors) {
-        const coreResolved = readCssVarResolved(coreColor.cssVar)
-        if (coreResolved && /^#[0-9a-f]{6}$/i.test(coreResolved)) {
-          const coreHex = coreResolved.toLowerCase().trim()
-          if (targetHex === coreHex) {
-            return `core-${coreColor.key}`
+    if (isTokenReference) {
+      // Try to follow the chain to find a palette reference
+      const chainResult = findPaletteInChain(targetCssVar)
+      if (chainResult) {
+        return chainResult
+      }
+      // If chain doesn't work and we have a resolved hex, use hex matching as last resort
+      // BUT: Only return the FIRST match to prevent multiple selections
+      if (targetResolvedValue.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
+        const targetHex = targetResolvedValue.resolved.toLowerCase().trim()
+        // First check core colors - return immediately on first match
+        for (const coreColor of coreColors) {
+          const coreResolved = readCssVarResolved(coreColor.cssVar)
+          if (coreResolved && /^#[0-9a-f]{6}$/i.test(coreResolved)) {
+            const coreHex = coreResolved.toLowerCase().trim()
+            if (targetHex === coreHex) {
+              return `core-${coreColor.key}`
+            }
           }
         }
-      }
-      // Find the first palette swatch that matches this hex
-      for (const pk of paletteKeys) {
-        const levels = paletteLevels[pk] || []
-        for (const level of levels) {
-          const paletteCssVar = buildPaletteCssVar(pk, level)
-          const paletteResolved = readCssVarResolved(paletteCssVar)
-          if (paletteResolved && /^#[0-9a-f]{6}$/i.test(paletteResolved)) {
-            const paletteHex = paletteResolved.toLowerCase().trim()
-            if (targetHex === paletteHex) {
-              return `${pk}-${level}`
+        // Find the first palette swatch that matches this hex - return immediately on first match
+        for (const pk of paletteKeys) {
+          const levels = paletteLevels[pk] || []
+          for (const level of levels) {
+            const paletteCssVar = buildPaletteCssVar(pk, level)
+            const paletteResolved = readCssVarResolved(paletteCssVar)
+            if (paletteResolved && /^#[0-9a-f]{6}$/i.test(paletteResolved)) {
+              const paletteHex = paletteResolved.toLowerCase().trim()
+              if (targetHex === paletteHex) {
+                return `${pk}-${level}`
+              }
             }
           }
         }
@@ -368,6 +404,11 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     } catch {}
     return '3' // Default to elevation-3 if not found
   }, [themeJson, mode])
+
+  // Reset hex match ref when target changes
+  useEffect(() => {
+    firstHexMatchRef.current = null
+  }, [targetCssVar, selectedPaletteSwatch])
 
   // Check if a palette swatch is currently selected
   const isSwatchSelected = (paletteCssVar: string): boolean => {
@@ -415,32 +456,36 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     }
     
     // PRIORITY 2: Check for exact CSS variable match (only if no selectedPaletteSwatch is set)
-    const directValue = readCssVar(targetCssVar)
-    if (directValue) {
-      const trimmed = directValue.trim()
-      const expectedValue = `var(${paletteCssVar})`
-      if (trimmed === expectedValue) {
-        return true
+    if (!selectedPaletteSwatch) {
+      const directValue = readCssVar(targetCssVar)
+      if (directValue) {
+        const trimmed = directValue.trim()
+        const expectedValue = `var(${paletteCssVar})`
+        if (trimmed === expectedValue) {
+          return true
+        }
+        
+        // Check if target is a color-mix() that contains this palette var
+        const paletteVarName = paletteCssVar.replace(/^var\(/, '').replace(/\)$/, '')
+        if (trimmed.includes('color-mix') && trimmed.includes(paletteVarName)) {
+          return true
+        }
       }
       
-      // Check if target is a color-mix() that contains this palette var
-      const paletteVarName = paletteCssVar.replace(/^var\(/, '').replace(/\)$/, '')
-      if (trimmed.includes('color-mix') && trimmed.includes(paletteVarName)) {
-        return true
-      }
-    }
-    
-    // PRIORITY 3: Hex comparison (only as last resort, and only if no selectedPaletteSwatch)
-    // This should rarely be needed, but if it is, we only match the FIRST swatch that matches
-    // The selectedPaletteSwatch should have been set by now, so this is just a safety fallback
-    if (targetResolvedValue.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
-      const paletteHex = readCssVarResolved(paletteCssVar, 10)
-      if (paletteHex && /^#[0-9a-f]{6}$/i.test(paletteHex.trim())) {
-        if (targetResolvedValue.resolved.trim().toLowerCase() === paletteHex.trim().toLowerCase()) {
-          // Only return true if this is the FIRST matching swatch (the one that selectedPaletteSwatch would have identified)
-          // We can't reliably determine this here, so we should rely on selectedPaletteSwatch instead
-          // Return false to prevent multiple matches
-          return false
+      // PRIORITY 3: Hex comparison (only as last resort, and only if no selectedPaletteSwatch)
+      // Use a ref to track the first swatch that matches to prevent multiple matches
+      if (targetResolvedValue.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
+        const paletteHex = readCssVarResolved(paletteCssVar, 10)
+        if (paletteHex && /^#[0-9a-f]{6}$/i.test(paletteHex.trim())) {
+          if (targetResolvedValue.resolved.trim().toLowerCase() === paletteHex.trim().toLowerCase()) {
+            // Only match the first swatch that matches this hex
+            if (firstHexMatchRef.current === null) {
+              firstHexMatchRef.current = paletteCssVar
+              return true
+            }
+            // If we've already matched a swatch, only return true if this is the same one
+            return firstHexMatchRef.current === paletteCssVar
+          }
         }
       }
     }
@@ -448,14 +493,45 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return false
   }
 
+  // Update position on scroll and resize
+  useEffect(() => {
+    if (!anchor) return
+
+    const calculatePosition = () => {
+      const rect = anchor.getBoundingClientRect()
+      const scrollX = window.scrollX || window.pageXOffset || 0
+      const scrollY = window.scrollY || window.pageYOffset || 0
+      const top = rect.bottom + scrollY + 8
+      const left = Math.min(rect.left + scrollX, scrollX + window.innerWidth - 420)
+      setPos({ top, left })
+    }
+
+    const handleScroll = () => {
+      calculatePosition()
+    }
+    const handleResize = () => {
+      calculatePosition()
+    }
+
+    window.addEventListener('scroll', handleScroll, true)
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [anchor])
+
   // Handle dragging
   useEffect(() => {
     if (!isDragging) return
 
     const handleMouseMove = (e: MouseEvent) => {
+      const scrollX = window.scrollX || window.pageXOffset || 0
+      const scrollY = window.scrollY || window.pageYOffset || 0
       setPos({
-        top: e.clientY - dragStart.y,
-        left: e.clientX - dragStart.x,
+        top: e.clientY + scrollY - dragStart.y,
+        left: e.clientX + scrollX - dragStart.x,
       })
     }
 
@@ -477,8 +553,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     setTargetCssVar(cssVar || null)
     setTargetCssVars(cssVarsArray && cssVarsArray.length > 0 ? cssVarsArray : [])
     const rect = el.getBoundingClientRect()
-    const top = rect.bottom + 8
-    const left = Math.min(rect.left, window.innerWidth - 420)
+    const scrollX = window.scrollX || window.pageXOffset || 0
+    const scrollY = window.scrollY || window.pageYOffset || 0
+    const top = rect.bottom + scrollY + 8
+    const left = Math.min(rect.left + scrollX, scrollX + window.innerWidth - 420)
     setPos({ top, left })
   }
 
@@ -508,7 +586,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   }
 
   return createPortal(
-    <div style={{ position: 'fixed', top: pos.top, left: pos.left, width: 'auto', minWidth: overlayWidth, maxWidth: '90vw', background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: elevationBoxShadow, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, zIndex: 20000, cursor: isDragging ? 'grabbing' : 'default' }}>
+    <div style={{ position: 'absolute', top: pos.top, left: pos.left, width: 'auto', minWidth: overlayWidth, maxWidth: '90vw', background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: elevationBoxShadow, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, zIndex: 20000, cursor: isDragging ? 'grabbing' : 'default' }}>
       <div 
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
         onMouseDown={handleHeaderMouseDown}

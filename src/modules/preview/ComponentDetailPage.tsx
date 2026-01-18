@@ -347,20 +347,6 @@ export default function ComponentDetailPage() {
                 </div>
               )}
             </div>
-
-            {/* Caption - Inside preview at bottom */}
-            <div style={{
-              flexShrink: 0,
-              textAlign: 'center',
-              fontFamily: 'var(--recursica-brand-typography-caption-font-family)',
-              fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-              fontWeight: 'var(--recursica-brand-typography-caption-font-weight)',
-              letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
-              lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
-              color: `var(${layer0Base}-element-text-low-emphasis)`,
-            }}>
-              {captionText}
-            </div>
           </div>
         </div>
 

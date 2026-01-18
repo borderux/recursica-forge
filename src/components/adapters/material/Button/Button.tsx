@@ -89,11 +89,9 @@ export default function Button({
         }
       })(),
       color: `var(${buttonColorVar})`,
-      // For solid and outline, use box-shadow for outside border (doesn't affect box model)
-      // Use the reactively read border-size value to ensure updates trigger re-renders
+      // Use actual CSS border instead of box-shadow
       ...(variant === 'solid' || variant === 'outline' ? {
-        border: 'none',
-        boxShadow: `0 0 0 ${borderSizeValue || '1px'} var(${buttonBorderColorVar || buttonColorVar})`,
+        border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar})`,
       } : {}),
       // For text variant, explicitly remove border
       ...(variant === 'text' ? {
@@ -127,25 +125,18 @@ export default function Button({
         backgroundColor: `var(${buttonBgVar}) !important`,
         color: `var(${buttonColorVar}) !important`,
         ...((variant === 'solid' || variant === 'outline') && {
-          border: 'none !important',
-          boxShadow: `0 0 0 ${borderSizeValue || '1px'} var(${buttonBorderColorVar || buttonColorVar}) !important`,
+          border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar}) !important`,
         }),
         ...(variant === 'text' && {
           border: 'none !important',
         }),
       }),
-      // Apply elevation if set, combine with border box-shadow if present
+      // Apply elevation if set
+      // Note: borders are now actual CSS borders, not box-shadow, so only apply elevation shadow
       ...(() => {
         const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-        const borderShadow = (variant === 'solid' || variant === 'outline')
-          ? `0 0 0 ${borderSizeValue || '1px'} var(${buttonBorderColorVar || buttonColorVar})`
-          : ''
-        if (elevationBoxShadow && borderShadow) {
-          return { boxShadow: `${borderShadow}, ${elevationBoxShadow}` }
-        } else if (elevationBoxShadow) {
+        if (elevationBoxShadow) {
           return { boxShadow: elevationBoxShadow }
-        } else if (borderShadow) {
-          return { boxShadow: borderShadow }
         }
         return {}
       })(),

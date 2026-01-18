@@ -1787,7 +1787,7 @@
                 "text-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.typography.body.font-size}",
+                    "value": 14,
                     "unit": "px"
                   }
                 }

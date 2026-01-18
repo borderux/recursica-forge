@@ -1,7 +1,7 @@
 .button-preview {
   display: flex;
   flex-direction: column;
-  gap: var(--recursica-brand-dimensions-spacers-md);
+  gap: 0;
 }
 
 .button-preview-warning {

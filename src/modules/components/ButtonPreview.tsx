@@ -87,6 +87,7 @@ export default function ButtonPreview({
   const sizePrefix = sizeVariant === 'small' ? 'small' : 'default'
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+  
 
   // Icon SVG element
   const iconSvg = (

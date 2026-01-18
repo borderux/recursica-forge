@@ -1,5 +1,5 @@
 .floating-palette {
-  position: fixed;
+  position: absolute !important;
   min-width: 280px;
   max-width: 400px;
   background: var(--recursica-brand-themes-light-layer-layer-3-property-surface);

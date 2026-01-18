@@ -361,6 +361,74 @@ export default function PropControl({
     }
 
     if (propToRender.type === 'typography') {
+      // For Avatar text-size, use numeric slider (0-64px) instead of typography tokens
+      const propNameLower = propToRender.name.toLowerCase()
+      const isAvatarTextSize = componentName.toLowerCase() === 'avatar' && propNameLower === 'text-size'
+      
+      if (isAvatarTextSize) {
+        // Use Slider component directly for pixel values
+        const AvatarTextSizeSlider = () => {
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(0, Math.min(64, parseFloat(match[1]))) : 0
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(0, Math.min(64, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar])
+          
+          const handleChange = (newValue: number | [number, number]) => {
+            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+            const clampedValue = Math.max(0, Math.min(64, numValue))
+            setValue(clampedValue)
+            
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }
+          
+          return (
+            <div className="control-group">
+              <Slider
+                value={value}
+                onChange={handleChange}
+                min={0}
+                max={64}
+                step={1}
+                layer="layer-1"
+                layout="stacked"
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={(val) => `${val}px`}
+                minLabel="0"
+                maxLabel="64"
+                label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+              />
+            </div>
+          )
+        }
+        
+        return <AvatarTextSizeSlider key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`} />
+      }
+      
       // For typography props (like text-size), use type style selector
       return (
         <TypeStyleSelector

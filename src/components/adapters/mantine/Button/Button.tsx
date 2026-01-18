@@ -151,10 +151,10 @@ export default function Button({
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Set content max width CSS variable for CSS file override
       '--button-max-width': `var(${maxWidthVar})`,
-      // For solid and outline buttons, use box-shadow for outside border (doesn't affect box model)
-      // Set border to none and use box-shadow instead
+      // Use actual CSS border instead of box-shadow
+      // Mantine uses --button-bd CSS variable for border
       ...((variant === 'solid' || variant === 'outline') && buttonBorderColor ? {
-        '--button-bd': 'none',
+        '--button-bd': `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
       } : {}),
       // For text variant, explicitly remove border
       ...(variant === 'text' ? {
@@ -190,18 +190,12 @@ export default function Button({
       }),
       minWidth: `var(${minWidthVar})`,
       borderRadius: `var(${borderRadiusVar})`,
-      // Apply elevation if set, combine with border box-shadow if present
+      // Apply elevation if set
+      // Note: borders are now actual CSS borders, not box-shadow, so only apply elevation shadow
       ...(() => {
         const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-        const borderShadow = (variant === 'solid' || variant === 'outline') && buttonBorderColor
-          ? `0 0 0 ${borderSizeValue || '1px'} ${buttonBorderColor}`
-          : ''
-        if (elevationBoxShadow && borderShadow) {
-          return { boxShadow: `${borderShadow}, ${elevationBoxShadow}` }
-        } else if (elevationBoxShadow) {
+        if (elevationBoxShadow) {
           return { boxShadow: elevationBoxShadow }
-        } else if (borderShadow) {
-          return { boxShadow: borderShadow }
         }
         return {}
       })(),

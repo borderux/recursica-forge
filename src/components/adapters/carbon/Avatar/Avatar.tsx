@@ -41,6 +41,9 @@ export default function Avatar({
     imageError,
   })
   
+  // Reactively read border color to trigger re-renders when it changes
+  const borderColorValue = useCssVar(borderVar, '')
+  
   // Get size and other CSS variables
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
   // Get text-size from size variant (e.g., variants.sizes.default.properties.text-size)
@@ -61,7 +64,7 @@ export default function Avatar({
         // Set CSS custom properties that reference the UIKit CSS vars directly
         // These point to the UIKit vars, allowing CSS to reference them dynamically
         '--avatar-bg': `var(${bgVar})`,
-        '--avatar-border': `var(${borderVar})`,
+        '--avatar-border': borderColorValue || `var(${borderVar})`,
         '--avatar-label': `var(${labelVar})`,
         '--avatar-size': `var(${sizeVar})`,
         '--avatar-text-size': textSizeValue || `var(${textSizeVar})`,
