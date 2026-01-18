@@ -294,21 +294,22 @@ function TypographySliderInline({
   const { theme } = useVars()
   const { mode } = useThemeMode()
   
-  // Build tokens list from typography tokens, sorted by font-size
+  // Build tokens list from text-size brand dimension tokens, sorted by font-size
   const tokens = useMemo(() => {
-    const options: Array<{ name: string; label: string; fontSize: number }> = []
+    const options: Array<{ name: string; label: string; fontSize: number; sizeKey: string }> = []
     
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      const typography = root?.typography || {}
+      const dimensions = root?.dimensions || {}
+      const textSizes = dimensions['text-size'] || {}
       
-      // Collect all type styles (body, body-small, button, caption, etc.)
-      Object.keys(typography).forEach(styleName => {
-        if (styleName.startsWith('$')) return
+      // Collect all text-size tokens (2xs, xs, sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl)
+      Object.keys(textSizes).forEach(sizeKey => {
+        if (sizeKey.startsWith('$')) return
         
-        const styleValue = typography[styleName]
-        if (styleValue && typeof styleValue === 'object' && '$type' in styleValue && styleValue.$type === 'typography') {
-          const cssVar = `--recursica-brand-typography-${styleName}-font-size`
+        const sizeValue = textSizes[sizeKey]
+        if (sizeValue && typeof sizeValue === 'object' && '$type' in sizeValue) {
+          const cssVar = `--recursica-brand-dimensions-text-size-${sizeKey}`
           const cssValue = readCssVar(cssVar)
           
           if (cssValue) {
@@ -334,22 +335,26 @@ function TypographySliderInline({
               }
             }
             
-            // Format label from style name (e.g., "body-small" -> "Body Small")
-            const formattedLabel = styleName
-              .split('-')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ')
+            // Format label from size key (e.g., "2xs" -> "2Xs", "sm" -> "Sm")
+            const formattedLabel = sizeKey === '2xs' ? '2Xs' :
+                                 sizeKey === '2xl' ? '2Xl' :
+                                 sizeKey === '3xl' ? '3Xl' :
+                                 sizeKey === '4xl' ? '4Xl' :
+                                 sizeKey === '5xl' ? '5Xl' :
+                                 sizeKey === '6xl' ? '6Xl' :
+                                 sizeKey.charAt(0).toUpperCase() + sizeKey.slice(1)
             
             options.push({
               name: cssVar,
               label: formattedLabel,
               fontSize,
+              sizeKey,
             })
           }
         }
       })
     } catch (error) {
-      console.error('Error loading typography tokens:', error)
+      console.error('Error loading text-size tokens:', error)
       return []
     }
     
@@ -360,28 +365,31 @@ function TypographySliderInline({
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
   const justSetValueRef = useRef<string | null>(null)
   
-  const extractTypeStyleName = useCallback((cssVarValue: string): string | null => {
+  const extractTextSizeKey = useCallback((cssVarValue: string): string | null => {
     if (!cssVarValue) return null
     
-    const braceMatch = cssVarValue.match(/\{brand\.typography\.([^}]+)\}/)
+    // Check for text-size dimension reference: {brand.dimensions.text-size.2xs}
+    const braceMatch = cssVarValue.match(/\{brand\.dimensions\.text-size\.([^}]+)\}/)
     if (braceMatch) {
       return braceMatch[1].toLowerCase()
     }
     
-    const typoMatch = cssVarValue.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
-    if (typoMatch) {
-      return typoMatch[1].toLowerCase()
+    // Check for CSS variable: --recursica-brand-dimensions-text-size-2xs
+    const textSizeMatch = cssVarValue.match(/--recursica-brand-dimensions-text-size-([a-z0-9-]+)/)
+    if (textSizeMatch) {
+      return textSizeMatch[1].toLowerCase()
     }
     
+    // Also check resolved value
     const resolved = readCssVarResolved(targetCssVar)
     if (resolved) {
-      const resolvedBraceMatch = resolved.match(/\{brand\.typography\.([^}]+)\}/)
+      const resolvedBraceMatch = resolved.match(/\{brand\.dimensions\.text-size\.([^}]+)\}/)
       if (resolvedBraceMatch) {
         return resolvedBraceMatch[1].toLowerCase()
       }
-      const resolvedTypoMatch = resolved.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
-      if (resolvedTypoMatch) {
-        return resolvedTypoMatch[1].toLowerCase()
+      const resolvedTextSizeMatch = resolved.match(/--recursica-brand-dimensions-text-size-([a-z0-9-]+)/)
+      if (resolvedTextSizeMatch) {
+        return resolvedTextSizeMatch[1].toLowerCase()
       }
     }
     
@@ -408,12 +416,9 @@ function TypographySliderInline({
       }
     }
     
-    const styleName = extractTypeStyleName(currentValue || readCssVarResolved(targetCssVar) || '')
-    if (styleName) {
-      const matchingIndex = tokens.findIndex(t => {
-        const tokenStyleName = t.name.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)?.[1]
-        return tokenStyleName === styleName
-      })
+    const sizeKey = extractTextSizeKey(currentValue || readCssVarResolved(targetCssVar) || '')
+    if (sizeKey) {
+      const matchingIndex = tokens.findIndex(t => t.sizeKey === sizeKey)
       
       if (matchingIndex >= 0) {
         setSelectedIndex(matchingIndex)
@@ -422,7 +427,7 @@ function TypographySliderInline({
     }
     
     setSelectedIndex(0)
-  }, [targetCssVar, tokens, extractTypeStyleName])
+  }, [targetCssVar, tokens, extractTextSizeKey])
   
   useEffect(() => {
     readInitialValue()
@@ -489,8 +494,8 @@ function TypographySliderInline({
   
   const minToken = tokens[0]
   const maxToken = tokens[tokens.length - 1]
-  const minLabel = minToken?.label || 'Body'
-  const maxLabel = maxToken?.label || 'Heading'
+  const minLabel = minToken?.label || '2Xs'
+  const maxLabel = maxToken?.label || '6Xl'
   
   // Create a function that calculates the value label from the current slider value
   // This ensures it updates when the slider changes
@@ -899,73 +904,6 @@ export default function PropControlContent({
     }
 
     if (propToRender.type === 'typography') {
-      // For Avatar text-size, use numeric slider (0-64px) instead of typography tokens
-      const propNameLower = propToRender.name.toLowerCase()
-      const isAvatarTextSize = componentName.toLowerCase() === 'avatar' && propNameLower === 'text-size'
-      
-      if (isAvatarTextSize) {
-        // Use Slider component directly for pixel values
-        const AvatarTextSizeSlider = () => {
-          const [value, setValue] = useState(() => {
-            const currentValue = readCssVar(primaryVar)
-            const resolvedValue = readCssVarResolved(primaryVar)
-            const valueStr = resolvedValue || currentValue || '0px'
-            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-            return match ? Math.max(0, Math.min(64, parseFloat(match[1]))) : 0
-          })
-          
-          useEffect(() => {
-            const handleUpdate = () => {
-              const currentValue = readCssVar(primaryVar)
-              const resolvedValue = readCssVarResolved(primaryVar)
-              const valueStr = resolvedValue || currentValue || '0px'
-              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-              if (match) {
-                setValue(Math.max(0, Math.min(64, parseFloat(match[1]))))
-              }
-            }
-            window.addEventListener('cssVarsUpdated', handleUpdate)
-            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-          }, [primaryVar])
-          
-          const handleChange = (newValue: number | [number, number]) => {
-            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
-            const clampedValue = Math.max(0, Math.min(64, numValue))
-            setValue(clampedValue)
-            
-            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
-            cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
-            })
-            
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }
-          
-          return (
-            <div className="control-group">
-              <Slider
-                value={value}
-                onChange={handleChange}
-                min={0}
-                max={64}
-                step={1}
-                layer="layer-1"
-                layout="stacked"
-                showInput={false}
-                showValueLabel={true}
-                valueLabel={(val) => `${val}px`}
-                minLabel="0"
-                maxLabel="64"
-                label={<Label layer="layer-1" layout="stacked">{label}</Label>}
-              />
-            </div>
-          )
-        }
-        
-        return <AvatarTextSizeSlider key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`} />
-      }
       
       return (
         <TypographySliderInline
@@ -980,10 +918,8 @@ export default function PropControlContent({
     if (propToRender.type === 'dimension') {
       const propNameLower = propToRender.name.toLowerCase()
       
-      // Use typography slider for text-size and font-size properties that reference typography tokens
-      // BUT: For Avatar text-size, use numeric slider (0-64px) instead of typography tokens
-      const isAvatarTextSize = componentName.toLowerCase() === 'avatar' && propNameLower === 'text-size'
-      const isTypographySizeProp = (propNameLower === 'text-size' || propNameLower === 'font-size') && !isAvatarTextSize
+      // Use text-size brand tokens slider for text-size and font-size properties
+      const isTypographySizeProp = propNameLower === 'text-size' || propNameLower === 'font-size'
       
       if (isTypographySizeProp) {
         return (
@@ -995,70 +931,6 @@ export default function PropControlContent({
             layer="layer-1"
           />
         )
-      }
-      
-      // For Avatar text-size, use Slider component directly for pixel values (0-64px)
-      if (isAvatarTextSize) {
-        const AvatarTextSizeSlider = () => {
-          const [value, setValue] = useState(() => {
-            const currentValue = readCssVar(primaryVar)
-            const resolvedValue = readCssVarResolved(primaryVar)
-            const valueStr = resolvedValue || currentValue || '0px'
-            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-            return match ? Math.max(0, Math.min(64, parseFloat(match[1]))) : 0
-          })
-          
-          useEffect(() => {
-            const handleUpdate = () => {
-              const currentValue = readCssVar(primaryVar)
-              const resolvedValue = readCssVarResolved(primaryVar)
-              const valueStr = resolvedValue || currentValue || '0px'
-              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-              if (match) {
-                setValue(Math.max(0, Math.min(64, parseFloat(match[1]))))
-              }
-            }
-            window.addEventListener('cssVarsUpdated', handleUpdate)
-            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-          }, [primaryVar])
-          
-          const handleChange = (newValue: number | [number, number]) => {
-            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
-            const clampedValue = Math.max(0, Math.min(64, numValue))
-            setValue(clampedValue)
-            
-            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
-            cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
-            })
-            
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }
-          
-          return (
-            <div className="control-group">
-              <Slider
-                value={value}
-                onChange={handleChange}
-                min={0}
-                max={64}
-                step={1}
-                layer="layer-1"
-                layout="stacked"
-                showInput={false}
-                showValueLabel={true}
-                valueLabel={(val) => `${val}px`}
-                minLabel="0"
-                maxLabel="64"
-                label={<Label layer="layer-1" layout="stacked">{label}</Label>}
-              />
-            </div>
-          )
-        }
-        
-        return <AvatarTextSizeSlider key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`} />
       }
       
       // Use brand dimension slider for padding-related properties that use general tokens
@@ -1221,7 +1093,9 @@ export default function PropControlContent({
         )
       }
       
-      const additionalCssVars = propToRender.name === 'font-size' && componentName.toLowerCase() === 'button'
+      // For font-size or text-size prop on Button component, also update the theme typography CSS var
+      // Note: Button now uses text-size dimension tokens, but we keep this for backwards compatibility
+      const additionalCssVars = (propToRender.name === 'font-size' || propToRender.name === 'text-size') && componentName.toLowerCase() === 'button'
         ? ['--recursica-brand-typography-button-font-size']
         : []
       

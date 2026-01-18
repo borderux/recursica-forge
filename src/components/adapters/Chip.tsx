@@ -234,8 +234,9 @@ function getChipStyles(
   const minWidthVar = getComponentLevelCssVar('Chip', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Chip', 'max-width')
   
-  // Get text styling CSS variables - font-size is at component level (not under size)
-  const fontSizeVar = getComponentLevelCssVar('Chip', 'font-size')
+  // Get text styling CSS variables - text-size or font-size is at component level (not under size)
+  // Try text-size first (new), fallback to font-size (legacy)
+  const fontSizeVar = getComponentLevelCssVar('Chip', 'text-size') || getComponentLevelCssVar('Chip', 'font-size')
   
   // Apply color styles
   styles.backgroundColor = `var(${bgVar})`

@@ -61,8 +61,8 @@ export default function DimensionTokenSelector({
       const currentValue = readCssVar(targetCssVar)
       const currentCategory = currentValue ? getDimensionCategory(currentValue) : null
       
-      // For font-size prop, only collect font size tokens from tokens.font.size
-      if (propNameLower === 'font-size') {
+      // For font-size or text-size props, only collect font size tokens from tokens.font.size
+      if (propNameLower === 'font-size' || propNameLower === 'text-size') {
         const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
         const fontSizes = tokensRoot?.font?.size || {}
         

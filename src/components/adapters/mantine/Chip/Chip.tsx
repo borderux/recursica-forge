@@ -100,8 +100,9 @@ export default function Chip({
   const borderSizeVar = getComponentLevelCssVar('Chip', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Chip', 'border-radius')
   
-  // Get text styling CSS variables - font-size is at component level (not under size)
-  const fontSizeVar = getComponentLevelCssVar('Chip', 'font-size')
+  // Get text styling CSS variables - text-size or font-size is at component level (not under size)
+  // Try text-size first (new), fallback to font-size (legacy)
+  const fontSizeVar = getComponentLevelCssVar('Chip', 'text-size') || getComponentLevelCssVar('Chip', 'font-size')
   
   // CSS variables in stylesheets ARE reactive - they update automatically when the variable on documentElement changes
   // The border-size is set via CSS custom property in styles.root, which will update reactively

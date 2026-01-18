@@ -2161,6 +2161,10 @@
           "$type": "number",
           "$value": "{tokens.font.sizes.sm}"
         },
+        "default": {
+          "$type": "number",
+          "$value": "{tokens.font.sizes.md}"
+        },
         "md": {
           "$type": "number",
           "$value": "{tokens.font.sizes.md}"

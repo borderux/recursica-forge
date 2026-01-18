@@ -811,7 +811,7 @@
           "text-size": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.typography.body.font-size}",
+              "value": "{brand.dimensions.text-size.default}",
               "unit": "px"
             }
           },
@@ -1175,10 +1175,10 @@
               "unit": "px"
             }
           },
-          "font-size": {
+          "text-size": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.typography.button.font-size}",
+              "value": "{brand.dimensions.text-size.default}",
               "unit": "px"
             }
           },
@@ -1787,7 +1787,7 @@
                 "text-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 14,
+                    "value": "{brand.dimensions.text-size.sm}",
                     "unit": "px"
                   }
                 }
@@ -1805,7 +1805,7 @@
                 "text-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.typography.body.font-size}",
+                    "value": "{brand.dimensions.text-size.default}",
                     "unit": "px"
                   }
                 }
@@ -1823,7 +1823,7 @@
                 "text-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.typography.body.font-size}",
+                    "value": "{brand.dimensions.text-size.default}",
                     "unit": "px"
                   }
                 }
@@ -2052,7 +2052,7 @@
           "text-size": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.typography.body.font-size}",
+              "value": "{brand.dimensions.text-size.default}",
               "unit": "px"
             }
           },
