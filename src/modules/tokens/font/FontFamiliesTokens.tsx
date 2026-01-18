@@ -533,39 +533,23 @@ export default function FontFamiliesTokens() {
                 position: 'relative',
               }}
             >
-              <button
-                onClick={() => {
-                  // Options menu - for now just show delete for non-primary fonts
-                  if (index > 0) {
-                    handleDelete(index)
-                  }
-                }}
-                style={{
-                  position: 'absolute',
-                  top: 'var(--recursica-brand-dimensions-general-md)',
-                  right: 'var(--recursica-brand-dimensions-general-md)',
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  padding: 'var(--recursica-brand-dimensions-general-default)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {(() => {
-                  const EllipsisIcon = iconNameToReactComponent('ellipsis-horizontal')
-                  if (EllipsisIcon) {
-                    return <EllipsisIcon style={{ width: 20, height: 20, color: `var(${layer1Base}-element-text-color)`, opacity: 0.6 }} />
-                  }
-                  // Fallback to X icon for delete if ellipsis not available
-                  if (index > 0) {
-                    const XIcon = iconNameToReactComponent('x-mark')
-                    return XIcon ? <XIcon style={{ width: 20, height: 20, color: `var(${layer1Base}-element-text-color)`, opacity: 0.6 }} /> : null
-                  }
-                  return null
-                })()}
-              </button>
+              {index > 0 && (() => {
+                const XIcon = iconNameToReactComponent('x-mark')
+                return XIcon ? (
+                  <Button
+                    variant="text"
+                    size="small"
+                    layer="layer-1"
+                    icon={<XIcon />}
+                    onClick={() => handleDelete(index)}
+                    style={{
+                      position: 'absolute',
+                      top: 'var(--recursica-brand-dimensions-general-md)',
+                      right: 'var(--recursica-brand-dimensions-general-md)',
+                    }}
+                  />
+                ) : null
+              })()}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
                 <Chip
                   variant="unselected"
@@ -627,26 +611,23 @@ export default function FontFamiliesTokens() {
               minHeight: '326px',
             }}
           >
-            <button
-              onClick={() => setShowInspiration(false)}
-              style={{
-                position: 'absolute',
-                top: 'var(--recursica-brand-dimensions-general-md)',
-                right: 'var(--recursica-brand-dimensions-general-md)',
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                padding: 'var(--recursica-brand-dimensions-general-default)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {(() => {
-                const XIcon = iconNameToReactComponent('x-mark')
-                return XIcon ? <XIcon style={{ width: 20, height: 20, color: `var(--recursica-brand-themes-${mode}-palettes-palette-2-200-on-tone)` }} /> : null
-              })()}
-            </button>
+            {(() => {
+              const XIcon = iconNameToReactComponent('x-mark')
+              return XIcon ? (
+                <Button
+                  variant="text"
+                  size="small"
+                  layer="layer-1"
+                  icon={<XIcon />}
+                  onClick={() => setShowInspiration(false)}
+                  style={{
+                    position: 'absolute',
+                    top: 'var(--recursica-brand-dimensions-general-md)',
+                    right: 'var(--recursica-brand-dimensions-general-md)',
+                  }}
+                />
+              ) : null
+            })()}
             <div>
               <h3 style={{
                 margin: 0,
@@ -661,7 +642,7 @@ export default function FontFamiliesTokens() {
                 marginTop: 'var(--recursica-brand-dimensions-general-md)',
                 fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                 color: `var(--recursica-brand-themes-${mode}-palettes-palette-2-200-on-tone)`,
-                opacity: `var(--recursica-brand-themes-${mode}-palettes-palette-2-200-high-emphasis)`,
+                opacity: `var(--recursica-brand-themes-${mode}-text-emphasis-high)`,
               }}>
                 Browse the Google Fonts library to find the perfect typeface.
               </p>

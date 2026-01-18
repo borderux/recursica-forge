@@ -46,6 +46,7 @@ import {
   CursorClick,
   Diamond,
   DiamondsFour,
+  DotsThree,
   Download,
   Equals,
   Eye,
@@ -200,6 +201,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'asterisk': Asterisk,
   'eye': Eye,
   'circle': Circle,
+  'ellipsis-horizontal': DotsThree,
 }
 
 /**
