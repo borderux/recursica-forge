@@ -7,6 +7,7 @@ import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { buildTypographyVars } from '../../core/resolvers/typography'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -552,8 +553,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   
   if (!open) return null
   
+  const CloseIcon = iconNameToReactComponent('x-mark')
+  
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(240px, 36vw, 520px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: elevationBoxShadow, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: elevationBoxShadow, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <h2 style={{ 
           margin: 0,
@@ -564,7 +567,13 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
           color: `var(${layer0Base}-element-text-color)`,
         }}>{title}</h2>
-        <Button onClick={onClose} variant="text" layer="layer-2" aria-label="Close">&times;</Button>
+        <Button 
+          onClick={onClose} 
+          variant="text" 
+          layer="layer-2" 
+          aria-label="Close"
+          icon={CloseIcon ? <CloseIcon /> : undefined}
+        />
       </div>
       <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
         {prefix ? (

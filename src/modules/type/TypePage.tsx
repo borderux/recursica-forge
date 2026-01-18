@@ -68,26 +68,26 @@ export function TypePage() {
       margin: '0',
     }), [cssVarName, mode, layer1Base, updateKey])
     
-    // Elevation level 1 box-shadow CSS variables for selected state only
-    // Layer 1 uses elevation-0 (no elevation) by default, so no box-shadow when not selected
-    const selectedElevation = isSelected 
-      ? `var(--recursica-brand-themes-${mode}-elevations-elevation-1-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-1-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-1-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-1-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-1-shadow-color)`
-      : undefined
-    
     // Container style using layer-1 properties
-    // Layer 1 uses elevation-0 (no elevation), so boxShadow should be 'none' when not selected
-    const containerStyle = useMemo(() => ({
-      backgroundColor: `var(${layer1Base}-surface)`,
-      color: `var(${layer1Base}-element-text-color)`,
-      border: `var(${layer1Base}-border-thickness) solid var(${layer1Base}-border-color)`, 
-      borderRadius: `var(${layer1Base}-border-radius)`, 
-      padding: `var(${layer1Base}-padding)`, 
-      display: 'flex' as const, 
-      alignItems: 'center' as const, 
-      gap: 12, 
-      cursor: 'pointer' as const,
-      boxShadow: selectedElevation || 'none',
-    }), [layer1Base, mode, selectedElevation, updateKey])
+    // When selected, use core alert color for border instead of dropshadow
+    const containerStyle = useMemo(() => {
+      const borderColor = isSelected 
+        ? `var(--recursica-brand-themes-${mode}-palettes-core-alert)`
+        : `var(${layer1Base}-border-color)`
+      
+      return {
+        backgroundColor: `var(${layer1Base}-surface)`,
+        color: `var(${layer1Base}-element-text-color)`,
+        border: `var(${layer1Base}-border-thickness) solid ${borderColor}`, 
+        borderRadius: `var(${layer1Base}-border-radius)`, 
+        padding: `var(${layer1Base}-padding)`, 
+        display: 'flex' as const, 
+        alignItems: 'center' as const, 
+        gap: 12, 
+        cursor: 'pointer' as const,
+        boxShadow: 'none', // Layer 1 uses elevation-0 (no elevation)
+      }
+    }, [layer1Base, mode, isSelected, updateKey])
     
     return (
       <div

@@ -8,6 +8,7 @@ import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import uikitJson from '../../vars/UIKit.json'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 /**
  * Converts a UIKit.json path to a CSS variable name
@@ -187,6 +188,8 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
   
   const { mode } = useThemeMode()
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const CloseIcon = iconNameToReactComponent('x-mark')
+  
   return (
     <div 
       aria-hidden={!open} 
@@ -195,7 +198,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
         top: 0, 
         right: 0, 
         height: '100vh', 
-        width: 'clamp(260px, 34vw, 560px)', 
+        width: '320px', 
         background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, 
         borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, 
         boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, 
@@ -216,7 +219,13 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
           lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
           color: `var(${layer0Base}-element-text-color)`,
         }}>{componentName}</h2>
-        <Button onClick={onClose} variant="text" layer="layer-2" aria-label="Close">&times;</Button>
+        <Button 
+          onClick={onClose} 
+          variant="text" 
+          layer="layer-2" 
+          aria-label="Close"
+          icon={CloseIcon ? <CloseIcon /> : undefined}
+        />
       </div>
       
       {componentVars.length === 0 ? (

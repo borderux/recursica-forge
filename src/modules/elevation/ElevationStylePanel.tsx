@@ -5,6 +5,7 @@ import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 type SizeToken = { name: string; value: number; label: string }
 type OpacityToken = { name: string; value: number; label: string }
@@ -237,8 +238,10 @@ export default function ElevationStylePanel({
     }, 600)
   }, [levelsArr, getAlphaTokenForLevel, updateToken, setElevationAlphaToken, elevation, tokensJson])
 
+  const CloseIcon = iconNameToReactComponent('x-mark')
+  
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(260px, 28vw, 440px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <h2 style={{ 
           margin: 0,
@@ -256,7 +259,13 @@ export default function ElevationStylePanel({
             return `Elevations ${list}`
           })()}
         </h2>
-        <Button onClick={onClose} variant="text" layer="layer-2" aria-label="Close">&times;</Button>
+        <Button 
+          onClick={onClose} 
+          variant="text" 
+          layer="layer-2" 
+          aria-label="Close"
+          icon={CloseIcon ? <CloseIcon /> : undefined}
+        />
       </div>
       <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
         <Slider
@@ -401,13 +410,13 @@ export default function ElevationStylePanel({
           />
         </div>
         <div className="control-group">
-          <button
-            type="button"
+          <Button
             onClick={() => revertSelected(selectedLevels)}
-            style={{ padding: '8px 10px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
+            variant="outline"
+            layer="layer-2"
           >
             Revert
-          </button>
+          </Button>
         </div>
       </div>
     </div>
