@@ -228,7 +228,7 @@ export default function OpacityTokens() {
                     disabled={isDisabled}
                     layer="layer-0"
                     layout="stacked"
-                    showInput={false}
+                    showInput={true}
                     showValueLabel={true}
                     valueLabel={(val) => `${val}%`}
                   />

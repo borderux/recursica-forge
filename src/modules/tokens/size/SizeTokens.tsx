@@ -383,7 +383,7 @@ export default function SizeTokens() {
                   disabled={disabled}
                   layer="layer-0"
                   layout="stacked"
-                  showInput={false}
+                  showInput={true}
                   showValueLabel={true}
                   valueLabel={(val) => `${val}px`}
                 />
