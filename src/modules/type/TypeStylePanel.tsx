@@ -4,6 +4,7 @@ import { updateCssVar as updateCssVarUtil, removeCssVar } from '../../core/css/u
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
+import { Button } from '../../components/adapters/Button'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { readChoices, writeChoices } from './TypeControls'
 
@@ -35,7 +36,7 @@ function extractTokenFromCssVar(cssValue: string): string | null {
 }
 
 export default function TypeStylePanel({ open, selectedPrefixes, title, onClose }: { open: boolean; selectedPrefixes: string[]; title: string; onClose: () => void }) {
-  const { tokens } = useVars()
+  const { tokens, theme } = useVars()
   const [updateKey, setUpdateKey] = useState(0)
 
   // Listen for reset events to refresh font options
@@ -308,9 +309,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }
 
   // Update choices for selected prefixes (this triggers typography system to rebuild CSS vars)
-  const updateCssVarValue = (property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height', tokenValue: string) => {
-    console.log('[TypeStylePanel] updateCssVarValue called:', { property, tokenValue, selectedPrefixes })
-    
+  const updateCssVarValue = useCallback((property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height', tokenValue: string) => {
     const choices = readChoices()
     const updatedChoices = { ...choices }
     
@@ -343,34 +342,28 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       }
     })
     
-    console.log('[TypeStylePanel] Writing choices:', updatedChoices)
-    
     // Write choices to localStorage and trigger recompute
+    // writeChoices dispatches typeChoicesChanged which triggers recomputeAndApplyAll
     writeChoices(updatedChoices)
-    
-    // Verify the event was dispatched
-    console.log('[TypeStylePanel] typeChoicesChanged event should have been dispatched')
     
     // Load fonts asynchronously if family changed
     if (property === 'font-family' && tokenValue && tokenValue.trim()) {
       import('../../modules/type/fontUtils').then(({ ensureFontLoaded }) => {
-        ensureFontLoaded(tokenValue.trim()).catch((error) => {
-          console.warn(`Failed to load font ${tokenValue}:`, error)
-        })
+        ensureFontLoaded(tokenValue.trim()).catch(() => {})
       }).catch(() => {})
     }
     
-    // Force immediate UI update
-    setUpdateKey((k) => k + 1)
-    
-    // Also refresh after recompute completes (typeChoicesChanged triggers recomputeAndApplyAll)
-    // Use a longer delay to ensure CSS vars are rebuilt
-    setTimeout(() => {
-      setUpdateKey((k) => k + 1)
-    }, 100)
-  }
+    // Force UI update after recompute completes
+    // The recompute happens asynchronously, so we need to wait for cssVarsUpdated event
+    // Use requestAnimationFrame to ensure DOM updates are complete before reading CSS vars
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        setUpdateKey((k) => k + 1)
+      }, 200)
+    })
+  }, [selectedPrefixes])
 
-  const revert = () => {
+  const revert = useCallback(() => {
     // Remove choices from localStorage to revert to defaults
     const choices = readChoices()
     const updatedChoices = { ...choices }
@@ -382,11 +375,16 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     })
     
     // Write updated choices (removing selected prefixes)
+    // writeChoices dispatches typeChoicesChanged which triggers recomputeAndApplyAll
     writeChoices(updatedChoices)
     
-    // Force re-render to update slider positions
-    setUpdateKey((k) => k + 1)
-  }
+    // Force UI update after recompute completes
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        setUpdateKey((k) => k + 1)
+      }, 200)
+    })
+  }, [selectedPrefixes])
 
   // Calculate current values at top level (hooks must be unconditional)
   const prefix = selectedPrefixes.length > 0 ? selectedPrefixes[0] : null
@@ -496,42 +494,79 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
   const { mode } = useThemeMode()
   
-  // Debug: Log when panel state changes
-  useEffect(() => {
-    if (open && prefix) {
-      console.log('[TypeStylePanel] Panel opened for prefix:', prefix)
-      console.log('[TypeStylePanel] Options counts:', {
-        size: sizeOptions.length,
-        weight: weightOptions.length,
-        spacing: spacingOptions.length,
-        lineHeight: lineHeightOptions.length,
-        family: familyOptions.length
-      })
-      console.log('[TypeStylePanel] Current values:', {
-        size: sizeCurrentToken,
-        weight: weightCurrentToken,
-        spacing: spacingCurrentToken,
-        lineHeight: lineHeightCurrentToken,
-        family: currentFamily,
-        choices: initializeFromChoices
-      })
-      console.log('[TypeStylePanel] Tokens structure:', {
-        hasTokens: !!tokens,
-        hasFont: !!(tokens as any)?.tokens?.font,
-        fontKeys: tokens ? Object.keys((tokens as any)?.tokens?.font || {}) : []
-      })
+  // Calculate elevation box-shadow for layer-2
+  const elevationBoxShadow = useMemo(() => {
+    try {
+      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const themes = root?.themes || root
+      
+      // Read layer-2 elevation property
+      const layerSpec: any = themes?.[mode]?.layers?.[`layer-2`] || themes?.[mode]?.layer?.[`layer-2`] || root?.[mode]?.layers?.[`layer-2`] || root?.[mode]?.layer?.[`layer-2`] || {}
+      const v: any = layerSpec?.properties?.elevation?.$value
+      let elevationLevel = '2' // Default to layer number
+      
+      if (typeof v === 'string') {
+        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
+        const m = v.match(/elevations?\.(elevation-(\d+))/i)
+        if (m) elevationLevel = m[2]
+      }
+      
+      // Build box-shadow from elevation CSS variables
+      return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-colors-gray-1000))`
+    } catch {
+      // Fallback to elevation-2 if there's an error
+      return `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color, var(--recursica-tokens-colors-gray-1000))`
     }
-  }, [open, prefix, sizeCurrentToken, weightCurrentToken, spacingCurrentToken, lineHeightCurrentToken, currentFamily, initializeFromChoices, sizeOptions.length, weightOptions.length, spacingOptions.length, lineHeightOptions.length, familyOptions.length, tokens])
+  }, [theme, mode])
+  
+  // Pre-compute sorted arrays and callbacks at top level (before early return)
+  // This ensures hooks are always called in the same order
+  const sortedSizeTokens = useMemo(() => {
+    return [...sizeOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+  }, [sizeOptions])
+  
+  const sortedWeightTokens = useMemo(() => {
+    return [...weightOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+  }, [weightOptions])
+  
+  const sortedSpacingTokens = useMemo(() => {
+    return [...spacingOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+  }, [spacingOptions])
+  
+  const sortedLineHeightTokens = useMemo(() => {
+    return [...lineHeightOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+  }, [lineHeightOptions])
+  
+  const getSizeValueLabel = useCallback((value: number) => {
+    const token = sortedSizeTokens[Math.round(value)]
+    return token?.label || token?.short || String(value)
+  }, [sortedSizeTokens])
+  
+  const getWeightValueLabel = useCallback((value: number) => {
+    const token = sortedWeightTokens[Math.round(value)]
+    return token?.label || token?.short || String(value)
+  }, [sortedWeightTokens])
+  
+  const getSpacingValueLabel = useCallback((value: number) => {
+    const token = sortedSpacingTokens[Math.round(value)]
+    return token?.label || token?.short || String(value)
+  }, [sortedSpacingTokens])
+  
+  const getLineHeightValueLabel = useCallback((value: number) => {
+    const token = sortedLineHeightTokens[Math.round(value)]
+    return token?.label || token?.short || String(value)
+  }, [sortedLineHeightTokens])
+  
   
   if (!open) return null
   
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(240px, 36vw, 520px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(240px, 36vw, 520px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: elevationBoxShadow, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={{ fontWeight: 700 }}>{title}</div>
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>
-      <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
         {prefix ? (
           <>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -540,7 +575,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                   value={currentFamily || ''} 
                   onChange={(e) => { 
                     const v = (e.target as HTMLSelectElement).value
-                    console.log('[TypeStylePanel] Font family changed:', v)
                     updateCssVarValue('font-family', v)
                   }}
                   style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)` }}
@@ -554,149 +588,117 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 </select>
               </label>
               
-              {sizeOptions.length > 0 ? (() => {
-                const sortedTokens = [...sizeOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
-                const currentIdx = sortedTokens.findIndex(t => t.short === sizeCurrentToken) || 0
-                const getValueLabel = useCallback((value: number) => {
-                  const token = sortedTokens[Math.round(value)]
-                  return token?.label || token?.short || String(value)
-                }, [sortedTokens])
-                return (
-                  <Slider
-                    value={currentIdx}
-                    onChange={(val) => {
-                      const idx = typeof val === 'number' ? val : val[0]
-                      const token = sortedTokens[Math.round(idx)]
-                      if (token) {
-                        console.log('[TypeStylePanel] Font size changed:', token.short)
-                        updateCssVarValue('font-size', token.short)
-                      }
-                    }}
-                    min={0}
-                    max={sortedTokens.length - 1}
-                    step={1}
-                    layer="layer-3"
-                    layout="stacked"
-                    showInput={false}
-                    showValueLabel={true}
-                    valueLabel={getValueLabel}
-                    minLabel={sortedTokens[0]?.label || 'Xs'}
-                    maxLabel={sortedTokens[sortedTokens.length - 1]?.label || 'Xl'}
-                    label={<Label layer="layer-3" layout="stacked">Font Size</Label>}
-                  />
-                )
-              })() : (
+              {sizeOptions.length > 0 ? (
+                <Slider
+                  value={sortedSizeTokens.findIndex(t => t.short === sizeCurrentToken) || 0}
+                  onChange={(val) => {
+                    const idx = typeof val === 'number' ? val : val[0]
+                    const token = sortedSizeTokens[Math.round(idx)]
+                    if (token) {
+                      updateCssVarValue('font-size', token.short)
+                    }
+                  }}
+                  min={0}
+                  max={sortedSizeTokens.length - 1}
+                  step={1}
+                  layer="layer-3"
+                  layout="stacked"
+                  showInput={false}
+                  showValueLabel={true}
+                  valueLabel={getSizeValueLabel}
+                  tooltipText={getSizeValueLabel}
+                  minLabel={sortedSizeTokens[0]?.label || 'Xs'}
+                  maxLabel={sortedSizeTokens[sortedSizeTokens.length - 1]?.label || 'Xl'}
+                  label={<Label layer="layer-3" layout="stacked">Font Size</Label>}
+                />
+              ) : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
                   No font size tokens available
                 </div>
               )}
               
-              {weightOptions.length > 0 ? (() => {
-                const sortedTokens = [...weightOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
-                const currentIdx = sortedTokens.findIndex(t => t.short === weightCurrentToken) || 0
-                const getValueLabel = useCallback((value: number) => {
-                  const token = sortedTokens[Math.round(value)]
-                  return token?.label || token?.short || String(value)
-                }, [sortedTokens])
-                return (
-                  <Slider
-                    value={currentIdx}
-                    onChange={(val) => {
-                      const idx = typeof val === 'number' ? val : val[0]
-                      const token = sortedTokens[Math.round(idx)]
-                      if (token) {
-                        console.log('[TypeStylePanel] Font weight changed:', token.short)
-                        updateCssVarValue('font-weight', token.short)
-                      }
-                    }}
-                    min={0}
-                    max={sortedTokens.length - 1}
-                    step={1}
-                    layer="layer-3"
-                    layout="stacked"
-                    showInput={false}
-                    showValueLabel={true}
-                    valueLabel={getValueLabel}
-                    minLabel={sortedTokens[0]?.label || 'Thin'}
-                    maxLabel={sortedTokens[sortedTokens.length - 1]?.label || 'Black'}
-                    label={<Label layer="layer-3" layout="stacked">Font Weight</Label>}
-                  />
-                )
-              })() : (
+              {weightOptions.length > 0 ? (
+                <Slider
+                  value={sortedWeightTokens.findIndex(t => t.short === weightCurrentToken) || 0}
+                  onChange={(val) => {
+                    const idx = typeof val === 'number' ? val : val[0]
+                    const token = sortedWeightTokens[Math.round(idx)]
+                    if (token) {
+                      updateCssVarValue('font-weight', token.short)
+                    }
+                  }}
+                  min={0}
+                  max={sortedWeightTokens.length - 1}
+                  step={1}
+                  layer="layer-3"
+                  layout="stacked"
+                  showInput={false}
+                  showValueLabel={true}
+                  valueLabel={getWeightValueLabel}
+                  tooltipText={getWeightValueLabel}
+                  minLabel={sortedWeightTokens[0]?.label || 'Thin'}
+                  maxLabel={sortedWeightTokens[sortedWeightTokens.length - 1]?.label || 'Black'}
+                  label={<Label layer="layer-3" layout="stacked">Font Weight</Label>}
+                />
+              ) : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
                   No font weight tokens available
                 </div>
               )}
               
-              {spacingOptions.length > 0 ? (() => {
-                const sortedTokens = [...spacingOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
-                const currentIdx = sortedTokens.findIndex(t => t.short === spacingCurrentToken) || 0
-                const getValueLabel = useCallback((value: number) => {
-                  const token = sortedTokens[Math.round(value)]
-                  return token?.label || token?.short || String(value)
-                }, [sortedTokens])
-                return (
-                  <Slider
-                    value={currentIdx}
-                    onChange={(val) => {
-                      const idx = typeof val === 'number' ? val : val[0]
-                      const token = sortedTokens[Math.round(idx)]
-                      if (token) {
-                        console.log('[TypeStylePanel] Letter spacing changed:', token.short)
-                        updateCssVarValue('font-letter-spacing', token.short)
-                      }
-                    }}
-                    min={0}
-                    max={sortedTokens.length - 1}
-                    step={1}
-                    layer="layer-3"
-                    layout="stacked"
-                    showInput={false}
-                    showValueLabel={true}
-                    valueLabel={getValueLabel}
-                    minLabel={sortedTokens[0]?.label || 'Tightest'}
-                    maxLabel={sortedTokens[sortedTokens.length - 1]?.label || 'Widest'}
-                    label={<Label layer="layer-3" layout="stacked">Letter Spacing</Label>}
-                  />
-                )
-              })() : (
+              {spacingOptions.length > 0 ? (
+                <Slider
+                  value={sortedSpacingTokens.findIndex(t => t.short === spacingCurrentToken) || 0}
+                  onChange={(val) => {
+                    const idx = typeof val === 'number' ? val : val[0]
+                    const token = sortedSpacingTokens[Math.round(idx)]
+                    if (token) {
+                      updateCssVarValue('font-letter-spacing', token.short)
+                    }
+                  }}
+                  min={0}
+                  max={sortedSpacingTokens.length - 1}
+                  step={1}
+                  layer="layer-3"
+                  layout="stacked"
+                  showInput={false}
+                  showValueLabel={true}
+                  valueLabel={getSpacingValueLabel}
+                  tooltipText={getSpacingValueLabel}
+                  minLabel={sortedSpacingTokens[0]?.label || 'Tightest'}
+                  maxLabel={sortedSpacingTokens[sortedSpacingTokens.length - 1]?.label || 'Widest'}
+                  label={<Label layer="layer-3" layout="stacked">Letter Spacing</Label>}
+                />
+              ) : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
                   No letter spacing tokens available
                 </div>
               )}
               
-              {lineHeightOptions.length > 0 ? (() => {
-                const sortedTokens = [...lineHeightOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
-                const currentIdx = sortedTokens.findIndex(t => t.short === lineHeightCurrentToken) || 0
-                const getValueLabel = useCallback((value: number) => {
-                  const token = sortedTokens[Math.round(value)]
-                  return token?.label || token?.short || String(value)
-                }, [sortedTokens])
-                return (
-                  <Slider
-                    value={currentIdx}
-                    onChange={(val) => {
-                      const idx = typeof val === 'number' ? val : val[0]
-                      const token = sortedTokens[Math.round(idx)]
-                      if (token) {
-                        console.log('[TypeStylePanel] Line height changed:', token.short)
-                        updateCssVarValue('line-height', token.short)
-                      }
-                    }}
-                    min={0}
-                    max={sortedTokens.length - 1}
-                    step={1}
-                    layer="layer-3"
-                    layout="stacked"
-                    showInput={false}
-                    showValueLabel={true}
-                    valueLabel={getValueLabel}
-                    minLabel={sortedTokens[0]?.label || 'Shortest'}
-                    maxLabel={sortedTokens[sortedTokens.length - 1]?.label || 'Tallest'}
-                    label={<Label layer="layer-3" layout="stacked">Line Height</Label>}
-                  />
-                )
-              })() : (
+              {lineHeightOptions.length > 0 ? (
+                <Slider
+                  value={sortedLineHeightTokens.findIndex(t => t.short === lineHeightCurrentToken) || 0}
+                  onChange={(val) => {
+                    const idx = typeof val === 'number' ? val : val[0]
+                    const token = sortedLineHeightTokens[Math.round(idx)]
+                    if (token) {
+                      updateCssVarValue('line-height', token.short)
+                    }
+                  }}
+                  min={0}
+                  max={sortedLineHeightTokens.length - 1}
+                  step={1}
+                  layer="layer-3"
+                  layout="stacked"
+                  showInput={false}
+                  showValueLabel={true}
+                  valueLabel={getLineHeightValueLabel}
+                  tooltipText={getLineHeightValueLabel}
+                  minLabel={sortedLineHeightTokens[0]?.label || 'Shortest'}
+                  maxLabel={sortedLineHeightTokens[sortedLineHeightTokens.length - 1]?.label || 'Tallest'}
+                  label={<Label layer="layer-3" layout="stacked">Line Height</Label>}
+                />
+              ) : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
                   No line height tokens available
                 </div>
@@ -708,7 +710,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           </div>
         )}
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <button onClick={revert}>Revert</button>
+          <Button onClick={revert} variant="outline" layer="layer-2">Revert</Button>
         </div>
       </div>
     </div>

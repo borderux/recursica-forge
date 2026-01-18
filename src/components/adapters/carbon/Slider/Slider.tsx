@@ -97,6 +97,21 @@ export default function Slider({
     ? String(displayValue).trim() 
     : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '—')
 
+  // Calculate tooltip text
+  let computedTooltipText: string | undefined
+  try {
+    if (tooltipText) {
+      if (typeof tooltipText === 'function') {
+        computedTooltipText = tooltipText(singleValue)
+      } else {
+        computedTooltipText = tooltipText
+      }
+    }
+  } catch (error) {
+    console.warn('Error calculating tooltip text:', error)
+    computedTooltipText = undefined
+  }
+
   // Get label typography styles (not using Label component, just the typography)
   const labelFontVar = getComponentLevelCssVar('Label', 'label-font')
   const labelFontValue = readCssVar(labelFontVar)
@@ -123,7 +138,7 @@ export default function Slider({
       </span>
       <div
         className="recursica-carbon-slider-wrapper"
-        title={tooltipText}
+        title={computedTooltipText}
         style={{
           flex: 1,
           '--recursica-ui-kit-components-slider-track-color': trackColor,
@@ -143,7 +158,7 @@ export default function Slider({
           max={max}
           step={step}
           disabled={disabled}
-          ariaLabel={tooltipText}
+          ariaLabel={computedTooltipText}
           className={className}
           style={style}
           {...carbon}

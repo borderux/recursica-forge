@@ -127,7 +127,7 @@ export default function Slider({
         max={max}
         step={step}
         disabled={disabled}
-        label={tooltipText ? (val) => tooltipText : undefined}
+        label={tooltipText ? (val: number) => typeof tooltipText === 'function' ? tooltipText(val) : tooltipText : undefined}
         className={className}
         style={{
           flex: 1,

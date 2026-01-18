@@ -287,8 +287,21 @@ class VarsStore {
     // React to type choice changes and palette changes (centralized)
     // Debounce palette var changes to prevent infinite loops
     const onTypeChoices = () => {
+      // Always trigger recompute, even if one is in progress
+      // The recompute will read the latest choices from localStorage
+      // Use a small delay to ensure any in-progress recompute completes first
       if (this.isRecomputing) {
-        return // Prevent recursive calls
+        // Wait for current recompute to finish, then recompute again with new choices
+        const retry = () => {
+          if (!this.isRecomputing) {
+            this.bumpVersion()
+            this.recomputeAndApplyAll()
+          } else {
+            setTimeout(retry, 50)
+          }
+        }
+        setTimeout(retry, 50)
+        return
       }
       this.bumpVersion()
       this.recomputeAndApplyAll()
@@ -1222,11 +1235,12 @@ class VarsStore {
     // Suppress cssVarsUpdated events during bulk update to prevent infinite loops
     suppressCssVarEvents(true)
     
+    // Build complete CSS variable map from current state
+    // Note: Tokens are now the single source of truth - no overrides needed
+    const currentMode = this.getCurrentMode()
+    const allVars: Record<string, string> = {}
+    
     try {
-      // Build complete CSS variable map from current state
-      // Note: Tokens are now the single source of truth - no overrides needed
-      const currentMode = this.getCurrentMode()
-      const allVars: Record<string, string> = {}
     
     // Tokens: expose size tokens as CSS vars under --recursica-tokens-sizes-<key>
     try {
@@ -2081,6 +2095,17 @@ class VarsStore {
       suppressCssVarEvents(false)
       // Always reset the flag, even if an error occurred
       this.isRecomputing = false
+      // Explicitly dispatch cssVarsUpdated event to ensure components are notified
+      // Use requestAnimationFrame to ensure DOM updates are complete
+      requestAnimationFrame(() => {
+        try {
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: Object.keys(allVars) }
+          }))
+        } catch (e) {
+          // Ignore errors if window is not available (SSR)
+        }
+      })
     }
   }
 

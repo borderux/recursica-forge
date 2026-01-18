@@ -252,7 +252,7 @@
             "properties": {
               "surface": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.tone}"
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "padding": {
                 "$type": "number",
@@ -1243,7 +1243,7 @@
             "properties": {
               "surface": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.tone}"
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "padding": {
                 "$type": "number",

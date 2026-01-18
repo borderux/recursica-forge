@@ -249,7 +249,7 @@ export default function ElevationStylePanel({
         </div>
         <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
       </div>
-      <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
         <Slider
           value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0) : 0}
           onChange={(val) => {

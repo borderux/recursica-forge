@@ -748,7 +748,7 @@ export default function LayerStylePanel({
         <h3 style={{ margin: 0, fontWeight: 700 }}>{title}</h3>
         <button onClick={onClose} aria-label="Close" style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, background: 'transparent', cursor: 'pointer', borderRadius: 6, padding: '4px 8px' }}>&times;</button>
       </div>
-      <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
         {/* Palette color pickers: Surface (all layers, including 0) and Border Color (non-0 layers) */}
         {renderPaletteButton('surface', 'Surface Color')}
         {!isOnlyLayer0 && renderPaletteButton('border-color', 'Border Color')}

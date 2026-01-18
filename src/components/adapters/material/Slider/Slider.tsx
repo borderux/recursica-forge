@@ -132,7 +132,7 @@ export default function Slider({
         step={step}
         disabled={disabled}
         valueLabelDisplay="auto"
-        valueLabelFormat={tooltipText ? () => tooltipText : undefined}
+        valueLabelFormat={tooltipText ? (val: number) => typeof tooltipText === 'function' ? tooltipText(val) : tooltipText : undefined}
         className={className}
         sx={{
           color: trackActiveColor,

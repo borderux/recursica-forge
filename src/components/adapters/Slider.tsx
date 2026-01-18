@@ -28,7 +28,7 @@ export type SliderProps = {
   showInput?: boolean
   showValueLabel?: boolean
   valueLabel?: string | ((value: number) => string)
-  tooltipText?: string
+  tooltipText?: string | ((value: number) => string)
   minLabel?: string
   maxLabel?: string
   className?: string
@@ -60,6 +60,24 @@ export function Slider({
 }: SliderProps) {
   const Component = useComponent('Slider')
   const { mode } = useThemeMode()
+  
+  const isRange = Array.isArray(value)
+  const singleValue = isRange ? value[0] : value
+  
+  // Calculate tooltip text - call function if provided, otherwise use string directly
+  let computedTooltipText: string | undefined
+  try {
+    if (tooltipText) {
+      if (typeof tooltipText === 'function') {
+        computedTooltipText = tooltipText(singleValue)
+      } else {
+        computedTooltipText = tooltipText
+      }
+    }
+  } catch (error) {
+    console.warn('Error calculating tooltip text:', error)
+    computedTooltipText = undefined
+  }
   
   // Get label typography styles (not using Label component, just the typography)
   // Calculate these unconditionally to avoid hook order issues
@@ -179,7 +197,7 @@ export function Slider({
             value={singleValue}
             onChange={handleChange}
             disabled={disabled}
-            title={tooltipText}
+            title={computedTooltipText}
             style={{
               position: 'relative',
               width: '100%',
@@ -352,8 +370,6 @@ export function Slider({
     )
   }
   
-  const isRange = Array.isArray(value)
-  const singleValue = isRange ? value[0] : value
   // Calculate display value - call function if provided, otherwise use value directly
   let displayValue: string | number | undefined
   try {
@@ -398,7 +414,7 @@ export function Slider({
         showInput={showInput}
         showValueLabel={false}
         valueLabel={valueLabel}
-        tooltipText={tooltipText}
+        tooltipText={computedTooltipText}
         minLabel={minLabel}
         maxLabel={maxLabel}
         className={className}
