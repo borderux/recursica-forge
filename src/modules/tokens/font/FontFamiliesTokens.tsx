@@ -181,7 +181,15 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
       existingFonts={getExistingFonts()}
       onAccept={async (fontName) => {
         try {
+          // Ensure font is loaded and cached with proper format
           await ensureFontLoaded(fontName)
+          
+          // Wait a bit for font cache to be populated
+          await new Promise(resolve => setTimeout(resolve, 300))
+          
+          // Import getActualFontFamilyName to ensure cache is populated
+          const { getActualFontFamilyName } = await import('../../type/fontUtils')
+          await getActualFontFamilyName(fontName)
           
           const all = readOverrides()
           const existingKeys = Object.keys(all).filter(k => k.startsWith('font/typeface/'))
@@ -197,16 +205,20 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           
           const sequentialName = ORDER[nextIndex] || `custom-${nextIndex + 1}`
           const name = `font/typeface/${sequentialName}`
-          const updated = { ...all, [name]: fontName }
+          // Strip any quotes from font name before storing (should be clean name like "Rubik Storm")
+          const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '')
+          const updated = { ...all, [name]: cleanFontName }
           writeOverrides(updated)
-          updateToken(name, fontName)
+          updateToken(name, cleanFontName)
           
           setTimeout(() => {
             try {
               const store = getVarsStore()
               store.setTokens(store.getState().tokens)
+              // Trigger recompute to update CSS variables with cached font name
+              store.recomputeAndApplyAll()
             } catch {}
-          }, 0)
+          }, 100)
           
           try {
             window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { name, value: fontName, all: updated } }))
@@ -231,6 +243,8 @@ export default function FontFamiliesTokens() {
   const [showInspiration, setShowInspiration] = useState(true)
   const [selectedWeights, setSelectedWeights] = useState<Record<string, string>>({})
   const [availableWeights, setAvailableWeights] = useState<Record<string, string[]>>({})
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
   const buildRows = (): FamilyRow[] => {
     const overrides = readOverrides()
@@ -323,21 +337,68 @@ export default function FontFamiliesTokens() {
         if (reset) {
           const allOverrides = readOverrides()
           const updated: Record<string, any> = {}
+          // Keep all non-font/typeface overrides
           Object.keys(allOverrides).forEach((k) => {
             if (!k.startsWith('font/typeface/')) {
               updated[k] = allOverrides[k]
             }
           })
+          
           try {
             const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
             // Check for both plural (typefaces) and singular (typeface) for backwards compatibility
             const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
+            
+            // Collect all typeface entries from JSON
+            const typefaceEntries: Array<{ key: string; value: string }> = []
             Object.keys(typefaces).filter((k) => !k.startsWith('$')).forEach((k) => {
               const val = typefaces[k]?.$value
-              updated[`font/typeface/${k}`] = typeof val === 'string' && val ? val : ''
+              const value = typeof val === 'string' && val ? val : ''
+              typefaceEntries.push({ key: k, value })
+            })
+            
+            // Sort by original ORDER to restore sequence
+            typefaceEntries.sort((a, b) => {
+              const aIndex = ORDER.indexOf(a.key)
+              const bIndex = ORDER.indexOf(b.key)
+              if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
+              if (aIndex !== -1) return -1
+              if (bIndex !== -1) return 1
+              return a.key.localeCompare(b.key)
+            })
+            
+            // Reassign to ORDER sequence (primary, secondary, tertiary, etc.)
+            // This ensures the sequence is restored even if user reordered them
+            typefaceEntries.forEach((entry, index) => {
+              const sequentialName = ORDER[index] || `custom-${index + 1}`
+              const newName = `font/typeface/${sequentialName}`
+              
+              // Remove old CSS variables if key changed
+              if (entry.key !== sequentialName) {
+                removeCssVar(`--tokens-font-typeface-${entry.key}`)
+                removeCssVar(`--recursica-tokens-font-typefaces-${entry.key}`)
+              }
+              
+              updated[newName] = entry.value
             })
           } catch {}
+          
           writeOverrides(updated)
+          
+          // Update tokens in store
+          setTimeout(() => {
+            try {
+              const store = getVarsStore()
+              // Update each token with its new name
+              Object.keys(updated).forEach((name) => {
+                if (name.startsWith('font/typeface/')) {
+                  updateToken(name, updated[name])
+                }
+              })
+              store.setTokens(store.getState().tokens)
+            } catch {}
+          }, 0)
+          
           setRows(buildRows())
         }
       }
@@ -443,6 +504,111 @@ export default function FontFamiliesTokens() {
     updateWeights()
   }, [rows])
 
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index)
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index)
+    }
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOverIndex(null)
+  }
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null)
+      return
+    }
+
+    const all = readOverrides()
+    const updated: Record<string, any> = {}
+    
+    // Keep all non-font/typeface overrides
+    Object.keys(all).forEach((k) => {
+      if (!k.startsWith('font/typeface/')) {
+        updated[k] = all[k]
+      }
+    })
+    
+    // Create new rows array with reordered items
+    const newRows = [...rows]
+    const [draggedRow] = newRows.splice(draggedIndex, 1)
+    newRows.splice(dropIndex, 0, draggedRow)
+    
+    // Reassign ORDER names based on new positions
+    const reorderedRows = newRows.map((row, newIndex) => {
+      const sequentialName = ORDER[newIndex] || `custom-${newIndex + 1}`
+      const newName = `font/typeface/${sequentialName}`
+      
+      // If the name changed, remove old CSS variables
+      if (row.name !== newName) {
+        const oldKey = row.name.replace('font/typeface/', '')
+        removeCssVar(`--tokens-font-typeface-${oldKey}`)
+        removeCssVar(`--recursica-tokens-font-typefaces-${oldKey}`)
+      }
+      
+      // Update override with new name
+      updated[newName] = row.value
+      
+      return {
+        name: newName,
+        value: row.value,
+        position: newIndex
+      }
+    })
+    
+    writeOverrides(updated)
+    setRows(reorderedRows)
+    setDraggedIndex(null)
+    
+    // Update tokens in store and trigger typography recompute
+    setTimeout(() => {
+      try {
+        const store = getVarsStore()
+        // Update each token with its new name
+        reorderedRows.forEach((row) => {
+          updateToken(row.name, row.value)
+        })
+        store.setTokens(store.getState().tokens)
+        
+        // Clear typography font-family CSS variables so they get regenerated with new token assignments
+        // This ensures typography updates when token sequence changes
+        const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'button', 'caption', 'overline']
+        typographyPrefixes.forEach((prefix) => {
+          const cssVar = `--recursica-brand-typography-${prefix}-font-family`
+          if (typeof document !== 'undefined') {
+            document.documentElement.style.removeProperty(cssVar)
+          }
+        })
+        
+        // Trigger recompute of all CSS variables (including typography) to pick up new token assignments
+        store.recomputeAndApplyAll()
+      } catch {}
+    }, 0)
+    
+    try {
+      window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, skipRebuild: true } }))
+      // Also dispatch cssVarsUpdated to notify components that typography may have changed
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: [] } }))
+    } catch {}
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
   const handleDelete = (index: number) => {
     if (index === 0) return
     if (rows.length <= 1) return
@@ -523,14 +689,39 @@ export default function FontFamiliesTokens() {
           return (
             <div
               key={r.name}
+              draggable
+              onDragStart={(e) => {
+                handleDragStart(index)
+                e.dataTransfer.effectAllowed = 'move'
+              }}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => {
+                handleDrop(e, index)
+                setDragOverIndex(null)
+              }}
+              onDragEnd={handleDragEnd}
               style={{
                 background: `var(${layer1Base}-surface)`,
-                border: `1px solid var(${layer1Base}-border-color)`,
+                border: `1px solid ${
+                  draggedIndex === index 
+                    ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
+                    : dragOverIndex === index
+                    ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
+                    : `var(${layer1Base}-border-color)`
+                }`,
                 borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
                 padding: `var(${layer1Base}-padding)`,
                 display: 'grid',
                 gap: 'var(--recursica-brand-dimensions-general-md)',
                 position: 'relative',
+                cursor: draggedIndex === index ? 'grabbing' : 'grab',
+                opacity: draggedIndex === index ? 0.5 : 1,
+                transition: 'all 0.2s',
+                transform: dragOverIndex === index ? 'translateY(-4px)' : 'none',
+                boxShadow: dragOverIndex === index 
+                  ? `0 4px 8px rgba(0, 0, 0, 0.1)`
+                  : 'none',
               }}
             >
               {index > 0 && (() => {

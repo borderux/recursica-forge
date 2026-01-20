@@ -11,9 +11,20 @@ if (typeof window !== 'undefined') {
   fontUtilsImportPromise = import('../../modules/type/fontUtils').then(module => {
     getCachedFontFamilyName = module.getCachedFontFamilyName
   }).catch(() => {
-    // Fallback: provide a simple function that just returns the name with quotes if needed
+    // Fallback: provide a simple function that returns the name with quotes and fallback
     getCachedFontFamilyName = (name: string) => {
-      return name.includes(' ') ? `"${name}"` : name
+      if (!name || !name.trim()) return name
+      const trimmed = name.trim()
+      // Determine fallback based on common serif fonts
+      const serifFonts = ['merriweather', 'lora', 'playfair display', 'crimson text', 'crimson pro',
+        'libre baskerville', 'eb garamond', 'source serif pro', 'pt serif',
+        'cormorant garamond', 'vollkorn', 'bree serif', 'droid serif',
+        'arvo', 'bitter', 'cinzel', 'della respira', 'gentium book basic',
+        'libre caslon text', 'linden hill', 'neuton', 'old standard tt',
+        'rokkitt', 'sanchez', 'taviraj', 'trirong', 'vollkorn sc']
+      const isSerif = serifFonts.includes(trimmed.toLowerCase())
+      const fallback = isSerif ? 'serif' : 'sans-serif'
+      return `"${trimmed}", ${fallback}`
     }
   })
 }
@@ -23,8 +34,19 @@ function safeGetCachedFontFamilyName(name: string): string {
   if (getCachedFontFamilyName) {
     return getCachedFontFamilyName(name)
   }
-  // Fallback if not loaded yet
-  return name.includes(' ') ? `"${name}"` : name
+  // Fallback if not loaded yet - include fallback font
+  if (!name || !name.trim()) return name
+  const trimmed = name.trim()
+  // Determine fallback based on common serif fonts
+  const serifFonts = ['merriweather', 'lora', 'playfair display', 'crimson text', 'crimson pro',
+    'libre baskerville', 'eb garamond', 'source serif pro', 'pt serif',
+    'cormorant garamond', 'vollkorn', 'bree serif', 'droid serif',
+    'arvo', 'bitter', 'cinzel', 'della respira', 'gentium book basic',
+    'libre caslon text', 'linden hill', 'neuton', 'old standard tt',
+    'rokkitt', 'sanchez', 'taviraj', 'trirong', 'vollkorn sc']
+  const isSerif = serifFonts.includes(trimmed.toLowerCase())
+  const fallback = isSerif ? 'serif' : 'sans-serif'
+  return `"${trimmed}", ${fallback}`
 }
 
 export type TypographyChoices = Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>
@@ -134,7 +156,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         if (typeof valueStr === 'string' && valueStr) {
           // For font families/typefaces, use the cached actual font-family name from CSS
           if (category === 'family' || category === 'typeface' || category === 'typefaces') {
-            valueStr = safeGetCachedFontFamilyName(valueStr)
+            // Strip any existing quotes from the value before formatting
+            // The value might have quotes from JSON, but we want to format it fresh
+            const cleanValue = valueStr.trim().replace(/^["']|["']$/g, '')
+            valueStr = safeGetCachedFontFamilyName(cleanValue)
           }
           // Use plural form for CSS var name
           vars[`--recursica-tokens-font-${pluralCategory}-${short}`] = valueStr
@@ -173,14 +198,24 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         // Empty values mean the font family was deleted
         if (value && value.trim()) {
           // For font families/typefaces, use the cached actual font-family name from CSS
-          const finalValue = (category === 'family' || category === 'typeface' || category === 'typefaces')
-            ? safeGetCachedFontFamilyName(value)
-            : value
-          const pluralCategory = category === 'typeface' ? 'typefaces' : category
-          vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = finalValue
-          // Backwards compatibility
-          if (pluralCategory !== category) {
-            vars[`--recursica-tokens-font-${category}-${key}`] = finalValue
+          if (category === 'family' || category === 'typeface' || category === 'typefaces') {
+            // Strip any existing quotes from the value before formatting
+            // The value might be stored with quotes, but we want to format it fresh
+            const cleanValue = value.trim().replace(/^["']|["']$/g, '')
+            const finalValue = safeGetCachedFontFamilyName(cleanValue)
+            const pluralCategory = category === 'typeface' ? 'typefaces' : category
+            vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = finalValue
+            // Backwards compatibility
+            if (pluralCategory !== category) {
+              vars[`--recursica-tokens-font-${category}-${key}`] = finalValue
+            }
+          } else {
+            const pluralCategory = category === 'typeface' ? 'typefaces' : category
+            vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = value
+            // Backwards compatibility
+            if (pluralCategory !== category) {
+              vars[`--recursica-tokens-font-${category}-${key}`] = value
+            }
           }
         }
       }

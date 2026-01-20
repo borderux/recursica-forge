@@ -165,7 +165,18 @@ export async function getActualFontFamilyName(fontName: string): Promise<string>
   // If we found the font but it's not in Google Fonts format, check if it's from Google Fonts CSS API
   if (actualName === trimmedName || actualName.toLowerCase() === trimmedName.toLowerCase()) {
     // Check if this font was loaded from Google Fonts by looking for the stylesheet link
-    const googleFontsLink = document.querySelector(`link[href*="fonts.googleapis.com/css2"][href*="${encodeURIComponent(trimmedName)}"]`)
+    // Try multiple encodings: URL encoded (%20), plus sign (+), and spaces
+    const encodedName = encodeURIComponent(trimmedName)
+    const plusEncodedName = trimmedName.replace(/\s+/g, '+')
+    const spaceEncodedName = trimmedName.replace(/\s+/g, ' ')
+    
+    // Check for link with any of these encodings
+    const googleFontsLink = document.querySelector(
+      `link[href*="fonts.googleapis.com/css2"][href*="${encodedName}"], ` +
+      `link[href*="fonts.googleapis.com/css2"][href*="${plusEncodedName}"], ` +
+      `link[href*="fonts.googleapis.com/css2"][href*="${spaceEncodedName}"]`
+    ) || document.querySelector(`link[id^="gf-"][id*="${trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}"]`)
+    
     if (googleFontsLink) {
       // Use simple format: "FontName", fallback
       const fallback = getFontFallback(trimmedName)
