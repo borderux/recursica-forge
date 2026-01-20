@@ -59,7 +59,7 @@ export function TypePage() {
     
     // CSS variables update automatically, but React needs to re-render to pick up changes
     const style: React.CSSProperties = useMemo(() => ({
-      fontFamily: `var(--recursica-brand-typography-${cssVarName}-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`,
+      fontFamily: `var(--recursica-brand-typography-${cssVarName}-font-family)`,
       fontSize: `var(--recursica-brand-typography-${cssVarName}-font-size, 16px)`,
       fontWeight: `var(--recursica-brand-typography-${cssVarName}-font-weight, 400)` as any,
       letterSpacing: `var(--recursica-brand-typography-${cssVarName}-font-letter-spacing, 0)`,

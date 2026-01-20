@@ -371,6 +371,25 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       'line-height': 'line-heights'
     }
     // Always generate font-family CSS var, even if family is null (use default)
+    // Helper to resolve token reference to actual value
+    const resolveTokenRefToValue = (tokenRef: string): string => {
+      // If it's a var() reference, extract the CSS variable name and look it up
+      const varMatch = tokenRef.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+      if (varMatch) {
+        const tokenCssVar = varMatch[1].trim()
+        // Look up the actual value from vars (token CSS variables are set earlier)
+        const actualValue = vars[tokenCssVar]
+        if (actualValue) {
+          return actualValue
+        }
+        // If not found in vars, return the token reference as fallback
+        // (This shouldn't happen normally, but provides safety)
+        return tokenRef
+      }
+      // If not a var() reference, return as-is
+      return tokenRef
+    }
+    
     let brandVal: string | null = null
     if (familyToken) {
       const pluralCategory = categoryToPlural[familyToken.category] || familyToken.category
@@ -379,32 +398,36 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       brandVal = findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family')
     }
     
-    // For brand vars, always use token reference, never raw values
+    // For brand vars, resolve token reference to actual value (font name with fallbacks)
     if (brandVal) {
-      vars[`${brandPrefix}font-family`] = brandVal
-      vars[`${shortPrefix}font-family`] = brandVal
+      const resolvedValue = resolveTokenRefToValue(brandVal)
+      vars[`${brandPrefix}font-family`] = resolvedValue
+      vars[`${shortPrefix}font-family`] = resolvedValue
     } else {
       // Fallback to default token reference - ensure we always have a font-family
       const defaultFamilyToken = getFontToken('typeface/primary') ?? getFontToken('family/primary')
       if (defaultFamilyToken) {
         const defaultToken = findTokenByValue(defaultFamilyToken, 'typeface') || findTokenByValue(defaultFamilyToken, 'family')
         if (defaultToken) {
-          vars[`${brandPrefix}font-family`] = defaultToken
-          vars[`${shortPrefix}font-family`] = defaultToken
+          const resolvedValue = resolveTokenRefToValue(defaultToken)
+          vars[`${brandPrefix}font-family`] = resolvedValue
+          vars[`${shortPrefix}font-family`] = resolvedValue
         } else {
           // Last resort: use typefaces-primary or families-primary token directly
           const primaryTypefaceToken = findTokenByValue('primary', 'typeface') || findTokenByValue('primary', 'family')
           if (primaryTypefaceToken) {
-            vars[`${brandPrefix}font-family`] = primaryTypefaceToken
-            vars[`${shortPrefix}font-family`] = primaryTypefaceToken
+            const resolvedValue = resolveTokenRefToValue(primaryTypefaceToken)
+            vars[`${brandPrefix}font-family`] = resolvedValue
+            vars[`${shortPrefix}font-family`] = resolvedValue
           }
         }
       } else {
         // Absolute last resort: try to find any typeface token
         const anyTypefaceToken = findTokenByValue('primary', 'typeface') || findTokenByValue('primary', 'family')
         if (anyTypefaceToken) {
-          vars[`${brandPrefix}font-family`] = anyTypefaceToken
-          vars[`${shortPrefix}font-family`] = anyTypefaceToken
+          const resolvedValue = resolveTokenRefToValue(anyTypefaceToken)
+          vars[`${brandPrefix}font-family`] = resolvedValue
+          vars[`${shortPrefix}font-family`] = resolvedValue
         }
       }
     }

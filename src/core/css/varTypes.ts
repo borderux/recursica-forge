@@ -32,6 +32,14 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
     throw new Error(`Brand CSS variable ${cssVarName} cannot be set to hardcoded color value: ${value}. Must reference a token.`)
   }
   
+  // Special case: font-family can use direct font values with fallbacks
+  if (cssVarName.includes('font-family')) {
+    // Allow font-family values that look like valid CSS font-family declarations
+    if (/^["']?[^"']+["']?\s*,\s*[^,]+/.test(trimmed) || /^["']?[^"']+["']?$/.test(trimmed)) {
+      return value
+    }
+  }
+  
   // If it's a raw value (px, number, etc), this is also an error for brand vars
   throw new Error(`Brand CSS variable ${cssVarName} must reference a token (var(--recursica-tokens-...)), got: ${value}`)
 }
@@ -56,6 +64,15 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
     if (cssVarName.includes('border-thickness')) {
       // Allow pixel values like "0px", "2px", "20px", etc.
       if (/^\d+px$/.test(trimmed)) {
+        return { valid: true }
+      }
+    }
+    // Special case: font-family can use direct font values with fallbacks
+    // This allows font-family to contain the actual font name with fallbacks (e.g., "Lexend", sans-serif)
+    if (cssVarName.includes('font-family')) {
+      // Allow font-family values that look like valid CSS font-family declarations
+      // Matches patterns like: "Font Name", fallback or FontName, fallback, etc.
+      if (/^["']?[^"']+["']?\s*,\s*[^,]+/.test(trimmed) || /^["']?[^"']+["']?$/.test(trimmed)) {
         return { valid: true }
       }
     }
