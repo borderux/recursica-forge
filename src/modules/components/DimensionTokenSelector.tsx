@@ -70,7 +70,7 @@ export default function DimensionTokenSelector({
         Object.keys(fontSizes).forEach(sizeKey => {
           const sizeValue = fontSizes[sizeKey]
           if (sizeValue && typeof sizeValue === 'object' && '$value' in sizeValue) {
-            const cssVar = `--recursica-tokens-font-size-${sizeKey}`
+            const cssVar = `--recursica-tokens-font-sizes-${sizeKey}`
             const cssValue = readCssVar(cssVar)
             
             // Only add if the CSS var exists (has been generated)
@@ -650,7 +650,7 @@ export default function DimensionTokenSelector({
         if (resolvedValue && (resolvedValue === `var(${token.name})` || resolvedValue === token.name)) return true
         
         // Check if current value contains the CSS var reference
-        const varName = token.name.replace('--recursica-brand-dimensions-', '').replace('--recursica-tokens-size-', '').replace('--recursica-tokens-font-size-', '')
+        const varName = token.name.replace('--recursica-brand-dimensions-', '').replace('--recursica-tokens-size-', '').replace('--recursica-tokens-font-sizes-', '')
         if (currentValue.includes(varName) || currentValue.includes(token.name)) return true
         
         // Check if resolved value contains the token name

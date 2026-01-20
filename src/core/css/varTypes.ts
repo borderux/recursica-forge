@@ -67,8 +67,8 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
         return { valid: true }
       }
     }
-    // Special case: font-family can use direct font values with fallbacks
-    // This allows font-family to contain the actual font name with fallbacks (e.g., "Lexend", sans-serif)
+    // Special case: font-family can use direct font values
+    // This allows font-family to contain the actual font name (e.g., "Lexend" or Lexend)
     if (cssVarName.includes('font-family')) {
       // Allow font-family values that look like valid CSS font-family declarations
       // Matches patterns like: "Font Name", fallback or FontName, fallback, etc.

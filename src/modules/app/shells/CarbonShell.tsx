@@ -124,7 +124,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
     return () => window.removeEventListener('resize', updateHeaderHeight)
   }, [mode])
 
-  if (!carbon) return <div style={{ padding: 'var(--recursica-brand-dimensions-spacers-lg)' }}>Loading Carbon…</div>
+  if (!carbon) return <div style={{ padding: 'var(--recursica-brand-dimensions-general-lg)' }}>Loading Carbon…</div>
 
   const { Select, SelectItem, Theme, Grid, Column, ComposedModal, ModalHeader, ModalBody, ModalFooter, Toggle } = carbon
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
@@ -140,10 +140,10 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           aria-label="Recursica Theme Forge"
           style={{
             backgroundColor: `var(${layer1Base}-surface)`,
-            paddingTop: 'var(--recursica-brand-dimensions-spacers-lg)',
-            paddingBottom: 'var(--recursica-brand-dimensions-spacers-lg)',
-            paddingLeft: 'var(--recursica-brand-dimensions-spacers-xl)',
-            paddingRight: 'var(--recursica-brand-dimensions-spacers-xl)',
+            paddingTop: 'var(--recursica-brand-dimensions-general-lg)',
+            paddingBottom: 'var(--recursica-brand-dimensions-general-lg)',
+            paddingLeft: 'var(--recursica-brand-dimensions-general-xl)',
+            paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
             height: 'auto',
             flexShrink: 0,
             display: 'flex',
@@ -155,10 +155,10 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           }}
         >
           {/* Logo, Brand, and Navigation Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-xl)', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-xl)', width: '100%' }}>
             {/* Chunk 1: Logo and Brand */}
             <div style={{ minWidth: '220px', display: 'flex', alignItems: 'center' }}>
-              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)', textDecoration: 'none' }}>
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)', textDecoration: 'none' }}>
                 <LogoIcon />
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                 <span
@@ -195,10 +195,10 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
               style={{
                 flex: 1,
                 display: 'flex',
-                gap: 'var(--recursica-brand-dimensions-spacers-default)',
+                gap: 'var(--recursica-brand-dimensions-general-default)',
               }}
             >
-              <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-spacers-default)' }}>
+              <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
                 <button
                   onClick={() => navigate('/tokens')}
                   style={{
@@ -260,7 +260,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             </Tabs>
 
           {/* Chunk 3: Action Buttons and Framework Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-default)', marginLeft: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)', marginLeft: 'auto' }}>
             <Button
               variant="outline"
               size="default"
@@ -403,9 +403,9 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
       <ComposedModal open={isOpen} onClose={() => { setIsOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} size="sm">
         <ModalHeader label="Import JSON Files" title="Import JSON Files" />
         <ModalBody hasForm>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-spacers-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
+              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
               <input
                 type="file"
                 accept="application/json,.json"
@@ -414,14 +414,14 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                   onFileSelect(e.currentTarget.files)
                   e.currentTarget.value = ''
                 }}
-                style={{ marginBottom: 'var(--recursica-brand-dimensions-spacers-default)' }}
+                style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
               />
               {selectedFileNames.length > 0 && (
-                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-spacers-sm)' }}>
+                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
                   Selected: {selectedFileNames.join(', ')}
                 </div>
               )}
-              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-spacers-sm)' }}>
+              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>

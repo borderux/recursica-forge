@@ -26,8 +26,8 @@ function prefixToCssVarName(prefix: string): string {
 // Helper to extract token name from CSS variable value
 function extractTokenFromCssVar(cssValue: string): string | null {
   if (!cssValue) return null
-  // Match patterns like: var(--recursica-tokens-font-size-md) or var(--recursica-tokens-font-sizes-md)
-  // Support both singular and plural forms
+  // Match patterns like: var(--recursica-tokens-font-sizes-md)
+  // Uses plural form
   const match = cssValue.match(/var\(--recursica-tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights)-([^)]+)\)/)
   if (match) return match[1]
   // Also match: var(--tokens-font-size-md) (without recursica prefix)
@@ -486,7 +486,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       }
       
       // If no token reference found, try to match the actual font value against familyOptions
-      // The CSS variable now contains the actual font value like "Lexend", sans-serif
+      // The CSS variable now contains the actual font value like "Lexend"
       // Extract the font name (first part before comma)
       const fontNameMatch = cssValue.match(/^["']?([^"',]+)["']?/)
       if (fontNameMatch) {

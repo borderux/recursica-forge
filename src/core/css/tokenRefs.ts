@@ -21,7 +21,7 @@ function normalizeColorLevel(level: string): string | null {
  * Examples:
  * - "color/gray/100" -> "var(--recursica-tokens-color-gray-100)"
  * - "size/4x" -> "var(--recursica-tokens-size-4x)"
- * - "font/size/md" -> "var(--recursica-tokens-font-size-md)"
+ * - "font/size/md" -> "var(--recursica-tokens-font-sizes-md)"
  * - "opacity/veiled" -> "var(--recursica-tokens-opacity-veiled)"
  */
 export function tokenToCssVar(tokenName: string): string | null {

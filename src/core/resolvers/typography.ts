@@ -34,19 +34,10 @@ function safeGetCachedFontFamilyName(name: string): string {
   if (getCachedFontFamilyName) {
     return getCachedFontFamilyName(name)
   }
-  // Fallback if not loaded yet - include fallback font
+  // Fallback if not loaded yet - return just the font name
   if (!name || !name.trim()) return name
   const trimmed = name.trim()
-  // Determine fallback based on common serif fonts
-  const serifFonts = ['merriweather', 'lora', 'playfair display', 'crimson text', 'crimson pro',
-    'libre baskerville', 'eb garamond', 'source serif pro', 'pt serif',
-    'cormorant garamond', 'vollkorn', 'bree serif', 'droid serif',
-    'arvo', 'bitter', 'cinzel', 'della respira', 'gentium book basic',
-    'libre caslon text', 'linden hill', 'neuton', 'old standard tt',
-    'rokkitt', 'sanchez', 'taviraj', 'trirong', 'vollkorn sc']
-  const isSerif = serifFonts.includes(trimmed.toLowerCase())
-  const fallback = isSerif ? 'serif' : 'sans-serif'
-  return `"${trimmed}", ${fallback}`
+  return trimmed.includes(' ') ? `"${trimmed}"` : trimmed
 }
 
 export type TypographyChoices = Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>
@@ -163,10 +154,6 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
           }
           // Use plural form for CSS var name
           vars[`--recursica-tokens-font-${pluralCategory}-${short}`] = valueStr
-          // Backwards compatibility: also create singular form if different
-          if (pluralCategory !== category) {
-            vars[`--recursica-tokens-font-${category}-${short}`] = valueStr
-          }
         }
       })
     }
@@ -205,10 +192,6 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
             const finalValue = safeGetCachedFontFamilyName(cleanValue)
             const pluralCategory = category === 'typeface' ? 'typefaces' : category
             vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = finalValue
-            // Backwards compatibility
-            if (pluralCategory !== category) {
-              vars[`--recursica-tokens-font-${category}-${key}`] = finalValue
-            }
           } else {
             const pluralCategory = category === 'typeface' ? 'typefaces' : category
             vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = value

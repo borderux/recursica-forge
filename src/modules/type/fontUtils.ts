@@ -9,6 +9,12 @@
 const fontFamilyNameCache = new Map<string, string>()
 
 /**
+ * Map of font names to their Google Fonts URLs from token extensions
+ * Used to load fonts with the exact URL specified in Tokens.json
+ */
+const fontUrlMap = new Map<string, string>()
+
+/**
  * Common serif fonts from Google Fonts
  * Most Google Fonts are sans-serif, so we only list serif ones
  */
@@ -68,9 +74,8 @@ export function getCachedFontFamilyName(fontName: string): string {
   const trimmed = fontName.trim()
   const cached = fontFamilyNameCache.get(trimmed)
   if (cached) return cached
-  // If not cached, return with fallback
-  const fallback = getFontFallback(trimmed)
-  return `"${trimmed}", ${fallback}`
+  // If not cached, return just the font name with quotes if it has spaces
+  return trimmed.includes(' ') ? `"${trimmed}"` : trimmed
 }
 
 /**
@@ -169,28 +174,41 @@ export async function getActualFontFamilyName(fontName: string): Promise<string>
     const encodedName = encodeURIComponent(trimmedName)
     const plusEncodedName = trimmedName.replace(/\s+/g, '+')
     const spaceEncodedName = trimmedName.replace(/\s+/g, ' ')
+    const linkId = `gf-${trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
     
-    // Check for link with any of these encodings
+    // Check for link with any of these encodings or by ID
     const googleFontsLink = document.querySelector(
       `link[href*="fonts.googleapis.com/css2"][href*="${encodedName}"], ` +
       `link[href*="fonts.googleapis.com/css2"][href*="${plusEncodedName}"], ` +
       `link[href*="fonts.googleapis.com/css2"][href*="${spaceEncodedName}"]`
-    ) || document.querySelector(`link[id^="gf-"][id*="${trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}"]`)
+    ) || document.getElementById(linkId)
     
     if (googleFontsLink) {
-      // Use simple format: "FontName", fallback
-      const fallback = getFontFallback(trimmedName)
-      const googleFontsFormat = `"${trimmedName}", ${fallback}`
+      // Try to extract the actual font-family name from the loaded stylesheet
+      // This ensures we use the exact name from the @font-face rule
+      let fontNameToUse = trimmedName
+      try {
+        // Wait a bit for stylesheet to be fully parsed
+        await new Promise(resolve => setTimeout(resolve, 100))
+        const extracted = extractFontFamilyFromCSS(trimmedName)
+        if (extracted && extracted !== trimmedName && !extracted.includes('gf_')) {
+          // Use the extracted name if it's different and not a Google Fonts internal name
+          fontNameToUse = extracted.replace(/^["']|["']$/g, '').split(',')[0].trim() || trimmedName
+        }
+      } catch {}
+      
+      // Use simple format: just the font name with quotes if needed
+      const googleFontsFormat = fontNameToUse.includes(' ') ? `"${fontNameToUse}"` : fontNameToUse
       fontFamilyNameCache.set(trimmedName, googleFontsFormat)
+      if (fontNameToUse !== trimmedName) {
+        fontFamilyNameCache.set(fontNameToUse, googleFontsFormat)
+      }
       return googleFontsFormat
     }
   }
   
-  // For fonts with spaces, wrap in quotes and add fallback
-  const fallback = getFontFallback(trimmedName)
-  const finalName = trimmedName.includes(' ') 
-    ? `"${trimmedName}", ${fallback}`
-    : `"${trimmedName}", ${fallback}`
+  // For fonts with spaces, wrap in quotes
+  const finalName = trimmedName.includes(' ') ? `"${trimmedName}"` : trimmedName
   fontFamilyNameCache.set(trimmedName, finalName)
   return finalName
 }
@@ -224,11 +242,6 @@ export async function loadFontFromNpm(fontName: string, npmPackage: string): Pro
           await new Promise(resolve => setTimeout(resolve, 100))
           // Extract and cache the actual font-family name
           const actualName = await getActualFontFamilyName(fontName)
-          // Dispatch event to trigger CSS variable update with actual font-family name
-          // Use requestAnimationFrame to avoid blocking UI
-          requestAnimationFrame(() => {
-            window.dispatchEvent(new CustomEvent('font-loaded', { detail: { fontName, actualFontFamily: actualName } }))
-          })
           resolve()
         }
         existingLink.onerror = () => {
@@ -243,10 +256,9 @@ export async function loadFontFromNpm(fontName: string, npmPackage: string): Pro
     } else {
       // Update href in case package was updated
       existingLink.href = cssUrl
-      // If already loaded, extract font-family name and dispatch event
+      // If already loaded, extract font-family name
       await new Promise(resolve => setTimeout(resolve, 100))
       const actualName = await getActualFontFamilyName(fontName)
-      window.dispatchEvent(new CustomEvent('font-loaded', { detail: { fontName, actualFontFamily: actualName } }))
     }
     
     return fontName
@@ -300,11 +312,6 @@ export async function loadFontFromGit(fontName: string, repoUrl: string, fontPat
           await new Promise(resolve => setTimeout(resolve, 100))
           // Extract and cache the actual font-family name
           const actualName = await getActualFontFamilyName(fontName)
-          // Dispatch event to trigger CSS variable update with actual font-family name
-          // Use requestAnimationFrame to avoid blocking UI
-          requestAnimationFrame(() => {
-            window.dispatchEvent(new CustomEvent('font-loaded', { detail: { fontName, actualFontFamily: actualName } }))
-          })
           resolve()
         }
         existingLink.onerror = () => {
@@ -319,10 +326,9 @@ export async function loadFontFromGit(fontName: string, repoUrl: string, fontPat
     } else {
       // Update href in case package was updated
       existingLink.href = cssUrl
-      // If already loaded, extract font-family name and dispatch event
+      // If already loaded, extract font-family name
       await new Promise(resolve => setTimeout(resolve, 100))
       const actualName = await getActualFontFamilyName(fontName)
-      window.dispatchEvent(new CustomEvent('font-loaded', { detail: { fontName, actualFontFamily: actualName } }))
     }
     
     return fontName
@@ -515,37 +521,23 @@ export async function ensureFontLoaded(fontName: string): Promise<void> {
     ensureGoogleFontsPreconnect()
     
     const id = `gf-${trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
-    if (document.getElementById(id)) {
-      // Font already loaded, construct format with fallback
-      const fallback = getFontFallback(trimmedName)
-      const fontFormat = `"${trimmedName}", ${fallback}`
-      if (!fontFamilyNameCache.has(trimmedName)) {
-        fontFamilyNameCache.set(trimmedName, fontFormat)
-      }
-      window.dispatchEvent(new CustomEvent('font-loaded', { detail: { fontName: trimmedName, actualFontFamily: fontFormat } }))
+    const existingLink = document.getElementById(id) as HTMLLinkElement | null
+    if (existingLink) {
+      // Font already loaded, just return (no events, no recomputes)
       return
     }
     
-    const href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(trimmedName).replace(/%20/g, '+')}:wght@100..900&display=swap`
+    // Check if there's a custom URL for this font from token extensions
+    const customUrl = fontUrlMap.get(trimmedName)
+    const href = customUrl || `https://fonts.googleapis.com/css2?family=${encodeURIComponent(trimmedName).replace(/%20/g, '+')}:wght@100..900&display=swap`
+    
     const link = document.createElement('link')
     link.id = id
     link.rel = 'stylesheet'
     link.href = href
     
-    // Wait for the stylesheet to load, then set the font-family format
-    link.onload = async () => {
-      // Wait a bit for CSS rules to be parsed (reduced delay for faster response)
-      await new Promise(resolve => setTimeout(resolve, 100))
-      // For Google Fonts, use simple format: "FontName", fallback
-      const fallback = getFontFallback(trimmedName)
-      const fontFormat = `"${trimmedName}", ${fallback}`
-      fontFamilyNameCache.set(trimmedName, fontFormat)
-      // Dispatch event to trigger CSS variable update with actual font-family name
-      // Use requestAnimationFrame to avoid blocking UI
-      requestAnimationFrame(() => {
-        window.dispatchEvent(new CustomEvent('font-loaded', { detail: { fontName: trimmedName, actualFontFamily: fontFormat } }))
-      })
-    }
+    // Just append the link - no events, no waiting, no recomputes
+    // Font will load and apply automatically when ready
     
     document.head.appendChild(link)
   } catch (error) {
@@ -561,12 +553,17 @@ export async function loadFontsFromTokens(): Promise<void> {
   try {
     const fontNames = new Set<string>()
     
+    // Clear and rebuild font URL map from tokens
+    fontUrlMap.clear()
+    
     // Read from token overrides (these take precedence)
     try {
       const overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
       Object.entries(overrides).forEach(([name, value]) => {
         if (typeof name === 'string' && (name.startsWith('font/family/') || name.startsWith('font/typeface/'))) {
-          const fontValue = String(value || '').trim()
+          let fontValue = String(value || '').trim()
+          // Strip any quotes that might have been stored
+          fontValue = fontValue.replace(/^["']|["']$/g, '')
           if (fontValue) {
             fontNames.add(fontValue)
           }
@@ -589,15 +586,30 @@ export async function loadFontsFromTokens(): Promise<void> {
           if (val) fontNames.add(val)
         })
         
-        // Collect from font.typeface
-        Object.values(fontRoot.typeface || {}).forEach((rec: any) => {
+        // Collect from font.typeface (singular) and font.typefaces (plural) and extract URLs from extensions
+        const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+        Object.entries(typefaces).forEach(([key, rec]: [string, any]) => {
           const val = String(rec?.$value || '').trim()
-          if (val) fontNames.add(val)
+          if (val) {
+            fontNames.add(val)
+            // Check if there's a Google Fonts URL in extensions
+            const url = rec?.$extensions?.com?.google?.fonts?.url
+            if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+              // Store the URL mapping for this font name
+              fontUrlMap.set(val, url)
+              // Pre-cache the font name with proper format so CSS variables can use it immediately
+              const cleanVal = val.replace(/^["']|["']$/g, '')
+              const fontFormat = cleanVal.includes(' ') ? `"${cleanVal}"` : cleanVal
+              if (!fontFamilyNameCache.has(cleanVal)) {
+                fontFamilyNameCache.set(cleanVal, fontFormat)
+              }
+            }
+          }
         })
       }
     } catch {}
     
-    // Load all fonts
+    // Load all fonts (ensureFontLoaded will check fontUrlMap for custom URLs)
     await Promise.all(Array.from(fontNames).map(name => ensureFontLoaded(name)))
   } catch (error) {
     console.warn('Failed to load fonts from tokens:', error)

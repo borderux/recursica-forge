@@ -201,7 +201,6 @@ class VarsStore {
   private lsAvailable = isLocalStorageAvailable()
   private aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
   private isRecomputing: boolean = false
-  private isLoadingFonts: boolean = false
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
   private hasRunInitialReset: boolean = false
 
@@ -332,35 +331,12 @@ class VarsStore {
       this.bumpVersion()
       this.recomputeAndApplyAll()
     }
-    // Debounce font-loaded events to avoid excessive recomputation
-    // Note: We still recompute to update font-family names in token CSS variables,
-    // but typography CSS variables are preserved if they were set directly by the user
-    let fontLoadedTimeout: ReturnType<typeof setTimeout> | null = null
-    const onFontLoaded = () => {
-      // Skip if already recomputing or if we're loading fonts as part of recompute
-      // This prevents infinite loops when ensureFontLoaded dispatches font-loaded events
-      if (this.isRecomputing || this.isLoadingFonts) return
-      
-      // Debounce: only recompute after fonts have finished loading
-      if (fontLoadedTimeout) {
-        clearTimeout(fontLoadedTimeout)
-      }
-      fontLoadedTimeout = setTimeout(() => {
-        // Double-check we're not recomputing or loading fonts (might have started during timeout)
-        if (this.isRecomputing || this.isLoadingFonts) {
-          fontLoadedTimeout = null
-          return
-        }
-        this.bumpVersion()
-        this.recomputeAndApplyAll()
-        fontLoadedTimeout = null
-      }, 500) // Wait 500ms for multiple fonts to load
-    }
+    // Note: We no longer listen to font-loaded events to avoid loops
+    // CSS variables are set with font names directly, fonts load asynchronously
     window.addEventListener('typeChoicesChanged', onTypeChoices as any)
     // Recompute layers and dependent CSS whenever palette CSS vars or families change
     window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
     window.addEventListener('paletteFamilyChanged', onPaletteFamilyChanged as any)
-    window.addEventListener('font-loaded', onFontLoaded as any)
     
     // Listen for token changes to update core color on-tones
     const onTokenChanged = ((ev: CustomEvent) => {
@@ -536,10 +512,6 @@ class VarsStore {
         if (formattedValue) {
           // Use plural form for CSS var name
           varsToUpdate[`--recursica-tokens-font-${pluralKind}-${key}`] = formattedValue
-          // Backwards compatibility: also create singular form if different
-          if (pluralKind !== kind) {
-            varsToUpdate[`--recursica-tokens-font-${kind}-${key}`] = formattedValue
-          }
         }
         // Note: Typography vars that reference this token will update automatically
         // via CSS var() references, so we don't need to rebuild them here
@@ -1803,38 +1775,21 @@ class VarsStore {
     })
     
     Object.assign(allVars, typeVars)
-    // Ensure fonts load lazily (web fonts, npm fonts, git fonts)
-    // Use dynamic import to avoid circular dependencies
-    // Set flag to prevent font-loaded events from triggering recompute during this process
-    this.isLoadingFonts = true
-    Promise.all(familiesToLoad.map(async (family) => {
-      try {
-        const trimmed = String(family).trim()
-        if (!trimmed) return
-        // Dynamically import fontUtils to check for npm/git sources
-        const { ensureFontLoaded } = await import('../../modules/type/fontUtils')
-        await ensureFontLoaded(trimmed)
-      } catch (error) {
-        // Fallback to web font loading if ensureFontLoaded fails
+    // Load fonts asynchronously - don't wait, don't trigger recomputes
+    // CSS variables are already set with font names, fonts will apply when loaded
+    if (familiesToLoad.length > 0 && typeof window !== 'undefined') {
+      // Load fonts in background without blocking or triggering events
+      Promise.all(familiesToLoad.map(async (family) => {
         try {
           const trimmed = String(family).trim()
           if (!trimmed) return
-          const id = `gf-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
-          if (document.getElementById(id)) return
-          const href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(trimmed).replace(/%20/g, '+')}:wght@100..900&display=swap`
-          const link = document.createElement('link')
-          link.id = id
-          link.rel = 'stylesheet'
-          link.href = href
-          document.head.appendChild(link)
+          // Dynamically import fontUtils
+          const { ensureFontLoaded } = await import('../../modules/type/fontUtils')
+          // Load font but don't wait for it or trigger recomputes
+          ensureFontLoaded(trimmed).catch(() => {})
         } catch {}
-      }
-    })).catch(() => {}).finally(() => {
-      // Clear the flag after fonts are loaded (or after a delay to catch late events)
-      setTimeout(() => {
-        this.isLoadingFonts = false
-      }, 1000) // Give fonts time to load and dispatch events
-    })
+      })).catch(() => {})
+    }
 
     // Elevation CSS variables (apply for levels 0..4) - generate for both modes
     for (const mode of ['light', 'dark'] as const) {
@@ -2072,7 +2027,7 @@ class VarsStore {
         '--recursica-brand-themes-light-layer-layer-0-property-surface',
         '--recursica-brand-themes-light-elevations-elevation-4-x-axis',
         '--recursica-brand-typography-caption-font-family',
-        '--recursica-brand-dimensions-spacers-sm'
+        '--recursica-brand-dimensions-general-sm'
       ]
     }
     try {

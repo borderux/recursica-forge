@@ -33,7 +33,7 @@ html[data-theme-mode="dark"] .component-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-sm);
+  gap: var(--recursica-brand-dimensions-general-sm);
   position: relative;
   padding: var(--recursica-brand-themes-light-layer-layer-2-property-padding);
   background: var(--recursica-brand-themes-light-layer-layer-2-property-surface);
@@ -147,7 +147,7 @@ html[data-theme-mode="dark"] .toolbar-reset-button {
   color: var(--recursica-brand-themes-light-layer-layer-2-property-element-text-color);
   opacity: var(--recursica-brand-themes-light-layer-layer-2-property-element-text-high-emphasis);
   white-space: nowrap;
-  margin-right: var(--recursica-brand-dimensions-sm, 8px);
+  margin-right: var(--recursica-brand-dimensions-general-sm);
 }
 
 html[data-theme-mode="dark"] .toolbar-section-label {

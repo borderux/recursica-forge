@@ -145,6 +145,23 @@
                   "properties": {
                     "$value": {
                       "type": "string"
+                    },
+                    "$extensions": {
+                      "type": "object",
+                      "properties": {
+                        "com.google.fonts": {
+                          "type": "object",
+                          "properties": {
+                            "url": {
+                              "type": "string",
+                              "format": "uri"
+                            }
+                          },
+                          "required": ["url"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "additionalProperties": false
