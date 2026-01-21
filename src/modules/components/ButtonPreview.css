@@ -1,7 +1,7 @@
 .button-preview {
   display: flex;
   flex-direction: column;
-  gap: var(--recursica-brand-dimensions-spacers-md);
+  gap: 0;
 }
 
 .button-preview-warning {
@@ -9,7 +9,7 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  padding: var(--recursica-brand-dimensions-spacers-md);
+  padding: var(--recursica-brand-dimensions-general-md);
   background: var(--recursica-brand-themes-light-palettes-core-warning, #f59e0b);
   color: white;
   border-radius: var(--recursica-brand-dimensions-border-radius-default);
@@ -20,7 +20,7 @@
 
 .button-preview-row {
   display: flex;
-  gap: var(--recursica-brand-dimensions-spacers-md);
+  gap: var(--recursica-brand-dimensions-general-md);
   align-items: center;
   flex-wrap: wrap;
 }

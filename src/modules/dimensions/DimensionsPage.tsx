@@ -9,6 +9,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 
@@ -63,12 +64,12 @@ export default function DimensionsPage() {
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
 
-  // Get available size tokens
+  // Get available size tokens (exclude elevation tokens - those are only in brand, not tokens)
   const availableSizeTokens = useMemo(() => {
     const tokens: Array<{ name: string; value: number; label: string }> = []
     try {
       const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)
@@ -80,11 +81,7 @@ export default function DimensionsPage() {
       })
     } catch {}
     return tokens.sort((a, b) => {
-      // Sort: none first, then default, then numeric order
-      if (a.name === 'none') return -1
-      if (b.name === 'none') return 1
-      if (a.name === 'default') return -1
-      if (b.name === 'default') return 1
+      // Sort by numeric value only (lowest to highest) so slider stops are in increasing order
       return a.value - b.value
     })
   }, [tokensJson])
@@ -140,21 +137,28 @@ export default function DimensionsPage() {
     return entries
   }, [themeJson])
 
-  // Local state to track slider values during drag
+  // Local state to track slider values during drag (token indices)
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({})
 
-  const updateDimension = (path: string[], value: number) => {
-    // Find the closest size token to the value
-    let closestToken = availableSizeTokens[0]?.name || 'default'
+  // Find the closest size token index for a given pixel value
+  const findClosestTokenIndex = (pixelValue: number): number => {
+    let closestIndex = 0
     let minDiff = Infinity
     
-    availableSizeTokens.forEach((token) => {
-      const diff = Math.abs(token.value - value)
+    availableSizeTokens.forEach((token, index) => {
+      const diff = Math.abs(token.value - pixelValue)
       if (diff < minDiff) {
         minDiff = diff
-        closestToken = token.name
+        closestIndex = index
       }
     })
+    
+    return closestIndex
+  }
+
+  const updateDimension = (path: string[], tokenIndex: number) => {
+    const token = availableSizeTokens[tokenIndex]
+    if (!token) return
 
     const themeCopy = JSON.parse(JSON.stringify(themeJson))
     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -172,7 +176,7 @@ export default function DimensionsPage() {
     }
 
     const leaf = path[path.length - 1]
-    const tokenRef = `{tokens.size.${closestToken}}`
+    const tokenRef = `{tokens.size.${token.name}}`
     node[leaf] = {
       $type: 'number',
       $value: tokenRef,
@@ -205,14 +209,21 @@ export default function DimensionsPage() {
   }, [dimensions])
 
   // Define section order (matching actual category names from dimensions)
-  const sectionOrder = ['general', 'spacers', 'icons', 'gutters', 'border-radii']
+  // Note: 'text-size' is excluded as users cannot change text sizes
+  const sectionOrder = ['general', 'icons', 'gutters', 'border-radii']
   
   // Sort category keys according to section order, then alphabetically for any not in the order
+  // Filter out 'text-size' category completely
   const categoryKeys = useMemo(() => {
     const ordered: (string | undefined)[] = new Array(sectionOrder.length).fill(undefined)
     const unordered: string[] = []
     
     Object.keys(groupedDimensions).forEach((key) => {
+      // Hide text-size category completely
+      if (key.toLowerCase() === 'text-size') {
+        return
+      }
+      
       const normalizedKey = key.toLowerCase()
       const orderIndex = sectionOrder.findIndex(orderedKey => normalizedKey === orderedKey.toLowerCase())
       if (orderIndex !== -1) {
@@ -252,7 +263,7 @@ export default function DimensionsPage() {
   }
 
   return (
-    <div style={{ padding: 'var(--recursica-brand-dimensions-spacers-lg)' }}>
+    <div style={{ padding: 'var(--recursica-brand-dimensions-general-lg)' }}>
       <h1 style={{
         margin: 0,
         marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
@@ -271,7 +282,7 @@ export default function DimensionsPage() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gap: 'var(--recursica-brand-dimensions-spacers-lg)',
+        gap: 'var(--recursica-brand-dimensions-general-lg)',
         alignItems: 'start',
       }}>
         {categoryKeys.map((category) => {
@@ -285,7 +296,7 @@ export default function DimensionsPage() {
                 background: `var(${layer0Base}-surface)`,
                 border: `1px solid var(${layer1Base}-border-color)`,
                 borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
-                padding: 'var(--recursica-brand-dimensions-spacers-xl)',
+                padding: 'var(--recursica-brand-dimensions-general-xl)',
               }}
             >
               {/* Header */}
@@ -321,96 +332,74 @@ export default function DimensionsPage() {
               </div>
 
               {/* Rows */}
-              <div style={{ display: 'grid', gap: 0 }}>
+              <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
                 {categoryEntries.map((entry, index) => {
-                  const isLast = index === categoryEntries.length - 1
-                  const currentValue = sliderValues[entry.cssVar] ?? entry.currentValue
                   const isNone = entry.label.toLowerCase() === 'none'
                   
+                  // Find current token index based on pixel value - always ensure it's an integer
+                  const baseTokenIndex = sliderValues[entry.cssVar] ?? findClosestTokenIndex(entry.currentValue)
+                  const currentTokenIndex = Math.round(baseTokenIndex)
+                  const clampedTokenIndex = Math.max(0, Math.min(availableSizeTokens.length - 1, currentTokenIndex))
+                  const currentToken = availableSizeTokens[clampedTokenIndex]
+                  
+                  // Get value label function - always round to get discrete token
+                  const getValueLabel = (value: number) => {
+                    const roundedIdx = Math.round(value)
+                    const clampedIdx = Math.max(0, Math.min(availableSizeTokens.length - 1, roundedIdx))
+                    const token = availableSizeTokens[clampedIdx]
+                    return token?.label || '—'
+                  }
+                  
+                  const minToken = availableSizeTokens[0]
+                  const maxToken = availableSizeTokens[availableSizeTokens.length - 1]
+                  
+                  // Get tooltip text - show token name (key) in tooltip
+                  // availableSizeTokens have a 'name' property which is the token key (e.g., 'sm', 'md', 'lg')
+                  // Extract just the key part if it's in format "size/key"
+                  const tokenKey = currentToken?.name?.includes('/') 
+                    ? currentToken.name.split('/').pop() || currentToken.name
+                    : currentToken?.name || ''
+                  const tooltipText = tokenKey || currentToken?.label || '—'
+                  
                   return (
-                    <div
+                    <Slider
                       key={entry.cssVar}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'auto 1fr auto auto',
-                        gap: 'var(--recursica-brand-dimensions-spacers-md)',
-                        alignItems: 'center',
-                        paddingTop: 0,
-                        paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-gutters-vertical)',
+                      value={clampedTokenIndex}
+                      onChange={(val) => {
+                        const rawIdx = typeof val === 'number' ? val : val[0]
+                        // Round to nearest integer to ensure we only use discrete token indices
+                        const idx = Math.round(rawIdx)
+                        // Clamp to valid range
+                        const clampedIdx = Math.max(0, Math.min(availableSizeTokens.length - 1, idx))
+                        setSliderValues((prev) => ({ ...prev, [entry.cssVar]: clampedIdx }))
                       }}
-                    >
-                      <label htmlFor={entry.cssVar} style={{
-                        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                        color: `var(${layer0Base}-element-text-color)`,
-                        opacity: `var(${layer0Base}-element-text-high-emphasis)`,
-                        minWidth: 80,
-                      }}>
-                        {toTitleCase(entry.label)}
-                      </label>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <Slider
-                          value={currentValue}
-                          onChange={(val) => {
-                            const num = typeof val === 'number' ? val : val[0]
-                            setSliderValues((prev) => ({ ...prev, [entry.cssVar]: num }))
-                          }}
-                          onChangeCommitted={(val) => {
-                            const num = typeof val === 'number' ? val : val[0]
-                            updateDimension(entry.path, num)
-                            setSliderValues((prev) => {
-                              const next = { ...prev }
-                              delete next[entry.cssVar]
-                              return next
-                            })
-                          }}
-                          min={0}
-                          max={64}
-                          step={1}
-                          layer="layer-0"
-                          disabled={isNone}
-                        />
-                      </div>
-                      <input
-                        type="number"
-                        value={Math.round(currentValue)}
-                        onChange={(e) => {
-                          if (isNone) return
-                          const next = Number(e.currentTarget.value)
-                          if (Number.isFinite(next) && next >= 0 && next <= 64) {
-                            setSliderValues((prev) => ({ ...prev, [entry.cssVar]: next }))
-                            updateDimension(entry.path, next)
-                          }
-                        }}
-                        onBlur={() => {
-                          if (isNone) return
-                          setSliderValues((prev) => {
-                            const next = { ...prev }
-                            delete next[entry.cssVar]
-                            return next
-                          })
-                        }}
-                        disabled={isNone}
-                        readOnly={isNone}
-                        style={{
-                          width: 60,
-                          padding: 'var(--recursica-brand-dimensions-spacers-xs) var(--recursica-brand-dimensions-spacers-sm)',
-                          border: `1px solid var(${layer1Base}-border-color)`,
-                          borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                          background: `var(${layer0Base}-surface)`,
-                          color: `var(${layer0Base}-element-text-color)`,
-                          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                          textAlign: 'center',
-                        }}
-                      />
-                      <span style={{
-                        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                        color: `var(${layer0Base}-element-text-color)`,
-                        opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
-                        minWidth: 20,
-                      }}>
-                        px
-                      </span>
-                    </div>
+                      onChangeCommitted={(val) => {
+                        const rawIdx = typeof val === 'number' ? val : val[0]
+                        // Round to nearest integer to ensure we only use discrete token indices
+                        const idx = Math.round(rawIdx)
+                        // Clamp to valid range
+                        const clampedIdx = Math.max(0, Math.min(availableSizeTokens.length - 1, idx))
+                        updateDimension(entry.path, clampedIdx)
+                        setSliderValues((prev) => {
+                          const next = { ...prev }
+                          delete next[entry.cssVar]
+                          return next
+                        })
+                      }}
+                      min={0}
+                      max={availableSizeTokens.length - 1}
+                      step={1}
+                      layer="layer-0"
+                      layout="side-by-side"
+                      tooltipText={tooltipText}
+                      label={<Label layer="layer-0" layout="side-by-side" size="small">{toTitleCase(entry.label)}</Label>}
+                      showInput={false}
+                      showValueLabel={true}
+                      valueLabel={getValueLabel}
+                      minLabel={minToken?.label || 'None'}
+                      maxLabel={maxToken?.label || 'Xl'}
+                      disabled={isNone}
+                    />
                   )
                 })}
               </div>

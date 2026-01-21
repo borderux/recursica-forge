@@ -234,17 +234,20 @@ function getChipStyles(
   const minWidthVar = getComponentLevelCssVar('Chip', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Chip', 'max-width')
   
-  // Get text styling CSS variables - font-size is at component level (not under size)
-  const fontSizeVar = getComponentLevelCssVar('Chip', 'font-size')
+  // Get text styling CSS variables - text-size or font-size is at component level (not under size)
+  // Try text-size first (new), fallback to font-size (legacy)
+  const fontSizeVar = getComponentLevelCssVar('Chip', 'text-size') || getComponentLevelCssVar('Chip', 'font-size')
   
   // Apply color styles
   styles.backgroundColor = `var(${bgVar})`
   styles.color = `var(${textVar})`
   styles.border = `var(${borderSizeVar}, 1px) solid var(${borderVar})`
   
-  // Apply text styles - Chip font-size references button typography, so use button font-weight
+  // Apply text styles - Chip uses caption typography
   styles.fontSize = fontSizeVar ? `var(${fontSizeVar})` : undefined
-  styles.fontWeight = 'var(--recursica-brand-typography-button-font-weight)'
+  // Set CSS variable for font-weight so it can be overridden by inline styles
+  ;(styles as any)['--chip-font-weight'] = 'var(--recursica-brand-typography-caption-font-weight)'
+  styles.fontWeight = 'var(--chip-font-weight, var(--recursica-brand-typography-caption-font-weight))'
   styles.textTransform = 'none' // Ensure text is not uppercase
   
   // Apply size styles - height and width are derived from content and padding

@@ -30,7 +30,7 @@ export default function LayersPage() {
     const tokens: Array<{ name: string; value: number; label: string }> = []
     try {
       const src: any = (tokensJson as any)?.tokens?.size || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)
@@ -276,11 +276,20 @@ export default function LayersPage() {
       return next
     })
   }
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property-element`
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
-      <div className="container-padding">
+      <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
         <div className="section">
-          <h2>Layers</h2>
+          <h1 style={{
+            margin: 0,
+            fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
+            fontSize: 'var(--recursica-brand-typography-h1-font-size)',
+            fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
+            letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
+            lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
+            color: `var(${layer0Base}-text-color)`,
+          }}>Layers</h1>
           <div style={{ display: 'grid', gap: 12 }}>
             <LayerModule level={0} title="Layer 0 (Background)" onSelect={() => { setSelectedLevels(new Set()); setSelectedLayerLevels(new Set([0])) }} isSelected={selectedLayerLevels.has(0)}>
               <LayerModule level={1} title="Layer 1" onSelect={() => { setSelectedLevels(new Set()); setSelectedLayerLevels(new Set([1])) }} isSelected={selectedLayerLevels.has(1)}>
@@ -293,7 +302,15 @@ export default function LayersPage() {
         </div>
         <div className="section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ margin: 0 }}>Elevation</h2>
+            <h1 style={{
+              margin: 0,
+              fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
+              fontSize: 'var(--recursica-brand-typography-h1-font-size)',
+              fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
+              letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
+              lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
+              color: `var(${layer0Base}-text-color)`,
+            }}>Elevation</h1>
           </div>
           <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
             <div className="elevation-grid" style={{ display: 'grid', gap: 48 }}>

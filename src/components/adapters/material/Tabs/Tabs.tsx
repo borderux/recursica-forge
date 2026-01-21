@@ -33,7 +33,7 @@ export default function Tabs({
           display: 'none',
         },
         '& .MuiTabs-flexContainer': {
-          gap: 'var(--recursica-brand-dimensions-spacers-default)',
+          gap: 'var(--recursica-brand-dimensions-general-default)',
         },
       }),
       ...style,

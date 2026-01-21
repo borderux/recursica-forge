@@ -17,7 +17,7 @@
 .dropdown-label-value {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacers-xs);
+  gap: var(--recursica-brand-dimensions-general-default);
   flex: 1;
   text-align: left;
 }
@@ -29,7 +29,7 @@
 .dropdown-value {
   font-weight: 400;
   margin-left: auto;
-  margin-right: var(--recursica-brand-dimensions-spacers-xs);
+  margin-right: var(--recursica-brand-dimensions-general-default);
 }
 
 .dropdown-chevron {
@@ -70,8 +70,8 @@ html[data-theme-mode="dark"] .dropdown-menu {
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacers-sm);
-  padding: var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md);
+  gap: var(--recursica-brand-dimensions-general-sm);
+  padding: var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md);
   background: transparent;
   border: none;
   border-radius: var(--recursica-brand-themes-light-layer-layer-3-property-border-radius, var(--recursica-brand-themes-light-layer-layer-3-property-border-radius));

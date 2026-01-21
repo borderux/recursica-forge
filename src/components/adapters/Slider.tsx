@@ -10,6 +10,8 @@ import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
+import { Label } from './Label'
+import { getTypographyCssVar, extractTypographyStyleName } from '../utils/typographyUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type SliderProps = {
@@ -24,6 +26,11 @@ export type SliderProps = {
   layer?: ComponentLayer
   label?: React.ReactNode
   showInput?: boolean
+  showValueLabel?: boolean
+  valueLabel?: string | ((value: number) => string)
+  tooltipText?: string | ((value: number) => string)
+  minLabel?: string
+  maxLabel?: string
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -40,6 +47,11 @@ export function Slider({
   layer = 'layer-0',
   label,
   showInput = false,
+  showValueLabel = false,
+  valueLabel,
+  tooltipText,
+  minLabel,
+  maxLabel,
   className,
   style,
   mantine,
@@ -48,6 +60,37 @@ export function Slider({
 }: SliderProps) {
   const Component = useComponent('Slider')
   const { mode } = useThemeMode()
+  
+  const isRange = Array.isArray(value)
+  const singleValue = isRange ? value[0] : value
+  
+  // Calculate tooltip text - call function if provided, otherwise use string directly
+  let computedTooltipText: string | undefined
+  try {
+    if (tooltipText) {
+      if (typeof tooltipText === 'function') {
+        computedTooltipText = tooltipText(singleValue)
+      } else {
+        computedTooltipText = tooltipText
+      }
+    }
+  } catch (error) {
+    console.warn('Error calculating tooltip text:', error)
+    computedTooltipText = undefined
+  }
+  
+  // Get label typography styles (not using Label component, just the typography)
+  // Calculate these unconditionally to avoid hook order issues
+  const labelFontVar = getComponentLevelCssVar('Label', 'label-font')
+  const labelFontValue = readCssVar(labelFontVar)
+  const labelFontStyle = extractTypographyStyleName(labelFontValue) || 'body-small'
+  const labelFontSizeVar = getTypographyCssVar(labelFontStyle, 'font-size')
+  const labelFontFamilyVar = getTypographyCssVar(labelFontStyle, 'font-family')
+  const labelFontWeightVar = getTypographyCssVar(labelFontStyle, 'font-weight')
+  const labelLetterSpacingVar = getTypographyCssVar(labelFontStyle, 'font-letter-spacing')
+  const labelLineHeightVar = getTypographyCssVar(labelFontStyle, 'line-height')
+  const labelTextColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
+  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
   
   if (!Component) {
     // Fallback to native input range
@@ -97,6 +140,16 @@ export function Slider({
     
     const sliderElement = (
       <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: showInput ? `var(${inputGapVar}, 8px)` : 0, overflow: 'visible' }}>
+        {/* Min value display */}
+        <span style={{ 
+          fontSize: 12, 
+          opacity: 0.7, 
+          flexShrink: 0,
+          marginRight: '8px',
+          color: 'inherit',
+        }}>
+          {min}
+        </span>
         <div style={{ 
           position: 'relative', 
           flex: 1, 
@@ -144,6 +197,7 @@ export function Slider({
             value={singleValue}
             onChange={handleChange}
             disabled={disabled}
+            title={computedTooltipText}
             style={{
               position: 'relative',
               width: '100%',
@@ -221,6 +275,16 @@ export function Slider({
             }
           `}</style>
         </div>
+        {/* Max value display */}
+        <span style={{ 
+          fontSize: 12, 
+          opacity: 0.7, 
+          flexShrink: 0,
+          marginLeft: '8px',
+          color: 'inherit',
+        }}>
+          {max}
+        </span>
         
         {/* Input field */}
         {showInput && (
@@ -263,24 +327,78 @@ export function Slider({
       </div>
     )
     
+    // Calculate the width of the max value display to align value label above it
+    const maxValueWidth = 30 // Approximate width for max value display
+    
     if (layout === 'side-by-side' && label) {
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, ...style }}>
-          {label}
-          {sliderElement}
+        <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
+          <div style={{ flexShrink: 0, minWidth: 100, width: 100 }}>
+            {label}
+          </div>
+          <div style={{ 
+            flex: 1, 
+            display: 'flex',
+            alignItems: 'center',
+          }}>
+            {sliderElement}
+          </div>
         </div>
       )
     }
     
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVar}, 8px)`, ...style }}>
-        {label && <div>{label}</div>}
+        {label && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {label}
+            {showValueLabel && (
+              <span style={{ 
+                fontSize: 12, 
+                opacity: 0.7, 
+                color: 'inherit',
+                width: maxValueWidth,
+                textAlign: 'right',
+              }}>
+                {valueLabel ? (typeof valueLabel === 'function' ? valueLabel(singleValue) : valueLabel) : singleValue}
+              </span>
+            )}
+          </div>
+        )}
         {sliderElement}
       </div>
     )
   }
   
-  return (
+  // Calculate display value - call function if provided, otherwise use value directly
+  let displayValue: string | number | undefined
+  try {
+    if (valueLabel) {
+      if (typeof valueLabel === 'function') {
+        displayValue = valueLabel(singleValue)
+      } else {
+        displayValue = valueLabel
+      }
+    } else {
+      displayValue = singleValue
+    }
+  } catch (error) {
+    console.warn('Error calculating value label:', error)
+    displayValue = singleValue
+  }
+  // Ensure displayValue is always a non-empty string for rendering
+  const displayValueStr = (displayValue !== undefined && displayValue !== null && String(displayValue).trim() !== '') 
+    ? String(displayValue).trim() 
+    : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '—')
+  
+  // Calculate the width of the max value display to align value label above it
+  const maxValueWidth = 30 // Approximate width for max value display
+  
+  // When showValueLabel is true, we handle the label row ourselves to avoid duplicates
+  // and to position the value label correctly
+  const shouldHandleLabelRow = showValueLabel && label
+  
+  const sliderComponent = (
     <Suspense fallback={<div style={{ width: '100%', height: 20 }} />}>
       <Component
         value={value}
@@ -292,8 +410,13 @@ export function Slider({
         disabled={disabled}
         layout={layout}
         layer={layer}
-        label={label}
+        label={shouldHandleLabelRow ? undefined : label}
         showInput={showInput}
+        showValueLabel={false}
+        valueLabel={valueLabel}
+        tooltipText={computedTooltipText}
+        minLabel={minLabel}
+        maxLabel={maxLabel}
         className={className}
         style={style}
         mantine={mantine}
@@ -301,5 +424,88 @@ export function Slider({
         carbon={carbon}
       />
     </Suspense>
+  )
+  
+  // Get layout-specific gap for label row
+  const labelSliderGapVarForLibrary = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'label-slider-gap')
+  
+  // Render value label using Label component to match label styling
+  // Always show the value label when showValueLabel is true
+  // Ensure we always have a non-empty value to display
+  const finalDisplayValue = (displayValueStr && displayValueStr.trim() !== '') 
+    ? displayValueStr 
+    : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '0')
+
+  const valueLabelElement = showValueLabel ? (
+    <span
+      style={{ 
+        flexShrink: 1,
+        whiteSpace: 'nowrap',
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        fontSize: `var(${labelFontSizeVar})`,
+        fontFamily: `var(${labelFontFamilyVar})`,
+        fontWeight: `var(${labelFontWeightVar})`,
+        letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
+        lineHeight: `var(${labelLineHeightVar})`,
+        color: `var(${labelTextColorVar})`,
+        opacity: `var(${highEmphasisOpacityVar})`,
+        textAlign: 'right',
+      }}
+    >
+      {finalDisplayValue}
+    </span>
+  ) : null
+  
+  // When using library components, they handle their own label rendering
+  // We only override this when showValueLabel is true to position the value label correctly
+  // So we should NOT wrap with additional label rendering when shouldHandleLabelRow is false
+  if (!shouldHandleLabelRow) {
+    // Let the library component handle label rendering
+    return sliderComponent
+  }
+  
+  // When layout is side-by-side, always let the Component handle it
+  // This ensures proper side-by-side rendering regardless of showValueLabel
+  if (layout === 'side-by-side' && label && Component) {
+    return (
+      <Suspense fallback={<div style={{ width: '100%', height: 20 }} />}>
+        <Component
+          value={value}
+          onChange={onChange}
+          onChangeCommitted={onChangeCommitted}
+          min={min}
+          max={max}
+          step={step}
+          disabled={disabled}
+          layout={layout}
+          layer={layer}
+          label={label}
+          showInput={showInput}
+          showValueLabel={showValueLabel}
+          valueLabel={valueLabel}
+          tooltipText={tooltipText}
+          minLabel={minLabel}
+          maxLabel={maxLabel}
+          className={className}
+          style={style}
+          mantine={mantine}
+          material={material}
+          carbon={carbon}
+        />
+      </Suspense>
+    )
+  }
+  
+  // For stacked layout, show the label and value label on top
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVarForLibrary}, 8px)`, width: '100%', minWidth: 0, ...style }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minWidth: 0, gap: '8px' }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>{label}</div>
+        {valueLabelElement}
+      </div>
+      {sliderComponent}
+    </div>
   )
 }

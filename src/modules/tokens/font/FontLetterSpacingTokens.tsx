@@ -147,13 +147,15 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              gap: 'var(--recursica-brand-dimensions-spacers-default)',
+              gap: 'var(--recursica-brand-dimensions-general-default)',
               borderLeft: `1px solid var(${layer1Base}-border-color)`,
               paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
               paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
               paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               width: '350px',
+              minWidth: 0,
+              overflow: 'hidden',
             }}>
               <Slider
                 min={-2}
@@ -172,10 +174,11 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
                 layer="layer-0"
                 layout="stacked"
                 showInput={true}
+                showValueLabel={true}
+                valueLabel={(val) => `${val >= 0 ? '+' : ''}${val.toFixed(2)}px`}
                 style={{ 
-                  flex: 1,
-                  minWidth: 200,
-                  maxWidth: 300,
+                  width: '100%',
+                  minWidth: 0,
                 }}
               />
             </div>

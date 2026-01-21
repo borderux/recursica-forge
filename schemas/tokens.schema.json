@@ -144,7 +144,55 @@
                   "required": ["$value"],
                   "properties": {
                     "$value": {
-                      "type": "string"
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "minItems": 1
+                        }
+                      ]
+                    },
+                    "$extensions": {
+                      "type": "object",
+                      "properties": {
+                        "com.google.fonts": {
+                          "type": "object",
+                          "properties": {
+                            "url": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "opticalSizing": {
+                              "type": "string",
+                              "enum": ["auto", "none"]
+                            }
+                          },
+                          "required": ["url"],
+                          "additionalProperties": false
+                        },
+                        "variants": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": ["weight", "style"],
+                            "properties": {
+                              "weight": {
+                                "type": "string"
+                              },
+                              "style": {
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "additionalProperties": false
@@ -159,6 +207,26 @@
             "weights": {
               "type": "object",
               "additionalProperties": true
+            },
+            "styles": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9_-]+$": {
+                  "type": "object",
+                  "required": ["$type", "$value"],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": ["string"]
+                    },
+                    "$value": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
             },
             "line-heights": {
               "type": "object",

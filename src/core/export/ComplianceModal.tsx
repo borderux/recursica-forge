@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react'
+import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import type { ComplianceIssue } from './aaComplianceCheck'
 
 interface ComplianceModalProps {
@@ -15,6 +16,7 @@ interface ComplianceModalProps {
 }
 
 export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceModalProps) {
+  const { mode } = useThemeMode()
   const [acknowledged, setAcknowledged] = useState(false)
   
   const groupedIssues = issues.reduce((acc, issue) => {
@@ -48,13 +50,15 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
     >
       <div
         style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '24px',
+          backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
+          color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+          border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
+          borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
+          padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding)`,
           maxWidth: '600px',
           maxHeight: '80vh',
           overflow: 'auto',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -62,7 +66,7 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
           AA Compliance Issues Detected
         </h2>
         
-        <p style={{ marginBottom: '16px', color: '#666' }}>
+        <p style={{ marginBottom: '16px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)` }}>
           The following color combinations do not meet WCAG AA contrast requirements (4.5:1 ratio).
           You must acknowledge these deficiencies before exporting.
         </p>
@@ -77,7 +81,7 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
                 {groupIssues.map((issue, idx) => (
                   <li key={idx} style={{ marginBottom: '4px', fontSize: '13px' }}>
                     <strong>{issue.location}:</strong> {issue.message}
-                    <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
+                    <div style={{ fontSize: '12px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)`, marginTop: '2px' }}>
                       Tone: {issue.toneHex} | On-tone: {issue.onToneHex} | Ratio: {issue.contrastRatio.toFixed(2)}
                     </div>
                   </li>
@@ -104,9 +108,10 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
             onClick={onCancel}
             style={{
               padding: '8px 16px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              backgroundColor: 'white',
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
+              borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
+              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
               cursor: 'pointer',
             }}
           >
@@ -118,7 +123,7 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
             style={{
               padding: '8px 16px',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
               backgroundColor: acknowledged ? '#d40d0d' : '#ccc',
               color: 'white',
               cursor: acknowledged ? 'pointer' : 'not-allowed',

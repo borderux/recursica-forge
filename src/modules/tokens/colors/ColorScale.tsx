@@ -106,7 +106,7 @@ export function ColorScale({
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <div style={{ marginBottom: 'var(--recursica-brand-dimensions-spacers-sm)' }}>
+      <div style={{ marginBottom: 'var(--recursica-brand-dimensions-general-sm)' }}>
         <input
           required
           value={localName}
@@ -124,7 +124,7 @@ export function ColorScale({
           }}
           style={{ 
             fontSize: 'var(--recursica-brand-typography-body-small-font-size)', 
-            padding: 'var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-default)', 
+            padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-default)', 
             border: `1px solid var(${layer1Base}-border-color)`, 
             borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
             width: '100%',
@@ -173,7 +173,7 @@ export function ColorScale({
         )
       })}
       <div style={{ 
-        marginTop: 'var(--recursica-brand-dimensions-spacers-sm)',
+        marginTop: 'var(--recursica-brand-dimensions-general-sm)',
         display: 'flex',
         justifyContent: 'center',
       }}>

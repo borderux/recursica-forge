@@ -8,12 +8,16 @@ import { useMemo, useState, useEffect } from 'react'
 import TypeTokensPanel from './TypeTokensPanel'
 import TypeStylePanel from './TypeStylePanel'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { Button } from '../../components/adapters/Button'
 
 // local helpers retained for legacy but no longer used directly in this file
 
 // no-op placeholder removed (SimpleTypeSample has its own readCssVar)
 
 export function TypePage() {
+  const { mode } = useThemeMode()
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  
   type Sample = { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }
 
   // removed: family options handled inside TypeSample when needed
@@ -49,36 +53,46 @@ export function TypePage() {
     const { mode } = useThemeMode()
     const Tag = tag as any
     const cssVarName = prefixToCssVarName(prefix)
+    
+    // Build layer-1 base CSS variable prefix
+    const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+    
     // CSS variables update automatically, but React needs to re-render to pick up changes
     const style: React.CSSProperties = useMemo(() => ({
-      fontFamily: `var(--recursica-brand-typography-${cssVarName}-font-family, system-ui, -apple-system, Segoe UI, Roboto, Arial)`,
+      fontFamily: `var(--recursica-brand-typography-${cssVarName}-font-family)`,
       fontSize: `var(--recursica-brand-typography-${cssVarName}-font-size, 16px)`,
       fontWeight: `var(--recursica-brand-typography-${cssVarName}-font-weight, 400)` as any,
       letterSpacing: `var(--recursica-brand-typography-${cssVarName}-font-letter-spacing, 0)`,
       lineHeight: `var(--recursica-brand-typography-${cssVarName}-line-height, normal)` as any,
+      color: `var(${layer1Base}-element-text-color)`,
       margin: '0',
-    }), [cssVarName, updateKey])
+    }), [cssVarName, mode, layer1Base, updateKey])
     
-    // Elevation level 1 box-shadow CSS variables for selected state
-    const selectedElevation = isSelected 
-      ? `var(--recursica-brand-themes-${mode}-elevations-elevation-1-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-1-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-1-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-1-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-1-shadow-color)`
-      : undefined
+    // Container style using layer-1 properties
+    // When selected, use core alert color for border instead of dropshadow
+    const containerStyle = useMemo(() => {
+      const borderColor = isSelected 
+        ? `var(--recursica-brand-themes-${mode}-palettes-core-alert)`
+        : `var(${layer1Base}-border-color)`
+      
+      return {
+        backgroundColor: `var(${layer1Base}-surface)`,
+        color: `var(${layer1Base}-element-text-color)`,
+        border: `var(${layer1Base}-border-thickness) solid ${borderColor}`, 
+        borderRadius: `var(${layer1Base}-border-radius)`, 
+        padding: `var(${layer1Base}-padding)`, 
+        display: 'flex' as const, 
+        alignItems: 'center' as const, 
+        gap: 12, 
+        cursor: 'pointer' as const,
+        boxShadow: 'none', // Layer 1 uses elevation-0 (no elevation)
+      }
+    }, [layer1Base, mode, isSelected, updateKey])
     
     return (
       <div
         onClick={() => onToggle(!isSelected)}
-        style={{ 
-          backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-          color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
-          border: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
-          borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-radius)`, 
-          padding: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-padding)`, 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 12, 
-          cursor: 'pointer',
-          boxShadow: selectedElevation || `var(--recursica-brand-themes-${mode}-elevations-elevation-1-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-1-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-1-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-1-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-1-shadow-color, rgba(0, 0, 0, 0))`,
-        }}
+        style={containerStyle}
       >
         <input type="checkbox" checked={isSelected} onClick={(e) => e.stopPropagation()} onChange={(e) => onToggle((e.target as HTMLInputElement).checked)} aria-label="Select type sample" />
         <Tag style={style}>{text}</Tag>
@@ -89,11 +103,15 @@ export function TypePage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [updateKey, setUpdateKey] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
-  // Listen for type choices changes - CSS variables update automatically, but React needs to re-render
+  // Listen for type choices changes and CSS variable updates - CSS variables update automatically, but React needs to re-render
   useEffect(() => {
     const handler = () => setUpdateKey((k) => k + 1)
     window.addEventListener('typeChoicesChanged', handler as any)
-    return () => window.removeEventListener('typeChoicesChanged', handler as any)
+    window.addEventListener('cssVarsUpdated', handler as any)
+    return () => {
+      window.removeEventListener('typeChoicesChanged', handler as any)
+      window.removeEventListener('cssVarsUpdated', handler as any)
+    }
   }, [])
   // Open/close style panel automatically based on selection
   useEffect(() => {
@@ -110,10 +128,19 @@ export function TypePage() {
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
   }, [])
   return (
-    <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto', padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ marginTop: 0, marginBottom: 0 }}>Type</h2>
-        <button onClick={() => setIsPanelOpen(true)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', cursor: 'pointer' }}>Edit Type Tokens</button>
+        <h1 style={{ 
+          marginTop: 0, 
+          marginBottom: 0,
+          fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h1-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
+          color: `var(${layer0Base}-element-text-color)`,
+        }}>Type</h1>
+        <Button onClick={() => setIsPanelOpen(true)} variant="outline" size="small" layer="layer-0">Edit Type Tokens</Button>
       </div>
       {samples.map((s) => (
         <SimpleTypeSample

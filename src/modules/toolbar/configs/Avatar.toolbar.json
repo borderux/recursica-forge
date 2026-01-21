@@ -14,11 +14,6 @@
     }
   },
   "props": {
-    "background": {
-      "icon": "paint-bucket",
-      "label": "Background",
-      "visible": true
-    },
     "border": {
       "icon": "square",
       "label": "Border",
@@ -41,10 +36,22 @@
         }
       }
     },
-    "icon-color": {
+    "color": {
       "icon": "frame-corners",
-      "label": "Icon Color",
-      "visible": true
+      "label": "Color",
+      "visible": true,
+      "group": {
+        "background": {
+          "icon": "paint-bucket",
+          "label": "Background",
+          "visible": true
+        },
+        "icon-color": {
+          "icon": "frame-corners",
+          "label": "Icon Color",
+          "visible": true
+        }
+      }
     },
     "text": {
       "icon": "text-aa",

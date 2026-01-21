@@ -6,58 +6,75 @@
     }
   },
   "props": {
-    "colors": {
-      "icon": "palette",
-      "label": "Colors",
+    "track": {
+      "icon": "faders-horizontal",
+      "label": "Track",
       "visible": true,
       "group": {
         "track": {
+          "icon": "paint-bucket",
           "label": "Track",
           "visible": true
         },
         "track-active": {
+          "icon": "paint-bucket",
           "label": "Active Track",
           "visible": true
         },
-        "thumb": {
-          "label": "Thumb",
+        "track-height": {
+          "icon": "arrows-up-down",
+          "label": "Track Height",
+          "visible": true
+        },
+        "track-border-radius": {
+          "icon": "corners-out",
+          "label": "Track Corner Radius",
           "visible": true
         }
       }
     },
-    "track-height": {
-      "icon": "arrows-up-down",
-      "label": "Track Height",
-      "visible": true
-    },
-    "thumb-size": {
+    "thumb": {
       "icon": "circle",
-      "label": "Thumb Size",
-      "visible": true
+      "label": "Thumb",
+      "visible": true,
+      "group": {
+        "thumb": {
+          "icon": "paint-bucket",
+          "label": "Thumb",
+          "visible": true
+        },
+        "thumb-size": {
+          "icon": "circle",
+          "label": "Thumb Size",
+          "visible": true
+        },
+        "thumb-border-radius": {
+          "icon": "corners-out",
+          "label": "Thumb Corner Radius",
+          "visible": true
+        }
+      }
     },
-    "track-border-radius": {
-      "icon": "corners-out",
-      "label": "Track Corner Radius",
-      "visible": true
-    },
-    "thumb-border-radius": {
-      "icon": "corners-out",
-      "label": "Thumb Corner Radius",
-      "visible": true
-    },
-    "label-slider-gap": {
+    "gaps": {
       "icon": "split-horizontal",
-      "label": "Label Gap",
-      "visible": true
+      "label": "Gaps",
+      "visible": true,
+      "group": {
+        "label-slider-gap": {
+          "icon": "split-horizontal",
+          "label": "Label Gap",
+          "visible": true
+        },
+        "input-gap": {
+          "icon": "split-horizontal",
+          "label": "Input Gap",
+          "visible": true
+        }
+      }
     },
     "input-width": {
       "icon": "arrows-left-right",
       "label": "Input Width",
-      "visible": true
-    },
-    "input-gap": {
-      "icon": "split-horizontal",
-      "label": "Input Gap",
       "visible": true
     }
   }

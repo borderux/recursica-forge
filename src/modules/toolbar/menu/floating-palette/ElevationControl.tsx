@@ -1,4 +1,5 @@
-import TokenSlider from '../../../forms/TokenSlider'
+import { Slider } from '../../../../components/adapters/Slider'
+import { Label } from '../../../../components/adapters/Label'
 import FloatingPalette from './FloatingPalette'
 import { getComponentLevelCssVar } from '../../../../components/utils/cssVarNames'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -84,40 +85,151 @@ export default function ElevationControl({
     >
       {isSwitch ? (
         <>
-          <TokenSlider
-            label="Thumb Elevation"
-            tokens={elevationOptions.map(opt => ({ name: opt.name, label: opt.label }))}
-            currentToken={currentThumbElevation || 'elevation-0'}
-            onChange={handleThumbElevationChange}
-            getTokenLabel={(token) => {
-              const opt = elevationOptions.find((o) => o.name === token.name)
-              return opt?.label || token.label || token.name
-            }}
-          />
-          <div style={{ marginTop: 'var(--recursica-brand-dimensions-spacers-md)' }}>
-            <TokenSlider
-              label="Track Elevation"
-              tokens={elevationOptions.map(opt => ({ name: opt.name, label: opt.label }))}
-              currentToken={currentTrackElevation || 'elevation-0'}
-              onChange={handleTrackElevationChange}
-              getTokenLabel={(token) => {
-                const opt = elevationOptions.find((o) => o.name === token.name)
-                return opt?.label || token.label || token.name
-              }}
-            />
+          {(() => {
+            const tokens = elevationOptions.map((opt, index) => ({ name: opt.name, label: opt.label, index }))
+            const thumbIdx = tokens.findIndex(t => t.name === (currentThumbElevation || 'elevation-0')) || 0
+            
+            // Extract elevation number from token name
+            const getElevationNumber = (token: typeof tokens[0] | undefined): number => {
+              if (!token) return 0
+              const match = token.name.match(/elevation-(\d+)/)
+              return match ? parseInt(match[1], 10) : 0
+            }
+            
+            const getValueLabel = React.useCallback((value: number) => {
+              const token = tokens[Math.round(value)]
+              if (!token) return 'None'
+              const elevationNum = getElevationNumber(token)
+              return elevationNum === 0 ? 'None' : String(elevationNum)
+            }, [tokens])
+            
+            const minToken = tokens[0]
+            const maxToken = tokens[tokens.length - 1]
+            const minElevationNum = getElevationNumber(minToken)
+            const minLabel = minElevationNum === 0 ? 'None' : String(minElevationNum)
+            const maxElevationNum = getElevationNumber(maxToken)
+            const maxLabel = String(maxElevationNum)
+            
+            return (
+              <Slider
+                value={thumbIdx}
+                onChange={(val) => {
+                  const idx = typeof val === 'number' ? val : val[0]
+                  const token = tokens[Math.round(idx)]
+                  if (token) handleThumbElevationChange(token.name)
+                }}
+                min={0}
+                max={tokens.length - 1}
+                step={1}
+                layer="layer-1"
+                layout="stacked"
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={getValueLabel}
+                minLabel={minLabel}
+                maxLabel={maxLabel}
+                label={<Label layer="layer-1" layout="stacked">Thumb Elevation</Label>}
+              />
+            )
+          })()}
+          <div style={{ marginTop: 'var(--recursica-brand-dimensions-general-md)' }}>
+            {(() => {
+              const tokens = elevationOptions.map((opt, index) => ({ name: opt.name, label: opt.label, index }))
+              const trackIdx = tokens.findIndex(t => t.name === (currentTrackElevation || 'elevation-0')) || 0
+              
+              // Extract elevation number from token name
+              const getElevationNumber = (token: typeof tokens[0] | undefined): number => {
+                if (!token) return 0
+                const match = token.name.match(/elevation-(\d+)/)
+                return match ? parseInt(match[1], 10) : 0
+              }
+              
+              const getValueLabel = React.useCallback((value: number) => {
+                const token = tokens[Math.round(value)]
+                if (!token) return 'None'
+                const elevationNum = getElevationNumber(token)
+                return elevationNum === 0 ? 'None' : String(elevationNum)
+              }, [tokens])
+              
+              const minToken = tokens[0]
+              const maxToken = tokens[tokens.length - 1]
+              const minElevationNum = getElevationNumber(minToken)
+              const minLabel = minElevationNum === 0 ? 'None' : String(minElevationNum)
+              const maxElevationNum = getElevationNumber(maxToken)
+              const maxLabel = String(maxElevationNum)
+              
+              return (
+                <Slider
+                  value={trackIdx}
+                  onChange={(val) => {
+                    const idx = typeof val === 'number' ? val : val[0]
+                    const token = tokens[Math.round(idx)]
+                    if (token) handleTrackElevationChange(token.name)
+                  }}
+                  min={0}
+                  max={tokens.length - 1}
+                  step={1}
+                  layer="layer-1"
+                  layout="stacked"
+                  showInput={false}
+                  showValueLabel={true}
+                  valueLabel={getValueLabel}
+                  minLabel={minLabel}
+                  maxLabel={maxLabel}
+                  label={<Label layer="layer-1" layout="stacked">Track Elevation</Label>}
+                />
+              )
+            })()}
           </div>
         </>
       ) : (
-        <TokenSlider
-          label="Elevation"
-          tokens={elevationOptions.map(opt => ({ name: opt.name, label: opt.label }))}
-          currentToken={currentElevation}
-          onChange={onElevationChange}
-          getTokenLabel={(token) => {
-            const opt = elevationOptions.find((o) => o.name === token.name)
-            return opt?.label || token.label || token.name
-          }}
-        />
+        (() => {
+          const tokens = elevationOptions.map((opt, index) => ({ name: opt.name, label: opt.label, index }))
+          const currentIdx = tokens.findIndex(t => t.name === currentElevation) || 0
+          
+          // Extract elevation number from token name
+          const getElevationNumber = (token: typeof tokens[0] | undefined): number => {
+            if (!token) return 0
+            const match = token.name.match(/elevation-(\d+)/)
+            return match ? parseInt(match[1], 10) : 0
+          }
+          
+          const getValueLabel = React.useCallback((value: number) => {
+            const token = tokens[Math.round(value)]
+            if (!token) return 'None'
+            const elevationNum = getElevationNumber(token)
+            return elevationNum === 0 ? 'None' : String(elevationNum)
+          }, [tokens])
+          
+          const minToken = tokens[0]
+          const maxToken = tokens[tokens.length - 1]
+          const minElevationNum = getElevationNumber(minToken)
+          const minLabel = minElevationNum === 0 ? 'None' : String(minElevationNum)
+          const maxElevationNum = getElevationNumber(maxToken)
+          const maxLabel = String(maxElevationNum)
+          
+          return (
+            <Slider
+              value={currentIdx}
+              onChange={(val) => {
+                const idx = typeof val === 'number' ? val : val[0]
+                const token = tokens[Math.round(idx)]
+                if (token) onElevationChange(token.name)
+              }}
+              min={0}
+              max={tokens.length - 1}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={minLabel}
+              maxLabel={maxLabel}
+              label={<Label layer="layer-1" layout="stacked">Elevation</Label>}
+            />
+          )
+        })()
       )}
     </FloatingPalette>
   )

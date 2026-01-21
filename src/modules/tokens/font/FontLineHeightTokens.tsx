@@ -133,13 +133,15 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              gap: 'var(--recursica-brand-dimensions-spacers-default)',
+              gap: 'var(--recursica-brand-dimensions-general-default)',
               borderLeft: `1px solid var(${layer1Base}-border-color)`,
               paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
               paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
               paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               width: '350px',
+              minWidth: 0,
+              overflow: 'hidden',
             }}>
               <Slider
                 min={0.5}
@@ -158,10 +160,11 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
                 layer="layer-0"
                 layout="stacked"
                 showInput={true}
+                showValueLabel={true}
+                valueLabel={(val) => val.toFixed(2)}
                 style={{ 
-                  flex: 1,
-                  minWidth: 200,
-                  maxWidth: 300,
+                  width: '100%',
+                  minWidth: 0,
                 }}
               />
             </div>

@@ -53,10 +53,10 @@ export function ThemeSidebar() {
         borderRightColor: `var(${layer1Base}-border-color)`,
         display: 'flex',
         flexDirection: 'column',
-        paddingLeft: 'var(--recursica-brand-dimensions-spacers-xl)',
-        paddingRight: 'var(--recursica-brand-dimensions-spacers-xl)',
-        paddingTop: 'var(--recursica-brand-dimensions-spacers-xl)',
-        paddingBottom: 'var(--recursica-brand-dimensions-spacers-xl)',
+        paddingLeft: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingTop: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingBottom: 'var(--recursica-brand-dimensions-general-xl)',
         flexShrink: 0,
         position: 'relative',
       }}
@@ -65,7 +65,7 @@ export function ThemeSidebar() {
       <h2
         style={{
           margin: 0,
-          marginBottom: 'var(--recursica-brand-dimensions-spacers-lg)',
+          marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
           fontSize: 'var(--recursica-brand-typography-body-font-size)',
           fontWeight: 600,
           color: `var(${layer1Base}-element-text-color)`,
@@ -76,7 +76,7 @@ export function ThemeSidebar() {
       </h2>
       
       {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-spacers-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
         {navItems.map((item) => {
           const isActive = currentNavItem === item.key
           
@@ -86,7 +86,7 @@ export function ThemeSidebar() {
               onClick={() => handleNavClick(item.key)}
               style={{
                 textAlign: 'left',
-                padding: 'var(--recursica-brand-dimensions-spacers-default) var(--recursica-brand-dimensions-spacers-md)',
+                padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
                 borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                 border: 'none',
                 background: 'transparent',
@@ -136,9 +136,9 @@ export function ThemeSidebar() {
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--recursica-brand-dimensions-spacers-sm)',
+          gap: 'var(--recursica-brand-dimensions-general-sm)',
           marginTop: 'auto',
-          paddingTop: 'var(--recursica-brand-dimensions-spacers-lg)',
+          paddingTop: 'var(--recursica-brand-dimensions-general-lg)',
           borderTopWidth: `var(${layer1Base}-border-thickness, 1px)`,
           borderTopStyle: 'solid',
           borderTopColor: `var(${layer1Base}-border-color)`,
@@ -189,7 +189,7 @@ export function ThemeSidebar() {
       {/* Copyright */}
       <div
         style={{
-          marginTop: 'var(--recursica-brand-dimensions-spacers-md)',
+          marginTop: 'var(--recursica-brand-dimensions-general-md)',
           fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
           color: `var(${layer0Base}-element-text-color)`,
           opacity: `var(${layer0Base}-element-text-low-emphasis)`,

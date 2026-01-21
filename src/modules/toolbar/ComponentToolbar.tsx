@@ -522,7 +522,7 @@ export default function ComponentToolbar({
   return (
     <div className="component-toolbar-panel">
       {/* Layers Segmented Control */}
-      <div style={{ padding: 'var(--recursica-brand-dimensions-spacers-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
+      <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
         <LayerSegmentedControl
           selected={selectedLayer}
           onSelect={(layer) => {
@@ -533,13 +533,13 @@ export default function ComponentToolbar({
 
       {/* Variants Dropdowns */}
       {visibleVariants.length > 0 && (
-        <div style={{ padding: 'var(--recursica-brand-dimensions-spacers-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
+        <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
           {visibleVariants.map((variant, index) => (
             <div 
               key={variant.propName}
               style={{ 
-                marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-spacers-sm)' : 0,
-                paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-spacers-sm)' : 0,
+                marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
+                paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
                 borderBottom: index < visibleVariants.length - 1 ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` : 'none'
               }}
             >
@@ -612,12 +612,12 @@ export default function ComponentToolbar({
       }).filter(Boolean)}
 
       {/* Reset Button */}
-      <div style={{ padding: 'var(--recursica-brand-dimensions-spacers-md)', borderTop: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
+      <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderTop: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
         <button
           onClick={handleReset}
           style={{
             width: '100%',
-            padding: 'var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md)',
+            padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
             background: 'transparent',
             border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
             borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
@@ -628,7 +628,7 @@ export default function ComponentToolbar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 'var(--recursica-brand-dimensions-spacers-xs)',
+            gap: 'var(--recursica-brand-dimensions-general-default)',
             transition: 'background-color 0.2s',
           }}
           onMouseEnter={(e) => {

@@ -96,47 +96,7 @@ export function buildDimensionVars(
     // Generate CSS vars without mode prefix since dimensions are shared
     traverseDimensions(dimensions, [], vars, tokenIndex, theme, mode)
     
-    // Add backwards compatibility aliases for spacer dimensions
-    // Old format: --recursica-brand-dimensions-spacer-sm
-    // New format: --recursica-brand-dimensions-spacers-sm
-    // Generate aliases so old references still work
-    if (dimensions.spacers && typeof dimensions.spacers === 'object') {
-      const spacerKeys = Object.keys(dimensions.spacers).filter(k => !k.startsWith('$'))
-      spacerKeys.forEach(spacerKey => {
-        const newVarName = `--recursica-brand-dimensions-spacers-${spacerKey}`
-        const oldVarName = `--recursica-brand-dimensions-spacer-${spacerKey}`
-        if (vars[newVarName] && !vars[oldVarName]) {
-          vars[oldVarName] = vars[newVarName]
-        }
-      })
-    }
-    // Also add backwards compatibility for icon dimensions
-    // Old format: --recursica-brand-dimensions-icon-default
-    // New format: --recursica-brand-dimensions-icons-default
-    if (dimensions.icons && typeof dimensions.icons === 'object') {
-      const iconKeys = Object.keys(dimensions.icons).filter(k => !k.startsWith('$'))
-      iconKeys.forEach(iconKey => {
-        const newVarName = `--recursica-brand-dimensions-icons-${iconKey}`
-        const oldVarName = `--recursica-brand-dimensions-icon-${iconKey}`
-        if (vars[newVarName] && !vars[oldVarName]) {
-          vars[oldVarName] = vars[newVarName]
-        }
-      })
-    }
-    // Add backwards compatibility aliases for general dimensions (if they exist)
-    // Old format: --recursica-brand-dimensions-sm
-    // New format: --recursica-brand-dimensions-general-sm
-    // Generate aliases so old references still work
-    if (dimensions.general && typeof dimensions.general === 'object') {
-      const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
-      generalDims.forEach(dim => {
-        const newVarName = `--recursica-brand-dimensions-general-${dim}`
-        const oldVarName = `--recursica-brand-dimensions-${dim}`
-        if (vars[newVarName] && !vars[oldVarName]) {
-          vars[oldVarName] = vars[newVarName]
-        }
-      })
-    }
+    // Dimensions are now using consistent plural forms (general, icons, etc.)
   }
 
   return vars

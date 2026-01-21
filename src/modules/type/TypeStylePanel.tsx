@@ -1,10 +1,13 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useVars } from '../vars/VarsContext'
-import { updateCssVar as updateCssVarUtil, removeCssVar } from '../../core/css/updateCssVar'
+import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
-import TokenSlider from '../forms/TokenSlider'
+import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
+import { Button } from '../../components/adapters/Button'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { readChoices, writeChoices } from './TypeControls'
+import { buildTypographyVars } from '../../core/resolvers/typography'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -23,8 +26,8 @@ function prefixToCssVarName(prefix: string): string {
 // Helper to extract token name from CSS variable value
 function extractTokenFromCssVar(cssValue: string): string | null {
   if (!cssValue) return null
-  // Match patterns like: var(--recursica-tokens-font-size-md) or var(--recursica-tokens-font-sizes-md)
-  // Support both singular and plural forms
+  // Match patterns like: var(--recursica-tokens-font-sizes-md)
+  // Uses plural form
   const match = cssValue.match(/var\(--recursica-tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights)-([^)]+)\)/)
   if (match) return match[1]
   // Also match: var(--tokens-font-size-md) (without recursica prefix)
@@ -34,7 +37,7 @@ function extractTokenFromCssVar(cssValue: string): string | null {
 }
 
 export default function TypeStylePanel({ open, selectedPrefixes, title, onClose }: { open: boolean; selectedPrefixes: string[]; title: string; onClose: () => void }) {
-  const { tokens } = useVars()
+  const { tokens, theme } = useVars()
   const [updateKey, setUpdateKey] = useState(0)
 
   // Listen for reset events to refresh font options
@@ -306,86 +309,117 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     return ''
   }
 
-  // Update choices for selected prefixes (this triggers typography system to rebuild CSS vars)
-  const updateCssVarValue = (property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height', tokenValue: string) => {
-    console.log('[TypeStylePanel] updateCssVarValue called:', { property, tokenValue, selectedPrefixes })
-    
-    const choices = readChoices()
-    const updatedChoices = { ...choices }
+  // Directly update CSS variables like component toolbar does
+  const updateCssVarValue = useCallback((property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height', tokenShort: string) => {
+    const cssVars: string[] = []
     
     selectedPrefixes.forEach((prefix) => {
-      if (!updatedChoices[prefix]) {
-        updatedChoices[prefix] = {}
-      }
+      const cssVarName = prefixToCssVarName(prefix)
+      let cssVar = ''
+      let tokenValue = ''
       
-      // Map property names to choice keys
-      const choiceKey = property === 'font-family' ? 'family' : 
-                       property === 'font-size' ? 'size' :
-                       property === 'font-weight' ? 'weight' :
-                       property === 'font-letter-spacing' ? 'spacing' : 'lineHeight'
-      
+      // Map property to CSS variable name and token reference
       if (property === 'font-family') {
-        // Typography resolver expects the actual font family VALUE (string), not token short name
-        // So we store the value directly (the font name like "Lexend")
-        if (tokenValue) {
-          updatedChoices[prefix][choiceKey] = tokenValue
+        cssVar = `--recursica-brand-typography-${cssVarName}-font-family`
+        // Check if this token exists in typefaces or families
+        const typefaces = (tokens as any)?.tokens?.font?.typefaces || (tokens as any)?.tokens?.font?.typeface || {}
+        const families = (tokens as any)?.tokens?.font?.families || (tokens as any)?.tokens?.font?.family || {}
+        // Determine which token CSS variable to use
+        let tokenCssVar = ''
+        if (typefaces[tokenShort]) {
+          tokenCssVar = `--recursica-tokens-font-typefaces-${tokenShort}`
+        } else if (families[tokenShort]) {
+          tokenCssVar = `--recursica-tokens-font-families-${tokenShort}`
         } else {
-          delete updatedChoices[prefix][choiceKey]
+          // Fallback to typefaces (most common)
+          tokenCssVar = `--recursica-tokens-font-typefaces-${tokenShort}`
         }
-      } else {
-        // For other properties, store the token name directly
-        if (tokenValue) {
-          updatedChoices[prefix][choiceKey] = tokenValue
-        } else {
-          delete updatedChoices[prefix][choiceKey]
-        }
+        // Resolve the token CSS variable to get the actual font value (with fallbacks)
+        const resolvedValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
+        // Use the resolved value (font name with fallbacks) if available, otherwise fall back to token reference
+        tokenValue = resolvedValue || `var(${tokenCssVar})`
+      } else if (property === 'font-size') {
+        cssVar = `--recursica-brand-typography-${cssVarName}-font-size`
+        tokenValue = `var(--recursica-tokens-font-sizes-${tokenShort})`
+      } else if (property === 'font-weight') {
+        cssVar = `--recursica-brand-typography-${cssVarName}-font-weight`
+        tokenValue = `var(--recursica-tokens-font-weights-${tokenShort})`
+      } else if (property === 'font-letter-spacing') {
+        cssVar = `--recursica-brand-typography-${cssVarName}-font-letter-spacing`
+        tokenValue = `var(--recursica-tokens-font-letter-spacings-${tokenShort})`
+      } else if (property === 'line-height') {
+        cssVar = `--recursica-brand-typography-${cssVarName}-line-height`
+        tokenValue = `var(--recursica-tokens-font-line-heights-${tokenShort})`
+      }
+      
+      if (cssVar && tokenValue) {
+        // Set CSS variable synchronously to ensure it's in DOM before any recomputes
+        updateCssVar(cssVar, tokenValue, tokens, true) // silent=true to prevent immediate events
+        cssVars.push(cssVar)
       }
     })
     
-    console.log('[TypeStylePanel] Writing choices:', updatedChoices)
-    
-    // Write choices to localStorage and trigger recompute
-    writeChoices(updatedChoices)
-    
-    // Verify the event was dispatched
-    console.log('[TypeStylePanel] typeChoicesChanged event should have been dispatched')
-    
-    // Load fonts asynchronously if family changed
-    if (property === 'font-family' && tokenValue && tokenValue.trim()) {
-      import('../../modules/type/fontUtils').then(({ ensureFontLoaded }) => {
-        ensureFontLoaded(tokenValue.trim()).catch((error) => {
-          console.warn(`Failed to load font ${tokenValue}:`, error)
-        })
-      }).catch(() => {})
+    // Dispatch event to notify components
+    if (cssVars.length > 0) {
+      // Use setTimeout to ensure CSS variables are set in DOM before dispatching
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars }
+        }))
+        setUpdateKey((k) => k + 1)
+      }, 0)
+      
+      // Load fonts asynchronously AFTER CSS variable is set
+      // Delay to ensure CSS variable is preserved before font-loaded events trigger recomputes
+      if (property === 'font-family' && tokenShort) {
+        setTimeout(() => {
+          import('../../modules/type/fontUtils').then(({ ensureFontLoaded }) => {
+            const familyOption = familyOptions.find((o) => o.short === tokenShort)
+            if (familyOption) {
+              ensureFontLoaded(familyOption.value.trim()).catch(() => {})
+            }
+          }).catch(() => {})
+        }, 200) // Delay to ensure CSS variable is set and preserved
+      }
     }
-    
-    // Force immediate UI update
-    setUpdateKey((k) => k + 1)
-    
-    // Also refresh after recompute completes (typeChoicesChanged triggers recomputeAndApplyAll)
-    // Use a longer delay to ensure CSS vars are rebuilt
-    setTimeout(() => {
-      setUpdateKey((k) => k + 1)
-    }, 100)
-  }
+  }, [selectedPrefixes, tokens, familyOptions])
 
-  const revert = () => {
-    // Remove choices from localStorage to revert to defaults
-    const choices = readChoices()
-    const updatedChoices = { ...choices }
+  const revert = useCallback(() => {
+    // Rebuild typography vars from Brand.json defaults (no choices = use defaults)
+    const { vars: defaultTypeVars } = buildTypographyVars(tokens, theme, undefined, undefined)
+    
+    const cssVars: string[] = []
     
     selectedPrefixes.forEach((prefix) => {
-      if (updatedChoices[prefix]) {
-        delete updatedChoices[prefix]
-      }
+      const cssVarName = prefixToCssVarName(prefix)
+      const properties = ['font-family', 'font-size', 'font-weight', 'font-letter-spacing', 'line-height']
+      
+      properties.forEach((prop) => {
+        const cssVar = `--recursica-brand-typography-${cssVarName}-${prop === 'font-letter-spacing' ? 'font-letter-spacing' : prop === 'line-height' ? 'line-height' : prop}`
+        
+        // Remove the override first
+        document.documentElement.style.removeProperty(cssVar)
+        
+        // Restore default value from Brand.json
+        const defaultValue = defaultTypeVars[cssVar]
+        if (defaultValue) {
+          updateCssVar(cssVar, defaultValue, tokens, true) // silent=true to prevent immediate events
+        }
+        
+        cssVars.push(cssVar)
+      })
     })
     
-    // Write updated choices (removing selected prefixes)
-    writeChoices(updatedChoices)
-    
-    // Force re-render to update slider positions
-    setUpdateKey((k) => k + 1)
-  }
+    // Dispatch event to notify components
+    if (cssVars.length > 0) {
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars }
+        }))
+        setUpdateKey((k) => k + 1)
+      }, 0)
+    }
+  }, [selectedPrefixes, tokens, theme])
 
   // Calculate current values at top level (hooks must be unconditional)
   const prefix = selectedPrefixes.length > 0 ? selectedPrefixes[0] : null
@@ -397,156 +431,198 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const lineHeightCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-line-height` : ''
   const familyCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-family` : ''
   
-  // Initialize from choices first, then fall back to reading CSS variables
-  // Re-read when panel opens or updateKey changes
-  const initializeFromChoices = useMemo(() => {
-    if (!prefix || !open) return null
-    try {
-      const choices = readChoices()
-      const choice = choices[prefix]
-      if (choice && (choice.size || choice.weight || choice.spacing || choice.lineHeight || choice.family)) {
-        const result = {
-          size: choice.size,
-          weight: choice.weight,
-          spacing: choice.spacing,
-          lineHeight: choice.lineHeight,
-          // Family is stored as the actual font value (string), not token short name
-          family: choice.family || ''
-        }
-        return result
-      }
-    } catch (e) {
-      console.warn('Error reading choices:', e)
-    }
-    return null
-  }, [prefix, familyOptions, open, updateKey])
-  
-  // Use useMemo to re-read CSS variables when updateKey changes or panel opens
-  // Only compute when panel is open to avoid unnecessary work
+  // Read current values directly from CSS variables (simplified like component toolbar)
   const sizeCurrentToken = useMemo(() => {
     if (!prefix || !open) return undefined
-    // First try choices
-    if (initializeFromChoices?.size) {
-      const option = sizeOptions.find((o) => o.short === initializeFromChoices.size)
-      if (option) return option.short
-    }
-    // Fall back to reading CSS variable
     const token = getCurrentTokenName(sizeCssVar, sizeOptions)
     return token
-  }, [sizeCssVar, sizeOptions, updateKey, prefix, initializeFromChoices, open])
+  }, [sizeCssVar, sizeOptions, updateKey, prefix, open])
   
   const weightCurrentToken = useMemo(() => {
     if (!prefix || !open) return undefined
-    // First try choices
-    if (initializeFromChoices?.weight) {
-      const option = weightOptions.find((o) => o.short === initializeFromChoices.weight)
-      if (option) return option.short
-    }
-    // Fall back to reading CSS variable
     const token = getCurrentTokenName(weightCssVar, weightOptions)
     return token
-  }, [weightCssVar, weightOptions, updateKey, prefix, initializeFromChoices, open])
+  }, [weightCssVar, weightOptions, updateKey, prefix, open])
   
   const spacingCurrentToken = useMemo(() => {
     if (!prefix || !open) return undefined
-    // First try choices
-    if (initializeFromChoices?.spacing) {
-      const option = spacingOptions.find((o) => o.short === initializeFromChoices.spacing)
-      if (option) return option.short
-    }
-    // Fall back to reading CSS variable
     const token = getCurrentTokenName(spacingCssVar, spacingOptions)
     return token
-  }, [spacingCssVar, spacingOptions, updateKey, prefix, initializeFromChoices, open])
+  }, [spacingCssVar, spacingOptions, updateKey, prefix, open])
   
   const lineHeightCurrentToken = useMemo(() => {
     if (!prefix || !open) return undefined
-    // First try choices
-    if (initializeFromChoices?.lineHeight) {
-      const option = lineHeightOptions.find((o) => o.short === initializeFromChoices.lineHeight)
-      if (option) return option.short
-    }
-    // Fall back to reading CSS variable
     const token = getCurrentTokenName(lineHeightCssVar, lineHeightOptions)
     return token
-  }, [lineHeightCssVar, lineHeightOptions, updateKey, prefix, initializeFromChoices, open])
+  }, [lineHeightCssVar, lineHeightOptions, updateKey, prefix, open])
   
-  const currentFamily = useMemo(() => {
+  // Get current family token short name (not the font value)
+  const currentFamilyToken = useMemo(() => {
     if (!prefix || !open) return ''
     try {
-      // First try choices
-      if (initializeFromChoices?.family) {
-        return initializeFromChoices.family
+      // Read CSS variable and extract token name
+      const cssValue = readCssVar(familyCssVar) || readCssVarResolved(familyCssVar)
+      if (!cssValue) return ''
+      
+      // First, try to extract token reference (for backwards compatibility)
+      const tokenMatch = cssValue.match(/var\(--recursica-tokens-font-(?:family|families|typeface|typefaces)-([^)]+)\)/)
+      if (tokenMatch) {
+        return tokenMatch[1]
       }
-      // Also check choices directly (in case initializeFromChoices didn't catch it)
-      const choices = readChoices()
-      const choice = choices[prefix]
-      if (choice?.family) {
-        // Family is stored as the actual font value (string), not token short name
-        return choice.family
+      
+      // If it's a var() reference, follow the chain
+      if (cssValue.startsWith('var(')) {
+        const varMatch = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+        if (varMatch) {
+          const innerVar = varMatch[1].trim()
+          const innerValue = readCssVar(innerVar) || readCssVarResolved(innerVar)
+          if (innerValue) {
+            const innerTokenMatch = innerValue.match(/var\(--recursica-tokens-font-(?:family|families|typeface|typefaces)-([^)]+)\)/)
+            if (innerTokenMatch) {
+              return innerTokenMatch[1]
+            }
+          }
+        }
       }
-      // Fall back to reading CSS variable
-      return getCurrentFamily(familyCssVar)
+      
+      // If no token reference found, try to match the actual font value against familyOptions
+      // The CSS variable now contains the actual font value like "Lexend"
+      // Extract the font name (first part before comma)
+      const fontNameMatch = cssValue.match(/^["']?([^"',]+)["']?/)
+      if (fontNameMatch) {
+        const fontName = fontNameMatch[1].trim()
+        // Try to find a matching option by comparing the font name
+        // Check both the value and the label (which might contain the font name in parentheses)
+        const matchingOption = familyOptions.find((o) => {
+          // Match by exact font name
+          if (o.value && o.value.trim() === fontName) return true
+          // Match by font name in label like "Primary (Lexend)"
+          if (o.label && o.label.includes(`(${fontName})`)) return true
+          // Match by checking if the token CSS variable contains this font name
+          const tokenCssVar = `--recursica-tokens-font-typefaces-${o.short}`
+          const tokenValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
+          if (tokenValue && tokenValue.includes(fontName)) return true
+          return false
+        })
+        if (matchingOption) {
+          return matchingOption.short
+        }
+      }
     } catch (e) {
-      console.warn('Error reading current family:', e)
-      return ''
+      console.warn('Error reading current family token:', e)
     }
-  }, [familyCssVar, familyOptions, updateKey, prefix, initializeFromChoices, open])
+    return ''
+  }, [familyCssVar, familyOptions, updateKey, prefix, open])
 
   const { mode } = useThemeMode()
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   
-  // Debug: Log when panel state changes
-  useEffect(() => {
-    if (open && prefix) {
-      console.log('[TypeStylePanel] Panel opened for prefix:', prefix)
-      console.log('[TypeStylePanel] Options counts:', {
-        size: sizeOptions.length,
-        weight: weightOptions.length,
-        spacing: spacingOptions.length,
-        lineHeight: lineHeightOptions.length,
-        family: familyOptions.length
-      })
-      console.log('[TypeStylePanel] Current values:', {
-        size: sizeCurrentToken,
-        weight: weightCurrentToken,
-        spacing: spacingCurrentToken,
-        lineHeight: lineHeightCurrentToken,
-        family: currentFamily,
-        choices: initializeFromChoices
-      })
-      console.log('[TypeStylePanel] Tokens structure:', {
-        hasTokens: !!tokens,
-        hasFont: !!(tokens as any)?.tokens?.font,
-        fontKeys: tokens ? Object.keys((tokens as any)?.tokens?.font || {}) : []
-      })
+  // Calculate elevation box-shadow for layer-2
+  const elevationBoxShadow = useMemo(() => {
+    try {
+      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const themes = root?.themes || root
+      
+      // Read layer-2 elevation property
+      const layerSpec: any = themes?.[mode]?.layers?.[`layer-2`] || themes?.[mode]?.layer?.[`layer-2`] || root?.[mode]?.layers?.[`layer-2`] || root?.[mode]?.layer?.[`layer-2`] || {}
+      const v: any = layerSpec?.properties?.elevation?.$value
+      let elevationLevel = '2' // Default to layer number
+      
+      if (typeof v === 'string') {
+        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
+        const m = v.match(/elevations?\.(elevation-(\d+))/i)
+        if (m) elevationLevel = m[2]
+      }
+      
+      // Build box-shadow from elevation CSS variables
+      return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-colors-gray-1000))`
+    } catch {
+      // Fallback to elevation-2 if there's an error
+      return `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color, var(--recursica-tokens-colors-gray-1000))`
     }
-  }, [open, prefix, sizeCurrentToken, weightCurrentToken, spacingCurrentToken, lineHeightCurrentToken, currentFamily, initializeFromChoices, sizeOptions.length, weightOptions.length, spacingOptions.length, lineHeightOptions.length, familyOptions.length, tokens])
+  }, [theme, mode])
+  
+  // Pre-compute sorted arrays and callbacks at top level (before early return)
+  // This ensures hooks are always called in the same order
+  const sortedSizeTokens = useMemo(() => {
+    return [...sizeOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+  }, [sizeOptions])
+  
+  const sortedWeightTokens = useMemo(() => {
+    return [...weightOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+  }, [weightOptions])
+  
+  const sortedSpacingTokens = useMemo(() => {
+    return [...spacingOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+  }, [spacingOptions])
+  
+  const sortedLineHeightTokens = useMemo(() => {
+    return [...lineHeightOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
+  }, [lineHeightOptions])
+  
+  const getSizeValueLabel = useCallback((value: number) => {
+    const token = sortedSizeTokens[Math.round(value)]
+    return token?.label || token?.short || String(value)
+  }, [sortedSizeTokens])
+  
+  const getWeightValueLabel = useCallback((value: number) => {
+    const token = sortedWeightTokens[Math.round(value)]
+    return token?.label || token?.short || String(value)
+  }, [sortedWeightTokens])
+  
+  const getSpacingValueLabel = useCallback((value: number) => {
+    const token = sortedSpacingTokens[Math.round(value)]
+    return token?.label || token?.short || String(value)
+  }, [sortedSpacingTokens])
+  
+  const getLineHeightValueLabel = useCallback((value: number) => {
+    const token = sortedLineHeightTokens[Math.round(value)]
+    return token?.label || token?.short || String(value)
+  }, [sortedLineHeightTokens])
+  
   
   if (!open) return null
   
+  const CloseIcon = iconNameToReactComponent('x-mark')
+  
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'clamp(240px, 36vw, 520px)', background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: elevationBoxShadow, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ fontWeight: 700 }}>{title}</div>
-        <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
+        <h2 style={{ 
+          margin: 0,
+          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+          color: `var(${layer0Base}-element-text-color)`,
+        }}>{title}</h2>
+        <Button 
+          onClick={onClose} 
+          variant="text" 
+          layer="layer-2" 
+          aria-label="Close"
+          icon={CloseIcon ? <CloseIcon /> : undefined}
+        />
       </div>
-      <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
         {prefix ? (
           <>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span style={{ fontSize: 12, opacity: 0.7 }}>Font Family</span>
                 <select 
-                  value={currentFamily || ''} 
+                  value={currentFamilyToken || ''} 
                   onChange={(e) => { 
                     const v = (e.target as HTMLSelectElement).value
-                    console.log('[TypeStylePanel] Font family changed:', v)
-                    updateCssVarValue('font-family', v)
+                    if (v) {
+                      updateCssVarValue('font-family', v)
+                    }
                   }}
                   style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)` }}
                 >
                   <option value="">Select font family...</option>
                   {familyOptions.length > 0 ? (
-                    familyOptions.map((o) => (<option key={o.short} value={o.value}>{o.label}</option>))
+                    familyOptions.map((o) => (<option key={o.short} value={o.short}>{o.label}</option>))
                   ) : (
                     <option value="" disabled>No font families available</option>
                   )}
@@ -554,14 +630,27 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
               </label>
               
               {sizeOptions.length > 0 ? (
-                <TokenSlider
-                  label="Font Size"
-                  tokens={sizeOptions.map((o) => ({ name: o.short, label: o.label, value: o.value }))}
-                  currentToken={sizeCurrentToken}
-                  onChange={(tokenName) => {
-                    console.log('[TypeStylePanel] Font size changed:', tokenName)
-                    updateCssVarValue('font-size', tokenName)
+                <Slider
+                  value={sortedSizeTokens.findIndex(t => t.short === sizeCurrentToken) || 0}
+                  onChange={(val) => {
+                    const idx = typeof val === 'number' ? val : val[0]
+                    const token = sortedSizeTokens[Math.round(idx)]
+                    if (token) {
+                      updateCssVarValue('font-size', token.short)
+                    }
                   }}
+                  min={0}
+                  max={sortedSizeTokens.length - 1}
+                  step={1}
+                  layer="layer-3"
+                  layout="stacked"
+                  showInput={false}
+                  showValueLabel={true}
+                  valueLabel={getSizeValueLabel}
+                  tooltipText={getSizeValueLabel}
+                  minLabel={sortedSizeTokens[0]?.label || 'Xs'}
+                  maxLabel={sortedSizeTokens[sortedSizeTokens.length - 1]?.label || 'Xl'}
+                  label={<Label layer="layer-3" layout="stacked">Font Size</Label>}
                 />
               ) : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
@@ -570,14 +659,27 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
               )}
               
               {weightOptions.length > 0 ? (
-                <TokenSlider
-                  label="Font Weight"
-                  tokens={weightOptions.map((o) => ({ name: o.short, label: o.label, value: o.value }))}
-                  currentToken={weightCurrentToken}
-                  onChange={(tokenName) => {
-                    console.log('[TypeStylePanel] Font weight changed:', tokenName)
-                    updateCssVarValue('font-weight', tokenName)
+                <Slider
+                  value={sortedWeightTokens.findIndex(t => t.short === weightCurrentToken) || 0}
+                  onChange={(val) => {
+                    const idx = typeof val === 'number' ? val : val[0]
+                    const token = sortedWeightTokens[Math.round(idx)]
+                    if (token) {
+                      updateCssVarValue('font-weight', token.short)
+                    }
                   }}
+                  min={0}
+                  max={sortedWeightTokens.length - 1}
+                  step={1}
+                  layer="layer-3"
+                  layout="stacked"
+                  showInput={false}
+                  showValueLabel={true}
+                  valueLabel={getWeightValueLabel}
+                  tooltipText={getWeightValueLabel}
+                  minLabel={sortedWeightTokens[0]?.label || 'Thin'}
+                  maxLabel={sortedWeightTokens[sortedWeightTokens.length - 1]?.label || 'Black'}
+                  label={<Label layer="layer-3" layout="stacked">Font Weight</Label>}
                 />
               ) : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
@@ -586,14 +688,27 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
               )}
               
               {spacingOptions.length > 0 ? (
-                <TokenSlider
-                  label="Letter Spacing"
-                  tokens={spacingOptions.map((o) => ({ name: o.short, label: o.label, value: o.value }))}
-                  currentToken={spacingCurrentToken}
-                  onChange={(tokenName) => {
-                    console.log('[TypeStylePanel] Letter spacing changed:', tokenName)
-                    updateCssVarValue('font-letter-spacing', tokenName)
+                <Slider
+                  value={sortedSpacingTokens.findIndex(t => t.short === spacingCurrentToken) || 0}
+                  onChange={(val) => {
+                    const idx = typeof val === 'number' ? val : val[0]
+                    const token = sortedSpacingTokens[Math.round(idx)]
+                    if (token) {
+                      updateCssVarValue('font-letter-spacing', token.short)
+                    }
                   }}
+                  min={0}
+                  max={sortedSpacingTokens.length - 1}
+                  step={1}
+                  layer="layer-3"
+                  layout="stacked"
+                  showInput={false}
+                  showValueLabel={true}
+                  valueLabel={getSpacingValueLabel}
+                  tooltipText={getSpacingValueLabel}
+                  minLabel={sortedSpacingTokens[0]?.label || 'Tightest'}
+                  maxLabel={sortedSpacingTokens[sortedSpacingTokens.length - 1]?.label || 'Widest'}
+                  label={<Label layer="layer-3" layout="stacked">Letter Spacing</Label>}
                 />
               ) : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
@@ -602,14 +717,27 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
               )}
               
               {lineHeightOptions.length > 0 ? (
-                <TokenSlider
-                  label="Line Height"
-                  tokens={lineHeightOptions.map((o) => ({ name: o.short, label: o.label, value: o.value }))}
-                  currentToken={lineHeightCurrentToken}
-                  onChange={(tokenName) => {
-                    console.log('[TypeStylePanel] Line height changed:', tokenName)
-                    updateCssVarValue('line-height', tokenName)
+                <Slider
+                  value={sortedLineHeightTokens.findIndex(t => t.short === lineHeightCurrentToken) || 0}
+                  onChange={(val) => {
+                    const idx = typeof val === 'number' ? val : val[0]
+                    const token = sortedLineHeightTokens[Math.round(idx)]
+                    if (token) {
+                      updateCssVarValue('line-height', token.short)
+                    }
                   }}
+                  min={0}
+                  max={sortedLineHeightTokens.length - 1}
+                  step={1}
+                  layer="layer-3"
+                  layout="stacked"
+                  showInput={false}
+                  showValueLabel={true}
+                  valueLabel={getLineHeightValueLabel}
+                  tooltipText={getLineHeightValueLabel}
+                  minLabel={sortedLineHeightTokens[0]?.label || 'Shortest'}
+                  maxLabel={sortedLineHeightTokens[sortedLineHeightTokens.length - 1]?.label || 'Tallest'}
+                  label={<Label layer="layer-3" layout="stacked">Line Height</Label>}
                 />
               ) : (
                 <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
@@ -623,7 +751,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           </div>
         )}
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <button onClick={revert}>Revert</button>
+          <Button onClick={revert} variant="outline" layer="layer-2">Revert</Button>
         </div>
       </div>
     </div>

@@ -629,16 +629,34 @@ export default function PalettesPage() {
     } catch {}
   }
 
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
-      <div className="container-padding">
+      <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
         <div className="header-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-          <h2 id="theme-mode-label" style={{ margin: 0 }}>Palettes</h2>
+          <h1 id="theme-mode-label" style={{ 
+            margin: 0,
+            fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
+            fontSize: 'var(--recursica-brand-typography-h1-font-size)',
+            fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
+            letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
+            lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
+            color: `var(${layer0Base}-element-text-color)`,
+          }}>Palettes</h1>
         </div>
 
         <div className="section" style={{ display: 'grid', gap: 12 }}>
           <div style={{ marginTop: 0 }}>
-            <h3 style={{ margin: '0 0 12px 0' }}>Opacity</h3>
+            <h2 style={{ 
+              margin: '0 0 12px 0',
+              fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+              fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+              fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+              letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+              lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+              color: `var(${layer0Base}-element-text-color)`,
+            }}>Opacity</h2>
             <table className="color-swatches">
               <thead>
                 <tr>
@@ -755,7 +773,15 @@ export default function PalettesPage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0 }}>Core</h3>
+            <h2 style={{ 
+              margin: 0,
+              fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+              fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+              fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+              letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+              lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+              color: `var(${layer0Base}-element-text-color)`,
+            }}>Core</h2>
           <button type="button" onClick={addPalette} disabled={!canAddPalette} style={{ padding: '6px 10px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: canAddPalette ? 'pointer' : 'not-allowed', opacity: canAddPalette ? 1 : `var(--recursica-brand-themes-${mode}-state-disabled)` }}>Add Palette</button>
           </div>
 

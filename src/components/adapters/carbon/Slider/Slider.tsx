@@ -8,6 +8,8 @@ import { Slider as CarbonSlider } from '@carbon/react'
 import type { SliderProps as AdapterSliderProps } from '../../Slider'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../../../core/css/readCssVar'
+import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
 import './Slider.css'
 
 export default function Slider({
@@ -22,6 +24,9 @@ export default function Slider({
   layer = 'layer-0',
   label,
   showInput = false,
+  showValueLabel = false,
+  valueLabel,
+  tooltipText,
   className,
   style,
   carbon,
@@ -72,10 +77,68 @@ export default function Slider({
   const trackActiveColor = `var(${trackActiveVar})`
   const thumbColor = `var(${thumbVar})`
   
+  // Calculate display value for readonly label
+  let displayValue: string | number | undefined
+  try {
+    if (valueLabel) {
+      if (typeof valueLabel === 'function') {
+        displayValue = valueLabel(singleValue)
+      } else {
+        displayValue = valueLabel
+      }
+    } else {
+      displayValue = singleValue
+    }
+  } catch (error) {
+    console.warn('Error calculating value label:', error)
+    displayValue = singleValue
+  }
+  const displayValueStr = (displayValue !== undefined && displayValue !== null && String(displayValue).trim() !== '') 
+    ? String(displayValue).trim() 
+    : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '—')
+
+  // Calculate tooltip text
+  let computedTooltipText: string | undefined
+  try {
+    if (tooltipText) {
+      if (typeof tooltipText === 'function') {
+        computedTooltipText = tooltipText(singleValue)
+      } else {
+        computedTooltipText = tooltipText
+      }
+    }
+  } catch (error) {
+    console.warn('Error calculating tooltip text:', error)
+    computedTooltipText = undefined
+  }
+
+  // Get label typography styles (not using Label component, just the typography)
+  const labelFontVar = getComponentLevelCssVar('Label', 'label-font')
+  const labelFontValue = readCssVar(labelFontVar)
+  const labelFontStyle = extractTypographyStyleName(labelFontValue) || 'body-small'
+  const labelFontSizeVar = getTypographyCssVar(labelFontStyle, 'font-size')
+  const labelFontFamilyVar = getTypographyCssVar(labelFontStyle, 'font-family')
+  const labelFontWeightVar = getTypographyCssVar(labelFontStyle, 'font-weight')
+  const labelLetterSpacingVar = getTypographyCssVar(labelFontStyle, 'font-letter-spacing')
+  const labelLineHeightVar = getTypographyCssVar(labelFontStyle, 'line-height')
+  const labelTextColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
+  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+
   const sliderElement = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: showInput ? `var(${inputGapVar}, 8px)` : 0, width: '100%' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: (showInput || showValueLabel) ? `var(${inputGapVar}, 8px)` : 0, width: '100%', minWidth: 0 }}>
+      {/* Min value display */}
+      <span style={{ 
+        fontSize: 12, 
+        opacity: 0.7, 
+        flexShrink: 0,
+        marginRight: '8px',
+        color: 'inherit',
+      }}>
+        {minLabel ?? min}
+      </span>
       <div
         className="recursica-carbon-slider-wrapper"
+        title={computedTooltipText}
         style={{
           flex: 1,
           '--recursica-ui-kit-components-slider-track-color': trackColor,
@@ -95,12 +158,23 @@ export default function Slider({
           max={max}
           step={step}
           disabled={disabled}
+          ariaLabel={computedTooltipText}
           className={className}
           style={style}
           {...carbon}
           {...props}
         />
       </div>
+      {/* Max value display */}
+      <span style={{ 
+        fontSize: 12, 
+        opacity: 0.7, 
+        flexShrink: 0,
+        marginLeft: '8px',
+        color: 'inherit',
+      }}>
+        {maxLabel ?? max}
+      </span>
       {showInput && (
         <input
           type="number"
@@ -138,20 +212,50 @@ export default function Slider({
           }}
         />
       )}
+      {showValueLabel && !showInput && (
+        <span
+          style={{
+            minWidth: `var(${inputWidthVar}, 60px)`,
+            fontSize: `var(${labelFontSizeVar})`,
+            fontFamily: `var(${labelFontFamilyVar})`,
+            fontWeight: `var(${labelFontWeightVar})`,
+            letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
+            lineHeight: `var(${labelLineHeightVar})`,
+            color: `var(${labelTextColorVar})`,
+            opacity: disabled ? 0.5 : `var(${highEmphasisOpacityVar})`,
+            whiteSpace: 'nowrap',
+            textAlign: 'right',
+          }}
+        >
+          {displayValueStr}
+        </span>
+      )}
     </div>
   )
   
   if (layout === 'side-by-side' && label) {
+    // Get min-width CSS variable for slider if it exists
+    const sliderMinWidthVar = getComponentLevelCssVar('Slider', 'min-width')
+    
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, ...style }}>
-        {label}
-        {sliderElement}
+      <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
+        <div style={{ flexShrink: 0 }}>
+          {label}
+        </div>
+        <div style={{ 
+          flex: 1, 
+          minWidth: sliderMinWidthVar ? `var(${sliderMinWidthVar})` : 0,
+          display: 'flex',
+          alignItems: 'center',
+        }}>
+          {sliderElement}
+        </div>
       </div>
     )
   }
   
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVar}, 8px)`, ...style }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
       {label && <div>{label}</div>}
       {sliderElement}
     </div>

@@ -11,7 +11,7 @@ html[data-theme-mode="dark"] .menu-header-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--recursica-brand-dimensions-spacers-md);
+  padding: var(--recursica-brand-dimensions-general-md);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -30,7 +30,7 @@ html[data-theme-mode="dark"] .menu-header:hover {
 .menu-header-content {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacers-sm);
+  gap: var(--recursica-brand-dimensions-general-sm);
   flex: 1;
 }
 
@@ -59,7 +59,7 @@ html[data-theme-mode="dark"] .menu-header-title {
 .menu-header-right {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-spacers-sm);
+  gap: var(--recursica-brand-dimensions-general-sm);
 }
 
 .menu-header-selected-value {

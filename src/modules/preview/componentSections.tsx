@@ -611,6 +611,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             max={100}
             layer={layer as any}
             layout="stacked"
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${val}`}
           />
         )
       },

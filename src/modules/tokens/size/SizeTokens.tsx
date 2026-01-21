@@ -11,12 +11,12 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 export default function SizeTokens() {
   const { tokens: tokensJson, resetAll, updateToken } = useVars()
   const { mode } = useThemeMode()
-  // Store original values from JSON import
+  // Store original values from JSON import (exclude elevation tokens - those are only in brand, not tokens)
   const originalValues = useMemo(() => {
     const map: Record<string, number> = {}
     try {
       const src: any = (tokensImport as any)?.tokens?.sizes || (tokensImport as any)?.tokens?.size || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)
@@ -30,8 +30,9 @@ export default function SizeTokens() {
     const list: Array<{ name: string; value: number }> = []
     try {
       // Support both plural (sizes) and singular (size) for backwards compatibility
+      // Exclude elevation tokens - those are only in brand, not tokens
       const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)
@@ -197,7 +198,7 @@ export default function SizeTokens() {
         }}>
           Size
         </h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-md)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
           <Button
             variant="outline"
             size="small"
@@ -209,7 +210,7 @@ export default function SizeTokens() {
           >
             Reset all
           </Button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-spacers-sm)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
             <span style={{
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,
@@ -315,7 +316,7 @@ export default function SizeTokens() {
             <div key={it.name} style={{ 
               display: 'grid', 
               gridTemplateColumns: 'auto 1fr auto auto', 
-              gap: 'var(--recursica-brand-dimensions-spacers-md)',
+              gap: 'var(--recursica-brand-dimensions-general-md)',
               alignItems: 'center',
               paddingTop: 0,
               paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-gutters-vertical)',
@@ -381,72 +382,12 @@ export default function SizeTokens() {
                   step={1}
                   disabled={disabled}
                   layer="layer-0"
+                  layout="stacked"
+                  showInput={true}
+                  showValueLabel={true}
+                  valueLabel={(val) => `${val}px`}
                 />
               </div>
-              <input
-                id={it.name}
-                type="number"
-                value={Number(current)}
-                disabled={disabled}
-                onChange={(e) => {
-                  const next = Number(e.currentTarget.value)
-                  if (Number.isFinite(next)) {
-                    if (scaleByDefault && isDefault) {
-                      // When auto scale is enabled and changing default, update local state for preview
-                      setValues((prev) => ({ ...prev, [it.name]: next }))
-                    } else {
-                      // When auto scale is disabled, or it's not the default, update immediately
-                      setValues((prev) => ({ ...prev, [it.name]: next }))
-                      updateToken(it.name, next)
-                      setOverride(it.name, next as any)
-                    }
-                  }
-                }}
-                onBlur={(e) => {
-                  // On blur (when user finishes editing), commit the change
-                  const next = Number(e.currentTarget.value)
-                  if (Number.isFinite(next)) {
-                    if (scaleByDefault && isDefault) {
-                      // Update default size in store
-                      updateToken(it.name, next)
-                      setOverride(it.name, next as any)
-                      
-                      // Update all scaled sizes
-                      items.forEach((otherIt) => {
-                        const otherRawKey = otherIt.name.replace('size/', '')
-                        const otherIsNone = otherRawKey === 'none'
-                        const otherIsDefault = otherRawKey === 'default'
-                        if (!otherIsNone && !otherIsDefault) {
-                          const mul = parseMultiplier(otherRawKey)
-                          const computed = Math.round(next * mul)
-                          updateToken(otherIt.name, computed)
-                          setOverride(otherIt.name, computed)
-                        }
-                      })
-                    }
-                  }
-                }}
-                style={{ 
-                  width: 60,
-                  padding: 'var(--recursica-brand-dimensions-spacers-xs) var(--recursica-brand-dimensions-spacers-sm)',
-                  border: `1px solid var(${layer1Base}-border-color)`,
-                  borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                  background: `var(${layer0Base}-surface)`,
-                  color: `var(${layer0Base}-element-text-color)`,
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  textAlign: 'center',
-                  opacity: disabled ? 0.5 : 1,
-                  cursor: disabled ? 'not-allowed' : 'text',
-                }}
-              />
-              <span style={{ 
-                fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
-                minWidth: 20,
-              }}>
-                px
-              </span>
             </div>
           )
         })}

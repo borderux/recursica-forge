@@ -11,9 +11,11 @@ if (typeof window !== 'undefined') {
   fontUtilsImportPromise = import('../../modules/type/fontUtils').then(module => {
     getCachedFontFamilyName = module.getCachedFontFamilyName
   }).catch(() => {
-    // Fallback: provide a simple function that just returns the name with quotes if needed
+    // Fallback: provide a simple function that returns just the font name
     getCachedFontFamilyName = (name: string) => {
-      return name.includes(' ') ? `"${name}"` : name
+      if (!name || !name.trim()) return name
+      const trimmed = name.trim()
+      return trimmed.includes(' ') ? `"${trimmed}"` : trimmed
     }
   })
 }
@@ -23,8 +25,18 @@ function safeGetCachedFontFamilyName(name: string): string {
   if (getCachedFontFamilyName) {
     return getCachedFontFamilyName(name)
   }
-  // Fallback if not loaded yet
-  return name.includes(' ') ? `"${name}"` : name
+  // Fallback if not loaded yet - preserve the fallback if present
+  if (!name || !name.trim()) return name
+  const trimmed = name.trim()
+  if (trimmed.includes(',')) {
+    // Has fallback - quote the font name part if it has spaces, keep fallback as-is
+    const [fontPart, ...fallbackParts] = trimmed.split(',').map(s => s.trim())
+    const fallback = fallbackParts.join(',').trim()
+    const quotedFontPart = fontPart.includes(' ') ? `"${fontPart}"` : fontPart
+    return fallback ? `${quotedFontPart}, ${fallback}` : quotedFontPart
+  }
+  // No fallback - just add quotes if font name has spaces
+  return trimmed.includes(' ') ? `"${trimmed}"` : trimmed
 }
 
 export type TypographyChoices = Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>
@@ -107,11 +119,18 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
           valueStr = String(overrideValue)
         } else {
           const raw = cat[short]?.$value
-          if (typeof raw === 'string') {
+          // Handle array values for font families (e.g., ["Lexend", "sans-serif"]) - take first element
+          if (category === 'family' || category === 'typeface' || category === 'typefaces') {
+            if (Array.isArray(raw) && raw.length > 0) {
+              valueStr = typeof raw[0] === 'string' ? raw[0] : ''
+            } else if (typeof raw === 'string') {
+              valueStr = raw
+            }
+          } else if (typeof raw === 'string') {
             valueStr = raw
           } else if (typeof raw === 'number') {
             valueStr = unitHint ? `${raw}${unitHint}` : String(raw)
-          } else if (raw && typeof raw === 'object') {
+          } else if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
             const val: any = (raw as any).value
             const unit: any = (raw as any).unit
             if (typeof val === 'number') valueStr = unit ? `${val}${unit}` : (unitHint ? `${val}${unitHint}` : String(val))
@@ -134,14 +153,13 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         if (typeof valueStr === 'string' && valueStr) {
           // For font families/typefaces, use the cached actual font-family name from CSS
           if (category === 'family' || category === 'typeface' || category === 'typefaces') {
-            valueStr = safeGetCachedFontFamilyName(valueStr)
+            // Strip any existing quotes from the value before formatting
+            // The value might have quotes from JSON, but we want to format it fresh
+            const cleanValue = valueStr.trim().replace(/^["']|["']$/g, '')
+            valueStr = safeGetCachedFontFamilyName(cleanValue)
           }
           // Use plural form for CSS var name
           vars[`--recursica-tokens-font-${pluralCategory}-${short}`] = valueStr
-          // Backwards compatibility: also create singular form if different
-          if (pluralCategory !== category) {
-            vars[`--recursica-tokens-font-${category}-${short}`] = valueStr
-          }
         }
       })
     }
@@ -163,7 +181,15 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       if (name.startsWith('font/typeface/') || name.startsWith('font/family/')) {
         const key = name.replace('font/typeface/', '').replace('font/family/', '')
         const category = name.startsWith('font/typeface/') ? 'typeface' : 'family'
-        const value = String(effectiveOverrides[name] || '')
+        const overrideValue = effectiveOverrides[name]
+        
+        // Handle array values (e.g., ["Lexend", "sans-serif"]) - take first element
+        let value = ''
+        if (Array.isArray(overrideValue) && overrideValue.length > 0) {
+          value = typeof overrideValue[0] === 'string' ? overrideValue[0] : ''
+        } else {
+          value = String(overrideValue || '')
+        }
         
         // Skip if deleted
         const tokenName = `font/${category}/${key}`
@@ -173,14 +199,20 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         // Empty values mean the font family was deleted
         if (value && value.trim()) {
           // For font families/typefaces, use the cached actual font-family name from CSS
-          const finalValue = (category === 'family' || category === 'typeface' || category === 'typefaces')
-            ? safeGetCachedFontFamilyName(value)
-            : value
-          const pluralCategory = category === 'typeface' ? 'typefaces' : category
-          vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = finalValue
-          // Backwards compatibility
-          if (pluralCategory !== category) {
-            vars[`--recursica-tokens-font-${category}-${key}`] = finalValue
+          if (category === 'family' || category === 'typeface' || category === 'typefaces') {
+            // Strip any existing quotes from the value before formatting
+            // The value might be stored with quotes, but we want to format it fresh
+            const cleanValue = value.trim().replace(/^["']|["']$/g, '')
+            const finalValue = safeGetCachedFontFamilyName(cleanValue)
+            const pluralCategory = category === 'typeface' ? 'typefaces' : category
+            vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = finalValue
+          } else {
+            const pluralCategory = category === 'typeface' ? 'typefaces' : category
+            vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = value
+            // Backwards compatibility
+            if (pluralCategory !== category) {
+              vars[`--recursica-tokens-font-${category}-${key}`] = value
+            }
           }
         }
       }
@@ -371,6 +403,25 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       'line-height': 'line-heights'
     }
     // Always generate font-family CSS var, even if family is null (use default)
+    // Helper to resolve token reference to actual value
+    const resolveTokenRefToValue = (tokenRef: string): string => {
+      // If it's a var() reference, extract the CSS variable name and look it up
+      const varMatch = tokenRef.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+      if (varMatch) {
+        const tokenCssVar = varMatch[1].trim()
+        // Look up the actual value from vars (token CSS variables are set earlier)
+        const actualValue = vars[tokenCssVar]
+        if (actualValue) {
+          return actualValue
+        }
+        // If not found in vars, return the token reference as fallback
+        // (This shouldn't happen normally, but provides safety)
+        return tokenRef
+      }
+      // If not a var() reference, return as-is
+      return tokenRef
+    }
+    
     let brandVal: string | null = null
     if (familyToken) {
       const pluralCategory = categoryToPlural[familyToken.category] || familyToken.category
@@ -379,32 +430,36 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       brandVal = findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family')
     }
     
-    // For brand vars, always use token reference, never raw values
+    // For brand vars, resolve token reference to actual value (font name with fallbacks)
     if (brandVal) {
-      vars[`${brandPrefix}font-family`] = brandVal
-      vars[`${shortPrefix}font-family`] = brandVal
+      const resolvedValue = resolveTokenRefToValue(brandVal)
+      vars[`${brandPrefix}font-family`] = resolvedValue
+      vars[`${shortPrefix}font-family`] = resolvedValue
     } else {
       // Fallback to default token reference - ensure we always have a font-family
       const defaultFamilyToken = getFontToken('typeface/primary') ?? getFontToken('family/primary')
       if (defaultFamilyToken) {
         const defaultToken = findTokenByValue(defaultFamilyToken, 'typeface') || findTokenByValue(defaultFamilyToken, 'family')
         if (defaultToken) {
-          vars[`${brandPrefix}font-family`] = defaultToken
-          vars[`${shortPrefix}font-family`] = defaultToken
+          const resolvedValue = resolveTokenRefToValue(defaultToken)
+          vars[`${brandPrefix}font-family`] = resolvedValue
+          vars[`${shortPrefix}font-family`] = resolvedValue
         } else {
           // Last resort: use typefaces-primary or families-primary token directly
           const primaryTypefaceToken = findTokenByValue('primary', 'typeface') || findTokenByValue('primary', 'family')
           if (primaryTypefaceToken) {
-            vars[`${brandPrefix}font-family`] = primaryTypefaceToken
-            vars[`${shortPrefix}font-family`] = primaryTypefaceToken
+            const resolvedValue = resolveTokenRefToValue(primaryTypefaceToken)
+            vars[`${brandPrefix}font-family`] = resolvedValue
+            vars[`${shortPrefix}font-family`] = resolvedValue
           }
         }
       } else {
         // Absolute last resort: try to find any typeface token
         const anyTypefaceToken = findTokenByValue('primary', 'typeface') || findTokenByValue('primary', 'family')
         if (anyTypefaceToken) {
-          vars[`${brandPrefix}font-family`] = anyTypefaceToken
-          vars[`${shortPrefix}font-family`] = anyTypefaceToken
+          const resolvedValue = resolveTokenRefToValue(anyTypefaceToken)
+          vars[`${brandPrefix}font-family`] = resolvedValue
+          vars[`${shortPrefix}font-family`] = resolvedValue
         }
       }
     }

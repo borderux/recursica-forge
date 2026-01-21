@@ -1,9 +1,9 @@
 /**
- * Reusable Brand Border Radius Slider Component for Toolbars
+ * Reusable Brand Dimension Slider Component for Toolbars and Panels
  * 
  * This component provides a consistent slider interface for properties that use
- * brand border radius tokens. It includes a "none" option and is used for
- * border-radius properties across all component toolbars.
+ * brand dimension tokens (general, border-radii, icons, gutters, text-size, etc.).
+ * It sorts tokens by relative name rather than pixel value, and displays the value as a read-only label.
  */
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
@@ -12,37 +12,83 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
+import { Label } from '../../../components/adapters/Label'
 
-interface BrandBorderRadiusSliderProps {
+export type DimensionCategory = 'border-radii' | 'icons' | 'gutters' | 'general' | 'text-size'
+
+interface BrandDimensionSliderProps {
   targetCssVar: string
   targetCssVars?: string[]
   label: string
+  dimensionCategory: DimensionCategory
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 }
 
-export default function BrandBorderRadiusSlider({
+// Define sort orders for different dimension categories by relative name (not pixel value)
+const DIMENSION_ORDERS: Record<DimensionCategory, string[]> = {
+  'border-radii': ['none', 'sm', 'default', 'lg', 'xl', '2xl'],
+  'icons': ['xs', 'sm', 'default', 'lg'],
+  'gutters': ['horizontal', 'vertical'],
+  'general': ['none', 'sm', 'md', 'default', 'lg', 'xl', '2xl'],
+  'text-size': ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
+}
+
+// Helper to get sort order for a dimension key
+const getDimensionOrder = (key: string, category: DimensionCategory): number => {
+  const order = DIMENSION_ORDERS[category] || []
+  const index = order.indexOf(key)
+  return index >= 0 ? index : 999 // Unknown keys go to the end
+}
+
+// Helper to format label from key
+const formatDimensionLabel = (key: string): string => {
+  // Handle special cases
+  if (key === 'default') return 'Default'
+  if (key === 'none') return 'None'
+  if (key === '2xl') return '2Xl'
+  if (key === 'horizontal') return 'Horizontal'
+  if (key === 'vertical') return 'Vertical'
+  
+  // Handle size-based keys
+  const sizeMap: Record<string, string> = {
+    'xs': 'Xs',
+    'sm': 'Sm',
+    'md': 'Md',
+    'lg': 'Lg',
+    'xl': 'Xl',
+  }
+  if (sizeMap[key]) return sizeMap[key]
+  
+  // Default: capitalize first letter
+  return key.charAt(0).toUpperCase() + key.slice(1)
+}
+
+export default function BrandDimensionSlider({
   targetCssVar,
   targetCssVars = [],
   label,
+  dimensionCategory,
   layer = 'layer-1',
-}: BrandBorderRadiusSliderProps) {
-  const { theme, tokens: tokensFromVars } = useVars()
+}: BrandDimensionSliderProps) {
+  const { theme } = useVars()
   const { mode } = useThemeMode()
   
-  // Build tokens list from border radius brand tokens
+  // Build tokens list from brand dimension tokens, sorted by relative name
   const tokens = useMemo(() => {
-    const options: Array<{ name: string; value: number; label: string }> = []
+    const options: Array<{ name: string; value: number; label: string; key: string }> = []
     
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const dimensions = root?.dimensions || {}
-      const borderRadius = dimensions?.['border-radii'] || {}
+      const dimensionCategoryData = dimensions[dimensionCategory] || {}
       
-      // Collect border radius dimensions
-      Object.keys(borderRadius).forEach(radiusKey => {
-        const radiusValue = borderRadius[radiusKey]
-        if (radiusValue && typeof radiusValue === 'object' && '$value' in radiusValue) {
-          const cssVar = `--recursica-brand-dimensions-border-radii-${radiusKey}`
+      // Collect dimension tokens
+      Object.keys(dimensionCategoryData).forEach(dimensionKey => {
+        const dimensionValue = dimensionCategoryData[dimensionKey]
+        if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
+          // Generate CSS var name based on category
+          // Note: CSS vars use the category name as-is (e.g., border-radii, spacers)
+          const cssVar = `--recursica-brand-dimensions-${dimensionCategory}-${dimensionKey}`
           const cssValue = readCssVar(cssVar)
           
           // Only add if the CSS var exists (has been generated)
@@ -58,48 +104,43 @@ export default function BrandBorderRadiusSlider({
               }
             }
             
-            // Convert radius key to label (e.g., "default" -> "Default", "sm" -> "Sm", "2xl" -> "2Xl")
-            const label = radiusKey === 'default' ? 'Default' :
-                         radiusKey === 'sm' ? 'Sm' :
-                         radiusKey === 'md' ? 'Md' :
-                         radiusKey === 'lg' ? 'Lg' :
-                         radiusKey === 'xl' ? 'Xl' :
-                         radiusKey === '2xl' ? '2Xl' :
-                         radiusKey === 'none' ? 'None' :
-                         radiusKey.charAt(0).toUpperCase() + radiusKey.slice(1)
+            // Format label from key
+            const displayLabel = formatDimensionLabel(dimensionKey)
             
             options.push({
               name: cssVar,
               value: numericValue ?? 0,
-              label,
+              label: displayLabel,
+              key: dimensionKey,
             })
           }
         }
       })
       
-      // Convert to Token format and sort by value (lowest to highest)
+      // Sort by pixel value (smallest to largest) to match brand dimensions order
       // "none" (0px) will naturally sort first
-      const borderRadiusTokens = options
-        .map(opt => ({
-          name: opt.name,
-          value: opt.value,
-          label: opt.label,
-        }))
-        .sort((a, b) => {
-          if (a.value !== undefined && b.value !== undefined) {
-            return a.value - b.value
-          }
-          if (a.value !== undefined) return -1
-          if (b.value !== undefined) return 1
-          return a.label.localeCompare(b.label)
-        })
+      const sortedTokens = options.sort((a, b) => {
+        // Always put "none" first if it exists
+        if (a.key === 'none') return -1
+        if (b.key === 'none') return 1
+        
+        // Then sort by pixel value
+        if (a.value !== undefined && b.value !== undefined) {
+          return a.value - b.value
+        }
+        if (a.value !== undefined) return -1
+        if (b.value !== undefined) return 1
+        
+        // Fall back to label comparison
+        return a.label.localeCompare(b.label)
+      })
       
-      return borderRadiusTokens
+      return sortedTokens
     } catch (error) {
-      console.error('Error loading border radius tokens for BrandBorderRadiusSlider:', error)
+      console.error(`Error loading ${dimensionCategory} tokens for BrandDimensionSlider:`, error)
       return []
     }
-  }, [theme, mode])
+  }, [theme, mode, dimensionCategory])
   
   // Track selected token index
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
@@ -123,7 +164,7 @@ export default function BrandBorderRadiusSlider({
     
     if (!currentValue || currentValue === 'null' || currentValue === '') {
       // Null/empty means "none" - find the "none" token if it exists
-      const noneIndex = tokens.findIndex(t => t.name.includes('border-radii-none') || (t.value === 0 && t.name.includes('border-radii')))
+      const noneIndex = tokens.findIndex(t => t.key === 'none')
       setSelectedIndex(noneIndex >= 0 ? noneIndex : 0)
       return
     }
@@ -132,9 +173,9 @@ export default function BrandBorderRadiusSlider({
     if (currentValue.trim().startsWith('var(--recursica-')) {
       // Try to find matching token by CSS var name
       const matchingIndex = tokens.findIndex(t => {
-        // Extract radius name from CSS var (e.g., "--recursica-brand-dimensions-border-radii-sm" -> "sm")
-        const radiusName = t.name.replace('--recursica-brand-dimensions-border-radii-', '')
-        return currentValue.includes(`border-radii-${radiusName}`) || currentValue.includes(`dimensions-border-radii-${radiusName}`)
+        // Extract dimension name from CSS var (e.g., "--recursica-brand-dimensions-general-sm" -> "sm")
+        const dimensionName = t.name.replace(`--recursica-brand-dimensions-${dimensionCategory}-`, '')
+        return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
       })
       
       if (matchingIndex >= 0) {
@@ -149,8 +190,8 @@ export default function BrandBorderRadiusSlider({
         if (match) {
           const pxValue = parseFloat(match[1])
           // If resolved to 0px, check if it matches the "none" token (if category supports it)
-          if (pxValue === 0) {
-            const noneIndex = tokens.findIndex(t => t.name.includes('border-radii-none'))
+          if (pxValue === 0 && (dimensionCategory === 'border-radii' || dimensionCategory === 'general')) {
+            const noneIndex = tokens.findIndex(t => t.key === 'none')
             if (noneIndex >= 0) {
               setSelectedIndex(noneIndex)
               return
@@ -240,10 +281,14 @@ export default function BrandBorderRadiusSlider({
   
   const currentToken = tokens[selectedIndex]
   const displayLabel = currentToken ? currentToken.label : ''
+  const tokenName = currentToken ? currentToken.key : ''
   const minToken = tokens[0]
   const maxToken = tokens[tokens.length > 0 ? tokens.length - 1 : 0]
   const minLabel = minToken ? minToken.label : '0'
   const maxLabel = maxToken ? maxToken.label : '0'
+  
+  // Get tooltip text - show token name (key) in tooltip
+  const tooltipText = tokenName || displayLabel
   
   return (
     <div className="control-group">
@@ -258,12 +303,11 @@ export default function BrandBorderRadiusSlider({
         showInput={false}
         showValueLabel={true}
         valueLabel={displayLabel}
-        tooltipText={displayLabel}
+        tooltipText={tooltipText}
         minLabel={minLabel}
         maxLabel={maxLabel}
-        label={label ? <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span> : undefined}
+        label={label ? <Label layer={layer} layout="side-by-side" size="small">{label}</Label> : undefined}
       />
     </div>
   )
 }
-

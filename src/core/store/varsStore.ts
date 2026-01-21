@@ -16,6 +16,7 @@ import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
 // Note: clearCustomFonts is imported dynamically to avoid circular dependencies
 // Note: Override system removed - tokens are now the single source of truth
+// Note: populateFontUrlMapFromTokens is imported dynamically to avoid circular dependencies
 
 type PaletteStore = {
   opacity: Record<'disabled' | 'overlay' | 'text-high' | 'text-low', { token: string; value: number }>
@@ -201,7 +202,6 @@ class VarsStore {
   private lsAvailable = isLocalStorageAvailable()
   private aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
   private isRecomputing: boolean = false
-  private isLoadingFonts: boolean = false
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
   private hasRunInitialReset: boolean = false
 
@@ -274,6 +274,54 @@ class VarsStore {
       if (!localStorage.getItem(STORAGE_KEYS.elevation)) writeLSJson(STORAGE_KEYS.elevation, this.state.elevation)
     }
 
+    // Populate fontUrlMap synchronously before recomputeAndApplyAll tries to load fonts
+    // This ensures custom font URLs from token extensions are available
+    // We populate it directly here to avoid async import timing issues
+    try {
+      if (typeof window !== 'undefined') {
+        // Populate fontUrlMap directly by reading from tokens synchronously
+        // This duplicates logic from fontUtils but ensures it runs before recomputeAndApplyAll
+        const fontRoot = (this.state.tokens as any)?.tokens?.font || (this.state.tokens as any)?.font || {}
+        const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+        
+        // Store URLs in window object so ensureFontLoaded can access them synchronously
+        // This is a workaround until we can make fontUrlMap accessible synchronously
+        if (!(window as any).__fontUrlMap) {
+          (window as any).__fontUrlMap = new Map<string, string>()
+        }
+        const urlMap = (window as any).__fontUrlMap as Map<string, string>
+        
+        Object.entries(typefaces).forEach(([key, rec]: [string, any]) => {
+          try {
+            let val = ''
+            const rawValue = rec?.$value
+            if (Array.isArray(rawValue) && rawValue.length > 0) {
+              val = typeof rawValue[0] === 'string' ? rawValue[0].trim() : ''
+            } else if (typeof rawValue === 'string') {
+              val = rawValue.trim()
+            }
+            
+            if (val) {
+              const cleanVal = val.replace(/^["']|["']$/g, '')
+              // Access com.google.fonts as a single key, not nested properties
+              const googleFontsExt = rec?.$extensions?.['com.google.fonts'] || rec?.$extensions?.com?.google?.fonts
+              const url = googleFontsExt?.url
+              if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+                urlMap.set(cleanVal, url)
+                if (val !== cleanVal) {
+                  urlMap.set(val, url)
+                }
+              }
+            }
+          } catch (err) {
+            // Skip individual font if there's an error
+          }
+        })
+      }
+    } catch (err) {
+      // If font URL map population fails, fonts will still load with default URLs
+    }
+    
     // Initial CSS apply (Light mode palettes + layers + typography)
     this.recomputeAndApplyAll()
 
@@ -286,8 +334,21 @@ class VarsStore {
     // React to type choice changes and palette changes (centralized)
     // Debounce palette var changes to prevent infinite loops
     const onTypeChoices = () => {
+      // Always trigger recompute, even if one is in progress
+      // The recompute will read the latest choices from localStorage
+      // Use a small delay to ensure any in-progress recompute completes first
       if (this.isRecomputing) {
-        return // Prevent recursive calls
+        // Wait for current recompute to finish, then recompute again with new choices
+        const retry = () => {
+          if (!this.isRecomputing) {
+            this.bumpVersion()
+            this.recomputeAndApplyAll()
+          } else {
+            setTimeout(retry, 50)
+          }
+        }
+        setTimeout(retry, 50)
+        return
       }
       this.bumpVersion()
       this.recomputeAndApplyAll()
@@ -318,35 +379,12 @@ class VarsStore {
       this.bumpVersion()
       this.recomputeAndApplyAll()
     }
-    // Debounce font-loaded events to avoid excessive recomputation
-    // Note: We still recompute to update font-family names in token CSS variables,
-    // but typography CSS variables are preserved if they were set directly by the user
-    let fontLoadedTimeout: ReturnType<typeof setTimeout> | null = null
-    const onFontLoaded = () => {
-      // Skip if already recomputing or if we're loading fonts as part of recompute
-      // This prevents infinite loops when ensureFontLoaded dispatches font-loaded events
-      if (this.isRecomputing || this.isLoadingFonts) return
-      
-      // Debounce: only recompute after fonts have finished loading
-      if (fontLoadedTimeout) {
-        clearTimeout(fontLoadedTimeout)
-      }
-      fontLoadedTimeout = setTimeout(() => {
-        // Double-check we're not recomputing or loading fonts (might have started during timeout)
-        if (this.isRecomputing || this.isLoadingFonts) {
-          fontLoadedTimeout = null
-          return
-        }
-        this.bumpVersion()
-        this.recomputeAndApplyAll()
-        fontLoadedTimeout = null
-      }, 500) // Wait 500ms for multiple fonts to load
-    }
+    // Note: We no longer listen to font-loaded events to avoid loops
+    // CSS variables are set with font names directly, fonts load asynchronously
     window.addEventListener('typeChoicesChanged', onTypeChoices as any)
     // Recompute layers and dependent CSS whenever palette CSS vars or families change
     window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
     window.addEventListener('paletteFamilyChanged', onPaletteFamilyChanged as any)
-    window.addEventListener('font-loaded', onFontLoaded as any)
     
     // Listen for token changes to update core color on-tones
     const onTokenChanged = ((ev: CustomEvent) => {
@@ -522,10 +560,6 @@ class VarsStore {
         if (formattedValue) {
           // Use plural form for CSS var name
           varsToUpdate[`--recursica-tokens-font-${pluralKind}-${key}`] = formattedValue
-          // Backwards compatibility: also create singular form if different
-          if (pluralKind !== kind) {
-            varsToUpdate[`--recursica-tokens-font-${kind}-${key}`] = formattedValue
-          }
         }
         // Note: Typography vars that reference this token will update automatically
         // via CSS var() references, so we don't need to rebuild them here
@@ -1221,11 +1255,12 @@ class VarsStore {
     // Suppress cssVarsUpdated events during bulk update to prevent infinite loops
     suppressCssVarEvents(true)
     
+    // Build complete CSS variable map from current state
+    // Note: Tokens are now the single source of truth - no overrides needed
+    const currentMode = this.getCurrentMode()
+    const allVars: Record<string, string> = {}
+    
     try {
-      // Build complete CSS variable map from current state
-      // Note: Tokens are now the single source of truth - no overrides needed
-      const currentMode = this.getCurrentMode()
-      const allVars: Record<string, string> = {}
     
     // Tokens: expose size tokens as CSS vars under --recursica-tokens-sizes-<key>
     try {
@@ -1770,62 +1805,46 @@ class VarsStore {
     const typeChoices = this.readTypeChoices()
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, typeChoices)
     
-    // Only preserve typography CSS variables that were set DIRECTLY (not via choices system)
-    // If choices exist, the generated values from buildTypographyVars should be used
-    // This allows the choices system to work properly
-    const hasChoices = Object.keys(typeChoices).length > 0
-    if (!hasChoices) {
-      // Only preserve if there are no choices (user might have set CSS vars directly)
-      Object.keys(typeVars).forEach((cssVar) => {
-        const existingValue = readCssVar(cssVar)
-        const generatedValue = typeVars[cssVar]
-        
-        // Preserve if it exists in DOM and is different from generated (user customization)
-        // This ensures direct CSS variable changes persist across recomputes when no choices are set
-        if (existingValue && existingValue.trim() && existingValue !== generatedValue) {
-          typeVars[cssVar] = existingValue
-        }
-      })
-    }
-    
-    // Don't preserve typography CSS variables when choices are set
-    // The choices system should be the source of truth, and buildTypographyVars
-    // already generates the correct CSS variables based on choices
-    // Only preserve if there are no choices (user might have set CSS vars directly via other means)
+    // Always preserve typography CSS variables that were set DIRECTLY (user customization via UI)
+    // This allows direct CSS variable updates (like from TypeStylePanel) to persist across recomputes
+    // Direct CSS variable overrides take precedence over generated values from choices/defaults
+    Object.keys(typeVars).forEach((cssVar) => {
+      // Check inline style directly (direct updates are always inline)
+      const inlineValue = typeof document !== 'undefined' 
+        ? document.documentElement.style.getPropertyValue(cssVar).trim()
+        : ''
+      const generatedValue = typeVars[cssVar]
+      
+      // Preserve if it exists in inline style and is different from generated (user customization)
+      // Inline styles take precedence as they represent direct user updates
+      if (inlineValue !== '' && inlineValue !== generatedValue) {
+        typeVars[cssVar] = inlineValue
+      }
+    })
     
     Object.assign(allVars, typeVars)
-    // Ensure fonts load lazily (web fonts, npm fonts, git fonts)
-    // Use dynamic import to avoid circular dependencies
-    // Set flag to prevent font-loaded events from triggering recompute during this process
-    this.isLoadingFonts = true
-    Promise.all(familiesToLoad.map(async (family) => {
-      try {
-        const trimmed = String(family).trim()
-        if (!trimmed) return
-        // Dynamically import fontUtils to check for npm/git sources
-        const { ensureFontLoaded } = await import('../../modules/type/fontUtils')
-        await ensureFontLoaded(trimmed)
-      } catch (error) {
-        // Fallback to web font loading if ensureFontLoaded fails
+    // Load fonts asynchronously - don't wait, don't trigger recomputes
+    // CSS variables are already set with font names, fonts will apply when loaded
+    // Fonts MUST load (async is fine, but they must load)
+    if (familiesToLoad.length > 0 && typeof window !== 'undefined') {
+      // Load fonts in background without blocking or triggering events
+      Promise.all(familiesToLoad.map(async (family) => {
         try {
           const trimmed = String(family).trim()
           if (!trimmed) return
-          const id = `gf-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
-          if (document.getElementById(id)) return
-          const href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(trimmed).replace(/%20/g, '+')}:wght@100..900&display=swap`
-          const link = document.createElement('link')
-          link.id = id
-          link.rel = 'stylesheet'
-          link.href = href
-          document.head.appendChild(link)
-        } catch {}
-      }
-    })).catch(() => {}).finally(() => {
-      // Clear the flag after fonts are loaded (or after a delay to catch late events)
-      setTimeout(() => {
-        this.isLoadingFonts = false
-      }, 1000) // Give fonts time to load and dispatch events
-    })
+          // Dynamically import fontUtils
+          const { ensureFontLoaded } = await import('../../modules/type/fontUtils')
+          // Load font (async is fine, but it must load)
+          await ensureFontLoaded(trimmed).catch((error) => {
+            console.warn(`Failed to load font "${trimmed}" during recompute:`, error)
+          })
+        } catch (error) {
+          console.warn(`Failed to import fontUtils or load font:`, error)
+        }
+      })).catch((error) => {
+        console.warn('Failed to load some fonts during recompute:', error)
+      })
+    }
 
     // Elevation CSS variables (apply for levels 0..4) - generate for both modes
     for (const mode of ['light', 'dark'] as const) {
@@ -2063,7 +2082,7 @@ class VarsStore {
         '--recursica-brand-themes-light-layer-layer-0-property-surface',
         '--recursica-brand-themes-light-elevations-elevation-4-x-axis',
         '--recursica-brand-typography-caption-font-family',
-        '--recursica-brand-dimensions-spacers-sm'
+        '--recursica-brand-dimensions-general-sm'
       ]
     }
     try {
@@ -2080,6 +2099,17 @@ class VarsStore {
       suppressCssVarEvents(false)
       // Always reset the flag, even if an error occurred
       this.isRecomputing = false
+      // Explicitly dispatch cssVarsUpdated event to ensure components are notified
+      // Use requestAnimationFrame to ensure DOM updates are complete
+      requestAnimationFrame(() => {
+        try {
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: Object.keys(allVars) }
+          }))
+        } catch (e) {
+          // Ignore errors if window is not available (SSR)
+        }
+      })
     }
   }
 

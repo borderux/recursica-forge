@@ -99,8 +99,9 @@ export default function Chip({
   const borderSizeVar = getComponentLevelCssVar('Chip', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Chip', 'border-radius')
   
-  // Get text styling CSS variables - font-size is at component level (not under size)
-  const fontSizeVar = getComponentLevelCssVar('Chip', 'font-size')
+  // Get text styling CSS variables - text-size or font-size is at component level (not under size)
+  // Try text-size first (new), fallback to font-size (legacy)
+  const fontSizeVar = getComponentLevelCssVar('Chip', 'text-size') || getComponentLevelCssVar('Chip', 'font-size')
   
   // Use Button's max-width and height vars (same as Button component)
   // Use Chip's own min-width so toolbar can control it
@@ -133,8 +134,9 @@ export default function Chip({
       paddingTop: `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
       paddingBottom: `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
       borderRadius: `var(${borderRadiusVar})`,
+      '--chip-font-weight': 'var(--recursica-brand-typography-caption-font-weight)',
       fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
-      fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      fontWeight: 'var(--chip-font-weight, var(--recursica-brand-typography-caption-font-weight))',
       textTransform: 'none',
       // Set CSS custom properties for CSS file
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',

@@ -24,9 +24,12 @@ export default function SliderPreview({
 
   // State for single value sliders
   const [value1, setValue1] = useState(25)
-  const [value2, setValue2] = useState(25)
-  const [value3, setValue3] = useState(25)
-  const [value4, setValue4] = useState(25)
+  const [value2, setValue2] = useState(50)
+  const [value3, setValue3] = useState(75)
+  const [value4, setValue4] = useState(30)
+  const [value5, setValue5] = useState(60)
+  const [value6, setValue6] = useState(40)
+  const [value7, setValue7] = useState(20)
 
   // Label component
   const labelElement = (
@@ -39,7 +42,7 @@ export default function SliderPreview({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32, width: '100%', maxWidth: 600 }}>
       {/* Single Value Sliders */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* With label, with input */}
+        {/* With label, with readonly value label */}
         <Slider
           value={value1}
           onChange={setValue1}
@@ -48,10 +51,12 @@ export default function SliderPreview({
           layout={layoutVariant}
           layer={actualLayer}
           label={labelElement}
-          showInput={true}
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}`}
         />
         
-        {/* With label, without input */}
+        {/* With label, with input */}
         <Slider
           value={value2}
           onChange={setValue2}
@@ -60,10 +65,11 @@ export default function SliderPreview({
           layout={layoutVariant}
           layer={actualLayer}
           label={labelElement}
-          showInput={false}
+          showInput={true}
+          showValueLabel={false}
         />
         
-        {/* Without label, with input */}
+        {/* Without label, with readonly value label */}
         <Slider
           value={value3}
           onChange={setValue3}
@@ -71,10 +77,12 @@ export default function SliderPreview({
           max={100}
           layout={layoutVariant}
           layer={actualLayer}
-          showInput={true}
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}`}
         />
         
-        {/* Disabled */}
+        {/* Without label, with input */}
         <Slider
           value={value4}
           onChange={setValue4}
@@ -82,8 +90,50 @@ export default function SliderPreview({
           max={100}
           layout={layoutVariant}
           layer={actualLayer}
+          showInput={true}
+          showValueLabel={false}
+        />
+        
+        {/* With label, with readonly value label (formatted) */}
+        <Slider
+          value={value5}
+          onChange={setValue5}
+          min={0}
+          max={100}
+          layout={layoutVariant}
+          layer={actualLayer}
+          label={labelElement}
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}%`}
+        />
+        
+        {/* Disabled with label, with readonly value label */}
+        <Slider
+          value={value6}
+          onChange={setValue6}
+          min={0}
+          max={100}
+          layout={layoutVariant}
+          layer={actualLayer}
+          label={labelElement}
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}`}
+          disabled
+        />
+        
+        {/* Disabled with label, with input */}
+        <Slider
+          value={value7}
+          onChange={setValue7}
+          min={0}
+          max={100}
+          layout={layoutVariant}
+          layer={actualLayer}
           label={labelElement}
           showInput={true}
+          showValueLabel={false}
           disabled
         />
       </div>

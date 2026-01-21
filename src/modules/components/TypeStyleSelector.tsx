@@ -4,7 +4,8 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
-import TokenSlider from '../forms/TokenSlider'
+import { Slider } from '../../components/adapters/Slider'
+import { Label } from '../../components/adapters/Label'
 
 interface TypeStyleSelectorProps {
   targetCssVar: string
@@ -242,16 +243,37 @@ export default function TypeStyleSelector({
     )
   }
 
+  const tokens = typeStyleTokens.map((t, index) => ({ name: t.name, label: t.label, index }))
+  const currentIdx = tokens.findIndex(t => t.name === selectedToken) || 0
+  const getValueLabel = useCallback((value: number) => {
+    const token = tokens[Math.round(value)]
+    const typeStyle = typeStyleTokens.find(t => t.name === token?.name)
+    return typeStyle?.label || token?.label || token?.name || String(value)
+  }, [tokens, typeStyleTokens])
+  const minToken = tokens[0]
+  const maxToken = tokens[tokens.length - 1]
+  
   return (
-    <TokenSlider
-      label={label}
-      tokens={typeStyleTokens.map(t => ({ name: t.name, label: t.label }))}
-      currentToken={selectedToken}
-      onChange={handleTokenChange}
-      getTokenLabel={(token) => {
-        const typeStyle = typeStyleTokens.find(t => t.name === token.name)
-        return typeStyle?.label || token.label || token.name
+    <Slider
+      value={currentIdx}
+      onChange={(val) => {
+        const idx = typeof val === 'number' ? val : val[0]
+        const token = tokens[Math.round(idx)]
+        if (token) {
+          handleTokenChange(token.name)
+        }
       }}
+      min={0}
+      max={tokens.length - 1}
+      step={1}
+      layer="layer-3"
+      layout="stacked"
+      showInput={false}
+      showValueLabel={true}
+      valueLabel={getValueLabel}
+      minLabel={minToken?.label || 'Body'}
+      maxLabel={maxToken?.label || 'Heading'}
+      label={<Label layer="layer-3" layout="stacked">{label}</Label>}
     />
   )
 }

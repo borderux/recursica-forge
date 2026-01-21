@@ -90,11 +90,11 @@ export function CustomFontModal({
     >
       <div
         style={{
-          background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface, #ffffff)`,
-          color: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-text-color, #111111)`,
-          border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color, rgba(0,0,0,0.1))`,
+          background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, #ffffff)`,
+          color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, #111111)`,
+          border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`,
           borderRadius: 12,
-          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color)`,
+          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
           padding: 20,
           display: 'grid',
           gap: 16,

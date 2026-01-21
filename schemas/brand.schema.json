@@ -465,7 +465,14 @@
             },
             {
               "type": "string",
-              "pattern": "^\\{tokens\\.size\\.[a-z0-9_-]+\\}$"
+              "anyOf": [
+                {
+                  "pattern": "^\\{tokens\\.size\\.[a-z0-9_-]+\\}$"
+                },
+                {
+                  "pattern": "^\\{tokens\\.font\\.sizes\\.[a-z0-9_-]+\\}$"
+                }
+              ]
             }
           ]
         }
@@ -478,13 +485,13 @@
         "general": {
           "type": "object",
           "properties": {
-            "lg": { "$ref": "#/definitions/dimensionValue" },
-            "md": { "$ref": "#/definitions/dimensionValue" },
+            "none": { "$ref": "#/definitions/dimensionValue" },
             "sm": { "$ref": "#/definitions/dimensionValue" },
+            "md": { "$ref": "#/definitions/dimensionValue" },
             "default": { "$ref": "#/definitions/dimensionValue" },
+            "lg": { "$ref": "#/definitions/dimensionValue" },
             "xl": { "$ref": "#/definitions/dimensionValue" },
-            "2xl": { "$ref": "#/definitions/dimensionValue" },
-            "none": { "$ref": "#/definitions/dimensionValue" }
+            "2xl": { "$ref": "#/definitions/dimensionValue" }
           },
           "additionalProperties": false
         },
@@ -518,16 +525,20 @@
           },
           "additionalProperties": false
         },
-        "spacers": {
+        "text-size": {
           "type": "object",
           "properties": {
+            "2xs": { "$ref": "#/definitions/dimensionValue" },
+            "xs": { "$ref": "#/definitions/dimensionValue" },
+            "sm": { "$ref": "#/definitions/dimensionValue" },
+            "md": { "$ref": "#/definitions/dimensionValue" },
             "lg": { "$ref": "#/definitions/dimensionValue" },
             "xl": { "$ref": "#/definitions/dimensionValue" },
-            "sm": { "$ref": "#/definitions/dimensionValue" },
-            "default": { "$ref": "#/definitions/dimensionValue" },
-            "md": { "$ref": "#/definitions/dimensionValue" },
-            "xs": { "$ref": "#/definitions/dimensionValue" },
-            "none": { "$ref": "#/definitions/dimensionValue" }
+            "2xl": { "$ref": "#/definitions/dimensionValue" },
+            "3xl": { "$ref": "#/definitions/dimensionValue" },
+            "4xl": { "$ref": "#/definitions/dimensionValue" },
+            "5xl": { "$ref": "#/definitions/dimensionValue" },
+            "6xl": { "$ref": "#/definitions/dimensionValue" }
           },
           "additionalProperties": false
         }

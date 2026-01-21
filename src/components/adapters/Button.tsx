@@ -198,18 +198,14 @@ function getButtonStyles(
   if (variant === 'solid') {
     styles.backgroundColor = `var(${bgVar})`
     styles.color = `var(${textVar})`
-    // For solid, use box-shadow for outside border (doesn't affect box model)
-    // Use the reactively read border-size value to ensure updates trigger re-renders
-    styles.border = 'none'
-    styles.boxShadow = `0 0 0 ${borderSizeValue || '1px'} var(${borderColorVar || textVar})`
+    // Use actual CSS border instead of box-shadow
+    styles.border = `${borderSizeValue || '1px'} solid var(${borderColorVar || textVar})`
   } else if (variant === 'outline') {
     // For outline, use outline-specific CSS variables
     styles.backgroundColor = `var(${bgVar})`
     styles.color = `var(${textVar})`
-    // For outline, use box-shadow for outside border (doesn't affect box model)
-    // Use the reactively read border-size value to ensure updates trigger re-renders
-    styles.border = 'none'
-    styles.boxShadow = `0 0 0 ${borderSizeValue || '1px'} var(${borderColorVar || textVar})`
+    // Use actual CSS border instead of box-shadow
+    styles.border = `${borderSizeValue || '1px'} solid var(${borderColorVar || textVar})`
   } else {
     // text variant
     styles.backgroundColor = `var(${bgVar})`
@@ -237,17 +233,11 @@ function getButtonStyles(
     styles.cursor = 'pointer'
   }
   
-  // Apply elevation if set (and not elevation-0), combine with border box-shadow if present
+  // Apply elevation if set (and not elevation-0)
+  // Note: borders are now actual CSS borders, not box-shadow, so only apply elevation shadow
   const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-  const borderShadow = (variant === 'solid' || variant === 'outline')
-    ? `0 0 0 ${borderSizeValue || '1px'} var(${borderColorVar || textVar})`
-    : ''
-  if (elevationBoxShadow && borderShadow) {
-    styles.boxShadow = `${borderShadow}, ${elevationBoxShadow}`
-  } else if (elevationBoxShadow) {
+  if (elevationBoxShadow) {
     styles.boxShadow = elevationBoxShadow
-  } else if (borderShadow) {
-    styles.boxShadow = borderShadow
   }
   
   return styles

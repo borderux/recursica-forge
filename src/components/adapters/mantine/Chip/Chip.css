@@ -20,8 +20,8 @@
   min-height: auto !important;
   max-height: none !important;
   border-radius: var(--chip-border-radius, 16px) !important;
-  font-size: var(--chip-font-size, var(--recursica-ui-kit-components-chip-properties-font-size, 16px)) !important;
-  font-weight: var(--recursica-brand-typography-button-font-weight) !important;
+  font-size: var(--chip-font-size, var(--recursica-ui-kit-components-chip-properties-text-size, 16px)) !important;
+  font-weight: var(--chip-font-weight, var(--recursica-brand-typography-caption-font-weight)) !important;
   text-transform: none !important;
   display: inline-flex !important;
   align-items: center !important;

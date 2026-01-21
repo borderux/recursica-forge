@@ -191,7 +191,7 @@ export default function ComponentDetailPage() {
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        padding: 'var(--recursica-brand-dimensions-spacers-xl)',
+        padding: 'var(--recursica-brand-dimensions-general-xl)',
         borderBottom: `1px solid var(${layer1Base}-border-color)`,
         flexShrink: 0,
       }}>
@@ -213,8 +213,8 @@ export default function ComponentDetailPage() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--recursica-brand-dimensions-spacers-sm)',
-            padding: 'var(--recursica-brand-dimensions-spacers-sm) var(--recursica-brand-dimensions-spacers-md)',
+            gap: 'var(--recursica-brand-dimensions-general-sm)',
+            padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
             borderRadius: '999px',
             border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
             color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
@@ -249,7 +249,7 @@ export default function ComponentDetailPage() {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          padding: 'var(--recursica-brand-dimensions-spacers-xl)',
+          padding: 'var(--recursica-brand-dimensions-general-xl)',
           minWidth: 0,
           minHeight: debugMode ? undefined : 0,
         }}>
@@ -260,7 +260,7 @@ export default function ComponentDetailPage() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 'var(--recursica-brand-dimensions-spacers-md)',
+            gap: 'var(--recursica-brand-dimensions-general-md)',
             background: `var(${baseLayerBase}-surface)`,
             padding: `var(${baseLayerBase}-padding)`,
             border: layerNum !== '0' 
@@ -347,26 +347,12 @@ export default function ComponentDetailPage() {
                 </div>
               )}
             </div>
-
-            {/* Caption - Inside preview at bottom */}
-            <div style={{
-              flexShrink: 0,
-              textAlign: 'center',
-              fontFamily: 'var(--recursica-brand-typography-caption-font-family)',
-              fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-              fontWeight: 'var(--recursica-brand-typography-caption-font-weight)',
-              letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
-              lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
-              color: `var(${layer0Base}-element-text-low-emphasis)`,
-            }}>
-              {captionText}
-            </div>
           </div>
         </div>
 
         {/* Toolbar Panel - Right Side */}
         <div style={{
-          width: '250px',
+          width: '320px',
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',
@@ -388,7 +374,7 @@ export default function ComponentDetailPage() {
       {/* Debug Table - Show when debug mode is enabled, below preview and toolbar */}
       {debugMode && component && openPropControl && (
         <div style={{
-          padding: 'var(--recursica-brand-dimensions-spacers-xl)',
+          padding: 'var(--recursica-brand-dimensions-general-xl)',
           borderTop: `1px solid var(${layer1Base}-border-color)`,
         }}>
           <ComponentDebugTable 

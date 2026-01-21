@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react'
+import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 
 interface ExportSelectionModalProps {
   show: boolean
@@ -14,6 +15,7 @@ interface ExportSelectionModalProps {
 }
 
 export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelectionModalProps) {
+  const { mode } = useThemeMode()
   const [selectedFiles, setSelectedFiles] = useState({
     tokens: true,
     brand: true,
@@ -53,11 +55,13 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
     >
       <div
         style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '24px',
+          backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
+          color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+          border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
+          borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
+          padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding)`,
           maxWidth: '400px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -65,7 +69,7 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
           Select Files to Export
         </h2>
         
-        <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
+        <p style={{ marginBottom: '20px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)`, fontSize: '14px' }}>
           Choose which files you want to export:
         </p>
         
@@ -124,9 +128,10 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
             onClick={onCancel}
             style={{
               padding: '8px 16px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              backgroundColor: 'white',
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
+              borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
+              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
               cursor: 'pointer',
             }}
           >
@@ -138,7 +143,7 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
             style={{
               padding: '8px 16px',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
               backgroundColor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) ? '#ccc' : '#0066cc',
               color: 'white',
               cursor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) ? 'not-allowed' : 'pointer',

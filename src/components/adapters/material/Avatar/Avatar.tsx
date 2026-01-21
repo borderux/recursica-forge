@@ -39,6 +39,9 @@ export default function Avatar({
     imageError: false,
   })
   
+  // Reactively read border color to trigger re-renders when it changes
+  const borderColorValue = useCssVar(borderVar, '')
+  
   // Get size and other CSS variables
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
   // Get text-size from size variant (e.g., variants.sizes.default.properties.text-size)
@@ -65,7 +68,7 @@ export default function Avatar({
         padding: `var(${paddingVar})`,
         backgroundColor: `var(${bgVar})`,
         color: `var(${labelVar})`,
-        border: `var(${borderSizeVar}) solid var(${borderVar})`,
+        border: `var(${borderSizeVar}) solid ${borderColorValue || `var(${borderVar})`}`,
         borderRadius: shape === 'circle' ? '50%' : `var(${borderRadiusVar})`,
         fontSize: textSizeValue || `var(${textSizeVar})`,
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
