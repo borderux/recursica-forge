@@ -30,7 +30,17 @@ export function GoogleFontsModal({
   const [googleFontsUrl, setGoogleFontsUrl] = useState('')
   const [customFontName, setCustomFontName] = useState('')
   const [customFontFallback, setCustomFontFallback] = useState<'serif' | 'sans-serif'>('sans-serif')
-  const [selectedSequence, setSelectedSequence] = useState<string>(currentSequence || availableSequences[0])
+  // Default to last position (new position) if no currentSequence is provided
+  const defaultSequence = currentSequence || availableSequences[availableSequences.length - 1] || availableSequences[0]
+  const [selectedSequence, setSelectedSequence] = useState<string>(defaultSequence)
+  
+  // Update selectedSequence when modal opens or currentSequence changes
+  useEffect(() => {
+    if (open) {
+      const newDefault = currentSequence || availableSequences[availableSequences.length - 1] || availableSequences[0]
+      setSelectedSequence(newDefault)
+    }
+  }, [open, currentSequence, availableSequences])
   const [availableFonts, setAvailableFonts] = useState<string[]>([])
   const [selectedFontIndex, setSelectedFontIndex] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -472,7 +482,8 @@ export function GoogleFontsModal({
         setGoogleFontsUrl('')
         setCustomFontName('')
         setCustomFontFallback('sans-serif')
-        setSelectedSequence(currentSequence || availableSequences[0])
+        const newDefault = currentSequence || availableSequences[availableSequences.length - 1] || availableSequences[0]
+        setSelectedSequence(newDefault)
         setAvailableFonts([])
         setSelectedFontIndex(0)
         setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
@@ -856,6 +867,42 @@ export function GoogleFontsModal({
           ) : (
             <>
               <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+                {/* Sequence selector */}
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: 'var(--recursica-brand-dimensions-general-default)',
+                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                    color: `var(${layer2Base}-element-text-color)`,
+                    opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                  }}>
+                    Sequence
+                  </label>
+                  <select
+                    value={selectedSequence}
+                    onChange={(e) => {
+                      setSelectedSequence(e.target.value)
+                      setError('')
+                    }}
+                    style={{
+                      padding: 'var(--recursica-brand-dimensions-general-default)',
+                      border: `1px solid var(${layer1Base}-border-color)`,
+                      borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+                      background: `var(${layer1Base}-surface)`,
+                      color: `var(${layer1Base}-element-text-color)`,
+                      fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                      width: '100%',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {availableSequences.map(seq => (
+                      <option key={seq} value={seq}>
+                        {seq.charAt(0).toUpperCase() + seq.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div>
                   <label style={{
                     display: 'block',
