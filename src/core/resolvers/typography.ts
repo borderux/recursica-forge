@@ -25,9 +25,17 @@ function safeGetCachedFontFamilyName(name: string): string {
   if (getCachedFontFamilyName) {
     return getCachedFontFamilyName(name)
   }
-  // Fallback if not loaded yet - return just the font name
+  // Fallback if not loaded yet - preserve the fallback if present
   if (!name || !name.trim()) return name
   const trimmed = name.trim()
+  if (trimmed.includes(',')) {
+    // Has fallback - quote the font name part if it has spaces, keep fallback as-is
+    const [fontPart, ...fallbackParts] = trimmed.split(',').map(s => s.trim())
+    const fallback = fallbackParts.join(',').trim()
+    const quotedFontPart = fontPart.includes(' ') ? `"${fontPart}"` : fontPart
+    return fallback ? `${quotedFontPart}, ${fallback}` : quotedFontPart
+  }
+  // No fallback - just add quotes if font name has spaces
   return trimmed.includes(' ') ? `"${trimmed}"` : trimmed
 }
 

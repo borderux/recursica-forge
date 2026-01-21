@@ -9,6 +9,7 @@ import type { ComponentName } from './types'
 
 // Button
 registerComponent('material', 'Button', () => import('../adapters/material/Button/Button'))
+registerComponent('material', 'Checkbox', () => import('../adapters/material/Checkbox/Checkbox'))
 
 // Tabs
 registerComponent('material', 'Tabs', () => import('../adapters/material/Tabs/Tabs'))

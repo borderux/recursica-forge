@@ -1,39 +1,79 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
+import { Checkbox } from '../../../components/adapters/Checkbox'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { ensureFontLoaded, getActualFontFamilyName, getCachedFontFamilyName } from '../../type/fontUtils'
 
 export type GoogleFontsModalProps = {
   open: boolean
   onClose: () => void
-  onAccept: (fontName: string) => void
+  onAccept: (fontName: string, url?: string, variants?: Array<{ weight: string; style: string }>, sequence?: string) => void | Promise<void>
   existingFonts?: string[] // Array of existing font family names to prevent duplicates
+  availableSequences?: string[] // Available sequence positions (e.g., ['primary', 'secondary', 'tertiary'])
+  currentSequence?: string // Current sequence position if editing
 }
 
-type Tab = 'google' | 'url'
+type Tab = 'google' | 'custom'
 
 export function GoogleFontsModal({
   open,
   onClose,
   onAccept,
   existingFonts = [],
+  availableSequences = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'],
+  currentSequence,
 }: GoogleFontsModalProps) {
   const { mode } = useThemeMode()
   const [activeTab, setActiveTab] = useState<Tab>('google')
   const [googleFontsUrl, setGoogleFontsUrl] = useState('')
-  const [fontFaceUrl, setFontFaceUrl] = useState('')
-  const [fontName, setFontName] = useState('')
+  const [customFontName, setCustomFontName] = useState('')
+  const [customFontFallback, setCustomFontFallback] = useState<'serif' | 'sans-serif'>('sans-serif')
+  const [selectedSequence, setSelectedSequence] = useState<string>(currentSequence || availableSequences[0])
   const [availableFonts, setAvailableFonts] = useState<string[]>([])
   const [selectedFontIndex, setSelectedFontIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
+  
+  // Weight+style combination selection
+  // All 18 combinations: 9 weights × 2 styles
+  const weights = useMemo(() => [100, 200, 300, 400, 500, 600, 700, 800, 900], [])
+  const styles = useMemo(() => ['normal', 'italic'], [])
+  const allWeightStyleCombos = useMemo(() => {
+    const combos: Array<{ weight: number; style: string; id: string }> = []
+    weights.forEach(weight => {
+      styles.forEach(style => {
+        combos.push({ weight, style, id: `${weight}-${style}` })
+      })
+    })
+    return combos
+  }, [weights, styles])
+  const [selectedCombos, setSelectedCombos] = useState<Set<string>>(new Set())
+  
+  // Calculate "All" checkbox state: checked if all selected, indeterminate if some selected
+  const allCheckboxState = useMemo(() => {
+    const selectedCount = selectedCombos.size
+    const totalCount = allWeightStyleCombos.length
+    if (selectedCount === 0) return { checked: false, indeterminate: false }
+    if (selectedCount === totalCount) return { checked: true, indeterminate: false }
+    return { checked: false, indeterminate: true }
+  }, [selectedCombos.size, allWeightStyleCombos.length])
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const layer2Base = `--recursica-brand-themes-${mode}-layer-layer-2-property`
   const layer3Base = `--recursica-brand-themes-${mode}-layer-layer-3-property`
+
+  // Initialize selectedCombos when modal opens or tab changes
+  useEffect(() => {
+    if (open) {
+      if (activeTab === 'custom' && selectedCombos.size === 0) {
+        // Select all combinations by default for custom tab
+        setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+      }
+    }
+  }, [open, activeTab, allWeightStyleCombos])
 
   // Extract font family names from Google Fonts URL
   const extractFontNamesFromGoogleUrl = (url: string): string[] => {
@@ -60,6 +100,96 @@ export function GoogleFontsModal({
     }
   }
 
+  // Parse weights and styles from Google Fonts URL for a specific font
+  const parseWeightsAndStyles = (url: string, fontName: string): { weights: number[]; styles: string[] } => {
+    try {
+      const urlObj = new URL(url)
+      const familyParams = urlObj.searchParams.getAll('family')
+      
+      // Find the family param that matches this font
+      const fontParam = familyParams.find(param => {
+        const name = param.split(':')[0].split('&')[0]
+        const decoded = decodeURIComponent(name).replace(/\+/g, ' ')
+        return decoded.toLowerCase() === fontName.toLowerCase()
+      })
+      
+      if (!fontParam) {
+        // If no specific param found, try to parse from first param
+        if (familyParams.length > 0) {
+          return parseWeightsAndStylesFromParam(familyParams[0])
+        }
+        return { weights: [], styles: [] }
+      }
+      
+      return parseWeightsAndStylesFromParam(fontParam)
+    } catch {
+      return { weights: [], styles: [] }
+    }
+  }
+
+  // Parse weights and styles from a family parameter string
+  // Always return all standard weights (100-900) and both styles (normal, italic)
+  // This gives users all 18 options to choose from
+  const parseWeightsAndStylesFromParam = (param: string): { weights: number[]; styles: string[] } => {
+    // Always return all standard weights
+    const weights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+    
+    // Always return both styles
+    const styles = ['normal', 'italic']
+    
+    return { weights, styles }
+  }
+
+  // Build Google Fonts URL with selected weights and styles
+  const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styles: string[]): string => {
+    try {
+      const urlObj = new URL(baseUrl)
+      
+      // Build the family parameter
+      // Replace spaces with + for the font name (Google Fonts format)
+      const fontNameWithPlus = fontName.replace(/\s+/g, '+')
+      let familyParam = fontNameWithPlus
+      
+      // Add weights
+      if (weights.length > 0) {
+        const weightsStr = weights.sort((a, b) => a - b).join(';')
+        familyParam += `:wght@${weightsStr}`
+      }
+      
+      // Add styles (italic)
+      const hasItalic = styles.includes('italic')
+      const hasNormal = styles.includes('normal')
+      if (hasItalic && hasNormal) {
+        familyParam += `:ital@0;1`
+      } else if (hasItalic) {
+        familyParam += `:ital@1`
+      }
+      
+      // Manually construct the URL to avoid encoding : and @ characters
+      // URLSearchParams.set() would encode them, but Google Fonts needs them unencoded
+      const baseUrlWithoutSearch = urlObj.origin + urlObj.pathname
+      const existingParams = new URLSearchParams(urlObj.search)
+      
+      // Get all existing params except 'family'
+      const otherParams: string[] = []
+      existingParams.forEach((value, key) => {
+        if (key !== 'family') {
+          otherParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        }
+      })
+      
+      // Build family param: don't encode +, :, or @ characters
+      // Google Fonts expects: family=Rubik+Storm:wght@400 (not encoded)
+      // Only encode other special characters in the font name if needed
+      // For now, just use the familyParam as-is since we've already replaced spaces with +
+      const allParams = [`family=${familyParam}`, ...otherParams]
+      
+      return `${baseUrlWithoutSearch}?${allParams.join('&')}`
+    } catch {
+      return baseUrl
+    }
+  }
+
   // Load font from Google Fonts URL
   const loadGoogleFontFromUrl = async (url: string, selectedFontName?: string): Promise<string> => {
     const extractedNames = extractFontNamesFromGoogleUrl(url)
@@ -82,8 +212,13 @@ export function GoogleFontsModal({
       existingLink.href = url
       document.head.appendChild(existingLink)
     } else {
-      // Update href in case URL changed
+      // Remove old link and create new one to ensure fresh load
+      existingLink.remove()
+      existingLink = document.createElement('link')
+      existingLink.id = linkId
+      existingLink.rel = 'stylesheet'
       existingLink.href = url
+      document.head.appendChild(existingLink)
     }
 
     // Wait for stylesheet to load
@@ -137,52 +272,6 @@ export function GoogleFontsModal({
     return fontNameToLoad
   }
 
-  // Load font from public @font-face URL
-  const loadFontFromUrl = async (url: string, fontNameInput: string): Promise<string> => {
-    // Create a link element to load the stylesheet
-    const linkId = `font-face-${Date.now()}`
-    const link = document.createElement('link')
-    link.id = linkId
-    link.rel = 'stylesheet'
-    link.href = url
-
-    // Wait for stylesheet to load
-    await new Promise<void>((resolve, reject) => {
-      link.onload = () => resolve()
-      link.onerror = () => reject(new Error('Failed to load font stylesheet'))
-      document.head.appendChild(link)
-    })
-
-    // Wait a bit for CSS to parse
-    await new Promise(resolve => setTimeout(resolve, 200))
-
-    // If font name was provided, use it; otherwise try to extract from @font-face rules
-    if (fontNameInput && fontNameInput.trim()) {
-      return fontNameInput.trim()
-    }
-
-    // Try to extract font-family from the loaded stylesheet
-    try {
-      const styleSheets = Array.from(document.styleSheets)
-      for (const sheet of styleSheets) {
-        try {
-          const rules = Array.from(sheet.cssRules || [])
-          for (const rule of rules) {
-            if (rule instanceof CSSFontFaceRule) {
-              const fontFamily = rule.style.fontFamily
-              if (fontFamily) {
-                // Extract font name (remove quotes, get first part before comma)
-                const name = fontFamily.replace(/^["']|["']$/g, '').split(',')[0].trim()
-                if (name) return name
-              }
-            }
-          }
-        } catch {}
-      }
-    } catch {}
-
-    throw new Error('Could not determine font family name. Please enter the font name manually.')
-  }
 
   const handleAccept = async () => {
     setError('')
@@ -215,48 +304,164 @@ export function GoogleFontsModal({
 
         // Use selected font or first one
         const fontToLoad = fonts[selectedFontIndex] || fonts[0]
-        finalFontName = await loadGoogleFontFromUrl(googleFontsUrl.trim(), fontToLoad)
+        
+        // Extract selected combinations
+        const selectedComboArray = Array.from(selectedCombos)
+          .map(id => allWeightStyleCombos.find(c => c.id === id))
+          .filter((c): c is { weight: number; style: string; id: string } => c !== undefined)
+        
+        if (selectedComboArray.length === 0) {
+          setError('Please select at least one weight+style combination')
+          setLoading(false)
+          return
+        }
+        
+        // Extract unique weights and styles from selected combinations
+        const weightsArray = [...new Set(selectedComboArray.map(c => c.weight))].sort((a, b) => a - b)
+        const stylesArray = [...new Set(selectedComboArray.map(c => c.style))]
+        
+        // Build URL with selected weights and styles
+        const finalUrl = buildFontUrl(googleFontsUrl.trim(), fontToLoad, weightsArray, stylesArray)
+        
+        // Don't load the font here - let onAccept handle it via ensureFontLoaded
+        // This avoids conflicts and ensures the URL is properly stored in token extensions first
+        finalFontName = fontToLoad
+        
+        // Build variants array for token extensions from selected combinations
+        const variants: Array<{ weight: string; style: string }> = []
+        const weightMap: Record<number, string> = {
+          100: 'thin',
+          200: 'extra-light',
+          300: 'light',
+          400: 'regular',
+          500: 'medium',
+          600: 'semi-bold',
+          700: 'bold',
+          800: 'extra-bold',
+          900: 'black'
+        }
+        
+        selectedComboArray.forEach(combo => {
+          // Map weight to closest token weight name
+          let weightKey = 'regular' // default
+          if (combo.weight <= 150) weightKey = 'thin'
+          else if (combo.weight <= 250) weightKey = 'extra-light'
+          else if (combo.weight <= 350) weightKey = 'light'
+          else if (combo.weight <= 450) weightKey = 'regular'
+          else if (combo.weight <= 550) weightKey = 'medium'
+          else if (combo.weight <= 650) weightKey = 'semi-bold'
+          else if (combo.weight <= 750) weightKey = 'bold'
+          else if (combo.weight <= 850) weightKey = 'extra-bold'
+          else weightKey = 'black'
+          
+          variants.push({
+            weight: `{tokens.font.weights.${weightKey}}`,
+            style: `{tokens.font.styles.${combo.style}}`
+          })
+        })
+        
+        // Call onAccept with font name, URL, variants, and sequence
+        setError('')
+        try {
+          await onAccept(finalFontName, finalUrl, variants, selectedSequence)
+          setGoogleFontsUrl('')
+          setCustomFontName('')
+          setCustomFontFallback('sans-serif')
+          setAvailableFonts([])
+          setSelectedFontIndex(0)
+          setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+          setLoading(false)
+          onClose()
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to add font')
+          setLoading(false)
+        }
+        return
       } else {
-        // Public font face URL tab
-        if (!fontFaceUrl.trim()) {
-          setError('Please enter a font stylesheet URL')
+        // Custom font tab
+        if (!customFontName.trim()) {
+          setError('Please enter a font family name')
           setLoading(false)
           return
         }
 
-        finalFontName = await loadFontFromUrl(fontFaceUrl.trim(), fontName.trim())
-      }
+        // Extract selected combinations
+        const selectedComboArray = Array.from(selectedCombos)
+          .map(id => allWeightStyleCombos.find(c => c.id === id))
+          .filter((c): c is { weight: number; style: string; id: string } => c !== undefined)
+        
+        if (selectedComboArray.length === 0) {
+          setError('Please select at least one weight+style combination')
+          setLoading(false)
+          return
+        }
 
-      if (!finalFontName) {
-        setError('Could not determine font family name')
-        setLoading(false)
+        // Check if font already exists (case-insensitive comparison)
+        const fontToAddLower = customFontName.trim().toLowerCase()
+        const isDuplicate = existingFonts.some(existing => 
+          existing.toLowerCase().trim() === fontToAddLower
+        )
+
+        if (isDuplicate) {
+          setError('This font family is already added')
+          setLoading(false)
+          return
+        }
+
+        // Build variants array for token extensions from selected combinations
+        const variants: Array<{ weight: string; style: string }> = []
+        const weightMap: Record<number, string> = {
+          100: 'thin',
+          200: 'extra-light',
+          300: 'light',
+          400: 'regular',
+          500: 'medium',
+          600: 'semi-bold',
+          700: 'bold',
+          800: 'extra-bold',
+          900: 'black'
+        }
+        
+        selectedComboArray.forEach(combo => {
+          // Map weight to closest token weight name
+          let weightKey = 'regular' // default
+          if (combo.weight <= 150) weightKey = 'thin'
+          else if (combo.weight <= 250) weightKey = 'extra-light'
+          else if (combo.weight <= 350) weightKey = 'light'
+          else if (combo.weight <= 450) weightKey = 'regular'
+          else if (combo.weight <= 550) weightKey = 'medium'
+          else if (combo.weight <= 650) weightKey = 'semi-bold'
+          else if (combo.weight <= 750) weightKey = 'bold'
+          else if (combo.weight <= 850) weightKey = 'extra-bold'
+          else weightKey = 'black'
+          
+          variants.push({
+            weight: `{tokens.font.weights.${weightKey}}`,
+            style: `{tokens.font.styles.${combo.style}}`
+          })
+        })
+
+        // Format font name with fallback (serif or sans-serif)
+        finalFontName = `${customFontName.trim()}, ${customFontFallback}`
+
+        // Call onAccept with font name (no URL for custom fonts), variants, and sequence
+        setError('')
+        try {
+          await onAccept(finalFontName, undefined, variants, selectedSequence)
+          setGoogleFontsUrl('')
+          setCustomFontName('')
+          setCustomFontFallback('sans-serif')
+          setAvailableFonts([])
+          setSelectedFontIndex(0)
+          setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+          setLoading(false)
+          onClose()
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to add font')
+          setLoading(false)
+        }
         return
       }
-
-      // Check if font already exists (case-insensitive comparison)
-      const fontToAddLower = finalFontName.toLowerCase().trim()
-      const isDuplicate = existingFonts.some(existing => 
-        existing.toLowerCase().trim() === fontToAddLower
-      )
-
-      if (isDuplicate) {
-        setError('This font family is already added')
-        setLoading(false)
-        return
-      }
-
-      // The font should already be loaded from the URL
-      // We don't need to call ensureFontLoaded here because:
-      // 1. The font is already loaded via the <link> tag we created
-      // 2. The onAccept handler will call ensureFontLoaded anyway
-      // 3. Calling it here might cause duplicate loading attempts
-
-      setError('')
-      onAccept(finalFontName)
-      setGoogleFontsUrl('')
-      setFontFaceUrl('')
-      setFontName('')
-      setLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load font')
       setLoading(false)
@@ -264,14 +469,16 @@ export function GoogleFontsModal({
   }
 
   const handleClose = () => {
-    setGoogleFontsUrl('')
-    setFontFaceUrl('')
-    setFontName('')
-    setAvailableFonts([])
-    setSelectedFontIndex(0)
-    setError('')
-    setActiveTab('google')
-    onClose()
+        setGoogleFontsUrl('')
+        setCustomFontName('')
+        setCustomFontFallback('sans-serif')
+        setSelectedSequence(currentSequence || availableSequences[0])
+        setAvailableFonts([])
+        setSelectedFontIndex(0)
+        setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+        setError('')
+        setActiveTab('google')
+        onClose()
   }
 
   if (!open) return null
@@ -316,7 +523,10 @@ export function GoogleFontsModal({
             Add font family
           </h2>
           <button
-            onClick={handleClose}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleClose()
+            }}
             style={{
               border: 'none',
               background: 'transparent',
@@ -361,26 +571,28 @@ export function GoogleFontsModal({
           </button>
           <button
             onClick={() => {
-              setActiveTab('url')
+              setActiveTab('custom')
               setError('')
+              // Select all combinations by default when switching to custom tab
+              setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
             }}
             style={{
               border: 'none',
               background: 'transparent',
               padding: 'var(--recursica-brand-dimensions-general-default)',
-              borderBottom: `2px solid ${activeTab === 'url' ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)` : 'transparent'}`,
-              color: activeTab === 'url' 
+              borderBottom: `2px solid ${activeTab === 'custom' ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)` : 'transparent'}`,
+              color: activeTab === 'custom' 
                 ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
                 : `var(${layer2Base}-element-text-color)`,
-              opacity: activeTab === 'url' 
+              opacity: activeTab === 'custom' 
                 ? `var(${layer2Base}-element-text-high-emphasis)`
                 : `var(${layer2Base}-element-text-low-emphasis)`,
               cursor: 'pointer',
               fontSize: 'var(--recursica-brand-typography-body-font-size)',
-              fontWeight: activeTab === 'url' ? 'var(--recursica-brand-typography-body-font-weight)' : '400',
+              fontWeight: activeTab === 'custom' ? 'var(--recursica-brand-typography-body-font-weight)' : '400',
             }}
           >
-            Public Font Face URL
+            Custom Font
           </button>
         </div>
 
@@ -411,9 +623,13 @@ export function GoogleFontsModal({
                       const fonts = extractFontNamesFromGoogleUrl(url)
                       setAvailableFonts(fonts)
                       setSelectedFontIndex(0)
+                      
+                      // Select all combinations by default
+                      setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
                     } else {
                       setAvailableFonts([])
                       setSelectedFontIndex(0)
+                      setSelectedCombos(new Set())
                     }
                   }}
                   style={{
@@ -434,6 +650,40 @@ export function GoogleFontsModal({
                 }}>
                   Paste a Google Fonts URL. The font family name will be extracted automatically.
                 </div>
+                <div style={{ marginTop: 'var(--recursica-brand-dimensions-general-md)' }}>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: 'var(--recursica-brand-dimensions-general-default)',
+                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                    color: `var(${layer2Base}-element-text-color)`,
+                    opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                  }}>
+                    Sequence Position
+                  </label>
+                  <select
+                    value={selectedSequence}
+                    onChange={(e) => {
+                      setSelectedSequence(e.target.value)
+                      setError('')
+                    }}
+                    style={{
+                      padding: 'var(--recursica-brand-dimensions-general-default)',
+                      border: `1px solid var(${layer1Base}-border-color)`,
+                      borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+                      background: `var(${layer1Base}-surface)`,
+                      color: `var(${layer1Base}-element-text-color)`,
+                      fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                      width: '100%',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {availableSequences.map(seq => (
+                      <option key={seq} value={seq}>
+                        {seq.charAt(0).toUpperCase() + seq.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 {availableFonts.length > 1 && (
                   <div style={{ marginTop: 'var(--recursica-brand-dimensions-general-md)' }}>
                     <label style={{
@@ -447,7 +697,12 @@ export function GoogleFontsModal({
                     </label>
                     <select
                       value={selectedFontIndex}
-                      onChange={(e) => setSelectedFontIndex(Number(e.target.value))}
+                      onChange={(e) => {
+                        const idx = Number(e.target.value)
+                        setSelectedFontIndex(idx)
+                      // Reset selection when font changes
+                      setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+                      }}
                       style={{
                         padding: 'var(--recursica-brand-dimensions-general-default)',
                         border: `1px solid var(${layer1Base}-border-color)`,
@@ -467,6 +722,122 @@ export function GoogleFontsModal({
                     </select>
                   </div>
                 )}
+                
+                {/* Weight+Style Combination Selection - Table Layout */}
+                {availableFonts.length > 0 && (
+                  <div style={{ marginTop: 'var(--recursica-brand-dimensions-general-md)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)', marginBottom: 'var(--recursica-brand-dimensions-general-md)' }}>
+                      <span style={{
+                        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                        color: `var(${layer2Base}-element-text-color)`,
+                        opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                      }}>
+                        Select weight+style combinations:
+                      </span>
+                      <Checkbox
+                        checked={allCheckboxState.checked}
+                        indeterminate={allCheckboxState.indeterminate}
+                        onChange={(checked) => {
+                          if (checked) {
+                            setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+                          } else {
+                            setSelectedCombos(new Set())
+                          }
+                        }}
+                        label="All"
+                      />
+                    </div>
+                    
+                    {/* Table with weights as rows and styles as columns */}
+                    <div style={{
+                      overflowX: 'auto',
+                      border: `1px solid var(${layer1Base}-border-color)`,
+                      borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+                    }}>
+                      <table style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                        tableLayout: 'fixed',
+                      }}>
+                        <thead>
+                          <tr>
+                            <th style={{
+                              padding: 'var(--recursica-brand-dimensions-general-default)',
+                              textAlign: 'left',
+                              borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                              color: `var(${layer2Base}-element-text-color)`,
+                              opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                              fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                            }}>
+                              Weight
+                            </th>
+                            {styles.map(style => (
+                              <th key={style} style={{
+                                padding: 'var(--recursica-brand-dimensions-general-default)',
+                                textAlign: 'center',
+                                borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                                color: `var(${layer2Base}-element-text-color)`,
+                                opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                                fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                                textTransform: 'capitalize',
+                                width: '50%',
+                              }}>
+                                {style}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {weights.map(weight => (
+                            <tr key={weight} style={{
+                              borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                            }}>
+                              <td style={{
+                                padding: 'var(--recursica-brand-dimensions-general-default)',
+                                color: `var(${layer2Base}-element-text-color)`,
+                                opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                                fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                              }}>
+                                {weight}
+                              </td>
+                              {styles.map(style => {
+                                const comboId = `${weight}-${style}`
+                                const isSelected = selectedCombos.has(comboId)
+                                return (
+                                  <td key={style} style={{
+                                    padding: 'var(--recursica-brand-dimensions-general-default)',
+                                    textAlign: 'center',
+                                    verticalAlign: 'middle',
+                                  }}>
+                                    <div style={{
+                                      display: 'inline-flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                    }}>
+                                      <Checkbox
+                                        checked={isSelected}
+                                        onChange={(checked) => {
+                                          const newCombos = new Set(selectedCombos)
+                                          if (checked) {
+                                            newCombos.add(comboId)
+                                          } else {
+                                            newCombos.delete(comboId)
+                                          }
+                                          setSelectedCombos(newCombos)
+                                        }}
+                                      />
+                                    </div>
+                                  </td>
+                                )
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
                 {availableFonts.length === 1 && (
                   <div style={{
                     marginTop: 'var(--recursica-brand-dimensions-general-default)',
@@ -484,69 +855,178 @@ export function GoogleFontsModal({
             </>
           ) : (
             <>
-              <div>
-                <label style={{
-                  display: 'block',
-                  marginBottom: 'var(--recursica-brand-dimensions-general-default)',
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  color: `var(${layer2Base}-element-text-color)`,
-                  opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-                }}>
-                  Font Stylesheet URL
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/fonts.css"
-                  value={fontFaceUrl}
-                  onChange={(e) => {
-                    setFontFaceUrl(e.target.value)
-                    setError('')
-                  }}
-                  style={{
-                    padding: 'var(--recursica-brand-dimensions-general-default)',
-                    border: `1px solid ${error ? `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)` : `var(${layer1Base}-border-color)`}`,
+              <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: 'var(--recursica-brand-dimensions-general-default)',
+                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                    color: `var(${layer2Base}-element-text-color)`,
+                    opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                  }}>
+                    Font Family Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="My Custom Font"
+                    value={customFontName}
+                    onChange={(e) => {
+                      setCustomFontName(e.target.value)
+                      setError('')
+                    }}
+                    style={{
+                      padding: 'var(--recursica-brand-dimensions-general-default)',
+                      border: `1px solid ${error ? `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)` : `var(${layer1Base}-border-color)`}`,
+                      borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+                      background: `var(${layer1Base}-surface)`,
+                      color: `var(${layer1Base}-element-text-color)`,
+                      fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                      width: '100%',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: 'var(--recursica-brand-dimensions-general-default)',
+                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                    color: `var(${layer2Base}-element-text-color)`,
+                    opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                  }}>
+                    Font Fallback
+                  </label>
+                  <select
+                    value={customFontFallback}
+                    onChange={(e) => {
+                      setCustomFontFallback(e.target.value as 'serif' | 'sans-serif')
+                      setError('')
+                    }}
+                    style={{
+                      padding: 'var(--recursica-brand-dimensions-general-default)',
+                      border: `1px solid ${error ? `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)` : `var(${layer1Base}-border-color)`}`,
+                      borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+                      background: `var(${layer1Base}-surface)`,
+                      color: `var(${layer1Base}-element-text-color)`,
+                      fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                      width: '100%',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="sans-serif">Sans-serif</option>
+                    <option value="serif">Serif</option>
+                  </select>
+                </div>
+
+                <div style={{ marginTop: 'var(--recursica-brand-dimensions-general-md)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)', marginBottom: 'var(--recursica-brand-dimensions-general-md)' }}>
+                    <span style={{
+                      fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                      color: `var(${layer2Base}-element-text-color)`,
+                      opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                    }}>
+                      Select weight+style combinations:
+                    </span>
+                    <Checkbox
+                      checked={allCheckboxState.checked}
+                      indeterminate={allCheckboxState.indeterminate}
+                      onChange={(checked) => {
+                        if (checked) {
+                          setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+                        } else {
+                          setSelectedCombos(new Set())
+                        }
+                      }}
+                      label="All"
+                    />
+                  </div>
+
+                  <div style={{
+                    overflowX: 'auto',
+                    border: `1px solid var(${layer1Base}-border-color)`,
                     borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                    background: `var(${layer1Base}-surface)`,
-                    color: `var(${layer1Base}-element-text-color)`,
-                    fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                    width: '100%',
-                    marginBottom: 'var(--recursica-brand-dimensions-general-md)',
-                  }}
-                />
-                <label style={{
-                  display: 'block',
-                  marginBottom: 'var(--recursica-brand-dimensions-general-default)',
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  color: `var(${layer2Base}-element-text-color)`,
-                  opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-                }}>
-                  Font Family Name (optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Roboto"
-                  value={fontName}
-                  onChange={(e) => {
-                    setFontName(e.target.value)
-                    setError('')
-                  }}
-                  style={{
-                    padding: 'var(--recursica-brand-dimensions-general-default)',
-                    border: `1px solid ${error ? `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)` : `var(${layer1Base}-border-color)`}`,
-                    borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                    background: `var(${layer1Base}-surface)`,
-                    color: `var(${layer1Base}-element-text-color)`,
-                    fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                    width: '100%',
-                  }}
-                />
-                <div style={{
-                  marginTop: 'var(--recursica-brand-dimensions-general-default)',
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  color: `var(${layer2Base}-element-text-color)`,
-                  opacity: `var(${layer2Base}-element-text-low-emphasis)`,
-                }}>
-                  Paste a URL to a stylesheet containing @font-face rules. If the font name cannot be extracted automatically, enter it manually.
+                  }}>
+                    <table style={{
+                      width: '100%',
+                      borderCollapse: 'collapse',
+                      fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                    }}>
+                      <thead>
+                        <tr>
+                          <th style={{
+                            padding: 'var(--recursica-brand-dimensions-general-default)',
+                            textAlign: 'left',
+                            borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                            color: `var(${layer2Base}-element-text-color)`,
+                            opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                            fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                          }}>
+                            Weight
+                          </th>
+                          {styles.map(style => (
+                            <th key={style} style={{
+                              padding: 'var(--recursica-brand-dimensions-general-default)',
+                              textAlign: 'center',
+                              borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                              color: `var(${layer2Base}-element-text-color)`,
+                              opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                              fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                              textTransform: 'capitalize',
+                              width: '50%',
+                            }}>
+                              {style}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {weights.map(weight => (
+                          <tr key={weight} style={{
+                            borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                          }}>
+                            <td style={{
+                              padding: 'var(--recursica-brand-dimensions-general-default)',
+                              color: `var(${layer2Base}-element-text-color)`,
+                              opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                              fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                            }}>
+                              {weight}
+                            </td>
+                            {styles.map(style => {
+                              const comboId = `${weight}-${style}`
+                              const isSelected = selectedCombos.has(comboId)
+                              return (
+                                <td key={style} style={{
+                                  padding: 'var(--recursica-brand-dimensions-general-default)',
+                                  textAlign: 'center',
+                                  verticalAlign: 'middle',
+                                }}>
+                                  <div style={{
+                                    display: 'inline-flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                  }}>
+                                    <Checkbox
+                                      checked={isSelected}
+                                      onChange={(checked) => {
+                                        const newCombos = new Set(selectedCombos)
+                                        if (checked) {
+                                          newCombos.add(comboId)
+                                        } else {
+                                          newCombos.delete(comboId)
+                                        }
+                                        setSelectedCombos(newCombos)
+                                      }}
+                                    />
+                                  </div>
+                                </td>
+                              )
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </>
@@ -570,7 +1050,10 @@ export function GoogleFontsModal({
           <Button
             variant="outline"
             size="default"
-            onClick={handleClose}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleClose()
+            }}
             disabled={loading}
           >
             Cancel
@@ -579,7 +1062,7 @@ export function GoogleFontsModal({
             variant="solid"
             size="default"
             onClick={handleAccept}
-            disabled={loading || (activeTab === 'google' && !googleFontsUrl.trim()) || (activeTab === 'url' && !fontFaceUrl.trim())}
+            disabled={loading || (activeTab === 'google' && (!googleFontsUrl.trim() || selectedCombos.size === 0)) || (activeTab === 'custom' && (!customFontName.trim() || selectedCombos.size === 0))}
           >
             {loading ? 'Loading...' : 'Add Font'}
           </Button>

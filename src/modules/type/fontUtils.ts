@@ -74,7 +74,16 @@ export function getCachedFontFamilyName(fontName: string): string {
   const trimmed = fontName.trim()
   const cached = fontFamilyNameCache.get(trimmed)
   if (cached) return cached
-  // If not cached, return just the font name with quotes if it has spaces
+  // If not cached, preserve the fallback if present (e.g., "My Font, sans-serif")
+  // Add quotes if the font name has spaces, but preserve the full value including fallback
+  if (trimmed.includes(',')) {
+    // Has fallback - quote the font name part if it has spaces, keep fallback as-is
+    const [fontPart, ...fallbackParts] = trimmed.split(',').map(s => s.trim())
+    const fallback = fallbackParts.join(',').trim()
+    const quotedFontPart = fontPart.includes(' ') ? `"${fontPart}"` : fontPart
+    return fallback ? `${quotedFontPart}, ${fallback}` : quotedFontPart
+  }
+  // No fallback - just add quotes if font name has spaces
   return trimmed.includes(' ') ? `"${trimmed}"` : trimmed
 }
 
@@ -524,11 +533,6 @@ export async function ensureFontLoaded(fontName: string): Promise<void> {
     
     const cleanName = trimmedName.replace(/^["']|["']$/g, '')
     const id = `gf-${cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
-    const existingLink = document.getElementById(id) as HTMLLinkElement | null
-    if (existingLink) {
-      // Font already loaded, just return (no events, no recomputes)
-      return
-    }
     
     // Check if there's a custom URL for this font from token extensions
     // Try both fontUrlMap and window.__fontUrlMap (populated synchronously in constructor)
@@ -537,15 +541,56 @@ export async function ensureFontLoaded(fontName: string): Promise<void> {
                        windowMap?.get(cleanName) || windowMap?.get(trimmedName)
     const href = customUrl || `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanName).replace(/%20/g, '+')}:wght@100..900&display=swap`
     
+    const existingLink = document.getElementById(id) as HTMLLinkElement | null
+    if (existingLink) {
+      // Font link already exists - check if we need to update it
+      // Compare the actual href attribute (not the resolved href property)
+      const currentHref = existingLink.getAttribute('href')
+      if (currentHref !== href) {
+        existingLink.href = href
+      }
+      // Return early since link is already in place (or was just updated)
+      return
+    }
+    
     const link = document.createElement('link')
     link.id = id
     link.rel = 'stylesheet'
     link.href = href
     
-    // Just append the link - no events, no waiting, no recomputes
-    // Font will load and apply automatically when ready
-    
-    document.head.appendChild(link)
+    // Wait for the stylesheet to load
+    await new Promise<void>((resolve) => {
+      // Set up load/error handlers before appending
+      const timeout = setTimeout(() => {
+        // If sheet is available after timeout, consider it loaded
+        if (link.sheet) {
+          resolve()
+        } else {
+          // Don't reject - just resolve anyway, font might still load
+          resolve()
+        }
+      }, 5000) // 5 second timeout
+      
+      link.onload = () => {
+        clearTimeout(timeout)
+        resolve()
+      }
+      
+      link.onerror = () => {
+        clearTimeout(timeout)
+        // Don't reject - just continue
+        resolve()
+      }
+      
+      // Append the link to the document (this triggers the load)
+      document.head.appendChild(link)
+      
+      // Check if already loaded (might happen synchronously in some cases)
+      if (link.sheet) {
+        clearTimeout(timeout)
+        resolve()
+      }
+    })
   } catch (error) {
     console.warn(`Failed to load web font ${trimmedName}:`, error)
   }
@@ -585,11 +630,49 @@ export function populateFontUrlMapFromTokens(tokens: any): void {
           if (val !== cleanVal) {
             fontUrlMap.set(val, url)
           }
+          
+          // Also populate window.__fontUrlMap for synchronous access
+          if (typeof window !== 'undefined') {
+            if (!(window as any).__fontUrlMap) {
+              (window as any).__fontUrlMap = new Map<string, string>()
+            }
+            const urlMap = (window as any).__fontUrlMap as Map<string, string>
+            urlMap.set(cleanVal, url)
+            if (val !== cleanVal) {
+              urlMap.set(val, url)
+            }
+          }
         }
       }
     })
   } catch (error) {
     console.warn('[populateFontUrlMapFromTokens] Error:', error)
+  }
+}
+
+/**
+ * Directly sets a font URL in the fontUrlMap
+ * Useful when adding a new font and we need to ensure the URL is available immediately
+ */
+export function setFontUrl(fontName: string, url: string): void {
+  if (!fontName || !url) return
+  
+  const cleanName = fontName.trim().replace(/^["']|["']$/g, '')
+  fontUrlMap.set(cleanName, url)
+  if (fontName.trim() !== cleanName) {
+    fontUrlMap.set(fontName.trim(), url)
+  }
+  
+  // Also update window.__fontUrlMap
+  if (typeof window !== 'undefined') {
+    if (!(window as any).__fontUrlMap) {
+      (window as any).__fontUrlMap = new Map<string, string>()
+    }
+    const urlMap = (window as any).__fontUrlMap as Map<string, string>
+    urlMap.set(cleanName, url)
+    if (fontName.trim() !== cleanName) {
+      urlMap.set(fontName.trim(), url)
+    }
   }
 }
 

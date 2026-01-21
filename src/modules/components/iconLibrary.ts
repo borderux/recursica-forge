@@ -66,6 +66,7 @@ import {
   PaintBucket,
   Palette,
   Pause,
+  Pencil,
   Plus,
   Queue,
   Resize,
@@ -202,6 +203,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'eye': Eye,
   'circle': Circle,
   'ellipsis-horizontal': DotsThree,
+  'pencil': Pencil,
+  'pencil-square': Pencil,
+  'edit': Pencil,
 }
 
 /**
