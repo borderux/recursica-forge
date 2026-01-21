@@ -49,6 +49,59 @@ export default function ElevationStylePanel({
   const levelsArr = React.useMemo(() => Array.from(selectedLevels), [selectedLevels])
   const { mode } = useThemeMode()
   const { tokens: tokensJson, updateToken, elevation } = useVars()
+  
+  // Debounce refs for slider updates to prevent excessive calls during dragging
+  const blurDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const spreadDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const offsetXDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const offsetYDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  
+  // Cleanup debounce timers on unmount
+  React.useEffect(() => {
+    return () => {
+      if (blurDebounceRef.current) clearTimeout(blurDebounceRef.current)
+      if (spreadDebounceRef.current) clearTimeout(spreadDebounceRef.current)
+      if (offsetXDebounceRef.current) clearTimeout(offsetXDebounceRef.current)
+      if (offsetYDebounceRef.current) clearTimeout(offsetYDebounceRef.current)
+    }
+  }, [])
+  
+  // Debounced handlers for slider changes
+  const handleBlurChange = React.useCallback((value: number) => {
+    if (blurDebounceRef.current) {
+      clearTimeout(blurDebounceRef.current)
+    }
+    blurDebounceRef.current = setTimeout(() => {
+      levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blur', value))
+    }, 16) // ~1 frame at 60fps
+  }, [levelsArr, updateElevationControl])
+  
+  const handleSpreadChange = React.useCallback((value: number) => {
+    if (spreadDebounceRef.current) {
+      clearTimeout(spreadDebounceRef.current)
+    }
+    spreadDebounceRef.current = setTimeout(() => {
+      levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spread', value))
+    }, 16) // ~1 frame at 60fps
+  }, [levelsArr, updateElevationControl])
+  
+  const handleOffsetXChange = React.useCallback((value: number) => {
+    if (offsetXDebounceRef.current) {
+      clearTimeout(offsetXDebounceRef.current)
+    }
+    offsetXDebounceRef.current = setTimeout(() => {
+      levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetX', value))
+    }, 16) // ~1 frame at 60fps
+  }, [levelsArr, updateElevationControl])
+  
+  const handleOffsetYChange = React.useCallback((value: number) => {
+    if (offsetYDebounceRef.current) {
+      clearTimeout(offsetYDebounceRef.current)
+    }
+    offsetYDebounceRef.current = setTimeout(() => {
+      levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetY', value))
+    }, 16) // ~1 frame at 60fps
+  }, [levelsArr, updateElevationControl])
 
   const getShadowColorCssVar = React.useCallback((level: number): string => {
     return `--recursica-brand-themes-${mode}-elevations-elevation-${level}-shadow-color`
@@ -272,7 +325,7 @@ export default function ElevationStylePanel({
           value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0) : 0}
           onChange={(val) => {
             const value = typeof val === 'number' ? val : val[0]
-            levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blur', value))
+            handleBlurChange(value)
           }}
           min={0}
           max={200}
@@ -289,7 +342,7 @@ export default function ElevationStylePanel({
           value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0) : 0}
           onChange={(val) => {
             const value = typeof val === 'number' ? val : val[0]
-            levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spread', value))
+            handleSpreadChange(value)
           }}
           min={0}
           max={200}
@@ -314,7 +367,7 @@ export default function ElevationStylePanel({
               value={signedValue}
               onChange={(val) => {
                 const value = typeof val === 'number' ? val : val[0]
-                levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetX', value))
+                handleOffsetXChange(value)
               }}
               min={-50}
               max={50}
@@ -341,7 +394,7 @@ export default function ElevationStylePanel({
               value={signedValue}
               onChange={(val) => {
                 const value = typeof val === 'number' ? val : val[0]
-                levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetY', value))
+                handleOffsetYChange(value)
               }}
               min={-50}
               max={50}

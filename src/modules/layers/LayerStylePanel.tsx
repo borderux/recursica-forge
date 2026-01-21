@@ -104,13 +104,14 @@ function BrandDimensionSliderInline({
   const justSetValueRef = useRef<string | null>(null)
   
   const readInitialValue = useCallback(() => {
+    // Don't read if we just set a value ourselves
+    if (justSetValueRef.current !== null) {
+      return
+    }
+    
     const inlineValue = typeof document !== 'undefined' 
       ? document.documentElement.style.getPropertyValue(targetCssVar).trim()
       : ''
-    
-    if (justSetValueRef.current === inlineValue) {
-      return
-    }
     
     const currentValue = inlineValue || readCssVar(targetCssVar)
     
@@ -167,16 +168,38 @@ function BrandDimensionSliderInline({
   }, [readInitialValue])
   
   useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+    
     const handleCssVarUpdate = (event: CustomEvent) => {
-      if (event.detail?.cssVars?.includes(targetCssVar)) {
-        setTimeout(() => {
-          readInitialValue()
-        }, 0)
+      const updatedVars = event.detail?.cssVars
+      // Only process if this specific CSS var was updated
+      if (!Array.isArray(updatedVars) || !updatedVars.includes(targetCssVar)) {
+        return
       }
+      
+      // Don't process if we just set this value ourselves
+      if (justSetValueRef.current !== null) {
+        return
+      }
+      
+      // Debounce to prevent excessive reads
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
+      
+      debounceTimer = setTimeout(() => {
+        // Double-check we're not in the middle of our own update
+        if (justSetValueRef.current === null) {
+          readInitialValue()
+        }
+      }, 50) // Longer delay to ensure CSS var is fully processed
     }
     
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
     return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
     }
   }, [readInitialValue, targetCssVar])
@@ -190,19 +213,28 @@ function BrandDimensionSliderInline({
     if (selectedToken) {
       const tokenValue = `var(${selectedToken.name})`
       updateCssVarFn(targetCssVar, tokenValue)
+      // Set a flag to prevent the listener from reverting our change
       justSetValueRef.current = tokenValue
+      // Keep the flag longer to ensure CSS var is fully processed
       setTimeout(() => {
         justSetValueRef.current = null
-      }, 100)
+      }, 200)
       
       if (onUpdate) {
         onUpdate(targetCssVar, tokenValue)
       }
       
+      // Don't dispatch event immediately - let the CSS var update naturally
+      // Only dispatch if needed for other components, but with a longer delay
       requestAnimationFrame(() => {
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [targetCssVar] }
-        }))
+        setTimeout(() => {
+          // Only dispatch if we're not in the middle of our own update
+          if (justSetValueRef.current === tokenValue) {
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: [targetCssVar] }
+            }))
+          }
+        }, 50) // Longer delay to ensure CSS var is processed
       })
     }
   }
@@ -280,13 +312,14 @@ function ElevationSliderInline({
   }, [elevationOptions])
   
   const readInitialValue = useCallback(() => {
+    // Don't read if we just set a value ourselves
+    if (justSetValueRef.current !== null) {
+      return
+    }
+    
     const inlineValue = typeof document !== 'undefined' 
       ? document.documentElement.style.getPropertyValue(primaryVar).trim()
       : ''
-    
-    if (justSetValueRef.current === inlineValue) {
-      return
-    }
     
     const currentValue = inlineValue || readCssVar(primaryVar)
     
@@ -314,16 +347,41 @@ function ElevationSliderInline({
   }, [readInitialValue])
   
   useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+    
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
-      if (!detail?.cssVars || detail.cssVars.includes(primaryVar)) {
-        setTimeout(() => {
-          readInitialValue()
-        }, 0)
+      const updatedVars = detail?.cssVars
+      // Only process if this specific CSS var was updated
+      if (!Array.isArray(updatedVars) || !updatedVars.includes(primaryVar)) {
+        return
       }
+      
+      // Don't process if we just set this value ourselves
+      if (justSetValueRef.current !== null) {
+        return
+      }
+      
+      // Debounce to prevent excessive reads
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
+      
+      debounceTimer = setTimeout(() => {
+        // Double-check we're not in the middle of our own update
+        if (justSetValueRef.current === null) {
+          readInitialValue()
+        }
+      }, 50) // Longer delay to ensure CSS var is fully processed
     }
+    
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+    }
   }, [readInitialValue, primaryVar])
   
   const handleSliderChange = (value: number | [number, number]) => {
@@ -335,19 +393,28 @@ function ElevationSliderInline({
     if (selectedToken) {
       const elevationValue = `{brand.themes.${mode}.elevations.${selectedToken.name}}`
       updateCssVarFn(primaryVar, elevationValue)
+      // Set a flag to prevent the listener from reverting our change
       justSetValueRef.current = elevationValue
+      // Keep the flag longer to ensure CSS var is fully processed
       setTimeout(() => {
         justSetValueRef.current = null
-      }, 100)
+      }, 200)
       
       if (onUpdate) {
         onUpdate(['properties', 'elevation'], elevationValue)
       }
       
+      // Don't dispatch event immediately - let the CSS var update naturally
+      // Only dispatch if needed for other components, but with a longer delay
       requestAnimationFrame(() => {
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [primaryVar] }
-        }))
+        setTimeout(() => {
+          // Only dispatch if we're not in the middle of our own update
+          if (justSetValueRef.current === elevationValue) {
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: [primaryVar] }
+            }))
+          }
+        }, 50) // Longer delay to ensure CSS var is processed
       })
     }
   }
@@ -533,77 +600,93 @@ export default function LayerStylePanel({
       : `--recursica-brand-themes-${mode}-layer-layer-${layerKey}-property-border-thickness`
   }, [selectedLevels, mode, layerKey, isOnlyLayer0])
   
-  // Listen for CSS variable updates and sync to theme JSON - moved to top level
+  // Consolidated listener for CSS variable updates with debouncing
   useEffect(() => {
-    if (!paddingCssVar) return
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+    const pendingUpdates = new Set<string>()
+    
     const handleCssVarUpdate = (e: CustomEvent) => {
-      if (e.detail?.cssVars?.includes(paddingCssVar)) {
-        const cssValue = readCssVar(paddingCssVar)
-        if (cssValue && cssValue.trim().startsWith('var(')) {
-          const match = cssValue.match(/--recursica-brand-dimensions-general-([^)]+)/)
-          if (match) {
-            const generalName = match[1]
-            const tokenRef = `{brand.dimensions.general.${generalName}}`
-            onUpdate((layerSpec: any) => {
-              const next = JSON.parse(JSON.stringify(layerSpec || {}))
-              if (!next.properties) next.properties = {}
-              next.properties.padding = { $type: 'number', $value: tokenRef }
-              return next
-            })
-          }
-        }
+      const updatedVars = e.detail?.cssVars || []
+      if (!Array.isArray(updatedVars)) return
+      
+      // Check if any of our CSS vars were updated
+      const relevantVars = [paddingCssVar, borderRadiusCssVar, borderThicknessCssVar].filter(Boolean)
+      const hasRelevantUpdate = relevantVars.some(v => updatedVars.includes(v))
+      
+      if (!hasRelevantUpdate) return
+      
+      // Debounce updates to prevent excessive processing
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
       }
-    }
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-  }, [paddingCssVar, onUpdate])
-  
-  useEffect(() => {
-    if (!borderRadiusCssVar) return
-    const handleCssVarUpdate = (e: CustomEvent) => {
-      if (e.detail?.cssVars?.includes(borderRadiusCssVar)) {
-        const cssValue = readCssVar(borderRadiusCssVar)
-        if (cssValue && cssValue.trim().startsWith('var(')) {
-          const match = cssValue.match(/--recursica-brand-dimensions-border-radii-([^)]+)/)
-          if (match) {
-            const radiusName = match[1]
-            const tokenRef = `{brand.dimensions.border-radii.${radiusName}}`
-            onUpdate((layerSpec: any) => {
-              const next = JSON.parse(JSON.stringify(layerSpec || {}))
-              if (!next.properties) next.properties = {}
-              next.properties['border-radius'] = { $type: 'number', $value: tokenRef }
-              return next
-            })
-          }
+      
+      updatedVars.forEach(v => {
+        if (relevantVars.includes(v)) {
+          pendingUpdates.add(v)
         }
-      }
-    }
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-  }, [borderRadiusCssVar, onUpdate])
-  
-  useEffect(() => {
-    if (!borderThicknessCssVar) return
-    const handleCssVarUpdate = (e: CustomEvent) => {
-      if (e.detail?.cssVars?.includes(borderThicknessCssVar)) {
-        const cssValue = readCssVar(borderThicknessCssVar)
-        if (cssValue) {
-          const match = cssValue.match(/^(\d+(?:\.\d+)?)px$/)
-          if (match) {
-            const pxValue = parseFloat(match[1])
-            onUpdate((layerSpec: any) => {
-              const next = JSON.parse(JSON.stringify(layerSpec || {}))
-              if (!next.properties) next.properties = {}
-              next.properties['border-thickness'] = { $type: 'number', $value: pxValue }
-              return next
-            })
+      })
+      
+      debounceTimer = setTimeout(() => {
+        // Process all pending updates at once
+        pendingUpdates.forEach(cssVar => {
+          if (cssVar === paddingCssVar) {
+            const cssValue = readCssVar(paddingCssVar)
+            if (cssValue && cssValue.trim().startsWith('var(')) {
+              const match = cssValue.match(/--recursica-brand-dimensions-general-([^)]+)/)
+              if (match) {
+                const generalName = match[1]
+                const tokenRef = `{brand.dimensions.general.${generalName}}`
+                onUpdate((layerSpec: any) => {
+                  const next = JSON.parse(JSON.stringify(layerSpec || {}))
+                  if (!next.properties) next.properties = {}
+                  next.properties.padding = { $type: 'number', $value: tokenRef }
+                  return next
+                })
+              }
+            }
+          } else if (cssVar === borderRadiusCssVar) {
+            const cssValue = readCssVar(borderRadiusCssVar)
+            if (cssValue && cssValue.trim().startsWith('var(')) {
+              const match = cssValue.match(/--recursica-brand-dimensions-border-radii-([^)]+)/)
+              if (match) {
+                const radiusName = match[1]
+                const tokenRef = `{brand.dimensions.border-radii.${radiusName}}`
+                onUpdate((layerSpec: any) => {
+                  const next = JSON.parse(JSON.stringify(layerSpec || {}))
+                  if (!next.properties) next.properties = {}
+                  next.properties['border-radius'] = { $type: 'number', $value: tokenRef }
+                  return next
+                })
+              }
+            }
+          } else if (cssVar === borderThicknessCssVar) {
+            const cssValue = readCssVar(borderThicknessCssVar)
+            if (cssValue) {
+              const match = cssValue.match(/^(\d+(?:\.\d+)?)px$/)
+              if (match) {
+                const pxValue = parseFloat(match[1])
+                onUpdate((layerSpec: any) => {
+                  const next = JSON.parse(JSON.stringify(layerSpec || {}))
+                  if (!next.properties) next.properties = {}
+                  next.properties['border-thickness'] = { $type: 'number', $value: pxValue }
+                  return next
+                })
+              }
+            }
           }
-        }
-      }
+        })
+        pendingUpdates.clear()
+      }, 50) // 50ms debounce
     }
+    
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-  }, [borderThicknessCssVar, onUpdate])
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
+    }
+  }, [paddingCssVar, borderRadiusCssVar, borderThicknessCssVar, onUpdate])
   
   const updateValue = (path: string[], raw: string) => {
     const value: any = (() => {
