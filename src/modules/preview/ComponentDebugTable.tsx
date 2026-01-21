@@ -429,7 +429,6 @@ export default function ComponentDebugTable({
                     })()}
                     onClick={() => handleReset(v.cssVar)}
                     disabled={!v.isChanged}
-                    title="Reset to original value"
                     style={{
                       minWidth: '32px',
                       width: '32px',

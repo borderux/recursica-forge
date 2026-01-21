@@ -27,7 +27,7 @@ function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): strin
 }
 
 // Helper to resolve CSS var to hex (recursively)
-function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth = 0): string | null {
+function resolveCssVarToHex(cssVar: string, tokenIndex: { get: (path: string) => any } | Map<string, any>, depth = 0): string | null {
   if (depth > 10) return null
   try {
     const trimmed = cssVar.trim()

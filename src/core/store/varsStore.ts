@@ -1169,14 +1169,41 @@ class VarsStore {
       }
     }
     
+    // Initialize token references if not already set
+    const blurTokens: Record<string, string> = {}
+    const spreadTokens: Record<string, string> = {}
+    const offsetXTokens: Record<string, string> = {}
+    const offsetYTokens: Record<string, string> = {}
+    for (let i = 0; i <= 4; i++) {
+      const k = `elevation-${i}`
+      blurTokens[k] = `size/elevation-${i}-blur`
+      spreadTokens[k] = `size/elevation-${i}-spread`
+      offsetXTokens[k] = `size/elevation-${i}-offset-x`
+      offsetYTokens[k] = `size/elevation-${i}-offset-y`
+    }
+    
     // Use elevationState from localStorage if available, otherwise use the one we built
-    const finalState = elevationState || { controls, colorTokens, alphaTokens, paletteSelections, baseXDirection, baseYDirection, directions, shadowColorControl }
+    const finalState: ElevationState = elevationState || { 
+      controls, 
+      colorTokens, 
+      alphaTokens, 
+      blurTokens,
+      spreadTokens,
+      offsetXTokens,
+      offsetYTokens,
+      paletteSelections, 
+      baseXDirection, 
+      baseYDirection, 
+      directions, 
+      shadowColorControl 
+    }
     
     // Always ensure tokens exist and token references are set (even if loaded from localStorage)
-    const blurTokens: Record<string, string> = finalState.blurTokens || {}
-    const spreadTokens: Record<string, string> = finalState.spreadTokens || {}
-    const offsetXTokens: Record<string, string> = finalState.offsetXTokens || {}
-    const offsetYTokens: Record<string, string> = finalState.offsetYTokens || {}
+    // Use finalState tokens if available, otherwise use initialized defaults
+    if (finalState.blurTokens) Object.assign(blurTokens, finalState.blurTokens)
+    if (finalState.spreadTokens) Object.assign(spreadTokens, finalState.spreadTokens)
+    if (finalState.offsetXTokens) Object.assign(offsetXTokens, finalState.offsetXTokens)
+    if (finalState.offsetYTokens) Object.assign(offsetYTokens, finalState.offsetYTokens)
     
     // Get or create tokens structure
     if (!tokens) tokens = {}
@@ -1493,7 +1520,7 @@ class VarsStore {
         // Helper function to resolve a token reference using centralized parser
         const resolveTokenRef = (value: any): string | null => {
           const context: TokenReferenceContext = {
-            currentMode: currentMode === 'Dark' ? 'dark' : 'light',
+            currentMode: (currentMode as string) === 'Dark' ? 'dark' : 'light',
             tokenIndex: buildTokenIndex(this.state.tokens),
             theme: this.state.theme
           }

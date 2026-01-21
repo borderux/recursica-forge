@@ -678,7 +678,7 @@ export function EditFontVariantsModal({
                 variant="solid"
                 size="default"
                 onClick={handleAccept}
-                disabled={loading || (currentUrl && currentUrl.includes('fonts.googleapis.com') && selectedCombos.size === 0)}
+                disabled={Boolean(loading || (currentUrl && currentUrl.includes('fonts.googleapis.com') && selectedCombos.size === 0))}
               >
                 {loading ? 'Saving...' : 'Save'}
               </Button>

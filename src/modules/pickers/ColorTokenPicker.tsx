@@ -590,7 +590,7 @@ export default function ColorTokenPicker() {
           
           // Update core color interactive properties in theme JSON BEFORE calling setTheme
           // This ensures recomputeAndApplyAll generates the correct CSS variables
-          if (setTheme && themeCopy && tokensJson) {
+          if (themeCopy && tokensJson) {
             // Update theme JSON with new interactive values for each core color
             const tokenIndex = buildTokenIndex(tokensJson)
             const AA = 4.5

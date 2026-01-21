@@ -98,13 +98,14 @@ export function PaletteScaleHeader({
   
   // Check AA compliance for this level - check both high and low emphasis
   let isNonCompliant = false
+  // Detect mode by checking which CSS variable exists
+  let mode: 'light' | 'dark' = 'light'
   if (tokens && paletteKey) {
-    // Detect mode by checking which CSS variable exists
     const lightToneCssVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
     const darkToneCssVar = `--recursica-brand-themes-dark-palettes-${paletteKey}-${level}-tone`
     const lightToneValue = readCssVar(lightToneCssVar)
     const darkToneValue = readCssVar(darkToneCssVar)
-    const mode = lightToneValue ? 'light' : (darkToneValue ? 'dark' : 'light')
+    mode = lightToneValue ? 'light' : (darkToneValue ? 'dark' : 'light')
     
     const toneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
     const onToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`

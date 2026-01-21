@@ -27,6 +27,7 @@ export default function Checkbox({
     return (
       <CarbonCheckbox
         id={checkboxId}
+        labelText=""
         checked={checked}
         indeterminate={indeterminate}
         onChange={(e) => onChange(e.target.checked)}

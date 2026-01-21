@@ -40,7 +40,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
       setAnchor(null)
       setTargetCssVar(null)
       setCurrentToken(null)
-      onClose()
+      onClose?.()
     }
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)

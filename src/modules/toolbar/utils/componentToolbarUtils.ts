@@ -70,7 +70,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
       const currentPath = [...prefix, key]
 
       // Check if this is a "properties" node at component level (for Switch which has properties.colors)
-      if (key === 'properties' && typeof value === 'object' && !('$value' in value)) {
+      if (key === 'properties' && typeof value === 'object' && value !== null && !('$value' in value)) {
         // For Switch: properties.colors is at component level (not under variants)
         // Continue traversing into properties
         traverse(value, currentPath, variantProp)
@@ -81,6 +81,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
       // This handles cases like variants.layouts.stacked.variants.sizes where we traverse directly into the nested variants object
       const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts') && 
                                    typeof value === 'object' && 
+                                   value !== null &&
                                    !('$value' in value) &&
                                    variantProp !== undefined // Only check this when we're inside a variant
       
@@ -120,7 +121,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
       }
 
       // Check if this is a "variants" node
-      if (key === 'variants' && typeof value === 'object' && !('$value' in value)) {
+      if (key === 'variants' && typeof value === 'object' && value !== null && !('$value' in value)) {
         // Check if this variants object contains category containers (styles, sizes, layouts)
         // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left
         // Also handles nested: variants.layouts.side-by-side.variants.sizes.default

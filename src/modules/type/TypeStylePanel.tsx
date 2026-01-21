@@ -132,7 +132,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     const seen = new Set<string>()
     // Helper to check if a value is populated (not empty or whitespace)
     const isPopulated = (val: string): boolean => {
-      return val && val.trim().length > 0
+      return Boolean(val && val.trim().length > 0)
     }
     
     // Token order sequence (from smallest to largest)
@@ -240,10 +240,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         
         // If it's a var() reference, follow the chain
         if (cssValue.startsWith('var(')) {
-          const varMatch = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+          const varMatch: RegExpMatchArray | null = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
           if (varMatch) {
-            const innerVar = varMatch[1].trim()
-            const nextValue = readCssVar(innerVar) || readCssVarResolved(innerVar)
+            const innerVar: string = varMatch[1].trim()
+            const nextValue: string | undefined = readCssVar(innerVar) || readCssVarResolved(innerVar)
             if (!nextValue || nextValue === cssValue) break // No progress or circular reference
             cssValue = nextValue
             depth++
@@ -290,10 +290,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         
         // If it's a var() reference, follow the chain
         if (cssValue.startsWith('var(')) {
-          const varMatch = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+          const varMatch: RegExpMatchArray | null = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
           if (varMatch) {
-            const innerVar = varMatch[1].trim()
-            cssValue = readCssVar(innerVar) || readCssVarResolved(innerVar)
+            const innerVar: string = varMatch[1].trim()
+            cssValue = readCssVar(innerVar) || readCssVarResolved(innerVar) || cssValue
             depth++
           } else {
             break
