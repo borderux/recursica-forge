@@ -43,17 +43,17 @@ export default function Menu({
       data-layer={layer}
       style={{
         // Set CSS custom properties for CSS file to use
-        '--menu-bg': `var(${bgVar})`,
-        '--menu-border': `var(${borderVar})`,
-        '--menu-border-size': `var(${borderSizeVar})`,
-        '--menu-border-radius': `var(${borderRadiusVar})`,
-        '--menu-min-width': `var(${minWidthVar})`,
-        '--menu-max-width': `var(${maxWidthVar})`,
-        '--menu-padding': `var(${paddingVar})`,
-        '--menu-item-gap': `var(${itemGapVar})`,
+        ['--menu-bg' as string]: `var(${bgVar})`,
+        ['--menu-border' as string]: `var(${borderVar})`,
+        ['--menu-border-size' as string]: `var(${borderSizeVar})`,
+        ['--menu-border-radius' as string]: `var(${borderRadiusVar})`,
+        ['--menu-min-width' as string]: `var(${minWidthVar})`,
+        ['--menu-max-width' as string]: `var(${maxWidthVar})`,
+        ['--menu-padding' as string]: `var(${paddingVar})`,
+        ['--menu-item-gap' as string]: `var(${itemGapVar})`,
         boxShadow: elevationBoxShadow,
         ...style,
-      }}
+      } as React.CSSProperties}
       {...material}
       {...props}
     >

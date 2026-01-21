@@ -1,3 +1,4 @@
+import React from 'react'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
 import FloatingPalette from './FloatingPalette'

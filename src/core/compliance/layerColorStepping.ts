@@ -1,5 +1,5 @@
 import { readCssVar } from '../css/readCssVar'
-import { buildTokenIndex } from '../resolvers/tokens'
+import { buildTokenIndex, type TokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
 import { hexToHsv, hsvToHex } from '../../modules/tokens/colors/colorUtils'
@@ -10,7 +10,7 @@ const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '
 /**
  * Resolves a CSS variable to its hex value, following var() references recursively
  */
-export function resolveCssVarToHex(cssVar: string, tokenIndex: Map<string, any>, depth = 0): string | null {
+export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<string, any>, depth = 0): string | null {
   if (depth > 10) return null
   try {
     const trimmed = cssVar.trim()

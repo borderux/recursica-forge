@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useEffect } from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
-import { UnifiedThemeProvider } from '../providers/UnifiedThemeProvider'
-import { UiKitProvider, useUiKit } from '../../modules/uikit/UiKitContext'
+import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
+import { UiKitProvider, useUiKit } from '../../../modules/uikit/UiKitContext'
 import { Button } from '../Button'
 
 // Helper component to switch kits

@@ -7,7 +7,7 @@
  */
 
 import { getComponentCssVar } from './cssVarNames'
-import type { ComponentLayer } from '../registry/types'
+import type { ComponentLayer, ComponentName } from '../registry/types'
 
 export interface ComponentColorVars {
   bgVar: string
@@ -16,7 +16,7 @@ export interface ComponentColorVars {
 }
 
 export interface GetComponentColorVarsOptions {
-  componentName: string
+  componentName: ComponentName
   colorVariant: string
   layer: ComponentLayer
   mode: 'light' | 'dark'

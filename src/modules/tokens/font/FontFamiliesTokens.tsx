@@ -1112,10 +1112,10 @@ export default function FontFamiliesTokens() {
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
-  const buttonTextBg = getComponentCssVar('Button', 'color', 'text-background', 'layer-0')
-  const buttonTextText = getComponentCssVar('Button', 'color', 'text-text', 'layer-0')
-  const buttonSolidBg = getComponentCssVar('Button', 'color', 'solid-background', 'layer-0')
-  const buttonSolidText = getComponentCssVar('Button', 'color', 'solid-text', 'layer-0')
+  const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
+  const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
+  const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
+  const buttonSolidText = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
   const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const buttonHeight = getComponentCssVar('Button', 'size', 'default-height', undefined)
   const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
@@ -1191,7 +1191,6 @@ export default function FontFamiliesTokens() {
                         setEditModalRow(r)
                         setEditModalOpen(true)
                       }}
-                      title="Edit weights and styles"
                     />
                   ) : null
                 })()}
@@ -1204,7 +1203,6 @@ export default function FontFamiliesTokens() {
                       layer="layer-1"
                       icon={<TrashIcon />}
                       onClick={() => handleDelete(index)}
-                      title="Delete font"
                     />
                   ) : null
                 })()}
@@ -1404,7 +1402,8 @@ export default function FontFamiliesTokens() {
           if (!editModalRow || !editModalRow.value) return undefined
           try {
             // Get variants by font name, not sequence
-            return getVariantsByFontName(editModalRow.value)
+            const variants = getVariantsByFontName(editModalRow.value)
+            return variants ?? undefined
           } catch {
             return undefined
           }

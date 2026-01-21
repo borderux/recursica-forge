@@ -7,6 +7,7 @@ import { useVars } from '../vars/VarsContext'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { getComponentCssVar } from '../../components/utils/cssVarNames'
+import type { ComponentLayer } from '../../components/registry/types'
 import './ButtonPreview.css'
 
 interface ButtonPreviewProps {
@@ -36,7 +37,7 @@ export default function ButtonPreview({
   const bgColor = useMemo(() => {
     if (styleVariant === 'solid') {
       // For solid buttons, use the button's background color
-      const buttonBgVar = getComponentCssVar('Button', 'colors', `${styleVariant}-background`, selectedLayer)
+      const buttonBgVar = getComponentCssVar('Button', 'colors', `${styleVariant}-background`, selectedLayer as ComponentLayer)
       const buttonBgValue = readCssVar(buttonBgVar)
       if (buttonBgValue) {
         const tokenIndex = buildTokenIndex(tokens || {})
@@ -59,7 +60,7 @@ export default function ButtonPreview({
     if (!bgColor) return null
 
     // Get button text color for the selected variant
-    const textVar = getComponentCssVar('Button', 'colors', `${styleVariant}-text`, selectedLayer)
+    const textVar = getComponentCssVar('Button', 'colors', `${styleVariant}-text`, selectedLayer as ComponentLayer)
     const textValue = readCssVar(textVar)
     
     if (!textValue) return null

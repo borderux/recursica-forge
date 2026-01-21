@@ -17,15 +17,15 @@ vi.mock('./store/varsStore', () => ({
 // Mock JSON imports
 vi.mock('../vars/Tokens.json', () => ({
   default: { tokens: {} }
-}), { virtual: true })
+}))
 
 vi.mock('../vars/Brand.json', () => ({
   default: { brand: { themes: { light: {}, dark: {} } } }
-}), { virtual: true })
+}))
 
 vi.mock('../vars/UIKit.json', () => ({
   default: { 'ui-kit': { globals: {}, components: {} } }
-}), { virtual: true })
+}))
 
 describe('bootstrapTheme', () => {
   beforeEach(() => {

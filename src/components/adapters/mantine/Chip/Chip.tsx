@@ -137,12 +137,11 @@ export default function Chip({
   
   // Merge library-specific props
   // Note: Mantine Badge doesn't support onClick directly, so use component="button" when onClick is provided
-  const mantineProps = {
+  const mantineProps: any = {
     size: mantineSize,
     disabled,
     'data-disabled': disabled ? true : undefined,
-    component: onClick && !disabled ? 'button' : undefined,
-    type: onClick && !disabled ? 'button' : undefined,
+    ...(onClick && !disabled ? { component: 'button' as const, type: 'button' as const } : {}),
     onClick: disabled ? undefined : onClick,
     // Use native leftSection prop for icon - wrap in container with explicit sizing
     // Ensure icon is always passed when provided
@@ -238,7 +237,7 @@ export default function Chip({
       '--chip-font-weight': 'var(--recursica-brand-typography-caption-font-weight)',
       fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
       fontWeight: 'var(--chip-font-weight, var(--recursica-brand-typography-caption-font-weight))',
-      textTransform: 'none',
+      textTransform: 'none' as const,
       borderStyle: 'solid',
       // Use Button's min-width and max-width vars (same as Button component)
       // Don't use fixed height - let padding and content determine height naturally
@@ -257,7 +256,7 @@ export default function Chip({
     },
     ...mantine,
     ...props,
-  }
+  } as any
   
   // Use native children prop - CSS will handle icon and delete button styling
   // Use variant as key to force Mantine to re-render when variant changes

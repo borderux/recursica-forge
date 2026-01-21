@@ -178,17 +178,16 @@ function cssVarToBrandRef(cssVar: string): string | null {
       const layerId = parts[0]
       parts.shift() // Remove layer ID
       
-      if (parts[0] === 'property') {
+      if ((parts[0] as string) === 'property') {
         parts.shift() // Remove 'property'
-        const propPath = parts.join('.')
-        return `{brand.themes.${mode}.layers.${layerId}.properties.${propPath}}`
-      }
-      
-      if (parts[0] === 'property' && parts[1] === 'element') {
-        parts.shift() // Remove 'property'
-        parts.shift() // Remove 'element'
-        const elementPath = parts.join('.')
-        return `{brand.themes.${mode}.layers.${layerId}.elements.${elementPath}}`
+        if ((parts[0] as string) === 'element') {
+          parts.shift() // Remove 'element'
+          const elementPath = parts.join('.')
+          return `{brand.themes.${mode}.layers.${layerId}.elements.${elementPath}}`
+        } else {
+          const propPath = parts.join('.')
+          return `{brand.themes.${mode}.layers.${layerId}.properties.${propPath}}`
+        }
       }
     }
     
@@ -825,11 +824,11 @@ export function exportUIKitJson(): object {
       // 3. variants.sizes.{variant}.properties.{property}: components-button-variants-sizes-default-properties-height
       // 4. properties.{property}: components-button-properties-border-radius
       
-      if (path[0] === 'properties') {
+      if ((path[0] as string) === 'properties') {
         // Pattern 1 or 4: properties.colors or properties.{property}
         path.shift() // Remove 'properties'
         
-        if (path[0] === 'colors') {
+        if ((path[0] as string) === 'colors') {
           // Pattern 1: properties.colors (Switch)
           path.shift() // Remove 'colors'
           const componentPath = path.join('.')
@@ -891,7 +890,7 @@ export function exportUIKitJson(): object {
             }
           }
         }
-      } else if (path[0] === 'variants') {
+      } else if ((path[0] as string) === 'variants') {
         // Pattern 2 or 3: variants.styles or variants.sizes
         path.shift() // Remove 'variants'
         
@@ -899,7 +898,7 @@ export function exportUIKitJson(): object {
           result['ui-kit'].components[componentName]['variants'] = {}
         }
         
-        if (path[0] === 'styles' || path[0] === 'sizes') {
+        if ((path[0] as string) === 'styles' || (path[0] as string) === 'sizes') {
           const category = path[0] // 'styles' or 'sizes'
           path.shift() // Remove category
           
@@ -917,14 +916,14 @@ export function exportUIKitJson(): object {
             }
             
             // Check if next is 'properties'
-            if (path[0] === 'properties') {
+            if ((path[0] as string) === 'properties') {
               path.shift() // Remove 'properties'
               
               if (!result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']) {
                 result['ui-kit'].components[componentName]['variants'][category][variantName]['properties'] = {}
               }
               
-              if (path[0] === 'colors') {
+              if ((path[0] as string) === 'colors') {
                 // Pattern 2: variants.styles.{variant}.properties.colors
                 path.shift() // Remove 'colors'
                 const componentPath = path.join('.')

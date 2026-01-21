@@ -77,11 +77,11 @@ export default function MenuItem({
       className={`mui-menu-item-wrapper ${className || ''} ${divider === 'bottom' ? 'has-divider' : ''}`}
       style={{
         // Set CSS custom properties for CSS file to use
-        '--menu-item-divider-color': dividerColor || `var(${dividerColorVar})`,
-        '--menu-item-divider-opacity': dividerOpacity !== undefined ? dividerOpacity : `var(${dividerOpacityVar}, 1)`,
-        '--menu-item-divider-item-gap': `var(${dividerItemGapVar})`,
+        ['--menu-item-divider-color' as string]: dividerColor || `var(${dividerColorVar})`,
+        ['--menu-item-divider-opacity' as string]: dividerOpacity !== undefined ? dividerOpacity : `var(${dividerOpacityVar}, 1)`,
+        ['--menu-item-divider-item-gap' as string]: `var(${dividerItemGapVar})`,
         ...style,
-      }}
+      } as React.CSSProperties}
     >
       <button
         disabled={disabled}
@@ -94,19 +94,19 @@ export default function MenuItem({
         data-leading-icon-type={leadingIconType}
         style={{
           // Set CSS custom properties for CSS file to use
-          '--menu-item-bg': finalHasBackground ? `var(${finalBgVar})` : 'transparent',
-          '--menu-item-text': `var(${textVar})`,
-          '--menu-item-border-radius': `var(${borderRadiusVar})`,
-          '--menu-item-min-width': `var(${minWidthVar})`,
-          '--menu-item-max-width': `var(${maxWidthVar})`,
-          '--menu-item-vertical-padding': `var(${verticalPaddingVar})`,
-          '--menu-item-horizontal-padding': `var(${horizontalPaddingVar})`,
-          '--menu-item-supporting-text-opacity': `var(${supportingTextOpacityVar})`,
-          '--menu-item-supporting-text-color': `var(${supportingTextColorVar})`,
-          '--menu-item-opacity': disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : '1',
-          '--menu-item-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-          '--menu-item-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
-        }}
+          ['--menu-item-bg' as string]: finalHasBackground ? `var(${finalBgVar})` : 'transparent',
+          ['--menu-item-text' as string]: `var(${textVar})`,
+          ['--menu-item-border-radius' as string]: `var(${borderRadiusVar})`,
+          ['--menu-item-min-width' as string]: `var(${minWidthVar})`,
+          ['--menu-item-max-width' as string]: `var(${maxWidthVar})`,
+          ['--menu-item-vertical-padding' as string]: `var(${verticalPaddingVar})`,
+          ['--menu-item-horizontal-padding' as string]: `var(${horizontalPaddingVar})`,
+          ['--menu-item-supporting-text-opacity' as string]: `var(${supportingTextOpacityVar})`,
+          ['--menu-item-supporting-text-color' as string]: `var(${supportingTextColorVar})`,
+          ['--menu-item-opacity' as string]: disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : '1',
+          ['--menu-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
+          ['--menu-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
+        } as React.CSSProperties}
         {...material}
         {...props}
       >

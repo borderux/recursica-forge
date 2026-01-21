@@ -1,6 +1,6 @@
 import React from 'react'
-import { Slider } from '../../components/adapters/Slider'
-import { Label } from '../../components/adapters/Label'
+import { Slider } from '../../../components/adapters/Slider'
+import { Label } from '../../../components/adapters/Label'
 
 type StyledSliderProps = {
   id?: string
@@ -46,7 +46,7 @@ export function StyledSlider({
       layout="stacked"
       showInput={false}
       showValueLabel={true}
-      valueLabel={(val) => `${val}`}
+      valueLabel={(val: number) => `${val}`}
       label={label ? <Label layer="layer-3" layout="stacked">{label}</Label> : undefined}
       style={style}
     />
