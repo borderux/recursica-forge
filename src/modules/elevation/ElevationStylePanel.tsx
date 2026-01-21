@@ -464,11 +464,16 @@ export default function ElevationStylePanel({
         </div>
         <div className="control-group">
           <Button
-            onClick={() => revertSelected(new Set(selectedLevels))}
             variant="outline"
-            layer="layer-2"
+            size="small"
+            onClick={() => revertSelected(new Set(selectedLevels))}
+            icon={(() => {
+              const ResetIcon = iconNameToReactComponent('arrow-path')
+              return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+            })()}
+            layer="layer-1"
           >
-            Revert
+            Reset all
           </Button>
         </div>
       </div>

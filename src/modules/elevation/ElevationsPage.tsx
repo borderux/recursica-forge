@@ -6,6 +6,8 @@ import ElevationModule from './ElevationModule'
 import ElevationStylePanel from './ElevationStylePanel'
 import { removeCssVar } from '../../core/css/updateCssVar'
 import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
+import { Button } from '../../components/adapters/Button'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 export default function ElevationsPage() {
   const { tokens: tokensJson, theme, elevation, updateElevation, updateToken } = useVars()
@@ -275,6 +277,11 @@ export default function ElevationsPage() {
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property-element`
   
+  const handleResetAll = () => {
+    // Reset all elevations (0-4) to theme defaults
+    revertSelected(new Set([0, 1, 2, 3, 4]))
+  }
+  
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
@@ -289,21 +296,34 @@ export default function ElevationsPage() {
               lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
               color: `var(${layer0Base}-text-color)`,
             }}>Elevations</h1>
+            <Button
+              variant="outline"
+              size="small"
+              onClick={handleResetAll}
+              icon={(() => {
+                const ResetIcon = iconNameToReactComponent('arrow-path')
+                return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+              })()}
+              layer="layer-1"
+            >
+              Reset all
+            </Button>
           </div>
           <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
-            <div className="elevation-grid" style={{ display: 'grid', gap: 48 }}>
+            <div className="elevation-grid" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
               {[0,1,2,3,4].map((i) => (
-                <ElevationModule
-                  key={i}
-                  label={i === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${i}`}
-                  level={i}
-                  isSelected={i === 0 ? false : selectedLevels.has(i)}
-                  onToggle={i === 0 ? undefined : () => {
-                    setSelectedLevels(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next })
-                  }}
-                  selectable={i > 0}
-                  zIndex={i}
-                />
+                <div key={i} style={{ width: '100%' }}>
+                  <ElevationModule
+                    label={i === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${i}`}
+                    level={i}
+                    isSelected={i === 0 ? false : selectedLevels.has(i)}
+                    onToggle={i === 0 ? undefined : () => {
+                      setSelectedLevels(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next })
+                    }}
+                    selectable={i > 0}
+                    zIndex={i}
+                  />
+                </div>
               ))}
             </div>
           </div>

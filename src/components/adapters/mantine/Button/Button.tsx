@@ -144,6 +144,10 @@ export default function Button({
       '--button-hover': `var(${buttonHoverVar})`,
       // Set button color without fallback to Mantine colors
       '--button-color': buttonColorRef,
+      // Set button border color CSS variable for CSS file override
+      ...((variant === 'solid' || variant === 'outline') && buttonBorderColorRef ? {
+        '--button-border-color': buttonBorderColorRef,
+      } : {}),
       // Set icon-text-gap CSS variable for CSS file override
       '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
       // Set icon size CSS variable for CSS file override

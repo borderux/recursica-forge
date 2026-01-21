@@ -1946,12 +1946,14 @@ class VarsStore {
             // Check if palette var exists in paletteVars (during initialization) or use var() reference
             const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
             const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
-            const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
+            // Use tokenToCssVar to properly convert opacity token names to CSS vars
+            const alphaVarRef = tokenToCssVar(alphaTok) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
             return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
           }
           const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
           const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
-          const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
+          // Use tokenToCssVar to properly convert opacity token names to CSS vars
+          const alphaVarRef = tokenToCssVar(alphaTok) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
           // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
           const colorVarRef = tokenToCssVar(tok) || `var(--recursica-tokens-${tok.replace(/\//g, '-')})`
           return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
@@ -2005,7 +2007,8 @@ class VarsStore {
           // Check if there's already a palette CSS variable set (preserve user selections)
           const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
           const alphaTok = this.state.elevation.alphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
-          const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
+          // Use tokenToCssVar to properly convert opacity token names to CSS vars
+          const alphaVarRef = tokenToCssVar(alphaTok) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
           
           // Check if existing color contains a palette reference (could be var() or color-mix())
           const hasPaletteRef = existingColor && (

@@ -961,6 +961,7 @@ export default function LayerStylePanel({
         <div>
           <Button
             variant="outline"
+            size="small"
             onClick={() => {
               const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
               // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
@@ -993,9 +994,13 @@ export default function LayerStylePanel({
                 }
               })
             }}
-            layer="layer-2"
+            icon={(() => {
+              const ResetIcon = iconNameToReactComponent('arrow-path')
+              return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+            })()}
+            layer="layer-1"
           >
-            Revert
+            Reset all
           </Button>
         </div>
       </div>
