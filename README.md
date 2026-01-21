@@ -7,6 +7,16 @@ A tool for managing Recursica variables, themes, and token definitions
 - Run tests: `npm test` (Vitest)
 - Type-check: `npm run type-check`
 
+## Changesets
+
+This project uses [Changesets](https://github.com/changesets/changesets) to document changes. When you make changes that should be tracked:
+
+1. Run `npm run changeset` to create a changeset file
+2. Select the change type (patch/minor/major) and provide a description
+3. Commit the generated changeset file in `.changeset/`
+
+Changeset files document what changed and will be used for versioning and changelog generation when ready.
+
 ## Architecture Overview
 
 - VarsContext (`src/modules/vars/VarsContext.tsx`)

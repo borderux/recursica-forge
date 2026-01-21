@@ -1,0 +1,67 @@
+# Changesets Workflow
+#
+# This workflow uses the Changesets Action to manage versioning and releases.
+#
+# How it works:
+# 1. Builds the application to ensure it compiles successfully
+# 2. When changeset files are present, the action creates a "Version Packages" pull request
+# 3. When that PR is merged, the action runs the `publish` command (npm run release)
+# 4. The release script creates a git tag for the version
+# 5. The deploy workflow then builds and deploys to GitHub Pages
+#
+# This workflow runs on every push to main to check for new changesets.
+
+name: Changesets
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  changesets:
+    name: Create Release Pull Request or Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      # Build the application to ensure it compiles successfully before versioning
+      # This prevents creating version PRs for code that doesn't build
+      - name: Build
+        run: npm run build
+
+      # Changesets Action - The Core of Our Release System
+      #
+      # This action has two modes:
+      # 1. If changesets are present, it creates a "Version Packages" pull request.
+      # 2. When the "Version Packages" PR is merged, it runs the `publish` command.
+      #
+      # The `publish` command executes `npm run release` which:
+      # - Creates a git tag for the release version
+      # - Pushes the tag to the repository
+      #
+      # Note: Since this is a private package, we don't publish to npm.
+      # The release script only creates git tags for version tracking.
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
