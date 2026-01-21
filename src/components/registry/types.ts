@@ -8,6 +8,8 @@
 import { ReactNode, ComponentType } from 'react'
 import type { UiKit } from '../../modules/uikit/UiKitContext'
 
+export type { UiKit }
+
 export type ComponentName = 
   | 'Button'
   | 'Card'

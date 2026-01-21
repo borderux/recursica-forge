@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render } from '@testing-library/react'
-import { UnifiedThemeProvider } from '../providers/UnifiedThemeProvider'
-import { UiKitProvider } from '../../modules/uikit/UiKitContext'
+import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
+import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Button } from '../Button'
 import { readCssVar } from '../../../core/css/readCssVar'
 

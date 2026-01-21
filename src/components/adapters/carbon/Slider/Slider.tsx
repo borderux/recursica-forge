@@ -27,6 +27,8 @@ export default function Slider({
   showValueLabel = false,
   valueLabel,
   tooltipText,
+  minLabel,
+  maxLabel,
   className,
   style,
   carbon,
@@ -141,14 +143,14 @@ export default function Slider({
         title={computedTooltipText}
         style={{
           flex: 1,
-          '--recursica-ui-kit-components-slider-track-color': trackColor,
-          '--recursica-ui-kit-components-slider-track-active-color': trackActiveColor,
-          '--recursica-ui-kit-components-slider-thumb-color': thumbColor,
-          '--recursica-ui-kit-components-slider-track-height': `var(${trackHeightVar}, 4px)`,
-          '--recursica-ui-kit-components-slider-thumb-size': `var(${thumbSizeVar}, 20px)`,
-          '--recursica-ui-kit-components-slider-track-border-radius': `var(${trackBorderRadiusVar})`,
-          '--recursica-ui-kit-components-slider-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
-        }}
+          ['--recursica-ui-kit-components-slider-track-color' as string]: trackColor,
+          ['--recursica-ui-kit-components-slider-track-active-color' as string]: trackActiveColor,
+          ['--recursica-ui-kit-components-slider-thumb-color' as string]: thumbColor,
+          ['--recursica-ui-kit-components-slider-track-height' as string]: `var(${trackHeightVar}, 4px)`,
+          ['--recursica-ui-kit-components-slider-thumb-size' as string]: `var(${thumbSizeVar}, 20px)`,
+          ['--recursica-ui-kit-components-slider-track-border-radius' as string]: `var(${trackBorderRadiusVar})`,
+          ['--recursica-ui-kit-components-slider-thumb-border-radius' as string]: `var(${thumbBorderRadiusVar})`,
+        } as React.CSSProperties}
       >
         <CarbonSlider
           value={singleValue}
@@ -158,7 +160,7 @@ export default function Slider({
           max={max}
           step={step}
           disabled={disabled}
-          ariaLabel={computedTooltipText}
+          aria-label={computedTooltipText}
           className={className}
           style={style}
           {...carbon}

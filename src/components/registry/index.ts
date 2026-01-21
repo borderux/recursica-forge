@@ -9,7 +9,7 @@ import { lazy, ComponentType } from 'react'
 import type { UiKit, ComponentName } from './types'
 
 // Registry maps: kit -> componentName -> Component Loader
-const registries: Record<UiKit, Record<ComponentName, () => Promise<{ default: ComponentType<any> }>>> = {
+const registries: Record<UiKit, Partial<Record<ComponentName, () => Promise<{ default: ComponentType<any> }>>>> = {
   mantine: {},
   material: {},
   carbon: {},
@@ -27,7 +27,7 @@ export function registerComponent(
   loader: () => Promise<{ default: ComponentType<any> }>
 ) {
   if (!registries[kit]) {
-    registries[kit] = {}
+    registries[kit] = {} as Partial<Record<ComponentName, () => Promise<{ default: ComponentType<any> }>>>
   }
   registries[kit][componentName] = loader
 }

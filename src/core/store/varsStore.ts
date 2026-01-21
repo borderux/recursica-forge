@@ -1254,7 +1254,7 @@ class VarsStore {
     }
   }
 
-  private recomputeAndApplyAll() {
+  public recomputeAndApplyAll() {
     // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
     if (this.isRecomputing) {
       console.warn('[VarsStore] Skipping recomputeAndApplyAll - already recomputing')

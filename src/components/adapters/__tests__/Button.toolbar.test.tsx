@@ -8,11 +8,11 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
-import { UnifiedThemeProvider } from '../providers/UnifiedThemeProvider'
-import { UiKitProvider } from '../../modules/uikit/UiKitContext'
+import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
+import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Button } from '../Button'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
 describe('Button Toolbar Props Integration', () => {

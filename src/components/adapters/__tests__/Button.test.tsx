@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { UnifiedThemeProvider } from '../providers/UnifiedThemeProvider'
-import { UiKitProvider } from '../../modules/uikit/UiKitContext'
+import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
+import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Button } from '../Button'
 
 // Mock icon component for testing

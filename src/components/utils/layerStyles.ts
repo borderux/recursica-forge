@@ -31,7 +31,7 @@ export function createLayerStyles(
     if (baseStyles.backgroundColor) {
       const layerVar = getComponentCssVar(
         component as any,
-        'color',
+        'colors',
         'background-solid',
         layer
       )
@@ -45,7 +45,7 @@ export function createLayerStyles(
     if (baseStyles.color) {
       const layerVar = getComponentCssVar(
         component as any,
-        'color',
+        'colors',
         'text-solid',
         layer
       )
@@ -82,7 +82,7 @@ export function createLayerCssVars(
       if (key.includes('color') || key.includes('background')) {
         const layerVar = getComponentCssVar(
           component as any,
-          'color',
+          'colors',
           key.replace(/(color|background)/, '').replace(/-/g, '') || 'background-solid',
           layer
         )
