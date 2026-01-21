@@ -20,7 +20,7 @@
           "label": "Color",
           "visible": true
         },
-        "font-size": {
+        "text-size": {
           "label": "Size",
           "visible": true
         }

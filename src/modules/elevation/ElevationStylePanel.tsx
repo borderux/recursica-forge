@@ -464,7 +464,7 @@ export default function ElevationStylePanel({
         </div>
         <div className="control-group">
           <Button
-            onClick={() => revertSelected(selectedLevels)}
+            onClick={() => revertSelected(new Set(selectedLevels))}
             variant="outline"
             layer="layer-2"
           >

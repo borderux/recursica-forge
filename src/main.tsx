@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Layout } from './modules/app/Layout'
 import PalettesPage from './modules/palettes/PalettesPage'
+import CorePropertiesPage from './modules/core/CorePropertiesPage'
 import TypePage from './modules/type/TypePage'
 import PreviewPage from './modules/preview/PreviewPage'
 import ComponentDetailPage from './modules/preview/ComponentDetailPage'
@@ -74,11 +75,12 @@ const router = createBrowserRouter([
         path: '/theme',
         element: <ThemePage />,
         children: [
-          { path: '', element: <Navigate to="/theme/palettes" replace /> },
-          { path: 'palettes', element: <PalettesPage /> },
+          { path: '', element: <Navigate to="/theme/core-properties" replace /> },
+          { path: 'core-properties', element: <CorePropertiesPage /> },
           { path: 'type', element: <TypePage /> },
-          { path: 'layers', element: <LayersPage /> },
+          { path: 'palettes', element: <PalettesPage /> },
           { path: 'elevations', element: <ElevationsPage /> },
+          { path: 'layers', element: <LayersPage /> },
           { path: 'dimensions', element: <DimensionsPage /> },
         ],
       },

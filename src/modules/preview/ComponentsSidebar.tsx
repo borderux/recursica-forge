@@ -7,11 +7,12 @@
 
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { Switch } from '../../components/adapters/Switch'
 import { useMemo, useEffect } from 'react'
 import uikitJson from '../../vars/UIKit.json'
 import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
+import { Button } from '../../components/adapters/Button'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 export function ComponentsSidebar({ 
   showUnmapped, 
@@ -127,6 +128,7 @@ export function ComponentsSidebar({
     }
   }, [location.pathname, allComponents, navigate])
 
+  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
   
@@ -232,7 +234,7 @@ export function ComponentsSidebar({
         })}
       </nav>
       
-      {/* Show Unmapped Components Switch and Debug Mode */}
+      {/* Footer Links - Fixed at bottom */}
       <div
         style={{
           display: 'flex',
@@ -243,52 +245,60 @@ export function ComponentsSidebar({
           borderTopWidth: `var(${layer1Base}-border-thickness, 1px)`,
           borderTopStyle: 'solid',
           borderTopColor: `var(${layer1Base}-border-color)`,
+          flexShrink: 0,
         }}
       >
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--recursica-brand-dimensions-general-default)',
-        }}>
-          <Switch
-            checked={showUnmapped}
-            onChange={onShowUnmappedChange}
-            layer="layer-0"
-          />
-          <label 
-            onClick={() => onShowUnmappedChange(!showUnmapped)}
-            style={{
-              color: `var(${layer1Base}-element-text-color)`,
-              opacity: `var(${layer1Base}-element-text-low-emphasis)`,
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              cursor: 'pointer',
-              flex: 1,
-            }}>
-            Show unmapped ({unmappedCount} / {totalCount})
-          </label>
-        </div>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--recursica-brand-dimensions-general-default)',
-        }}>
-          <Switch
-            checked={debugMode}
-            onChange={onDebugModeChange}
-            layer="layer-0"
-          />
-          <label 
-            onClick={() => onDebugModeChange(!debugMode)}
-            style={{
-              color: `var(${layer1Base}-element-text-color)`,
-              opacity: `var(${layer1Base}-element-text-low-emphasis)`,
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              cursor: 'pointer',
-              flex: 1,
-            }}>
-            Debug mode
-          </label>
-        </div>
+        <Button
+          variant="text"
+          size="small"
+          layer="layer-1"
+          onClick={() => window.open('https://www.recursica.com', '_blank', 'noopener,noreferrer')}
+          icon={(() => {
+            const Icon = iconNameToReactComponent('arrow-top-right-on-square')
+            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          })()}
+          style={{ justifyContent: 'flex-start', width: '100%' }}
+        >
+          Visit Recursica.com
+        </Button>
+        <Button
+          variant="text"
+          size="small"
+          layer="layer-1"
+          onClick={() => window.open('https://www.recursica.com/docs/foundations/colors', '_blank', 'noopener,noreferrer')}
+          icon={(() => {
+            const Icon = iconNameToReactComponent('document-text')
+            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          })()}
+          style={{ justifyContent: 'flex-start', width: '100%' }}
+        >
+          Read documentation
+        </Button>
+        <Button
+          variant="text"
+          size="small"
+          layer="layer-1"
+          onClick={() => window.open('https://join.slack.com/t/recursica/shared_invite/zt-3emx80y9u-DfG5WO~SApkTJjVCiYk0WQ', '_blank', 'noopener,noreferrer')}
+          icon={(() => {
+            const Icon = iconNameToReactComponent('info')
+            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          })()}
+          style={{ justifyContent: 'flex-start', width: '100%' }}
+        >
+          Help
+        </Button>
+      </div>
+      
+      {/* Copyright */}
+      <div
+        style={{
+          marginTop: 'var(--recursica-brand-dimensions-general-md)',
+          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+          color: `var(${layer0Base}-element-text-color)`,
+          opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+        }}
+      >
+        © 2025 Border LLC. All rights reserved.
       </div>
     </aside>
   )

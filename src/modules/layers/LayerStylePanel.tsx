@@ -330,11 +330,17 @@ function ElevationSliderInline({
     
     let elevationName = 'elevation-0'
     if (currentValue) {
-      const match = currentValue.match(/elevations\.(elevation-\d+)/)
-      if (match) {
-        elevationName = match[1]
-      } else if (/^elevation-\d+$/.test(currentValue)) {
-        elevationName = currentValue
+      // The CSS variable should contain just the elevation name (e.g., "elevation-0")
+      // but it might also contain a token reference string, so check both formats
+      if (/^elevation-\d+$/.test(currentValue.trim())) {
+        // Direct elevation name format
+        elevationName = currentValue.trim()
+      } else {
+        // Token reference format - extract elevation name
+        const match = currentValue.match(/elevations?\.(elevation-\d+)/i)
+        if (match) {
+          elevationName = match[1]
+        }
       }
     }
     
@@ -391,30 +397,37 @@ function ElevationSliderInline({
     
     const selectedToken = tokens[clampedIndex]
     if (selectedToken) {
-      const elevationValue = `{brand.themes.${mode}.elevations.${selectedToken.name}}`
-      updateCssVarFn(primaryVar, elevationValue)
+      // The CSS variable should contain just the elevation name (e.g., "elevation-0"),
+      // not the full token reference. The resolver extracts this during build.
+      // For direct updates, we set it to just the elevation name.
+      const elevationName = selectedToken.name // e.g., "elevation-0"
+      const tokenReference = `{brand.themes.${mode}.elevations.${selectedToken.name}}`
+      
+      // Set the CSS variable to just the elevation name (as the resolver would do)
+      updateCssVarFn(primaryVar, elevationName)
+      
       // Set a flag to prevent the listener from reverting our change
-      justSetValueRef.current = elevationValue
+      justSetValueRef.current = tokenReference
       // Keep the flag longer to ensure CSS var is fully processed
       setTimeout(() => {
         justSetValueRef.current = null
       }, 200)
       
       if (onUpdate) {
-        onUpdate(['properties', 'elevation'], elevationValue)
+        // Pass the token reference for JSON updates
+        onUpdate(['properties', 'elevation'], tokenReference)
       }
       
-      // Don't dispatch event immediately - let the CSS var update naturally
-      // Only dispatch if needed for other components, but with a longer delay
+      // Dispatch event to notify other components
       requestAnimationFrame(() => {
         setTimeout(() => {
           // Only dispatch if we're not in the middle of our own update
-          if (justSetValueRef.current === elevationValue) {
+          if (justSetValueRef.current === tokenReference) {
             window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
               detail: { cssVars: [primaryVar] }
             }))
           }
-        }, 50) // Longer delay to ensure CSS var is processed
+        }, 50)
       })
     }
   }

@@ -59,6 +59,11 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
     if (trimmed.includes('var(--recursica-tokens-') || trimmed.includes('var(--tokens-')) {
       return { valid: true }
     }
+    // Special case: elevation can use token reference strings (e.g., {brand.themes.light.elevations.elevation-0})
+    // This allows elevation properties to reference elevation definitions
+    if (cssVarName.includes('elevation') && trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      return { valid: true }
+    }
     // Special case: border-thickness can use direct pixel values (0-20px)
     // This allows users to set border thickness directly without requiring tokens
     if (cssVarName.includes('border-thickness')) {
