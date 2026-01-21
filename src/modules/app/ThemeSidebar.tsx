@@ -10,7 +10,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 
-type ThemeNavItem = 'palettes' | 'type' | 'layers' | 'dimensions'
+type ThemeNavItem = 'palettes' | 'type' | 'layers' | 'elevations' | 'dimensions'
 
 export function ThemeSidebar() {
   const location = useLocation()
@@ -21,6 +21,7 @@ export function ThemeSidebar() {
   const getCurrentNavItem = (): ThemeNavItem => {
     if (location.pathname.includes('/theme/type')) return 'type'
     if (location.pathname.includes('/theme/layers')) return 'layers'
+    if (location.pathname.includes('/theme/elevations')) return 'elevations'
     if (location.pathname.includes('/theme/dimensions')) return 'dimensions'
     return 'palettes' // default
   }
@@ -39,6 +40,7 @@ export function ThemeSidebar() {
     { key: 'palettes', label: 'Palettes' },
     { key: 'type', label: 'Type' },
     { key: 'layers', label: 'Layers' },
+    { key: 'elevations', label: 'Elevations' },
     { key: 'dimensions', label: 'Dimensions' },
   ]
   
