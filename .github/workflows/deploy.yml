@@ -1,0 +1,73 @@
+# Deploy to GitHub Pages Workflow
+#
+# This workflow builds and deploys the application to GitHub Pages.
+# It triggers when:
+# - The Changesets version PR is merged (detected by CHANGELOG.md changes, which only occur during versioning)
+# - Manual workflow dispatch
+#
+# The workflow:
+# 1. Builds the application
+# 2. Deploys the dist folder to GitHub Pages
+
+name: Deploy to GitHub Pages
+
+# Trigger on push to main when CHANGELOG.md changes (version PR merge)
+# or manual dispatch for on-demand deployments
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'CHANGELOG.md'  # Only triggers when changelog is updated (version release)
+  workflow_dispatch:    # Allows manual triggering from GitHub Actions UI
+
+# Required permissions for deploying to GitHub Pages
+permissions:
+  contents: read   # Read repository contents
+  pages: write     # Deploy to GitHub Pages
+  id-token: write  # OIDC authentication for Pages
+
+# Ensure only one Pages deployment runs at a time
+concurrency: github-pages
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout repository to access source code
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      # Setup Node.js with npm caching for faster builds
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Install dependencies using npm ci for reproducible builds
+      - name: Install Dependencies
+        run: npm ci
+
+      # Build the application for production
+      # Outputs to ./dist directory
+      - name: Build
+        run: npm run build
+
+      # Configure GitHub Pages deployment settings
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      # Upload the built dist folder as a Pages artifact
+      # This artifact will be deployed in the next step
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      # Deploy the uploaded artifact to GitHub Pages
+      # This makes the application available at the repository's Pages URL
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
