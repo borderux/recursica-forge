@@ -19,25 +19,30 @@ export function bootstrapTheme() {
     const theme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
     validateAllJsonSchemas(theme, tokensImport as any, uikitImport as any)
     
-    getVarsStore()
+    const store = getVarsStore()
     
     // Load stored custom fonts (npm/git sources) and fonts from tokens on startup
     if (typeof window !== 'undefined') {
       // Use dynamic import to avoid circular dependencies
       // Import once and use all needed functions
-      import('../modules/type/fontUtils').then(({ loadStoredCustomFonts, loadFontsFromTokens, ensureFontLoaded, ensureGoogleFontsPreconnect }) => {
+      import('../modules/type/fontUtils').then(async ({ loadStoredCustomFonts, loadFontsFromTokens, ensureFontLoaded, ensureGoogleFontsPreconnect }) => {
         // Ensure preconnect links are added early for performance
         ensureGoogleFontsPreconnect()
         
-        // Load stored custom fonts first
+        // Load stored custom fonts first (async is fine, but they must load)
         loadStoredCustomFonts().catch((error) => {
           console.warn('[Bootstrap] Failed to load some custom fonts:', error)
         })
         
-        // Then load fonts from token values
-        loadFontsFromTokens().catch((error) => {
-          console.warn('[Bootstrap] Failed to load some fonts from tokens:', error)
+        // Load fonts from token values FIRST to populate fontUrlMap
+        // This MUST complete before recomputeAndApplyAll tries to load fonts
+        // This will load all fonts from Tokens.json including those with URLs in extensions
+        await loadFontsFromTokens().catch((error) => {
+          console.warn('[Bootstrap] Failed to load fonts from tokens:', error)
         })
+        
+        // Now trigger recompute which will also load fonts, but fontUrlMap is already populated
+        store.recomputeAndApplyAll()
         
         // Listen for token override changes to load fonts automatically
         window.addEventListener('tokenOverridesChanged', ((ev: CustomEvent) => {

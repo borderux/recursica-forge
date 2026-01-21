@@ -11,20 +11,11 @@ if (typeof window !== 'undefined') {
   fontUtilsImportPromise = import('../../modules/type/fontUtils').then(module => {
     getCachedFontFamilyName = module.getCachedFontFamilyName
   }).catch(() => {
-    // Fallback: provide a simple function that returns the name with quotes and fallback
+    // Fallback: provide a simple function that returns just the font name
     getCachedFontFamilyName = (name: string) => {
       if (!name || !name.trim()) return name
       const trimmed = name.trim()
-      // Determine fallback based on common serif fonts
-      const serifFonts = ['merriweather', 'lora', 'playfair display', 'crimson text', 'crimson pro',
-        'libre baskerville', 'eb garamond', 'source serif pro', 'pt serif',
-        'cormorant garamond', 'vollkorn', 'bree serif', 'droid serif',
-        'arvo', 'bitter', 'cinzel', 'della respira', 'gentium book basic',
-        'libre caslon text', 'linden hill', 'neuton', 'old standard tt',
-        'rokkitt', 'sanchez', 'taviraj', 'trirong', 'vollkorn sc']
-      const isSerif = serifFonts.includes(trimmed.toLowerCase())
-      const fallback = isSerif ? 'serif' : 'sans-serif'
-      return `"${trimmed}", ${fallback}`
+      return trimmed.includes(' ') ? `"${trimmed}"` : trimmed
     }
   })
 }
@@ -120,11 +111,18 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
           valueStr = String(overrideValue)
         } else {
           const raw = cat[short]?.$value
-          if (typeof raw === 'string') {
+          // Handle array values for font families (e.g., ["Lexend", "sans-serif"]) - take first element
+          if (category === 'family' || category === 'typeface' || category === 'typefaces') {
+            if (Array.isArray(raw) && raw.length > 0) {
+              valueStr = typeof raw[0] === 'string' ? raw[0] : ''
+            } else if (typeof raw === 'string') {
+              valueStr = raw
+            }
+          } else if (typeof raw === 'string') {
             valueStr = raw
           } else if (typeof raw === 'number') {
             valueStr = unitHint ? `${raw}${unitHint}` : String(raw)
-          } else if (raw && typeof raw === 'object') {
+          } else if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
             const val: any = (raw as any).value
             const unit: any = (raw as any).unit
             if (typeof val === 'number') valueStr = unit ? `${val}${unit}` : (unitHint ? `${val}${unitHint}` : String(val))
@@ -175,7 +173,15 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       if (name.startsWith('font/typeface/') || name.startsWith('font/family/')) {
         const key = name.replace('font/typeface/', '').replace('font/family/', '')
         const category = name.startsWith('font/typeface/') ? 'typeface' : 'family'
-        const value = String(effectiveOverrides[name] || '')
+        const overrideValue = effectiveOverrides[name]
+        
+        // Handle array values (e.g., ["Lexend", "sans-serif"]) - take first element
+        let value = ''
+        if (Array.isArray(overrideValue) && overrideValue.length > 0) {
+          value = typeof overrideValue[0] === 'string' ? overrideValue[0] : ''
+        } else {
+          value = String(overrideValue || '')
+        }
         
         // Skip if deleted
         const tokenName = `font/${category}/${key}`

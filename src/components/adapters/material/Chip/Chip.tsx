@@ -134,8 +134,9 @@ export default function Chip({
       paddingTop: `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
       paddingBottom: `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
       borderRadius: `var(${borderRadiusVar})`,
+      '--chip-font-weight': 'var(--recursica-brand-typography-caption-font-weight)',
       fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
-      fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      fontWeight: 'var(--chip-font-weight, var(--recursica-brand-typography-caption-font-weight))',
       textTransform: 'none',
       // Set CSS custom properties for CSS file
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',

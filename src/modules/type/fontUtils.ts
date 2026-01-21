@@ -490,7 +490,9 @@ export async function loadStoredCustomFonts(): Promise<void> {
  * @param fontName - The font family name to load
  */
 export async function ensureFontLoaded(fontName: string): Promise<void> {
-  if (!fontName || !fontName.trim()) return
+  if (!fontName || !fontName.trim()) {
+    return
+  }
   
   const trimmedName = fontName.trim()
   
@@ -520,7 +522,8 @@ export async function ensureFontLoaded(fontName: string): Promise<void> {
     // Ensure preconnect links are in place for performance
     ensureGoogleFontsPreconnect()
     
-    const id = `gf-${trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+    const cleanName = trimmedName.replace(/^["']|["']$/g, '')
+    const id = `gf-${cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
     const existingLink = document.getElementById(id) as HTMLLinkElement | null
     if (existingLink) {
       // Font already loaded, just return (no events, no recomputes)
@@ -528,8 +531,11 @@ export async function ensureFontLoaded(fontName: string): Promise<void> {
     }
     
     // Check if there's a custom URL for this font from token extensions
-    const customUrl = fontUrlMap.get(trimmedName)
-    const href = customUrl || `https://fonts.googleapis.com/css2?family=${encodeURIComponent(trimmedName).replace(/%20/g, '+')}:wght@100..900&display=swap`
+    // Try both fontUrlMap and window.__fontUrlMap (populated synchronously in constructor)
+    const windowMap = typeof window !== 'undefined' ? (window as any).__fontUrlMap as Map<string, string> | undefined : undefined
+    const customUrl = fontUrlMap.get(cleanName) || fontUrlMap.get(trimmedName) || 
+                       windowMap?.get(cleanName) || windowMap?.get(trimmedName)
+    const href = customUrl || `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanName).replace(/%20/g, '+')}:wght@100..900&display=swap`
     
     const link = document.createElement('link')
     link.id = id
@@ -542,6 +548,48 @@ export async function ensureFontLoaded(fontName: string): Promise<void> {
     document.head.appendChild(link)
   } catch (error) {
     console.warn(`Failed to load web font ${trimmedName}:`, error)
+  }
+}
+
+/**
+ * Populates fontUrlMap synchronously from tokens (for use in constructor)
+ * This ensures fontUrlMap is populated before recomputeAndApplyAll tries to load fonts
+ * This function can be called synchronously and will populate the map immediately
+ */
+export function populateFontUrlMapFromTokens(tokens: any): void {
+  try {
+    // Don't clear - we want to preserve any existing entries
+    // fontUrlMap.clear()
+    const fontRoot = tokens?.tokens?.font || tokens?.font || {}
+    const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+    
+    Object.entries(typefaces).forEach(([key, rec]: [string, any]) => {
+      // Handle array values (e.g., ["Lexend", "sans-serif"]) - take first element
+      let val = ''
+      const rawValue = rec?.$value
+      if (Array.isArray(rawValue) && rawValue.length > 0) {
+        val = typeof rawValue[0] === 'string' ? rawValue[0].trim() : ''
+      } else if (typeof rawValue === 'string') {
+        val = rawValue.trim()
+      }
+      
+      if (val) {
+        const cleanVal = val.replace(/^["']|["']$/g, '')
+        // Check if there's a Google Fonts URL in extensions
+        // Access com.google.fonts as a single key (not nested properties)
+        const googleFontsExt = rec?.$extensions?.['com.google.fonts']
+        const url = googleFontsExt?.url
+        if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+          // Store the URL mapping for this font name (use clean value for consistent lookup)
+          fontUrlMap.set(cleanVal, url)
+          if (val !== cleanVal) {
+            fontUrlMap.set(val, url)
+          }
+        }
+      }
+    })
+  } catch (error) {
+    console.warn('[populateFontUrlMapFromTokens] Error:', error)
   }
 }
 
@@ -569,7 +617,9 @@ export async function loadFontsFromTokens(): Promise<void> {
           }
         }
       })
-    } catch {}
+    } catch (error) {
+      console.warn('[loadFontsFromTokens] Error reading from token overrides:', error)
+    }
     
     // Read from tokens.json via varsStore
     try {
@@ -580,25 +630,61 @@ export async function loadFontsFromTokens(): Promise<void> {
         const tokens = state.tokens as any
         const fontRoot = tokens?.tokens?.font || tokens?.font || {}
         
-        // Collect from font.family
+        // Collect from font.family (handle both string and array values)
         Object.values(fontRoot.family || {}).forEach((rec: any) => {
-          const val = String(rec?.$value || '').trim()
-          if (val) fontNames.add(val)
+          let val = ''
+          const rawValue = rec?.$value
+          if (Array.isArray(rawValue) && rawValue.length > 0) {
+            val = typeof rawValue[0] === 'string' ? rawValue[0].trim() : ''
+          } else if (typeof rawValue === 'string') {
+            val = rawValue.trim()
+          }
+          if (val) {
+            const cleanVal = val.replace(/^["']|["']$/g, '')
+            fontNames.add(cleanVal)
+          }
         })
         
         // Collect from font.typeface (singular) and font.typefaces (plural) and extract URLs from extensions
         const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
         Object.entries(typefaces).forEach(([key, rec]: [string, any]) => {
-          const val = String(rec?.$value || '').trim()
+          // Handle array values (e.g., ["Lexend", "sans-serif"]) - take first element
+          let val = ''
+          const rawValue = rec?.$value
+          if (Array.isArray(rawValue) && rawValue.length > 0) {
+            val = typeof rawValue[0] === 'string' ? rawValue[0].trim() : ''
+          } else if (typeof rawValue === 'string') {
+            val = rawValue.trim()
+          }
+          
           if (val) {
-            fontNames.add(val)
+            const cleanVal = val.replace(/^["']|["']$/g, '')
+            fontNames.add(cleanVal)
             // Check if there's a Google Fonts URL in extensions
-            const url = rec?.$extensions?.com?.google?.fonts?.url
+            // Access com.google.fonts as a single key (not nested properties)
+            const googleFontsExt = rec?.$extensions?.['com.google.fonts']
+            const url = googleFontsExt?.url
             if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
-              // Store the URL mapping for this font name
-              fontUrlMap.set(val, url)
+              // Store the URL mapping for this font name (use clean value for consistent lookup)
+              // Store with both clean and original val to handle any lookup variations
+              fontUrlMap.set(cleanVal, url)
+              if (val !== cleanVal) {
+                fontUrlMap.set(val, url)
+              }
+              
+              // Also populate window.__fontUrlMap for synchronous access
+              if (typeof window !== 'undefined') {
+                if (!(window as any).__fontUrlMap) {
+                  (window as any).__fontUrlMap = new Map<string, string>()
+                }
+                const urlMap = (window as any).__fontUrlMap as Map<string, string>
+                urlMap.set(cleanVal, url)
+                if (val !== cleanVal) {
+                  urlMap.set(val, url)
+                }
+              }
+              
               // Pre-cache the font name with proper format so CSS variables can use it immediately
-              const cleanVal = val.replace(/^["']|["']$/g, '')
               const fontFormat = cleanVal.includes(' ') ? `"${cleanVal}"` : cleanVal
               if (!fontFamilyNameCache.has(cleanVal)) {
                 fontFamilyNameCache.set(cleanVal, fontFormat)
@@ -607,10 +693,28 @@ export async function loadFontsFromTokens(): Promise<void> {
           }
         })
       }
-    } catch {}
+    } catch (error) {
+      console.warn('[loadFontsFromTokens] Error reading from tokens.json:', error)
+    }
     
-    // Load all fonts (ensureFontLoaded will check fontUrlMap for custom URLs)
-    await Promise.all(Array.from(fontNames).map(name => ensureFontLoaded(name)))
+    // Load all fonts (async is fine, but they must load)
+    // ensureFontLoaded will check fontUrlMap for custom URLs
+    const fontNamesArray = Array.from(fontNames)
+    
+    const fontLoadPromises = fontNamesArray.map(name => {
+      if (!name || !name.trim()) return Promise.resolve()
+      const cleanName = name.trim()
+      return ensureFontLoaded(cleanName).catch((error) => {
+        console.warn(`Failed to load font "${cleanName}" from tokens:`, error)
+        // Don't throw - continue loading other fonts
+        return undefined
+      })
+    })
+    
+    // Ensure all fonts are loaded (async is fine)
+    Promise.all(fontLoadPromises).catch((error) => {
+      console.warn('Failed to load some fonts from tokens:', error)
+    })
   } catch (error) {
     console.warn('Failed to load fonts from tokens:', error)
   }

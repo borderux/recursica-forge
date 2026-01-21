@@ -243,9 +243,11 @@ function getChipStyles(
   styles.color = `var(${textVar})`
   styles.border = `var(${borderSizeVar}, 1px) solid var(${borderVar})`
   
-  // Apply text styles - Chip font-size references button typography, so use button font-weight
+  // Apply text styles - Chip uses caption typography
   styles.fontSize = fontSizeVar ? `var(${fontSizeVar})` : undefined
-  styles.fontWeight = 'var(--recursica-brand-typography-button-font-weight)'
+  // Set CSS variable for font-weight so it can be overridden by inline styles
+  ;(styles as any)['--chip-font-weight'] = 'var(--recursica-brand-typography-caption-font-weight)'
+  styles.fontWeight = 'var(--chip-font-weight, var(--recursica-brand-typography-caption-font-weight))'
   styles.textTransform = 'none' // Ensure text is not uppercase
   
   // Apply size styles - height and width are derived from content and padding

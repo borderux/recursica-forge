@@ -142,8 +142,9 @@ export default function Chip({
       '--chip-border-size': `var(${borderSizeVar})`,
       '--chip-border-radius': `var(${borderRadiusVar})`,
       '--chip-font-size': fontSizeVar ? `var(${fontSizeVar})` : undefined,
+      '--chip-font-weight': 'var(--recursica-brand-typography-caption-font-weight)',
       fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
-      fontWeight: 'var(--recursica-brand-typography-button-font-weight)',
+      fontWeight: 'var(--chip-font-weight, var(--recursica-brand-typography-caption-font-weight))',
       textTransform: 'none',
       // Use Button's min-width and max-width vars (same as Button component)
       // Don't use fixed height - let padding and content determine height naturally

@@ -16,6 +16,7 @@ import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { Chip } from '../../../components/adapters/Chip'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
+import { readCssVarResolved } from '../../../core/css/readCssVar'
 
 type FamilyRow = { name: string; value: string; position: number }
 
@@ -243,6 +244,7 @@ export default function FontFamiliesTokens() {
   const [showInspiration, setShowInspiration] = useState(true)
   const [selectedWeights, setSelectedWeights] = useState<Record<string, string>>({})
   const [availableWeights, setAvailableWeights] = useState<Record<string, string[]>>({})
+  const [availableVariants, setAvailableVariants] = useState<Record<string, Array<{ weight: string; style: string }>>>({})
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
@@ -259,7 +261,13 @@ export default function FontFamiliesTokens() {
       Object.keys(typefaces).filter((k) => !k.startsWith('$')).forEach((k) => {
         const name = `font/typeface/${k}`
         const val = typefaces[k]?.$value
-        const value = typeof val === 'string' && val ? val : ''
+        // Handle array values (e.g., ["Lexend", "sans-serif"]) - take first element
+        let value = ''
+        if (Array.isArray(val) && val.length > 0) {
+          value = typeof val[0] === 'string' ? val[0] : ''
+        } else if (typeof val === 'string') {
+          value = val
+        }
         // Check if override exists, otherwise use JSON value
         const overrideValue = overrides[name]
         typefaceEntries.push({ 
@@ -324,6 +332,20 @@ export default function FontFamiliesTokens() {
       } catch {}
     }
   }, [rows.length])
+
+  // Ensure fonts are loaded when rows change
+  useEffect(() => {
+    if (rows.length > 0) {
+      rows.forEach((row) => {
+        if (row.value && row.value.trim()) {
+          const fontName = row.value.trim().replace(/^["']|["']$/g, '')
+          if (fontName) {
+            ensureFontLoaded(fontName).catch(() => {})
+          }
+        }
+      })
+    }
+  }, [rows])
 
   useEffect(() => {
     const handler = (ev: Event) => {
@@ -490,19 +512,95 @@ export default function FontFamiliesTokens() {
     return FONT_WEIGHTS
   }
 
-  // Update available weights when fonts change
+  // Get variants from JSON extensions for each font
+  const getVariantsFromJson = (rowName: string): Array<{ weight: string; style: string }> | null => {
+    try {
+      const key = rowName.replace('font/typeface/', '')
+      const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+      const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
+      const typefaceDef = typefaces[key]
+      
+      if (typefaceDef?.$extensions?.variants && Array.isArray(typefaceDef.$extensions.variants)) {
+        // Resolve token references in variants to get weight and style keys
+        const variants: Array<{ weight: string; style: string }> = []
+        typefaceDef.$extensions.variants.forEach((variant: any) => {
+          if (variant && typeof variant === 'object') {
+            let weight = ''
+            let style = ''
+            
+            // Extract weight key from token reference like {tokens.font.weights.regular}
+            if (typeof variant.weight === 'string') {
+              const weightMatch = variant.weight.match(/\{tokens?\.font\.weights?\.([a-z0-9\-_]+)\}/i)
+              if (weightMatch && weightMatch[1]) {
+                weight = weightMatch[1]
+              }
+            }
+            
+            // Extract style key from token reference like {tokens.font.styles.normal}
+            if (typeof variant.style === 'string') {
+              const styleMatch = variant.style.match(/\{tokens?\.font\.styles?\.([a-z0-9\-_]+)\}/i)
+              if (styleMatch && styleMatch[1]) {
+                style = styleMatch[1]
+              }
+            }
+            
+            if (weight && style) {
+              variants.push({ weight, style })
+            }
+          }
+        })
+        return variants.length > 0 ? variants : null
+      }
+    } catch {}
+    // Return null if no variants specified (means all weights/styles are allowed)
+    return null
+  }
+  
+  // Get all available styles from tokens
+  const getAllStyles = (): string[] => {
+    try {
+      const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+      const styles: any = fontRoot?.styles || {}
+      return Object.keys(styles).filter(k => !k.startsWith('$'))
+    } catch {}
+    return ['normal', 'italic'] // Default fallback
+  }
+
+  // Update available variants when fonts change
   useEffect(() => {
-    const updateWeights = async () => {
+    const updateVariants = async () => {
+      const newAvailableVariants: Record<string, Array<{ weight: string; style: string }>> = {}
       const newAvailableWeights: Record<string, string[]> = {}
+      const allStyles = getAllStyles()
+      
       for (const row of rows) {
-        if (row.value) {
-          newAvailableWeights[row.name] = await detectAvailableWeights(row.value)
+        // First try to get variants from JSON extensions
+        const jsonVariants = getVariantsFromJson(row.name)
+        
+        if (jsonVariants && jsonVariants.length > 0) {
+          // Use variants from JSON
+          newAvailableVariants[row.name] = jsonVariants
+          // Also populate weights for backwards compatibility
+          const uniqueWeights = [...new Set(jsonVariants.map(v => v.weight))]
+          newAvailableWeights[row.name] = uniqueWeights
+        } else {
+          // No variants specified - all weights and styles are allowed
+          // Generate all combinations
+          const allVariants: Array<{ weight: string; style: string }> = []
+          FONT_WEIGHTS.forEach(weight => {
+            allStyles.forEach(style => {
+              allVariants.push({ weight, style })
+            })
+          })
+          newAvailableVariants[row.name] = allVariants
+          newAvailableWeights[row.name] = FONT_WEIGHTS
         }
       }
+      setAvailableVariants(newAvailableVariants)
       setAvailableWeights(newAvailableWeights)
     }
-    updateWeights()
-  }, [rows])
+    updateVariants()
+  }, [rows, tokensJson])
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index)
@@ -773,15 +871,61 @@ export default function FontFamiliesTokens() {
                 {EXAMPLE_TEXT}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
-                {(availableWeights[r.name] || FONT_WEIGHTS).map((weight) => {
+                {(availableVariants[r.name] || []).map((variant, idx) => {
+                  // Get the actual style value from tokens (e.g., "normal" or "italic")
+                  let fontStyle = 'normal'
+                  try {
+                    const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+                    const styles: any = fontRoot?.styles || {}
+                    const styleDef = styles[variant.style]
+                    if (styleDef?.$value && typeof styleDef.$value === 'string') {
+                      fontStyle = styleDef.$value
+                    }
+                  } catch {}
+                  
+                  // Get the actual weight value from tokens (numeric value like 400, 700, 900)
+                  let fontWeight: number | string = 400 // Default fallback
+                  try {
+                    const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+                    const weights: any = fontRoot?.weights || {}
+                    const weightDef = weights[variant.weight]
+                    if (weightDef?.$value && typeof weightDef.$value === 'number') {
+                      fontWeight = weightDef.$value
+                    } else {
+                      // Fallback: try to parse common weight names
+                      const weightMap: Record<string, number> = {
+                        'thin': 100,
+                        'extra-light': 200,
+                        'light': 300,
+                        'regular': 400,
+                        'medium': 500,
+                        'semi-bold': 600,
+                        'bold': 700,
+                        'extra-bold': 800,
+                        'black': 900
+                      }
+                      fontWeight = weightMap[variant.weight] || 400
+                    }
+                  } catch {}
+                  
+                  const chipLabel = variant.style === 'normal' 
+                    ? toTitle(variant.weight)
+                    : `${toTitle(variant.weight)} ${toTitle(variant.style)}`
+                  
                   return (
                     <Chip
-                      key={weight}
+                      key={`${variant.weight}-${variant.style}-${idx}`}
                       variant="unselected"
                       size="small"
                       layer="layer-1"
+                      style={{
+                        '--chip-font-weight': String(fontWeight),
+                        fontFamily: `var(${fontFamilyVar})`,
+                        fontStyle: fontStyle,
+                        fontWeight: String(fontWeight)
+                      } as React.CSSProperties}
                     >
-                      {toTitle(weight)}
+                      {chipLabel}
                     </Chip>
                   )
                 })}

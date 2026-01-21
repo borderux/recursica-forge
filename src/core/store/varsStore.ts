@@ -16,6 +16,7 @@ import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
 // Note: clearCustomFonts is imported dynamically to avoid circular dependencies
 // Note: Override system removed - tokens are now the single source of truth
+// Note: populateFontUrlMapFromTokens is imported dynamically to avoid circular dependencies
 
 type PaletteStore = {
   opacity: Record<'disabled' | 'overlay' | 'text-high' | 'text-low', { token: string; value: number }>
@@ -274,6 +275,54 @@ class VarsStore {
       if (!localStorage.getItem(STORAGE_KEYS.elevation)) writeLSJson(STORAGE_KEYS.elevation, this.state.elevation)
     }
 
+    // Populate fontUrlMap synchronously before recomputeAndApplyAll tries to load fonts
+    // This ensures custom font URLs from token extensions are available
+    // We populate it directly here to avoid async import timing issues
+    try {
+      if (typeof window !== 'undefined') {
+        // Populate fontUrlMap directly by reading from tokens synchronously
+        // This duplicates logic from fontUtils but ensures it runs before recomputeAndApplyAll
+        const fontRoot = (this.state.tokens as any)?.tokens?.font || (this.state.tokens as any)?.font || {}
+        const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+        
+        // Store URLs in window object so ensureFontLoaded can access them synchronously
+        // This is a workaround until we can make fontUrlMap accessible synchronously
+        if (!(window as any).__fontUrlMap) {
+          (window as any).__fontUrlMap = new Map<string, string>()
+        }
+        const urlMap = (window as any).__fontUrlMap as Map<string, string>
+        
+        Object.entries(typefaces).forEach(([key, rec]: [string, any]) => {
+          try {
+            let val = ''
+            const rawValue = rec?.$value
+            if (Array.isArray(rawValue) && rawValue.length > 0) {
+              val = typeof rawValue[0] === 'string' ? rawValue[0].trim() : ''
+            } else if (typeof rawValue === 'string') {
+              val = rawValue.trim()
+            }
+            
+            if (val) {
+              const cleanVal = val.replace(/^["']|["']$/g, '')
+              // Access com.google.fonts as a single key, not nested properties
+              const googleFontsExt = rec?.$extensions?.['com.google.fonts'] || rec?.$extensions?.com?.google?.fonts
+              const url = googleFontsExt?.url
+              if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+                urlMap.set(cleanVal, url)
+                if (val !== cleanVal) {
+                  urlMap.set(val, url)
+                }
+              }
+            }
+          } catch (err) {
+            // Skip individual font if there's an error
+          }
+        })
+      }
+    } catch (err) {
+      // If font URL map population fails, fonts will still load with default URLs
+    }
+    
     // Initial CSS apply (Light mode palettes + layers + typography)
     this.recomputeAndApplyAll()
 
@@ -1777,6 +1826,7 @@ class VarsStore {
     Object.assign(allVars, typeVars)
     // Load fonts asynchronously - don't wait, don't trigger recomputes
     // CSS variables are already set with font names, fonts will apply when loaded
+    // Fonts MUST load (async is fine, but they must load)
     if (familiesToLoad.length > 0 && typeof window !== 'undefined') {
       // Load fonts in background without blocking or triggering events
       Promise.all(familiesToLoad.map(async (family) => {
@@ -1785,10 +1835,16 @@ class VarsStore {
           if (!trimmed) return
           // Dynamically import fontUtils
           const { ensureFontLoaded } = await import('../../modules/type/fontUtils')
-          // Load font but don't wait for it or trigger recomputes
-          ensureFontLoaded(trimmed).catch(() => {})
-        } catch {}
-      })).catch(() => {})
+          // Load font (async is fine, but it must load)
+          await ensureFontLoaded(trimmed).catch((error) => {
+            console.warn(`Failed to load font "${trimmed}" during recompute:`, error)
+          })
+        } catch (error) {
+          console.warn(`Failed to import fontUtils or load font:`, error)
+        }
+      })).catch((error) => {
+        console.warn('Failed to load some fonts during recompute:', error)
+      })
     }
 
     // Elevation CSS variables (apply for levels 0..4) - generate for both modes
