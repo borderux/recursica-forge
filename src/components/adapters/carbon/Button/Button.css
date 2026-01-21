@@ -48,8 +48,9 @@
 }
 
 /* Ensure outline variant (secondary) has a border with the correct color */
+/* Use --button-border-color if set, fallback to text color */
 .cds--btn--secondary {
-  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-outline-text)) !important;
+  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
 }
 
 /* Ensure text variant (tertiary) has no border */

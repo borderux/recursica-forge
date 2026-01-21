@@ -100,6 +100,10 @@ export default function Button({
       paddingLeft: `var(${horizontalPaddingVar})`,
       paddingRight: `var(${horizontalPaddingVar})`,
       borderRadius: `var(${borderRadiusVar})`,
+      // Set button border color CSS variable for CSS file override
+      ...((variant === 'solid' || variant === 'outline') && buttonBorderColorVar ? {
+        '--button-border-color': `var(${buttonBorderColorVar})`,
+      } : {}),
       // Use actual CSS border instead of box-shadow
       ...(variant === 'solid' || variant === 'outline' ? {
         border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar})`,

@@ -3,11 +3,13 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Layout } from './modules/app/Layout'
 import PalettesPage from './modules/palettes/PalettesPage'
+import CorePropertiesPage from './modules/core/CorePropertiesPage'
 import TypePage from './modules/type/TypePage'
 import PreviewPage from './modules/preview/PreviewPage'
 import ComponentDetailPage from './modules/preview/ComponentDetailPage'
 import TokensPage from './modules/tokens/TokensPage'
 import LayersPage from './modules/layers/LayersPage'
+import ElevationsPage from './modules/elevation/ElevationsPage'
 import ThemePage from './modules/theme/ThemePage'
 import DimensionsPage from './modules/dimensions/DimensionsPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
@@ -68,14 +70,16 @@ const router = createBrowserRouter([
       { path: '/palettes', element: <Navigate to="/theme/palettes" replace /> },
       { path: '/type', element: <Navigate to="/theme/type" replace /> },
       { path: '/layers', element: <Navigate to="/theme/layers" replace /> },
-      { path: '/elevation', element: <Navigate to="/theme/layers" replace /> },
+      { path: '/elevation', element: <Navigate to="/theme/elevations" replace /> },
       {
         path: '/theme',
         element: <ThemePage />,
         children: [
-          { path: '', element: <Navigate to="/theme/palettes" replace /> },
-          { path: 'palettes', element: <PalettesPage /> },
+          { path: '', element: <Navigate to="/theme/core-properties" replace /> },
+          { path: 'core-properties', element: <CorePropertiesPage /> },
           { path: 'type', element: <TypePage /> },
+          { path: 'palettes', element: <PalettesPage /> },
+          { path: 'elevations', element: <ElevationsPage /> },
           { path: 'layers', element: <LayersPage /> },
           { path: 'dimensions', element: <DimensionsPage /> },
         ],

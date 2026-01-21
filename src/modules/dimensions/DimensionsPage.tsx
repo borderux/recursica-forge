@@ -12,6 +12,7 @@ import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import brandDefault from '../../vars/Brand.json'
 
 type DimensionEntry = {
   path: string[]
@@ -237,29 +238,61 @@ export default function DimensionsPage() {
   }, [groupedDimensions])
 
   const handleReset = (category: string) => {
-    // Reset all dimensions in this category to their original token references
+    // Reset all dimensions in this category to their default token references from Brand.json
     const themeCopy = JSON.parse(JSON.stringify(themeJson))
     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
     const dims = root?.dimensions
     if (!dims) return
 
+    // Get default dimensions from Brand.json
+    const defaultRoot: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
+    const defaultDims = defaultRoot?.dimensions
+    if (!defaultDims) return
+
     groupedDimensions[category].forEach((entry) => {
+      // Navigate to the dimension in the default Brand.json
+      let defaultNode = defaultDims
+      for (let i = 0; i < entry.path.length; i++) {
+        if (!defaultNode[entry.path[i]]) {
+          // If default doesn't exist, skip this entry
+          return
+        }
+        defaultNode = defaultNode[entry.path[i]]
+      }
+
+      // Get the default token reference
+      const defaultTokenRef = defaultNode?.$value
+      if (!defaultTokenRef || typeof defaultTokenRef !== 'string') {
+        return
+      }
+
+      // Navigate to the dimension in the current theme
       let node = dims
       for (let i = 0; i < entry.path.length - 1; i++) {
-        if (!node[entry.path[i]]) return
+        if (!node[entry.path[i]]) {
+          node[entry.path[i]] = {}
+        }
         node = node[entry.path[i]]
       }
       const leaf = entry.path[entry.path.length - 1]
-      if (entry.currentToken) {
-        const tokenRef = `{tokens.size.${entry.currentToken}}`
-        node[leaf] = {
-          $type: 'number',
-          $value: tokenRef,
-        }
+
+      // Reset to the default token reference
+      node[leaf] = {
+        $type: 'number',
+        $value: defaultTokenRef,
       }
     })
 
     setTheme(themeCopy)
+    
+    // Clear slider values for this category to force re-computation
+    setSliderValues((prev) => {
+      const next = { ...prev }
+      groupedDimensions[category].forEach((entry) => {
+        delete next[entry.cssVar]
+      })
+      return next
+    })
   }
 
   return (

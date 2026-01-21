@@ -8,6 +8,8 @@ import { ColorPickerOverlay } from '../pickers/ColorPickerOverlay'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { iconNameToReactComponent } from '../components/iconUtils'
+import { Chip } from '../../components/adapters/Chip'
 
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
@@ -45,6 +47,9 @@ export type PaletteEmphasisCellProps = {
   paletteKey?: string
   level?: string
   tokens?: JsonLike
+  emphasisType?: 'high' | 'low'
+  isFirst?: boolean
+  isLast?: boolean
 }
 
 export function PaletteEmphasisCell({
@@ -59,6 +64,9 @@ export function PaletteEmphasisCell({
   paletteKey,
   level,
   tokens,
+  emphasisType,
+  isFirst,
+  isLast,
 }: PaletteEmphasisCellProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [updateTrigger, setUpdateTrigger] = useState(0)
@@ -290,10 +298,41 @@ export function PaletteEmphasisCell({
       style={{ 
         backgroundColor: `var(${toneCssVar})`, 
         cursor: 'pointer', 
-        width: isPrimary ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%',
-        position: 'relative'
+        position: 'relative',
+        boxSizing: 'border-box',
+        padding: isPrimary ? 'var(--recursica-brand-dimensions-general-md)' : `0 var(--recursica-brand-dimensions-general-md)`,
+        width: isPrimary ? '20%' : undefined,
+        flex: isPrimary ? '0 0 20%' : 1,
+        minHeight: isPrimary ? '80px' : undefined,
+        borderRadius: isPrimary 
+          ? (emphasisType === 'high' 
+              ? 'var(--recursica-brand-dimensions-border-radii-default) var(--recursica-brand-dimensions-border-radii-default) 0 0'
+              : '0 0 var(--recursica-brand-dimensions-border-radii-default) var(--recursica-brand-dimensions-border-radii-default)')
+          : (() => {
+              if (emphasisType === 'high' && isFirst) {
+                return 'var(--recursica-brand-dimensions-border-radii-default) 0 0 0'
+              }
+              if (emphasisType === 'high' && isLast) {
+                return '0 var(--recursica-brand-dimensions-border-radii-default) 0 0'
+              }
+              if (emphasisType === 'low' && isLast) {
+                return '0 0 var(--recursica-brand-dimensions-border-radii-default) 0'
+              }
+              if (emphasisType === 'low' && isFirst) {
+                return '0 0 0 var(--recursica-brand-dimensions-border-radii-default)'
+              }
+              return undefined
+            })(),
+        marginLeft: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
+        marginRight: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
+        display: isPrimary ? 'flex' : 'flex',
+        flexDirection: isPrimary ? 'column' : 'column',
+        alignItems: isPrimary ? 'center' : 'center',
+        justifyContent: isPrimary ? (emphasisType === 'high' ? 'flex-start' : 'flex-end') : 'center',
+        alignContent: isPrimary ? undefined : 'space-around',
+        gap: isPrimary ? 'var(--recursica-brand-dimensions-general-md)' : undefined,
       }}
-      title={shouldOpenColorPicker ? 'AA Compliance Issue - Click to fix tone color' : (isPrimary ? 'Primary' : 'Set as Primary')}
+      title={shouldOpenColorPicker ? 'On-tone color fails contrast' : (isPrimary ? undefined : `Set ${level} as default`)}
       onMouseEnter={(e) => {
         setIsHovered(true)
         if (!shouldOpenColorPicker) {
@@ -338,26 +377,112 @@ export function PaletteEmphasisCell({
         onClick()
       }}
     >
-      {shouldOpenColorPicker ? (
-        <div 
-          className="palette-x" 
-          style={{ 
-            color: `var(${onToneCssVar})`, 
-            fontSize: '14px',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            height: '100%',
-            opacity: `var(${emphasisCssVar})`
-          }}
-        >
-          ✕
-        </div>
-      ) : (
-        <div className="palette-dot" style={{ backgroundColor: `var(${onToneCssVar})`, opacity: `var(${emphasisCssVar})` }} />
-      )}
+      {isPrimary ? (
+        // For primary tone, show both high and low emphasis dots vertically stacked
+        (() => {
+          const highEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+          const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+          const highOnToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
+          const lowOnToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
+          
+          if (shouldOpenColorPicker) {
+            const WarningIcon = iconNameToReactComponent('warning')
+            return (
+              <>
+                <div style={{ 
+                  color: `var(${highOnToneCssVar})`, 
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: `var(${highEmphasisCssVar})`
+                }}>
+                  {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
+                </div>
+                <div style={{ 
+                  color: `var(${lowOnToneCssVar})`, 
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: `var(${lowEmphasisCssVar})`
+                }}>
+                  {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
+                </div>
+              </>
+            )
+          }
+          
+          return (
+            <>
+              {emphasisType === 'high' && (
+                <>
+                  <div style={{
+                    color: `var(${highOnToneCssVar})`,
+                    opacity: `var(${highEmphasisCssVar})`,
+                    fontFamily: 'var(--recursica-brand-typography-body-small-font-family)',
+                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                    fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
+                    letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
+                    lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
+                  }}>
+                    {level}
+                  </div>
+                  <div className="palette-dot" style={{ 
+                    position: 'relative',
+                    width: '16px',
+                    height: '16px',
+                    backgroundColor: `var(${highOnToneCssVar})`, 
+                    opacity: `var(${highEmphasisCssVar})` 
+                  }} />
+                </>
+              )}
+              {emphasisType === 'low' && (
+                <>
+                  <div className="palette-dot" style={{ 
+                    position: 'relative',
+                    width: '16px',
+                    height: '16px',
+                    backgroundColor: `var(${lowOnToneCssVar})`, 
+                    opacity: `var(${lowEmphasisCssVar})` 
+                  }} />
+                  <Chip
+                    variant="selected"
+                    size="small"
+                    layer="layer-0"
+                  >
+                    Default
+                  </Chip>
+                </>
+              )}
+            </>
+          )
+        })()
+      ) : shouldOpenColorPicker ? (
+          (() => {
+            const WarningIcon = iconNameToReactComponent('warning')
+            return (
+              <div 
+                className="palette-warning" 
+                style={{ 
+                  color: `var(${onToneCssVar})`, 
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: `var(${emphasisCssVar})`
+                }}
+              >
+                {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
+              </div>
+            )
+          })()
+        ) : (
+          <div className="palette-dot" style={{ 
+            position: 'relative',
+            width: '16px',
+            height: '16px',
+            backgroundColor: `var(${onToneCssVar})`, 
+            opacity: `var(${emphasisCssVar})` 
+          }} />
+        )}
       
       {shouldOpenColorPicker && isHovered && (
         <div
@@ -366,11 +491,11 @@ export function PaletteEmphasisCell({
             top: '100%',
             left: '50%',
             transform: 'translateX(-50%)',
-            marginTop: '4px',
-            padding: '8px 12px',
+            marginTop: 'var(--recursica-brand-dimensions-general-sm)',
+            padding: `var(--recursica-brand-dimensions-general-md) var(--recursica-brand-dimensions-general-lg)`,
             backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
             border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
-            borderRadius: '6px',
+            borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
             minWidth: '200px',
@@ -380,19 +505,34 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
-            AA Compliance Issue
+          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
+            On-tone color fails contrast
           </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)` }}>
-            Tone doesn't pass contrast (≥4.5:1) for high or low emphasis
-          </div>
-          {aaStatus && (
-            <div style={{ fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)`, opacity: 0.8 }}>
-              Current: {aaStatus.currentRatio.toFixed(2)}:1
-            </div>
-          )}
-          <div style={{ marginTop: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)`, opacity: 0.7, fontStyle: 'italic' }}>
-            Click to change tone color
+        </div>
+      )}
+      
+      {!shouldOpenColorPicker && !isPrimary && isHovered && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            marginTop: 'var(--recursica-brand-dimensions-general-sm)',
+            padding: `var(--recursica-brand-dimensions-general-md) var(--recursica-brand-dimensions-general-lg)`,
+            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+            fontSize: '12px',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
+            Set {level} as default
           </div>
         </div>
       )}
@@ -531,7 +671,7 @@ export function PalettePrimaryIndicatorCell({
             background: 'transparent',
             textTransform: 'capitalize',
           }}
-        >primary</span>
+        >Default</span>
       ) : isHovered ? (
         <button
           onClick={onSetPrimary}
@@ -546,8 +686,8 @@ export function PalettePrimaryIndicatorCell({
             textTransform: 'capitalize',
             cursor: 'pointer',
           }}
-          title="Set as Primary"
-        >Set as Primary</button>
+          title="Set as default"
+        >Set as default</button>
       ) : null}
     </td>
   )

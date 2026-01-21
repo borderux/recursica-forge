@@ -358,6 +358,7 @@ export default function ComponentDetailPage() {
           flexDirection: 'column',
           borderLeft: `1px solid var(${layer0Base}-border-color)`,
           minHeight: debugMode ? undefined : 0,
+          height: debugMode ? undefined : '100%',
         }}>
           <ComponentToolbar
             componentName={component.name}

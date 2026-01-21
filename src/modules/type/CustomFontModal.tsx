@@ -1,17 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 
 export type CustomFontModalProps = {
   open: boolean
   onClose: () => void
-  onAccept: (fontName: string, fontSource: { type: 'npm' | 'git'; url: string }) => void
+  onAccept: (fontName: string, fontSource: { type: 'npm' | 'git'; url: string }, sequence?: string) => void
+  currentSequence?: string
+  availableSequences?: string[]
 }
 
 export function CustomFontModal({
   open,
   onClose,
   onAccept,
+  currentSequence,
+  availableSequences = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'],
 }: CustomFontModalProps) {
   const [fontName, setFontName] = useState('')
   const [fontSourceType, setFontSourceType] = useState<'npm' | 'git'>('npm')
@@ -19,7 +23,17 @@ export function CustomFontModal({
   const [gitRepo, setGitRepo] = useState('')
   const [fontPath, setFontPath] = useState('')
   const [sourceError, setSourceError] = useState<string>('')
+  const [selectedSequence, setSelectedSequence] = useState<string>(currentSequence || availableSequences[0])
   const { mode } = useThemeMode()
+
+  // Sync selectedSequence when modal opens or currentSequence changes
+  useEffect(() => {
+    if (open && currentSequence) {
+      setSelectedSequence(currentSequence)
+    } else if (open && !currentSequence) {
+      setSelectedSequence(availableSequences[0])
+    }
+  }, [open, currentSequence, availableSequences])
 
   const handleAccept = () => {
     const trimmedName = fontName.trim()
@@ -53,7 +67,7 @@ export function CustomFontModal({
       return
     }
 
-    onAccept(trimmedName, fontSource)
+    onAccept(trimmedName, fontSource, selectedSequence)
     // Reset state
     setFontName('')
     setNpmPackage('')
@@ -61,6 +75,7 @@ export function CustomFontModal({
     setFontPath('')
     setSourceError('')
     setFontSourceType('npm')
+    setSelectedSequence(currentSequence || availableSequences[0])
   }
 
   const handleClose = () => {
@@ -71,6 +86,7 @@ export function CustomFontModal({
     setFontPath('')
     setSourceError('')
     setFontSourceType('npm')
+    setSelectedSequence(currentSequence || availableSequences[0])
     onClose()
   }
 
@@ -127,6 +143,29 @@ export function CustomFontModal({
         </div>
 
         <div style={{ display: 'grid', gap: 12 }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 13, fontWeight: 500 }}>Sequence</span>
+            <select
+              value={selectedSequence}
+              onChange={(e) => setSelectedSequence(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 6,
+                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+                background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
+                color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              {availableSequences.map(seq => (
+                <option key={seq} value={seq}>
+                  {seq.charAt(0).toUpperCase() + seq.slice(1)}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ fontSize: 13, fontWeight: 500 }}>Font Name</span>
             <input

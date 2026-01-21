@@ -1,4 +1,5 @@
 import React from 'react'
+import { useThemeMode } from '../theme/ThemeModeContext'
 
 export type ElevationExampleProps = {
   label: React.ReactNode
@@ -20,6 +21,7 @@ export type ElevationExampleProps = {
 
 export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0, offsetXPx = 0, offsetYPx = 0, colorHex = '#000000', alpha = 1, isSelected = false, onToggle, selectable = true, zIndex }: ElevationExampleProps) {
   const canToggle = selectable && !!onToggle
+  const { mode } = useThemeMode()
   const toRgba = (hex: string, aIn: number): string => {
     try {
       let h = hex.trim()
@@ -46,10 +48,16 @@ export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0
     const shadowColor = toRgba(colorHex, alpha)
     return `${offsetXPx}px ${offsetYPx}px ${blurPx}px ${spreadPx}px ${shadowColor}`
   })()
+  
+  // Add border for elevation 0 (neutral/100, 1px)
+  const borderStyle = level === 0 ? {
+    border: `1px solid var(--recursica-brand-themes-${mode}-palettes-neutral-100-tone)`,
+  } : {}
+  
   return (
     <div
       className="elevation-card"
-      style={{ boxShadow, display: 'flex', alignItems: 'center', gap: 12, height: 100, borderRadius: 8, padding: 16, cursor: canToggle ? 'pointer' : undefined, zIndex }}
+      style={{ boxShadow, display: 'flex', alignItems: 'center', gap: 12, height: 100, borderRadius: 8, padding: 16, cursor: canToggle ? 'pointer' : undefined, zIndex, ...borderStyle }}
       onClick={canToggle ? onToggle : undefined}
     >
       {canToggle && (

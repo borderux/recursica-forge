@@ -83,6 +83,7 @@ import {
   Trash,
   Upload,
   User,
+  Warning,
   X,
 } from '@phosphor-icons/react'
 
@@ -206,6 +207,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'pencil': Pencil,
   'pencil-square': Pencil,
   'edit': Pencil,
+  'warning': Warning,
 }
 
 /**

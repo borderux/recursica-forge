@@ -185,18 +185,44 @@ export default function PaletteColorControl({
   
   const [refreshKey, setRefreshKey] = useState(0) // Force re-read when picker closes
 
-  // Listen for CSS variable updates to refresh the label
+  // Listen for CSS variable updates to refresh the label - only for relevant vars
   useEffect(() => {
-    const handleCssVarsUpdated = () => {
-      // Force re-computation of display label when CSS vars are updated
-      setRefreshKey(prev => prev + 1)
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+    const relevantVars = [displayCssVar, targetCssVar, ...(targetCssVars || [])].filter(Boolean)
+    
+    const handleCssVarsUpdated = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars
+      
+      // Only update if one of our CSS vars was changed
+      if (!Array.isArray(updatedVars)) {
+        return
+      }
+      
+      const hasRelevantUpdate = relevantVars.some(v => updatedVars.includes(v))
+      if (!hasRelevantUpdate) {
+        return
+      }
+      
+      // Debounce to prevent excessive updates
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
+      
+      debounceTimer = setTimeout(() => {
+        // Force re-computation of display label when CSS vars are updated
+        setRefreshKey(prev => prev + 1)
+      }, 16) // ~1 frame at 60fps
     }
     
     window.addEventListener('cssVarsUpdated', handleCssVarsUpdated)
     return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
       window.removeEventListener('cssVarsUpdated', handleCssVarsUpdated)
     }
-  }, [])
+  }, [displayCssVar, targetCssVar, targetCssVars])
 
   // Compute display label reactively based on CSS variable value
   const computedDisplayLabel = useMemo(() => {

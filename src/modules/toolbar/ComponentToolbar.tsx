@@ -18,6 +18,9 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { buildUIKitVars } from '../../core/resolvers/uikit'
 import { updateCssVar } from '../../core/css/updateCssVar'
+import { Switch } from '../../components/adapters/Switch'
+import { useDebugMode } from '../preview/PreviewPage'
+import uikitJson from '../../vars/UIKit.json'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
@@ -37,8 +40,35 @@ export default function ComponentToolbar({
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
   const { tokens, theme, uikit } = useVars()
+  const { showUnmapped, setShowUnmapped, debugMode, setDebugMode } = useDebugMode()
   const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+
+  // Calculate unmapped count (same logic as ComponentsSidebar)
+  const { unmappedCount, totalCount } = useMemo(() => {
+    const components = (uikitJson as any)?.['ui-kit']?.components || {}
+    const mappedComponents = new Set(Object.keys(components).map(name => {
+      const words = name.split('-')
+      return words
+        .map((word, index) => 
+          index === 0 
+            ? word.charAt(0).toUpperCase() + word.slice(1)
+            : word.toLowerCase()
+        )
+        .join(' ')
+    }))
+    
+    const baseComponents = [
+      'Accordion', 'Avatar', 'Badge', 'Breadcrumb', 'Button', 'Card', 'Checkbox', 'Chip',
+      'Date picker', 'Dropdown', 'File input', 'File upload', 'Hover card', 'Label', 'Link',
+      'Loader', 'Menu', 'Menu item', 'Modal', 'Number input', 'Pagination', 'Panel', 'Popover',
+      'Radio', 'Read-only field', 'Search', 'Segmented control', 'Slider', 'Stepper', 'Switch',
+      'Tabs', 'Text field', 'Time picker', 'Timeline', 'Toast', 'Tooltip', 'Transfer list',
+    ]
+    
+    const unmapped = baseComponents.filter(name => !mappedComponents.has(name)).length
+    return { unmappedCount: unmapped, totalCount: baseComponents.length }
+  }, [])
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
@@ -520,7 +550,7 @@ export default function ComponentToolbar({
 
 
   return (
-    <div className="component-toolbar-panel">
+    <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
       <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
         <LayerSegmentedControl
@@ -644,6 +674,60 @@ export default function ComponentToolbar({
           })()}
           Reset to defaults
         </button>
+      </div>
+
+      {/* Switches Section */}
+      <div style={{ 
+        padding: 'var(--recursica-brand-dimensions-general-md)', 
+        borderTop: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--recursica-brand-dimensions-general-sm)',
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--recursica-brand-dimensions-general-default)',
+        }}>
+          <Switch
+            checked={showUnmapped}
+            onChange={setShowUnmapped}
+            layer="layer-0"
+          />
+          <label 
+            onClick={() => setShowUnmapped(!showUnmapped)}
+            style={{
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
+              opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)`,
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              cursor: 'pointer',
+              flex: 1,
+            }}>
+            Show unmapped ({unmappedCount} / {totalCount})
+          </label>
+        </div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--recursica-brand-dimensions-general-default)',
+        }}>
+          <Switch
+            checked={debugMode}
+            onChange={setDebugMode}
+            layer="layer-0"
+          />
+          <label 
+            onClick={() => setDebugMode(!debugMode)}
+            style={{
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
+              opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)`,
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              cursor: 'pointer',
+              flex: 1,
+            }}>
+            Debug mode
+          </label>
+        </div>
       </div>
     </div>
   )
