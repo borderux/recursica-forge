@@ -987,13 +987,13 @@ function FamilyDropdown({
   
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-token-version={tokenVersion}>
-      <label htmlFor={`family-${paletteKey}`} style={{ fontSize: 12, opacity: 0.8 }}>Color Token</label>
       <div ref={ref} style={{ position: 'relative' }}>
         <button
           id={`family-${paletteKey}`}
           type="button"
           onClick={() => setOpen((v) => !v)}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer', minWidth: 160, justifyContent: 'space-between' }}
+          aria-label="Select color family"
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: currentHex || 'transparent' }} />

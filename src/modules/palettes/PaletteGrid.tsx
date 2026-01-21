@@ -16,10 +16,16 @@ import { readCssVar } from '../../core/css/readCssVar'
 import { readOverrides } from '../theme/tokenOverrides'
 import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { useThemeMode } from '../theme/ThemeModeContext'
+import { iconNameToReactComponent } from '../components/iconUtils'
+import Dropdown from '../toolbar/menu/dropdown/Dropdown'
+import '../toolbar/menu/dropdown/Dropdown.css'
+import { Label } from '../../components/adapters/Label'
 
 type PaletteGridProps = {
   paletteKey: string
   title?: string
+  descriptiveLabel?: string
   defaultLevel?: string | number
   initialFamily?: string
   mode: 'Light' | 'Dark'
@@ -35,7 +41,7 @@ function toLevelString(level: number): string {
   return String(level)
 }
 
-export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, initialFamily, mode, deletable, onDelete }: PaletteGridProps) {
+export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defaultLevel = 200, initialFamily, mode, deletable, onDelete }: PaletteGridProps) {
   const { tokens: tokensJson, theme: themeJson } = useVars()
   const defaultLevelStr = typeof defaultLevel === 'number' ? toLevelString(defaultLevel) : String(defaultLevel).padStart(3, '0')
   const headerLevels = LEVELS.map(toLevelString)
@@ -397,19 +403,60 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
       lastMode.current = mode
     } catch {}
   }, [primaryLevelStr, mode, paletteKey]) // Removed selectedFamily and overrideVersion from dependencies
+  
+  const { mode: themeMode } = useThemeMode()
+  const layer1Base = `--recursica-brand-themes-${themeMode}-layer-layer-1-property`
+  
+  const EllipsisIcon = iconNameToReactComponent('ellipsis-horizontal')
+  const TrashIcon = iconNameToReactComponent('trash')
+  
   return (
-    <div className="palette-container">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
-        <h3 style={{ margin: 0 }}>{title ?? paletteKey}</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {deletable && (
-            <button
-              type="button"
-              onClick={onDelete}
-              title="Delete palette"
-              style={{ padding: '6px 10px', border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer' }}
-            >Delete</button>
+    <div 
+      className="palette-container"
+      style={{
+        backgroundColor: `var(${layer1Base}-surface)`,
+        border: `1px solid var(${layer1Base}-border-color)`,
+        borderRadius: `var(--recursica-brand-dimensions-border-radii-xl)`,
+        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0,
+      }}
+    >
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        gap: `var(--recursica-brand-dimensions-gutters-horizontal)`,
+        paddingTop: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingBottom: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingLeft: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `var(--recursica-brand-dimensions-general-sm)` }}>
+          <h2 style={{ 
+            margin: 0,
+            fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+            fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+            fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+            letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+            lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+            color: `var(${layer1Base}-element-text-color)`,
+          }}>{title ?? paletteKey}</h2>
+          {descriptiveLabel && (
+            <div style={{ 
+              margin: 0,
+              fontFamily: 'var(--recursica-brand-typography-subtitle-font-family)',
+              fontSize: 'var(--recursica-brand-typography-subtitle-font-size)',
+              fontWeight: 'var(--recursica-brand-typography-subtitle-font-weight)',
+              letterSpacing: 'var(--recursica-brand-typography-subtitle-font-letter-spacing)',
+              lineHeight: 'var(--recursica-brand-typography-subtitle-line-height)',
+              color: `var(${layer1Base}-element-text-color)`,
+              opacity: `var(--recursica-brand-themes-${themeMode}-text-emphasis-low)`,
+            }}>{descriptiveLabel}</div>
           )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: `var(--recursica-brand-dimensions-gutters-horizontal)` }}>
           <PaletteColorSelector
             paletteKey={paletteKey}
             mode={mode}
@@ -420,12 +467,65 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
               setSelectedFamily(family)
             }}
           />
+          {deletable && (
+            <Dropdown
+              trigger={
+                <button
+                  type="button"
+                  style={{
+                    padding: `var(--recursica-brand-dimensions-general-sm)`,
+                    border: 'none',
+                    background: 'transparent',
+                    borderRadius: `var(--recursica-brand-dimensions-border-radii-sm)`,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: `var(${layer1Base}-element-text-color)`,
+                    opacity: `var(--recursica-brand-themes-${themeMode}-text-emphasis-low)`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '1'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = `var(--recursica-brand-themes-${themeMode}-text-emphasis-low)`
+                  }}
+                >
+                  {EllipsisIcon && <EllipsisIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
+                </button>
+              }
+              items={[
+                {
+                  key: 'delete',
+                  label: (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: `var(--recursica-brand-dimensions-general-sm)` }}>
+                      {TrashIcon && <TrashIcon style={{ width: 'var(--recursica-brand-dimensions-icons-sm)', height: 'var(--recursica-brand-dimensions-icons-sm)' }} />}
+                      <span>Delete</span>
+                    </div>
+                  ),
+                },
+              ]}
+              onSelect={(key) => {
+                if (key === 'delete' && onDelete) {
+                  onDelete()
+                }
+              }}
+            />
+          )}
         </div>
       </div>
-      <table className="color-palettes" style={{ tableLayout: 'fixed', width: '100%' }}>
+      <table className="color-palettes" style={{ tableLayout: 'fixed', width: '100%', borderSpacing: 0 }}>
         <thead>
-          <tr>
-            <th style={{ width: 80 }}>Emphasis</th>
+          <tr style={{ display: 'flex', alignItems: 'center' }}>
+            <th style={{ 
+              width: 80, 
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              transform: 'translateY(20px)',
+            }}>
+              <Label size="small" style={{ paddingBottom: 0 }}>Emphasis</Label>
+            </th>
             {headerLevels.map((lvl) => (
               <PaletteScaleHeader
                 key={`header-${lvl}`}
@@ -442,9 +542,11 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
           </tr>
         </thead>
         <tbody>
-          <tr className="high-emphasis">
-            <td>High</td>
-            {headerLevels.map((lvl) => {
+          <tr className="high-emphasis" style={{ display: 'flex', alignItems: 'flex-end', width: '100%' }}>
+            <td style={{ width: 80, flexShrink: 0, height: '50px', display: 'flex', alignItems: 'center' }}>
+              <Label size="small">High</Label>
+            </td>
+            {headerLevels.map((lvl, index) => {
               const toneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
               const onToneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
               const emphasisCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-text-emphasis-high`
@@ -462,13 +564,18 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
                   paletteKey={paletteKey}
                   level={lvl}
                   tokens={tokensJson}
+                  emphasisType="high"
+                  isFirst={index === 0}
+                  isLast={index === headerLevels.length - 1}
                 />
               )
             })}
           </tr>
-          <tr className="low-emphasis">
-            <td>Low</td>
-            {headerLevels.map((lvl) => {
+          <tr className="low-emphasis" style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
+            <td style={{ width: 80, flexShrink: 0, height: '50px', display: 'flex', alignItems: 'center' }}>
+              <Label size="small">Low</Label>
+            </td>
+            {headerLevels.map((lvl, index) => {
               const toneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
               const onToneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone`
               const emphasisCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-text-emphasis-low`
@@ -486,20 +593,12 @@ export default function PaletteGrid({ paletteKey, title, defaultLevel = 200, ini
                   paletteKey={paletteKey}
                   level={lvl}
                   tokens={tokensJson}
+                  emphasisType="low"
+                  isFirst={index === 0}
+                  isLast={index === headerLevels.length - 1}
                 />
               )
             })}
-          </tr>
-          <tr>
-            <td></td>
-            {headerLevels.map((lvl) => (
-              <PaletteScalePrimaryIndicator
-                key={`primary-${lvl}`}
-                isPrimary={lvl === primaryLevelStr}
-                isHovered={hoverLevelStr === lvl}
-                onSetPrimary={() => setPrimaryLevelStr(lvl)}
-              />
-            ))}
           </tr>
         </tbody>
       </table>

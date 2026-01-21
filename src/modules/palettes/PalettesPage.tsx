@@ -6,6 +6,8 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import ColorTokenPicker from '../pickers/ColorTokenPicker'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { Button } from '../../components/adapters/Button'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
@@ -626,10 +628,19 @@ export default function PalettesPage() {
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   
+  // Generate descriptive labels: Grayscale for neutral (index 0), then Primary, Secondary, etc.
+  const getDescriptiveLabel = (paletteKey: string, index: number): string => {
+    if (paletteKey === 'neutral' || index === 0) return 'Grayscale'
+    const ordinalWords = ['Primary', 'Secondary', 'Tertiary', 'Quaternary', 'Quinary', 'Senary', 'Septenary', 'Octonary']
+    return ordinalWords[index - 1] || `Palette ${index}`
+  }
+  
+  const PlusIcon = iconNameToReactComponent('plus')
+  
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
-        <div className="header-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <div className="header-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-gutters-horizontal)' }}>
           <h1 id="theme-mode-label" style={{ 
             margin: 0,
             fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
@@ -639,27 +650,24 @@ export default function PalettesPage() {
             lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
             color: `var(${layer0Base}-element-text-color)`,
           }}>Palettes</h1>
+          <Button
+            variant="outline"
+            size="small"
+            onClick={addPalette}
+            disabled={!canAddPalette}
+            icon={PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null}
+          >
+            Add palette
+          </Button>
         </div>
 
-        <div className="section" style={{ display: 'grid', gap: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ 
-              margin: 0,
-              fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-              fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-              fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-              letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-              lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-              color: `var(${layer0Base}-element-text-color)`,
-            }}>Palettes</h2>
-            <button type="button" onClick={addPalette} disabled={!canAddPalette} style={{ padding: '6px 10px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: canAddPalette ? 'pointer' : 'not-allowed', opacity: canAddPalette ? 1 : `var(--recursica-brand-themes-${mode}-state-disabled)` }}>Add Palette</button>
-          </div>
-
-          {palettes.map((p) => (
+        <div className="section" style={{ marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)', display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
+          {palettes.map((p, index) => (
             <PaletteGrid
               key={p.key}
               paletteKey={p.key}
               title={p.title}
+              descriptiveLabel={getDescriptiveLabel(p.key, index)}
               defaultLevel={p.defaultLevel}
               mode={mode === 'dark' ? 'Dark' : 'Light'}
               deletable={!(p.key === 'neutral' || p.key === 'palette-1')}

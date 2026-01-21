@@ -90,7 +90,7 @@ function migratePaletteLocalKeys(): PaletteStore {
   }
   const opacity = normalizeOpacityBindings(opacityRaw)
   const dynamic = readLSJson<Array<{ key: string; title: string; defaultLevel: number; initialFamily?: string }>>('dynamic-palettes', [
-    { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
+    { key: 'neutral', title: 'Neutral', defaultLevel: 200 },
     { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
     { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
   ])

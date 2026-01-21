@@ -74,8 +74,6 @@ h3 {
 
 /* --- Color Palettes --- */
 .palette-container {
-  margin-top: 24px;
-  margin-bottom: 24px;
 }
 .palette-container table {
   border: 1px solid var(--layer-layer-1-property-border-color);
@@ -87,8 +85,6 @@ h3 {
   padding: 20px;
 }
 .palette-container th, .palette-container td {
-  padding-top: 0;
-  padding-bottom: 0;
   text-align: center;
 }
 .palette-box {
@@ -96,50 +92,49 @@ h3 {
   height: 50px;
   position: relative;
 }
+.palette-box.default {
+}
 .palette-dot {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   margin: 0 auto;
 }
-/* Vertically center dots in core colors table only */
-.color-palettes .palette-dot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-}
 .color-palettes .palette-label.default {
-  border: 5px solid var(--scale-black);
 }
 .color-palettes th.default {
-  border-bottom-width: 0px !important;
-  border-radius: 8px 8px 0 0;
   position: relative;
 }
+
+html[data-theme-mode="dark"] .color-palettes th.default {
+}
+
 .color-palettes th.default:before {
-  position: absolute;
-  left: -5px;
-  right: -5px;
-  content: 'DEFAULT';
-  background-color: var(--scale-black);
-  bottom: 100%;
-  border: 5px solid var(--scale-black);
-  color: white;
-  border-radius: 8px 8px 0 0;
+  display: none;
 }
 .color-palettes .high-emphasis .palette-box.default {
-  border-top-width: 0px !important;
-  border-bottom-width: 0px !important;
 }
+
+html[data-theme-mode="dark"] .color-palettes .high-emphasis .palette-box.default {
+}
+
 .color-palettes .low-emphasis .palette-box.default {
-  border-top-width: 0px !important;
-  border-bottom-width: 0px !important;
+}
+
+html[data-theme-mode="dark"] .color-palettes .low-emphasis .palette-box.default {
 }
 .color-palettes .palette-label.default {
   border-top-width: 0px !important;
-  border-radius: 0 0 8px 8px;
+  border-left: 1px solid var(--recursica-brand-themes-light-layer-layer-1-property-border-color);
+  border-right: 1px solid var(--recursica-brand-themes-light-layer-layer-1-property-border-color);
+  border-bottom: 1px solid var(--recursica-brand-themes-light-layer-layer-1-property-border-color);
+  border-radius: 0 0 var(--recursica-brand-dimensions-border-radii-default) var(--recursica-brand-dimensions-border-radii-default);
+}
+
+html[data-theme-mode="dark"] .color-palettes .palette-label.default {
+  border-left-color: var(--recursica-brand-themes-dark-layer-layer-1-property-border-color);
+  border-right-color: var(--recursica-brand-themes-dark-layer-layer-1-property-border-color);
+  border-bottom-color: var(--recursica-brand-themes-dark-layer-layer-1-property-border-color);
 }
 
 /* --- Layers --- */
