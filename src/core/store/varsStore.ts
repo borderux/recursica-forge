@@ -813,11 +813,21 @@ class VarsStore {
       
       // Reset localStorage to original values
       if (this.lsAvailable) {
+        // Clear elevation localStorage to ensure clean reset
+        try {
+          localStorage.removeItem(STORAGE_KEYS.elevation)
+          // Also clear legacy elevation localStorage keys
+          localStorage.removeItem('elevation-color-tokens')
+          localStorage.removeItem('elevation-alpha-tokens')
+          localStorage.removeItem('elevation-palette-selections')
+          localStorage.removeItem('elevation-directions')
+        } catch {}
+        
         writeLSJson(STORAGE_KEYS.tokens, tokensImport)
         writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
         writeLSJson(STORAGE_KEYS.uikit, uikitImport)
         writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
-        writeLSJson(STORAGE_KEYS.elevation, this.initElevationState(normalizedTheme as any, this.state.tokens))
+        writeLSJson(STORAGE_KEYS.elevation, this.initElevationState(normalizedTheme as any, sortedTokens))
         
         // Reset family-friendly-names to use aliases from JSON
         try {
