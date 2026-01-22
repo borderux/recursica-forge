@@ -200,7 +200,7 @@ class VarsStore {
   private state: VarsState
   private listeners: Set<Listener> = new Set()
   private lsAvailable = isLocalStorageAvailable()
-  private aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
+  public aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
   private isRecomputing: boolean = false
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
   private hasRunInitialReset: boolean = false

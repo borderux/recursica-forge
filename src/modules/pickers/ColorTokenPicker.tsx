@@ -587,6 +587,18 @@ export default function ColorTokenPicker() {
       }
       
       setTheme(themeCopy)
+      
+      // After core color changes, update all layers to ensure AA compliance
+      // This checks each layer and steps through color scales as needed to find compliant colors
+      setTimeout(() => {
+        const varsStore = getVarsStore()
+        if (varsStore.aaWatcher) {
+          // Update the watcher with the latest theme so it has the updated core color values
+          varsStore.aaWatcher.updateTokensAndTheme(tokensJson, themeCopy)
+          // Update all layers (0-3) for the current mode
+          varsStore.aaWatcher.updateAllLayers(modeLower as 'light' | 'dark')
+        }
+      }, 0)
     } catch (err) {
       console.error('Failed to update core color in theme JSON:', err)
     }

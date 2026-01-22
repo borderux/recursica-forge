@@ -63,7 +63,7 @@ export default function LabelPreview({
                     style={{
                       flex: 1,
                       padding: '8px 12px',
-                      border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
+                      border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-primary-tone)',
                       borderRadius: '4px',
                     }}
                   />

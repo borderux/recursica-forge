@@ -86,9 +86,11 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
           key: k,
           label: `${label} (${percentage}%)`,
           tokenName: `opacity/${k}`,
+          value: num, // Store the numeric value for filtering and sorting
         }
       })
-      .filter((it) => Number.isFinite(parseFloat(String(it.key))))
+      .filter((it) => Number.isFinite(it.value)) // Filter by value, not key
+      .map(({ value, ...rest }) => rest) // Remove value from final objects
     list.sort((a, b) => {
       const aVal = src[a.key]?.$value
       const bVal = src[b.key]?.$value

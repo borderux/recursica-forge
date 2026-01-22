@@ -136,7 +136,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           ref={headerRef}
           position="static"
           sx={{
-            backgroundColor: `var(${layer1Base}-surface)`,
+            backgroundColor: `var(${layer0Base}-surface)`,
             paddingTop: 'var(--recursica-brand-dimensions-general-lg)',
             paddingBottom: 'var(--recursica-brand-dimensions-general-lg)',
             paddingLeft: 'var(--recursica-brand-dimensions-general-xl)',
@@ -144,9 +144,9 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             height: 'auto',
             flexShrink: 0,
             boxShadow: 'none',
-            borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
+            borderBottomWidth: '1px',
             borderBottomStyle: 'solid',
-            borderBottomColor: `var(${layer1Base}-border-color)`,
+            borderBottomColor: `var(--recursica-brand-themes-${mode}-palettes-neutral-primary-tone)`,
           }}
         >
           <Toolbar sx={{ gap: 'var(--recursica-brand-dimensions-general-xl)', justifyContent: 'space-between', minHeight: 'auto !important', width: '100%' }}>
@@ -158,8 +158,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                 <Box
                   component="span"
                   sx={{
-                    color: `var(${layer1Base}-element-text-color)`,
-                    opacity: `var(${layer1Base}-element-text-high-emphasis)`,
+                    color: `var(${layer0Base}-element-text-color)`,
+                    opacity: `var(${layer0Base}-element-text-high-emphasis)`,
                     fontWeight: 600,
                     fontSize: 'var(--recursica-brand-typography-body-font-size)',
                   }}
@@ -170,8 +170,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                   component="span"
                   sx={{
                     fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                    color: `var(${layer1Base}-element-text-color)`,
-                    opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+                    color: `var(${layer0Base}-element-text-color)`,
+                    opacity: `var(${layer0Base}-element-text-low-emphasis)`,
                   }}
                 >
                   Theme Forge
@@ -212,7 +212,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     sx={{
                       color: `var(${buttonTextText})`,
                       backgroundColor: `var(${buttonTextBg})`,
-                      opacity: currentRoute === 'tokens' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                      opacity: currentRoute === 'tokens' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                       fontWeight: currentRoute === 'tokens' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
                       fontSize: 'var(--recursica-brand-typography-button-font-size)',
                       height: `var(${buttonHeight})`,
@@ -234,7 +234,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     sx={{
                       color: `var(${buttonTextText})`,
                       backgroundColor: `var(${buttonTextBg})`,
-                      opacity: currentRoute === 'theme' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                      opacity: currentRoute === 'theme' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                       fontWeight: currentRoute === 'theme' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
                       fontSize: 'var(--recursica-brand-typography-button-font-size)',
                       height: `var(${buttonHeight})`,
@@ -256,7 +256,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     sx={{
                       color: `var(${buttonTextText})`,
                       backgroundColor: `var(${buttonTextBg})`,
-                      opacity: currentRoute === 'components' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                      opacity: currentRoute === 'components' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                       fontWeight: currentRoute === 'components' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
                       fontSize: 'var(--recursica-brand-typography-button-font-size)',
                       height: `var(${buttonHeight})`,
@@ -327,18 +327,18 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               sx={{ 
                 ml: 1, 
                 minWidth: 150,
-                color: `var(${layer1Base}-element-text-color)`,
+                color: `var(${layer0Base}-element-text-color)`,
                 '& .MuiSelect-select': { 
-                  color: `var(${layer1Base}-element-text-color)`,
+                  color: `var(${layer0Base}-element-text-color)`,
                 },
                 '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: `var(${layer1Base}-border-color)`,
+                  borderColor: `var(${layer0Base}-border-color)`,
                 },
                 '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: `var(${layer1Base}-border-color)`,
+                  borderColor: `var(${layer0Base}-border-color)`,
                 },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: `var(${layer1Base}-border-color)`,
+                  borderColor: `var(${layer0Base}-border-color)`,
                 },
               }}
             >
@@ -379,8 +379,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               <Box sx={{ 
                 display: 'inline-flex', 
                 alignItems: 'center',
-                backgroundColor: `var(${layer1Base}-surface)`,
-                border: `1px solid var(${layer1Base}-border-color)`,
+                backgroundColor: `var(${layer0Base}-surface)`,
+                border: `1px solid var(${layer0Base}-border-color)`,
                 borderRadius: `var(${buttonBorderRadius})`,
                 padding: `var(${buttonSmallIconPadding})`,
                 gap: 0,
@@ -398,7 +398,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
                     backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: mode === 'light' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    opacity: mode === 'light' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                   }}
@@ -427,7 +427,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
                     backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: mode === 'dark' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    opacity: mode === 'dark' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                   }}
