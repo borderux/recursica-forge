@@ -413,6 +413,34 @@ class VarsStore {
     }) as EventListener
     window.addEventListener('tokenOverridesChanged', onTokenChanged)
     
+    // Listen for CSS variable updates to update core color on-tones when base color tones change
+    const onCssVarsUpdated = ((ev: CustomEvent) => {
+      // Skip if already recomputing to prevent infinite loops
+      if (this.isRecomputing) return
+      
+      const detail = ev.detail
+      if (!detail || !detail.cssVars) return
+      
+      const cssVars = Array.isArray(detail.cssVars) ? detail.cssVars : [detail.cssVars]
+      const baseColorTonePattern = /--recursica-brand-themes-(light|dark)-palettes-core-(black|white|alert|warning|success)-tone$/
+      
+      // Check if any updated CSS var is a base color tone
+      const hasBaseColorToneUpdate = cssVars.some((cssVar: string) => {
+        return typeof cssVar === 'string' && baseColorTonePattern.test(cssVar)
+      })
+      
+      if (hasBaseColorToneUpdate) {
+        // Delay to ensure CSS vars are fully updated first
+        setTimeout(() => {
+          // Double-check we're not recomputing before updating
+          if (!this.isRecomputing) {
+            this.updateCoreColorOnTonesForAA()
+          }
+        }, 100)
+      }
+    }) as EventListener
+    window.addEventListener('cssVarsUpdated', onCssVarsUpdated)
+    
     // Run resetAll once after initialization completes
     // Use setTimeout to ensure all async operations (like initAAWatcher) complete first
     if (!this.hasRunInitialReset) {

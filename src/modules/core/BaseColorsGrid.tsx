@@ -5,6 +5,7 @@ import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css
 import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { iconNameToReactComponent } from '../components/iconUtils'
 
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
@@ -138,17 +139,16 @@ function EmphasisCell({
   }, [toneCssVar, onToneCssVar, emphasisCssVar, tokensJson, refreshKey, mode])
 
   const showAAWarning = aaStatus ? !aaStatus.passesAA : false
+  const WarningIcon = iconNameToReactComponent('warning')
 
   return (
     <div 
       className="palette-box" 
       style={{ 
-        backgroundColor: `var(${toneCssVar})`, 
         cursor: 'pointer',
         position: 'relative',
         width: '100%',
         height: '100%',
-        minHeight: '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -159,22 +159,20 @@ function EmphasisCell({
     >
       {showAAWarning ? (
         <div 
-          className="palette-x" 
+          className="palette-warning" 
           style={{ 
             position: 'absolute',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
             color: `var(${onToneCssVar})`, 
-            fontSize: '14px',
-            fontWeight: 'bold',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             opacity: `var(${emphasisCssVar})`
           }}
         >
-          ✕
+          {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
         </div>
       ) : (
         <div 
@@ -240,7 +238,7 @@ function InteractiveCell({
   modeLower: string
 }) {
   const { tokens: tokensJson } = useVars()
-  const { mode } = useThemeMode()
+  const { mode: themeMode } = useThemeMode()
   const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const AA = 4.5
@@ -286,19 +284,17 @@ function InteractiveCell({
   }, [toneCssVar, interactiveCssVar, tokensJson, refreshKey])
 
   const showAAWarning = aaStatus ? !aaStatus.passesAA : false
+  const WarningIcon = iconNameToReactComponent('warning')
+  const { mode } = useThemeMode()
 
   return (
     <div 
       className="palette-box" 
       style={{ 
-        backgroundColor: `var(${toneCssVar})`, 
-        border: `1px solid ${getSwatchBorderColor(colorName, modeLower)}`,
-        borderRadius: 'var(--recursica-brand-dimensions-border-radii-sm)',
         cursor: 'pointer',
         position: 'relative',
         width: '100%',
         height: '100%',
-        minHeight: '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -309,20 +305,19 @@ function InteractiveCell({
     >
       {showAAWarning ? (
         <div 
+          className="palette-warning"
           style={{ 
             position: 'absolute',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            fontSize: '14px',
-            fontWeight: 'bold',
             color: `var(${interactiveCssVar})`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          ✕
+          {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
         </div>
       ) : (
         <div 
@@ -345,8 +340,8 @@ function InteractiveCell({
             transform: 'translateX(-50%)',
             marginTop: '4px',
             padding: '8px 12px',
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            backgroundColor: `var(--recursica-brand-themes-${themeMode}-layer-layer-1-property-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${themeMode}-layer-layer-1-property-border-color)`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -401,27 +396,37 @@ export default function BaseColorsGrid() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: '80px repeat(6, 1fr)',
-        gap: 'var(--recursica-brand-dimensions-general-sm)',
+        gridTemplateRows: `auto repeat(${rows.length}, auto)`,
+        rowGap: 0,
+        columnGap: 'var(--recursica-brand-dimensions-gutters-horizontal)',
       }}>
         {/* Header row */}
-        <div></div>
-        {baseColors.map(color => (
-          <div key={color} style={{
-            textAlign: 'center',
-            fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-            fontSize: 'var(--recursica-brand-typography-body-font-size)',
-            fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-            color: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-element-text-color)`,
-            padding: 'var(--recursica-brand-dimensions-general-sm)',
-          }}>
+        <div style={{ gridRow: 1, gridColumn: 1 }}></div>
+        {baseColors.map((color, colIndex) => (
+          <div 
+            key={color} 
+            style={{
+              gridRow: 1,
+              gridColumn: colIndex + 2,
+              textAlign: 'center',
+              fontFamily: 'var(--recursica-brand-typography-body-font-family)',
+              fontSize: 'var(--recursica-brand-typography-body-font-size)',
+              fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+              color: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-element-text-color)`,
+              padding: 'var(--recursica-brand-dimensions-general-sm)',
+            }}
+          >
             {color.charAt(0).toUpperCase() + color.slice(1)}
           </div>
         ))}
 
-        {/* Data rows */}
-        {rows.map(row => (
-          <React.Fragment key={row.key}>
-            <div style={{
+        {/* Row labels - stacked vertically */}
+        {rows.map((row, rowIndex) => (
+          <div 
+            key={row.key} 
+            style={{
+              gridRow: rowIndex + 2,
+              gridColumn: 1,
               display: 'flex',
               alignItems: 'center',
               fontFamily: 'var(--recursica-brand-typography-body-font-family)',
@@ -429,34 +434,55 @@ export default function BaseColorsGrid() {
               fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
               color: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-element-text-color)`,
               padding: 'var(--recursica-brand-dimensions-general-sm)',
-            }}>
-              {row.label}
-            </div>
-            {baseColors.map(color => {
-              if (row.key === 'interactive' && color === 'interactive') {
-                // NA case
-                return (
-                  <div key={`${row.key}-${color}`} style={{
-                    backgroundColor: `var(--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-tone)`,
-                    border: `1px solid ${getSwatchBorderColor('interactive', modeLower)}`,
-                    borderRadius: 'var(--recursica-brand-dimensions-border-radii-sm)',
-                    minHeight: '60px',
+            }}
+          >
+            {row.label}
+          </div>
+        ))}
+
+        {/* Column wrappers - each column contains all three cells and spans all data rows */}
+        {baseColors.map((color, colIndex) => {
+              // Determine the tone CSS var for this column (used as background)
+              const columnToneCssVar = color === 'interactive' 
+                ? `--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-tone`
+                : `--recursica-brand-themes-${modeLower}-palettes-core-${color}-tone`
+              
+              return (
+                <div
+                  key={color}
+                  style={{
+                    gridRow: `2 / ${2 + rows.length}`, // Span all data rows (rows 2, 3, 4)
+                    gridColumn: colIndex + 2, // Column index + 2 (skip label column, account for 1-based grid)
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <span style={{
-                      color: `var(--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-on-tone)`,
-                      fontSize: '12px',
-                      fontWeight: 500,
-                    }}>NA</span>
-                  </div>
-                )
-              }
+                    flexDirection: 'column',
+                    justifyContent: 'space-evenly',
+                    backgroundColor: `var(${columnToneCssVar})`,
+                    border: `1px solid var(--recursica-brand-themes-${modeLower}-palettes-neutral-100-tone)`,
+                    borderRadius: 'var(--recursica-brand-dimensions-border-radii-md)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {rows.map(row => {
+                    if (row.key === 'interactive' && color === 'interactive') {
+                      // NA case
+                      return (
+                        <div key={`${row.key}-${color}`} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                          <span style={{
+                            color: `var(--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-on-tone)`,
+                            fontSize: '12px',
+                            fontWeight: 500,
+                          }}>NA</span>
+                        </div>
+                      )
+                    }
 
               if (row.key === 'interactive') {
                 return (
-                  <div key={`${row.key}-${color}`} style={{ minHeight: '60px' }}>
+                  <div key={`${row.key}-${color}`}>
                     <InteractiveCell
                       toneCssVar={`--recursica-brand-themes-${modeLower}-palettes-core-${color}-tone`}
                       interactiveCssVar={`--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-on-tone`}
@@ -480,7 +506,7 @@ export default function BaseColorsGrid() {
                 : `--recursica-brand-themes-${modeLower}-palettes-core-${color}-tone`
 
               return (
-                <div key={`${row.key}-${color}`} style={{ minHeight: '60px' }}>
+                <div key={`${row.key}-${color}`}>
                   <EmphasisCell
                     toneCssVar={toneCssVar}
                     onToneCssVar={onToneCssVar}
@@ -492,8 +518,9 @@ export default function BaseColorsGrid() {
                 </div>
               )
             })}
-          </React.Fragment>
-        ))}
+                </div>
+              )
+            })}
       </div>
     </div>
   )

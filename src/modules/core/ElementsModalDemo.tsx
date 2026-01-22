@@ -116,6 +116,7 @@ export default function ElementsModalDemo() {
 
   const HouseIcon = iconNameToReactComponent('house')
   const XIcon = iconNameToReactComponent('x-mark')
+  const PencilIcon = iconNameToReactComponent('pencil')
   const editOverlayButtonRef = useRef<HTMLDivElement>(null)
   const [showOverlayPicker, setShowOverlayPicker] = useState(false)
 
@@ -148,7 +149,7 @@ export default function ElementsModalDemo() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 'var(--recursica-brand-dimensions-general-md)',
+        marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
       }}>
         <h2 style={{ 
           margin: 0,
@@ -161,13 +162,14 @@ export default function ElementsModalDemo() {
         }}>Elements</h2>
         <div ref={editOverlayButtonRef}>
           <Button
-            variant="solid"
-            size="default"
+            variant="outline"
+            size="small"
+            icon={PencilIcon ? <PencilIcon /> : undefined}
             onClick={() => {
               setShowOverlayPicker(true)
             }}
           >
-            Edit Overlay
+            Edit overlay
           </Button>
         </div>
       </div>

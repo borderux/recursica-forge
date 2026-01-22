@@ -851,6 +851,84 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       try {
                         const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                         
+                        // First, update theme JSON for base colors BEFORE updating CSS vars
+                        // This ensures recomputeAndApplyAll generates the correct CSS variable values
+                        const coreColorPrefix = `--recursica-brand-themes-${mode}-palettes-core-`
+                        const baseColorUpdates: Array<{ targetColorName: string; sourceColorName: string; isInteractive: boolean; isHover: boolean }> = []
+                        
+                        cssVarsToUpdate.forEach((cssVar) => {
+                          const prefixedTarget = cssVar.startsWith('--recursica-')
+                            ? cssVar
+                            : cssVar.startsWith('--')
+                              ? `--recursica-${cssVar.slice(2)}`
+                              : `--recursica-${cssVar}`
+                          
+                          // Check if this is a base color tone CSS variable
+                          if (prefixedTarget.startsWith(coreColorPrefix) && prefixedTarget.includes('-tone') && !prefixedTarget.includes('-on-tone') && !prefixedTarget.includes('-interactive')) {
+                            // Extract the color name from the CSS var (e.g., black-tone -> black)
+                            let targetColorName = prefixedTarget.replace(coreColorPrefix, '').replace('-tone', '')
+                            
+                            // Extract the source color name from coreColor.cssVar (e.g., core-white-tone -> white)
+                            const sourceColorMatch = coreColor.cssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-default-tone|-hover-tone|-tone)?)/i)
+                            if (sourceColorMatch) {
+                              const [, sourceColorKey] = sourceColorMatch
+                              let sourceColorName = sourceColorKey.replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
+                              const isInteractive = sourceColorName.includes('interactive')
+                              const isHover = sourceColorName.includes('hover')
+                              baseColorUpdates.push({ targetColorName, sourceColorName, isInteractive, isHover })
+                            }
+                          }
+                        })
+                        
+                        // Update theme JSON FIRST if we have base color updates
+                        if (baseColorUpdates.length > 0 && setTheme && themeJson) {
+                          try {
+                            const themeCopy = JSON.parse(JSON.stringify(themeJson))
+                            const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                            const themes = root?.themes || root
+                            
+                            if (!themes[mode]) themes[mode] = {}
+                            if (!themes[mode].palettes) themes[mode].palettes = {}
+                            if (!themes[mode].palettes['core-colors']) themes[mode].palettes['core-colors'] = {}
+                            if (!themes[mode].palettes['core-colors'].$value) themes[mode].palettes['core-colors'].$value = {}
+                            
+                            const coreColors = themes[mode].palettes['core-colors'].$value
+                            
+                            baseColorUpdates.forEach(({ targetColorName, sourceColorName, isInteractive, isHover }) => {
+                              // Handle interactive colors with nested structure
+                              if (isInteractive) {
+                                if (isHover) {
+                                  if (!coreColors[targetColorName]) coreColors[targetColorName] = {}
+                                  if (!coreColors[targetColorName].tone) coreColors[targetColorName].tone = {}
+                                  coreColors[targetColorName].tone.$value = `{brand.themes.${mode}.palettes.core-colors.interactive.hover.tone}`
+                                } else {
+                                  if (!coreColors[targetColorName]) coreColors[targetColorName] = {}
+                                  if (!coreColors[targetColorName].tone) coreColors[targetColorName].tone = {}
+                                  coreColors[targetColorName].tone.$value = `{brand.themes.${mode}.palettes.core-colors.interactive.default.tone}`
+                                }
+                              } else {
+                                // Simple core color reference - reference the source color's tone value
+                                if (!coreColors[targetColorName]) {
+                                  coreColors[targetColorName] = {
+                                    tone: { $value: `{brand.themes.${mode}.palettes.core-colors.${sourceColorName}.tone}` },
+                                    'on-tone': { $value: `{brand.themes.${mode}.palettes.core-colors.white}` },
+                                    interactive: { $value: `{brand.themes.${mode}.palettes.core-colors.white}` }
+                                  }
+                                } else {
+                                  if (!coreColors[targetColorName].tone) coreColors[targetColorName].tone = {}
+                                  coreColors[targetColorName].tone.$value = `{brand.themes.${mode}.palettes.core-colors.${sourceColorName}.tone}`
+                                }
+                              }
+                            })
+                            
+                            // Update theme BEFORE updating CSS vars
+                            setTheme(themeCopy)
+                          } catch (themeErr) {
+                            console.error('Failed to update theme JSON for core color:', themeErr)
+                          }
+                        }
+                        
+                        // Now update CSS variables AFTER theme JSON is updated
                         cssVarsToUpdate.forEach((cssVar) => {
                           const prefixedTarget = cssVar.startsWith('--recursica-')
                             ? cssVar

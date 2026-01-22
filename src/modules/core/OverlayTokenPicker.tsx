@@ -81,29 +81,31 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
     return null
   }
 
-  const getCurrentOpacitySelection = (): string => {
-    const tokenKey = extractTokenFromCssVar(overlayOpacityVar)
-    if (tokenKey) return tokenKey
-    // If no token found, try to find by value
-    const resolvedValue = readCssVarResolved(overlayOpacityVar)
-    if (resolvedValue) {
-      const resolvedNum = parseFloat(resolvedValue)
-      if (!isNaN(resolvedNum)) {
-        const normalized = resolvedNum <= 1 ? resolvedNum : resolvedNum / 100
-        const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
-        for (const [key, val] of Object.entries(src)) {
-          if (key.startsWith('$')) continue
-          const v = (val as any)?.$value
-          const num = typeof v === 'number' ? v : Number(v)
-          const tokenNormalized = num <= 1 ? num : num / 100
-          if (Math.abs(tokenNormalized - normalized) < 0.01) {
-            return key
+  const getCurrentOpacitySelection = useMemo(() => {
+    return (): string => {
+      const tokenKey = extractTokenFromCssVar(overlayOpacityVar)
+      if (tokenKey) return tokenKey
+      // If no token found, try to find by value
+      const resolvedValue = readCssVarResolved(overlayOpacityVar)
+      if (resolvedValue) {
+        const resolvedNum = parseFloat(resolvedValue)
+        if (!isNaN(resolvedNum)) {
+          const normalized = resolvedNum <= 1 ? resolvedNum : resolvedNum / 100
+          const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
+          for (const [key, val] of Object.entries(src)) {
+            if (key.startsWith('$')) continue
+            const v = (val as any)?.$value
+            const num = typeof v === 'number' ? v : Number(v)
+            const tokenNormalized = num <= 1 ? num : num / 100
+            if (Math.abs(tokenNormalized - normalized) < 0.01) {
+              return key
+            }
           }
         }
       }
+      return opacityOptions[0]?.key || ''
     }
-    return opacityOptions[0]?.key || ''
-  }
+  }, [overlayOpacityVar, tokensJson, opacityOptions])
 
   const [selectedOpacity, setSelectedOpacity] = useState(() => getCurrentOpacitySelection())
 
@@ -113,7 +115,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
     if (current) {
       setSelectedOpacity(current)
     }
-  }, [modeLower, tokensJson, overlayOpacityVar])
+  }, [getCurrentOpacitySelection])
 
   // Listen for opacity changes and update dropdown value
   useEffect(() => {
@@ -381,7 +383,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
 
   // Collect all swatches in a flat list (no palette grouping)
   const allSwatches = useMemo(() => {
-    const swatches: Array<{ cssVar: string; key: string; label: string; type: 'core' | 'palette' }> = []
+    const swatches: Array<{ cssVar: string; key: string; label: string; type: 'core' | 'palette'; paletteKey?: string; level?: string; coreColorKey?: string }> = []
     
     // Add core colors
     coreColors.forEach(cc => {
@@ -389,7 +391,8 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
         cssVar: cc.cssVar,
         key: `core-${cc.key}`,
         label: cc.label,
-        type: 'core'
+        type: 'core',
+        coreColorKey: cc.key
       })
     })
     
@@ -399,9 +402,11 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
         const paletteCssVar = buildPaletteCssVar(pk, level)
         swatches.push({
           cssVar: paletteCssVar,
-          key: `${pk}-${level}`,
+          key: `${pk}::${level}`, // Use :: as separator to avoid conflicts with hyphens in palette keys
           label: `${toTitle(pk)} / ${level}`,
-          type: 'palette'
+          type: 'palette',
+          paletteKey: pk,
+          level: level
         })
       })
     })
@@ -537,16 +542,10 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
           {allSwatches.map((swatchItem) => {
             const isSelected = isSwatchSelected(swatchItem.cssVar)
             const handleClick = () => {
-              if (swatchItem.type === 'core') {
-                const coreColor = coreColors.find(cc => cc.cssVar === swatchItem.cssVar)
-                if (coreColor) {
-                  handleCoreColorSelect(coreColor.cssVar, coreColor.key)
-                }
-              } else {
-                const [pk, level] = swatchItem.key.split('-', 2)
-                if (pk && level) {
-                  handleColorSelect(swatchItem.cssVar, pk, level)
-                }
+              if (swatchItem.type === 'core' && swatchItem.coreColorKey) {
+                handleCoreColorSelect(swatchItem.cssVar, swatchItem.coreColorKey)
+              } else if (swatchItem.type === 'palette' && swatchItem.paletteKey && swatchItem.level) {
+                handleColorSelect(swatchItem.cssVar, swatchItem.paletteKey, swatchItem.level)
               }
             }
             

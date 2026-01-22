@@ -783,6 +783,15 @@ export default function ColorTokenPicker() {
       requestAnimationFrame(() => {
         updateCoreColorInTheme(targetVar, tokenName)
       })
+      
+      // Dispatch cssVarsUpdated event to trigger on-tone updates
+      setTimeout(() => {
+        try {
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', { 
+            detail: { cssVars: [targetVar] } 
+          }))
+        } catch {}
+      }, 0)
     }
     
     setAnchor(null)
