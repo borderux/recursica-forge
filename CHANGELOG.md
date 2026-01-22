@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.0.4
+
+### Patch Changes
+
+- [#63](https://github.com/borderux/recursica-forge/pull/63) [`32d26aa`](https://github.com/borderux/recursica-forge/commit/32d26aaaaafd153ea5007ab8db2214286f0679a9) Thanks [@mlmassey](https://github.com/mlmassey)! - Test release again
+
 ## 0.0.3
 
 ### Patch Changes
