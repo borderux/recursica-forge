@@ -3,6 +3,7 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
 import { useThemeMode } from '../../theme/ThemeModeContext'
+import type { JsonLike } from '../../../core/resolvers/tokens'
 
 export type ColorScaleProps = {
   family: string
@@ -21,6 +22,7 @@ export type ColorScaleProps = {
   onDeleteFamily: (family: string) => void
   isUsedInPalettes: boolean
   isLastColorScale: boolean
+  tokens?: JsonLike
 }
 
 export function ColorScale({
@@ -40,6 +42,7 @@ export function ColorScale({
   onDeleteFamily,
   isUsedInPalettes,
   isLastColorScale,
+  tokens,
 }: ColorScaleProps) {
   if (deletedFamilies[family]) return null
 
@@ -169,6 +172,7 @@ export function ColorScale({
             displayFamilyName={displayFamilyName}
             openPicker={openPicker}
             setOpenPicker={setOpenPicker}
+            tokens={tokens}
           />
         )
       })}

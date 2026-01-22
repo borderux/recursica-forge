@@ -990,6 +990,7 @@ export default function ColorTokens() {
             onDeleteFamily={handleDeleteFamily}
             isUsedInPalettes={isColorScaleUsedInPalettes(family)}
             isLastColorScale={totalColorScales <= 1}
+            tokens={tokensJson}
           />
         ))}
       </div>
