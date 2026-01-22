@@ -535,10 +535,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       }
       
       // Build box-shadow from elevation CSS variables
-      return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-colors-gray-1000))`
+      return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-colors-scale-02-1000))`
     } catch {
       // Fallback to elevation-2 if there's an error
-      return `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color, var(--recursica-tokens-colors-gray-1000))`
+      return `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color, var(--recursica-tokens-colors-scale-02-1000))`
     }
   }, [theme, mode])
   

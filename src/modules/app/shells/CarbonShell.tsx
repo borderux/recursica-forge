@@ -20,6 +20,7 @@ import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { Tabs } from '../../../components/adapters/Tabs'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
+import { getVarsStore } from '../../../core/store/varsStore'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -290,6 +291,18 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={handleExport}
+            />
+            <Button
+              variant="outline"
+              size="default"
+              icon={(() => {
+                const CheckIcon = iconNameToReactComponent('check-circle')
+                return CheckIcon ? <CheckIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+              })()}
+              onClick={() => {
+                getVarsStore().updateCoreColorOnTonesForAA()
+              }}
+              title="Check AA Compliance"
             />
             <div style={{ minWidth: 180 }}>
               <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>

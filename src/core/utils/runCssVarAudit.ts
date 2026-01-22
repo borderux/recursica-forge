@@ -162,6 +162,7 @@ export function runCssVarAudit(): AuditSummary {
     console.log(`   - Always fix the code using the variable, not the normalization process`)
     console.log(`   - Never create CSS aliases for the same variable`)
     console.log(`   - Always normalize CSS variables using utility functions`)
+    console.log(`   - ALWAYS use scale-n CSS variable references (e.g., scale-01, scale-02), NEVER use alias references (e.g., cornflower, gray, greensheen)`)
   } else {
     console.log('✅ No broken CSS variable references found!')
   }

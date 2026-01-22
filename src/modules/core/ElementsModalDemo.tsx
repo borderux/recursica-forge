@@ -7,7 +7,6 @@ import Dropdown from '../toolbar/menu/dropdown/Dropdown'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
-import OverlayTokenPicker from './OverlayTokenPicker'
 
 export default function ElementsModalDemo() {
   const { mode } = useThemeMode()
@@ -117,8 +116,8 @@ export default function ElementsModalDemo() {
   const HouseIcon = iconNameToReactComponent('house')
   const XIcon = iconNameToReactComponent('x-mark')
   const PencilIcon = iconNameToReactComponent('pencil')
+  const ResetIcon = iconNameToReactComponent('arrow-path')
   const editOverlayButtonRef = useRef<HTMLDivElement>(null)
-  const [showOverlayPicker, setShowOverlayPicker] = useState(false)
 
   // Checkerboard pattern
   const checkerboardStyle: React.CSSProperties = {
@@ -166,7 +165,11 @@ export default function ElementsModalDemo() {
             size="small"
             icon={PencilIcon ? <PencilIcon /> : undefined}
             onClick={() => {
-              setShowOverlayPicker(true)
+              if (editOverlayButtonRef.current && (window as any).openPalettePicker) {
+                const overlayColorVar = `--recursica-brand-themes-${modeLower}-state-overlay-color`
+                const overlayOpacityVar = `--recursica-brand-themes-${modeLower}-state-overlay-opacity`
+                ;(window as any).openPalettePicker(editOverlayButtonRef.current, overlayColorVar, undefined, overlayOpacityVar)
+              }
             }}
           >
             Edit overlay
@@ -181,6 +184,10 @@ export default function ElementsModalDemo() {
         minHeight: '400px',
         borderRadius: 'var(--recursica-brand-dimensions-border-radii-sm)',
         overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 'var(--recursica-brand-dimensions-general-xl)',
       }}>
         {/* Checkerboard background */}
         <div style={checkerboardStyle} />
@@ -196,16 +203,14 @@ export default function ElementsModalDemo() {
 
         {/* Modal */}
         <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+          position: 'relative',
           width: '550px',
           maxWidth: '90%',
+          minHeight: '400px',
           backgroundColor: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-surface)`,
           border: `1px solid var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-color)`,
           borderRadius: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-radius)`,
-          padding: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-padding)`,
+          padding: 'var(--recursica-brand-dimensions-general-xl)',
           boxShadow: `var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-blur) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-spread) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-shadow-color)`,
           zIndex: 2,
           display: 'flex',
@@ -430,16 +435,53 @@ export default function ElementsModalDemo() {
                 }}
               />
             </div>
+
+            {/* Reset all button */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
+            }}>
+              <Button
+                variant="outline"
+                size="small"
+                layer="layer-1"
+                icon={ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : undefined}
+                onClick={() => {
+                  // Reset all opacities to default values from Brand.json
+                  try {
+                    // Default values from Brand.json:
+                    // text-emphasis-high: {tokens.opacity.solid}
+                    // text-emphasis-low: {tokens.opacity.smoky}
+                    // state-disabled: {tokens.opacity.ghost}
+                    const defaultHighToken = 'solid'
+                    const defaultLowToken = 'smoky'
+                    const defaultDisabledToken = 'ghost'
+                    
+                    // Reset CSS variables to default token references
+                    const highCssVar = `--recursica-brand-themes-${modeLower}-text-emphasis-high`
+                    const lowCssVar = `--recursica-brand-themes-${modeLower}-text-emphasis-low`
+                    const disabledCssVar = `--recursica-brand-themes-${modeLower}-state-disabled`
+                    
+                    updateCssVar(highCssVar, `var(--recursica-tokens-opacities-${defaultHighToken})`)
+                    updateCssVar(lowCssVar, `var(--recursica-tokens-opacities-${defaultLowToken})`)
+                    updateCssVar(disabledCssVar, `var(--recursica-tokens-opacities-${defaultDisabledToken})`)
+                    
+                    // Update dropdown selections
+                    setSelectedHigh(defaultHighToken)
+                    setSelectedLow(defaultLowToken)
+                    setSelectedDisabled(defaultDisabledToken)
+                  } catch (err) {
+                    console.error('Failed to reset opacities:', err)
+                  }
+                }}
+              >
+                Reset all
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-
-      {showOverlayPicker && (
-        <OverlayTokenPicker
-          anchorElement={editOverlayButtonRef.current}
-          onClose={() => setShowOverlayPicker(false)}
-        />
-      )}
     </div>
   )
 }

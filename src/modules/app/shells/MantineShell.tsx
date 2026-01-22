@@ -23,6 +23,7 @@ import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { ComponentsSidebar } from '../../preview/ComponentsSidebar'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
+import { getVarsStore } from '../../../core/store/varsStore'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -256,6 +257,18 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
                 })()}
                 onClick={handleExport}
+              />
+              <Button
+                variant="outline"
+                size="default"
+                icon={(() => {
+                  const CheckIcon = iconNameToReactComponent('check-circle')
+                  return CheckIcon ? <CheckIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                })()}
+                onClick={() => {
+                  getVarsStore().updateCoreColorOnTonesForAA()
+                }}
+                title="Check AA Compliance"
               />
               <Select
                 value={kit}

@@ -17,14 +17,19 @@ function normalizeColorLevel(level: string): string | null {
 
 /**
  * Converts a token name to a CSS variable reference
+ * Always uses scale-n format (e.g., scale-02) instead of alias format (e.g., gray)
  * 
  * Examples:
- * - "color/gray/100" -> "var(--recursica-tokens-color-gray-100)"
+ * - "color/gray/100" -> "var(--recursica-tokens-colors-scale-02-100)" (if gray is scale-02)
+ * - "colors/scale-01/100" -> "var(--recursica-tokens-colors-scale-01-100)"
  * - "size/4x" -> "var(--recursica-tokens-size-4x)"
  * - "font/size/md" -> "var(--recursica-tokens-font-sizes-md)"
  * - "opacity/veiled" -> "var(--recursica-tokens-opacity-veiled)"
+ * 
+ * @param tokenName - Token name (e.g., "color/gray/900", "colors/scale-01/100")
+ * @param tokens - Optional tokens JSON to resolve aliases to scale keys
  */
-export function tokenToCssVar(tokenName: string): string | null {
+export function tokenToCssVar(tokenName: string, tokens?: any): string | null {
   if (!tokenName || typeof tokenName !== 'string') return null
   
   const parts = tokenName.split('/').filter(Boolean)
@@ -47,15 +52,35 @@ export function tokenToCssVar(tokenName: string): string | null {
         }
         
         if (scaleOrFamily && normalizedLevel) {
-          // Support both old format (color/family/level) and new format (colors/scale-XX/level)
+          // If it's already a scale key, use it directly
           if (scaleOrFamily.startsWith('scale-')) {
             return `var(--recursica-tokens-colors-${scaleOrFamily}-${normalizedLevel})`
-          } else {
-            // Old format: color/family/level -> try new format first (colors/family/level)
-            // This works because aliases are generated as CSS vars (e.g., colors/gray/900)
-            // Fallback to old format for backwards compatibility
-            return `var(--recursica-tokens-colors-${scaleOrFamily}-${normalizedLevel})`
           }
+          
+          // Otherwise, it's an alias - find the scale key from tokens
+          // ALWAYS require tokens to resolve aliases - never use alias-based CSS vars
+          if (!tokens) {
+            console.warn(`[tokenToCssVar] Cannot resolve alias "${scaleOrFamily}" to scale key without tokens parameter. Token: ${tokenName}`)
+            return null
+          }
+          
+          const tokensRoot: any = (tokens as any)?.tokens || tokens || {}
+          const colorsRoot: any = tokensRoot?.colors || {}
+          
+          // Find the scale that has this alias
+          const scaleKey = Object.keys(colorsRoot).find(key => {
+            if (!key.startsWith('scale-')) return false
+            const scale = colorsRoot[key]
+            return scale && typeof scale === 'object' && scale.alias === scaleOrFamily
+          }) || null
+          
+          if (!scaleKey) {
+            console.warn(`[tokenToCssVar] Could not find scale key for alias "${scaleOrFamily}". Token: ${tokenName}`)
+            return null
+          }
+          
+          // Always use scale key, never alias
+          return `var(--recursica-tokens-colors-${scaleKey}-${normalizedLevel})`
         }
       }
     } else if (category === 'size' || category === 'sizes') {

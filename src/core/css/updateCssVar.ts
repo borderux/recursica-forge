@@ -138,14 +138,36 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
     if (tokens) {
       const tokenMatch = findTokenByHex(trimmed, tokens)
       if (tokenMatch) {
-        return `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
+        // Always use scale key - findTokenByHex returns scale in the scale property
+        const scaleKey = tokenMatch.scale || (tokenMatch.family.startsWith('scale-') ? tokenMatch.family : null)
+        if (scaleKey) {
+          const normalizedLevel = tokenMatch.level === '000' ? '050' : tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
+          return `var(--recursica-tokens-colors-${scaleKey}-${normalizedLevel})`
+        }
+        // If no scale found, try to resolve alias to scale key
+        const tokensRoot: any = (tokens as any)?.tokens || tokens || {}
+        const colorsRoot: any = tokensRoot?.colors || {}
+        const resolvedScaleKey = Object.keys(colorsRoot).find(key => {
+          if (!key.startsWith('scale-')) return false
+          const scale = colorsRoot[key]
+          return scale && typeof scale === 'object' && scale.alias === tokenMatch.family
+        })
+        if (resolvedScaleKey) {
+          const normalizedLevel = tokenMatch.level === '000' ? '050' : tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
+          return `var(--recursica-tokens-colors-${resolvedScaleKey}-${normalizedLevel})`
+        }
+        // Last resort: use tokenToCssVar which will handle it
+        const tokenName = `colors/${tokenMatch.family}/${tokenMatch.level}`
+        const cssVar = tokenToCssVar(tokenName, tokens)
+        if (cssVar) return cssVar
       }
     }
   }
   
   // If it looks like a token name, try to convert it
+  // Pass tokens to resolve aliases to scale keys
   if (trimmed.includes('/')) {
-    const tokenRef = tokenToCssVar(trimmed)
+    const tokenRef = tokenToCssVar(trimmed, tokens)
     if (tokenRef) return tokenRef
   }
   

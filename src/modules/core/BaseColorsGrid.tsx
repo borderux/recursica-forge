@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
@@ -51,6 +52,8 @@ function EmphasisCell({
   const { mode } = useThemeMode()
   const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null)
+  const cellRef = useRef<HTMLDivElement>(null)
   const AA = 4.5
 
   // Listen for CSS var changes to trigger re-render
@@ -141,69 +144,93 @@ function EmphasisCell({
   const showAAWarning = aaStatus ? !aaStatus.passesAA : false
   const WarningIcon = iconNameToReactComponent('warning')
 
+  // Update tooltip position when hovering (debounced to avoid excessive calculations)
+  useEffect(() => {
+    if (!isHovered) {
+      setTooltipPosition(null)
+      return
+    }
+    
+    if (!cellRef.current) return
+    
+    // Use requestAnimationFrame to batch position updates
+    const updatePosition = () => {
+      if (cellRef.current && isHovered) {
+        const rect = cellRef.current.getBoundingClientRect()
+        setTooltipPosition({
+          top: rect.bottom + window.scrollY + 4,
+          left: rect.left + window.scrollX + rect.width / 2,
+        })
+      }
+    }
+    
+    const rafId = requestAnimationFrame(updatePosition)
+    return () => cancelAnimationFrame(rafId)
+  }, [isHovered])
+
   return (
-    <div 
-      className="palette-box" 
-      style={{ 
-        cursor: 'pointer',
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }} 
-      onClick={(e) => (window as any).openPalettePicker?.(e.currentTarget, pickerCssVar)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {showAAWarning ? (
-        <div 
-          className="palette-warning" 
-          style={{ 
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            color: `var(${onToneCssVar})`, 
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: `var(${emphasisCssVar})`
-          }}
-        >
-          {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
-        </div>
-      ) : (
-        <div 
-          className="palette-dot" 
-          style={{ 
-            backgroundColor: `var(${onToneCssVar})`, 
-            opacity: `var(${emphasisCssVar})`,
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-          }} 
-        />
-      )}
-      
-      {showAAWarning && isHovered && (
+    <>
+      <div 
+        ref={cellRef}
+        className="palette-box" 
+        style={{ 
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }} 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {showAAWarning ? (
+          <div 
+            className="palette-warning" 
+            style={{ 
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              color: `var(${onToneCssVar})`, 
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: `var(${emphasisCssVar})`
+            }}
+          >
+            {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
+          </div>
+        ) : (
+          <div 
+            className="palette-dot" 
+            style={{ 
+              backgroundColor: `var(${onToneCssVar})`, 
+              opacity: `var(${emphasisCssVar})`,
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+            }} 
+          />
+        )}
+      </div>
+      {showAAWarning && isHovered && tooltipPosition && createPortal(
         <div
           style={{
             position: 'absolute',
-            top: '100%',
-            left: '50%',
+            top: `${tooltipPosition.top}px`,
+            left: `${tooltipPosition.left}px`,
             transform: 'translateX(-50%)',
-            marginTop: '4px',
             padding: '8px 12px',
             backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
             border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 1000,
+            zIndex: 9999,
             minWidth: '200px',
             fontSize: '12px',
             whiteSpace: 'nowrap',
+            pointerEvents: 'none',
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -217,9 +244,10 @@ function EmphasisCell({
           <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)`, opacity: 0.8 }}>
             Current: {aaStatus?.currentRatio.toFixed(2)}:1
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   )
 }
 
@@ -241,6 +269,8 @@ function InteractiveCell({
   const { mode: themeMode } = useThemeMode()
   const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null)
+  const cellRef = useRef<HTMLDivElement>(null)
   const AA = 4.5
 
   // Listen for CSS var changes to trigger re-render
@@ -287,22 +317,46 @@ function InteractiveCell({
   const WarningIcon = iconNameToReactComponent('warning')
   const { mode } = useThemeMode()
 
+  // Update tooltip position when hovering (debounced to avoid excessive calculations)
+  useEffect(() => {
+    if (!isHovered) {
+      setTooltipPosition(null)
+      return
+    }
+    
+    if (!cellRef.current) return
+    
+    // Use requestAnimationFrame to batch position updates
+    const updatePosition = () => {
+      if (cellRef.current && isHovered) {
+        const rect = cellRef.current.getBoundingClientRect()
+        setTooltipPosition({
+          top: rect.bottom + window.scrollY + 4,
+          left: rect.left + window.scrollX + rect.width / 2,
+        })
+      }
+    }
+    
+    const rafId = requestAnimationFrame(updatePosition)
+    return () => cancelAnimationFrame(rafId)
+  }, [isHovered])
+
   return (
-    <div 
-      className="palette-box" 
-      style={{ 
-        cursor: 'pointer',
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }} 
-      onClick={(e) => (window as any).openPalettePicker?.(e.currentTarget, pickerCssVar)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <>
+      <div 
+        ref={cellRef}
+        className="palette-box" 
+        style={{ 
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }} 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
       {showAAWarning ? (
         <div 
           className="palette-warning"
@@ -330,24 +384,24 @@ function InteractiveCell({
           }} 
         />
       )}
-      
-      {showAAWarning && isHovered && (
+      </div>
+      {showAAWarning && isHovered && tooltipPosition && createPortal(
         <div
           style={{
             position: 'absolute',
-            top: '100%',
-            left: '50%',
+            top: `${tooltipPosition.top}px`,
+            left: `${tooltipPosition.left}px`,
             transform: 'translateX(-50%)',
-            marginTop: '4px',
             padding: '8px 12px',
             backgroundColor: `var(--recursica-brand-themes-${themeMode}-layer-layer-1-property-surface)`,
             border: `1px solid var(--recursica-brand-themes-${themeMode}-layer-layer-1-property-border-color)`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 1000,
+            zIndex: 9999,
             minWidth: '200px',
             fontSize: '12px',
             whiteSpace: 'nowrap',
+            pointerEvents: 'none',
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -358,9 +412,10 @@ function InteractiveCell({
           <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)` }}>
             Interactive color contrast ratio {aaStatus?.currentRatio.toFixed(2)}:1 {'<'} 4.5:1
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   )
 }
 
@@ -450,6 +505,12 @@ export default function BaseColorsGrid() {
               return (
                 <div
                   key={color}
+                  onClick={(e) => {
+                    // Open scale picker for the base color tone
+                    if ((window as any).openPicker) {
+                      (window as any).openPicker(e.currentTarget, columnToneCssVar)
+                    }
+                  }}
                   style={{
                     gridRow: `2 / ${2 + rows.length}`, // Span all data rows (rows 2, 3, 4)
                     gridColumn: colIndex + 2, // Column index + 2 (skip label column, account for 1-based grid)
@@ -458,13 +519,16 @@ export default function BaseColorsGrid() {
                     justifyContent: 'space-evenly',
                     backgroundColor: `var(${columnToneCssVar})`,
                     border: `1px solid var(--recursica-brand-themes-${modeLower}-palettes-neutral-100-tone)`,
-                    borderRadius: 'var(--recursica-brand-dimensions-border-radii-md)',
+                    borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
                     overflow: 'hidden',
+                    cursor: 'pointer',
                   }}
                 >
                   {rows.map(row => {
                     if (row.key === 'interactive' && color === 'interactive') {
-                      // NA case
+                      // NA case - use disabled on-tone (on-tone color with disabled opacity)
+                      const onToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-on-tone`
+                      const disabledOpacityVar = `--recursica-brand-themes-${modeLower}-state-disabled`
                       return (
                         <div key={`${row.key}-${color}`} style={{
                           display: 'flex',
@@ -472,7 +536,8 @@ export default function BaseColorsGrid() {
                           justifyContent: 'center',
                         }}>
                           <span style={{
-                            color: `var(--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-on-tone)`,
+                            color: `var(${onToneCssVar})`,
+                            opacity: `var(${disabledOpacityVar}, 0.5)`,
                             fontSize: '12px',
                             fontWeight: 500,
                           }}>NA</span>
@@ -485,7 +550,7 @@ export default function BaseColorsGrid() {
                   <div key={`${row.key}-${color}`}>
                     <InteractiveCell
                       toneCssVar={`--recursica-brand-themes-${modeLower}-palettes-core-${color}-tone`}
-                      interactiveCssVar={`--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-on-tone`}
+                      interactiveCssVar={`--recursica-brand-themes-${modeLower}-palettes-core-${color}-interactive`}
                       pickerCssVar={`--recursica-brand-themes-${modeLower}-palettes-core-${color}-tone`}
                       colorName={color}
                       modeLower={modeLower}
