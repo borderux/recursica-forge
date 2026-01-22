@@ -29,19 +29,19 @@ export function buildTokenIndex(tokens: JsonLike | null | undefined): TokenIndex
       }
       case 'opacity': {
         const [name] = rest
-        return root?.opacities?.[name]?.$value
+        return root?.opacities?.[name]?.$value || root?.opacity?.[name]?.$value
       }
       case 'opacities': {
         const [name] = rest
-        return root?.opacities?.[name]?.$value
+        return root?.opacities?.[name]?.$value || root?.opacity?.[name]?.$value
       }
       case 'size': {
         const [name] = rest
-        return root?.sizes?.[name]?.$value
+        return root?.sizes?.[name]?.$value || root?.size?.[name]?.$value
       }
       case 'sizes': {
         const [name] = rest
-        return root?.sizes?.[name]?.$value
+        return root?.sizes?.[name]?.$value || root?.size?.[name]?.$value
       }
       case 'font': {
         const [kind, key] = rest

@@ -224,7 +224,14 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     // Always process all standard levels (including 1000) to ensure CSS variables are generated
     // Even if a level doesn't exist in JSON, we'll generate default values for on-tone
     // This ensures reset doesn't cause on-tone colors to disappear
-    const levelsToProcess = levels
+    // Also include 'default' and 'primary' from paletteLevels if they exist
+    const levelsToProcess = [...levels]
+    if (paletteLevels.includes('default') && !levelsToProcess.includes('default')) {
+      levelsToProcess.push('default')
+    }
+    if (paletteLevels.includes('primary') && !levelsToProcess.includes('primary')) {
+      levelsToProcess.push('primary')
+    }
     
     levelsToProcess.forEach((lvl) => {
       // Map 'default' to 'primary' for CSS variable names (Brand.json uses 'default', CSS uses 'primary')

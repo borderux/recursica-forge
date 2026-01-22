@@ -10,6 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
+import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../utils/cssVarNames'
@@ -29,11 +30,28 @@ describe('Button Toolbar Props Integration', () => {
   const renderWithProviders = (ui: React.ReactElement) => {
     return render(
       <UiKitProvider>
-        <UnifiedThemeProvider>
-          {ui}
-        </UnifiedThemeProvider>
+        <ThemeModeProvider>
+          <UnifiedThemeProvider>
+            {ui}
+          </UnifiedThemeProvider>
+        </ThemeModeProvider>
       </UiKitProvider>
     )
+  }
+
+  // Helper to wait for button component to load (not Suspense fallback)
+  const waitForButton = async (container: HTMLElement, expectedText?: string) => {
+    return await waitFor(() => {
+      const btn = container.querySelector('button')
+      if (!btn) throw new Error('Button not found')
+      // Ensure it's not the loading button
+      if (btn.textContent === 'Loading...' || btn.disabled) throw new Error('Still loading')
+      // Wait for actual button content if expected text provided
+      if (expectedText && !btn.textContent?.includes(expectedText)) {
+        throw new Error(`Button text mismatch: expected "${expectedText}", got "${btn.textContent}"`)
+      }
+      return btn
+    }, { timeout: 5000 })
   }
 
   describe('Color Props Updates', () => {
@@ -41,11 +59,19 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button variant="solid" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
-      expect(button).toBeInTheDocument()
+      
+      // Wait for component to load (not Suspense fallback)
+      const button = await waitForButton(container, 'Test')
 
       // Get the CSS variable name that the toolbar would use
       const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
+      
+      // Wait for initial CSS variables to be set (check inline style where they're set)
+      await waitFor(() => {
+        const bgValue = button.style.getPropertyValue('--button-bg') || 
+                       window.getComputedStyle(button).getPropertyValue('--button-bg')
+        if (!bgValue) throw new Error('--button-bg not set')
+      })
       
       // Simulate toolbar update: change the CSS variable
       updateCssVar(bgVar, '#ff0000')
@@ -56,10 +82,14 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       // Wait for component to reactively update
+      // Check inline style first (where CSS variables are set), then computed style
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        // Component should reference the updated CSS variable
-        const bgValue = styles.getPropertyValue('--button-bg')
+        // Try inline style first (CSS variables set via style prop)
+        const inlineBgValue = button.style.getPropertyValue('--button-bg')
+        // Fall back to computed style if inline style doesn't have it
+        const computedBgValue = inlineBgValue || window.getComputedStyle(button).getPropertyValue('--button-bg')
+        const bgValue = computedBgValue
+        expect(bgValue).toBeTruthy()
         expect(bgValue).toContain('var(')
         expect(bgValue).toContain(bgVar)
       })
@@ -69,7 +99,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button variant="solid" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const textVar = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
       
@@ -80,8 +110,9 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        const textValue = styles.getPropertyValue('--button-color')
+        const textValue = button.style.getPropertyValue('--button-color') || 
+                         window.getComputedStyle(button).getPropertyValue('--button-color')
+        expect(textValue).toBeTruthy()
         expect(textValue).toContain('var(')
         expect(textValue).toContain(textVar)
       })
@@ -91,7 +122,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button variant="outline" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const textVar = getComponentCssVar('Button', 'colors', 'outline-text', 'layer-0')
       
@@ -111,7 +142,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button variant="text" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const textVar = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
       
@@ -134,7 +165,7 @@ describe('Button Toolbar Props Integration', () => {
         const { container, unmount } = renderWithProviders(
           <Button variant="solid" layer={layer}>Test</Button>
         )
-        const button = container.querySelector('button')
+        const button = await waitForButton(container, 'Test')
         
         const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
         const testColor = `#${layer.replace('layer-', '')}00000`
@@ -160,7 +191,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button size="default">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
       
@@ -170,8 +201,9 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        const heightValue = styles.getPropertyValue('--button-height')
+        const heightValue = button.style.getPropertyValue('--button-height') || 
+                           window.getComputedStyle(button).getPropertyValue('--button-height')
+        expect(heightValue).toBeTruthy()
         expect(heightValue).toContain('var(')
         expect(heightValue).toContain(heightVar)
       })
@@ -182,7 +214,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button size="default" icon={<TestIcon />}>Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container)
       
       const iconSizeVar = getComponentCssVar('Button', 'size', 'default-icon', undefined)
       
@@ -192,8 +224,9 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        const iconSizeValue = styles.getPropertyValue('--button-icon-size')
+        const iconSizeValue = button.style.getPropertyValue('--button-icon-size') || 
+                             window.getComputedStyle(button).getPropertyValue('--button-icon-size')
+        expect(iconSizeValue).toBeTruthy()
         expect(iconSizeValue).toContain('var(')
         expect(iconSizeValue).toContain(iconSizeVar)
       })
@@ -203,7 +236,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button size="default">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const paddingVar = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
       
@@ -223,7 +256,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button size="small">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const heightVar = getComponentCssVar('Button', 'size', 'small-height', undefined)
       
@@ -245,7 +278,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button>Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const elevationVar = getComponentLevelCssVar('Button', 'elevation')
       
@@ -268,7 +301,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button>Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const borderRadiusVar = getComponentLevelCssVar('Button', 'border-radius')
       
@@ -288,7 +321,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button>Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const maxWidthVar = getComponentLevelCssVar('Button', 'max-width')
       
@@ -298,8 +331,9 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        const maxWidthValue = styles.getPropertyValue('--button-max-width')
+        const maxWidthValue = button.style.getPropertyValue('--button-max-width') || 
+                             window.getComputedStyle(button).getPropertyValue('--button-max-width')
+        expect(maxWidthValue).toBeTruthy()
         expect(maxWidthValue).toContain('var(')
         expect(maxWidthValue).toContain(maxWidthVar)
       })
@@ -309,7 +343,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button>Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const fontSizeVar = getComponentLevelCssVar('Button', 'font-size')
       
@@ -331,7 +365,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button variant="solid" size="default" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
       const textVar = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
@@ -350,10 +384,19 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        expect(styles.getPropertyValue('--button-bg')).toContain(bgVar)
-        expect(styles.getPropertyValue('--button-color')).toContain(textVar)
-        expect(styles.getPropertyValue('--button-height')).toContain(heightVar)
+        const bgValue = button.style.getPropertyValue('--button-bg') || 
+                       window.getComputedStyle(button).getPropertyValue('--button-bg')
+        const colorValue = button.style.getPropertyValue('--button-color') || 
+                          window.getComputedStyle(button).getPropertyValue('--button-color')
+        const heightValue = button.style.getPropertyValue('--button-height') || 
+                           window.getComputedStyle(button).getPropertyValue('--button-height')
+        const styles = window.getComputedStyle(button)
+        expect(bgValue).toBeTruthy()
+        expect(bgValue).toContain(bgVar)
+        expect(colorValue).toBeTruthy()
+        expect(colorValue).toContain(textVar)
+        expect(heightValue).toBeTruthy()
+        expect(heightValue).toContain(heightVar)
         expect(styles.boxShadow).toBeTruthy()
       }, { timeout: 1000 })
     })
@@ -364,7 +407,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container, rerender } = renderWithProviders(
         <Button variant="solid" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       // Initially use solid variant
       const solidBgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
@@ -374,8 +417,9 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        expect(styles.getPropertyValue('--button-bg')).toContain(solidBgVar)
+        const bgValue = button.style.getPropertyValue('--button-bg') || 
+                       window.getComputedStyle(button).getPropertyValue('--button-bg')
+        expect(bgValue).toContain(solidBgVar)
       })
 
       // Switch to outline variant
@@ -394,8 +438,9 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        expect(styles.getPropertyValue('--button-color')).toContain(outlineTextVar)
+        const colorValue = button.style.getPropertyValue('--button-color') || 
+                          window.getComputedStyle(button).getPropertyValue('--button-color')
+        expect(colorValue).toContain(outlineTextVar)
       })
     })
   })
@@ -405,7 +450,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button variant="solid" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
       
@@ -414,8 +459,9 @@ describe('Button Toolbar Props Integration', () => {
       
       // Wait for MutationObserver to detect the change
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        const bgValue = styles.getPropertyValue('--button-bg')
+        const bgValue = button.style.getPropertyValue('--button-bg') || 
+                       window.getComputedStyle(button).getPropertyValue('--button-bg')
+        expect(bgValue).toBeTruthy()
         expect(bgValue).toContain(bgVar)
       }, { timeout: 1000 })
     })
@@ -424,7 +470,7 @@ describe('Button Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Button variant="solid" size="default" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
       const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
@@ -436,8 +482,10 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        expect(styles.getPropertyValue('--button-bg')).toContain(bgVar)
+        const bgValue = button.style.getPropertyValue('--button-bg') || 
+                       window.getComputedStyle(button).getPropertyValue('--button-bg')
+        expect(bgValue).toBeTruthy()
+        expect(bgValue).toContain(bgVar)
       })
 
       // Update second variable
@@ -447,8 +495,10 @@ describe('Button Toolbar Props Integration', () => {
       }))
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(button!)
-        expect(styles.getPropertyValue('--button-height')).toContain(heightVar)
+        const heightValue = button.style.getPropertyValue('--button-height') || 
+                           window.getComputedStyle(button).getPropertyValue('--button-height')
+        expect(heightValue).toBeTruthy()
+        expect(heightValue).toContain(heightVar)
       })
     })
   })

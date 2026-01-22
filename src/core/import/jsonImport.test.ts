@@ -65,11 +65,21 @@ describe('detectDirtyData', () => {
   })
 
   it('should return false when data matches original', () => {
+    // Import the actual JSON files to get their structure
+    const tokensJson = require('../../vars/Tokens.json')
+    const brandJson = require('../../vars/Brand.json')
+    const uikitJson = require('../../vars/UIKit.json')
+    
+    // Normalize to match what detectDirtyData expects
+    const originalTokens = tokensJson
+    const originalBrand = (brandJson as any)?.brand ? brandJson : { brand: brandJson }
+    const originalUiKit = (uikitJson as any)?.['ui-kit'] ? uikitJson : { 'ui-kit': uikitJson }
+    
     // Mock getState to return same structure as original
     mockStore.getState.mockReturnValue({
-      tokens: { tokens: {} },
-      theme: { brand: {} },
-      uikit: { 'ui-kit': {} }
+      tokens: originalTokens,
+      theme: originalBrand,
+      uikit: originalUiKit
     })
     
     const result = detectDirtyData()
@@ -210,6 +220,10 @@ describe('importUIKitJson', () => {
 describe('importJsonFiles', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset validation mocks to pass (not throw) for these tests
+    vi.mocked(validateSchemasModule.validateTokensJson).mockReturnValue(undefined)
+    vi.mocked(validateSchemasModule.validateBrandJson).mockReturnValue(undefined)
+    vi.mocked(validateSchemasModule.validateUIKitJson).mockReturnValue(undefined)
     // Mock document.documentElement.style
     if (typeof document !== 'undefined') {
       document.documentElement.style.cssText = ''

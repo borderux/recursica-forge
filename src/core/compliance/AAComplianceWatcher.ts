@@ -120,6 +120,11 @@ export class AAComplianceWatcher {
   }
 
   private setupWatcher() {
+    // Guard against Node.js test environments where window may not exist
+    if (typeof window === 'undefined') {
+      return
+    }
+    
     // Don't watch DOM mutations - only respond to explicit user actions
     // Listen for palette family changes and deletions
     this.paletteFamilyChangedHandler = this.handlePaletteFamilyChanged.bind(this)
@@ -1219,11 +1224,14 @@ export class AAComplianceWatcher {
       clearTimeout(this.checkTimeout)
       this.checkTimeout = null
     }
-    if (this.paletteFamilyChangedHandler) {
-      window.removeEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler as EventListener)
-    }
-    if (this.paletteDeletedHandler) {
-      window.removeEventListener('paletteDeleted', this.paletteDeletedHandler as EventListener)
+    // Guard against Node.js test environments where window may not exist
+    if (typeof window !== 'undefined') {
+      if (this.paletteFamilyChangedHandler) {
+        window.removeEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler as EventListener)
+      }
+      if (this.paletteDeletedHandler) {
+        window.removeEventListener('paletteDeleted', this.paletteDeletedHandler as EventListener)
+      }
     }
     if (this.observer) {
       this.observer.disconnect()
