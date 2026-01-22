@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import packageJson from '../../../package.json'
 
 type SidebarNavItem = 'color' | 'font' | 'opacity' | 'size'
 
@@ -203,7 +204,7 @@ export function Sidebar() {
           opacity: `var(${layer0Base}-element-text-low-emphasis)`,
         }}
       >
-        © 2025 Border LLC. All rights reserved.
+        © 2025 Border LLC. All rights reserved. Ver: {packageJson.version}
       </div>
     </aside>
   )

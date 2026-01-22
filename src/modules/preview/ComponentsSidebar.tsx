@@ -13,6 +13,7 @@ import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import packageJson from '../../../package.json'
 
 export function ComponentsSidebar({ 
   showUnmapped, 
@@ -294,7 +295,7 @@ export function ComponentsSidebar({
           opacity: `var(${layer0Base}-element-text-low-emphasis)`,
         }}
       >
-        © 2025 Border LLC. All rights reserved.
+        © 2025 Border LLC. All rights reserved. Ver: {packageJson.version}
       </div>
     </aside>
   )
