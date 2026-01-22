@@ -17,7 +17,7 @@ import { updateCoreColorOnTonesForCompliance } from '../../core/compliance/coreC
 export default function ColorTokenPicker() {
   const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
   const { mode } = useThemeMode()
-  const modeLower = mode.toLowerCase()
+  const modeLower = mode.toLowerCase() as 'light' | 'dark'
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetVar, setTargetVar] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
@@ -678,7 +678,7 @@ export default function ColorTokenPicker() {
         // Directly update interactive color with 'keep' option (keep current hover)
         if (!setTheme || !themeJson || !tokensJson) {
           // Fallback: just update CSS vars if we can't update theme
-          updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower, themeJson, setTheme)
+          updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower as 'light' | 'dark', themeJson, setTheme)
           setAnchor(null)
           setTargetVar(null)
           // Trigger AA compliance check for core colors
@@ -798,7 +798,7 @@ export default function ColorTokenPicker() {
                 
                 // Helper to resolve tone reference to hex
                 const context: TokenReferenceContext = {
-                  currentMode: modeLower,
+                  currentMode: modeLower as 'light' | 'dark',
                   tokenIndex,
                   theme: { brand: { themes: themes } }
                 }
@@ -907,7 +907,7 @@ export default function ColorTokenPicker() {
           if (coreColorsPath) {
             const coreColorNames = ['black', 'white', 'alert', 'warning', 'success']
             const contextForCssVar: TokenReferenceContext = {
-              currentMode: modeLower,
+              currentMode: modeLower as 'light' | 'dark',
               tokenIndex: buildTokenIndex(tokensJson),
               theme: themeCopy
             }
@@ -935,20 +935,20 @@ export default function ColorTokenPicker() {
           // The default-tone CSS var was already updated above, so this won't overwrite it
           // Use themeCopy instead of themeJson since we just updated it
           // Use modeLower instead of mode for consistency
-          updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower, themeCopy, setTheme)
+          updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower as 'light' | 'dark', themeCopy, setTheme)
 
           // Update CSS variables for core color interactive properties
-          if (setTheme && themeCopy) {
-            // AA compliance is now manual via header button - removed automatic call
-            // updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeCopy, setTheme, mode)
-          }
+          // AA compliance is now manual via header button - removed automatic call
+          // if (setTheme && themeCopy) {
+          //   updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeCopy, setTheme, mode)
+          // }
           
           // AA compliance is now manual via header button - removed automatic call
         } catch (err) {
           console.error('Failed to update interactive color:', err)
           // Fallback: just update CSS vars (CSS var was already updated above)
           // updateInteractiveColor will update hover and on-tones, but won't overwrite default-tone
-          updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower, themeJson, setTheme)
+          updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower as 'light' | 'dark', themeJson, setTheme)
           // AA compliance is now manual via header button - removed automatic call
         }
         

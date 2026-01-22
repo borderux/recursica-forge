@@ -2266,7 +2266,7 @@ class VarsStore {
         { buildTokenIndex }
       ]) => {
         const currentMode = this.getCurrentMode()
-        const mode = currentMode === 'Dark' ? 'dark' : 'light'
+        const mode = currentMode === 'dark' ? 'dark' : 'light'
         
         // Get all core colors and update their on-tones
         const coreColors = ['black', 'white', 'alert', 'warning', 'success']
