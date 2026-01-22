@@ -182,12 +182,14 @@ export default function ElementsModalDemo() {
         position: 'relative',
         width: '100%',
         minHeight: '400px',
-        borderRadius: 'var(--recursica-brand-dimensions-border-radii-sm)',
+        backgroundColor: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-surface)`,
+        border: `1px solid var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-border-color)`,
+        borderRadius: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-border-radius)`,
+        padding: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-padding)`,
         overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 'var(--recursica-brand-dimensions-general-xl)',
       }}>
         {/* Checkerboard background */}
         <div style={checkerboardStyle} />
