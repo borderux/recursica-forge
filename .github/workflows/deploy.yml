@@ -65,6 +65,7 @@ jobs:
       # - Creates a GitHub release with changelog
       # - Pushes the tag to the repository
       #
+      # The action outputs `published` (boolean) indicating if publishing occurred.
       # Note: Since this is a private package, we don't publish to npm.
       # The release script handles git tags and GitHub releases.
       - name: Create Release Pull Request or Publish
@@ -75,37 +76,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.CHANGESETS_RELEASE_PAT }}
 
-      # Check if we're in publish mode (no changesets = publish happened)
-      # If publish mode, deploy to GitHub Pages
-      - name: Check if Published
-        id: check-publish
-        run: |
-          # Check if there are no changeset files (publish mode)
-          if [ -z "$(find .changeset -name '*.md' ! -name 'README.md' | head -1)" ]; then
-            echo "published=true" >> $GITHUB_OUTPUT
-            echo "Publish mode detected - will deploy to GitHub Pages"
-          else
-            echo "published=false" >> $GITHUB_OUTPUT
-            echo "Version mode - skipping deployment"
-          fi
-
       # Configure GitHub Pages deployment settings
+      # Only deploy if the Changesets Action published (created a release)
       - name: Setup Pages
-        if: steps.check-publish.outputs.published == 'true'
+        if: steps.changesets-action.outputs.published == 'true'
         uses: actions/configure-pages@v4
 
       # Upload the built dist folder as a Pages artifact
       # This artifact will be deployed in the next step
       - name: Upload artifact
-        if: steps.check-publish.outputs.published == 'true'
+        if: steps.changesets-action.outputs.published == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
       # Deploy the uploaded artifact to GitHub Pages
       # This makes the application available at the repository's Pages URL
-      # Only runs in publish mode (after version PR is merged and release is created)
+      # Only runs when Changesets Action published (after version PR is merged and release is created)
       - name: Deploy to GitHub Pages
-        if: steps.check-publish.outputs.published == 'true'
+        if: steps.changesets-action.outputs.published == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
