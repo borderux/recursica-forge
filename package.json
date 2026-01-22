@@ -1,7 +1,7 @@
 {
   "name": "recursica-forge",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,9 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
     "watch:icons": "node scripts/watch-icon-mapping.mjs",
-    "watch:toolbar-icons": "node scripts/watch-toolbar-icons.mjs"
+    "watch:toolbar-icons": "node scripts/watch-toolbar-icons.mjs",
+    "changeset": "changeset",
+    "release": "changeset publish --access public"
   },
   "dependencies": {
     "@carbon/react": "^1.93.0",
@@ -34,6 +36,8 @@
     "react-router-dom": "^6.30.1"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.8",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
