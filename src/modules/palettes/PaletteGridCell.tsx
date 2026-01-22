@@ -447,7 +447,7 @@ export function PaletteEmphasisCell({
                   <Chip
                     variant="selected"
                     size="small"
-                    layer="layer-0"
+                    layer="layer-1"
                   >
                     Default
                   </Chip>
@@ -505,7 +505,7 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
+          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
             On-tone color fails contrast
           </div>
         </div>
@@ -531,7 +531,7 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
+          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
             Set {level} as default
           </div>
         </div>
@@ -657,6 +657,9 @@ export function PalettePrimaryIndicatorCell({
   isHovered,
   onSetPrimary,
 }: PalettePrimaryIndicatorCellProps) {
+  const { mode } = useThemeMode()
+  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  
   return (
     <td className={isPrimary ? 'default' : undefined} style={{ textAlign: 'center', verticalAlign: 'top', height: 28 }}>
       {isPrimary ? (
@@ -666,10 +669,11 @@ export function PalettePrimaryIndicatorCell({
             fontSize: 11,
             lineHeight: '14px',
             padding: '2px 8px',
-            border: '1px solid var(--layer-layer-1-property-border-color)',
+            border: `1px solid var(${layer1Base}-border-color)`,
             borderRadius: 999,
             background: 'transparent',
             textTransform: 'capitalize',
+            color: `var(${layer1Base}-element-text-color)`,
           }}
         >Default</span>
       ) : isHovered ? (
@@ -680,11 +684,12 @@ export function PalettePrimaryIndicatorCell({
             fontSize: 11,
             lineHeight: '14px',
             padding: '2px 8px',
-            border: '1px dashed var(--layer-layer-1-property-border-color)',
+            border: `1px dashed var(${layer1Base}-border-color)`,
             borderRadius: 999,
             background: 'transparent',
             textTransform: 'capitalize',
             cursor: 'pointer',
+            color: `var(${layer1Base}-element-text-color)`,
           }}
           title="Set as default"
         >Set as default</button>

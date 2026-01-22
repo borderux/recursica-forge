@@ -445,7 +445,7 @@ export default function BaseColorsGrid() {
         fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
         letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
         lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-        color: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-element-text-color)`,
+        color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
       }}>Base colors</h2>
       
       <div style={{
@@ -467,7 +467,7 @@ export default function BaseColorsGrid() {
               fontFamily: 'var(--recursica-brand-typography-body-font-family)',
               fontSize: 'var(--recursica-brand-typography-body-font-size)',
               fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-              color: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-element-text-color)`,
+              color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
               padding: 'var(--recursica-brand-dimensions-general-sm)',
             }}
           >
@@ -487,7 +487,7 @@ export default function BaseColorsGrid() {
               fontFamily: 'var(--recursica-brand-typography-body-font-family)',
               fontSize: 'var(--recursica-brand-typography-body-font-size)',
               fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-              color: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-element-text-color)`,
+              color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
               padding: 'var(--recursica-brand-dimensions-general-sm)',
             }}
           >

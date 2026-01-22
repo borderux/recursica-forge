@@ -294,7 +294,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             />
             <Button
               variant="outline"
-              size="default"
+              size="small"
               icon={(() => {
                 const CheckIcon = iconNameToReactComponent('check-circle')
                 return CheckIcon ? <CheckIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null

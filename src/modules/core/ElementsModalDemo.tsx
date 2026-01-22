@@ -159,7 +159,7 @@ export default function ElementsModalDemo() {
           fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-          color: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-element-text-color)`,
+          color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
         }}>Elements</h2>
         <div ref={editOverlayButtonRef}>
           <Button
