@@ -3,13 +3,14 @@
 # This workflow uses the Changesets Action to manage versioning and releases.
 #
 # How it works:
-# 1. Builds the application to ensure it compiles successfully
-# 2. When changeset files are present, the action creates a "Version Packages" pull request
-# 3. When that PR is merged, the action runs the `publish` command (npm run release)
-# 4. The release script creates a git tag for the version
-# 5. The deploy workflow then builds and deploys to GitHub Pages
+# 1. Checks for changeset files - if none exist, exits early (prevents unnecessary runs)
+# 2. Builds the application to ensure it compiles successfully
+# 3. When changeset files are present, the action creates a "Version Packages" pull request
+# 4. When that PR is merged, the action runs the `publish` command (npm run release)
+# 5. The release script creates a git tag for the version
+# 6. The deploy workflow then builds and deploys to GitHub Pages
 #
-# This workflow runs on every push to main to check for new changesets.
+# This workflow runs on every push to main, but exits early if no changesets are found.
 
 name: Changesets
 
@@ -24,7 +25,7 @@ permissions:
 
 jobs:
   changesets:
-    name: Create Release Pull Request or Publish
+    name: Create Release Pull Request
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -32,18 +33,35 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Check if any changeset files exist (excluding README.md)
+      # If no changesets are found, subsequent steps will be skipped
+      # This prevents the workflow from running when the version PR is merged
+      - name: Check for Changesets
+        id: changesets
+        run: |
+          if [ -n "$(find .changeset -name '*.md' ! -name 'README.md' | head -1)" ]; then
+            echo "hasChangesets=true" >> $GITHUB_OUTPUT
+            echo "Found changeset files, proceeding with versioning"
+          else
+            echo "hasChangesets=false" >> $GITHUB_OUTPUT
+            echo "No changeset files found, skipping remaining steps"
+          fi
+
       - name: Setup Node.js
+        if: steps.changesets.outputs.hasChangesets == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
       - name: Install Dependencies
+        if: steps.changesets.outputs.hasChangesets == 'true'
         run: npm ci
 
       # Build the application to ensure it compiles successfully before versioning
       # This prevents creating version PRs for code that doesn't build
       - name: Build
+        if: steps.changesets.outputs.hasChangesets == 'true'
         run: npm run build
 
       # Changesets Action - The Core of Our Release System
@@ -59,7 +77,8 @@ jobs:
       # Note: Since this is a private package, we don't publish to npm.
       # The release script only creates git tags for version tracking.
       - name: Create Release Pull Request or Publish
-        id: changesets
+        if: steps.changesets.outputs.hasChangesets == 'true'
+        id: changesets-action
         uses: changesets/action@v1
         with:
           publish: npm run release
