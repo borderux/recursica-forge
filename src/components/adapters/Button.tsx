@@ -16,7 +16,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type ButtonProps = {
   children?: React.ReactNode
-  variant?: 'solid' | 'outline' | 'text'
+  variant?: 'solid' | 'outline' | 'text' | 'ghost'
   size?: 'default' | 'small'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
@@ -26,6 +26,7 @@ export type ButtonProps = {
   className?: string
   style?: React.CSSProperties
   icon?: React.ReactNode
+  title?: string
 } & LibrarySpecificProps
 
 export function Button({
@@ -40,6 +41,7 @@ export function Button({
   className,
   style,
   icon,
+  title,
   mantine,
   material,
   carbon,
@@ -100,6 +102,7 @@ export function Button({
         disabled={disabled}
         onClick={onClick}
         className={className}
+        title={title}
         style={{
           ...getButtonStyles(variant, size, layer, disabled, componentElevation, mode),
           display: 'flex',
@@ -244,13 +247,14 @@ function getButtonStyles(
 }
 
 function mapButtonProps(props: ButtonProps & { elevation?: string }): any {
-  const { mantine, material, carbon, ...rest } = props
+  const { mantine, material, carbon, title, ...rest } = props
   
   // Base props that work across libraries
   // Include variant, size, layer, and elevation so library adapters can use them
   const baseProps: any = {
     ...rest,
     disabled: props.disabled,
+    title: title,
   }
   
   // Library-specific prop mapping

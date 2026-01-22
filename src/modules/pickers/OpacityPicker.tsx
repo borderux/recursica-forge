@@ -247,10 +247,11 @@ export default function OpacityPicker() {
       if (updated) {
         setCurrentToken(updated)
       }
+      // Close the picker after selection
+      setAnchor(null)
+      setTargetCssVar(null)
+      setCurrentToken(null)
     }, 100)
-    
-    // Don't close the picker immediately - let user see the selection
-    // Only close if user clicks outside or closes manually
   }
 
   const { mode } = useThemeMode()

@@ -933,9 +933,9 @@ export default function ColorTokens() {
     return Number(b) - Number(a)
   })
 
-  const layer0Base = `--recursica-brand-${themeMode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-${themeMode}-layer-layer-1-property`
-  const interactiveColor = `--recursica-brand-${themeMode}-palettes-core-interactive`
+  const layer0Base = `--recursica-brand-themes-${themeMode}-layer-layer-0-property`
+  const layer1Base = `--recursica-brand-themes-${themeMode}-layer-layer-1-property`
+  const interactiveColor = `--recursica-brand-themes-${themeMode}-palettes-core-interactive`
 
   return (
     <section style={{ 
@@ -990,6 +990,7 @@ export default function ColorTokens() {
             onDeleteFamily={handleDeleteFamily}
             isUsedInPalettes={isColorScaleUsedInPalettes(family)}
             isLastColorScale={totalColorScales <= 1}
+            tokens={tokensJson}
           />
         ))}
       </div>

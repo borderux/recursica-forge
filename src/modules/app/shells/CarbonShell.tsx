@@ -20,6 +20,8 @@ import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { Tabs } from '../../../components/adapters/Tabs'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
+import { getVarsStore } from '../../../core/store/varsStore'
+import { createBugReport } from '../utils/bugReport'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -139,7 +141,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           ref={headerRef}
           aria-label="Recursica Theme Forge"
           style={{
-            backgroundColor: `var(${layer1Base}-surface)`,
+            backgroundColor: `var(${layer0Base}-surface)`,
             paddingTop: 'var(--recursica-brand-dimensions-general-lg)',
             paddingBottom: 'var(--recursica-brand-dimensions-general-lg)',
             paddingLeft: 'var(--recursica-brand-dimensions-general-xl)',
@@ -149,9 +151,9 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottomWidth: `var(${layer1Base}-border-thickness, 1px)`,
+            borderBottomWidth: '1px',
             borderBottomStyle: 'solid',
-            borderBottomColor: `var(${layer1Base}-border-color)`,
+            borderBottomColor: `var(--recursica-brand-themes-${mode}-palettes-neutral-primary-tone)`,
           }}
         >
           {/* Logo, Brand, and Navigation Buttons */}
@@ -163,8 +165,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                 <span
                   style={{
-                    color: `var(${layer1Base}-element-text-color)`,
-                    opacity: `var(${layer1Base}-element-text-high-emphasis)`,
+                    color: `var(${layer0Base}-element-text-color)`,
+                    opacity: `var(${layer0Base}-element-text-high-emphasis)`,
                     fontWeight: 600,
                     fontSize: 'var(--recursica-brand-typography-body-font-size)',
                   }}
@@ -174,8 +176,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 <span
                   style={{
                     fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                    color: `var(${layer1Base}-element-text-color)`,
-                    opacity: `var(${layer1Base}-element-text-low-emphasis)`,
+                    color: `var(${layer0Base}-element-text-color)`,
+                    opacity: `var(${layer0Base}-element-text-low-emphasis)`,
                   }}
                 >
                   Theme Forge
@@ -208,7 +210,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     border: 'none',
                     background: currentRoute === 'tokens' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: currentRoute === 'tokens' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: currentRoute === 'tokens' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    opacity: currentRoute === 'tokens' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                     fontWeight: currentRoute === 'tokens' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
                     fontSize: 'var(--recursica-brand-typography-button-font-size)',
                     borderRadius: `var(${buttonBorderRadius})`,
@@ -227,7 +229,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     border: 'none',
                     background: currentRoute === 'theme' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: currentRoute === 'theme' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: currentRoute === 'theme' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    opacity: currentRoute === 'theme' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                     fontWeight: currentRoute === 'theme' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
                     fontSize: 'var(--recursica-brand-typography-button-font-size)',
                     borderRadius: `var(${buttonBorderRadius})`,
@@ -246,7 +248,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     border: 'none',
                     background: currentRoute === 'components' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: currentRoute === 'components' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: currentRoute === 'components' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    opacity: currentRoute === 'components' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                     fontWeight: currentRoute === 'components' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
                     fontSize: 'var(--recursica-brand-typography-button-font-size)',
                     borderRadius: `var(${buttonBorderRadius})`,
@@ -272,6 +274,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 clearOverrides(tokensJson as any)
                 resetAll()
               }}
+              title="Reset all changes"
             />
             <Button
               variant="outline"
@@ -281,6 +284,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={() => setIsOpen(true)}
+              title="Import theme"
             />
             <Button
               variant="outline"
@@ -290,6 +294,29 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={handleExport}
+              title="Export theme"
+            />
+            <Button
+              variant="outline"
+              size="small"
+              icon={(() => {
+                const CheckIcon = iconNameToReactComponent('check-circle')
+                return CheckIcon ? <CheckIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+              })()}
+              onClick={() => {
+                getVarsStore().updateCoreColorOnTonesForAA()
+              }}
+              title="Check AA Compliance"
+            />
+            <Button
+              variant="outline"
+              size="small"
+              icon={(() => {
+                const BugIcon = iconNameToReactComponent('bug')
+                return BugIcon ? <BugIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+              })()}
+              onClick={() => createBugReport()}
+              title="Report a bug"
             />
             <div style={{ minWidth: 180 }}>
               <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
@@ -316,8 +343,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
               <div style={{ 
                 display: 'inline-flex', 
                 alignItems: 'center',
-                backgroundColor: `var(${layer1Base}-surface)`,
-                border: `1px solid var(${layer1Base}-border-color)`,
+                backgroundColor: `var(${layer0Base}-surface)`,
+                border: `1px solid var(${layer0Base}-border-color)`,
                 borderRadius: `var(${buttonBorderRadius})`,
                 padding: `var(${buttonSmallIconPadding})`,
                 gap: 0,
@@ -335,7 +362,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
                     backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: mode === 'light' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    opacity: mode === 'light' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                   }}
@@ -364,7 +391,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
                     backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: mode === 'dark' ? 1 : `var(${layer1Base}-element-text-low-emphasis)`,
+                    opacity: mode === 'dark' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                   }}

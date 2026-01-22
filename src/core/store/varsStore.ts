@@ -200,7 +200,7 @@ class VarsStore {
   private state: VarsState
   private listeners: Set<Listener> = new Set()
   private lsAvailable = isLocalStorageAvailable()
-  private aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
+  public aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
   private isRecomputing: boolean = false
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
   private hasRunInitialReset: boolean = false
@@ -325,8 +325,8 @@ class VarsStore {
     // Initial CSS apply (Light mode palettes + layers + typography)
     this.recomputeAndApplyAll()
 
-    // Update core color on-tone values for AA compliance on app load
-    this.updateCoreColorOnTonesForAA()
+    // AA compliance is now manual via header button - removed automatic call
+    // this.updateCoreColorOnTonesForAA()
 
     // Initialize AA compliance watcher
     this.initAAWatcher()
@@ -404,7 +404,8 @@ class VarsStore {
             setTimeout(() => {
               // Double-check we're not recomputing before updating
               if (!this.isRecomputing) {
-                this.updateCoreColorOnTonesForAA()
+                // AA compliance is now manual - removed automatic call
+                // this.updateCoreColorOnTonesForAA()
               }
             }, 100)
           }
@@ -412,6 +413,35 @@ class VarsStore {
       }
     }) as EventListener
     window.addEventListener('tokenOverridesChanged', onTokenChanged)
+    
+    // Listen for CSS variable updates to update core color on-tones when base color tones change
+    const onCssVarsUpdated = ((ev: CustomEvent) => {
+      // Skip if already recomputing to prevent infinite loops
+      if (this.isRecomputing) return
+      
+      const detail = ev.detail
+      if (!detail || !detail.cssVars) return
+      
+      const cssVars = Array.isArray(detail.cssVars) ? detail.cssVars : [detail.cssVars]
+      const baseColorTonePattern = /--recursica-brand-themes-(light|dark)-palettes-core-(black|white|alert|warning|success)-tone$/
+      
+      // Check if any updated CSS var is a base color tone
+      const hasBaseColorToneUpdate = cssVars.some((cssVar: string) => {
+        return typeof cssVar === 'string' && baseColorTonePattern.test(cssVar)
+      })
+      
+      if (hasBaseColorToneUpdate) {
+        // Delay to ensure CSS vars are fully updated first
+        setTimeout(() => {
+          // Double-check we're not recomputing before updating
+          if (!this.isRecomputing) {
+            // AA compliance is now manual - removed automatic call
+            // this.updateCoreColorOnTonesForAA()
+          }
+        }, 100)
+      }
+    }) as EventListener
+    window.addEventListener('cssVarsUpdated', onCssVarsUpdated)
     
     // Run resetAll once after initialization completes
     // Use setTimeout to ensure all async operations (like initAAWatcher) complete first
@@ -630,15 +660,9 @@ class VarsStore {
           }
           
           if (tokenValue != null && scaleKey) {
-            // Generate CSS vars for both scale name and alias (if available)
+            // Generate CSS vars for scale name only (no alias-based vars)
             const scaleCssVarKey = `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`
             varsToUpdate[scaleCssVarKey] = String(tokenValue)
-            
-            // Also create alias-based CSS var if alias exists
-            if (alias && typeof alias === 'string') {
-              const aliasCssVarKey = `--recursica-tokens-colors-${alias}-${normalizedLevel}`
-              varsToUpdate[aliasCssVarKey] = String(tokenValue)
-            }
           }
         } else {
           // Old format: color/family/level (backwards compatibility)
@@ -793,7 +817,8 @@ class VarsStore {
         if (isCoreColorToken) {
           // Delay to ensure CSS vars are updated first
           setTimeout(() => {
-            this.updateCoreColorOnTonesForAA()
+            // AA compliance is now manual - removed automatic call
+            // this.updateCoreColorOnTonesForAA()
           }, 100)
         }
       }
@@ -1420,21 +1445,14 @@ class VarsStore {
             // Preserve 000 and 1000 as-is, pad others to 3 digits
             const normalizedLevel = lvl === '000' ? '000' : lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
             
-            // Generate CSS vars for both scale name and alias (if available)
+            // Generate CSS vars for scale name only (no alias-based vars)
             const scaleCssVarKey = `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`
-            const aliasCssVarKey = alias && typeof alias === 'string' ? `--recursica-tokens-colors-${alias}-${normalizedLevel}` : null
             
             // Read directly from token value
             const val = levelObj.$value
             if (typeof val === 'string' && val) {
               vars[scaleCssVarKey] = String(val)
               processedKeys.add(scaleCssVarKey)
-              
-              // Also create alias-based CSS var if alias exists
-              if (aliasCssVarKey) {
-                vars[aliasCssVarKey] = String(val)
-                processedKeys.add(aliasCssVarKey)
-              }
             }
           })
         })
@@ -1671,12 +1689,17 @@ class VarsStore {
           ]
           
           interactiveSubVars.forEach((cssVar) => {
-            const existingValue = readCssVar(cssVar)
+            const existingValue = typeof document !== 'undefined'
+              ? document.documentElement.style.getPropertyValue(cssVar).trim()
+              : readCssVar(cssVar)
             const generatedValue = colors[cssVar]
             
-            // Preserve if it exists in DOM and is different from generated (user customization)
-            if (existingValue && existingValue.startsWith('var(') && generatedValue && existingValue !== generatedValue) {
-              colors[cssVar] = existingValue
+            // Preserve if it exists in DOM inline styles (user customization via direct CSS var update)
+            // This is similar to how we preserve core color tone vars
+            if (existingValue && existingValue !== '' && existingValue.startsWith('var(')) {
+              if (!generatedValue || existingValue !== generatedValue) {
+                colors[cssVar] = existingValue
+              }
             } else if (existingValue && existingValue.startsWith('var(') && !generatedValue) {
               // Preserve if it exists but wasn't generated (customization not in theme JSON)
               colors[cssVar] = existingValue
@@ -1728,6 +1751,23 @@ class VarsStore {
       // Preserve if there's an inline override and it differs from generated (user customization)
       if (inlineValue !== '' && inlineValue !== generatedValue) {
         allPaletteVars[cssVar] = inlineValue
+      }
+    })
+    
+    // Preserve core color tone CSS variables that were set directly by the user
+    // This prevents recomputes from overwriting user changes (like we do for on-tone vars)
+    Object.keys(allPaletteVars).forEach((cssVar) => {
+      // Check for core color tone vars (not on-tone or interactive)
+      if (cssVar.includes('-palettes-core-') && cssVar.includes('-tone') && !cssVar.includes('-on-tone') && !cssVar.includes('-interactive')) {
+        const inlineValue = typeof document !== 'undefined' 
+          ? document.documentElement.style.getPropertyValue(cssVar).trim()
+          : ''
+        const generatedValue = allPaletteVars[cssVar]
+        
+        // Preserve if there's an inline override and it differs from generated (user customization)
+        if (inlineValue !== '' && inlineValue !== generatedValue) {
+          allPaletteVars[cssVar] = inlineValue
+        }
       }
     })
     
@@ -1984,15 +2024,16 @@ class VarsStore {
             const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
             const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
             // Use tokenToCssVar to properly convert opacity token names to CSS vars
-            const alphaVarRef = tokenToCssVar(alphaTok) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+            const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
             return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
           }
           const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
           const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
           // Use tokenToCssVar to properly convert opacity token names to CSS vars
-          const alphaVarRef = tokenToCssVar(alphaTok) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+          const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
           // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
-          const colorVarRef = tokenToCssVar(tok) || `var(--recursica-tokens-${tok.replace(/\//g, '-')})`
+          // Pass tokens to resolve aliases to scale keys
+          const colorVarRef = tokenToCssVar(tok, this.state.tokens) || `var(--recursica-tokens-${tok.replace(/\//g, '-')})`
           return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
         }
         const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
@@ -2045,7 +2086,7 @@ class VarsStore {
           const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
           const alphaTok = this.state.elevation.alphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
           // Use tokenToCssVar to properly convert opacity token names to CSS vars
-          const alphaVarRef = tokenToCssVar(alphaTok) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+          const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
           
           // Check if existing color contains a palette reference (could be var() or color-mix())
           const hasPaletteRef = existingColor && (
@@ -2210,40 +2251,61 @@ class VarsStore {
     return false
   }
 
-  private updateCoreColorOnTonesForAA() {
+  public updateCoreColorOnTonesForAA() {
     try {
       // Dynamically import to avoid circular dependencies
       Promise.all([
-        import('../../modules/pickers/interactiveColorUpdater'),
+        import('../../core/compliance/coreColorAaCompliance'),
         import('../../core/css/readCssVar'),
         import('../../core/compliance/layerColorStepping'),
         import('../../core/resolvers/tokens')
       ]).then(([
-        { updateCoreColorOnTones, updateCoreColorInteractiveOnTones },
+        { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneForCompliance },
         { readCssVarResolved, readCssVar },
         { resolveCssVarToHex },
         { buildTokenIndex }
       ]) => {
         const currentMode = this.getCurrentMode()
-        updateCoreColorOnTones(this.state.tokens, this.state.theme, (theme) => {
-          this.setTheme(theme)
-        }, currentMode)
+        const mode = currentMode === 'dark' ? 'dark' : 'light'
         
-        // Also update interactive on-tones for core colors
-        // Get the interactive tone hex to pass to the function
-        const interactiveToneVar = `--recursica-brand-themes-${currentMode}-palettes-core-interactive-default-tone`
-        const tokenIndex = buildTokenIndex(this.state.tokens)
-        const interactiveToneValue = readCssVarResolved(interactiveToneVar) || readCssVar(interactiveToneVar)
-        const interactiveHex = interactiveToneValue 
-          ? (resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000')
-          : '#000000'
+        // Get all core colors and update their on-tones
+        const coreColors = ['black', 'white', 'alert', 'warning', 'success']
         
-        // Use setTimeout to ensure CSS vars are updated first
-        setTimeout(() => {
-          updateCoreColorInteractiveOnTones(interactiveHex, this.state.tokens, this.state.theme, (theme) => {
-            this.setTheme(theme)
-          }, currentMode)
-        }, 50)
+        for (const colorName of coreColors) {
+          // Get the tone hex for this core color
+          const toneCssVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`
+          const tokenIndex = buildTokenIndex(this.state.tokens)
+          const toneValue = readCssVarResolved(toneCssVar) || readCssVar(toneCssVar)
+          const toneHex = toneValue 
+            ? (resolveCssVarToHex(toneValue, tokenIndex) || '#000000')
+            : '#000000'
+          
+          if (toneHex && toneHex !== '#000000') {
+            // Update high/low emphasis on-tones with alternating pattern
+            updateCoreColorOnTonesForCompliance(
+              colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
+              toneHex,
+              this.state.tokens,
+              this.state.theme,
+              (theme) => {
+                this.setTheme(theme)
+              },
+              mode
+            )
+            
+            // Update interactive on-tone with alternating pattern on interactive scale
+            updateCoreColorInteractiveOnToneForCompliance(
+              colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
+              toneHex,
+              this.state.tokens,
+              this.state.theme,
+              (theme) => {
+                this.setTheme(theme)
+              },
+              mode
+            )
+          }
+        }
       }).catch((err) => {
         console.error('Failed to update core color on-tones:', err)
       })

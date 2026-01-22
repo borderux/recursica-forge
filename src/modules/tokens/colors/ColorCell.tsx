@@ -1,5 +1,6 @@
 import { ColorPickerOverlay } from '../../pickers/ColorPickerOverlay'
 import { tokenToCssVar } from '../../../core/css/tokenRefs'
+import type { JsonLike } from '../../../core/resolvers/tokens'
 
 export type ColorCellProps = {
   tokenName: string | undefined
@@ -16,6 +17,7 @@ export type ColorCellProps = {
   displayFamilyName: string
   openPicker: { tokenName: string; swatchRect: DOMRect } | null
   setOpenPicker: (picker: { tokenName: string; swatchRect: DOMRect } | null) => void
+  tokens?: JsonLike
 }
 
 export function ColorCell({
@@ -33,6 +35,7 @@ export function ColorCell({
   displayFamilyName,
   openPicker,
   setOpenPicker,
+  tokens,
 }: ColorCellProps) {
   const lvlNum = Number(level)
   const isDark = lvlNum >= 500
@@ -43,13 +46,14 @@ export function ColorCell({
 
   // Convert token name (e.g., "color/gray/100" or "colors/cornflower/100") to CSS variable
   // Use tokenToCssVar to handle both old and new formats properly
+  // Must pass tokens parameter to resolve aliases to scale keys
   const cssVar = tokenName ? (() => {
-    const cssVarRef = tokenToCssVar(tokenName)
+    const cssVarRef = tokenToCssVar(tokenName, tokens)
     if (cssVarRef) {
       // Extract CSS var name from var(--name) format
       return cssVarRef.replace(/^var\s*\(\s*|\)\s*$/g, '')
     }
-    // Fallback to simple conversion
+    // Fallback to simple conversion (shouldn't happen if tokens is provided)
     return `--recursica-tokens-${tokenName.replace(/\//g, '-')}`
   })() : null
 

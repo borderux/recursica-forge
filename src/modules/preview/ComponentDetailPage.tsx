@@ -185,14 +185,14 @@ export default function ComponentDetailPage() {
       flexDirection: 'column', 
       height: debugMode ? 'auto' : '100%',
       minHeight: debugMode ? undefined : 0,
+      padding: 'var(--recursica-brand-dimensions-general-xl)',
     }}>
       {/* Header Section */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        padding: 'var(--recursica-brand-dimensions-general-xl)',
-        borderBottom: `1px solid var(${layer1Base}-border-color)`,
+        marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
         flexShrink: 0,
       }}>
         <h1 style={{ 
@@ -237,8 +237,11 @@ export default function ComponentDetailPage() {
         </a>
       </div>
 
-      {/* Main Content Container - Split Layout */}
+      {/* Main Content Container - Wrapped in styled container like tokens sections */}
       <div style={{
+        background: `var(${layer0Base}-surface)`, 
+        border: `1px solid var(${layer1Base}-border-color)`,
+        borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)', 
         display: 'flex',
         flex: debugMode ? undefined : 1,
         minHeight: debugMode ? undefined : 0,
@@ -249,9 +252,9 @@ export default function ComponentDetailPage() {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          padding: 'var(--recursica-brand-dimensions-general-xl)',
           minWidth: 0,
           minHeight: debugMode ? undefined : 0,
+          padding: 'var(--recursica-brand-dimensions-general-xl)',
         }}>
           {/* Preview Section */}
           <div style={{ 
@@ -356,7 +359,7 @@ export default function ComponentDetailPage() {
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',
-          borderLeft: `1px solid var(${layer0Base}-border-color)`,
+          borderLeft: `1px solid var(${layer1Base}-border-color)`,
           minHeight: debugMode ? undefined : 0,
           height: debugMode ? undefined : '100%',
         }}>

@@ -139,6 +139,40 @@ export class AAComplianceWatcher {
         this.checkForChanges()
       }
     })
+    
+    // Listen for CSS variable updates - specifically check for surface color changes
+    window.addEventListener('cssVarsUpdated', ((ev: CustomEvent) => {
+      if (ev.detail?.cssVars) {
+        // Check if any of the updated CSS vars are layer surface colors
+        const surfaceVars = (ev.detail.cssVars as string[]).filter((varName: string) => 
+          varName.includes('-property-surface')
+        )
+        if (surfaceVars.length > 0) {
+          // Immediately update element colors for affected layers (even if isUpdating is true)
+          // This ensures surface changes always trigger element color updates
+          surfaceVars.forEach((varName: string) => {
+            const layerMatch = varName.match(/--recursica-brand-themes-(light|dark)-layer-layer-(\d+)-property-surface/)
+            if (layerMatch) {
+              const mode = layerMatch[1] as 'light' | 'dark'
+              const layerNumber = parseInt(layerMatch[2], 10)
+              // Update last value to prevent duplicate updates
+              const currentValue = readCssVar(varName)
+              if (currentValue) {
+                this.lastValues.set(varName, currentValue)
+              }
+              // Immediately update element colors for this layer
+              // Use a small delay to ensure surface value is fully updated
+              setTimeout(() => {
+                this.updateLayerElementColors(layerNumber, mode)
+              }, 0)
+            }
+          })
+        } else if (!this.isUpdating) {
+          // For non-surface changes, use the debounced check
+          this.checkForChanges()
+        }
+      }
+    }) as EventListener)
   }
   
   private handlePaletteDeleted(ev: CustomEvent) {
@@ -185,7 +219,7 @@ export class AAComplianceWatcher {
     // Check regular layers 0-3 for both modes
     for (const mode of ['light', 'dark'] as const) {
       for (let layer = 0; layer <= 3; layer++) {
-        const surfaceVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-surface`
+        const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-surface`
         const surfaceValue = readCssVar(surfaceVar)
         
         if (surfaceValue && surfaceValue.includes(`palettes-${paletteKey}`)) {
@@ -320,7 +354,8 @@ export class AAComplianceWatcher {
   watchLayerSurface(layerNumber: number) {
     // Watch both light and dark modes
     for (const mode of ['light', 'dark'] as const) {
-      const surfaceVar = `--recursica-brand-${mode}-layer-layer-${layerNumber}-property-surface`
+      // Use the correct format with "themes" in the path
+      const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${layerNumber}-property-surface`
       this.watchedVars.add(surfaceVar)
       
       // Initialize last value to track changes
@@ -523,8 +558,8 @@ export class AAComplianceWatcher {
           }
           
           // Extract mode and layer number from var name
-          // Pattern: --recursica-brand-{mode}-layer-layer-{number}-property-surface
-          const layerMatch = varName.match(/--recursica-brand-(light|dark)-layer-layer-(\d+)-property-surface/)
+          // Pattern: --recursica-brand-themes-{mode}-layer-layer-{number}-property-surface
+          const layerMatch = varName.match(/--recursica-brand-themes-(light|dark)-layer-layer-(\d+)-property-surface/)
           
           if (layerMatch) {
             const mode = layerMatch[1] as 'light' | 'dark'
@@ -537,7 +572,8 @@ export class AAComplianceWatcher {
   }
 
   private updateLayerElementColors(layerNumber: number, mode: 'light' | 'dark' = 'light') {
-    const surfaceCssVar = `--recursica-brand-${mode}-layer-layer-${layerNumber}-property-surface`
+    // Use the correct format with "themes" in the path
+    const surfaceCssVar = `--recursica-brand-themes-${mode}-layer-layer-${layerNumber}-property-surface`
     const surfaceValue = readCssVar(surfaceCssVar)
     
     if (!surfaceValue) return
@@ -545,7 +581,7 @@ export class AAComplianceWatcher {
     const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
     if (!surfaceHex) return
     
-    const brandBase = `--recursica-brand-${mode}-layer-layer-${layerNumber}-property-`
+    const brandBase = `--recursica-brand-themes-${mode}-layer-layer-${layerNumber}-property-`
     
     // Update each element type
     const elements = [
@@ -607,7 +643,7 @@ export class AAComplianceWatcher {
     ]
     
     elements.forEach((element) => {
-      this.updateElementColor(element.name, surfaceHex, element.colorVar, element.opacityVar, element.coreToken, mode)
+      this.updateElementColor(element.name, surfaceHex, surfaceValue, element.colorVar, element.opacityVar, element.coreToken, mode)
     })
   }
 
@@ -615,6 +651,7 @@ export class AAComplianceWatcher {
   private updateElementColor(
     elementName: string,
     surfaceHex: string,
+    surfaceValue: string | undefined,
     currentColorCssVar: string,
     opacityCssVar: string,
     coreToken: { family: string; level: string } | null,
@@ -624,6 +661,61 @@ export class AAComplianceWatcher {
     const opacity = getOpacityValue(opacityValue, this.tokenIndex)
     
     if (elementName === 'text-color') {
+      // Try to extract palette key and level from surface value
+      // Format: var(--recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-tone)
+      if (surfaceValue && surfaceValue.includes('palettes-')) {
+        const paletteMatch = surfaceValue.match(/palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
+        if (paletteMatch) {
+          const [, paletteKey, level] = paletteMatch
+          // Get the on-tone value for this palette/level
+          const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
+          const onToneValue = readCssVar(onToneVar)
+          
+          if (onToneValue) {
+            // Resolve the on-tone value to hex
+            const onToneHex = resolveCssVarToHex(onToneValue, this.tokenIndex)
+            
+            if (onToneHex) {
+              // Blend the on-tone with opacity
+              const blendedOnTone = blendHexOverBg(onToneHex, surfaceHex, opacity)
+              
+              if (blendedOnTone) {
+                // Check if the current on-tone passes AA
+                const contrast = contrastRatio(surfaceHex, blendedOnTone)
+                const AA = 4.5
+                
+                if (contrast >= AA) {
+                  // Current on-tone passes, use it
+                  updateCssVar(currentColorCssVar, onToneValue, this.tokens)
+                  return
+                } else {
+                  // Need to step through the on-tone color scale to find AA-compliant color
+                  // Find which color family/scale the on-tone belongs to
+                  const onToneColorInfo = findColorFamilyAndLevel(onToneHex, this.tokens)
+                  
+                  if (onToneColorInfo) {
+                    // Step through the on-tone scale to find AA-compliant color
+                    const steppedHex = stepUntilAACompliant(onToneHex, surfaceHex, 'darker', this.tokens, 10)
+                    const steppedBlended = blendHexOverBg(steppedHex, surfaceHex, opacity)
+                    
+                    if (steppedBlended) {
+                      const steppedContrast = contrastRatio(surfaceHex, steppedBlended)
+                      if (steppedContrast >= AA) {
+                        // Found AA-compliant color in the scale, convert to CSS var
+                        const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+                        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                        return
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // Fallback to original logic if we can't find palette on-tone
       const aaCompliantColor = findAaCompliantColor(surfaceHex, null, opacity, this.tokens)
       if (aaCompliantColor) {
         updateCssVar(currentColorCssVar, aaCompliantColor, this.tokens)
@@ -715,23 +807,191 @@ export class AAComplianceWatcher {
       return
     }
     
-    // For status colors (alert, warning, success), use stepping logic like interactive colors
+    // For status colors (alert, warning, success), use stepping logic with opacity consideration
     if (coreToken) {
       // Get the core color hex from the token index
       const normalizedLevel = coreToken.level === '000' ? '050' : coreToken.level
-      const coreColorHex = this.tokenIndex.get(`color/${coreToken.family}/${normalizedLevel}`)
+      // Try both color/ and colors/ paths
+      let coreColorHex = this.tokenIndex.get(`colors/${coreToken.family}/${normalizedLevel}`)
+      if (typeof coreColorHex !== 'string') {
+        coreColorHex = this.tokenIndex.get(`color/${coreToken.family}/${normalizedLevel}`)
+      }
+      
+      // If token lookup fails, try to get the core color directly from CSS var
+      if (typeof coreColorHex !== 'string') {
+        const coreColorVar = `--recursica-brand-themes-${mode}-palettes-core-${elementName}`
+        const coreColorValue = readCssVar(coreColorVar)
+        if (coreColorValue) {
+          coreColorHex = resolveCssVarToHex(coreColorValue, this.tokenIndex)
+        }
+      }
       
       if (typeof coreColorHex === 'string') {
         const hex = coreColorHex.startsWith('#') ? coreColorHex.toLowerCase() : `#${coreColorHex.toLowerCase()}`
-        // Step until AA compliant
-        const steppedHex = stepUntilAACompliant(hex, surfaceHex, 'darker', this.tokens)
-        const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+        const AA = 4.5
+        
+        // First, check if the current color (blended with opacity) passes AA
+        const blendedColor = blendHexOverBg(hex, surfaceHex, opacity)
+        if (blendedColor) {
+          const currentContrast = contrastRatio(surfaceHex, blendedColor)
+          
+          if (currentContrast >= AA) {
+            // Current color passes, use it
+            const cssVarRef = hexToCssVarRef(hex, this.tokens)
+            updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+            return
+          }
+        }
+        
+        // Current color doesn't pass, step through the scale manually while checking opacity
+        // Use alternating pattern: +100, -100, +200, -200, etc.
+        // Get color info to step through the scale
+        const colorInfo = findColorFamilyAndLevel(hex, this.tokens)
+        if (colorInfo) {
+          const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
+          const currentLevelIndex = LEVELS.indexOf(colorInfo.level)
+          
+          if (currentLevelIndex >= 0) {
+            // Try alternating pattern: +100, -100, +200, -200, +300, -300, etc.
+            const maxOffset = Math.max(currentLevelIndex, LEVELS.length - 1 - currentLevelIndex)
+            for (let offset = 1; offset <= maxOffset; offset++) {
+              // Try darker first (+offset)
+              const darkerIndex = currentLevelIndex + offset
+              if (darkerIndex < LEVELS.length) {
+                const testLevel = LEVELS[darkerIndex]
+                // Try both color/ and colors/ paths
+                let testHex = this.tokenIndex.get(`colors/${colorInfo.family}/${testLevel}`)
+                if (typeof testHex !== 'string') {
+                  testHex = this.tokenIndex.get(`color/${colorInfo.family}/${testLevel}`)
+                }
+                if (typeof testHex === 'string') {
+                  const testHexNormalized = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+                  const testBlended = blendHexOverBg(testHexNormalized, surfaceHex, opacity)
+                  if (testBlended) {
+                    const testContrast = contrastRatio(surfaceHex, testBlended)
+                    if (testContrast >= AA) {
+                      const cssVarRef = hexToCssVarRef(testHexNormalized, this.tokens)
+                      updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                      return
+                    }
+                  }
+                }
+              }
+              
+              // Try lighter (-offset)
+              const lighterIndex = currentLevelIndex - offset
+              if (lighterIndex >= 0) {
+                const testLevel = LEVELS[lighterIndex]
+                // Try both color/ and colors/ paths
+                let testHex = this.tokenIndex.get(`colors/${colorInfo.family}/${testLevel}`)
+                if (typeof testHex !== 'string') {
+                  testHex = this.tokenIndex.get(`color/${colorInfo.family}/${testLevel}`)
+                }
+                if (typeof testHex === 'string') {
+                  const testHexNormalized = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+                  const testBlended = blendHexOverBg(testHexNormalized, surfaceHex, opacity)
+                  if (testBlended) {
+                    const testContrast = contrastRatio(surfaceHex, testBlended)
+                    if (testContrast >= AA) {
+                      const cssVarRef = hexToCssVarRef(testHexNormalized, this.tokens)
+                      updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                      return
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        // If no stepped color passes, use the original color (will show warning in UI)
+        const cssVarRef = hexToCssVarRef(hex, this.tokens)
         updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
       } else {
         // Fallback to findAaCompliantColor if token not found
         const aaCompliantColor = findAaCompliantColor(surfaceHex, coreToken, opacity, this.tokens)
         if (aaCompliantColor) {
           updateCssVar(currentColorCssVar, aaCompliantColor, this.tokens)
+        }
+      }
+    } else {
+      // If coreToken is null, try to get the core color from CSS var and update it
+      // This handles cases where parseCoreTokenRef fails
+      const coreColorVar = `--recursica-brand-themes-${mode}-palettes-core-${elementName}`
+      const coreColorValue = readCssVar(coreColorVar)
+      if (coreColorValue) {
+        const coreColorHex = resolveCssVarToHex(coreColorValue, this.tokenIndex)
+        if (coreColorHex) {
+          const AA = 4.5
+          const blendedColor = blendHexOverBg(coreColorHex, surfaceHex, opacity)
+          if (blendedColor) {
+            const currentContrast = contrastRatio(surfaceHex, blendedColor)
+            if (currentContrast >= AA) {
+              // Current color passes, use it
+              updateCssVar(currentColorCssVar, coreColorValue, this.tokens)
+              return
+            }
+          }
+          
+          // Current color doesn't pass, step through the scale manually while checking opacity
+          const colorInfo = findColorFamilyAndLevel(coreColorHex, this.tokens)
+          if (colorInfo) {
+            const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
+            const currentLevelIndex = LEVELS.indexOf(colorInfo.level)
+            
+            if (currentLevelIndex >= 0) {
+              // Try alternating pattern: +100, -100, +200, -200, etc.
+              const maxOffset = Math.max(currentLevelIndex, LEVELS.length - 1 - currentLevelIndex)
+              for (let offset = 1; offset <= maxOffset; offset++) {
+                // Try darker first (+offset)
+                const darkerIndex = currentLevelIndex + offset
+                if (darkerIndex < LEVELS.length) {
+                  const testLevel = LEVELS[darkerIndex]
+                  let testHex = this.tokenIndex.get(`colors/${colorInfo.family}/${testLevel}`)
+                  if (typeof testHex !== 'string') {
+                    testHex = this.tokenIndex.get(`color/${colorInfo.family}/${testLevel}`)
+                  }
+                  if (typeof testHex === 'string') {
+                    const testHexNormalized = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+                    const testBlended = blendHexOverBg(testHexNormalized, surfaceHex, opacity)
+                    if (testBlended) {
+                      const testContrast = contrastRatio(surfaceHex, testBlended)
+                      if (testContrast >= AA) {
+                        const cssVarRef = hexToCssVarRef(testHexNormalized, this.tokens)
+                        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                        return
+                      }
+                    }
+                  }
+                }
+                
+                // Try lighter (-offset)
+                const lighterIndex = currentLevelIndex - offset
+                if (lighterIndex >= 0) {
+                  const testLevel = LEVELS[lighterIndex]
+                  let testHex = this.tokenIndex.get(`colors/${colorInfo.family}/${testLevel}`)
+                  if (typeof testHex !== 'string') {
+                    testHex = this.tokenIndex.get(`color/${colorInfo.family}/${testLevel}`)
+                  }
+                  if (typeof testHex === 'string') {
+                    const testHexNormalized = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
+                    const testBlended = blendHexOverBg(testHexNormalized, surfaceHex, opacity)
+                    if (testBlended) {
+                      const testContrast = contrastRatio(surfaceHex, testBlended)
+                      if (testContrast >= AA) {
+                        const cssVarRef = hexToCssVarRef(testHexNormalized, this.tokens)
+                        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                        return
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          
+          // If no stepped color passes, use the original
+          updateCssVar(currentColorCssVar, coreColorValue, this.tokens)
         }
       }
     }
@@ -800,7 +1060,7 @@ export class AAComplianceWatcher {
     // Validate all layer element colors for both light and dark modes
     for (const mode of ['light', 'dark'] as const) {
       for (let layer = 0; layer <= 3; layer++) {
-        const surfaceVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-surface`
+        const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-surface`
         const surfaceValue = readCssVar(surfaceVar)
         
         if (!surfaceValue) continue

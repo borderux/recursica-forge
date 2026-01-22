@@ -60,6 +60,7 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
 
 /**
  * Finds the color family and level for a given hex value in tokens
+ * Returns scale keys (e.g., "scale-01") instead of aliases, since Brand.json doesn't use aliases
  */
 export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family: string; level: string } | null {
   const tokenIndex = buildTokenIndex(tokens)
@@ -70,8 +71,6 @@ export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family
   for (const [scaleKey, scale] of Object.entries(jsonColors)) {
     if (!scaleKey.startsWith('scale-')) continue
     const scaleObj = scale as any
-    const alias = scaleObj?.alias // Get the alias (e.g., "cornflower", "gray")
-    const familyName = alias && typeof alias === 'string' ? alias : scaleKey
     
     // Skip the alias property
     for (const [level, value] of Object.entries(scaleObj)) {
@@ -80,13 +79,15 @@ export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family
       if (typeof tokenValue === 'string') {
         const tokenHex = tokenValue.startsWith('#') ? tokenValue.toLowerCase() : `#${tokenValue.toLowerCase()}`
         if (tokenHex === normalizedHex) {
-          return { family: familyName, level }
+          // Return scale key directly, not alias
+          return { family: scaleKey, level }
         }
       }
     }
   }
   
   // Fallback: search through old color structure for backwards compatibility
+  // Note: Old structure may not have scale keys, but we still return what we find
   const oldColors: any = (tokens as any)?.tokens?.color || {}
   for (const [family, levels] of Object.entries(oldColors)) {
     if (family === 'translucent') continue
@@ -229,6 +230,7 @@ function colorDistance(hex1: string, hex2: string): number {
 
 /**
  * Finds the closest matching color token for a given hex value
+ * Returns scale keys (e.g., "scale-01") instead of aliases, since Brand.json doesn't use aliases
  */
 function findClosestColorToken(hex: string, tokens: JsonLike): { family: string; level: string } | null {
   const normalizedHex = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
@@ -239,8 +241,6 @@ function findClosestColorToken(hex: string, tokens: JsonLike): { family: string;
   for (const [scaleKey, scale] of Object.entries(jsonColors)) {
     if (!scaleKey.startsWith('scale-')) continue
     const scaleObj = scale as any
-    const alias = scaleObj?.alias
-    const familyName = alias && typeof alias === 'string' ? alias : scaleKey
     
     for (const [level, value] of Object.entries(scaleObj)) {
       if (level === 'alias') continue
@@ -249,7 +249,8 @@ function findClosestColorToken(hex: string, tokens: JsonLike): { family: string;
         const tokenHex = tokenValue.startsWith('#') ? tokenValue.toLowerCase() : `#${tokenValue.toLowerCase()}`
         const distance = colorDistance(normalizedHex, tokenHex)
         if (!closest || distance < closest.distance) {
-          closest = { family: familyName, level, distance }
+          // Return scale key directly, not alias
+          closest = { family: scaleKey, level, distance }
         }
       }
     }
@@ -289,19 +290,32 @@ export function hexToCssVarRef(hex: string, tokens: JsonLike): string {
   
   if (found) {
     const normalizedLevel = found.level === '000' ? '050' : found.level
-    // Use tokenToCssVar to get the correct format (handles both old and new token structures)
+    // found.family is now always a scale key (e.g., "scale-01"), not an alias
     const tokenName = `colors/${found.family}/${normalizedLevel}`
-    const cssVar = tokenToCssVar(tokenName)
+    const cssVar = tokenToCssVar(tokenName, tokens)
     if (cssVar) {
       return cssVar
     }
-    // Fallback to new format if tokenToCssVar doesn't work
-    return `var(--recursica-tokens-colors-${found.family}-${normalizedLevel})`
+    // Direct fallback: found.family should already be a scale key
+    if (found.family.startsWith('scale-')) {
+      return `var(--recursica-tokens-colors-${found.family}-${normalizedLevel})`
+    }
   }
   
   // If we still can't find a match, this shouldn't happen, but return a fallback
-  // Use a default token reference (gray-500) as a last resort
+  // Use a default token reference (scale-02-500, which is typically gray) as a last resort
   console.warn(`[hexToCssVarRef] Could not find token for hex ${hex}, using fallback`)
-  return `var(--recursica-tokens-colors-gray-500)`
+  // Try to find scale-02 (gray) 500 level
+  const tokensRoot: any = (tokens as any)?.tokens || tokens || {}
+  const colorsRoot: any = tokensRoot?.colors || {}
+  const grayScale = Object.keys(colorsRoot).find(key => {
+    if (!key.startsWith('scale-')) return false
+    const scale = colorsRoot[key]
+    return scale && typeof scale === 'object' && scale.alias === 'gray'
+  })
+  if (grayScale) {
+    return `var(--recursica-tokens-colors-${grayScale}-500)`
+  }
+  return `var(--recursica-tokens-colors-scale-02-500)` // Hardcoded fallback - scale-02 is typically gray
 }
 

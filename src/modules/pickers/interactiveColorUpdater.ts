@@ -46,37 +46,13 @@ function updateOnToneColors(
       const found = findColorFamilyAndLevel(startHex, tokens)
       if (found) {
         const normalizedLevel = found.level === '000' ? '050' : found.level
-        // Try new format first (colors/family/level), then old format (color/family/level)
-        const tokenHex = tokenIndex.get(`colors/${found.family}/${normalizedLevel}`) || tokenIndex.get(`color/${found.family}/${normalizedLevel}`)
+        // found.family is now always a scale key (e.g., "scale-01"), not an alias
+        const tokenHex = tokenIndex.get(`colors/${found.family}/${normalizedLevel}`)
         if (typeof tokenHex === 'string') {
           const hex = tokenHex.startsWith('#') ? tokenHex.toLowerCase() : `#${tokenHex.toLowerCase()}`
           if (hex === startHex.toLowerCase()) {
-            // It's a token color, determine correct reference format
-            const tokensRoot: any = (tokens as any)?.tokens || {}
-            const colorsRoot: any = tokensRoot?.colors || {}
-            
-            // Check if family is a scale key or an alias
-            if (found.family.startsWith('scale-')) {
-              // Direct scale reference
-              return `{tokens.colors.${found.family}.${normalizedLevel}}`
-            } else {
-              // Check if it's an alias that maps to a scale
-              let scaleKey: string | null = null
-              for (const [key, scale] of Object.entries(colorsRoot)) {
-                if (!key.startsWith('scale-')) continue
-                const scaleObj = scale as any
-                if (scaleObj?.alias === found.family) {
-                  scaleKey = key
-                  break
-                }
-              }
-              if (scaleKey) {
-                return `{tokens.colors.${scaleKey}.${normalizedLevel}}`
-              } else {
-                // Fallback to old color format
-                return `{tokens.color.${found.family}.${normalizedLevel}}`
-              }
-            }
+            // It's a token color, use scale key directly
+            return `{tokens.colors.${found.family}.${normalizedLevel}}`
           }
         }
       }
@@ -92,29 +68,9 @@ function updateOnToneColors(
       const startIdx = LEVELS.indexOf(normalizedLevel)
       
       // Helper to build correct token reference for interactive family
+      // family is now always a scale key (e.g., "scale-01"), not an alias
       const buildInteractiveTokenRef = (testLevel: string): string => {
-        const tokensRoot: any = (tokens as any)?.tokens || {}
-        const colorsRoot: any = tokensRoot?.colors || {}
-        
-        if (family.startsWith('scale-')) {
-          return `{tokens.colors.${family}.${testLevel}}`
-        } else {
-          // Check if it's an alias that maps to a scale
-          let scaleKey: string | null = null
-          for (const [key, scale] of Object.entries(colorsRoot)) {
-            if (!key.startsWith('scale-')) continue
-            const scaleObj = scale as any
-            if (scaleObj?.alias === family) {
-              scaleKey = key
-              break
-            }
-          }
-          if (scaleKey) {
-            return `{tokens.colors.${scaleKey}.${testLevel}}`
-          } else {
-            return `{tokens.color.${family}.${testLevel}}`
-          }
-        }
+        return `{tokens.colors.${family}.${testLevel}}`
       }
       
       if (startIdx !== -1) {
@@ -122,8 +78,8 @@ function updateOnToneColors(
         for (let i = startIdx - 1; i >= 0; i--) {
           const testLevel = LEVELS[i]
           const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-          // Try new format first (colors/family/level), then old format (color/family/level)
-          const testHex = tokenIndex.get(`colors/${family}/${normalizedTestLevel}`) || tokenIndex.get(`color/${family}/${normalizedTestLevel}`)
+          // family is now always a scale key, use colors/scale-XX/level format
+          const testHex = tokenIndex.get(`colors/${family}/${normalizedTestLevel}`)
           if (typeof testHex === 'string') {
             const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
             const testContrast = contrastRatio(toneHex, hex)
@@ -137,8 +93,8 @@ function updateOnToneColors(
         for (let i = startIdx + 1; i < LEVELS.length; i++) {
           const testLevel = LEVELS[i]
           const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-          // Try new format first (colors/family/level), then old format (color/family/level)
-          const testHex = tokenIndex.get(`colors/${family}/${normalizedTestLevel}`) || tokenIndex.get(`color/${family}/${normalizedTestLevel}`)
+          // family is now always a scale key, use colors/scale-XX/level format
+          const testHex = tokenIndex.get(`colors/${family}/${normalizedTestLevel}`)
           if (typeof testHex === 'string') {
             const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
             const testContrast = contrastRatio(toneHex, hex)
@@ -161,34 +117,14 @@ function updateOnToneColors(
     
     const whiteFamily = findColorFamilyAndLevel(whiteHex, tokens)
     if (whiteFamily) {
-      const { family: whiteFamilyName, level: whiteLevel } = whiteFamily
+      const { family: whiteScaleKey, level: whiteLevel } = whiteFamily
       const normalizedWhiteLevel = whiteLevel === '000' ? '050' : whiteLevel
       const whiteStartIdx = LEVELS.indexOf(normalizedWhiteLevel)
       
       // Helper to build correct token reference for white family
+      // whiteScaleKey is now always a scale key (e.g., "scale-01"), not an alias
       const buildWhiteTokenRef = (level: string): string => {
-        const tokensRoot: any = (tokens as any)?.tokens || {}
-        const colorsRoot: any = tokensRoot?.colors || {}
-        
-        if (whiteFamilyName.startsWith('scale-')) {
-          return `{tokens.colors.${whiteFamilyName}.${level}}`
-        } else {
-          // Check if it's an alias that maps to a scale
-          let scaleKey: string | null = null
-          for (const [key, scale] of Object.entries(colorsRoot)) {
-            if (!key.startsWith('scale-')) continue
-            const scaleObj = scale as any
-            if (scaleObj?.alias === whiteFamilyName) {
-              scaleKey = key
-              break
-            }
-          }
-          if (scaleKey) {
-            return `{tokens.colors.${scaleKey}.${level}}`
-          } else {
-            return `{tokens.color.${whiteFamilyName}.${level}}`
-          }
-        }
+        return `{tokens.colors.${whiteScaleKey}.${level}}`
       }
       
       if (whiteStartIdx !== -1) {
@@ -196,7 +132,8 @@ function updateOnToneColors(
         for (let i = whiteStartIdx - 1; i >= 0; i--) {
           const testLevel = LEVELS[i]
           const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-          const testHex = tokenIndex.get(`colors/${whiteFamilyName}/${normalizedTestLevel}`) || tokenIndex.get(`color/${whiteFamilyName}/${normalizedTestLevel}`)
+          // whiteScaleKey is now always a scale key, use colors/scale-XX/level format
+          const testHex = tokenIndex.get(`colors/${whiteScaleKey}/${normalizedTestLevel}`)
           if (typeof testHex === 'string') {
             const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
             const testContrast = contrastRatio(toneHex, hex)
@@ -210,7 +147,8 @@ function updateOnToneColors(
         for (let i = whiteStartIdx + 1; i < LEVELS.length; i++) {
           const testLevel = LEVELS[i]
           const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-          const testHex = tokenIndex.get(`colors/${whiteFamilyName}/${normalizedTestLevel}`) || tokenIndex.get(`color/${whiteFamilyName}/${normalizedTestLevel}`)
+          // whiteScaleKey is now always a scale key, use colors/scale-XX/level format
+          const testHex = tokenIndex.get(`colors/${whiteScaleKey}/${normalizedTestLevel}`)
           if (typeof testHex === 'string') {
             const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
             const testContrast = contrastRatio(toneHex, hex)
@@ -462,28 +400,8 @@ export function updateCoreColorInteractiveOnTones(
         const found = findColorFamilyAndLevel(interactiveToneHex, tokens)
         if (found) {
           const normalizedLevel = found.level === '000' ? '050' : found.level
-          const tokensRoot: any = (tokens as any)?.tokens || {}
-          const colorsRoot: any = tokensRoot?.colors || {}
-          
-          if (found.family.startsWith('scale-')) {
-            return `{tokens.colors.${found.family}.${normalizedLevel}}`
-          } else {
-            // Check if it's an alias that maps to a scale
-            let scaleKey: string | null = null
-            for (const [key, scale] of Object.entries(colorsRoot)) {
-              if (!key.startsWith('scale-')) continue
-              const scaleObj = scale as any
-              if (scaleObj?.alias === found.family) {
-                scaleKey = key
-                break
-              }
-            }
-            if (scaleKey) {
-              return `{tokens.colors.${scaleKey}.${normalizedLevel}}`
-            } else {
-              return `{tokens.color.${found.family}.${normalizedLevel}}`
-            }
-          }
+          // found.family is now always a scale key (e.g., "scale-01"), not an alias
+          return `{tokens.colors.${found.family}.${normalizedLevel}}`
         }
         // Not a token, but passes AA - use it directly (will need to convert to CSS var)
         return interactiveToneHex
@@ -495,28 +413,9 @@ export function updateCoreColorInteractiveOnTones(
         const { family } = interactiveFamily
         
         // Helper to build correct token reference
+        // family is now always a scale key (e.g., "scale-01"), not an alias
         const buildTokenRef = (testLevel: string): string => {
-          const tokensRoot: any = (tokens as any)?.tokens || {}
-          const colorsRoot: any = tokensRoot?.colors || {}
-          
-          if (family.startsWith('scale-')) {
-            return `{tokens.colors.${family}.${testLevel}}`
-          } else {
-            let scaleKey: string | null = null
-            for (const [key, scale] of Object.entries(colorsRoot)) {
-              if (!key.startsWith('scale-')) continue
-              const scaleObj = scale as any
-              if (scaleObj?.alias === family) {
-                scaleKey = key
-                break
-              }
-            }
-            if (scaleKey) {
-              return `{tokens.colors.${scaleKey}.${testLevel}}`
-            } else {
-              return `{tokens.color.${family}.${testLevel}}`
-            }
-          }
+          return `{tokens.colors.${family}.${testLevel}}`
         }
         
         // Try ALL levels in order: 000, 050, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
@@ -561,36 +460,19 @@ export function updateCoreColorInteractiveOnTones(
         }
         
         if (shouldTryToneScale) {
-          const { family: toneFamily } = coreColorToneFamily
+          const { family: toneScaleKey } = coreColorToneFamily
           
+          // Helper to build correct token reference
+          // toneScaleKey is now always a scale key (e.g., "scale-01"), not an alias
           const buildToneTokenRef = (testLevel: string): string => {
-            const tokensRoot: any = (tokens as any)?.tokens || {}
-            const colorsRoot: any = tokensRoot?.colors || {}
-            
-            if (toneFamily.startsWith('scale-')) {
-              return `{tokens.colors.${toneFamily}.${testLevel}}`
-            } else {
-              let scaleKey: string | null = null
-              for (const [key, scale] of Object.entries(colorsRoot)) {
-                if (!key.startsWith('scale-')) continue
-                const scaleObj = scale as any
-                if (scaleObj?.alias === toneFamily) {
-                  scaleKey = key
-                  break
-                }
-              }
-              if (scaleKey) {
-                return `{tokens.colors.${scaleKey}.${testLevel}}`
-              } else {
-                return `{tokens.color.${toneFamily}.${testLevel}}`
-              }
-            }
+            return `{tokens.colors.${toneScaleKey}.${testLevel}}`
           }
           
           // Try ALL levels of the tone's own scale
           for (const testLevel of LEVELS) {
             const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-            const testHex = tokenIndex.get(`colors/${toneFamily}/${normalizedTestLevel}`) || tokenIndex.get(`color/${toneFamily}/${normalizedTestLevel}`)
+            // toneScaleKey is now always a scale key, use colors/scale-XX/level format
+            const testHex = tokenIndex.get(`colors/${toneScaleKey}/${normalizedTestLevel}`)
             if (typeof testHex === 'string') {
               const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
               const testContrast = contrastRatio(coreColorToneHex, hex)
@@ -613,36 +495,19 @@ export function updateCoreColorInteractiveOnTones(
       
       const whiteFamily = findColorFamilyAndLevel(whiteHex, tokens)
       if (whiteFamily) {
-        const { family: whiteFamilyName } = whiteFamily
+        const { family: whiteScaleKey } = whiteFamily
         
+        // Helper to build correct token reference
+        // whiteScaleKey is now always a scale key (e.g., "scale-01"), not an alias
         const buildWhiteTokenRef = (level: string): string => {
-          const tokensRoot: any = (tokens as any)?.tokens || {}
-          const colorsRoot: any = tokensRoot?.colors || {}
-          
-          if (whiteFamilyName.startsWith('scale-')) {
-            return `{tokens.colors.${whiteFamilyName}.${level}}`
-          } else {
-            let scaleKey: string | null = null
-            for (const [key, scale] of Object.entries(colorsRoot)) {
-              if (!key.startsWith('scale-')) continue
-              const scaleObj = scale as any
-              if (scaleObj?.alias === whiteFamilyName) {
-                scaleKey = key
-                break
-              }
-            }
-            if (scaleKey) {
-              return `{tokens.colors.${scaleKey}.${level}}`
-            } else {
-              return `{tokens.color.${whiteFamilyName}.${level}}`
-            }
-          }
+          return `{tokens.colors.${whiteScaleKey}.${level}}`
         }
         
         // Try ALL levels of white scale (000->1000)
         for (const testLevel of LEVELS) {
           const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-          const testHex = tokenIndex.get(`colors/${whiteFamilyName}/${normalizedTestLevel}`) || tokenIndex.get(`color/${whiteFamilyName}/${normalizedTestLevel}`)
+          // whiteScaleKey is now always a scale key, use colors/scale-XX/level format
+          const testHex = tokenIndex.get(`colors/${whiteScaleKey}/${normalizedTestLevel}`)
           if (typeof testHex === 'string') {
             const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
             const testContrast = contrastRatio(coreColorToneHex, hex)
@@ -664,36 +529,19 @@ export function updateCoreColorInteractiveOnTones(
       
       const blackFamily = findColorFamilyAndLevel(blackHex, tokens)
       if (blackFamily) {
-        const { family: blackFamilyName } = blackFamily
+        const { family: blackScaleKey } = blackFamily
         
+        // Helper to build correct token reference
+        // blackScaleKey is now always a scale key (e.g., "scale-01"), not an alias
         const buildBlackTokenRef = (level: string): string => {
-          const tokensRoot: any = (tokens as any)?.tokens || {}
-          const colorsRoot: any = tokensRoot?.colors || {}
-          
-          if (blackFamilyName.startsWith('scale-')) {
-            return `{tokens.colors.${blackFamilyName}.${level}}`
-          } else {
-            let scaleKey: string | null = null
-            for (const [key, scale] of Object.entries(colorsRoot)) {
-              if (!key.startsWith('scale-')) continue
-              const scaleObj = scale as any
-              if (scaleObj?.alias === blackFamilyName) {
-                scaleKey = key
-                break
-              }
-            }
-            if (scaleKey) {
-              return `{tokens.colors.${scaleKey}.${level}}`
-            } else {
-              return `{tokens.color.${blackFamilyName}.${level}}`
-            }
-          }
+          return `{tokens.colors.${blackScaleKey}.${level}}`
         }
         
         // Try ALL levels of black scale (000->1000)
         for (const testLevel of LEVELS) {
           const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-          const testHex = tokenIndex.get(`colors/${blackFamilyName}/${normalizedTestLevel}`) || tokenIndex.get(`color/${blackFamilyName}/${normalizedTestLevel}`)
+          // blackScaleKey is now always a scale key, use colors/scale-XX/level format
+          const testHex = tokenIndex.get(`colors/${blackScaleKey}/${normalizedTestLevel}`)
           if (typeof testHex === 'string') {
             const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
             const testContrast = contrastRatio(coreColorToneHex, hex)

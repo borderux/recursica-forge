@@ -1010,17 +1010,17 @@ function FamilyDropdown({
           id={`family-${paletteKey}`}
           type="button"
           onClick={() => setOpen((v) => !v)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer', minWidth: 160, justifyContent: 'space-between' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: `1px solid var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer', minWidth: 160, justifyContent: 'space-between' }}
           aria-label="Select color family"
         >
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-1-property-element-text-color)` }}>
             <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: currentHex || 'transparent' }} />
             <span>{getFriendlyName(selectedFamily)}</span>
           </span>
           <span aria-hidden style={{ opacity: 0.6 }}>▾</span>
         </button>
         {open && (
-          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1200, background: 'var(--layer-layer-0-property-surface)', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, boxShadow: `var(--recursica-brand-${mode.toLowerCase()}-elevations-elevation-3-shadow-color)`, padding: 6, minWidth: 200 }}>
+          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1200, background: `var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-0-property-surface)`, border: `1px solid var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, borderRadius: 8, boxShadow: `var(--recursica-brand-${mode.toLowerCase()}-elevations-elevation-3-shadow-color)`, padding: 6, minWidth: 200 }}>
             <div style={{ maxHeight: 280, overflow: 'auto', display: 'grid' }}>
               {families.map((fam) => {
                 const { alias, primaryHex } = getFamilyInfo(fam)
@@ -1028,7 +1028,7 @@ function FamilyDropdown({
                   <button
                     key={fam}
                     onClick={() => { onSelect(fam); setOpen(false) }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-0-property-element-text-color)` }}
                   >
                     <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: primaryHex || 'transparent' }} />
                     <span>{getFriendlyName(fam)}</span>

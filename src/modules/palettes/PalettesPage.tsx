@@ -200,10 +200,10 @@ function CoreOnToneCell({
             <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
               AA Compliance Issue
             </div>
-            <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)` }}>
+            <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
               Both black and white don't pass contrast (≥4.5:1)
             </div>
-            <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)`, opacity: 0.8 }}>
+            <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`, opacity: 0.8 }}>
               Current: {aaStatus?.currentRatio.toFixed(2)}:1
             </div>
           </div>
@@ -334,7 +334,7 @@ function CoreInteractiveCell({
             <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
               AA Compliance Issue
             </div>
-            <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)` }}>
+            <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
               Interactive color contrast ratio {aaStatus?.currentRatio.toFixed(2)}:1 {'<'} 4.5:1
             </div>
           </div>
@@ -484,10 +484,10 @@ function CoreInteractiveSwatch({
           <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
             AA Compliance Issue
           </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)` }}>
+          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
             Both black and white don't pass contrast (≥4.5:1)
           </div>
-          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)`, opacity: 0.8 }}>
+          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`, opacity: 0.8 }}>
             Current: {aaStatus?.currentRatio.toFixed(2)}:1
           </div>
         </div>

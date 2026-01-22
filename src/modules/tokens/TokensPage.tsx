@@ -14,19 +14,19 @@ export default function TokensPage() {
   const location = useLocation()
   const { mode } = useThemeMode()
   
-  // Determine selected nav item from URL hash
-  const getSelectedFromHash = (): NavItem => {
-    if (location.hash === '#font') return 'font'
-    if (location.hash === '#opacity' || location.hash === '#size') return 'opacity'
-    return 'color' // default
+  // Determine selected nav item from URL pathname
+  const getSelectedFromPath = (): NavItem => {
+    if (location.pathname === '/tokens/font') return 'font'
+    if (location.pathname === '/tokens/opacity') return 'opacity'
+    return 'color' // default (including /tokens)
   }
   
-  const [selected, setSelected] = useState<NavItem>(getSelectedFromHash())
+  const [selected, setSelected] = useState<NavItem>(getSelectedFromPath())
   
-  // Update selected when hash changes
+  // Update selected when pathname changes
   useEffect(() => {
-    setSelected(getSelectedFromHash())
-  }, [location.hash])
+    setSelected(getSelectedFromPath())
+  }, [location.pathname])
   
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`

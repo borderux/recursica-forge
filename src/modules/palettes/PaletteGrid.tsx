@@ -524,7 +524,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
               alignItems: 'center',
               transform: 'translateY(20px)',
             }}>
-              <Label size="small" style={{ paddingBottom: 0 }}>Emphasis</Label>
+              <Label size="small" layer="layer-1" style={{ paddingBottom: 0 }}>Emphasis</Label>
             </th>
             {headerLevels.map((lvl) => (
               <PaletteScaleHeader
@@ -544,7 +544,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         <tbody>
           <tr className="high-emphasis" style={{ display: 'flex', alignItems: 'flex-end', width: '100%' }}>
             <td style={{ width: 80, flexShrink: 0, height: '50px', display: 'flex', alignItems: 'center' }}>
-              <Label size="small">High</Label>
+              <Label size="small" layer="layer-1">High</Label>
             </td>
             {headerLevels.map((lvl, index) => {
               const toneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`
@@ -573,7 +573,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
           </tr>
           <tr className="low-emphasis" style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
             <td style={{ width: 80, flexShrink: 0, height: '50px', display: 'flex', alignItems: 'center' }}>
-              <Label size="small">Low</Label>
+              <Label size="small" layer="layer-1">Low</Label>
             </td>
             {headerLevels.map((lvl, index) => {
               const toneCssVar = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-tone`

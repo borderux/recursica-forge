@@ -1,12 +1,12 @@
 .component-toolbar-panel {
   display: flex;
   flex-direction: column;
-  background: var(--recursica-brand-themes-light-layer-layer-0-property-surface);
+  background: transparent;
   border-left: var(--recursica-brand-themes-light-layer-layer-0-property-border-thickness) solid var(--recursica-brand-themes-light-layer-layer-0-property-border-color);
 }
 
 html[data-theme-mode="dark"] .component-toolbar-panel {
-  background: var(--recursica-brand-themes-dark-layer-layer-0-property-surface);
+  background: transparent;
   border-left-color: var(--recursica-brand-themes-dark-layer-layer-0-property-border-color);
 }
 
