@@ -1,4 +1,4 @@
-# Deploy Workflow
+# Deploy Workflow with Changesets
 #
 # Purpose: Manages versioning, releases, and GitHub Pages deployments using Changesets.
 #
