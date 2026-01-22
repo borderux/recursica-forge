@@ -153,7 +153,7 @@ export function Button({
 }
 
 function getButtonStyles(
-  variant: 'solid' | 'outline' | 'text',
+  variant: 'solid' | 'outline' | 'text' | 'ghost',
   size: 'default' | 'small',
   layer: ComponentLayer,
   disabled: boolean,
@@ -162,11 +162,14 @@ function getButtonStyles(
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
   
+  // Map ghost to text for CSS variable lookup (ghost uses text variant's CSS variables)
+  const cssVarVariant = variant === 'ghost' ? 'text' : variant
+  
   // Use UIKit.json button colors for standard layers
-  const bgVar = getComponentCssVar('Button', 'colors', `${variant}-background`, layer)
-  const textVar = getComponentCssVar('Button', 'colors', `${variant}-text`, layer)
+  const bgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
+  const textVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
   // Build border color CSS var path directly to ensure it matches UIKit.json structure
-  const borderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'colors', layer, 'border')
+  const borderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border')
   
   const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
@@ -181,7 +184,7 @@ function getButtonStyles(
   const lineHeightVar = getBrandTypographyCssVar('button', 'line-height')
   
   // Get border-size CSS variable (variant-specific property)
-  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'border-size')
+  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
   // Reactively read border-size to trigger re-renders when it changes
   const borderSizeValue = useCssVar(borderSizeVar, '1px')
   
@@ -210,7 +213,7 @@ function getButtonStyles(
     // Use actual CSS border instead of box-shadow
     styles.border = `${borderSizeValue || '1px'} solid var(${borderColorVar || textVar})`
   } else {
-    // text variant
+    // text and ghost variants (ghost uses text CSS variables but same styling)
     styles.backgroundColor = `var(${bgVar})`
     styles.color = `var(${textVar})`
     styles.border = 'none'
