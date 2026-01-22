@@ -16,7 +16,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type ButtonProps = {
   children?: React.ReactNode
-  variant?: 'solid' | 'outline' | 'text'
+  variant?: 'solid' | 'outline' | 'text' | 'ghost'
   size?: 'default' | 'small'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.

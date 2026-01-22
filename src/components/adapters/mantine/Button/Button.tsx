@@ -31,7 +31,7 @@ export default function Button({
   const { mode } = useThemeMode()
   
   // Map unified variant to Mantine variant
-  const mantineVariant = variant === 'solid' ? 'filled' : variant === 'outline' ? 'outline' : 'subtle'
+  const mantineVariant = variant === 'solid' ? 'filled' : variant === 'outline' ? 'outline' : variant === 'ghost' ? 'subtle' : 'subtle'
   
   // Map unified size to Mantine size
   const mantineSize = size === 'small' ? 'xs' : size === 'default' ? 'md' : 'lg'
@@ -39,12 +39,15 @@ export default function Button({
   // Determine size prefix for CSS variables
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
+  // Map ghost variant to text for CSS variable purposes (ghost uses same CSS vars as text)
+  const cssVarVariant = variant === 'ghost' ? 'text' : variant
+  
   // Use UIKit.json button colors for standard layers
-  const buttonBgVar = getComponentCssVar('Button', 'colors', `${variant}-background`, layer)
-  const buttonHoverVar = getComponentCssVar('Button', 'colors', `${variant}-background-hover`, layer)
-  const buttonColorVar = getComponentCssVar('Button', 'colors', `${variant}-text`, layer)
+  const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
+  const buttonHoverVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background-hover`, layer)
+  const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
   // Build border color CSS var path directly to ensure it matches UIKit.json structure
-  const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'colors', layer, 'border')
+  const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border')
   
   // Get the correct CSS variable reference for button color (used for text and border)
   const buttonColorRef = `var(${buttonColorVar})`
@@ -73,7 +76,7 @@ export default function Button({
   const lineHeightVar = getBrandTypographyCssVar('button', 'line-height')
   
   // Get border-size CSS variable (variant-specific property)
-  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'border-size')
+  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
   // Reactively read border-size to trigger re-renders when it changes
   const borderSizeValue = useCssVar(borderSizeVar, '1px')
   
@@ -112,7 +115,7 @@ export default function Button({
           ...((variant === 'solid' || variant === 'outline') && buttonBorderColor && {
             borderColor: `${buttonBorderColor} !important`,
           }),
-          ...(variant === 'text' && {
+          ...((variant === 'text' || variant === 'ghost') && {
             border: 'none !important',
           }),
         }),
@@ -160,8 +163,8 @@ export default function Button({
       ...((variant === 'solid' || variant === 'outline') && buttonBorderColor ? {
         '--button-bd': `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
       } : {}),
-      // For text variant, explicitly remove border
-      ...(variant === 'text' ? {
+      // For text and ghost variants, explicitly remove border
+      ...((variant === 'text' || variant === 'ghost') ? {
         '--button-bd': 'none',
       } : {}),
       '--button-height': `var(${heightVar})`,

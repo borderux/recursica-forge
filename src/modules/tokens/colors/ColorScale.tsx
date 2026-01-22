@@ -199,7 +199,7 @@ export function ColorScale({
             width: 32,
             height: 32,
             borderRadius: '50%',
-            border: `1px solid var(--recursica-brand-${mode}-palettes-core-interactive)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
             background: 'transparent',
             cursor: isDeleteDisabled ? 'not-allowed' : 'pointer',
             display: 'flex',
@@ -207,7 +207,7 @@ export function ColorScale({
             justifyContent: 'center',
             padding: 0,
             opacity: isDeleteDisabled ? 0.5 : 1,
-            color: `var(--recursica-brand-${mode}-palettes-core-interactive)`,
+            color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
             transition: 'opacity 0.2s',
           }}
           onMouseEnter={(e) => {

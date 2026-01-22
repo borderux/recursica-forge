@@ -20,10 +20,10 @@ export function Sidebar() {
   // Determine current sub-route for navigation highlighting
   const getCurrentNavItem = (): SidebarNavItem => {
     if (location.pathname.includes('/tokens')) {
-      // Check URL hash to determine which section
-      if (location.hash === '#font') return 'font'
-      if (location.hash === '#opacity' || location.hash === '#size') return 'opacity'
-      return 'color' // default
+      // Check URL pathname to determine which section
+      if (location.pathname === '/tokens/font') return 'font'
+      if (location.pathname === '/tokens/opacity') return 'opacity'
+      return 'color' // default (including /tokens)
     }
     return 'color'
   }
@@ -34,15 +34,15 @@ export function Sidebar() {
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
   
   const handleNavClick = (item: SidebarNavItem) => {
-    // Update the selected state in TokensPage by navigating with hash
+    // Navigate using path-based routes
     if (item === 'color') {
       navigate('/tokens')
     } else if (item === 'opacity') {
-      navigate('/tokens#opacity')
+      navigate('/tokens/opacity')
     } else if (item === 'size') {
-      navigate('/tokens#opacity') // Both opacity and size use the same hash
+      navigate('/tokens/opacity') // Both opacity and size use the same route
     } else {
-      navigate('/tokens#font')
+      navigate('/tokens/font')
     }
   }
   

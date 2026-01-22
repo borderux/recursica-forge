@@ -289,6 +289,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                 clearOverrides(tokensJson as any)
                 resetAll()
               }}
+              title="Reset all changes"
             />
             <Button
               variant="outline"
@@ -298,6 +299,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                 return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={() => setIsDialogOpen(true)}
+              title="Import theme"
             />
             <Button
               variant="outline"
@@ -307,6 +309,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                 return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={handleExport}
+              title="Export theme"
             />
             <Button
               variant="outline"

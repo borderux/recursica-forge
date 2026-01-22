@@ -59,6 +59,8 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <Navigate to="/tokens" replace /> },
       { path: '/tokens', element: <TokensPage /> },
+      { path: '/tokens/font', element: <TokensPage /> },
+      { path: '/tokens/opacity', element: <TokensPage /> },
       {
         path: '/components',
         element: <PreviewPage />,

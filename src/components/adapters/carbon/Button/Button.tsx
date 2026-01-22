@@ -31,7 +31,7 @@ export default function Button({
   const { mode } = useThemeMode()
   
   // Map unified variant to Carbon kind
-  const carbonKind = variant === 'solid' ? 'primary' : variant === 'outline' ? 'secondary' : 'tertiary'
+  const carbonKind = variant === 'solid' ? 'primary' : variant === 'outline' ? 'secondary' : variant === 'ghost' ? 'ghost' : 'tertiary'
   
   // Map unified size to Carbon size
   const carbonSize = size === 'small' ? 'sm' : 'md'
@@ -39,11 +39,14 @@ export default function Button({
   // Determine size prefix for CSS variables
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
+  // Map ghost variant to text for CSS variable purposes (ghost uses same CSS vars as text)
+  const cssVarVariant = variant === 'ghost' ? 'text' : variant
+  
   // Use UIKit.json button colors for standard layers
-  const buttonBgVar = getComponentCssVar('Button', 'colors', `${variant}-background`, layer)
-  const buttonColorVar = getComponentCssVar('Button', 'colors', `${variant}-text`, layer)
+  const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
+  const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
   // Build border color CSS var path directly to ensure it matches UIKit.json structure
-  const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'colors', layer, 'border')
+  const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border')
   
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
@@ -62,7 +65,7 @@ export default function Button({
   const lineHeightVar = getBrandTypographyCssVar('button', 'line-height')
   
   // Get border-size CSS variable (variant-specific property)
-  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'border-size')
+  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
   // Reactively read border-size to trigger re-renders when it changes
   // We read the value to force React re-renders, but use it directly in the style
   const borderSizeValue = useCssVar(borderSizeVar, '1px')
@@ -108,8 +111,8 @@ export default function Button({
       ...(variant === 'solid' || variant === 'outline' ? {
         border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar})`,
       } : {}),
-      // For text variant, explicitly remove border
-      ...(variant === 'text' ? {
+      // For text and ghost variants, explicitly remove border
+      ...((variant === 'text' || variant === 'ghost') ? {
         border: 'none',
       } : {}),
       // Ensure flex layout for truncation to work with icons
@@ -134,7 +137,7 @@ export default function Button({
         ...((variant === 'solid' || variant === 'outline') && {
           border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar}) !important`,
         }),
-        ...(variant === 'text' && {
+        ...((variant === 'text' || variant === 'ghost') && {
           border: 'none !important',
         }),
       }),

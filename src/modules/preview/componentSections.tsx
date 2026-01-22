@@ -48,7 +48,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     
     // Build layer text color CSS variables
     const layerTextColorVars = React.useMemo(() => {
-      const layerBase = `--recursica-brand-${mode}-layer-${layer}-property`
+      const layerBase = `--recursica-brand-themes-${mode}-layer-${layer}-property`
       
       return {
         textColor: `${layerBase}-element-text-color`,

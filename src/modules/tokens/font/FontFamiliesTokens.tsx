@@ -1317,7 +1317,7 @@ export default function FontFamiliesTokens() {
         {showInspiration && (
           <div
             style={{
-              background: `var(--recursica-brand-themes-${mode}-palettes-palette-2-200-tone)`,
+              background: `var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-tone)`,
               borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
               padding: `var(${layer1Base}-padding)`,
               display: 'flex',
@@ -1347,24 +1347,31 @@ export default function FontFamiliesTokens() {
             <div>
               <h3 style={{
                 margin: 0,
-                fontSize: 'var(--recursica-brand-typography-h6-font-size)',
-                fontWeight: 'var(--recursica-brand-typography-h6-font-weight)',
-                color: `var(--recursica-brand-themes-${mode}-palettes-palette-2-200-on-tone)`,
+                fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
+                fontSize: 'var(--recursica-brand-typography-h3-font-size)',
+                fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
+                letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
+                lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
+                color: `var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-on-tone)`,
               }}>
                 Need inspiration?
               </h3>
               <p style={{
                 margin: 0,
                 marginTop: 'var(--recursica-brand-dimensions-general-md)',
-                fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                color: `var(--recursica-brand-themes-${mode}-palettes-palette-2-200-on-tone)`,
+                fontFamily: 'var(--recursica-brand-typography-body-font-family)',
+                fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
+                lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+                color: `var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-on-tone)`,
                 opacity: `var(--recursica-brand-themes-${mode}-text-emphasis-high)`,
               }}>
                 Browse the Google Fonts library to find the perfect typeface.
               </p>
             </div>
             <Button
-              variant="solid"
+              variant="ghost"
               size="default"
               layer="layer-1"
               onClick={() => window.open('https://fonts.google.com', '_blank')}
