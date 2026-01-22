@@ -30,15 +30,13 @@ describe('applyCssVars', () => {
       '--recursica-brand-light-palettes-core-black': '#000000'
     }
     
-    // In development, this should throw
-    const originalEnv = process.env.NODE_ENV
-    process.env.NODE_ENV = 'development'
+    // Function collects errors instead of throwing
+    const result = applyCssVars(vars)
     
-    expect(() => {
-      applyCssVars(vars)
-    }).toThrow()
-    
-    process.env.NODE_ENV = originalEnv
+    // Should have errors (validation failed, no tokens to auto-fix)
+    expect(result.errors).toBeGreaterThan(0)
+    // Note: function still applies vars even with errors (marks them as errors)
+    expect(result.applied).toBeGreaterThanOrEqual(0)
   })
 
   it('should auto-fix brand vars with hex values when tokens provided', () => {
@@ -132,14 +130,13 @@ describe('applyCssVarsDelta', () => {
       '--recursica-brand-light-palettes-core-black': '#000000'
     }
     
-    const originalEnv = process.env.NODE_ENV
-    process.env.NODE_ENV = 'development'
+    // Function collects errors instead of throwing
+    const result = applyCssVarsDelta(prev, next)
     
-    expect(() => {
-      applyCssVarsDelta(prev, next)
-    }).toThrow()
-    
-    process.env.NODE_ENV = originalEnv
+    // Should have errors (validation failed, no tokens to auto-fix)
+    expect(result.errors).toBeGreaterThan(0)
+    // Note: function still applies vars even with errors (marks them as errors)
+    expect(result.applied).toBeGreaterThanOrEqual(0)
   })
 })
 

@@ -10,6 +10,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
+import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Breadcrumb } from '../Breadcrumb'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar } from '../../utils/cssVarNames'
@@ -29,9 +30,11 @@ describe('Breadcrumb Toolbar Props Integration', () => {
   const renderWithProviders = (ui: React.ReactElement) => {
     return render(
       <UiKitProvider>
-        <UnifiedThemeProvider>
-          {ui}
-        </UnifiedThemeProvider>
+        <ThemeModeProvider>
+          <UnifiedThemeProvider>
+            {ui}
+          </UnifiedThemeProvider>
+        </ThemeModeProvider>
       </UiKitProvider>
     )
   }

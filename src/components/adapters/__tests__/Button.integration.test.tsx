@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider, useUiKit } from '../../../modules/uikit/UiKitContext'
+import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
 
 // Helper component to switch kits
@@ -22,10 +23,12 @@ describe('Button Integration', () => {
   const renderWithKit = (kit: 'mantine' | 'material' | 'carbon') => {
     return render(
       <UiKitProvider>
-        <UnifiedThemeProvider>
-          <KitSwitcher kit={kit} />
-          <Button>Test Button</Button>
-        </UnifiedThemeProvider>
+        <ThemeModeProvider>
+          <UnifiedThemeProvider>
+            <KitSwitcher kit={kit} />
+            <Button>Test Button</Button>
+          </UnifiedThemeProvider>
+        </ThemeModeProvider>
       </UiKitProvider>
     )
   }
@@ -78,12 +81,14 @@ describe('Button Integration', () => {
           for (const kit of ['mantine', 'material', 'carbon'] as const) {
             const { container, unmount } = render(
               <UiKitProvider>
-                <UnifiedThemeProvider>
-                  <KitSwitcher kit={kit} />
-                  <Button variant={variant} size={size} layer={layer}>
-                    {variant} {size}
-                  </Button>
-                </UnifiedThemeProvider>
+                <ThemeModeProvider>
+                  <UnifiedThemeProvider>
+                    <KitSwitcher kit={kit} />
+                    <Button variant={variant} size={size} layer={layer}>
+                      {variant} {size}
+                    </Button>
+                  </UnifiedThemeProvider>
+                </ThemeModeProvider>
               </UiKitProvider>
             )
 
@@ -106,10 +111,12 @@ describe('Button Integration', () => {
     for (const kit of ['mantine', 'material', 'carbon'] as const) {
       const { container, unmount } = render(
         <UiKitProvider>
-          <UnifiedThemeProvider>
-            <KitSwitcher kit={kit} />
-            <Button disabled>Disabled</Button>
-          </UnifiedThemeProvider>
+          <ThemeModeProvider>
+            <UnifiedThemeProvider>
+              <KitSwitcher kit={kit} />
+              <Button disabled>Disabled</Button>
+            </UnifiedThemeProvider>
+          </ThemeModeProvider>
         </UiKitProvider>
       )
 
@@ -128,10 +135,12 @@ describe('Button Integration', () => {
     for (const kit of ['mantine', 'material', 'carbon'] as const) {
       const { unmount } = render(
         <UiKitProvider>
-          <UnifiedThemeProvider>
-            <KitSwitcher kit={kit} />
-            <Button icon={<TestIcon />}>With Icon</Button>
-          </UnifiedThemeProvider>
+          <ThemeModeProvider>
+            <UnifiedThemeProvider>
+              <KitSwitcher kit={kit} />
+              <Button icon={<TestIcon />}>With Icon</Button>
+            </UnifiedThemeProvider>
+          </ThemeModeProvider>
         </UiKitProvider>
       )
 

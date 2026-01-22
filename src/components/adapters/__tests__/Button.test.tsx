@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
+import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Button } from '../Button'
 
@@ -16,9 +17,11 @@ describe('Button Component (Adapter)', () => {
   const renderWithProviders = (ui: React.ReactElement, kit: 'mantine' | 'material' | 'carbon' = 'mantine') => {
     return render(
       <UiKitProvider>
-        <UnifiedThemeProvider>
-          {ui}
-        </UnifiedThemeProvider>
+        <ThemeModeProvider>
+          <UnifiedThemeProvider>
+            {ui}
+          </UnifiedThemeProvider>
+        </ThemeModeProvider>
       </UiKitProvider>
     )
   }

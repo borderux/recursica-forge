@@ -1,6 +1,11 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
+// Import component registries to register components
+import './src/components/registry/mantine'
+import './src/components/registry/material'
+import './src/components/registry/carbon'
+
 // Mock window.matchMedia for Mantine components
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

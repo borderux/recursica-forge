@@ -80,6 +80,14 @@ export default function Button({
   // Reactively read border-size to trigger re-renders when it changes
   const borderSizeValue = useCssVar(borderSizeVar, '1px')
   
+  // Reactively read background color to trigger re-renders when CSS variables change
+  // This ensures --button-bg gets updated when toolbar changes CSS variables
+  const bgColorValue = useCssVar(buttonBgVar, '')
+  
+  // Reactively read height to trigger re-renders when CSS variables change
+  // This ensures --button-height gets updated when toolbar changes CSS variables
+  useCssVar(heightVar, '')
+  
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
   
@@ -133,17 +141,14 @@ export default function Button({
     style: {
       // Use CSS variables for theming
       // getComponentCssVar returns CSS variable names, so wrap in var() for standard layers
-      // Read the actual background color value - if it's transparent, set it directly to override library defaults
-      ...(() => {
-        const bgColorValue = readCssVar(buttonBgVar)
-        if (bgColorValue === 'transparent') {
-          return { 
-            backgroundColor: 'transparent',
-            '--button-bg': 'transparent'
-          }
-        }
-        return { '--button-bg': `var(${buttonBgVar})` }
-      })(),
+      // If background is transparent, set it directly to override library defaults
+      // Otherwise, use CSS variable reference which will cascade automatically
+      ...(bgColorValue === 'transparent' ? {
+        backgroundColor: 'transparent',
+        '--button-bg': 'transparent'
+      } : {
+        '--button-bg': `var(${buttonBgVar})`
+      }),
       '--button-hover': `var(${buttonHoverVar})`,
       // Set button color without fallback to Mantine colors
       '--button-color': buttonColorRef,

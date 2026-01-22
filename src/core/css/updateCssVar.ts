@@ -157,8 +157,19 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
           return `var(--recursica-tokens-colors-${resolvedScaleKey}-${normalizedLevel})`
         }
         // Last resort: use tokenToCssVar which will handle it
-        const tokenName = `colors/${tokenMatch.family}/${tokenMatch.level}`
-        const cssVar = tokenToCssVar(tokenName, tokens)
+        // Try new format first (colors/...)
+        let tokenName = `colors/${tokenMatch.family}/${tokenMatch.level}`
+        let cssVar = tokenToCssVar(tokenName, tokens)
+        // If that didn't work and we have old format tokens, try old format (color/...)
+        if (!cssVar && tokens?.tokens?.color) {
+          tokenName = `color/${tokenMatch.family}/${tokenMatch.level}`
+          cssVar = tokenToCssVar(tokenName, tokens)
+        }
+        // If still no CSS var and we have old format, generate old format CSS var directly
+        if (!cssVar && tokens?.tokens?.color && !tokenMatch.scale) {
+          const normalizedLevel = tokenMatch.level === '000' ? '050' : tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
+          return `var(--recursica-tokens-color-${tokenMatch.family}-${normalizedLevel})`
+        }
         if (cssVar) return cssVar
       }
     }

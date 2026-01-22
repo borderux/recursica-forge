@@ -136,7 +136,14 @@ describe('Breadcrumb Toolbar Config', () => {
     
     const configProps = new Set<string>()
     if (config.props) {
-      Object.keys(config.props).forEach(prop => configProps.add(prop))
+      Object.keys(config.props).forEach(prop => {
+        configProps.add(prop)
+        // Also add grouped props
+        const propConfig = config.props[prop]
+        if (propConfig.group) {
+          Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
+        }
+      })
     }
     
     // Check that all required props are in config
