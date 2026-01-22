@@ -20,6 +20,7 @@ import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getVarsStore } from '../../../core/store/varsStore'
+import { createBugReport } from '../utils/bugReport'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -322,6 +323,16 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                 getVarsStore().updateCoreColorOnTonesForAA()
               }}
               title="Check AA Compliance"
+            />
+            <Button
+              variant="outline"
+              size="small"
+              icon={(() => {
+                const BugIcon = iconNameToReactComponent('bug')
+                return BugIcon ? <BugIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+              })()}
+              onClick={() => createBugReport()}
+              title="Report a bug"
             />
             <Select
               size="small"

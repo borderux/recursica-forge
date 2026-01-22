@@ -21,6 +21,7 @@ import { ThemeSidebar } from '../ThemeSidebar'
 import { Tabs } from '../../../components/adapters/Tabs'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getVarsStore } from '../../../core/store/varsStore'
+import { createBugReport } from '../utils/bugReport'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -306,6 +307,16 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 getVarsStore().updateCoreColorOnTonesForAA()
               }}
               title="Check AA Compliance"
+            />
+            <Button
+              variant="outline"
+              size="small"
+              icon={(() => {
+                const BugIcon = iconNameToReactComponent('bug')
+                return BugIcon ? <BugIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+              })()}
+              onClick={() => createBugReport()}
+              title="Report a bug"
             />
             <div style={{ minWidth: 180 }}>
               <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
