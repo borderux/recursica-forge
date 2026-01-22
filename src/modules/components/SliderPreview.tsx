@@ -45,7 +45,7 @@ export default function SliderPreview({
         {/* With label, with readonly value label */}
         <Slider
           value={value1}
-          onChange={setValue1}
+          onChange={(val) => setValue1(typeof val === 'number' ? val : val[0])}
           min={0}
           max={100}
           layout={layoutVariant}
@@ -59,7 +59,7 @@ export default function SliderPreview({
         {/* With label, with input */}
         <Slider
           value={value2}
-          onChange={setValue2}
+          onChange={(val) => setValue2(typeof val === 'number' ? val : val[0])}
           min={0}
           max={100}
           layout={layoutVariant}
@@ -72,7 +72,7 @@ export default function SliderPreview({
         {/* Without label, with readonly value label */}
         <Slider
           value={value3}
-          onChange={setValue3}
+          onChange={(val) => setValue3(typeof val === 'number' ? val : val[0])}
           min={0}
           max={100}
           layout={layoutVariant}
@@ -85,7 +85,7 @@ export default function SliderPreview({
         {/* Without label, with input */}
         <Slider
           value={value4}
-          onChange={setValue4}
+          onChange={(val) => setValue4(typeof val === 'number' ? val : val[0])}
           min={0}
           max={100}
           layout={layoutVariant}
@@ -97,7 +97,7 @@ export default function SliderPreview({
         {/* With label, with readonly value label (formatted) */}
         <Slider
           value={value5}
-          onChange={setValue5}
+          onChange={(val) => setValue5(typeof val === 'number' ? val : val[0])}
           min={0}
           max={100}
           layout={layoutVariant}
@@ -111,7 +111,7 @@ export default function SliderPreview({
         {/* Disabled with label, with readonly value label */}
         <Slider
           value={value6}
-          onChange={setValue6}
+          onChange={(val) => setValue6(typeof val === 'number' ? val : val[0])}
           min={0}
           max={100}
           layout={layoutVariant}
@@ -126,7 +126,7 @@ export default function SliderPreview({
         {/* Disabled with label, with input */}
         <Slider
           value={value7}
-          onChange={setValue7}
+          onChange={(val) => setValue7(typeof val === 'number' ? val : val[0])}
           min={0}
           max={100}
           layout={layoutVariant}

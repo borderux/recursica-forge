@@ -130,6 +130,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
               {label}
             </label>
             <div style={{
+              fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
               fontSize: `var(${fontSizeVar})`,
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,

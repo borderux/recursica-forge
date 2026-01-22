@@ -9,10 +9,11 @@ import { Button } from '../../../components/adapters/Button'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { Switch } from '../../../components/adapters/Switch'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
+import tokensImport from '../../../vars/Tokens.json'
 
 export default function FontPropertiesTokens() {
   const { mode } = useThemeMode()
-  const { resetAll, tokens: tokensJson } = useVars()
+  const { resetAll, tokens: tokensJson, updateToken } = useVars()
   const [activeTab, setActiveTab] = useState<'size' | 'letter-spacing' | 'line-height'>('size')
   const [autoScaleSize, setAutoScaleSize] = useState(() => {
     // Default to false - reset any existing 'true' value to establish new default
@@ -43,15 +44,54 @@ export default function FontPropertiesTokens() {
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
-  const buttonTextBg = getComponentCssVar('Button', 'color', 'text-background', 'layer-0')
-  const buttonTextText = getComponentCssVar('Button', 'color', 'text-text', 'layer-0')
-  const buttonSolidBg = getComponentCssVar('Button', 'color', 'solid-background', 'layer-0')
-  const buttonSolidText = getComponentCssVar('Button', 'color', 'solid-text', 'layer-0')
+  const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
+  const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
+  const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
+  const buttonSolidText = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
   const buttonHeight = getComponentCssVar('Button', 'size', 'default-height', undefined)
   const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
   const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
 
   const handleReset = () => {
+    // Reset font token values based on active tab
+    try {
+      const fontRoot: any = (tokensImport as any)?.tokens?.font || (tokensImport as any)?.font || {}
+      
+      if (activeTab === 'size') {
+        // Reset all font size tokens to defaults
+        const sizes: any = fontRoot?.sizes || fontRoot?.size || {}
+        Object.keys(sizes).filter((k) => !k.startsWith('$')).forEach((k) => {
+          const val = sizes[k]?.$value
+          const num = typeof val === 'number' ? val : (typeof val === 'object' && val && typeof val.value === 'number' ? val.value : Number(val))
+          if (Number.isFinite(num)) {
+            updateToken(`font/size/${k}`, num)
+          }
+        })
+      } else if (activeTab === 'letter-spacing') {
+        // Reset all font letter spacing tokens to defaults
+        const letterSpacings: any = fontRoot?.['letter-spacings'] || fontRoot?.['letter-spacing'] || {}
+        Object.keys(letterSpacings).filter((k) => !k.startsWith('$')).forEach((k) => {
+          const val = letterSpacings[k]?.$value
+          const num = typeof val === 'number' ? val : Number(val)
+          if (Number.isFinite(num)) {
+            updateToken(`font/letter-spacing/${k}`, num)
+          }
+        })
+      } else if (activeTab === 'line-height') {
+        // Reset all font line height tokens to defaults
+        const lineHeights: any = fontRoot?.['line-heights'] || fontRoot?.['line-height'] || {}
+        Object.keys(lineHeights).filter((k) => !k.startsWith('$')).forEach((k) => {
+          const val = lineHeights[k]?.$value
+          const num = typeof val === 'number' ? val : Number(val)
+          if (Number.isFinite(num)) {
+            updateToken(`font/line-height/${k}`, num)
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Failed to reset font tokens:', error)
+    }
+    
     // Remove all font/typeface overrides that aren't in the original JSON
     const all = readOverrides()
     const updated: Record<string, any> = {}

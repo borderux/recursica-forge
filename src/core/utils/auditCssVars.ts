@@ -173,7 +173,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   for (const el of allElements) {
     const elDesc = getElementDesc(el)
     const elComputed = getComputedStyle(el)
-    const elInline = el.style
+    const elInline = (el as HTMLElement).style
 
     // Check computed styles for CSS variable definitions
     for (let i = 0; i < elComputed.length; i++) {
@@ -697,7 +697,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
             } else {
               for (const el of allElements) {
                 const elComputed = getComputedStyle(el)
-                const elInline = el.style
+                const elInline = (el as HTMLElement).style
                 if (elInline && elInline.getPropertyValue(referencedVar) !== '') {
                   existsInDom = true
                   break

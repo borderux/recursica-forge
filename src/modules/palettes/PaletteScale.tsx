@@ -58,7 +58,7 @@ export function PaletteScaleHeader({
   paletteKey,
   tokens,
 }: Pick<PaletteScaleProps, 'level' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary' | 'paletteKey' | 'tokens'>) {
-  const headerWidth = isPrimary ? `${Math.max(0, 100 - (headerLevels.length - 1) * 8)}%` : '8%'
+  // No fixed width - cells will size naturally with padding
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
 
   // Close picker when mode changes
@@ -98,13 +98,14 @@ export function PaletteScaleHeader({
   
   // Check AA compliance for this level - check both high and low emphasis
   let isNonCompliant = false
+  // Detect mode by checking which CSS variable exists
+  let mode: 'light' | 'dark' = 'light'
   if (tokens && paletteKey) {
-    // Detect mode by checking which CSS variable exists
     const lightToneCssVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
     const darkToneCssVar = `--recursica-brand-themes-dark-palettes-${paletteKey}-${level}-tone`
     const lightToneValue = readCssVar(lightToneCssVar)
     const darkToneValue = readCssVar(darkToneCssVar)
-    const mode = lightToneValue ? 'light' : (darkToneValue ? 'dark' : 'light')
+    mode = lightToneValue ? 'light' : (darkToneValue ? 'dark' : 'light')
     
     const toneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
     const onToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
@@ -223,10 +224,24 @@ export function PaletteScaleHeader({
           }
           onSetPrimary()
         }}
-        title={isNonCompliant ? 'AA Compliance Issue - Click to fix tone color' : (isPrimary ? 'Primary' : 'Set as Primary')}
-        style={{ cursor: 'pointer', width: headerWidth }}
+        title={isNonCompliant ? 'On-tone color fails contrast' : (isPrimary ? undefined : `Set ${level} as default`)}
+        style={{ 
+          cursor: 'pointer', 
+          padding: `0 var(--recursica-brand-dimensions-general-md)`,
+          boxSizing: 'border-box',
+          fontFamily: 'var(--recursica-brand-typography-body-small-font-family)',
+          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
+          width: isPrimary ? '20%' : undefined,
+          flex: isPrimary ? '0 0 20%' : 1,
+          marginLeft: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
+          marginRight: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
+          transform: 'translateY(20px)',
+        }}
       >
-        {level}
+        {isPrimary ? null : level}
       </th>
       
       {/* ColorPickerOverlay for updating token color */}
@@ -350,7 +365,10 @@ export function PaletteScaleHighEmphasis({
   paletteKey,
   level,
   tokens,
-}: Pick<PaletteScaleProps, 'toneCssVar' | 'onToneCssVar' | 'emphasisCssVar' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary' | 'paletteKey' | 'level' | 'tokens'>) {
+  emphasisType,
+  isFirst,
+  isLast,
+}: Pick<PaletteScaleProps, 'toneCssVar' | 'onToneCssVar' | 'emphasisCssVar' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary' | 'paletteKey' | 'level' | 'tokens'> & { emphasisType?: 'high' | 'low'; isFirst?: boolean; isLast?: boolean }) {
   return (
     <PaletteEmphasisCell
       toneCssVar={toneCssVar}
@@ -364,6 +382,9 @@ export function PaletteScaleHighEmphasis({
       paletteKey={paletteKey}
       level={level}
       tokens={tokens}
+      emphasisType={emphasisType}
+      isFirst={isFirst}
+      isLast={isLast}
     />
   )
 }
@@ -380,7 +401,10 @@ export function PaletteScaleLowEmphasis({
   paletteKey,
   level,
   tokens,
-}: Pick<PaletteScaleProps, 'toneCssVar' | 'onToneCssVar' | 'emphasisCssVar' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary' | 'paletteKey' | 'level' | 'tokens'>) {
+  emphasisType,
+  isFirst,
+  isLast,
+}: Pick<PaletteScaleProps, 'toneCssVar' | 'onToneCssVar' | 'emphasisCssVar' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary' | 'paletteKey' | 'level' | 'tokens'> & { emphasisType?: 'high' | 'low'; isFirst?: boolean; isLast?: boolean }) {
   return (
     <PaletteEmphasisCell
       toneCssVar={toneCssVar}
@@ -394,6 +418,9 @@ export function PaletteScaleLowEmphasis({
       paletteKey={paletteKey}
       level={level}
       tokens={tokens}
+      emphasisType={emphasisType}
+      isFirst={isFirst}
+      isLast={isLast}
     />
   )
 }

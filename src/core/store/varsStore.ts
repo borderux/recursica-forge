@@ -90,7 +90,7 @@ function migratePaletteLocalKeys(): PaletteStore {
   }
   const opacity = normalizeOpacityBindings(opacityRaw)
   const dynamic = readLSJson<Array<{ key: string; title: string; defaultLevel: number; initialFamily?: string }>>('dynamic-palettes', [
-    { key: 'neutral', title: 'Neutral (Grayscale)', defaultLevel: 200 },
+    { key: 'neutral', title: 'Neutral', defaultLevel: 200 },
     { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
     { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
   ])
@@ -813,11 +813,21 @@ class VarsStore {
       
       // Reset localStorage to original values
       if (this.lsAvailable) {
+        // Clear elevation localStorage to ensure clean reset
+        try {
+          localStorage.removeItem(STORAGE_KEYS.elevation)
+          // Also clear legacy elevation localStorage keys
+          localStorage.removeItem('elevation-color-tokens')
+          localStorage.removeItem('elevation-alpha-tokens')
+          localStorage.removeItem('elevation-palette-selections')
+          localStorage.removeItem('elevation-directions')
+        } catch {}
+        
         writeLSJson(STORAGE_KEYS.tokens, tokensImport)
         writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
         writeLSJson(STORAGE_KEYS.uikit, uikitImport)
         writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
-        writeLSJson(STORAGE_KEYS.elevation, this.initElevationState(normalizedTheme as any, this.state.tokens))
+        writeLSJson(STORAGE_KEYS.elevation, this.initElevationState(normalizedTheme as any, sortedTokens))
         
         // Reset family-friendly-names to use aliases from JSON
         try {
@@ -1159,14 +1169,41 @@ class VarsStore {
       }
     }
     
+    // Initialize token references if not already set
+    const blurTokens: Record<string, string> = {}
+    const spreadTokens: Record<string, string> = {}
+    const offsetXTokens: Record<string, string> = {}
+    const offsetYTokens: Record<string, string> = {}
+    for (let i = 0; i <= 4; i++) {
+      const k = `elevation-${i}`
+      blurTokens[k] = `size/elevation-${i}-blur`
+      spreadTokens[k] = `size/elevation-${i}-spread`
+      offsetXTokens[k] = `size/elevation-${i}-offset-x`
+      offsetYTokens[k] = `size/elevation-${i}-offset-y`
+    }
+    
     // Use elevationState from localStorage if available, otherwise use the one we built
-    const finalState = elevationState || { controls, colorTokens, alphaTokens, paletteSelections, baseXDirection, baseYDirection, directions, shadowColorControl }
+    const finalState: ElevationState = elevationState || { 
+      controls, 
+      colorTokens, 
+      alphaTokens, 
+      blurTokens,
+      spreadTokens,
+      offsetXTokens,
+      offsetYTokens,
+      paletteSelections, 
+      baseXDirection, 
+      baseYDirection, 
+      directions, 
+      shadowColorControl 
+    }
     
     // Always ensure tokens exist and token references are set (even if loaded from localStorage)
-    const blurTokens: Record<string, string> = finalState.blurTokens || {}
-    const spreadTokens: Record<string, string> = finalState.spreadTokens || {}
-    const offsetXTokens: Record<string, string> = finalState.offsetXTokens || {}
-    const offsetYTokens: Record<string, string> = finalState.offsetYTokens || {}
+    // Use finalState tokens if available, otherwise use initialized defaults
+    if (finalState.blurTokens) Object.assign(blurTokens, finalState.blurTokens)
+    if (finalState.spreadTokens) Object.assign(spreadTokens, finalState.spreadTokens)
+    if (finalState.offsetXTokens) Object.assign(offsetXTokens, finalState.offsetXTokens)
+    if (finalState.offsetYTokens) Object.assign(offsetYTokens, finalState.offsetYTokens)
     
     // Get or create tokens structure
     if (!tokens) tokens = {}
@@ -1244,7 +1281,7 @@ class VarsStore {
     }
   }
 
-  private recomputeAndApplyAll() {
+  public recomputeAndApplyAll() {
     // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
     if (this.isRecomputing) {
       console.warn('[VarsStore] Skipping recomputeAndApplyAll - already recomputing')
@@ -1483,7 +1520,7 @@ class VarsStore {
         // Helper function to resolve a token reference using centralized parser
         const resolveTokenRef = (value: any): string | null => {
           const context: TokenReferenceContext = {
-            currentMode: currentMode === 'Dark' ? 'dark' : 'light',
+            currentMode: (currentMode as string) === 'Dark' ? 'dark' : 'light',
             tokenIndex: buildTokenIndex(this.state.tokens),
             theme: this.state.theme
           }
@@ -1946,12 +1983,14 @@ class VarsStore {
             // Check if palette var exists in paletteVars (during initialization) or use var() reference
             const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
             const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
-            const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
+            // Use tokenToCssVar to properly convert opacity token names to CSS vars
+            const alphaVarRef = tokenToCssVar(alphaTok) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
             return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
           }
           const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
           const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
-          const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
+          // Use tokenToCssVar to properly convert opacity token names to CSS vars
+          const alphaVarRef = tokenToCssVar(alphaTok) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
           // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
           const colorVarRef = tokenToCssVar(tok) || `var(--recursica-tokens-${tok.replace(/\//g, '-')})`
           return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
@@ -2005,7 +2044,8 @@ class VarsStore {
           // Check if there's already a palette CSS variable set (preserve user selections)
           const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
           const alphaTok = this.state.elevation.alphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
-          const alphaVarRef = `var(--recursica-tokens-${alphaTok.replace(/\//g, '-')})`
+          // Use tokenToCssVar to properly convert opacity token names to CSS vars
+          const alphaVarRef = tokenToCssVar(alphaTok) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
           
           // Check if existing color contains a palette reference (could be var() or color-mix())
           const hasPaletteRef = existingColor && (

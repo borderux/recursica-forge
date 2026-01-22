@@ -77,7 +77,60 @@ export default function LayerModule({ level, title, className, children, onSelec
     }
     return s
   }
+  // Read elevation from CSS variable first (for real-time updates), then fallback to theme JSON
+  const elevationCssVar = `--recursica-brand-themes-${mode}-layer-layer-${layerId}-property-elevation`
+  const [elevationFromCssVar, setElevationFromCssVar] = useState<string | null>(() => {
+    const value = readCssVar(elevationCssVar)
+    if (value && /^elevation-\d+$/.test(value.trim())) {
+      return value.trim()
+    }
+    return null
+  })
+  
+  // Listen for CSS variable updates
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(elevationCssVar)) {
+        const value = readCssVar(elevationCssVar)
+        if (value && /^elevation-\d+$/.test(value.trim())) {
+          setElevationFromCssVar(value.trim())
+        } else {
+          setElevationFromCssVar(null)
+        }
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes
+    const observer = new MutationObserver(() => {
+      const value = readCssVar(elevationCssVar)
+      if (value && /^elevation-\d+$/.test(value.trim())) {
+        setElevationFromCssVar(value.trim())
+      } else {
+        setElevationFromCssVar(null)
+      }
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [elevationCssVar])
+  
   const elevationLevel = useMemo(() => {
+    // First check CSS variable (for real-time updates)
+    if (elevationFromCssVar) {
+      const match = elevationFromCssVar.match(/elevation-(\d+)/)
+      if (match) return match[1]
+    }
+    
+    // Fallback to theme JSON
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
@@ -88,12 +141,17 @@ export default function LayerModule({ level, title, className, children, onSelec
       const v: any = layerSpec?.properties?.elevation?.$value
       if (typeof v === 'string') {
         // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
-        const m = v.match(/elevations\.(elevation-(\d+))/i)
+        const m = v.match(/elevations?\.(elevation-(\d+))/i)
         if (m) return m[2]
+        // Also check for direct elevation name format
+        if (/^elevation-\d+$/.test(v.trim())) {
+          const match = v.trim().match(/elevation-(\d+)/)
+          if (match) return match[1]
+        }
       }
     } catch {}
     return String(layerId)
-  }, [theme, layerId, mode])
+  }, [theme, layerId, mode, elevationFromCssVar])
   const cssVarBoxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-colors-gray-1000))`
 
   type Style = React.CSSProperties
@@ -186,7 +244,7 @@ export default function LayerModule({ level, title, className, children, onSelec
     borderRadius: includeBorder ? `var(${brandBase}border-radius)` : undefined,
     cursor: onSelect ? 'pointer' as const : undefined,
     boxShadow: cssVarBoxShadow,
-  }), [paletteBackground, brandBase, includeBorder, onSelect, cssVarBoxShadow, version, mode])
+  }), [paletteBackground, brandBase, includeBorder, onSelect, cssVarBoxShadow, version, mode, elevationFromCssVar])
   
   return (
     <div

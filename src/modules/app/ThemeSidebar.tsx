@@ -10,7 +10,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 
-type ThemeNavItem = 'palettes' | 'type' | 'layers' | 'dimensions'
+type ThemeNavItem = 'core-properties' | 'type' | 'palettes' | 'elevations' | 'layers' | 'dimensions'
 
 export function ThemeSidebar() {
   const location = useLocation()
@@ -19,10 +19,13 @@ export function ThemeSidebar() {
   
   // Determine current sub-route for navigation highlighting
   const getCurrentNavItem = (): ThemeNavItem => {
+    if (location.pathname.includes('/theme/core-properties')) return 'core-properties'
     if (location.pathname.includes('/theme/type')) return 'type'
+    if (location.pathname.includes('/theme/palettes')) return 'palettes'
+    if (location.pathname.includes('/theme/elevations')) return 'elevations'
     if (location.pathname.includes('/theme/layers')) return 'layers'
     if (location.pathname.includes('/theme/dimensions')) return 'dimensions'
-    return 'palettes' // default
+    return 'core-properties' // default
   }
   
   const currentNavItem = getCurrentNavItem()
@@ -36,8 +39,10 @@ export function ThemeSidebar() {
   }
   
   const navItems: Array<{ key: ThemeNavItem; label: string }> = [
-    { key: 'palettes', label: 'Palettes' },
+    { key: 'core-properties', label: 'Core Properties' },
     { key: 'type', label: 'Type' },
+    { key: 'palettes', label: 'Palettes' },
+    { key: 'elevations', label: 'Elevations' },
     { key: 'layers', label: 'Layers' },
     { key: 'dimensions', label: 'Dimensions' },
   ]

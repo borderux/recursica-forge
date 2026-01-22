@@ -49,6 +49,59 @@ export default function ElevationStylePanel({
   const levelsArr = React.useMemo(() => Array.from(selectedLevels), [selectedLevels])
   const { mode } = useThemeMode()
   const { tokens: tokensJson, updateToken, elevation } = useVars()
+  
+  // Debounce refs for slider updates to prevent excessive calls during dragging
+  const blurDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const spreadDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const offsetXDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const offsetYDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  
+  // Cleanup debounce timers on unmount
+  React.useEffect(() => {
+    return () => {
+      if (blurDebounceRef.current) clearTimeout(blurDebounceRef.current)
+      if (spreadDebounceRef.current) clearTimeout(spreadDebounceRef.current)
+      if (offsetXDebounceRef.current) clearTimeout(offsetXDebounceRef.current)
+      if (offsetYDebounceRef.current) clearTimeout(offsetYDebounceRef.current)
+    }
+  }, [])
+  
+  // Debounced handlers for slider changes
+  const handleBlurChange = React.useCallback((value: number) => {
+    if (blurDebounceRef.current) {
+      clearTimeout(blurDebounceRef.current)
+    }
+    blurDebounceRef.current = setTimeout(() => {
+      levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blur', value))
+    }, 16) // ~1 frame at 60fps
+  }, [levelsArr, updateElevationControl])
+  
+  const handleSpreadChange = React.useCallback((value: number) => {
+    if (spreadDebounceRef.current) {
+      clearTimeout(spreadDebounceRef.current)
+    }
+    spreadDebounceRef.current = setTimeout(() => {
+      levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spread', value))
+    }, 16) // ~1 frame at 60fps
+  }, [levelsArr, updateElevationControl])
+  
+  const handleOffsetXChange = React.useCallback((value: number) => {
+    if (offsetXDebounceRef.current) {
+      clearTimeout(offsetXDebounceRef.current)
+    }
+    offsetXDebounceRef.current = setTimeout(() => {
+      levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetX', value))
+    }, 16) // ~1 frame at 60fps
+  }, [levelsArr, updateElevationControl])
+  
+  const handleOffsetYChange = React.useCallback((value: number) => {
+    if (offsetYDebounceRef.current) {
+      clearTimeout(offsetYDebounceRef.current)
+    }
+    offsetYDebounceRef.current = setTimeout(() => {
+      levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetY', value))
+    }, 16) // ~1 frame at 60fps
+  }, [levelsArr, updateElevationControl])
 
   const getShadowColorCssVar = React.useCallback((level: number): string => {
     return `--recursica-brand-themes-${mode}-elevations-elevation-${level}-shadow-color`
@@ -241,7 +294,7 @@ export default function ElevationStylePanel({
   const CloseIcon = iconNameToReactComponent('x-mark')
   
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <h2 style={{ 
           margin: 0,
@@ -272,7 +325,7 @@ export default function ElevationStylePanel({
           value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0) : 0}
           onChange={(val) => {
             const value = typeof val === 'number' ? val : val[0]
-            levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blur', value))
+            handleBlurChange(value)
           }}
           min={0}
           max={200}
@@ -289,7 +342,7 @@ export default function ElevationStylePanel({
           value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0) : 0}
           onChange={(val) => {
             const value = typeof val === 'number' ? val : val[0]
-            levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spread', value))
+            handleSpreadChange(value)
           }}
           min={0}
           max={200}
@@ -314,7 +367,7 @@ export default function ElevationStylePanel({
               value={signedValue}
               onChange={(val) => {
                 const value = typeof val === 'number' ? val : val[0]
-                levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetX', value))
+                handleOffsetXChange(value)
               }}
               min={-50}
               max={50}
@@ -341,7 +394,7 @@ export default function ElevationStylePanel({
               value={signedValue}
               onChange={(val) => {
                 const value = typeof val === 'number' ? val : val[0]
-                levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetY', value))
+                handleOffsetYChange(value)
               }}
               min={-50}
               max={50}
@@ -411,11 +464,16 @@ export default function ElevationStylePanel({
         </div>
         <div className="control-group">
           <Button
-            onClick={() => revertSelected(selectedLevels)}
             variant="outline"
-            layer="layer-2"
+            size="small"
+            onClick={() => revertSelected(new Set(selectedLevels))}
+            icon={(() => {
+              const ResetIcon = iconNameToReactComponent('arrow-path')
+              return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+            })()}
+            layer="layer-1"
           >
-            Revert
+            Reset all
           </Button>
         </div>
       </div>

@@ -8,11 +8,11 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
-import { UnifiedThemeProvider } from '../providers/UnifiedThemeProvider'
-import { UiKitProvider } from '../../modules/uikit/UiKitContext'
+import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
+import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Breadcrumb } from '../Breadcrumb'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
 describe('Breadcrumb Toolbar Props Integration', () => {

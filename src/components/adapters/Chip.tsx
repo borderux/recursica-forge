@@ -180,7 +180,7 @@ export function Chip({
 }
 
 function getChipStyles(
-  variant: 'unselected' | 'selected' | 'error-selected',
+  variant: 'unselected' | 'selected' | 'error' | 'error-selected',
   size: 'default' | 'small',
   layer: ComponentLayer,
   disabled: boolean,

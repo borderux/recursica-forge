@@ -6,7 +6,7 @@
  */
 
 import { Toggle } from '@carbon/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useId } from 'react'
 import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
@@ -30,6 +30,7 @@ export default function Switch({
 }: AdapterSwitchProps) {
   const { mode } = useThemeMode()
   const toggleRef = useRef<HTMLDivElement>(null)
+  const toggleId = useId()
   
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
   const thumbSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-selected`, layer)
@@ -173,20 +174,21 @@ export default function Switch({
       className="recursica-carbon-toggle-wrapper"
       style={{
         // Color wrapper vars (layer/variant-specific, need per-instance resolution)
-        '--recursica-ui-kit-components-switch-thumb-bg-selected': thumbSelectedColor,
-        '--recursica-ui-kit-components-switch-thumb-bg-unselected': thumbUnselectedColor,
-        '--recursica-ui-kit-components-switch-track-checked': trackSelectedColor,
-        '--recursica-ui-kit-components-switch-track-unchecked': trackUnselectedColor,
+        ['--recursica-ui-kit-components-switch-thumb-bg-selected' as string]: thumbSelectedColor,
+        ['--recursica-ui-kit-components-switch-thumb-bg-unselected' as string]: thumbUnselectedColor,
+        ['--recursica-ui-kit-components-switch-track-checked' as string]: trackSelectedColor,
+        ['--recursica-ui-kit-components-switch-track-unchecked' as string]: trackUnselectedColor,
         // Component-level properties are already on :root from UIKit.json - don't create circular refs
         // Only set computed values that depend on them
-        '--recursica-ui-kit-components-switch-track-height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
-        '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
-        '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
+        ['--recursica-ui-kit-components-switch-track-height' as string]: trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
+        ['--recursica-ui-kit-components-switch-thumb-elevation' as string]: thumbElevationBoxShadow || 'none',
+        ['--recursica-ui-kit-components-switch-track-elevation' as string]: trackElevationBoxShadow || 'none',
         width: `var(${trackWidthVar})`,
         ...style,
-      }}
+      } as React.CSSProperties}
     >
       <Toggle
+        id={toggleId}
         toggled={checked}
         onToggle={(checked) => onChange(checked)}
         disabled={disabled}

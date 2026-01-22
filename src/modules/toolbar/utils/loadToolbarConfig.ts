@@ -43,27 +43,27 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
     // Load component-specific config
     switch (componentKey) {
       case 'button':
-        return ButtonConfig as ToolbarConfig
+        return ButtonConfig as unknown as ToolbarConfig
       case 'switch':
-        return SwitchConfig as ToolbarConfig
+        return SwitchConfig as unknown as ToolbarConfig
       case 'avatar':
-        return AvatarConfig as ToolbarConfig
+        return AvatarConfig as unknown as ToolbarConfig
       case 'toast':
-        return ToastConfig as ToolbarConfig
+        return ToastConfig as unknown as ToolbarConfig
       case 'badge':
-        return BadgeConfig as ToolbarConfig
+        return BadgeConfig as unknown as ToolbarConfig
       case 'chip':
-        return ChipConfig as ToolbarConfig
+        return ChipConfig as unknown as ToolbarConfig
       case 'label':
-        return LabelConfig as ToolbarConfig
+        return LabelConfig as unknown as ToolbarConfig
       case 'breadcrumb':
-        return BreadcrumbConfig as ToolbarConfig
+        return BreadcrumbConfig as unknown as ToolbarConfig
       case 'menu-item':
-        return MenuItemConfig as ToolbarConfig
+        return MenuItemConfig as unknown as ToolbarConfig
       case 'menu':
-        return MenuConfig as ToolbarConfig
+        return MenuConfig as unknown as ToolbarConfig
       case 'slider':
-        return SliderConfig as ToolbarConfig
+        return SliderConfig as unknown as ToolbarConfig
       default:
         return null
     }

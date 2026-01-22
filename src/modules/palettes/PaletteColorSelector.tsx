@@ -614,7 +614,7 @@ export default function PaletteColorSelector({
       const tokenLevel = lvl
       
       // Determine the correct token name format based on family type
-      let tokenName: string
+      let tokenName: string = `color/${selectedFamily}/${tokenLevel}` // Default fallback
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
       const colorsRoot: any = tokensRoot?.colors || {}
       
@@ -691,7 +691,7 @@ export default function PaletteColorSelector({
           // Determine the correct token reference format based on family type
           // If family is a scale key (starts with "scale-"), use colors format
           // Otherwise, check if it's an alias that maps to a scale, or use old color format
-          let tokenRef: string
+          let tokenRef: string = `{tokens.color.${family}.${tokenLevel}}` // Default fallback
           const tokensRoot: any = (tokensJson as any)?.tokens || {}
           const colorsRoot: any = tokensRoot?.colors || {}
           
@@ -723,7 +723,25 @@ export default function PaletteColorSelector({
           }
           
           // Determine on-tone color considering opacity for AA compliance
-          const tokenName = `color/${family}/${tokenLevel}`
+          let tokenName: string = `color/${family}/${tokenLevel}` // Default fallback
+          if (family.startsWith('scale-')) {
+            tokenName = `colors/${family}/${tokenLevel}`
+          } else {
+            // Check if it's an alias that maps to a scale
+            let isScaleAlias = false
+            for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+              if (!scaleKey.startsWith('scale-')) continue
+              const scaleObj = scale as any
+              if (scaleObj?.alias === family) {
+                tokenName = `colors/${scaleKey}/${tokenLevel}`
+                isScaleAlias = true
+                break
+              }
+            }
+            if (!isScaleAlias) {
+              tokenName = `color/${family}/${tokenLevel}`
+            }
+          }
           const hex = getTokenValueByName(tokenName)
           if (typeof hex === 'string') {
             const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
@@ -744,7 +762,7 @@ export default function PaletteColorSelector({
         const tokenLevel = lvl
         
         // Determine the correct token name format based on family type
-        let tokenName: string
+        let tokenName: string = `color/${family}/${tokenLevel}` // Default fallback
         const tokensRoot: any = (tokensJson as any)?.tokens || {}
         const colorsRoot: any = tokensRoot?.colors || {}
         
@@ -987,13 +1005,13 @@ function FamilyDropdown({
   
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-token-version={tokenVersion}>
-      <label htmlFor={`family-${paletteKey}`} style={{ fontSize: 12, opacity: 0.8 }}>Color Token</label>
       <div ref={ref} style={{ position: 'relative' }}>
         <button
           id={`family-${paletteKey}`}
           type="button"
           onClick={() => setOpen((v) => !v)}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: '1px solid var(--layer-layer-1-property-border-color)', background: 'transparent', borderRadius: 6, cursor: 'pointer', minWidth: 160, justifyContent: 'space-between' }}
+          aria-label="Select color family"
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: currentHex || 'transparent' }} />

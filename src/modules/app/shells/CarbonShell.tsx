@@ -29,10 +29,10 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
   const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const buttonHeight = getComponentCssVar('Button', 'size', 'default-height', undefined)
   const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
-  const buttonTextBg = getComponentCssVar('Button', 'color', 'text-background', 'layer-0')
-  const buttonTextText = getComponentCssVar('Button', 'color', 'text-text', 'layer-0')
-  const buttonSolidBg = getComponentCssVar('Button', 'color', 'solid-background', 'layer-0')
-  const buttonSolidText = getComponentCssVar('Button', 'color', 'solid-text', 'layer-0')
+  const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
+  const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
+  const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
+  const buttonSolidText = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
   const [carbon, setCarbon] = useState<any>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
@@ -272,7 +272,6 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 clearOverrides(tokensJson as any)
                 resetAll()
               }}
-              title="Reset to defaults"
             />
             <Button
               variant="outline"
@@ -282,7 +281,6 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={() => setIsOpen(true)}
-              title="Import / Export CSS Variables"
             />
             <Button
               variant="outline"
@@ -292,7 +290,6 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
               onClick={handleExport}
-              title="Export JSON Files"
             />
             <div style={{ minWidth: 180 }}>
               <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
@@ -310,10 +307,10 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             const buttonSmallMinWidth = getComponentCssVar('Button', 'size', 'small-min-width', undefined)
             const buttonSmallIcon = getComponentCssVar('Button', 'size', 'small-icon', undefined)
             const buttonSmallIconPadding = getComponentCssVar('Button', 'size', 'small-icon-padding', undefined)
-            const buttonSolidBg = getComponentCssVar('Button', 'color', 'solid-background', 'layer-0')
-            const buttonSolidText = getComponentCssVar('Button', 'color', 'solid-text', 'layer-0')
-            const buttonTextBg = getComponentCssVar('Button', 'color', 'text-background', 'layer-0')
-            const buttonTextText = getComponentCssVar('Button', 'color', 'text-text', 'layer-0')
+            const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
+            const buttonSolidText = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
+            const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
+            const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
             
             return (
               <div style={{ 

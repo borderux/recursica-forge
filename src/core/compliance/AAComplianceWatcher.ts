@@ -1,9 +1,10 @@
-import { buildTokenIndex } from '../resolvers/tokens'
+import { buildTokenIndex, type TokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { findAaCompliantColor } from '../resolvers/colorSteppingForAa'
 import { updateCssVar } from '../css/updateCssVar'
 import { readCssVar } from '../css/readCssVar'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
+import { parseTokenReference } from '../utils/tokenReferenceParser'
 import {
   resolveCssVarToHex,
   stepUntilAACompliant,
@@ -32,7 +33,7 @@ function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): strin
 }
 
 // Helper to get opacity value from CSS var
-function getOpacityValue(opacityVar: string, tokenIndex: Map<string, any>): number {
+function getOpacityValue(opacityVar: string | undefined, tokenIndex: { get: (path: string) => any } | Map<string, any>): number {
   if (!opacityVar) return 1
   const num = Number(opacityVar)
   if (Number.isFinite(num)) {
@@ -79,7 +80,7 @@ function parseCoreTokenRef(name: 'interactive' | 'alert' | 'warning' | 'success'
  * to maintain AA compliance. This replaces manual AA compliance calls.
  */
 export class AAComplianceWatcher {
-  private tokenIndex: Map<string, any>
+  private tokenIndex: TokenIndex
   private tokens: JsonLike
   private theme: JsonLike
   private watchedVars: Set<string> = new Set()
@@ -121,10 +122,10 @@ export class AAComplianceWatcher {
   private setupWatcher() {
     // Don't watch DOM mutations - only respond to explicit user actions
     // Listen for palette family changes and deletions
-    this.paletteFamilyChangedHandler = this.handlePaletteFamilyChanged.bind(this) as any
-    this.paletteDeletedHandler = this.handlePaletteDeleted.bind(this) as any
-    window.addEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler)
-    window.addEventListener('paletteDeleted', this.paletteDeletedHandler)
+    this.paletteFamilyChangedHandler = this.handlePaletteFamilyChanged.bind(this)
+    this.paletteDeletedHandler = this.handlePaletteDeleted.bind(this)
+    window.addEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler as EventListener)
+    window.addEventListener('paletteDeleted', this.paletteDeletedHandler as EventListener)
     
     // Listen for explicit events that should trigger AA compliance checks
     // Only trigger on user-initiated changes, not automatic updates
@@ -260,10 +261,10 @@ export class AAComplianceWatcher {
           const lastValue = this.lastValues.get(varName)
           
           // Only update if the value actually changed (user action), not on first initialization
-          if (currentValue !== lastValue && lastValue !== undefined) {
+          if (currentValue !== lastValue && lastValue !== undefined && currentValue && paletteKey && level) {
             this.lastValues.set(varName, currentValue)
             this.updatePaletteOnTone(paletteKey, level, mode as 'light' | 'dark')
-          } else if (lastValue === undefined) {
+          } else if (lastValue === undefined && currentValue) {
             // First time seeing this var - just record it, don't update
             this.lastValues.set(varName, currentValue)
           }
@@ -358,7 +359,7 @@ export class AAComplianceWatcher {
         const currentValue = readCssVar(coreColorVar)
         const lastValue = this.lastValues.get(coreColorVar)
         
-        if (currentValue !== lastValue) {
+        if (currentValue !== lastValue && currentValue) {
           this.lastValues.set(coreColorVar, currentValue)
           
           // Core color changes affect ALL layers (0-3) for this mode
@@ -386,7 +387,7 @@ export class AAComplianceWatcher {
         const lastValue = this.lastValues.get(asteriskColorVar)
         
         // If user changed the asterisk color for any layer, update all layers
-        if (currentValue !== lastValue && lastValue !== undefined) {
+        if (currentValue !== lastValue && lastValue !== undefined && currentValue) {
           this.lastValues.set(asteriskColorVar, currentValue)
           // Update all layers to maintain consistency and AA compliance
           this.updateAllComponentAsteriskColors(mode, currentValue)
@@ -959,10 +960,10 @@ export class AAComplianceWatcher {
       this.checkTimeout = null
     }
     if (this.paletteFamilyChangedHandler) {
-      window.removeEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler)
+      window.removeEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler as EventListener)
     }
     if (this.paletteDeletedHandler) {
-      window.removeEventListener('paletteDeleted', this.paletteDeletedHandler)
+      window.removeEventListener('paletteDeleted', this.paletteDeletedHandler as EventListener)
     }
     if (this.observer) {
       this.observer.disconnect()
