@@ -1,15 +1,24 @@
 # Deploy Workflow
 #
-# This workflow uses the Changesets Action to manage versioning, releases, and deployments.
+# Purpose: Manages versioning, releases, and GitHub Pages deployments using Changesets.
+#
+# This workflow handles the complete release lifecycle:
+# 1. Version Management: When changesets are present, creates a "Version Packages" PR
+# 2. Release Creation: When the version PR is merged, creates git tags and GitHub releases
+# 3. Deployment: After a release is created, deploys the application to GitHub Pages
 #
 # How it works:
-# 1. Builds the application to ensure it compiles successfully (version mode) or for deployment (publish mode)
-# 2. Runs Changesets Action which:
-#    - If changesets exist (version mode): Creates a "Version Packages" pull request
-#    - If no changesets exist (publish mode): Runs the publish command to create tag and release
-# 3. If publish mode (no changesets), builds and deploys to GitHub Pages
+# 1. Builds the application (verifies compilation in version mode, prepares for deployment in publish mode)
+# 2. Runs Changesets Action which operates in two modes:
+#    - Version mode (changesets exist): Creates a "Version Packages" pull request with version bumps and changelog
+#    - Publish mode (no changesets): Runs `npm run release` which executes `changeset publish` to:
+#      * Create a git tag for the release version
+#      * Create a GitHub release with changelog (using @changesets/changelog-github)
+#      * Set the `published` output to `true` when successful
+# 3. If publishing occurred (`published == true`), deploys the built application to GitHub Pages
 #
-# This workflow runs on every push to main. The Changesets Action handles both modes automatically.
+# This workflow runs on every push to main and can be manually triggered via workflow_dispatch.
+# The Changesets Action automatically determines which mode to use based on the presence of changeset files.
 
 name: Deploy
 
@@ -31,7 +40,7 @@ concurrency:
 
 jobs:
   changesets:
-    name: Create Release Pull Request
+    name: Version, Release, and Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -49,25 +58,31 @@ jobs:
         run: npm ci
 
       # Build the application
-      # In version mode: verifies compilation before creating version PR
-      # In publish mode: builds for deployment
+      # Always builds to:
+      # - Verify compilation succeeds before creating version PR (version mode)
+      # - Prepare the production build for deployment (publish mode)
       - name: Build
         run: npm run build
 
       # Changesets Action - The Core of Our Release System
       #
-      # This action has two modes (handled automatically):
-      # 1. Version mode (changesets exist): Creates a "Version Packages" pull request
-      # 2. Publish mode (no changesets): Runs the `publish` command to create tag and release
+      # This action automatically operates in one of two modes:
       #
-      # The `publish` command executes `npm run release` which:
-      # - Creates a git tag for the release version
-      # - Creates a GitHub release with changelog
-      # - Pushes the tag to the repository
+      # Version Mode (changesets exist):
+      # - Creates a "Version Packages" pull request
+      # - The PR includes version bumps in package.json and updated CHANGELOG.md
+      # - After the PR is merged, the workflow runs again in publish mode
       #
-      # The action outputs `published` (boolean) indicating if publishing occurred.
-      # Note: Since this is a private package, we don't publish to npm.
-      # The release script handles git tags and GitHub releases.
+      # Publish Mode (no changesets, version PR was merged):
+      # - Runs the `publish` command: `npm run release`
+      # - Which executes: `changeset publish --access public`
+      # - This creates:
+      #   * A git tag for the release version (e.g., v1.2.3)
+      #   * A GitHub release with changelog (using @changesets/changelog-github for PR/commit links)
+      #   * Sets the `published` output to `true` when successful
+      #
+      # Note: Since this package is marked `private: true` in package.json, it won't publish to npm.
+      # The `--access public` flag is harmless but has no effect for private packages.
       - name: Create Release Pull Request or Publish
         id: changesets-action
         uses: changesets/action@v1
@@ -76,14 +91,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.CHANGESETS_RELEASE_PAT }}
 
+      # Deploy to GitHub Pages (only after a release is created)
+      #
+      # These steps only run when the Changesets Action successfully published a release
+      # (i.e., `steps.changesets-action.outputs.published == 'true'`).
+      # This ensures we only deploy after:
+      # 1. The version PR has been merged
+      # 2. A git tag and GitHub release have been created
+      # 3. The release is ready for deployment
+      #
       # Configure GitHub Pages deployment settings
-      # Only deploy if the Changesets Action published (created a release)
       - name: Setup Pages
         if: steps.changesets-action.outputs.published == 'true'
         uses: actions/configure-pages@v4
 
       # Upload the built dist folder as a Pages artifact
-      # This artifact will be deployed in the next step
+      # The build from earlier in the workflow is reused here
       - name: Upload artifact
         if: steps.changesets-action.outputs.published == 'true'
         uses: actions/upload-pages-artifact@v3
@@ -91,8 +114,7 @@ jobs:
           path: './dist'
 
       # Deploy the uploaded artifact to GitHub Pages
-      # This makes the application available at the repository's Pages URL
-      # Only runs when Changesets Action published (after version PR is merged and release is created)
+      # Makes the application available at the repository's GitHub Pages URL
       - name: Deploy to GitHub Pages
         if: steps.changesets-action.outputs.published == 'true'
         id: deployment
