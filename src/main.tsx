@@ -12,6 +12,7 @@ import LayersPage from './modules/layers/LayersPage'
 import ElevationsPage from './modules/elevation/ElevationsPage'
 import ThemePage from './modules/theme/ThemePage'
 import DimensionsPage from './modules/dimensions/DimensionsPage'
+import { NotFoundPage } from './modules/app/NotFoundPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { ThemeModeProvider } from './modules/theme/ThemeModeContext'
 import { VarsProvider } from './modules/vars/VarsContext'
@@ -86,6 +87,7 @@ const router = createBrowserRouter([
           { path: 'dimensions', element: <DimensionsPage /> },
         ],
       },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ])
