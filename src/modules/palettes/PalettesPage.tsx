@@ -546,41 +546,29 @@ export default function PalettesPage() {
   const writePalettes = (next: PaletteEntry[]) => setPalettes({ ...palettesState, dynamic: next })
   
   // Track which families are already used by palettes
-  // Check both initialFamily and the actual family from theme JSON
+  // Use theme JSON as the source of truth (it reflects actual current usage)
+  // Only fall back to initialFamily if theme JSON doesn't have the palette
+  const [paletteFamilyChangeVersion, setPaletteFamilyChangeVersion] = useState(0)
+  
+  // Listen for palette family changes to force recalculation
+  useEffect(() => {
+    const handlePaletteFamilyChanged = () => {
+      setPaletteFamilyChangeVersion(v => v + 1)
+    }
+    window.addEventListener('paletteFamilyChanged', handlePaletteFamilyChanged as any)
+    return () => {
+      window.removeEventListener('paletteFamilyChanged', handlePaletteFamilyChanged as any)
+    }
+  }, [])
+  
   const usedFamilies = useMemo(() => {
     const set = new Set<string>()
     const tokensRoot: any = (tokensJson as any)?.tokens || {}
     const colorsRoot: any = tokensRoot?.colors || {}
+    const detectedFromTheme = new Set<string>() // Track which palettes we detected from theme
     
-    // First, add families from initialFamily
-    palettes.forEach((p) => {
-      if (p.initialFamily) {
-        // If initialFamily is a scale key, use it directly
-        // If it's an alias, find the corresponding scale key
-        if (p.initialFamily.startsWith('scale-')) {
-          set.add(p.initialFamily)
-        } else {
-          // Check if it's an alias that maps to a scale
-          let foundScale = false
-          for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
-            if (!scaleKey.startsWith('scale-')) continue
-            const scaleObj = scale as any
-            if (scaleObj?.alias === p.initialFamily) {
-              set.add(scaleKey)
-              foundScale = true
-              break
-            }
-          }
-          // If not found as alias, use the family name directly (old format)
-          if (!foundScale) {
-            set.add(p.initialFamily)
-          }
-        }
-      }
-    })
-    
-    // Then, detect actual families from theme JSON (in case user changed the family)
-    // This is the source of truth - check what families are actually being used
+    // First, detect actual families from theme JSON - this is the source of truth
+    // Theme JSON reflects what's actually being used, even if initialFamily is stale
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
@@ -639,6 +627,7 @@ export default function PalettesPage() {
                   
                   if (detectedFamily) {
                     set.add(detectedFamily)
+                    detectedFromTheme.add(paletteKey)
                     foundFamily = true
                     break // Found a family for this palette, move to next palette
                   }
@@ -652,8 +641,39 @@ export default function PalettesPage() {
       console.error('Failed to detect used families from theme:', err)
     }
     
+    // Only use initialFamily as fallback for palettes not found in theme JSON
+    // This handles edge cases where a palette exists but theme JSON hasn't been initialized yet
+    palettes.forEach((p) => {
+      // Skip if we already detected this palette from theme JSON
+      if (detectedFromTheme.has(p.key)) return
+      
+      if (p.initialFamily) {
+        // If initialFamily is a scale key, use it directly
+        // If it's an alias, find the corresponding scale key
+        if (p.initialFamily.startsWith('scale-')) {
+          set.add(p.initialFamily)
+        } else {
+          // Check if it's an alias that maps to a scale
+          let foundScale = false
+          for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+            if (!scaleKey.startsWith('scale-')) continue
+            const scaleObj = scale as any
+            if (scaleObj?.alias === p.initialFamily) {
+              set.add(scaleKey)
+              foundScale = true
+              break
+            }
+          }
+          // If not found as alias, use the family name directly (old format)
+          if (!foundScale) {
+            set.add(p.initialFamily)
+          }
+        }
+      }
+    })
+    
     return set
-  }, [palettes, themeJson, tokensJson])
+  }, [palettes, themeJson, tokensJson, paletteFamilyChangeVersion])
   
   const unusedFamilies = useMemo(() => 
     allFamilies.filter((f) => !usedFamilies.has(f)), 
@@ -747,57 +767,17 @@ export default function PalettesPage() {
   }
   
   const addPalette = () => {
-    if (!canAddPalette || unusedFamilies.length === 0) return
-    
-    // Only use unused color scales - take the first available one
-    const family = unusedFamilies[0]
-    
-    // Double-check that this family is actually unused
-    // Check both the usedFamilies set and verify it's not in any palette's initialFamily
-    const tokensRoot: any = (tokensJson as any)?.tokens || {}
-    const colorsRoot: any = tokensRoot?.colors || {}
-    
-    // Convert family to scale key if it's an alias, for consistent comparison
-    let familyAsScaleKey = family
-    if (!family.startsWith('scale-')) {
-      // Check if it's an alias
-      for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
-        if (!scaleKey.startsWith('scale-')) continue
-        const scaleObj = scale as any
-        if (scaleObj?.alias === family) {
-          familyAsScaleKey = scaleKey
-          break
-        }
-      }
-    }
-    
-    // Verify this family/scale is actually unused
-    if (usedFamilies.has(family) || usedFamilies.has(familyAsScaleKey)) {
-      console.warn(`Attempted to add palette with already-used family: ${family} (scale key: ${familyAsScaleKey})`)
-      console.warn('Used families:', Array.from(usedFamilies))
-      console.warn('Unused families:', unusedFamilies)
+    if (!canAddPalette || unusedFamilies.length === 0) {
+      console.warn('Cannot add palette:', { canAddPalette, unusedFamiliesLength: unusedFamilies.length })
       return
     }
     
-    // Also check if any existing palette has this as initialFamily
-    const isUsedAsInitialFamily = palettes.some((p) => {
-      if (!p.initialFamily) return false
-      if (p.initialFamily === family || p.initialFamily === familyAsScaleKey) return true
-      // Check if initialFamily is an alias that maps to this scale
-      if (!p.initialFamily.startsWith('scale-')) {
-        for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
-          if (!scaleKey.startsWith('scale-')) continue
-          const scaleObj = scale as any
-          if (scaleObj?.alias === p.initialFamily && scaleKey === familyAsScaleKey) {
-            return true
-          }
-        }
-      }
-      return false
-    })
+    // Only use unused color scales - take the first available one
+    // unusedFamilies already filters out used families, so we can trust it
+    const family = unusedFamilies[0]
     
-    if (isUsedAsInitialFamily) {
-      console.warn(`Family ${family} is already used as initialFamily by another palette`)
+    if (!family) {
+      console.warn('No family available to add palette')
       return
     }
     
@@ -806,11 +786,22 @@ export default function PalettesPage() {
     while (existing.has(`palette-${i}`)) i += 1
     const nextKey = `palette-${i}`
     
-    // Initialize theme JSON for this palette using the unused color scale
-    initializePaletteTheme(nextKey, family)
+    console.log('Adding palette:', { nextKey, family, unusedFamilies, currentPalettes: palettes.length })
     
-    // Add palette entry with the unused color scale as initialFamily
-    writePalettes([...palettes, { key: nextKey, title: `Palette ${i}`, defaultLevel: 500, initialFamily: family }])
+    try {
+      // Initialize theme JSON for this palette using the unused color scale
+      initializePaletteTheme(nextKey, family)
+      
+      // Add palette entry with the unused color scale as initialFamily
+      const newPalette: PaletteEntry = { key: nextKey, title: `Palette ${i}`, defaultLevel: 500, initialFamily: family }
+      const updatedPalettes = [...palettes, newPalette]
+      console.log('Writing palettes:', { newPalette, updatedPalettes })
+      writePalettes(updatedPalettes)
+      
+      console.log('Palette added successfully')
+    } catch (err) {
+      console.error('Failed to add palette:', err)
+    }
   }
   
   const deletePalette = (key: string) => {
