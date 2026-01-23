@@ -367,19 +367,30 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
     let corePropertyCount = 0
     
     themeValuePaths.forEach(({ path, value, isDimension }, index) => {
-      // Skip typography $value objects
+      const pathStr = path.join('.')
+      
+      // Skip typography $value objects themselves (the whole object), but allow properties inside them
+      // Path structure: brand.themes.light.typography.h1.$value.fontFamily
+      // We want to randomize fontFamily, fontSize, etc. but skip the $value object itself
       if (value && typeof value === 'object' && '$type' in value && value.$type === 'typography') {
         return
       }
-      // Skip if parent has $type typography
-      const parent = path.length > 0 ? getValueAtPath(modifiedTheme, path.slice(0, -1)) : null
-      if (parent && typeof parent === 'object' && '$type' in parent && parent.$type === 'typography') {
-        return
+      
+      // Check if we're inside a typography $value object (path contains typography and $value)
+      // If so, we want to randomize these properties
+      // Path structure: brand.themes.light.typography.h1.$value.fontFamily
+      const isInsideTypographyValue = pathStr.includes('typography') && pathStr.includes('$value')
+      
+      // Skip if parent has $type typography AND we're not inside the $value object
+      if (!isInsideTypographyValue) {
+        const parent = path.length > 0 ? getValueAtPath(modifiedTheme, path.slice(0, -1)) : null
+        if (parent && typeof parent === 'object' && '$type' in parent && parent.$type === 'typography') {
+          return
+        }
       }
       
       // Skip dimension objects in layer properties (border-thickness, etc.) - these should be token references
       // Check if path ends with ['$value', 'value'] which indicates we're inside a dimension object
-      const pathStr = path.join('.')
       const isLayerProperty = /layer.*\.properties/.test(pathStr) || (pathStr.includes('layer-') && pathStr.includes('properties'))
       const isInsideDimensionValue = path.length >= 2 && path[path.length - 2] === '$value' && path[path.length - 1] === 'value'
       if (isLayerProperty && (isDimension || isInsideDimensionValue)) {
@@ -429,24 +440,27 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       const isOverlayOpacity = hasStatesOverlay && hasOverlayOpacity
       const isOverlay = isOverlayColor || isOverlayOpacity
       
+      // Type: typography section - use isInsideTypographyValue to ensure we're inside a $value object
+      const isType = isInsideTypographyValue
       
-      // Skip token references UNLESS they are core properties, emphasis/disabled opacities, or overlay values (which we want to randomize)
+      // Skip token references UNLESS they are core properties, emphasis/disabled opacities, overlay values, or typography (which we want to randomize)
       if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
-        // If it's NOT a core property, emphasis/disabled opacity, or overlay value, or the relevant randomization is disabled, skip it
-        if (!isCoreProperty && !isEmphasisOrDisabledOpacity && !isOverlay) {
+        // If it's NOT a core property, emphasis/disabled opacity, overlay value, or typography property, or the relevant randomization is disabled, skip it
+        if (!isCoreProperty && !isEmphasisOrDisabledOpacity && !isOverlay && !isType) {
           return
         }
         if (isCoreProperty && !opts.theme.coreProperties) {
           return
         }
-        // For core properties, emphasis/disabled opacities, and overlay values, we'll randomize the token reference itself
+        if (isType && !opts.theme.type) {
+          return
+        }
+        // For core properties, emphasis/disabled opacities, overlay values, and typography, we'll randomize the token reference itself
         // Continue to randomization logic below - don't return here
       } else if (isCoreProperty && opts.theme.coreProperties && typeof value !== 'string') {
         // Core properties should be token references or color values
         // If it's not a string (not a token reference), it might be a color object - continue
       }
-      // Type: typography section
-      const isType = pathStr.includes('typography')
       // Palettes: color palettes (but exclude core-colors which are handled as core properties)
       const isPalette = (pathStr.includes('palettes') || pathStr.includes('color')) && !pathStr.includes('core-colors') && !pathStr.includes('elements')
       // Elevations: elevation definitions
@@ -538,6 +552,63 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
           const randomTone = tones[Math.floor(Math.random() * tones.length)]
           newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
         }
+      } else if (isType && opts.theme.type && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+        // Randomize typography properties by picking random token references
+        if (pathStr.includes('fontFamily')) {
+          // Pick a random typeface token reference
+          const typefaces = ['primary', 'secondary', 'tertiary']
+          const randomTypeface = typefaces[Math.floor(Math.random() * typefaces.length)]
+          newValue = `{tokens.font.typefaces.${randomTypeface}}`
+        } else if (pathStr.includes('fontSize')) {
+          // Pick a random font size token reference
+          const fontSizes = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl']
+          const randomSize = fontSizes[Math.floor(Math.random() * fontSizes.length)]
+          newValue = `{tokens.font.sizes.${randomSize}}`
+        } else if (pathStr.includes('fontWeight')) {
+          // Pick a random font weight token reference
+          const fontWeights = ['thin', 'extra-light', 'light', 'regular', 'medium', 'semi-bold', 'bold', 'extra-bold', 'black']
+          const randomWeight = fontWeights[Math.floor(Math.random() * fontWeights.length)]
+          newValue = `{tokens.font.weights.${randomWeight}}`
+        } else if (pathStr.includes('letterSpacing')) {
+          // Pick a random letter spacing token reference
+          const letterSpacings = ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest']
+          const currentToken = value.match(/\{tokens\.font\.letter-spacings\.([a-z0-9-]+)\}/)?.[1]
+          const availableTokens = currentToken ? letterSpacings.filter(t => t !== currentToken) : letterSpacings
+          const randomSpacing = availableTokens.length > 0 
+            ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+            : letterSpacings[Math.floor(Math.random() * letterSpacings.length)]
+          newValue = `{tokens.font.letter-spacings.${randomSpacing}}`
+        } else if (pathStr.includes('lineHeight')) {
+          // Pick a random line height token reference
+          const lineHeights = ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest']
+          const currentToken = value.match(/\{tokens\.font\.line-heights\.([a-z0-9-]+)\}/)?.[1]
+          const availableTokens = currentToken ? lineHeights.filter(t => t !== currentToken) : lineHeights
+          const randomLineHeight = availableTokens.length > 0 
+            ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+            : lineHeights[Math.floor(Math.random() * lineHeights.length)]
+          newValue = `{tokens.font.line-heights.${randomLineHeight}}`
+        } else if (pathStr.includes('textCase')) {
+          // Pick a random text case token reference
+          const textCases = ['original', 'uppercase', 'titlecase']
+          const currentToken = value.match(/\{tokens\.font\.cases\.([a-z0-9-]+)\}/)?.[1]
+          const availableTokens = currentToken ? textCases.filter(t => t !== currentToken) : textCases
+          const randomCase = availableTokens.length > 0 
+            ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+            : textCases[Math.floor(Math.random() * textCases.length)]
+          newValue = `{tokens.font.cases.${randomCase}}`
+        } else if (pathStr.includes('textDecoration')) {
+          // Pick a random text decoration token reference
+          const textDecorations = ['none', 'underline', 'strikethrough']
+          const currentToken = value.match(/\{tokens\.font\.decorations\.([a-z0-9-]+)\}/)?.[1]
+          const availableTokens = currentToken ? textDecorations.filter(t => t !== currentToken) : textDecorations
+          const randomDecoration = availableTokens.length > 0 
+            ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+            : textDecorations[Math.floor(Math.random() * textDecorations.length)]
+          newValue = `{tokens.font.decorations.${randomDecoration}}`
+        } else {
+          // For other typography properties, keep as-is
+          newValue = value
+        }
       } else {
         newValue = generateRandomValue(value, index, { 
           isColor: isColor || isElevationColor, 
@@ -552,6 +623,87 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       
       modifyValueAtPath(modifiedTheme, path, newValue)
     })
+    
+    // Handle typography properties separately since they're not $value properties
+    // Typography structure: brand.typography.h1.$value.fontFamily (typography is at brand level, not inside themes)
+    // findAllValuePaths won't find fontFamily, fontSize, etc. because they're regular properties, not $value
+    if (opts.theme.type) {
+      const root: any = modifiedTheme.brand || modifiedTheme
+      
+      if (root.typography) {
+        for (const [styleName, styleObj] of Object.entries(root.typography)) {
+          if (!styleObj || typeof styleObj !== 'object' || !('$value' in styleObj)) continue
+          
+          const $value = styleObj.$value
+          if (!$value || typeof $value !== 'object') continue
+          
+          // Randomize fontFamily
+          if (typeof $value.fontFamily === 'string' && $value.fontFamily.startsWith('{') && $value.fontFamily.endsWith('}')) {
+            const typefaces = ['primary', 'secondary', 'tertiary']
+            const randomTypeface = typefaces[Math.floor(Math.random() * typefaces.length)]
+            $value.fontFamily = `{tokens.font.typefaces.${randomTypeface}}`
+          }
+          
+          // Randomize fontSize
+          if (typeof $value.fontSize === 'string' && $value.fontSize.startsWith('{') && $value.fontSize.endsWith('}')) {
+            const fontSizes = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl']
+            const randomSize = fontSizes[Math.floor(Math.random() * fontSizes.length)]
+            $value.fontSize = `{tokens.font.sizes.${randomSize}}`
+          }
+          
+          // Randomize fontWeight
+          if (typeof $value.fontWeight === 'string' && $value.fontWeight.startsWith('{') && $value.fontWeight.endsWith('}')) {
+            const fontWeights = ['thin', 'extra-light', 'light', 'regular', 'medium', 'semi-bold', 'bold', 'extra-bold', 'black']
+            const randomWeight = fontWeights[Math.floor(Math.random() * fontWeights.length)]
+            $value.fontWeight = `{tokens.font.weights.${randomWeight}}`
+          }
+          
+          // Randomize letterSpacing
+          if (typeof $value.letterSpacing === 'string' && $value.letterSpacing.startsWith('{') && $value.letterSpacing.endsWith('}')) {
+            const letterSpacings = ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest']
+            const currentToken = $value.letterSpacing.match(/\{tokens\.font\.letter-spacings\.([a-z0-9-]+)\}/)?.[1]
+            const availableTokens = currentToken ? letterSpacings.filter(t => t !== currentToken) : letterSpacings
+            const randomSpacing = availableTokens.length > 0 
+              ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+              : letterSpacings[Math.floor(Math.random() * letterSpacings.length)]
+            $value.letterSpacing = `{tokens.font.letter-spacings.${randomSpacing}}`
+          }
+          
+          // Randomize lineHeight
+          if (typeof $value.lineHeight === 'string' && $value.lineHeight.startsWith('{') && $value.lineHeight.endsWith('}')) {
+            const lineHeights = ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest']
+            const currentToken = $value.lineHeight.match(/\{tokens\.font\.line-heights\.([a-z0-9-]+)\}/)?.[1]
+            const availableTokens = currentToken ? lineHeights.filter(t => t !== currentToken) : lineHeights
+            const randomLineHeight = availableTokens.length > 0 
+              ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+              : lineHeights[Math.floor(Math.random() * lineHeights.length)]
+            $value.lineHeight = `{tokens.font.line-heights.${randomLineHeight}}`
+          }
+          
+          // Randomize textCase
+          if (typeof $value.textCase === 'string' && $value.textCase.startsWith('{') && $value.textCase.endsWith('}')) {
+            const textCases = ['original', 'uppercase', 'titlecase']
+            const currentToken = $value.textCase.match(/\{tokens\.font\.cases\.([a-z0-9-]+)\}/)?.[1]
+            const availableTokens = currentToken ? textCases.filter(t => t !== currentToken) : textCases
+            const randomCase = availableTokens.length > 0 
+              ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+              : textCases[Math.floor(Math.random() * textCases.length)]
+            $value.textCase = `{tokens.font.cases.${randomCase}}`
+          }
+          
+          // Randomize textDecoration
+          if (typeof $value.textDecoration === 'string' && $value.textDecoration.startsWith('{') && $value.textDecoration.endsWith('}')) {
+            const textDecorations = ['none', 'underline', 'strikethrough']
+            const currentToken = $value.textDecoration.match(/\{tokens\.font\.decorations\.([a-z0-9-]+)\}/)?.[1]
+            const availableTokens = currentToken ? textDecorations.filter(t => t !== currentToken) : textDecorations
+            const randomDecoration = availableTokens.length > 0 
+              ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+              : textDecorations[Math.floor(Math.random() * textDecorations.length)]
+            $value.textDecoration = `{tokens.font.decorations.${randomDecoration}}`
+          }
+        }
+      }
+    }
     
     // Update store with modified theme
     // setTheme will trigger recomputeAndApplyAll() internally, but we'll also call it explicitly at the end
