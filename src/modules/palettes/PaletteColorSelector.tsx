@@ -108,8 +108,20 @@ export default function PaletteColorSelector({
   headerLevels,
   onFamilyChange,
 }: PaletteColorSelectorProps) {
-  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
+  const { tokens: tokensJson, theme: themeJson, setTheme, palettes: palettesState } = useVars()
   const [overrideVersion, setOverrideVersion] = useState(0)
+  const [paletteChangeVersion, setPaletteChangeVersion] = useState(0)
+
+  // Listen for palette deletion events to force recalculation of available families
+  useEffect(() => {
+    const handlePaletteDeleted = () => {
+      setPaletteChangeVersion(v => v + 1)
+    }
+    window.addEventListener('paletteDeleted', handlePaletteDeleted as any)
+    return () => {
+      window.removeEventListener('paletteDeleted', handlePaletteDeleted as any)
+    }
+  }, [])
 
   // Detect which families are used by which palettes from theme JSON
   const familiesUsedByPalettes = useMemo(() => {
@@ -136,15 +148,29 @@ export default function PaletteColorSelector({
     if (root?.dark?.palettes) visit(root.dark.palettes, 'palette', 'Dark')
     
     // Check all palettes in theme to see which families they use
+    // Only check palettes that still exist in palettesState (filter out deleted ones)
+    const existingPaletteKeys = new Set<string>()
+    if (palettesState?.dynamic) {
+      palettesState.dynamic.forEach((p: any) => {
+        if (p?.key) existingPaletteKeys.add(p.key)
+      })
+    }
+    // Also include static palettes like 'neutral'
+    existingPaletteKeys.add('neutral')
+    
     const checkLevels = ['200', '500', '400', '300']
     const paletteKeys = new Set<string>()
     
-    // First, find all palette keys
+    // First, find all palette keys from theme index
     // Note: theme index uses 'palette' prefix (singular) to match resolver
     Object.keys(themeIndex).forEach((key) => {
       const match = key.match(/^(?:Light|Dark)::palette\/([^/]+)\//)
       if (match && match[1]) {
-        paletteKeys.add(match[1])
+        const pk = match[1]
+        // Only include if this palette still exists
+        if (existingPaletteKeys.has(pk)) {
+          paletteKeys.add(pk)
+        }
       }
     })
     
@@ -195,7 +221,7 @@ export default function PaletteColorSelector({
     }
     
     return usedBy
-  }, [themeJson])
+  }, [themeJson, tokensJson, paletteChangeVersion, palettesState])
 
   // Get available color families
   const allFamilies = useMemo(() => {
@@ -254,18 +280,66 @@ export default function PaletteColorSelector({
 
   // Filter families to exclude those used by other palettes
   const families = useMemo(() => {
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
     const familiesUsedByOthers = new Set<string>()
+    
+    // Convert aliases to scale keys for comparison
     Object.entries(familiesUsedByPalettes).forEach(([pk, fam]) => {
       if (pk !== paletteKey) {
-        familiesUsedByOthers.add(fam)
+        // fam is an alias or old format family name
+        // Convert to scale key if it's an alias, otherwise use as-is
+        if (fam.startsWith('scale-')) {
+          // Already a scale key
+          familiesUsedByOthers.add(fam)
+        } else {
+          // Check if it's an alias that maps to a scale
+          let foundScale = false
+          for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+            if (!scaleKey.startsWith('scale-')) continue
+            const scaleObj = scale as any
+            if (scaleObj?.alias === fam) {
+              familiesUsedByOthers.add(scaleKey)
+              foundScale = true
+              break
+            }
+          }
+          // If not found as alias, it's an old format family - add it directly
+          if (!foundScale) {
+            familiesUsedByOthers.add(fam)
+          }
+        }
       }
     })
     
+    // Get current palette's family as scale key for comparison
+    const currentPaletteFamily = familiesUsedByPalettes[paletteKey]
+    let currentPaletteFamilyAsScaleKey: string | null = null
+    if (currentPaletteFamily) {
+      if (currentPaletteFamily.startsWith('scale-')) {
+        currentPaletteFamilyAsScaleKey = currentPaletteFamily
+      } else {
+        // Check if it's an alias
+        for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+          if (!scaleKey.startsWith('scale-')) continue
+          const scaleObj = scale as any
+          if (scaleObj?.alias === currentPaletteFamily) {
+            currentPaletteFamilyAsScaleKey = scaleKey
+            break
+          }
+        }
+        // If not found, use as-is (old format)
+        if (!currentPaletteFamilyAsScaleKey) {
+          currentPaletteFamilyAsScaleKey = currentPaletteFamily
+        }
+      }
+    }
+    
     return allFamilies.filter((fam) => {
       // Include if not used by others, or if it's the current palette's family
-      return !familiesUsedByOthers.has(fam) || familiesUsedByPalettes[paletteKey] === fam
+      return !familiesUsedByOthers.has(fam) || currentPaletteFamilyAsScaleKey === fam
     })
-  }, [allFamilies, familiesUsedByPalettes, paletteKey])
+  }, [allFamilies, familiesUsedByPalettes, paletteKey, tokensJson])
 
   // Get token value by name - memoize to prevent unnecessary recalculations
   const getTokenValueByName = useCallback((tokenName: string): string | number | undefined => {

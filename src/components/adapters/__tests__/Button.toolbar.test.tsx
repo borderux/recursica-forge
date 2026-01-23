@@ -425,9 +425,11 @@ describe('Button Toolbar Props Integration', () => {
       // Switch to outline variant
       rerender(
         <UiKitProvider>
-          <UnifiedThemeProvider>
-            <Button variant="outline" layer="layer-0">Test</Button>
-          </UnifiedThemeProvider>
+          <ThemeModeProvider>
+            <UnifiedThemeProvider>
+              <Button variant="outline" layer="layer-0">Test</Button>
+            </UnifiedThemeProvider>
+          </ThemeModeProvider>
         </UiKitProvider>
       )
 

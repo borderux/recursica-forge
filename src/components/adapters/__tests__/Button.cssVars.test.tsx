@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { render } from '@testing-library/react'
+import { render, waitFor } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
@@ -29,92 +29,107 @@ describe('Button CSS Variables', () => {
     )
   }
 
+  // Helper to wait for button component to load (not Suspense fallback)
+  const waitForButton = async (container: HTMLElement, expectedText?: string) => {
+    return await waitFor(() => {
+      const btn = container.querySelector('button')
+      if (!btn) throw new Error('Button not found')
+      // Ensure it's not the loading button
+      if (btn.textContent === 'Loading...' && btn.disabled) throw new Error('Still loading')
+      // Wait for actual button content if expected text provided
+      if (expectedText && !btn.textContent?.includes(expectedText)) {
+        throw new Error(`Button text mismatch: expected "${expectedText}", got "${btn.textContent}"`)
+      }
+      return btn
+    }, { timeout: 15000 })
+  }
+
   describe('CSS Variable Definitions', () => {
-    it('uses Recursica CSS variables for button colors', () => {
+    it('uses Recursica CSS variables for button colors', async () => {
       const { container } = renderWithProviders(
         <Button variant="solid" size="default" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       expect(button).toBeInTheDocument()
 
       // Check that styles reference Recursica CSS variables
-      const styles = window.getComputedStyle(button!)
+      const styles = window.getComputedStyle(button)
       // The actual values depend on CSS variable definitions, but we can check they're applied
       expect(styles).toBeDefined()
     })
 
-    it('uses Recursica CSS variables for button sizes', () => {
+    it('uses Recursica CSS variables for button sizes', async () => {
       const { container } = renderWithProviders(
         <Button variant="solid" size="small" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       expect(button).toBeInTheDocument()
 
-      const styles = window.getComputedStyle(button!)
+      const styles = window.getComputedStyle(button)
       expect(styles).toBeDefined()
     })
 
-    it('uses layer-specific CSS variables', () => {
+    it('uses layer-specific CSS variables', async () => {
       const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
 
-      layers.forEach(layer => {
+      for (const layer of layers) {
         const { container, unmount } = renderWithProviders(
           <Button variant="solid" size="default" layer={layer}>Test</Button>
         )
-        const button = container.querySelector('button')
+        const button = await waitForButton(container, 'Test')
         expect(button).toBeInTheDocument()
         unmount()
-      })
+      }
     })
   })
 
   describe('Component-Level CSS Variables', () => {
-    it('sets --button-icon-size when icon is provided', () => {
+    it('sets --button-icon-size when icon is provided', async () => {
       const TestIcon = () => <svg><circle /></svg>
       const { container } = renderWithProviders(
         <Button icon={<TestIcon />}>With Icon</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'With Icon')
       expect(button).toBeInTheDocument()
 
       // Check that component-level CSS variable is set
-      const iconSize = button?.style.getPropertyValue('--button-icon-size')
+      const iconSize = button.style.getPropertyValue('--button-icon-size')
       expect(iconSize).toBeTruthy()
     })
 
-    it('sets --button-icon-text-gap when icon and children are provided', () => {
+    it('sets --button-icon-text-gap when icon and children are provided', async () => {
       const TestIcon = () => <svg><circle /></svg>
       const { container } = renderWithProviders(
         <Button icon={<TestIcon />}>With Icon</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'With Icon')
       expect(button).toBeInTheDocument()
 
       // Check that gap CSS variable is set
-      const iconGap = button?.style.getPropertyValue('--button-icon-text-gap')
+      const iconGap = button.style.getPropertyValue('--button-icon-text-gap')
       expect(iconGap).toBeTruthy()
     })
 
-    it('sets --button-max-width', () => {
+    it('sets --button-max-width', async () => {
       const { container } = renderWithProviders(<Button>Test</Button>)
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       expect(button).toBeInTheDocument()
 
       // Check that max width CSS variable is set
-      const maxWidth = button?.style.getPropertyValue('--button-max-width')
+      const maxWidth = button.style.getPropertyValue('--button-max-width')
       expect(maxWidth).toBeTruthy()
     })
   })
 
   describe('CSS Variable Fallbacks', () => {
-    it('handles missing CSS variables gracefully', () => {
+    it('handles missing CSS variables gracefully', async () => {
       // Remove a CSS variable to test fallback behavior
       document.documentElement.style.removeProperty('--recursica-ui-kit-components-button-color-layer-0-variant-solid-background')
       
       const { container } = renderWithProviders(
         <Button variant="solid" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       
       // Should still render even if CSS variable is missing
       expect(button).toBeInTheDocument()
@@ -123,61 +138,61 @@ describe('Button CSS Variables', () => {
   })
 
   describe('Variant-Specific CSS Variables', () => {
-    it('uses correct CSS variables for solid variant', () => {
+    it('uses correct CSS variables for solid variant', async () => {
       const { container } = renderWithProviders(
         <Button variant="solid" layer="layer-0">Solid</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Solid')
       expect(button).toBeInTheDocument()
     })
 
-    it('uses correct CSS variables for outline variant', () => {
+    it('uses correct CSS variables for outline variant', async () => {
       const { container } = renderWithProviders(
         <Button variant="outline" layer="layer-0">Outline</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Outline')
       expect(button).toBeInTheDocument()
     })
 
-    it('uses correct CSS variables for text variant', () => {
+    it('uses correct CSS variables for text variant', async () => {
       const { container } = renderWithProviders(
         <Button variant="text" layer="layer-0">Text</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Text')
       expect(button).toBeInTheDocument()
     })
   })
 
   describe('Size-Specific CSS Variables', () => {
-    it('uses correct CSS variables for default size', () => {
+    it('uses correct CSS variables for default size', async () => {
       const { container } = renderWithProviders(
         <Button size="default" layer="layer-0">Default</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Default')
       expect(button).toBeInTheDocument()
     })
 
-    it('uses correct CSS variables for small size', () => {
+    it('uses correct CSS variables for small size', async () => {
       const { container } = renderWithProviders(
         <Button size="small" layer="layer-0">Small</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Small')
       expect(button).toBeInTheDocument()
     })
   })
 
   describe('CSS Variable Namespace', () => {
-    it('all CSS variables use --recursica-* namespace', () => {
+    it('all CSS variables use --recursica-* namespace', async () => {
       // This test verifies that the component uses properly namespaced CSS variables
       // The actual variable names are generated by getComponentCssVar
       const { container } = renderWithProviders(
         <Button variant="solid" size="default" layer="layer-0">Test</Button>
       )
-      const button = container.querySelector('button')
+      const button = await waitForButton(container, 'Test')
       expect(button).toBeInTheDocument()
 
       // Check inline styles for component-level vars (these are set directly)
-      const inlineStyle = button?.getAttribute('style') || ''
+      const inlineStyle = button.getAttribute('style') || ''
       // Component-level vars (--button-*) are acceptable
       // Recursica vars should be referenced via var()
       expect(inlineStyle).toBeTruthy()
