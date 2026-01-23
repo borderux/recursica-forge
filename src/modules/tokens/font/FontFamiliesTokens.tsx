@@ -17,6 +17,7 @@ import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { Chip } from '../../../components/adapters/Chip'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
+import { getLayerElevationBoxShadow } from '../../../components/utils/brandCssVars'
 import { readCssVarResolved } from '../../../core/css/readCssVar'
 import tokensImport from '../../../vars/Tokens.json'
 
@@ -1111,6 +1112,7 @@ export default function FontFamiliesTokens() {
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
   const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
   const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
@@ -1166,7 +1168,7 @@ export default function FontFamiliesTokens() {
                 transform: dragOverIndex === index ? 'translateY(-4px)' : 'none',
                 boxShadow: dragOverIndex === index 
                   ? `0 4px 8px rgba(0, 0, 0, 0.1)`
-                  : 'none',
+                  : layer1Elevation || undefined,
                 minHeight: 0, // Allow flexbox to control height
               }}
             >
@@ -1371,7 +1373,7 @@ export default function FontFamiliesTokens() {
               </p>
             </div>
             <Button
-              variant="ghost"
+              variant="text"
               size="default"
               layer="layer-1"
               onClick={() => window.open('https://fonts.google.com', '_blank')}

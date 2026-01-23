@@ -379,7 +379,6 @@ export default function ComponentDetailPage() {
       {debugMode && component && openPropControl && (
         <div style={{
           padding: 'var(--recursica-brand-dimensions-general-xl)',
-          borderTop: `1px solid var(${layer1Base}-border-color)`,
         }}>
           <ComponentDebugTable 
             componentName={component.name}

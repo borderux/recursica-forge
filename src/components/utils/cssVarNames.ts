@@ -153,7 +153,7 @@ export function getComponentCssVar(
   if (component.toLowerCase() === 'switch') {
     let propName = property
     // Strip variant prefix if present
-    const variantPrefixMatch = property.match(/^(default|small|large|solid|text|outline|primary|ghost|success|error|warning|alert)-(.+)$/)
+    const variantPrefixMatch = property.match(/^(default|small|large|solid|text|outline|primary|success|error|warning|alert)-(.+)$/)
     if (variantPrefixMatch) {
       propName = variantPrefixMatch[2]
     }
@@ -185,7 +185,7 @@ export function getComponentCssVar(
   
   // Try to parse single-level variant from property string
   // NOTE: This requires hardcoded variant names - components should use buildComponentCssVarPath directly
-  const knownVariants = ['solid', 'text', 'outline', 'default', 'primary-color', 'primary', 'ghost', 'success', 'error-selected', 'error', 'warning', 'alert', 'unselected', 'selected', 'hover', 'focused', 'disabled']
+  const knownVariants = ['solid', 'text', 'outline', 'default', 'primary-color', 'primary', 'success', 'error-selected', 'error', 'warning', 'alert', 'unselected', 'selected', 'hover', 'focused', 'disabled']
   const sortedVariants = knownVariants.sort((a, b) => b.length - a.length)
   for (const variant of sortedVariants) {
     if (property.startsWith(`${variant}-`)) {

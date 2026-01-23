@@ -12,6 +12,7 @@ import { hexToRgb, contrastRatio } from '../theme/contrastUtil'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
+import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
@@ -41,6 +42,7 @@ function CoreOnToneCell({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const AA = 4.5
@@ -188,7 +190,7 @@ function CoreOnToneCell({
               backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
               border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
               borderRadius: '6px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 1000,
               minWidth: '200px',
               fontSize: '12px',
@@ -225,6 +227,7 @@ function CoreInteractiveCell({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const AA = 4.5
@@ -322,7 +325,7 @@ function CoreInteractiveCell({
               backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
               border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
               borderRadius: '6px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 1000,
               minWidth: '200px',
               fontSize: '12px',
@@ -358,6 +361,7 @@ function CoreInteractiveSwatch({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const AA = 4.5
@@ -499,6 +503,7 @@ function CoreInteractiveSwatch({
 export default function PalettesPage() {
   const { tokens: tokensJson, theme: themeJson, palettes: palettesState, setPalettes, setTheme } = useVars()
   const { mode } = useThemeMode()
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   
   const allFamilies = useMemo(() => {
     const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))

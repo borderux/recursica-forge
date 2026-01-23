@@ -143,12 +143,12 @@ export function Slider({
         {/* Min value display */}
         <span style={{ 
           fontSize: 12, 
-          opacity: 0.7, 
+          color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
+          opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
           flexShrink: 0,
           marginRight: '8px',
-          color: 'inherit',
         }}>
-          {min}
+          {minLabel ?? min}
         </span>
         <div style={{ 
           position: 'relative', 
@@ -278,12 +278,12 @@ export function Slider({
         {/* Max value display */}
         <span style={{ 
           fontSize: 12, 
-          opacity: 0.7, 
+          color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
+          opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
           flexShrink: 0,
           marginLeft: '8px',
-          color: 'inherit',
         }}>
-          {max}
+          {maxLabel ?? max}
         </span>
         
         {/* Input field */}
@@ -355,8 +355,8 @@ export function Slider({
             {showValueLabel && (
               <span style={{ 
                 fontSize: 12, 
-                opacity: 0.7, 
-                color: 'inherit',
+                color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
+                opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
                 width: maxValueWidth,
                 textAlign: 'right',
               }}>
@@ -436,6 +436,10 @@ export function Slider({
     ? displayValueStr 
     : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '0')
 
+  // Use layer text color directly for value labels
+  const layerTextColorVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color`
+  const layerTextEmphasisVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis`
+  
   const valueLabelElement = showValueLabel ? (
     <span
       style={{ 
@@ -449,8 +453,8 @@ export function Slider({
         fontWeight: `var(${labelFontWeightVar})`,
         letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
         lineHeight: `var(${labelLineHeightVar})`,
-        color: `var(${labelTextColorVar})`,
-        opacity: `var(${highEmphasisOpacityVar})`,
+        color: `var(${layerTextColorVar})`,
+        opacity: `var(${layerTextEmphasisVar})`,
         textAlign: 'right',
       }}
     >

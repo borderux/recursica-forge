@@ -31,7 +31,7 @@ export default function Button({
   const { mode } = useThemeMode()
   
   // Map unified variant to Carbon kind
-  const carbonKind = variant === 'solid' ? 'primary' : variant === 'outline' ? 'secondary' : variant === 'ghost' ? 'ghost' : 'tertiary'
+  const carbonKind = variant === 'solid' ? 'primary' : variant === 'outline' ? 'secondary' : 'tertiary'
   
   // Map unified size to Carbon size
   const carbonSize = size === 'small' ? 'sm' : 'md'
@@ -39,8 +39,7 @@ export default function Button({
   // Determine size prefix for CSS variables
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
-  // Map ghost variant to text for CSS variable purposes (ghost uses same CSS vars as text)
-  const cssVarVariant = variant === 'ghost' ? 'text' : variant
+  const cssVarVariant = variant
   
   // Use UIKit.json button colors for standard layers
   const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
@@ -111,8 +110,8 @@ export default function Button({
       ...(variant === 'solid' || variant === 'outline' ? {
         border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar})`,
       } : {}),
-      // For text and ghost variants, explicitly remove border
-      ...((variant === 'text' || variant === 'ghost') ? {
+      // For text variant, explicitly remove border
+      ...(variant === 'text' ? {
         border: 'none',
       } : {}),
       // Ensure flex layout for truncation to work with icons
@@ -137,7 +136,7 @@ export default function Button({
         ...((variant === 'solid' || variant === 'outline') && {
           border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar}) !important`,
         }),
-        ...((variant === 'text' || variant === 'ghost') && {
+        ...(variant === 'text' && {
           border: 'none !important',
         }),
       }),

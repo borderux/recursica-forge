@@ -5,6 +5,8 @@
  * (typography, state, elevation) to ensure consistency across components.
  */
 
+import { readCssVar } from '../../core/css/readCssVar'
+
 /**
  * Generates CSS variable name for brand typography properties
  * 
@@ -98,5 +100,41 @@ export function parseElevationValue(elevationValue: string | undefined): string 
   }
   
   return undefined
+}
+
+/**
+ * Gets elevation box-shadow for a given layer
+ * Reads the elevation CSS variable for the layer and converts it to box-shadow
+ * 
+ * @param mode - Theme mode ('light' or 'dark')
+ * @param layer - Layer identifier ('layer-0', 'layer-1', 'layer-2', 'layer-3')
+ * @returns Box-shadow CSS value or undefined if layer-0 or no elevation found
+ * 
+ * @example
+ * getLayerElevationBoxShadow('light', 'layer-1')
+ * => 'var(--recursica-brand-themes-light-elevations-elevation-1-x-axis, 0px) ...'
+ */
+export function getLayerElevationBoxShadow(
+  mode: 'light' | 'dark',
+  layer: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
+): string | undefined {
+  // Layer 0 typically doesn't have elevation
+  if (layer === 'layer-0') {
+    return undefined
+  }
+  
+  // Read elevation CSS variable for the layer
+  const elevationCssVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-elevation`
+  const elevationValue = readCssVar(elevationCssVar)
+  
+  if (!elevationValue) {
+    return undefined
+  }
+  
+  // Parse elevation value (could be "elevation-1" or a token reference)
+  const elevation = parseElevationValue(elevationValue.trim())
+  
+  // Convert to box-shadow
+  return getElevationBoxShadow(mode, elevation)
 }
 

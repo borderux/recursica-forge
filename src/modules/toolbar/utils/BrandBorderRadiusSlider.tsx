@@ -12,6 +12,7 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
+import { Label } from '../../../components/adapters/Label'
 
 interface BrandBorderRadiusSliderProps {
   targetCssVar: string
@@ -261,7 +262,7 @@ export default function BrandBorderRadiusSlider({
         tooltipText={displayLabel}
         minLabel={minLabel}
         maxLabel={maxLabel}
-        label={label ? <span style={{ fontSize: 12, opacity: 0.7 }}>{label}</span> : undefined}
+        label={label ? <Label layer={layer} layout="side-by-side" size="small">{label}</Label> : undefined}
       />
     </div>
   )

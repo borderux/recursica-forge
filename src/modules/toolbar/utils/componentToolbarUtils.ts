@@ -194,7 +194,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                       traverse(nestedVariantsObj, nestedVariantsPath, variantPropName)
                     } else {
                       // Nested variants without category containers: variants.styles.text.variants.solid (Avatar)
-                      // Extract variant names directly (solid, ghost)
+                      // Extract variant names directly (solid, text)
                       const nestedVariantNames = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$'))
                       
                       if (nestedVariantNames.length > 0) {

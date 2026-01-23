@@ -16,7 +16,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type ButtonProps = {
   children?: React.ReactNode
-  variant?: 'solid' | 'outline' | 'text' | 'ghost'
+  variant?: 'solid' | 'outline' | 'text'
   size?: 'default' | 'small'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
@@ -153,7 +153,7 @@ export function Button({
 }
 
 function getButtonStyles(
-  variant: 'solid' | 'outline' | 'text' | 'ghost',
+  variant: 'solid' | 'outline' | 'text',
   size: 'default' | 'small',
   layer: ComponentLayer,
   disabled: boolean,
@@ -162,8 +162,7 @@ function getButtonStyles(
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
   
-  // Map ghost to text for CSS variable lookup (ghost uses text variant's CSS variables)
-  const cssVarVariant = variant === 'ghost' ? 'text' : variant
+  const cssVarVariant = variant
   
   // Use UIKit.json button colors for standard layers
   const bgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
@@ -213,7 +212,7 @@ function getButtonStyles(
     // Use actual CSS border instead of box-shadow
     styles.border = `${borderSizeValue || '1px'} solid var(${borderColorVar || textVar})`
   } else {
-    // text and ghost variants (ghost uses text CSS variables but same styling)
+    // text variant
     styles.backgroundColor = `var(${bgVar})`
     styles.color = `var(${textVar})`
     styles.border = 'none'
