@@ -1031,10 +1031,100 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                     title={coreColor.label}
                     onClick={(e) => {
                       e.stopPropagation()
+                      console.log(`[PaletteSwatchPicker] Core color clicked: key=${coreColor.key}, cssVar=${coreColor.cssVar}, targetCssVar=${targetCssVar}`)
                       try {
                         const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                         const coreColorPrefix = `--recursica-brand-themes-${mode}-palettes-core-`
                         
+                        // Check if this is an overlay color selection
+                        const isOverlayColor = cssVarsToUpdate.some(cssVar => cssVar.includes('state-overlay-color'))
+                        console.log(`[PaletteSwatchPicker] isOverlayColor=${isOverlayColor}, cssVarsToUpdate=`, cssVarsToUpdate)
+                        
+                        if (isOverlayColor) {
+                          // Handle overlay color selection (similar to palette color handler)
+                          console.log(`[PaletteSwatchPicker] Handling overlay color selection for core color: ${coreColor.key}`)
+                          
+                          // Extract core color name from CSS var (e.g., "black", "white", "alert", etc.)
+                          const coreColorMatch = coreColor.cssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-default-tone|-hover-tone|-tone)?)/i)
+                          if (!coreColorMatch) {
+                            console.error('[PaletteSwatchPicker] Failed to extract core color name from CSS var')
+                            return
+                          }
+                          
+                          const [, coreColorKey] = coreColorMatch
+                          // Normalize the key (remove -tone, -default-tone, -hover-tone suffixes)
+                          let normalizedKey = coreColorKey.replace(/-tone$/, '').replace(/-default-tone$/, '-default').replace(/-hover-tone$/, '-hover')
+                          
+                          // For non-interactive core colors, we need just the base name (black, white, alert, warning, success)
+                          if (normalizedKey === 'black' || normalizedKey === 'white' || normalizedKey === 'alert' || normalizedKey === 'warning' || normalizedKey === 'success') {
+                            // Update CSS vars FIRST for immediate visual feedback
+                            cssVarsToUpdate.forEach((cssVar) => {
+                              const prefixedTarget = cssVar.startsWith('--recursica-')
+                                ? cssVar
+                                : cssVar.startsWith('--')
+                                  ? `--recursica-${cssVar.slice(2)}`
+                                  : `--recursica-${cssVar}`
+                              
+                              console.log(`[PaletteSwatchPicker] Updating overlay CSS var ${prefixedTarget} to var(${coreColor.cssVar})`)
+                              updateCssVar(prefixedTarget, `var(${coreColor.cssVar})`, tokensJson)
+                            })
+                            
+                            // Persist to theme JSON
+                            if (setTheme && themeJson) {
+                              try {
+                                const themeCopy = JSON.parse(JSON.stringify(themeJson))
+                                const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                                const themes = root?.themes || root
+                                
+                                // Determine which mode (light or dark)
+                                const isDark = cssVarsToUpdate.some(cssVar => cssVar.includes('-dark-'))
+                                const modeKey = isDark ? 'dark' : 'light'
+                                
+                                // Ensure state structure exists
+                                if (!themes[modeKey]) themes[modeKey] = {}
+                                if (!themes[modeKey].states) themes[modeKey].states = {}
+                                if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+                                
+                                // Update the overlay color reference in theme JSON
+                                // Format: {brand.palettes.core-colors.{colorName}.tone}
+                                themes[modeKey].states.overlay.color = {
+                                  $type: 'color',
+                                  $value: `{brand.palettes.core-colors.${normalizedKey}.tone}`
+                                }
+                                
+                                console.log(`[PaletteSwatchPicker] Updating theme JSON overlay color to: {brand.palettes.core-colors.${normalizedKey}.tone}`)
+                                setTheme(themeCopy)
+                              } catch (err) {
+                                console.error('[PaletteSwatchPicker] Failed to update theme JSON for overlay color:', err)
+                              }
+                            }
+                            
+                            // Force re-render to update selection state
+                            setRefreshTrigger(prev => prev + 1)
+                            
+                            // Dispatch cssVarsUpdated event
+                            setTimeout(() => {
+                              try {
+                                window.dispatchEvent(new CustomEvent('cssVarsUpdated', { 
+                                  detail: { cssVars: cssVarsToUpdate } 
+                                }))
+                              } catch {}
+                            }, 0)
+                            
+                            onSelect?.(coreColor.cssVar)
+                            
+                            // Close the picker
+                            setAnchor(null)
+                            setTargetCssVar(null)
+                            setTargetCssVars([])
+                            setTargetOpacityCssVar(null)
+                            setShowOpacityDropdown(false)
+                            setSelectedOpacity('')
+                            return
+                          }
+                        }
+                        
+                        // Original logic for core color tone updates (not overlay colors)
                         // Extract token reference from selected core color CSS var
                         // First try to get it from theme JSON (most reliable)
                         let tokenRef: string | null = null

@@ -1314,6 +1314,20 @@ class VarsStore {
     }
     this.isRecomputing = true
     
+    // Clear overlay CSS variables from DOM before recomputing to ensure new values from theme JSON are used
+    // This prevents stale inline values from being preserved during recomputation
+    if (typeof document !== 'undefined') {
+      const overlayVars = [
+        '--recursica-brand-themes-light-state-overlay-color',
+        '--recursica-brand-themes-light-state-overlay-opacity',
+        '--recursica-brand-themes-dark-state-overlay-color',
+        '--recursica-brand-themes-dark-state-overlay-opacity'
+      ]
+      overlayVars.forEach((cssVar) => {
+        document.documentElement.style.removeProperty(cssVar)
+      })
+    }
+    
     // Suppress cssVarsUpdated events during bulk update to prevent infinite loops
     suppressCssVarEvents(true)
     
@@ -1648,64 +1662,8 @@ class VarsStore {
           colors[cssVar] = tokenRef
         })
         
-        // Preserve existing core color CSS variables if they exist in DOM (user customizations)
-        // This ensures user changes to core colors persist across mode switches and page navigation
-        Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
-          const existingValue = readCssVar(cssVar)
-          const generatedValue = colors[cssVar]
-          
-          // Preserve if it exists in DOM and is different from generated (user customization)
-          // OR if it exists but wasn't generated (customization not in theme JSON)
-          if (existingValue && existingValue.startsWith('var(')) {
-            if (!generatedValue || existingValue !== generatedValue) {
-              colors[cssVar] = existingValue
-            }
-          }
-        })
-        
-        // Preserve individual core color interactive CSS variables (e.g., core-black-interactive, core-white-interactive)
-        const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success']
-        coreColorKeys.forEach((colorName) => {
-          const interactiveVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`
-          const existingValue = readCssVar(interactiveVar)
-          const generatedValue = colors[interactiveVar]
-          
-          // Preserve if it exists in DOM and is different from generated (user customization)
-          // OR if it exists but wasn't generated (customization not in theme JSON)
-          if (existingValue && existingValue.startsWith('var(')) {
-            if (!generatedValue || existingValue !== generatedValue) {
-              colors[interactiveVar] = existingValue
-            }
-          }
-        })
-        
-        // Also preserve interactive sub-properties if they exist
-        if (core['interactive'] && typeof core['interactive'] === 'object') {
-          const interactiveSubVars = [
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`,
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`,
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`,
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone`,
-          ]
-          
-          interactiveSubVars.forEach((cssVar) => {
-            const existingValue = typeof document !== 'undefined'
-              ? document.documentElement.style.getPropertyValue(cssVar).trim()
-              : readCssVar(cssVar)
-            const generatedValue = colors[cssVar]
-            
-            // Preserve if it exists in DOM inline styles (user customization via direct CSS var update)
-            // This is similar to how we preserve core color tone vars
-            if (existingValue && existingValue !== '' && existingValue.startsWith('var(')) {
-              if (!generatedValue || existingValue !== generatedValue) {
-                colors[cssVar] = existingValue
-              }
-            } else if (existingValue && existingValue.startsWith('var(') && !generatedValue) {
-              // Preserve if it exists but wasn't generated (customization not in theme JSON)
-              colors[cssVar] = existingValue
-            }
-          })
-        }
+        // Core color CSS variables are generated from theme JSON - no preservation needed
+        // Theme JSON is the single source of truth
         
         Object.assign(allVars, colors)
       }
@@ -1714,45 +1672,13 @@ class VarsStore {
     const paletteVarsLight = buildPaletteVars(this.state.tokens, this.state.theme, 'Light')
     const paletteVarsDark = buildPaletteVars(this.state.tokens, this.state.theme, 'Dark')
     
-    // Preserve palette on-tone CSS variables that were set directly by the user
-    // This prevents recomputes from overwriting user changes
+    // Palette CSS variables are generated from theme JSON - no preservation needed
+    // Theme JSON is the single source of truth
     const allPaletteVars = { ...paletteVarsLight, ...paletteVarsDark }
-    Object.keys(allPaletteVars).forEach((cssVar) => {
-      // Only check on-tone vars (not tone vars, as those can change)
-      if (cssVar.includes('-on-tone')) {
-        // Check inline style directly (user overrides are always inline)
-        const inlineValue = typeof document !== 'undefined' 
-          ? document.documentElement.style.getPropertyValue(cssVar).trim()
-          : ''
-        const generatedValue = allPaletteVars[cssVar]
-        
-        // Preserve if there's an inline override and it differs from generated (user customization)
-        if (inlineValue !== '' && inlineValue !== generatedValue) {
-          allPaletteVars[cssVar] = inlineValue
-        }
-      }
-    })
     
-    // Preserve overlay color and opacity CSS variables that were set directly by the user
-    // This prevents recomputes from overwriting user changes
-    // Overlay vars are generated in buildPaletteVars, so they're already in allPaletteVars
-    const overlayVars = [
-      '--recursica-brand-themes-light-state-overlay-color',
-      '--recursica-brand-themes-light-state-overlay-opacity',
-      '--recursica-brand-themes-dark-state-overlay-color',
-      '--recursica-brand-themes-dark-state-overlay-opacity'
-    ]
-    overlayVars.forEach((cssVar) => {
-      const inlineValue = typeof document !== 'undefined' 
-        ? document.documentElement.style.getPropertyValue(cssVar).trim()
-        : ''
-      const generatedValue = allPaletteVars[cssVar]
-      
-      // Preserve if there's an inline override and it differs from generated (user customization)
-      if (inlineValue !== '' && inlineValue !== generatedValue) {
-        allPaletteVars[cssVar] = inlineValue
-      }
-    })
+    // Note: Overlay CSS variables are now cleared at the start of recomputeAndApplyAll()
+    // so we don't need to preserve them here - they'll be set from the generated values in allPaletteVars
+    // This ensures that theme JSON changes (like randomization) are properly reflected in the DOM
     
     
     Object.assign(allVars, allPaletteVars)
@@ -1762,73 +1688,8 @@ class VarsStore {
     const layerVarsDark = buildLayerVars(this.state.tokens, this.state.theme, 'dark', undefined, allPaletteVars)
     const layerVars = { ...layerVarsLight, ...layerVarsDark }
     
-    // Preserve existing palette CSS variables for layer colors (surface and border-color)
-    // Also preserve AA compliance updates for text and interactive colors
-    // Check all layers (0-4) for both modes
-    try {
-      for (const modeLoop of ['light', 'dark'] as const) {
-        for (let i = 0; i <= 4; i++) {
-          const prefixedBase = `--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-`
-          
-          // Check surface color
-          const existingSurface = readCssVar(`${prefixedBase}surface`)
-          if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
-            layerVars[`--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-surface`] = existingSurface
-          }
-          
-          // Check border color (only for non-zero layers)
-          if (i > 0) {
-            const existingBorderColor = readCssVar(`${prefixedBase}border-color`)
-            if (existingBorderColor && existingBorderColor.startsWith('var(') && existingBorderColor.includes('palettes')) {
-              layerVars[`--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-border-color`] = existingBorderColor
-            }
-          }
-          
-          // Preserve AA compliance updates for text and interactive colors
-          // These are set by AAComplianceWatcher and should not be overwritten
-          const textColorBase = `${prefixedBase}element-text-`
-          const interColorBase = `${prefixedBase}element-interactive-`
-          
-          // Text color - only preserve if it exists AND wasn't just generated (to avoid overwriting on init/reset)
-          // Check if this variable was already generated by buildLayerVars
-          const textColorKey = `--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-element-text-color`
-          const existingTextColor = readCssVar(`${textColorBase}color`)
-          // IMPORTANT: Only preserve if:
-          // 1. layerVars doesn't already have this key (meaning buildLayerVars generated it)
-          // 2. The existing value is different from what was just generated (meaning AAComplianceWatcher updated it)
-          // This ensures we always use the value from buildLayerVars on init/mode switch, not stale DOM values
-          // But we preserve AA compliance updates that were made after initial generation
-          const generatedValue = layerVars[textColorKey]
-          if (existingTextColor && existingTextColor.startsWith('var(') && generatedValue && existingTextColor !== generatedValue) {
-            // Only preserve if it's different from generated (AA compliance update)
-            layerVars[textColorKey] = existingTextColor
-          }
-          
-          // Interactive color - only preserve if it's different from generated (AA compliance update)
-          const interColorKey = `--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-element-interactive-color`
-          const existingInterColor = readCssVar(`${interColorBase}color`)
-          const generatedInterColor = layerVars[interColorKey]
-          if (existingInterColor && existingInterColor.startsWith('var(') && generatedInterColor && existingInterColor !== generatedInterColor) {
-            // Only preserve if it's different from generated (AA compliance update)
-            layerVars[interColorKey] = existingInterColor
-          }
-          
-          // Status colors (alert, warning, success) - only preserve if different from generated (AA compliance update)
-          const statusColors = ['alert', 'warning', 'success']
-          statusColors.forEach((status) => {
-            const statusColorKey = `--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-element-text-${status}`
-            const existingStatusColor = readCssVar(`${textColorBase}${status}`)
-            const generatedStatusColor = layerVars[statusColorKey]
-            if (existingStatusColor && existingStatusColor.startsWith('var(') && generatedStatusColor && existingStatusColor !== generatedStatusColor) {
-              // Only preserve if it's different from generated (AA compliance update)
-              layerVars[statusColorKey] = existingStatusColor
-            }
-          })
-        }
-      }
-    } catch (e) {
-      console.error('[VarsStore] Error preserving layer variables:', e)
-    }
+    // Layer CSS variables are generated from theme JSON - no preservation needed
+    // Theme JSON is the single source of truth
     
     Object.assign(allVars, layerVars)
     // Dimensions - generate for both modes (dimensions are mode-agnostic but vars are generated for both)
@@ -1844,21 +1705,8 @@ class VarsStore {
     try {
       const uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, currentMode)
       
-      // Preserve UIKit CSS variables that were set directly by the user (e.g., via ComponentToolbar)
-      // This prevents recomputes from overwriting user changes
-      Object.keys(uikitVars).forEach((cssVar) => {
-        // Check inline style directly (user overrides are always inline)
-        const inlineValue = typeof document !== 'undefined' 
-          ? document.documentElement.style.getPropertyValue(cssVar).trim()
-          : ''
-        const generatedValue = uikitVars[cssVar]
-        
-        // Preserve if there's an inline override and it differs from generated (user customization)
-        // This ensures user changes via ComponentToolbar persist across recomputes
-        if (inlineValue !== '' && inlineValue !== generatedValue) {
-          uikitVars[cssVar] = inlineValue
-        }
-      })
+      // UIKit CSS variables are generated from UIKit JSON - no preservation needed
+      // UIKit JSON is the single source of truth
       
       Object.assign(allVars, uikitVars)
     } catch {}
@@ -1866,22 +1714,8 @@ class VarsStore {
     const typeChoices = this.readTypeChoices()
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, typeChoices)
     
-    // Always preserve typography CSS variables that were set DIRECTLY (user customization via UI)
-    // This allows direct CSS variable updates (like from TypeStylePanel) to persist across recomputes
-    // Direct CSS variable overrides take precedence over generated values from choices/defaults
-    Object.keys(typeVars).forEach((cssVar) => {
-      // Check inline style directly (direct updates are always inline)
-      const inlineValue = typeof document !== 'undefined' 
-        ? document.documentElement.style.getPropertyValue(cssVar).trim()
-        : ''
-      const generatedValue = typeVars[cssVar]
-      
-      // Preserve if it exists in inline style and is different from generated (user customization)
-      // Inline styles take precedence as they represent direct user updates
-      if (inlineValue !== '' && inlineValue !== generatedValue) {
-        typeVars[cssVar] = inlineValue
-      }
-    })
+    // Typography CSS variables are generated from theme JSON and type choices - no preservation needed
+    // Theme JSON and type choices are the single source of truth
     
     Object.assign(allVars, typeVars)
     // Load fonts asynchronously - don't wait, don't trigger recomputes

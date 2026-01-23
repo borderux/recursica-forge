@@ -272,14 +272,23 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
     if (!currentValue) return false
     
     const paletteValue = readCssVarResolved(paletteCssVar)
+    if (!paletteValue) return false
+    
     return currentValue === paletteValue
   }
 
   // Handle core color selection
   const handleCoreColorSelect = (coreColorCssVar: string, coreColorKey: string) => {
+    console.log(`[OverlayPicker] handleCoreColorSelect called: coreColorCssVar=${coreColorCssVar}, coreColorKey=${coreColorKey}`)
     try {
-      // Update CSS var
-      updateCssVar(overlayColorVar, `var(${coreColorCssVar})`, tokensJson)
+      // Update CSS var directly (same as palette colors)
+      const cssVarValue = `var(${coreColorCssVar})`
+      console.log(`[OverlayPicker] Updating overlay color: ${overlayColorVar} = ${cssVarValue}`)
+      const success = updateCssVar(overlayColorVar, cssVarValue, tokensJson)
+      console.log(`[OverlayPicker] updateCssVar result: ${success}`)
+      if (!success) {
+        console.warn(`[OverlayPicker] Failed to update overlay color CSS var: ${overlayColorVar} = ${cssVarValue}`)
+      }
       
       // Update theme JSON
       if (setTheme && themeJson) {
@@ -305,9 +314,12 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
               $value: `{brand.themes.${modeKey}.palettes.core-colors.interactive.hover.tone}`
             }
           } else {
+            // For non-interactive core colors (black, white, alert, warning, success),
+            // use the reference format with .tone to match the CSS variable format
+            // This will resolve to: var(--recursica-brand-themes-${mode}-palettes-core-${coreColorKey}-tone)
             themes[modeKey].states.overlay.color = {
               $type: 'color',
-              $value: `{brand.themes.${modeKey}.palettes.core-colors.${coreColorKey}.tone}`
+              $value: `{brand.palettes.core-colors.${coreColorKey}.tone}`
             }
           }
           
@@ -388,14 +400,21 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
     const swatches: Array<{ cssVar: string; key: string; label: string; type: 'core' | 'palette'; paletteKey?: string; level?: string; coreColorKey?: string }> = []
     
     // Add core colors
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Dev] Building swatches: coreColors.length=${coreColors.length}`, coreColors)
+    }
     coreColors.forEach(cc => {
-      swatches.push({
+      const swatchItem = {
         cssVar: cc.cssVar,
         key: `core-${cc.key}`,
         label: cc.label,
-        type: 'core',
+        type: 'core' as const,
         coreColorKey: cc.key
-      })
+      }
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Dev] Adding core color swatch:`, swatchItem)
+      }
+      swatches.push(swatchItem)
     })
     
     // Add all palette swatches
@@ -412,6 +431,10 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
         })
       })
     })
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Dev] Total swatches: ${swatches.length}, core swatches: ${swatches.filter(s => s.type === 'core').length}`)
+    }
     
     return swatches
   }, [coreColors, paletteKeys, paletteLevels, modeLower])
@@ -544,10 +567,15 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
           {allSwatches.map((swatchItem) => {
             const isSelected = isSwatchSelected(swatchItem.cssVar)
             const handleClick = () => {
+              console.log(`[OverlayPicker] Swatch clicked: type=${swatchItem.type}, coreColorKey=${swatchItem.coreColorKey}, paletteKey=${swatchItem.paletteKey}, level=${swatchItem.level}, cssVar=${swatchItem.cssVar}`)
               if (swatchItem.type === 'core' && swatchItem.coreColorKey) {
+                console.log(`[OverlayPicker] Calling handleCoreColorSelect with cssVar=${swatchItem.cssVar}, coreColorKey=${swatchItem.coreColorKey}`)
                 handleCoreColorSelect(swatchItem.cssVar, swatchItem.coreColorKey)
               } else if (swatchItem.type === 'palette' && swatchItem.paletteKey && swatchItem.level) {
+                console.log(`[OverlayPicker] Calling handleColorSelect with cssVar=${swatchItem.cssVar}, paletteKey=${swatchItem.paletteKey}, level=${swatchItem.level}`)
                 handleColorSelect(swatchItem.cssVar, swatchItem.paletteKey, swatchItem.level)
+              } else {
+                console.warn(`[OverlayPicker] Swatch click not handled: type=${swatchItem.type}, coreColorKey=${swatchItem.coreColorKey}, paletteKey=${swatchItem.paletteKey}, level=${swatchItem.level}`)
               }
             }
             
@@ -556,7 +584,9 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                 key={swatchItem.key}
                 title={swatchItem.label}
                 onClick={(e) => {
+                  console.log(`[OverlayPicker] Swatch div onClick fired: key=${swatchItem.key}`)
                   e.stopPropagation()
+                  e.preventDefault()
                   handleClick()
                 }}
                 style={{

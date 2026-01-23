@@ -408,13 +408,38 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       
       const isCoreProperty = hasCoreColors
       
-      // Skip token references UNLESS they are core properties (which we want to randomize)
+      // Check if this is a high, low, or disabled opacity that should be randomized with token references
+      const isHighEmphasisOpacity = pathStr.includes('text-emphasis') && pathStr.includes('high')
+      const isLowEmphasisOpacity = pathStr.includes('text-emphasis') && pathStr.includes('low')
+      const isDisabledOpacity = pathStr.includes('states') && pathStr.includes('disabled')
+      const isEmphasisOrDisabledOpacity = isHighEmphasisOpacity || isLowEmphasisOpacity || isDisabledOpacity
+      
+      // Check if this is an overlay color or opacity that should be randomized
+      // Path structure: brand.themes.light.states.overlay.color.$value or themes.light.states.overlay.color.$value
+      // Or: brand.themes.light.states.overlay.opacity.$value or themes.light.states.overlay.opacity.$value
+      // The path from findAllValuePaths doesn't include $value (it's the key), so the path ends with 'color' or 'opacity'
+      const pathParts = pathStr.split('.')
+      const hasStatesOverlay = pathStr.includes('states') && pathStr.includes('overlay')
+      const lastPart = pathParts[pathParts.length - 1]
+      // Check if path contains 'overlay.color' or 'overlay.opacity' - this is the most reliable check
+      // Also check if the path ends with 'color' or 'opacity' and has 'overlay' before it
+      const hasOverlayColor = pathStr.includes('overlay.color') || (hasStatesOverlay && lastPart === 'color')
+      const hasOverlayOpacity = pathStr.includes('overlay.opacity') || (hasStatesOverlay && lastPart === 'opacity')
+      const isOverlayColor = hasStatesOverlay && hasOverlayColor
+      const isOverlayOpacity = hasStatesOverlay && hasOverlayOpacity
+      const isOverlay = isOverlayColor || isOverlayOpacity
+      
+      
+      // Skip token references UNLESS they are core properties, emphasis/disabled opacities, or overlay values (which we want to randomize)
       if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
-        // If it's NOT a core property, or coreProperties randomization is disabled, skip it
-        if (!isCoreProperty || !opts.theme.coreProperties) {
+        // If it's NOT a core property, emphasis/disabled opacity, or overlay value, or the relevant randomization is disabled, skip it
+        if (!isCoreProperty && !isEmphasisOrDisabledOpacity && !isOverlay) {
           return
         }
-        // For core properties, we'll randomize the token reference itself
+        if (isCoreProperty && !opts.theme.coreProperties) {
+          return
+        }
+        // For core properties, emphasis/disabled opacities, and overlay values, we'll randomize the token reference itself
         // Continue to randomization logic below - don't return here
       } else if (isCoreProperty && opts.theme.coreProperties && typeof value !== 'string') {
         // Core properties should be token references or color values
@@ -433,6 +458,8 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       
       const shouldRandomize = 
         isCoreProperty && opts.theme.coreProperties ||
+        isEmphasisOrDisabledOpacity ||
+        (isOverlay && opts.theme.coreProperties) || // Randomize overlay when core properties are enabled
         isType && opts.theme.type ||
         isPalette && opts.theme.palettes ||
         isElevation && opts.theme.elevations ||
@@ -451,20 +478,84 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       const isElevationColor = isElevation && pathStr.includes('color')
       const isElevationOpacity = isElevation && pathStr.includes('opacity')
       
-      const newValue = generateRandomValue(value, index, { 
-        isColor: isColor || isElevationColor, 
-        isSize: isSize || isElevationSize, 
-        isOpacity: isElevationOpacity,
-        randomizeTokenRef: isCoreProperty && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')
-      })
+      // For high, low, and disabled opacities, randomize by picking a random opacity token reference
+      // For overlay opacity, also randomize with a random opacity token reference
+      // For overlay color, randomize with a random palette reference
+      let newValue: any
+      if (isEmphasisOrDisabledOpacity && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+        // Pick a random opacity token reference
+        const opacityTokens = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
+        const randomOpacityToken = opacityTokens[Math.floor(Math.random() * opacityTokens.length)]
+        newValue = `{tokens.opacity.${randomOpacityToken}}`
+      } else if (isOverlayOpacity && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+        // Pick a random opacity token reference for overlay opacity
+        // Ensure we pick a different value than the current one
+        const opacityTokens = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
+        const currentToken = value.match(/\{tokens\.opacity\.([a-z0-9-]+)\}/)?.[1]
+        const availableTokens = currentToken ? opacityTokens.filter(t => t !== currentToken) : opacityTokens
+        const randomOpacityToken = availableTokens.length > 0 
+          ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+          : opacityTokens[Math.floor(Math.random() * opacityTokens.length)]
+        newValue = `{tokens.opacity.${randomOpacityToken}}`
+      } else if (isOverlayColor && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+        // Pick a random palette reference for overlay color
+        // Determine the current mode from the path
+        const modeMatch = pathStr.match(/\.(light|dark)\./)
+        const currentMode = modeMatch ? modeMatch[1] : 'light'
+        
+        const paletteNames = ['core-colors', 'neutral', 'palette-1', 'palette-2', 'palette-3']
+        const tones = ['tone', 'on-tone']
+        const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
+        
+        // Randomly select a palette
+        const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+        
+        // Build a random reference - overlay colors can use either brand.palettes or brand.themes.{mode}.palettes format
+        // Use the shorter brand.palettes format for consistency
+        if (randomPalette === 'core-colors') {
+          // Core colors have specific structure
+          // For overlay colors, non-interactive core colors need .tone suffix to match CSS variable format
+          const coreColors = ['interactive', 'warning', 'success', 'alert', 'black', 'white']
+          const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+          if (randomCoreColor === 'interactive') {
+            const variants = ['default', 'hover']
+            const randomVariant = variants[Math.floor(Math.random() * variants.length)]
+            const randomTone = tones[Math.floor(Math.random() * tones.length)]
+            newValue = `{brand.palettes.core-colors.interactive.${randomVariant}.${randomTone}}`
+          } else {
+            // For non-interactive core colors, use .tone suffix to match CSS variable format
+            // This resolves to: var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-tone)
+            newValue = `{brand.palettes.core-colors.${randomCoreColor}.tone}`
+          }
+        } else if (randomPalette === 'neutral') {
+          // Neutral has level.color.tone structure
+          const randomLevel = levels[Math.floor(Math.random() * levels.length)]
+          const randomTone = tones[Math.floor(Math.random() * tones.length)]
+          newValue = `{brand.palettes.neutral.${randomLevel}.color.${randomTone}}`
+        } else {
+          // Other palettes have level.color.tone structure
+          const randomLevel = levels[Math.floor(Math.random() * levels.length)]
+          const randomTone = tones[Math.floor(Math.random() * tones.length)]
+          newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
+        }
+      } else {
+        newValue = generateRandomValue(value, index, { 
+          isColor: isColor || isElevationColor, 
+          isSize: isSize || isElevationSize, 
+          isOpacity: isElevationOpacity,
+          randomizeTokenRef: isCoreProperty && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')
+        })
+      }
       if (isCoreProperty && opts.theme.coreProperties) {
         corePropertyCount++
       }
+      
       modifyValueAtPath(modifiedTheme, path, newValue)
     })
     
     // Update store with modified theme
-    // setTheme will trigger recomputeAndApplyAll() internally
+    // setTheme will trigger recomputeAndApplyAll() internally, but we'll also call it explicitly at the end
+    // to ensure everything is up to date
     store.setTheme(modifiedTheme)
   }
   
@@ -508,6 +599,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
   
   // Now trigger recomputation once after all updates are complete
   // This ensures we're reading from the fully updated state
+  // Use a longer delay to ensure setTheme's automatic recomputation completes first
   setTimeout(() => {
     // Force a recomputation to ensure all CSS variables are up to date
     store.recomputeAndApplyAll()
@@ -524,9 +616,16 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         }
       }
       
-      // Dispatch cssVarsUpdated event
+      // Dispatch cssVarsUpdated event - include overlay CSS variables if core properties were randomized
+      const overlayCssVars = opts.theme.coreProperties ? [
+        '--recursica-brand-themes-light-state-overlay-color',
+        '--recursica-brand-themes-light-state-overlay-opacity',
+        '--recursica-brand-themes-dark-state-overlay-color',
+        '--recursica-brand-themes-dark-state-overlay-opacity'
+      ] : []
+      
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [] } // Empty array means all CSS vars may have changed
+        detail: { cssVars: overlayCssVars.length > 0 ? overlayCssVars : [] } // Include overlay vars if randomized
       }))
       
       // Re-enable AA compliance watcher after a delay to ensure CSS variables are fully applied
