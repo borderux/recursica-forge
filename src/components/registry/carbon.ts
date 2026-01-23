@@ -35,6 +35,9 @@ registerComponent('carbon', 'Label', () => import('../adapters/carbon/Label/Labe
 // Breadcrumb
 registerComponent('carbon', 'Breadcrumb', () => import('../adapters/carbon/Breadcrumb/Breadcrumb'))
 
+// Accordion
+registerComponent('carbon', 'Accordion', () => import('../adapters/carbon/Accordion/Accordion'))
+
 // MenuItem
 registerComponent('carbon', 'MenuItem', () => import('../adapters/carbon/MenuItem/MenuItem'))
 

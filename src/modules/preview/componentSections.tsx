@@ -6,6 +6,7 @@ import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
+import { Accordion } from '../../components/adapters/Accordion'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import type { ComponentLayer } from '../../components/registry/types'
@@ -89,18 +90,21 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Accordion',
       url: `${base}/accordion`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div>
-          <details open>
-            <summary>Open Accordion</summary>
-            <div style={{ padding: 8 }}>Content</div>
-          </details>
-          <details>
-            <summary>Closed Accordion</summary>
-            <div style={{ padding: 8 }}>Content</div>
-          </details>
-        </div>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const items = [
+          { id: 'item-1', title: 'Accordion', content: 'Replace slot with content (component instance)', open: false, divider: true },
+          { id: 'item-2', title: 'Accordion', content: 'Replace slot with content (component instance)', open: false, divider: true },
+          { id: 'item-3', title: 'Accordion', content: 'Replace slot with content (component instance)', open: true, divider: true },
+          { id: 'item-4', title: 'Accordion', content: 'Replace slot with content (component instance)', open: true, divider: true },
+          { id: 'item-5', title: 'Accordion', content: 'Replace slot with content (component instance)', open: false, divider: false },
+        ]
+        return (
+          <div style={{ width: '100%', maxWidth: 520 }}>
+            <Accordion items={items} layer={layer as any} allowMultiple />
+          </div>
+        )
+      },
     },
     {
       name: 'Avatar',

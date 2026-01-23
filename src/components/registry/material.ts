@@ -35,6 +35,9 @@ registerComponent('material', 'Label', () => import('../adapters/material/Label/
 // Breadcrumb
 registerComponent('material', 'Breadcrumb', () => import('../adapters/material/Breadcrumb/Breadcrumb'))
 
+// Accordion
+registerComponent('material', 'Accordion', () => import('../adapters/material/Accordion/Accordion'))
+
 // MenuItem
 registerComponent('material', 'MenuItem', () => import('../adapters/material/MenuItem/MenuItem'))
 

@@ -1,0 +1,61 @@
+/* Mantine Accordion overrides using Recursica CSS variables */
+
+.recursica-accordion.mantine-accordion .mantine-Accordion-item {
+  border-radius: var(--accordion-border-radius) !important;
+}
+
+.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-divider='true'] {
+  border-bottom: 1px solid var(--accordion-divider-color) !important;
+}
+
+.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-divider='false'] {
+  border-bottom: none !important;
+}
+
+.recursica-accordion.mantine-accordion .mantine-Accordion-control {
+  padding: var(--accordion-item-padding) !important;
+  background: var(--accordion-header-bg) !important;
+  color: var(--accordion-header-text) !important;
+  font-family: var(--accordion-font-family) !important;
+  font-size: var(--accordion-font-size) !important;
+  font-weight: var(--accordion-font-weight) !important;
+  letter-spacing: var(--accordion-letter-spacing) !important;
+  line-height: var(--accordion-line-height) !important;
+  gap: var(--accordion-icon-gap) !important;
+}
+
+.recursica-accordion.mantine-accordion .mantine-Accordion-label {
+  color: var(--accordion-header-text) !important;
+}
+
+.recursica-accordion.mantine-accordion .mantine-Accordion-chevron {
+  color: var(--accordion-icon-color) !important;
+  width: var(--accordion-icon-size) !important;
+  height: var(--accordion-icon-size) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  line-height: 0 !important;
+  transform-origin: center !important;
+  transition: transform 150ms ease !important;
+}
+
+.recursica-accordion.mantine-accordion .mantine-Accordion-chevron svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+.recursica-accordion.mantine-accordion .mantine-Accordion-panel {
+  padding: var(--accordion-content-padding) !important;
+  background: var(--accordion-content-bg) !important;
+  color: var(--accordion-content-text) !important;
+  font-family: var(--accordion-font-family) !important;
+  font-size: var(--accordion-font-size) !important;
+  font-weight: var(--accordion-font-weight) !important;
+  letter-spacing: var(--accordion-letter-spacing) !important;
+  line-height: var(--accordion-line-height) !important;
+}
+
+/* Legacy overrides removed; use recursica-accordion scoped rules above. */

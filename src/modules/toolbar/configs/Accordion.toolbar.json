@@ -1,0 +1,72 @@
+{
+  "props": {
+    "header": {
+      "icon": "text-aa",
+      "label": "Header",
+      "visible": true,
+      "group": {
+        "text": {
+          "label": "Text",
+          "visible": true
+        },
+        "background": {
+          "label": "Background",
+          "visible": true
+        },
+        "icon": {
+          "label": "Icon",
+          "visible": true
+        },
+        "item-padding": {
+          "label": "Padding",
+          "visible": true
+        },
+        "icon-gap": {
+          "label": "Icon Gap",
+          "visible": true
+        }
+      }
+    },
+    "content": {
+      "icon": "paint-bucket",
+      "label": "Content",
+      "visible": true,
+      "group": {
+        "content-text": {
+          "label": "Text",
+          "visible": true
+        },
+        "content-background": {
+          "label": "Background",
+          "visible": true
+        },
+        "content-padding": {
+          "label": "Padding",
+          "visible": true
+        }
+      }
+    },
+    "divider": {
+      "icon": "minus",
+      "label": "Divider",
+      "visible": true,
+      "group": {
+        "divider": {
+          "label": "Color",
+          "visible": true
+        }
+      }
+    },
+    "border-radius": {
+      "icon": "corners-out",
+      "label": "Border Radius",
+      "visible": true
+    },
+    "icon-size": {
+      "icon": "arrows-up-down",
+      "label": "Icon Size",
+      "visible": true
+    }
+  }
+}
+

@@ -1,0 +1,63 @@
+/* Carbon Accordion overrides using Recursica CSS variables */
+
+.recursica-accordion.carbon-accordion .cds--accordion__item {
+  border-radius: var(--accordion-border-radius) !important;
+}
+
+.recursica-accordion.carbon-accordion .cds--accordion__item[data-divider='true'] {
+  border-bottom: 1px solid var(--accordion-divider-color) !important;
+}
+
+.recursica-accordion.carbon-accordion .cds--accordion__item[data-divider='false'] {
+  border-bottom: none !important;
+}
+
+.recursica-accordion.carbon-accordion .cds--accordion__heading,
+.recursica-accordion.carbon-accordion .cds--accordion__button {
+  background: var(--accordion-header-bg) !important;
+  color: var(--accordion-header-text) !important;
+  padding: var(--accordion-item-padding) !important;
+  font-family: var(--accordion-font-family) !important;
+  font-size: var(--accordion-font-size) !important;
+  font-weight: var(--accordion-font-weight) !important;
+  letter-spacing: var(--accordion-letter-spacing) !important;
+  line-height: var(--accordion-line-height) !important;
+  gap: var(--accordion-icon-gap) !important;
+}
+
+.recursica-accordion.carbon-accordion .cds--accordion__title {
+  color: var(--accordion-header-text) !important;
+}
+
+.recursica-accordion.carbon-accordion .cds--accordion__arrow {
+  color: var(--accordion-icon-color) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  line-height: 0 !important;
+  transform-origin: center !important;
+  transition: transform 150ms ease !important;
+  width: var(--accordion-icon-size) !important;
+  height: var(--accordion-icon-size) !important;
+  min-width: var(--accordion-icon-size) !important;
+}
+
+.recursica-accordion.carbon-accordion .cds--accordion__arrow svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+.recursica-accordion.carbon-accordion .cds--accordion__content {
+  padding: var(--accordion-content-padding) !important;
+  background: var(--accordion-content-bg) !important;
+  color: var(--accordion-content-text) !important;
+  font-family: var(--accordion-font-family) !important;
+  font-size: var(--accordion-font-size) !important;
+  font-weight: var(--accordion-font-weight) !important;
+  letter-spacing: var(--accordion-letter-spacing) !important;
+  line-height: var(--accordion-line-height) !important;
+}
+
+/* Legacy overrides removed; use recursica-accordion scoped rules above. */
