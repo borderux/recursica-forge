@@ -24,6 +24,10 @@
   gap: var(--accordion-icon-gap) !important;
 }
 
+.recursica-accordion.mantine-accordion .mantine-Accordion-control:hover {
+  background: var(--accordion-header-hover, var(--accordion-header-bg)) !important;
+}
+
 .recursica-accordion.mantine-accordion .mantine-Accordion-label {
   color: var(--accordion-header-text) !important;
 }

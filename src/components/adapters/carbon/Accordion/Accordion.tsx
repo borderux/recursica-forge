@@ -25,6 +25,7 @@ export default function Accordion({
   onItemToggle: (id: string, open: boolean) => void
 }) {
   const headerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background')
+  const headerHoverVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background-hover')
   const headerTextVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'text')
   const iconColorVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'icon')
   const dividerColorVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'divider')
@@ -48,6 +49,7 @@ export default function Accordion({
       className={`recursica-accordion carbon-accordion ${className || ''}`}
       style={{
         ['--accordion-header-bg' as string]: `var(${headerBgVar})`,
+        ['--accordion-header-hover' as string]: `var(${headerHoverVar})`,
         ['--accordion-header-text' as string]: `var(${headerTextVar})`,
         ['--accordion-icon-color' as string]: `var(${iconColorVar})`,
         ['--accordion-divider-color' as string]: `var(${dividerColorVar})`,

@@ -29,6 +29,10 @@
   gap: var(--accordion-icon-gap) !important;
 }
 
+.recursica-accordion.material-accordion .MuiAccordionSummary-root:hover {
+  background: var(--accordion-header-hover, var(--accordion-header-bg)) !important;
+}
+
 .recursica-accordion.material-accordion .MuiAccordionSummary-content {
   margin: 0 !important;
 }

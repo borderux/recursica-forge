@@ -1511,6 +1511,10 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.properties.surface}"
               },
+              "background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
+              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.elements.text.color}"
@@ -1536,6 +1540,10 @@
               "background": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",
@@ -1563,6 +1571,10 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.properties.surface}"
               },
+              "background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
+              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.text.color}"
@@ -1588,6 +1600,10 @@
               "background": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",

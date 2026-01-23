@@ -25,6 +25,11 @@
   gap: var(--accordion-icon-gap) !important;
 }
 
+.recursica-accordion.carbon-accordion .cds--accordion__heading:hover,
+.recursica-accordion.carbon-accordion .cds--accordion__button:hover {
+  background: var(--accordion-header-hover, var(--accordion-header-bg)) !important;
+}
+
 .recursica-accordion.carbon-accordion .cds--accordion__title {
   color: var(--accordion-header-text) !important;
 }
