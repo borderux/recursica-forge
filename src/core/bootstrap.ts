@@ -8,11 +8,15 @@ import uikitImport from '../vars/UIKit.json'
 // Initialize the store and compute/apply initial CSS vars before React mounts
 export function bootstrapTheme() {
   try {
-    // Set initial theme mode data attribute
+    // Set initial theme mode and layer data attributes
     if (typeof window !== 'undefined') {
       const savedMode = localStorage.getItem('theme-mode') as 'light' | 'dark' | null
       const initialMode = savedMode ?? 'light'
       document.documentElement.setAttribute('data-theme-mode', initialMode)
+      // Set data-recursica-theme for CSS scoping (matches data-theme-mode)
+      document.documentElement.setAttribute('data-recursica-theme', initialMode)
+      // Set data-recursica-layer to 0 by default (always 0 on root)
+      document.documentElement.setAttribute('data-recursica-layer', '0')
     }
     
     // Validate JSON schemas before initializing store

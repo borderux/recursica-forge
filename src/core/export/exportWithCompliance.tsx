@@ -35,7 +35,10 @@ export function useJsonExport() {
       setShowComplianceModal(true)
     } else {
       // No issues, proceed with export (CSS will be exported independently)
-      downloadJsonFiles(files).catch(console.error)
+      downloadJsonFiles(files).catch((error) => {
+        console.error('Export failed:', error)
+        alert(`Export failed: ${error instanceof Error ? error.message : 'Failed to export files. Please check the console for details.'}`)
+      })
       setPendingExportFiles(null)
     }
   }
@@ -47,7 +50,10 @@ export function useJsonExport() {
   const handleAcknowledge = () => {
     setShowComplianceModal(false)
     if (pendingExportFiles) {
-      downloadJsonFiles(pendingExportFiles).catch(console.error)
+      downloadJsonFiles(pendingExportFiles).catch((error) => {
+        console.error('Export failed:', error)
+        alert(`Export failed: ${error instanceof Error ? error.message : 'Failed to export files. Please check the console for details.'}`)
+      })
       setPendingExportFiles(null)
     }
   }
