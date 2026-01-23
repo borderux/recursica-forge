@@ -57,7 +57,7 @@ export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0
   return (
     <div
       className="elevation-card"
-      style={{ boxShadow, display: 'flex', alignItems: 'center', gap: 12, height: 100, borderRadius: 8, padding: 16, cursor: canToggle ? 'pointer' : undefined, zIndex, ...borderStyle }}
+      style={{ boxShadow, display: 'flex', alignItems: 'center', gap: 12, height: 100, borderRadius: 8, padding: '16px 12px', cursor: canToggle ? 'pointer' : undefined, zIndex, ...borderStyle }}
       onClick={canToggle ? onToggle : undefined}
     >
       {canToggle && (

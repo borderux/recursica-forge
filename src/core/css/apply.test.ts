@@ -1,13 +1,24 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { applyCssVars, applyCssVarsDelta, clearAllCssVars } from './apply'
 
 describe('applyCssVars', () => {
+  let originalError: typeof console.error
+  let originalWarn: typeof console.warn
+
   beforeEach(() => {
     clearAllCssVars()
+    // Suppress expected validation error/warning messages in tests
+    originalError = console.error
+    originalWarn = console.warn
+    console.error = vi.fn()
+    console.warn = vi.fn()
   })
 
   afterEach(() => {
     clearAllCssVars()
+    // Restore console methods
+    console.error = originalError
+    console.warn = originalWarn
   })
 
   it('should apply valid CSS variables', () => {
@@ -96,12 +107,23 @@ describe('applyCssVars', () => {
 })
 
 describe('applyCssVarsDelta', () => {
+  let originalError: typeof console.error
+  let originalWarn: typeof console.warn
+
   beforeEach(() => {
     clearAllCssVars()
+    // Suppress expected validation error/warning messages in tests
+    originalError = console.error
+    originalWarn = console.warn
+    console.error = vi.fn()
+    console.warn = vi.fn()
   })
 
   afterEach(() => {
     clearAllCssVars()
+    // Restore console methods
+    console.error = originalError
+    console.warn = originalWarn
   })
 
   it('should apply delta changes', () => {

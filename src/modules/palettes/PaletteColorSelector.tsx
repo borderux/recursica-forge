@@ -108,8 +108,20 @@ export default function PaletteColorSelector({
   headerLevels,
   onFamilyChange,
 }: PaletteColorSelectorProps) {
-  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
+  const { tokens: tokensJson, theme: themeJson, setTheme, palettes: palettesState } = useVars()
   const [overrideVersion, setOverrideVersion] = useState(0)
+  const [paletteChangeVersion, setPaletteChangeVersion] = useState(0)
+
+  // Listen for palette deletion events to force recalculation of available families
+  useEffect(() => {
+    const handlePaletteDeleted = () => {
+      setPaletteChangeVersion(v => v + 1)
+    }
+    window.addEventListener('paletteDeleted', handlePaletteDeleted as any)
+    return () => {
+      window.removeEventListener('paletteDeleted', handlePaletteDeleted as any)
+    }
+  }, [])
 
   // Detect which families are used by which palettes from theme JSON
   const familiesUsedByPalettes = useMemo(() => {
@@ -135,59 +147,78 @@ export default function PaletteColorSelector({
     if (root?.light?.palettes) visit(root.light.palettes, 'palette', 'Light')
     if (root?.dark?.palettes) visit(root.dark.palettes, 'palette', 'Dark')
     
-    // Check all palettes in theme to see which families they use
-    const checkLevels = ['200', '500', '400', '300']
-    const paletteKeys = new Set<string>()
-    
-    // First, find all palette keys
-    // Note: theme index uses 'palette' prefix (singular) to match resolver
-    Object.keys(themeIndex).forEach((key) => {
-      const match = key.match(/^(?:Light|Dark)::palette\/([^/]+)\//)
-      if (match && match[1]) {
-        paletteKeys.add(match[1])
+    // Build a deterministic map of scale keys to aliases upfront
+    // This ensures consistent mapping regardless of iteration order
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
+    const scaleKeyToAlias: Record<string, string> = {}
+    Object.entries(colorsRoot).forEach(([scaleKey, scale]) => {
+      if (!scaleKey.startsWith('scale-')) return
+      const scaleObj = scale as any
+      if (scaleObj?.alias && typeof scaleObj.alias === 'string') {
+        scaleKeyToAlias[scaleKey] = scaleObj.alias
       }
     })
     
-    // Then detect family for each palette
-    // Note: theme index uses 'palette' prefix (singular) to match resolver
-    for (const pk of paletteKeys) {
-      for (const lvl of checkLevels) {
-        const toneName = `palette/${pk}/${lvl}/color/tone`
-        const toneRaw = themeIndex[`Light::${toneName}`]?.value || themeIndex[`Dark::${toneName}`]?.value
-        if (typeof toneRaw === 'string') {
-          // Use centralized parser to check for token references
-          const tokenIndex = buildTokenIndex(tokensJson)
-          const context: TokenReferenceContext = { currentMode: 'light', tokenIndex }
-          const parsed = parseTokenReference(toneRaw, context)
-          if (parsed && parsed.type === 'token') {
-            let familyName: string | null = null
-            
-            // Handle new colors format (colors.scale-XX.level or colors.alias.level)
-            if (parsed.path.length >= 2 && parsed.path[0] === 'colors') {
-              const scaleOrAlias = parsed.path[1]
-              // If it's a scale key, find the alias
-              if (scaleOrAlias.startsWith('scale-')) {
-                const tokensRoot: any = (tokensJson as any)?.tokens || {}
-                const colorsRoot: any = tokensRoot?.colors || {}
-                const scale = colorsRoot?.[scaleOrAlias]
-                if (scale && typeof scale === 'object' && scale.alias) {
-                  familyName = scale.alias
+    // Get existing palette keys from palettesState in deterministic order
+    // Use array instead of Set to preserve order and ensure correct mapping
+    const existingPaletteKeys: string[] = []
+    if (palettesState?.dynamic) {
+      palettesState.dynamic.forEach((p: any) => {
+        if (p?.key) existingPaletteKeys.push(p.key)
+      })
+    }
+    // Also include static palettes like 'neutral'
+    if (!existingPaletteKeys.includes('neutral')) {
+      existingPaletteKeys.push('neutral')
+    }
+    
+    const checkLevels = ['200', '500', '400', '300']
+    
+    // Iterate through existing palettes in deterministic order (from palettesState)
+    // This ensures each palette key maps to its correct family
+    for (const pk of existingPaletteKeys) {
+      let foundFamily = false
+      
+      // Check both light and dark modes (but a palette should use same family in both)
+      for (const modeKey of ['light', 'dark']) {
+        if (foundFamily) break
+        
+        // Check a few levels to detect the family
+        for (const lvl of checkLevels) {
+          const toneName = `palette/${pk}/${lvl}/color/tone`
+          const toneRaw = themeIndex[`${modeKey === 'light' ? 'Light' : 'Dark'}::${toneName}`]?.value
+          
+          if (typeof toneRaw === 'string') {
+            // Use centralized parser to check for token references
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const context: TokenReferenceContext = { currentMode: modeKey as 'light' | 'dark', tokenIndex }
+            const parsed = parseTokenReference(toneRaw, context)
+            if (parsed && parsed.type === 'token') {
+              let familyName: string | null = null
+              
+              // Handle new colors format (colors.scale-XX.level or colors.alias.level)
+              if (parsed.path.length >= 2 && parsed.path[0] === 'colors') {
+                const scaleOrAlias = parsed.path[1]
+                // If it's a scale key, look up the alias from our deterministic map
+                if (scaleOrAlias.startsWith('scale-')) {
+                  familyName = scaleKeyToAlias[scaleOrAlias] || scaleOrAlias
                 } else {
-                  familyName = scaleOrAlias // Fallback to scale key if no alias
+                  // It's already an alias - use it directly
+                  familyName = scaleOrAlias
                 }
-              } else {
-                // It's already an alias
-                familyName = scaleOrAlias
+              } 
+              // Handle old color format (color.family.level)
+              else if (parsed.path.length >= 2 && parsed.path[0] === 'color') {
+                familyName = parsed.path[1]
               }
-            } 
-            // Handle old color format (color.family.level)
-            else if (parsed.path.length >= 2 && parsed.path[0] === 'color') {
-              familyName = parsed.path[1]
-            }
-            
-            if (familyName) {
-              usedBy[pk] = familyName
-              break // Found family for this palette, move to next
+              
+              if (familyName) {
+                // Store the mapping for this specific palette key
+                usedBy[pk] = familyName
+                foundFamily = true
+                break // Found family for this palette, move to next palette
+              }
             }
           }
         }
@@ -195,7 +226,7 @@ export default function PaletteColorSelector({
     }
     
     return usedBy
-  }, [themeJson])
+  }, [themeJson, tokensJson, paletteChangeVersion, palettesState])
 
   // Get available color families
   const allFamilies = useMemo(() => {
@@ -254,18 +285,66 @@ export default function PaletteColorSelector({
 
   // Filter families to exclude those used by other palettes
   const families = useMemo(() => {
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
     const familiesUsedByOthers = new Set<string>()
+    
+    // Convert aliases to scale keys for comparison
     Object.entries(familiesUsedByPalettes).forEach(([pk, fam]) => {
       if (pk !== paletteKey) {
-        familiesUsedByOthers.add(fam)
+        // fam is an alias or old format family name
+        // Convert to scale key if it's an alias, otherwise use as-is
+        if (fam.startsWith('scale-')) {
+          // Already a scale key
+          familiesUsedByOthers.add(fam)
+        } else {
+          // Check if it's an alias that maps to a scale
+          let foundScale = false
+          for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+            if (!scaleKey.startsWith('scale-')) continue
+            const scaleObj = scale as any
+            if (scaleObj?.alias === fam) {
+              familiesUsedByOthers.add(scaleKey)
+              foundScale = true
+              break
+            }
+          }
+          // If not found as alias, it's an old format family - add it directly
+          if (!foundScale) {
+            familiesUsedByOthers.add(fam)
+          }
+        }
       }
     })
     
+    // Get current palette's family as scale key for comparison
+    const currentPaletteFamily = familiesUsedByPalettes[paletteKey]
+    let currentPaletteFamilyAsScaleKey: string | null = null
+    if (currentPaletteFamily) {
+      if (currentPaletteFamily.startsWith('scale-')) {
+        currentPaletteFamilyAsScaleKey = currentPaletteFamily
+      } else {
+        // Check if it's an alias
+        for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+          if (!scaleKey.startsWith('scale-')) continue
+          const scaleObj = scale as any
+          if (scaleObj?.alias === currentPaletteFamily) {
+            currentPaletteFamilyAsScaleKey = scaleKey
+            break
+          }
+        }
+        // If not found, use as-is (old format)
+        if (!currentPaletteFamilyAsScaleKey) {
+          currentPaletteFamilyAsScaleKey = currentPaletteFamily
+        }
+      }
+    }
+    
     return allFamilies.filter((fam) => {
       // Include if not used by others, or if it's the current palette's family
-      return !familiesUsedByOthers.has(fam) || familiesUsedByPalettes[paletteKey] === fam
+      return !familiesUsedByOthers.has(fam) || currentPaletteFamilyAsScaleKey === fam
     })
-  }, [allFamilies, familiesUsedByPalettes, paletteKey])
+  }, [allFamilies, familiesUsedByPalettes, paletteKey, tokensJson])
 
   // Get token value by name - memoize to prevent unnecessary recalculations
   const getTokenValueByName = useCallback((tokenName: string): string | number | undefined => {

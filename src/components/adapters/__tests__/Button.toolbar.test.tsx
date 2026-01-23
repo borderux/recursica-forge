@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, waitFor } from '@testing-library/react'
+import { render, waitFor, act } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
@@ -40,6 +40,7 @@ describe('Button Toolbar Props Integration', () => {
   }
 
   // Helper to wait for button component to load (not Suspense fallback)
+  // Note: waitFor already uses act() internally, so we don't wrap it
   const waitForButton = async (container: HTMLElement, expectedText?: string) => {
     return await waitFor(() => {
       const btn = container.querySelector('button')
@@ -56,12 +57,17 @@ describe('Button Toolbar Props Integration', () => {
 
   describe('Color Props Updates', () => {
     it('updates background color when toolbar changes solid-background', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="solid" layer="layer-0">Test</Button>
-      )
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
       
       // Wait for component to load (not Suspense fallback)
-      const button = await waitForButton(container, 'Test')
+      const button = await waitForButton(container!, 'Test')
 
       // Get the CSS variable name that the toolbar would use
       const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
@@ -74,12 +80,14 @@ describe('Button Toolbar Props Integration', () => {
       })
       
       // Simulate toolbar update: change the CSS variable
-      updateCssVar(bgVar, '#ff0000')
-      
-      // Dispatch the cssVarsUpdated event that components listen for
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [bgVar] }
-      }))
+      await act(async () => {
+        updateCssVar(bgVar, '#ff0000')
+        
+        // Dispatch the cssVarsUpdated event that components listen for
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [bgVar] }
+        }))
+      })
 
       // Wait for component to reactively update
       // Check inline style first (where CSS variables are set), then computed style
@@ -96,18 +104,25 @@ describe('Button Toolbar Props Integration', () => {
     })
 
     it('updates text color when toolbar changes solid-text', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="solid" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const textVar = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
       
       // Simulate toolbar update
-      updateCssVar(textVar, '#0000ff')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [textVar] }
-      }))
+      await act(async () => {
+        updateCssVar(textVar, '#0000ff')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [textVar] }
+        }))
+      })
 
       await waitFor(() => {
         const textValue = button.style.getPropertyValue('--button-color') || 
@@ -119,17 +134,24 @@ describe('Button Toolbar Props Integration', () => {
     })
 
     it('updates outline variant colors when toolbar changes', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="outline" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="outline" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const textVar = getComponentCssVar('Button', 'colors', 'outline-text', 'layer-0')
       
-      updateCssVar(textVar, '#00ff00')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [textVar] }
-      }))
+      await act(async () => {
+        updateCssVar(textVar, '#00ff00')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [textVar] }
+        }))
+      })
 
       await waitFor(() => {
         const styles = window.getComputedStyle(button!)
@@ -139,17 +161,24 @@ describe('Button Toolbar Props Integration', () => {
     })
 
     it('updates text variant colors when toolbar changes', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="text" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="text" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const textVar = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
       
-      updateCssVar(textVar, '#ffff00')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [textVar] }
-      }))
+      await act(async () => {
+        updateCssVar(textVar, '#ffff00')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [textVar] }
+        }))
+      })
 
       await waitFor(() => {
         const styles = window.getComputedStyle(button!)
@@ -162,18 +191,27 @@ describe('Button Toolbar Props Integration', () => {
       const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
       
       for (const layer of layers) {
-        const { container, unmount } = renderWithProviders(
-          <Button variant="solid" layer={layer}>Test</Button>
-        )
-        const button = await waitForButton(container, 'Test')
+        let container: HTMLElement
+        let unmount: () => void
+        await act(async () => {
+          const result = renderWithProviders(
+            <Button variant="solid" layer={layer}>Test</Button>
+          )
+          container = result.container
+          unmount = result.unmount
+          await new Promise(resolve => setTimeout(resolve, 0))
+        })
+        const button = await waitForButton(container!, 'Test')
         
         const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
         const testColor = `#${layer.replace('layer-', '')}00000`
         
-        updateCssVar(bgVar, testColor)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [bgVar] }
-        }))
+        await act(async () => {
+          updateCssVar(bgVar, testColor)
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: [bgVar] }
+          }))
+        })
 
         await waitFor(() => {
           const styles = window.getComputedStyle(button!)
@@ -181,24 +219,33 @@ describe('Button Toolbar Props Integration', () => {
           expect(bgValue).toContain(bgVar)
         })
         
-        unmount()
+        await act(async () => {
+          unmount!()
+        })
       }
     })
   })
 
   describe('Size Props Updates', () => {
     it('updates height when toolbar changes default-height', async () => {
-      const { container } = renderWithProviders(
-        <Button size="default">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button size="default">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
       
-      updateCssVar(heightVar, '60px')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [heightVar] }
-      }))
+      await act(async () => {
+        updateCssVar(heightVar, '60px')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [heightVar] }
+        }))
+      })
 
       await waitFor(() => {
         const heightValue = button.style.getPropertyValue('--button-height') || 
@@ -211,17 +258,24 @@ describe('Button Toolbar Props Integration', () => {
 
     it('updates icon size when toolbar changes default-icon', async () => {
       const TestIcon = () => <svg><circle /></svg>
-      const { container } = renderWithProviders(
-        <Button size="default" icon={<TestIcon />}>Test</Button>
-      )
-      const button = await waitForButton(container)
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button size="default" icon={<TestIcon />}>Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!)
       
       const iconSizeVar = getComponentCssVar('Button', 'size', 'default-icon', undefined)
       
-      updateCssVar(iconSizeVar, '24px')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [iconSizeVar] }
-      }))
+      await act(async () => {
+        updateCssVar(iconSizeVar, '24px')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [iconSizeVar] }
+        }))
+      })
 
       await waitFor(() => {
         const iconSizeValue = button.style.getPropertyValue('--button-icon-size') || 
@@ -233,17 +287,24 @@ describe('Button Toolbar Props Integration', () => {
     })
 
     it('updates horizontal padding when toolbar changes', async () => {
-      const { container } = renderWithProviders(
-        <Button size="default">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button size="default">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const paddingVar = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
       
-      updateCssVar(paddingVar, '32px')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [paddingVar] }
-      }))
+      await act(async () => {
+        updateCssVar(paddingVar, '32px')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [paddingVar] }
+        }))
+      })
 
       await waitFor(() => {
         const styles = window.getComputedStyle(button!)
@@ -253,17 +314,24 @@ describe('Button Toolbar Props Integration', () => {
     })
 
     it('updates small size properties when toolbar changes', async () => {
-      const { container } = renderWithProviders(
-        <Button size="small">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button size="small">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const heightVar = getComponentCssVar('Button', 'size', 'small-height', undefined)
       
-      updateCssVar(heightVar, '28px')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [heightVar] }
-      }))
+      await act(async () => {
+        updateCssVar(heightVar, '28px')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [heightVar] }
+        }))
+      })
 
       await waitFor(() => {
         const styles = window.getComputedStyle(button!)
@@ -275,18 +343,25 @@ describe('Button Toolbar Props Integration', () => {
 
   describe('Component-Level Props Updates', () => {
     it('updates elevation when toolbar changes elevation', async () => {
-      const { container } = renderWithProviders(
-        <Button>Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button>Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const elevationVar = getComponentLevelCssVar('Button', 'elevation')
       
       // Update elevation CSS variable
-      updateCssVar(elevationVar, 'elevation-2')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [elevationVar] }
-      }))
+      await act(async () => {
+        updateCssVar(elevationVar, 'elevation-2')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [elevationVar] }
+        }))
+      })
 
       // Wait for component to reactively update elevation
       await waitFor(() => {
@@ -298,17 +373,24 @@ describe('Button Toolbar Props Integration', () => {
     })
 
     it('updates border-radius when toolbar changes', async () => {
-      const { container } = renderWithProviders(
-        <Button>Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button>Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const borderRadiusVar = getComponentLevelCssVar('Button', 'border-radius')
       
-      updateCssVar(borderRadiusVar, '12px')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [borderRadiusVar] }
-      }))
+      await act(async () => {
+        updateCssVar(borderRadiusVar, '12px')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [borderRadiusVar] }
+        }))
+      })
 
       await waitFor(() => {
         const styles = window.getComputedStyle(button!)
@@ -318,17 +400,24 @@ describe('Button Toolbar Props Integration', () => {
     })
 
     it('updates max-width when toolbar changes', async () => {
-      const { container } = renderWithProviders(
-        <Button>Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button>Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const maxWidthVar = getComponentLevelCssVar('Button', 'max-width')
       
-      updateCssVar(maxWidthVar, '600px')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [maxWidthVar] }
-      }))
+      await act(async () => {
+        updateCssVar(maxWidthVar, '600px')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [maxWidthVar] }
+        }))
+      })
 
       await waitFor(() => {
         const maxWidthValue = button.style.getPropertyValue('--button-max-width') || 
@@ -340,17 +429,24 @@ describe('Button Toolbar Props Integration', () => {
     })
 
     it('updates font-size when toolbar changes', async () => {
-      const { container } = renderWithProviders(
-        <Button>Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button>Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const fontSizeVar = getComponentLevelCssVar('Button', 'font-size')
       
-      updateCssVar(fontSizeVar, '16px')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [fontSizeVar] }
-      }))
+      await act(async () => {
+        updateCssVar(fontSizeVar, '16px')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [fontSizeVar] }
+        }))
+      })
 
       await waitFor(() => {
         const styles = window.getComputedStyle(button!)
@@ -362,10 +458,15 @@ describe('Button Toolbar Props Integration', () => {
 
   describe('Multiple Props Updates', () => {
     it('handles multiple simultaneous CSS variable updates', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="solid" size="default" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" size="default" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
       const textVar = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
@@ -373,15 +474,17 @@ describe('Button Toolbar Props Integration', () => {
       const elevationVar = getComponentLevelCssVar('Button', 'elevation')
       
       // Update multiple CSS variables at once
-      updateCssVar(bgVar, '#ff0000')
-      updateCssVar(textVar, '#0000ff')
-      updateCssVar(heightVar, '60px')
-      updateCssVar(elevationVar, 'elevation-1')
-      
-      // Dispatch event with all updated vars
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [bgVar, textVar, heightVar, elevationVar] }
-      }))
+      await act(async () => {
+        updateCssVar(bgVar, '#ff0000')
+        updateCssVar(textVar, '#0000ff')
+        updateCssVar(heightVar, '60px')
+        updateCssVar(elevationVar, 'elevation-1')
+        
+        // Dispatch event with all updated vars
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [bgVar, textVar, heightVar, elevationVar] }
+        }))
+      })
 
       await waitFor(() => {
         const bgValue = button.style.getPropertyValue('--button-bg') || 
@@ -404,17 +507,26 @@ describe('Button Toolbar Props Integration', () => {
 
   describe('Variant Switching', () => {
     it('updates CSS variables when variant changes via toolbar', async () => {
-      const { container, rerender } = renderWithProviders(
-        <Button variant="solid" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      let rerender: (ui: React.ReactElement) => void
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        rerender = result.rerender
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       // Initially use solid variant
       const solidBgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
-      updateCssVar(solidBgVar, '#ff0000')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [solidBgVar] }
-      }))
+      await act(async () => {
+        updateCssVar(solidBgVar, '#ff0000')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [solidBgVar] }
+        }))
+      })
 
       await waitFor(() => {
         const bgValue = button.style.getPropertyValue('--button-bg') || 
@@ -423,19 +535,26 @@ describe('Button Toolbar Props Integration', () => {
       })
 
       // Switch to outline variant
-      rerender(
-        <UiKitProvider>
-          <UnifiedThemeProvider>
-            <Button variant="outline" layer="layer-0">Test</Button>
-          </UnifiedThemeProvider>
-        </UiKitProvider>
-      )
+      await act(async () => {
+        rerender!(
+          <UiKitProvider>
+            <ThemeModeProvider>
+              <UnifiedThemeProvider>
+                <Button variant="outline" layer="layer-0">Test</Button>
+              </UnifiedThemeProvider>
+            </ThemeModeProvider>
+          </UiKitProvider>
+        )
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
 
       const outlineTextVar = getComponentCssVar('Button', 'colors', 'outline-text', 'layer-0')
-      updateCssVar(outlineTextVar, '#00ff00')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [outlineTextVar] }
-      }))
+      await act(async () => {
+        updateCssVar(outlineTextVar, '#00ff00')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [outlineTextVar] }
+        }))
+      })
 
       await waitFor(() => {
         const colorValue = button.style.getPropertyValue('--button-color') || 
@@ -447,15 +566,22 @@ describe('Button Toolbar Props Integration', () => {
 
   describe('Reactive Updates', () => {
     it('component updates when CSS variable changes without event', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="solid" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
       
       // Update CSS variable directly (simulating MutationObserver detection)
-      updateCssVar(bgVar, '#ff0000')
+      await act(async () => {
+        updateCssVar(bgVar, '#ff0000')
+      })
       
       // Wait for MutationObserver to detect the change
       await waitFor(() => {
@@ -467,19 +593,26 @@ describe('Button Toolbar Props Integration', () => {
     })
 
     it('component updates when multiple CSS variables change sequentially', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="solid" size="default" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" size="default" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
       const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
       
       // Update first variable
-      updateCssVar(bgVar, '#ff0000')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [bgVar] }
-      }))
+      await act(async () => {
+        updateCssVar(bgVar, '#ff0000')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [bgVar] }
+        }))
+      })
 
       await waitFor(() => {
         const bgValue = button.style.getPropertyValue('--button-bg') || 
@@ -489,10 +622,12 @@ describe('Button Toolbar Props Integration', () => {
       })
 
       // Update second variable
-      updateCssVar(heightVar, '60px')
-      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: [heightVar] }
-      }))
+      await act(async () => {
+        updateCssVar(heightVar, '60px')
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [heightVar] }
+        }))
+      })
 
       await waitFor(() => {
         const heightValue = button.style.getPropertyValue('--button-height') || 

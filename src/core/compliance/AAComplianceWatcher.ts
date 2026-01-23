@@ -349,7 +349,8 @@ export class AAComplianceWatcher {
       ? `var(--recursica-brand-themes-${mode}-palettes-core-white)`
       : `var(--recursica-brand-themes-${mode}-palettes-core-black)`
     
-    updateCssVar(onToneVar, onToneValue)
+    // Pass tokens to updateCssVar for validation
+    updateCssVar(onToneVar, onToneValue, this.tokens)
   }
 
   /**

@@ -7,6 +7,7 @@ import { Label } from '../../components/adapters/Label'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
+import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import type { ComponentLayer } from '../../components/registry/types'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
@@ -437,29 +438,54 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Modal',
       url: `${base}/modal`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, padding: 12, borderRadius: 8, background: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)` }}>
-          <strong>Modal</strong>
-          <div style={{ fontSize: 12, opacity: 0.75 }}>Header, body, actions</div>
-        </div>
-      ),
+      render: (_selectedLayers: Set<LayerOption>) => {
+        const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
+        return (
+          <div style={{ 
+            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
+            padding: 12, 
+            borderRadius: 8, 
+            background: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
+            boxShadow: layer1Elevation || undefined
+          }}>
+            <strong>Modal</strong>
+            <div style={{ fontSize: 12, opacity: 0.75 }}>Header, body, actions</div>
+          </div>
+        )
+      },
     },
     {
       name: 'Card',
       url: `${base}/card`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ width: 240, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, borderRadius: 8, padding: 12 }}>
-            <strong>Card Title</strong>
-            <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses elevation 1.</p>
-            <a href="#" style={{ fontSize: 12 }}>Learn more</a>
+      render: (_selectedLayers: Set<LayerOption>) => {
+        const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
+        const layer2Elevation = getLayerElevationBoxShadow(mode, 'layer-2')
+        return (
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ 
+              width: 240, 
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
+              borderRadius: 8, 
+              padding: 12,
+              boxShadow: layer1Elevation || undefined
+            }}>
+              <strong>Card Title</strong>
+              <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses layer-1 elevation.</p>
+              <a href="#" style={{ fontSize: 12 }}>Learn more</a>
+            </div>
+            <div style={{ 
+              width: 240, 
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
+              borderRadius: 8, 
+              padding: 12, 
+              boxShadow: layer2Elevation || undefined
+            }}>
+              <strong>Higher Elevation</strong>
+              <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses layer-2 elevation.</p>
+            </div>
           </div>
-          <div style={{ width: 240, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, borderRadius: 8, padding: 12, boxShadow: `0 8px 16px var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color)` }}>
-            <strong>Higher Elevation</strong>
-            <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses elevation 8.</p>
-          </div>
-        </div>
-      ),
+        )
+      },
     },
     {
       name: 'Checkbox',

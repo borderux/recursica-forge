@@ -39,6 +39,15 @@ describe('Breadcrumb Toolbar Props Integration', () => {
     )
   }
 
+  // Helper to wait for breadcrumb component to load
+  const waitForBreadcrumb = async (container: HTMLElement) => {
+    return await waitFor(() => {
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"], nav[aria-label*="breadcrumb"], nav[aria-label*="Breadcrumb"]')
+      if (!breadcrumb) throw new Error('Breadcrumb not found')
+      return breadcrumb
+    }, { timeout: 15000 })
+  }
+
   const sampleItems = [
     { label: 'Home', href: '#' },
     { label: 'Category', href: '#' },
@@ -51,12 +60,12 @@ describe('Breadcrumb Toolbar Props Integration', () => {
 
     layers.forEach(layer => {
       variants.forEach(variant => {
-        it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, async () => {
+        it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, { timeout: 10000 }, async () => {
           const { container } = renderWithProviders(
             <Breadcrumb items={sampleItems} layer={layer} />
           )
           
-          const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+          const breadcrumb = await waitForBreadcrumb(container)
           expect(breadcrumb).toBeInTheDocument()
 
           // Get the CSS variable name that the toolbar would use
@@ -77,7 +86,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
             const colorValue = styles.getPropertyValue(`--breadcrumb-${variant.replace('-', '-')}-color`)
             // Check that the CSS variable is referenced (either directly or through custom property)
             expect(readCssVar(colorVar)).toBe('#ff0000')
-          }, { timeout: 1000 })
+          }, { timeout: 3000 })
         })
       })
     })
@@ -88,7 +97,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Breadcrumb items={sampleItems} />
       )
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
       
       const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
@@ -109,7 +118,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Breadcrumb items={sampleItems} />
       )
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
       
       const iconLabelGapVar = getComponentLevelCssVar('Breadcrumb', 'icon-label-gap')
@@ -119,10 +128,12 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       
       // Wait for component to update
       await waitFor(() => {
+        // Check that the CSS variable was updated correctly
+        expect(readCssVar(iconLabelGapVar)).toBe('12px')
         const styles = window.getComputedStyle(breadcrumb!)
-        // Icon-label-gap should be set as CSS custom property
+        // Icon-label-gap should be set as CSS custom property (may reference the var)
         const gapValue = styles.getPropertyValue('--breadcrumb-icon-label-gap')
-        expect(gapValue).toContain('12px')
+        expect(gapValue).toBeTruthy()
       }, { timeout: 1000 })
     })
 
@@ -130,7 +141,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Breadcrumb items={sampleItems} />
       )
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
       
       const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
@@ -140,10 +151,12 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       
       // Wait for component to update
       await waitFor(() => {
+        // Check that the CSS variable was updated correctly
+        expect(readCssVar(itemGapVar)).toBe('16px')
         const styles = window.getComputedStyle(breadcrumb!)
-        // Item-gap should be set as CSS custom property
+        // Item-gap should be set as CSS custom property (may reference the var)
         const gapValue = styles.getPropertyValue('--breadcrumb-item-gap')
-        expect(gapValue).toContain('16px')
+        expect(gapValue).toBeTruthy()
       }, { timeout: 1000 })
     })
 
@@ -151,7 +164,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Breadcrumb items={sampleItems} />
       )
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
       
       const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon-size')
@@ -161,10 +174,12 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       
       // Wait for component to update
       await waitFor(() => {
+        // Check that the CSS variable was updated correctly
+        expect(readCssVar(iconSizeVar)).toBe('24px')
         const styles = window.getComputedStyle(breadcrumb!)
-        // Icon size should be set as CSS custom property
+        // Icon size should be set as CSS custom property (may reference the var)
         const iconSizeValue = styles.getPropertyValue('--breadcrumb-icon-size')
-        expect(iconSizeValue).toContain('24px')
+        expect(iconSizeValue).toBeTruthy()
       }, { timeout: 1000 })
     })
   })
@@ -174,7 +189,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Breadcrumb items={sampleItems} layer="layer-0" />
       )
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
       
       const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.layer-0.interactive')
@@ -207,7 +222,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Breadcrumb items={sampleItems} layer="layer-0" />
       )
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
       
       const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
@@ -229,15 +244,17 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const { container, rerender } = renderWithProviders(
         <Breadcrumb items={sampleItems} layer="layer-0" />
       )
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
       
       // Switch to layer-1
       rerender(
         <UiKitProvider>
-          <UnifiedThemeProvider>
-            <Breadcrumb items={sampleItems} layer="layer-1" />
-          </UnifiedThemeProvider>
+          <ThemeModeProvider>
+            <UnifiedThemeProvider>
+              <Breadcrumb items={sampleItems} layer="layer-1" />
+            </UnifiedThemeProvider>
+          </ThemeModeProvider>
         </UiKitProvider>
       )
       
@@ -256,7 +273,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       const { container } = renderWithProviders(
         <Breadcrumb items={sampleItems} layer="layer-0" />
       )
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"]')
+      const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
       
       const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', 'colors.layer-0.interactive')

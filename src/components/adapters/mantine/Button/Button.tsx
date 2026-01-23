@@ -31,7 +31,7 @@ export default function Button({
   const { mode } = useThemeMode()
   
   // Map unified variant to Mantine variant
-  const mantineVariant = variant === 'solid' ? 'filled' : variant === 'outline' ? 'outline' : variant === 'ghost' ? 'subtle' : 'subtle'
+  const mantineVariant = variant === 'solid' ? 'filled' : variant === 'outline' ? 'outline' : 'subtle'
   
   // Map unified size to Mantine size
   const mantineSize = size === 'small' ? 'xs' : size === 'default' ? 'md' : 'lg'
@@ -39,8 +39,7 @@ export default function Button({
   // Determine size prefix for CSS variables
   const sizePrefix = size === 'small' ? 'small' : 'default'
   
-  // Map ghost variant to text for CSS variable purposes (ghost uses same CSS vars as text)
-  const cssVarVariant = variant === 'ghost' ? 'text' : variant
+  const cssVarVariant = variant
   
   // Use UIKit.json button colors for standard layers
   const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
@@ -123,7 +122,7 @@ export default function Button({
           ...((variant === 'solid' || variant === 'outline') && buttonBorderColor && {
             borderColor: `${buttonBorderColor} !important`,
           }),
-          ...((variant === 'text' || variant === 'ghost') && {
+          ...(variant === 'text' && {
             border: 'none !important',
           }),
         }),
@@ -168,8 +167,8 @@ export default function Button({
       ...((variant === 'solid' || variant === 'outline') && buttonBorderColor ? {
         '--button-bd': `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
       } : {}),
-      // For text and ghost variants, explicitly remove border
-      ...((variant === 'text' || variant === 'ghost') ? {
+      // For text variant, explicitly remove border
+      ...(variant === 'text' ? {
         '--button-bd': 'none',
       } : {}),
       '--button-height': `var(${heightVar})`,

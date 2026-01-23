@@ -33,7 +33,7 @@ export default function ButtonPreview({
 
   // Get background color for contrast checking
   // For solid buttons, use the button's background color
-  // For other variants (outline, ghost), use the layer surface color
+  // For other variants (outline, text), use the layer surface color
   const bgColor = useMemo(() => {
     if (styleVariant === 'solid') {
       // For solid buttons, use the button's background color

@@ -12,6 +12,7 @@ import { hexToRgb, contrastRatio } from '../theme/contrastUtil'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
+import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
@@ -41,6 +42,7 @@ function CoreOnToneCell({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const AA = 4.5
@@ -188,7 +190,7 @@ function CoreOnToneCell({
               backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
               border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
               borderRadius: '6px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 1000,
               minWidth: '200px',
               fontSize: '12px',
@@ -225,6 +227,7 @@ function CoreInteractiveCell({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const AA = 4.5
@@ -322,7 +325,7 @@ function CoreInteractiveCell({
               backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
               border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
               borderRadius: '6px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 1000,
               minWidth: '200px',
               fontSize: '12px',
@@ -358,6 +361,7 @@ function CoreInteractiveSwatch({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const AA = 4.5
@@ -499,11 +503,41 @@ function CoreInteractiveSwatch({
 export default function PalettesPage() {
   const { tokens: tokensJson, theme: themeJson, palettes: palettesState, setPalettes, setTheme } = useVars()
   const { mode } = useThemeMode()
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   
   const allFamilies = useMemo(() => {
-    const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))
+    const fams = new Set<string>()
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    
+    // Add families from new colors structure (use scale keys, not aliases, for internal tracking)
+    const colorsRoot: any = tokensRoot?.colors || {}
+    if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+      Object.keys(colorsRoot).forEach((scaleKey) => {
+        if (scaleKey.startsWith('scale-')) {
+          fams.add(scaleKey) // Use scale key for internal tracking
+        }
+      })
+    }
+    
+    // Also add from old color structure for backwards compatibility
+    const oldColors = tokensRoot?.color || {}
+    Object.keys(oldColors).forEach((fam) => {
+      if (fam !== 'translucent') fams.add(fam)
+    })
+    
     fams.delete('translucent')
-    return Array.from(fams).sort()
+    const list = Array.from(fams)
+    list.sort((a, b) => {
+      // Sort scale keys together, then other families
+      const aIsScale = a.startsWith('scale-')
+      const bIsScale = b.startsWith('scale-')
+      if (aIsScale && !bIsScale) return 1
+      if (!aIsScale && bIsScale) return -1
+      if (a === 'gray' && b !== 'gray') return -1
+      if (b === 'gray' && a !== 'gray') return 1
+      return a.localeCompare(b)
+    })
+    return list
   }, [tokensJson])
   
   // Removed automatic AA compliance check - let JSON values be set first
@@ -512,28 +546,48 @@ export default function PalettesPage() {
   const writePalettes = (next: PaletteEntry[]) => setPalettes({ ...palettesState, dynamic: next })
   
   // Track which families are already used by palettes
-  // Check both initialFamily and the actual family from theme JSON
+  // Use theme JSON as the source of truth (it reflects actual current usage)
+  // Only fall back to initialFamily if theme JSON doesn't have the palette
+  const [paletteFamilyChangeVersion, setPaletteFamilyChangeVersion] = useState(0)
+  
+  // Listen for palette family changes to force recalculation
+  useEffect(() => {
+    const handlePaletteFamilyChanged = () => {
+      setPaletteFamilyChangeVersion(v => v + 1)
+    }
+    window.addEventListener('paletteFamilyChanged', handlePaletteFamilyChanged as any)
+    return () => {
+      window.removeEventListener('paletteFamilyChanged', handlePaletteFamilyChanged as any)
+    }
+  }, [])
+  
   const usedFamilies = useMemo(() => {
     const set = new Set<string>()
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
+    const detectedFromTheme = new Set<string>() // Track which palettes we detected from theme
     
-    // First, add families from initialFamily
-    palettes.forEach((p) => {
-      if (p.initialFamily) set.add(p.initialFamily)
-    })
-    
-    // Then, detect actual families from theme JSON (in case user changed the family)
+    // First, detect actual families from theme JSON - this is the source of truth
+    // Theme JSON reflects what's actually being used, even if initialFamily is stale
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+      const themes = root?.themes || root
+      
       palettes.forEach((p) => {
         const paletteKey = p.key
         let foundFamily = false
+        
         // Check both light and dark modes (but a palette should use same family in both)
         for (const modeKey of ['light', 'dark']) {
           if (foundFamily) break
-          const palette = root?.[modeKey]?.palettes?.[paletteKey]
+          
+          // Try both possible paths
+          const palette = themes?.[modeKey]?.palettes?.[paletteKey] || root?.[modeKey]?.palettes?.[paletteKey]
+          
           if (palette) {
             // Check a few levels to detect the family
-            const checkLevels = ['200', '500', '400', '300']
+            const checkLevels = ['200', '500', '400', '300', '100', '600']
             for (const lvl of checkLevels) {
               const tone = palette?.[lvl]?.color?.tone?.$value
               if (typeof tone === 'string') {
@@ -541,11 +595,39 @@ export default function PalettesPage() {
                 const tokenIndex = buildTokenIndex(tokensJson)
                 const context: TokenReferenceContext = { currentMode: modeKey as 'light' | 'dark', tokenIndex }
                 const parsed = parseTokenReference(tone, context)
-                if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
-                  // Extract family name from token path (e.g., color/gray/100 -> gray)
-                  const detectedFamily = parsed.path[1]
+                if (parsed && parsed.type === 'token' && parsed.path.length >= 2) {
+                  let detectedFamily: string | null = null
+                  
+                  // Handle new colors format (colors.scale-XX.level or colors.alias.level)
+                  if (parsed.path[0] === 'colors') {
+                    const scaleOrAlias = parsed.path[1]
+                    // If it's a scale key, use it directly
+                    if (scaleOrAlias.startsWith('scale-')) {
+                      detectedFamily = scaleOrAlias
+                    } else {
+                      // It's an alias - find the scale that has this alias
+                      for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+                        if (!scaleKey.startsWith('scale-')) continue
+                        const scaleObj = scale as any
+                        if (scaleObj?.alias === scaleOrAlias) {
+                          detectedFamily = scaleKey
+                          break
+                        }
+                      }
+                      // If not found, use the alias itself (fallback for old format)
+                      if (!detectedFamily) {
+                        detectedFamily = scaleOrAlias
+                      }
+                    }
+                  }
+                  // Handle old color format (color.family.level)
+                  else if (parsed.path[0] === 'color') {
+                    detectedFamily = parsed.path[1]
+                  }
+                  
                   if (detectedFamily) {
                     set.add(detectedFamily)
+                    detectedFromTheme.add(paletteKey)
                     foundFamily = true
                     break // Found a family for this palette, move to next palette
                   }
@@ -559,8 +641,39 @@ export default function PalettesPage() {
       console.error('Failed to detect used families from theme:', err)
     }
     
+    // Only use initialFamily as fallback for palettes not found in theme JSON
+    // This handles edge cases where a palette exists but theme JSON hasn't been initialized yet
+    palettes.forEach((p) => {
+      // Skip if we already detected this palette from theme JSON
+      if (detectedFromTheme.has(p.key)) return
+      
+      if (p.initialFamily) {
+        // If initialFamily is a scale key, use it directly
+        // If it's an alias, find the corresponding scale key
+        if (p.initialFamily.startsWith('scale-')) {
+          set.add(p.initialFamily)
+        } else {
+          // Check if it's an alias that maps to a scale
+          let foundScale = false
+          for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+            if (!scaleKey.startsWith('scale-')) continue
+            const scaleObj = scale as any
+            if (scaleObj?.alias === p.initialFamily) {
+              set.add(scaleKey)
+              foundScale = true
+              break
+            }
+          }
+          // If not found as alias, use the family name directly (old format)
+          if (!foundScale) {
+            set.add(p.initialFamily)
+          }
+        }
+      }
+    })
+    
     return set
-  }, [palettes, themeJson])
+  }, [palettes, themeJson, tokensJson, paletteFamilyChangeVersion])
   
   const unusedFamilies = useMemo(() => 
     allFamilies.filter((f) => !usedFamilies.has(f)), 
@@ -577,6 +690,33 @@ export default function PalettesPage() {
       const themeCopy = JSON.parse(JSON.stringify(themeJson))
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const headerLevels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200']
+      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+      const colorsRoot: any = tokensRoot?.colors || {}
+      
+      // Determine the correct token reference format based on family type
+      let tokenRef: string = `{tokens.color.${family}.${headerLevels[0]}}` // Default fallback
+      
+      if (family.startsWith('scale-')) {
+        // Direct scale reference: use colors format
+        tokenRef = `{tokens.colors.${family}.${headerLevels[0]}}`
+      } else {
+        // Check if it's an alias that maps to a scale
+        let isScaleAlias = false
+        for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+          if (!scaleKey.startsWith('scale-')) continue
+          const scaleObj = scale as any
+          if (scaleObj?.alias === family) {
+            // Use the scale key for the reference
+            tokenRef = `{tokens.colors.${scaleKey}.${headerLevels[0]}}`
+            isScaleAlias = true
+            break
+          }
+        }
+        if (!isScaleAlias) {
+          // Fallback to old color format
+          tokenRef = `{tokens.color.${family}.${headerLevels[0]}}`
+        }
+      }
       
       // Initialize for both light and dark modes
       for (const modeKey of ['light', 'dark']) {
@@ -588,9 +728,31 @@ export default function PalettesPage() {
           if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
           if (!root[modeKey].palettes[paletteKey][lvl].color) root[modeKey].palettes[paletteKey][lvl].color = {}
           
+          // Determine the correct token reference for this level
+          let levelTokenRef: string
+          if (family.startsWith('scale-')) {
+            levelTokenRef = `{tokens.colors.${family}.${lvl}}`
+          } else {
+            // Try to find if this family is an alias for a scale
+            let foundScaleKey: string | undefined
+            for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+              if (!scaleKey.startsWith('scale-')) continue
+              const scaleObj = scale as any
+              if (scaleObj?.alias === family) {
+                foundScaleKey = scaleKey
+                break
+              }
+            }
+            if (foundScaleKey) {
+              levelTokenRef = `{tokens.colors.${foundScaleKey}.${lvl}}`
+            } else {
+              levelTokenRef = `{tokens.color.${family}.${lvl}}`
+            }
+          }
+          
           // Set tone to reference the family token
           root[modeKey].palettes[paletteKey][lvl].color.tone = {
-            $value: `{tokens.color.${family}.${lvl}}`
+            $value: levelTokenRef
           }
           
           // Set on-tone to reference white (will be updated by PaletteGrid based on contrast)
@@ -607,18 +769,41 @@ export default function PalettesPage() {
   }
   
   const addPalette = () => {
-    if (!canAddPalette) return
+    if (!canAddPalette || unusedFamilies.length === 0) {
+      console.warn('Cannot add palette:', { canAddPalette, unusedFamiliesLength: unusedFamilies.length })
+      return
+    }
+    
+    // Only use unused color scales - take the first available one
+    // unusedFamilies already filters out used families, so we can trust it
     const family = unusedFamilies[0]
+    
+    if (!family) {
+      console.warn('No family available to add palette')
+      return
+    }
+    
     const existing = new Set(palettes.map((p) => p.key))
     let i = 1
     while (existing.has(`palette-${i}`)) i += 1
     const nextKey = `palette-${i}`
     
-    // Initialize theme JSON for this palette
-    initializePaletteTheme(nextKey, family)
+    console.log('Adding palette:', { nextKey, family, unusedFamilies, currentPalettes: palettes.length })
     
-    // Add palette entry
-    writePalettes([...palettes, { key: nextKey, title: `Palette ${i}`, defaultLevel: 500, initialFamily: family }])
+    try {
+      // Initialize theme JSON for this palette using the unused color scale
+      initializePaletteTheme(nextKey, family)
+      
+      // Add palette entry with the unused color scale as initialFamily
+      const newPalette: PaletteEntry = { key: nextKey, title: `Palette ${i}`, defaultLevel: 500, initialFamily: family }
+      const updatedPalettes = [...palettes, newPalette]
+      console.log('Writing palettes:', { newPalette, updatedPalettes })
+      writePalettes(updatedPalettes)
+      
+      console.log('Palette added successfully')
+    } catch (err) {
+      console.error('Failed to add palette:', err)
+    }
   }
   
   const deletePalette = (key: string) => {

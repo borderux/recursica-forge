@@ -49,7 +49,7 @@ export function NotFoundPage() {
         Page not found
       </p>
       <Button
-        variant="primary"
+        variant="solid"
         onClick={() => navigate('/tokens')}
         layer="layer-0"
       >

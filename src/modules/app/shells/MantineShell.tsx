@@ -9,7 +9,6 @@ import { AppShell, Group, Select, MantineProvider, Modal, Tabs as MantineTabs } 
 import '@mantine/core/styles.css'
 import './MantineShell.css'
 import { iconNameToReactComponent } from '../../components/iconUtils'
-import { extractCssVarsFromObject, applyCssVars } from '../../theme/varsUtil'
 import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
@@ -19,6 +18,7 @@ import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
+import { Tooltip } from '../../../components/adapters/Tooltip'
 import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { ComponentsSidebar } from '../../preview/ComponentsSidebar'
@@ -58,18 +58,24 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
       return
     }
     
-    // Process files and detect types
-    const importFiles = await processUploadedFilesAsync(files)
-    
-    // Update selected files display
-    const fileNames: string[] = []
-    if (importFiles.tokens) fileNames.push('tokens.json')
-    if (importFiles.brand) fileNames.push('brand.json')
-    if (importFiles.uikit) fileNames.push('uikit.json')
-    setSelectedFileNames(fileNames)
-    
-    // Store files for import
-    setSelectedFiles(importFiles)
+    try {
+      // Process files and detect types
+      const importFiles = await processUploadedFilesAsync(files)
+      
+      // Update selected files display
+      const fileNames: string[] = []
+      if (importFiles.tokens) fileNames.push('tokens.json')
+      if (importFiles.brand) fileNames.push('brand.json')
+      if (importFiles.uikit) fileNames.push('uikit.json')
+      setSelectedFileNames(fileNames)
+      
+      // Store files for import
+      setSelectedFiles(importFiles)
+    } catch (error) {
+      console.error('Error processing files:', error)
+      setSelectedFiles({})
+      setSelectedFileNames([])
+    }
   }
   
   const handleImportClick = () => {
@@ -90,7 +96,6 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   }
   
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
   const headerRef = useRef<HTMLElement>(null)
@@ -229,61 +234,66 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
 
             {/* Chunk 3: Action Buttons and Framework Dropdown */}
             <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-general-default)', alignItems: 'center', marginLeft: 'auto' }}>
-              <Button
-                variant="outline"
-                size="small"
-                icon={(() => {
-                  const RefreshIcon = iconNameToReactComponent('arrow-path')
-                  return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                })()}
-                onClick={() => {
-                  clearOverrides(tokensJson as any)
-                  resetAll()
-                }}
-                title="Reset all changes"
-              />
-              <Button
-                variant="outline"
-                size="small"
-                icon={(() => {
-                  const UploadIcon = iconNameToReactComponent('arrow-up-tray')
-                  return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                })()}
-                onClick={() => setIsModalOpen(true)}
-                title="Import theme"
-              />
-              <Button
-                variant="outline"
-                size="small"
-                icon={(() => {
-                  const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
-                  return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                })()}
-                onClick={handleExport}
-                title="Export theme"
-              />
-              <Button
-                variant="outline"
-                size="small"
-                icon={(() => {
-                  const CheckIcon = iconNameToReactComponent('check-circle')
-                  return CheckIcon ? <CheckIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                })()}
-                onClick={() => {
-                  getVarsStore().updateCoreColorOnTonesForAA()
-                }}
-                title="Check AA Compliance"
-              />
-              <Button
-                variant="outline"
-                size="small"
-                icon={(() => {
-                  const BugIcon = iconNameToReactComponent('bug')
-                  return BugIcon ? <BugIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                })()}
-                onClick={() => createBugReport()}
-                title="Report a bug"
-              />
+              <Tooltip label="Reset all changes">
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon={(() => {
+                    const RefreshIcon = iconNameToReactComponent('arrow-path')
+                    return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  })()}
+                  onClick={() => {
+                    clearOverrides(tokensJson as any)
+                    resetAll()
+                  }}
+                />
+              </Tooltip>
+              <Tooltip label="Import theme">
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon={(() => {
+                    const UploadIcon = iconNameToReactComponent('arrow-up-tray')
+                    return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  })()}
+                  onClick={() => setIsModalOpen(true)}
+                />
+              </Tooltip>
+              <Tooltip label="Export theme">
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon={(() => {
+                    const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
+                    return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  })()}
+                  onClick={handleExport}
+                />
+              </Tooltip>
+              <Tooltip label="Check AA Compliance">
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon={(() => {
+                    const CheckIcon = iconNameToReactComponent('check-circle')
+                    return CheckIcon ? <CheckIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  })()}
+                  onClick={() => {
+                    getVarsStore().updateCoreColorOnTonesForAA()
+                  }}
+                />
+              </Tooltip>
+              <Tooltip label="Report a bug">
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon={(() => {
+                    const BugIcon = iconNameToReactComponent('bug')
+                    return BugIcon ? <BugIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  })()}
+                  onClick={() => createBugReport()}
+                />
+              </Tooltip>
               <Select
                 value={kit}
                 onChange={(v) => onKitChange((v as UiKit) ?? 'mantine')}
@@ -325,64 +335,66 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 padding: `var(${buttonSmallIconPadding})`,
                 gap: 0,
               }}>
-                <button
-                  onClick={() => setMode('light')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: `var(${buttonSmallMinWidth})`,
-                    height: `var(${buttonSmallHeight})`,
-                    minWidth: `var(${buttonSmallMinWidth})`,
-                    border: 'none',
-                    borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
-                    backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
-                    color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: mode === 'light' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  title="Light theme"
-                >
-                  {(() => {
-                    const SunIcon = iconNameToReactComponent('sun')
-                    return SunIcon ? <SunIcon 
-                      style={{ 
-                        width: `var(${buttonSmallIcon})`, 
-                        height: `var(${buttonSmallIcon})`,
-                      }} 
-                    /> : null
-                  })()}
-                </button>
-                <button
-                  onClick={() => setMode('dark')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: `var(${buttonSmallMinWidth})`,
-                    height: `var(${buttonSmallHeight})`,
-                    minWidth: `var(${buttonSmallMinWidth})`,
-                    border: 'none',
-                    borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
-                    backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
-                    color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: mode === 'dark' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  title="Dark theme"
-                >
-                  {(() => {
-                    const MoonIcon = iconNameToReactComponent('moon')
-                    return MoonIcon ? <MoonIcon
-                      style={{ 
-                        width: `var(${buttonSmallIcon})`, 
-                        height: `var(${buttonSmallIcon})`,
-                      }} 
-                    /> : null
-                  })()}
-                </button>
+                <Tooltip label="Light theme">
+                  <button
+                    onClick={() => setMode('light')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: `var(${buttonSmallMinWidth})`,
+                      height: `var(${buttonSmallHeight})`,
+                      minWidth: `var(${buttonSmallMinWidth})`,
+                      border: 'none',
+                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
+                      backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                      color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                      opacity: mode === 'light' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {(() => {
+                      const SunIcon = iconNameToReactComponent('sun')
+                      return SunIcon ? <SunIcon 
+                        style={{ 
+                          width: `var(${buttonSmallIcon})`, 
+                          height: `var(${buttonSmallIcon})`,
+                        }} 
+                      /> : null
+                    })()}
+                  </button>
+                </Tooltip>
+                <Tooltip label="Dark theme">
+                  <button
+                    onClick={() => setMode('dark')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: `var(${buttonSmallMinWidth})`,
+                      height: `var(${buttonSmallHeight})`,
+                      minWidth: `var(${buttonSmallMinWidth})`,
+                      border: 'none',
+                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
+                      backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                      color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                      opacity: mode === 'dark' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {(() => {
+                      const MoonIcon = iconNameToReactComponent('moon')
+                      return MoonIcon ? <MoonIcon
+                        style={{ 
+                          width: `var(${buttonSmallIcon})`, 
+                          height: `var(${buttonSmallIcon})`,
+                        }} 
+                      /> : null
+                    })()}
+                  </button>
+                </Tooltip>
               </div>
               )
             })()}
@@ -415,11 +427,21 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
               />
               {selectedFileNames.length > 0 && (
-                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+                <div style={{ 
+                  fontSize: 'var(--recursica-brand-typography-caption-font-size)', 
+                  color: `var(${layer0Base}-element-text-color)`,
+                  opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
+                  marginTop: 'var(--recursica-brand-dimensions-general-sm)' 
+                }}>
                   Selected: {selectedFileNames.join(', ')}
                 </div>
               )}
-              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+              <div style={{ 
+                fontSize: 'var(--recursica-brand-typography-caption-font-size)', 
+                color: `var(${layer0Base}-element-text-color)`,
+                opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                marginTop: 'var(--recursica-brand-dimensions-general-sm)' 
+              }}>
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>

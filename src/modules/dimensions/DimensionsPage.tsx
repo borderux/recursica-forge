@@ -296,7 +296,7 @@ export default function DimensionsPage() {
   }
 
   return (
-    <div style={{ padding: 'var(--recursica-brand-dimensions-general-lg)' }}>
+    <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
       <h1 style={{
         margin: 0,
         marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',

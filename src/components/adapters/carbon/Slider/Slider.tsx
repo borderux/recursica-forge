@@ -125,16 +125,20 @@ export default function Slider({
   const labelLineHeightVar = getTypographyCssVar(labelFontStyle, 'line-height')
   const labelTextColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
   const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+  
+  // Use layer text color directly for labels and values
+  const layerTextColorVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color`
+  const layerTextEmphasisVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis`
 
   const sliderElement = (
     <div style={{ display: 'flex', alignItems: 'center', gap: (showInput || showValueLabel) ? `var(${inputGapVar}, 8px)` : 0, width: '100%', minWidth: 0 }}>
       {/* Min value display */}
       <span style={{ 
         fontSize: 12, 
-        opacity: 0.7, 
+        color: `var(${layerTextColorVar})`,
+        opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
         flexShrink: 0,
         marginRight: '8px',
-        color: 'inherit',
       }}>
         {minLabel ?? min}
       </span>
@@ -170,10 +174,10 @@ export default function Slider({
       {/* Max value display */}
       <span style={{ 
         fontSize: 12, 
-        opacity: 0.7, 
+        color: `var(${layerTextColorVar})`,
+        opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
         flexShrink: 0,
         marginLeft: '8px',
-        color: 'inherit',
       }}>
         {maxLabel ?? max}
       </span>
@@ -223,8 +227,8 @@ export default function Slider({
             fontWeight: `var(${labelFontWeightVar})`,
             letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
             lineHeight: `var(${labelLineHeightVar})`,
-            color: `var(${labelTextColorVar})`,
-            opacity: disabled ? 0.5 : `var(${highEmphasisOpacityVar})`,
+            color: `var(${layerTextColorVar})`,
+            opacity: disabled ? 0.5 : `var(${layerTextEmphasisVar})`,
             whiteSpace: 'nowrap',
             textAlign: 'right',
           }}

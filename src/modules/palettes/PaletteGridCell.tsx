@@ -10,6 +10,7 @@ import { readOverrides } from '../theme/tokenOverrides'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Chip } from '../../components/adapters/Chip'
+import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
@@ -84,6 +85,7 @@ export function PaletteEmphasisCell({
   const cellRef = useRef<HTMLTableCellElement>(null)
   const { updateToken, theme, setTheme } = useVars()
   const { mode } = useThemeMode()
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const AA = 4.5
 
   // Load family names from localStorage
@@ -496,7 +498,7 @@ export function PaletteEmphasisCell({
             backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
             border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
             borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
             minWidth: '200px',
             fontSize: '12px',
@@ -523,7 +525,7 @@ export function PaletteEmphasisCell({
             backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
             border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
             borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
             fontSize: '12px',
             whiteSpace: 'nowrap',
@@ -659,6 +661,7 @@ export function PalettePrimaryIndicatorCell({
 }: PalettePrimaryIndicatorCellProps) {
   const { mode } = useThemeMode()
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   
   return (
     <td className={isPrimary ? 'default' : undefined} style={{ textAlign: 'center', verticalAlign: 'top', height: 28 }}>
