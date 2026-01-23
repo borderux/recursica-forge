@@ -46,24 +46,15 @@ export function Tooltip({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Get CSS variables for tooltip styling
-  // Try to use UIKit.json CSS variables if available, fallback to brand CSS variables
-  const bgVar = getComponentCssVar('Tooltip', 'colors', 'background', layer)
-  const textVar = getComponentCssVar('Tooltip', 'colors', 'text', layer)
-  const borderColorVar = getComponentCssVar('Tooltip', 'colors', 'border-color', layer)
-  const paddingVar = getComponentLevelCssVar('Tooltip', 'padding')
-  const borderRadiusVar = getComponentLevelCssVar('Tooltip', 'border-radius')
-  const fontSizeVar = getComponentLevelCssVar('Tooltip', 'font-size')
-  const zIndexVar = getComponentLevelCssVar('Tooltip', 'z-index')
-  
-  // Fallback to brand CSS variables if UIKit.json variables don't exist
+  // Tooltip doesn't exist in UIKit.json, so use brand CSS variables directly
   const layerBase = `--recursica-brand-themes-${mode}-layer-${layer}-property`
-  const fallbackBg = `var(${layerBase}-surface)`
-  const fallbackText = `var(${layerBase}-element-text-color)`
-  const fallbackBorder = `var(${layerBase}-border-color)`
+  const bgVar = `${layerBase}-surface`
+  const textVar = `${layerBase}-element-text-color`
+  const borderColorVar = `${layerBase}-border-color`
+  const borderRadiusVar = `${layerBase}-border-radius`
+  const paddingVar = `${layerBase}-padding`
+  const tooltipFontSizeVar = getBrandTypographyCssVar('caption', 'font-size')
   const fallbackOpacity = `var(--recursica-brand-themes-${mode}-text-emphasis-high)`
-  
-  // Get typography for tooltip text - use caption font size as fallback
-  const tooltipFontSizeVar = fontSizeVar || getBrandTypographyCssVar('caption', 'font-size')
 
   useEffect(() => {
     if (!isVisible || !wrapperRef.current || disabled) {
@@ -249,16 +240,14 @@ export function Tooltip({
             top: `${tooltipPosition.top}px`,
             left: `${tooltipPosition.left}px`,
             transform: tooltipPosition.transform,
-            padding: paddingVar ? `var(${paddingVar}, 6px 10px)` : '6px 10px',
-            backgroundColor: bgVar ? `var(${bgVar}, var(${layerBase}-surface))` : fallbackBg,
-            border: borderColorVar 
-              ? `1px solid var(${borderColorVar}, var(${layerBase}-border-color))` 
-              : `1px solid ${fallbackBorder}`,
-            borderRadius: borderRadiusVar ? `var(${borderRadiusVar}, 6px)` : '6px',
+            padding: `var(${paddingVar}, 6px 10px)`,
+            backgroundColor: `var(${bgVar})`,
+            border: `1px solid var(${borderColorVar})`,
+            borderRadius: `var(${borderRadiusVar}, 6px)`,
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: zIndexVar ? `var(${zIndexVar}, 9999)` : 9999,
-            fontSize: tooltipFontSizeVar ? `var(${tooltipFontSizeVar}, 12px)` : '12px',
-            color: textVar ? `var(${textVar}, var(${layerBase}-element-text-color))` : fallbackText,
+            zIndex: 9999,
+            fontSize: `var(${tooltipFontSizeVar})`,
+            color: `var(${textVar})`,
             whiteSpace: 'nowrap',
             pointerEvents: 'none',
             opacity: fallbackOpacity,

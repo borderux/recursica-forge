@@ -1754,22 +1754,6 @@ class VarsStore {
       }
     })
     
-    // Preserve core color tone CSS variables that were set directly by the user
-    // This prevents recomputes from overwriting user changes (like we do for on-tone vars)
-    Object.keys(allPaletteVars).forEach((cssVar) => {
-      // Check for core color tone vars (not on-tone or interactive)
-      if (cssVar.includes('-palettes-core-') && cssVar.includes('-tone') && !cssVar.includes('-on-tone') && !cssVar.includes('-interactive')) {
-        const inlineValue = typeof document !== 'undefined' 
-          ? document.documentElement.style.getPropertyValue(cssVar).trim()
-          : ''
-        const generatedValue = allPaletteVars[cssVar]
-        
-        // Preserve if there's an inline override and it differs from generated (user customization)
-        if (inlineValue !== '' && inlineValue !== generatedValue) {
-          allPaletteVars[cssVar] = inlineValue
-        }
-      }
-    })
     
     Object.assign(allVars, allPaletteVars)
     // allPaletteVars already defined above with preserved values

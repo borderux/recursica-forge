@@ -422,6 +422,25 @@ function InteractiveCell({
 export default function BaseColorsGrid() {
   const { mode } = useThemeMode()
   const modeLower = mode.toLowerCase()
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  // Listen for CSS var changes to trigger re-render
+  useEffect(() => {
+    const handleVarsChanged = () => {
+      setRefreshKey(k => k + 1)
+    }
+    
+    window.addEventListener('paletteVarsChanged', handleVarsChanged)
+    window.addEventListener('recheckCoreColorInteractiveOnTones', handleVarsChanged)
+    window.addEventListener('recheckAllPaletteOnTones', handleVarsChanged)
+    window.addEventListener('cssVarsUpdated', handleVarsChanged)
+    return () => {
+      window.removeEventListener('paletteVarsChanged', handleVarsChanged)
+      window.removeEventListener('recheckCoreColorInteractiveOnTones', handleVarsChanged)
+      window.removeEventListener('recheckAllPaletteOnTones', handleVarsChanged)
+      window.removeEventListener('cssVarsUpdated', handleVarsChanged)
+    }
+  }, [])
 
   const baseColors = ['black', 'white', 'alert', 'warning', 'success', 'interactive'] as const
   const rows = [
@@ -504,7 +523,7 @@ export default function BaseColorsGrid() {
               
               return (
                 <div
-                  key={color}
+                  key={`${color}-${refreshKey}`}
                   onClick={(e) => {
                     // Open scale picker for the base color tone
                     if ((window as any).openPicker) {

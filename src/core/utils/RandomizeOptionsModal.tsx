@@ -16,10 +16,12 @@ export interface RandomizeOptions {
     fontWeights: boolean
     letterSpacing: boolean
     lineHeights: boolean
-    fontFamilies: boolean
   }
   theme: {
+    coreProperties: boolean
+    type: boolean
     palettes: boolean
+    elevations: boolean
     dimensions: boolean
     layers: boolean
   }
@@ -46,14 +48,16 @@ const OPTIONS_STRUCTURE: CheckboxItem[] = [
       { key: 'fontWeights', label: 'Font Weights' },
       { key: 'letterSpacing', label: 'Letter Spacing' },
       { key: 'lineHeights', label: 'Line Heights' },
-      { key: 'fontFamilies', label: 'Font Families' },
     ],
   },
   {
     key: 'theme',
     label: 'Theme',
     children: [
+      { key: 'coreProperties', label: 'Core Properties' },
+      { key: 'type', label: 'Type' },
       { key: 'palettes', label: 'Palettes' },
+      { key: 'elevations', label: 'Elevations' },
       { key: 'dimensions', label: 'Dimensions' },
       { key: 'layers', label: 'Layers' },
     ],
@@ -83,10 +87,12 @@ function getDefaultOptions(): RandomizeOptions {
       fontWeights: true,
       letterSpacing: true,
       lineHeights: true,
-      fontFamilies: true,
     },
     theme: {
+      coreProperties: true,
+      type: true,
       palettes: true,
+      elevations: true,
       dimensions: true,
       layers: true,
     },
@@ -145,8 +151,8 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
     setOptions(getDefaultOptions())
     if (!checked) {
       setOptions({
-        tokens: { colors: false, sizes: false, opacities: false, fontSizes: false, fontWeights: false, letterSpacing: false, lineHeights: false, fontFamilies: false },
-        theme: { palettes: false, dimensions: false, layers: false },
+        tokens: { colors: false, sizes: false, opacities: false, fontSizes: false, fontWeights: false, letterSpacing: false, lineHeights: false },
+        theme: { coreProperties: false, type: false, palettes: false, elevations: false, dimensions: false, layers: false },
         uikit: { components: false },
       })
     }
@@ -164,14 +170,16 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
           fontWeights: checked,
           letterSpacing: checked,
           lineHeights: checked,
-          fontFamilies: checked,
         },
       })
     } else if (parentKey === 'theme') {
       setOptions({
         ...options,
         theme: {
+          coreProperties: checked,
+          type: checked,
           palettes: checked,
+          elevations: checked,
           dimensions: checked,
           layers: checked,
         },
@@ -392,10 +400,10 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
             onClick={handleRandomize}
             style={{
               padding: '8px 16px',
-              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-interactive-color)`,
+              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-interactive-tone)`,
               border: 'none',
               borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-              color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-interactive-text-color)`,
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-interactive-on-tone)`,
               cursor: 'pointer',
               fontFamily: 'var(--recursica-brand-typography-body-font-family)',
               fontSize: 'var(--recursica-brand-typography-body-font-size)',
