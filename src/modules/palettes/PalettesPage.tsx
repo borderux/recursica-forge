@@ -733,17 +733,19 @@ export default function PalettesPage() {
           if (family.startsWith('scale-')) {
             levelTokenRef = `{tokens.colors.${family}.${lvl}}`
           } else {
-            let isScaleAlias = false
+            // Try to find if this family is an alias for a scale
+            let foundScaleKey: string | undefined
             for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
               if (!scaleKey.startsWith('scale-')) continue
               const scaleObj = scale as any
               if (scaleObj?.alias === family) {
-                levelTokenRef = `{tokens.colors.${scaleKey}.${lvl}}`
-                isScaleAlias = true
+                foundScaleKey = scaleKey
                 break
               }
             }
-            if (!isScaleAlias) {
+            if (foundScaleKey) {
+              levelTokenRef = `{tokens.colors.${foundScaleKey}.${lvl}}`
+            } else {
               levelTokenRef = `{tokens.color.${family}.${lvl}}`
             }
           }
