@@ -1141,7 +1141,11 @@ function groupVarsByThemeAndLayer(
   return { byTheme, byLayer, byThemeAndLayer, unscoped }
 }
 
-export function exportCssStylesheet(): string {
+/**
+ * Exports CSS stylesheet - can export specific, scoped, or both
+ * Returns an object with 'specific' and/or 'scoped' CSS strings
+ */
+export function exportCssStylesheet(options: { specific?: boolean; scoped?: boolean } = { specific: true, scoped: true }): { specific?: string; scoped?: string } {
   const vars = getAllCssVars()
   
   // Filter to only --recursica- variables
@@ -1258,106 +1262,151 @@ export function exportCssStylesheet(): string {
   // Group vars by theme and layer for scoped export
   const brandGrouped = groupVarsByThemeAndLayer(brandVars)
   const uikitGrouped = groupVarsByThemeAndLayer(uikitVars)
+  const tokensGrouped = groupVarsByThemeAndLayer(tokensVars)
   
-  let css = `/*\n`
-  css += ` * Recursica CSS Variables Export\n`
-  css += ` * Generated: ${buildDate}\n`
-  css += ` *\n`
-  css += ` * Total CSS Variables: ${totalVars}\n`
-  css += ` *\n`
-  css += ` * Components Included: ${componentsList}\n`
-  css += ` *\n`
-  css += ` * Color Families Included: ${colorsList}\n`
-  css += ` *\n`
-  css += ` * This export includes:\n`
-  css += ` * 1. Specific CSS variables (backward compatibility)\n`
-  css += ` * 2. Scoped CSS variables using data-recursica-theme and data-recursica-layer\n`
-  css += ` */\n\n`
-  
-  // Section 1: Specific CSS variables (backward compatibility)
-  css += `/*\n`
-  css += ` * Specific CSS Variables (Backward Compatibility)\n`
-  css += ` * These variables include theme and layer in their names\n`
-  css += ` */\n`
-  css += `:root {\n`
-  
-  recursicaVars.forEach(([name, value]) => {
-    // Convert hyphens to underscores in key segments for export
-    const exportedName = convertKeyHyphensToUnderscores(name)
-    // Escape any special characters in the value if needed
-    // Keep var() references as-is
-    css += `  ${exportedName}: ${value};\n`
+  // Collect all scoped variable names to avoid duplicating them in :root
+  const scopedVarNames = new Set<string>()
+  brandGrouped.byTheme.forEach((vars) => {
+    vars.forEach(([baseName]) => scopedVarNames.add(baseName))
+  })
+  brandGrouped.byThemeAndLayer.forEach((layers) => {
+    layers.forEach((vars) => {
+      vars.forEach(([baseName]) => scopedVarNames.add(baseName))
+    })
+  })
+  uikitGrouped.byLayer.forEach((vars) => {
+    vars.forEach(([baseName]) => scopedVarNames.add(baseName))
+  })
+  uikitGrouped.byThemeAndLayer.forEach((themes) => {
+    themes.forEach((layers) => {
+      layers.forEach((vars) => {
+        vars.forEach(([baseName]) => scopedVarNames.add(baseName))
+      })
+    })
   })
   
-  css += `}\n\n`
+  const result: { specific?: string; scoped?: string } = {}
   
-  // Section 2: Scoped CSS variables using data-recursica-theme
-  if (brandGrouped.byTheme.size > 0) {
-    css += `/*\n`
-    css += ` * Scoped CSS Variables - Theme (data-recursica-theme)\n`
-    css += ` * These variables use CSS cascading with data-recursica-theme attribute\n`
-    css += ` */\n`
+  // Build specific CSS (all variables with their full names, including theme/layer)
+  if (options.specific) {
+    let specificCss = `/*\n`
+    specificCss += ` * Recursica CSS Variables - Specific (Backward Compatibility)\n`
+    specificCss += ` * Generated: ${buildDate}\n`
+    specificCss += ` *\n`
+    specificCss += ` * Total CSS Variables: ${totalVars}\n`
+    specificCss += ` *\n`
+    specificCss += ` * Components Included: ${componentsList}\n`
+    specificCss += ` *\n`
+    specificCss += ` * Color Families Included: ${colorsList}\n`
+    specificCss += ` *\n`
+    specificCss += ` * This file contains all CSS variables with their full names,\n`
+    specificCss += ` * including theme and layer information in the variable names.\n`
+    specificCss += ` * Use this for backward compatibility with existing code.\n`
+    specificCss += ` */\n\n`
+    specificCss += `:root {\n`
     
-    // Export light theme
-    if (brandGrouped.byTheme.has('light')) {
-      css += `[data-recursica-theme="light"] {\n`
-      brandGrouped.byTheme.get('light')!.forEach(([baseName, value]) => {
-        const exportedName = convertKeyHyphensToUnderscores(baseName)
-        css += `  ${exportedName}: ${value};\n`
-      })
-      css += `}\n\n`
-    }
+    recursicaVars.forEach(([name, value]) => {
+      // Convert hyphens to underscores in key segments for export
+      const exportedName = convertKeyHyphensToUnderscores(name)
+      specificCss += `  ${exportedName}: ${value};\n`
+    })
     
-    // Export dark theme
-    if (brandGrouped.byTheme.has('dark')) {
-      css += `[data-recursica-theme="dark"] {\n`
-      brandGrouped.byTheme.get('dark')!.forEach(([baseName, value]) => {
-        const exportedName = convertKeyHyphensToUnderscores(baseName)
-        css += `  ${exportedName}: ${value};\n`
-      })
-      css += `}\n\n`
-    }
+    specificCss += `}\n`
+    result.specific = specificCss
   }
   
-  // Section 3: Scoped CSS variables using data-recursica-layer
-  if (uikitGrouped.byLayer.size > 0) {
-    css += `/*\n`
-    css += ` * Scoped CSS Variables - Layer (data-recursica-layer)\n`
-    css += ` * These variables use CSS cascading with data-recursica-layer attribute\n`
-    css += ` * Root element should have data-recursica-layer="0" by default\n`
-    css += ` */\n`
+  // Build scoped CSS (variables without theme/layer in names, using data attributes)
+  if (options.scoped) {
+    // Filter :root vars to exclude those that will be in scoped blocks
+    const rootVars = recursicaVars.filter(([name]) => {
+      const parsed = parseCssVarName(name)
+      // Include in :root if it has no theme/layer (unscoped)
+      return !parsed.hasTheme && !parsed.hasLayer
+    })
     
-    // Sort layers numerically
-    const sortedLayers = Array.from(uikitGrouped.byLayer.keys()).sort((a, b) => {
-      const numA = parseInt(a, 10)
-      const numB = parseInt(b, 10)
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return numA - numB
+    let scopedCss = `/*\n`
+    scopedCss += ` * Recursica CSS Variables - Scoped\n`
+    scopedCss += ` * Generated: ${buildDate}\n`
+    scopedCss += ` *\n`
+    scopedCss += ` * Total CSS Variables: ${totalVars}\n`
+    scopedCss += ` *\n`
+    scopedCss += ` * Components Included: ${componentsList}\n`
+    scopedCss += ` *\n`
+    scopedCss += ` * Color Families Included: ${colorsList}\n`
+    scopedCss += ` *\n`
+    scopedCss += ` * This file contains CSS variables using data-recursica-theme\n`
+    scopedCss += ` * and data-recursica-layer attributes for scoping.\n`
+    scopedCss += ` * Variables do not include theme/layer in their names.\n`
+    scopedCss += ` *\n`
+      scopedCss += ` * Usage:\n`
+      scopedCss += ` * - Set data-recursica-theme="light" or "dark" on root <html> element\n`
+      scopedCss += ` * - Set data-recursica-layer="N" on any element to override layer for that element and descendants\n`
+      scopedCss += ` * - CSS cascading ensures variables flow through all nested elements\n`
+      scopedCss += ` * - Elements between root and layer declaration inherit from their nearest ancestor\n`
+      scopedCss += ` * - Combined theme+layer selectors override individual theme or layer selectors\n`
+      scopedCss += ` */\n\n`
+    
+    // Section 1: Unscoped CSS variables in :root (no theme/layer)
+    if (rootVars.length > 0) {
+      scopedCss += `/*\n`
+      scopedCss += ` * Unscoped CSS Variables (:root)\n`
+      scopedCss += ` * These variables have no theme/layer and are available globally\n`
+      scopedCss += ` */\n`
+      scopedCss += `:root {\n`
+      
+      rootVars.forEach(([name, value]) => {
+        const exportedName = convertKeyHyphensToUnderscores(name)
+        scopedCss += `  ${exportedName}: ${value};\n`
+      })
+      
+      scopedCss += `}\n\n`
+    }
+    
+    // Section 2: Scoped CSS variables using data-recursica-theme
+    // These selectors cascade through all descendant elements
+    // Set data-recursica-theme on the root <html> element
+    if (brandGrouped.byTheme.size > 0) {
+      scopedCss += `/*\n`
+      scopedCss += ` * Scoped CSS Variables - Theme (data-recursica-theme)\n`
+      scopedCss += ` * These variables cascade through all descendant elements\n`
+      scopedCss += ` * Set data-recursica-theme="light" or "dark" on the root <html> element\n`
+      scopedCss += ` */\n`
+      
+      // Export light theme
+      if (brandGrouped.byTheme.has('light')) {
+        scopedCss += `[data-recursica-theme="light"] {\n`
+        brandGrouped.byTheme.get('light')!.forEach(([baseName, value]) => {
+          const exportedName = convertKeyHyphensToUnderscores(baseName)
+          scopedCss += `  ${exportedName}: ${value};\n`
+        })
+        scopedCss += `}\n\n`
       }
-      return a.localeCompare(b)
-    })
+      
+      // Export dark theme
+      if (brandGrouped.byTheme.has('dark')) {
+        scopedCss += `[data-recursica-theme="dark"] {\n`
+        brandGrouped.byTheme.get('dark')!.forEach(([baseName, value]) => {
+          const exportedName = convertKeyHyphensToUnderscores(baseName)
+          scopedCss += `  ${exportedName}: ${value};\n`
+        })
+        scopedCss += `}\n\n`
+      }
+    }
     
-    sortedLayers.forEach((layer) => {
-      css += `[data-recursica-layer="${layer}"] {\n`
-      uikitGrouped.byLayer.get(layer)!.forEach(([baseName, value]) => {
-        const exportedName = convertKeyHyphensToUnderscores(baseName)
-        css += `  ${exportedName}: ${value};\n`
-      })
-      css += `}\n\n`
-    })
-  }
-  
-  // Section 4: Combined theme + layer scoping for vars with both theme and layer
-  if (brandGrouped.byThemeAndLayer.size > 0) {
-    css += `/*\n`
-    css += ` * Scoped CSS Variables - Theme + Layer (data-recursica-theme + data-recursica-layer)\n`
-    css += ` * These variables combine both theme and layer scoping\n`
-    css += ` */\n`
-    
-    const sortedThemes = Array.from(brandGrouped.byThemeAndLayer.keys()).sort()
-    sortedThemes.forEach((theme) => {
-      const layers = brandGrouped.byThemeAndLayer.get(theme)!
-      const sortedLayers = Array.from(layers.keys()).sort((a, b) => {
+    // Section 3: Scoped CSS variables using data-recursica-layer
+    // These selectors cascade through all descendant elements
+    // Can be set on any element in the DOM hierarchy to override layer for that element and its children
+    if (uikitGrouped.byLayer.size > 0) {
+      scopedCss += `/*\n`
+      scopedCss += ` * Scoped CSS Variables - Layer (data-recursica-layer)\n`
+      scopedCss += ` * These variables cascade through all descendant elements\n`
+      scopedCss += ` * Set data-recursica-layer="N" on any element to apply layer N to that element and all descendants\n`
+      scopedCss += ` * Root element should have data-recursica-layer="0" by default\n`
+      scopedCss += ` * Elements between root and layer declaration will inherit from their nearest ancestor\n`
+      scopedCss += ` */\n`
+      
+      // Sort layers numerically
+      const sortedLayers = Array.from(uikitGrouped.byLayer.keys()).sort((a, b) => {
         const numA = parseInt(a, 10)
         const numB = parseInt(b, 10)
         if (!isNaN(numA) && !isNaN(numB)) {
@@ -1367,42 +1416,79 @@ export function exportCssStylesheet(): string {
       })
       
       sortedLayers.forEach((layer) => {
-        css += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"] {\n`
-        layers.get(layer)!.forEach(([baseName, value]) => {
+        scopedCss += `[data-recursica-layer="${layer}"] {\n`
+        uikitGrouped.byLayer.get(layer)!.forEach(([baseName, value]) => {
           const exportedName = convertKeyHyphensToUnderscores(baseName)
-          css += `  ${exportedName}: ${value};\n`
+          scopedCss += `  ${exportedName}: ${value};\n`
         })
-        css += `}\n\n`
+        scopedCss += `}\n\n`
       })
-    })
-  }
-  
-  // Also handle UIKit vars with both theme and layer (if any exist in future)
-  if (uikitGrouped.byThemeAndLayer.size > 0) {
-    const sortedThemes = Array.from(uikitGrouped.byThemeAndLayer.keys()).sort()
-    sortedThemes.forEach((theme) => {
-      const layers = uikitGrouped.byThemeAndLayer.get(theme)!
-      const sortedLayers = Array.from(layers.keys()).sort((a, b) => {
-        const numA = parseInt(a, 10)
-        const numB = parseInt(b, 10)
-        if (!isNaN(numA) && !isNaN(numB)) {
-          return numA - numB
-        }
-        return a.localeCompare(b)
-      })
+    }
+    
+    // Section 4: Combined theme + layer scoping for vars with both theme and layer
+    // These selectors have higher specificity and override theme-only or layer-only selectors
+    // They cascade through all descendant elements when both attributes are present on an element or ancestor
+    if (brandGrouped.byThemeAndLayer.size > 0) {
+      scopedCss += `/*\n`
+      scopedCss += ` * Scoped CSS Variables - Theme + Layer (data-recursica-theme + data-recursica-layer)\n`
+      scopedCss += ` * These variables combine both theme and layer scoping with higher specificity\n`
+      scopedCss += ` * They cascade through all descendant elements when both attributes are present\n`
+      scopedCss += ` * Example: <html data-recursica-theme="light"> with <div data-recursica-layer="1"> inside\n`
+      scopedCss += ` *          Elements inside the div will use these combined theme+layer variables\n`
+      scopedCss += ` */\n`
       
-      sortedLayers.forEach((layer) => {
-        css += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"] {\n`
-        layers.get(layer)!.forEach(([baseName, value]) => {
-          const exportedName = convertKeyHyphensToUnderscores(baseName)
-          css += `  ${exportedName}: ${value};\n`
+      const sortedThemes = Array.from(brandGrouped.byThemeAndLayer.keys()).sort()
+      sortedThemes.forEach((theme) => {
+        const layers = brandGrouped.byThemeAndLayer.get(theme)!
+        const sortedLayers = Array.from(layers.keys()).sort((a, b) => {
+          const numA = parseInt(a, 10)
+          const numB = parseInt(b, 10)
+          if (!isNaN(numA) && !isNaN(numB)) {
+            return numA - numB
+          }
+          return a.localeCompare(b)
         })
-        css += `}\n\n`
+        
+        sortedLayers.forEach((layer) => {
+          scopedCss += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"] {\n`
+          layers.get(layer)!.forEach(([baseName, value]) => {
+            const exportedName = convertKeyHyphensToUnderscores(baseName)
+            scopedCss += `  ${exportedName}: ${value};\n`
+          })
+          scopedCss += `}\n\n`
+        })
       })
-    })
+    }
+    
+    // Also handle UIKit vars with both theme and layer (if any exist in future)
+    if (uikitGrouped.byThemeAndLayer.size > 0) {
+      const sortedThemes = Array.from(uikitGrouped.byThemeAndLayer.keys()).sort()
+      sortedThemes.forEach((theme) => {
+        const layers = uikitGrouped.byThemeAndLayer.get(theme)!
+        const sortedLayers = Array.from(layers.keys()).sort((a, b) => {
+          const numA = parseInt(a, 10)
+          const numB = parseInt(b, 10)
+          if (!isNaN(numA) && !isNaN(numB)) {
+            return numA - numB
+          }
+          return a.localeCompare(b)
+        })
+        
+        sortedLayers.forEach((layer) => {
+          scopedCss += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"] {\n`
+          layers.get(layer)!.forEach(([baseName, value]) => {
+            const exportedName = convertKeyHyphensToUnderscores(baseName)
+            scopedCss += `  ${exportedName}: ${value};\n`
+          })
+          scopedCss += `}\n\n`
+        })
+      })
+    }
+    
+    result.scoped = scopedCss
   }
   
-  return css
+  return result
 }
 
 /**
@@ -1410,7 +1496,7 @@ export function exportCssStylesheet(): string {
  * If multiple files are selected, they are zipped together
  * Validates JSON files before export and throws error if validation fails
  */
-export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; css?: boolean } = { tokens: true, brand: true, uikit: true }): Promise<void> {
+export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; cssSpecific?: boolean; cssScoped?: boolean } = { tokens: true, brand: true, uikit: true }): Promise<void> {
   // Count how many files are selected
   const selectedFiles: Array<{ content: string | object; filename: string; isJson: boolean }> = []
   
@@ -1450,9 +1536,20 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
     selectedFiles.push({ content: uikit, filename: 'uikit.json', isJson: true })
   }
   
-  if (files.css) {
-    const css = exportCssStylesheet()
-    selectedFiles.push({ content: css, filename: 'recursica-variables.css', isJson: false })
+  // Export CSS files (specific and/or scoped)
+  if (files.cssSpecific || files.cssScoped) {
+    const cssExports = exportCssStylesheet({ 
+      specific: files.cssSpecific ?? false, 
+      scoped: files.cssScoped ?? false 
+    })
+    
+    if (cssExports.specific) {
+      selectedFiles.push({ content: cssExports.specific, filename: 'recursica-variables-specific.css', isJson: false })
+    }
+    
+    if (cssExports.scoped) {
+      selectedFiles.push({ content: cssExports.scoped, filename: 'recursica-variables-scoped.css', isJson: false })
+    }
   }
   
   // If only one file, download it directly

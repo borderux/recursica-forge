@@ -72,60 +72,101 @@ export function checkAACompliance(): ComplianceIssue[] {
           }
         })
       })
+      
+      // Check core-colors (alert, warning, success, black, white) tone/on-tone combinations
+      const coreColorKeys = ['alert', 'warning', 'success', 'black', 'white']
+      coreColorKeys.forEach((colorKey) => {
+        const toneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorKey}-tone`
+        const onToneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorKey}-on-tone`
+        
+        const toneValue = readCssVar(toneVar)
+        const onToneValue = readCssVar(onToneVar)
+        
+        if (!toneValue || !onToneValue) return
+        
+        const toneHex = resolveCssVarToHex(toneValue, tokenIndex as any)
+        const onToneHex = resolveCssVarToHex(onToneValue, tokenIndex as any)
+        
+        if (!toneHex || !onToneHex) return
+        
+        const ratio = contrastRatio(toneHex, onToneHex)
+        
+        if (ratio < AA_THRESHOLD) {
+          issues.push({
+            type: 'palette-on-tone',
+            mode,
+            location: `Core color ${colorKey}`,
+            toneHex,
+            onToneHex,
+            contrastRatio: ratio,
+            message: `Core color ${colorKey} (${mode}): Contrast ratio ${ratio.toFixed(2)} < ${AA_THRESHOLD}`
+          })
+        }
+      })
     } catch (err) {
       console.warn('Error checking palette compliance:', err)
     }
   }
   
-  // Check layer text colors for both modes
+  // Check layer colors for both modes
   for (const mode of ['light', 'dark'] as const) {
     for (let layer = 0; layer <= 3; layer++) {
-      const surfaceVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-surface`
-      const textColorVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-element-text-color`
-      
+      const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-surface`
       const surfaceValue = readCssVar(surfaceVar)
-      const textColorValue = readCssVar(textColorVar)
       
-      if (!surfaceValue || !textColorValue) continue
+      if (!surfaceValue) continue
       
       const surfaceHex = resolveCssVarToHex(surfaceValue, tokenIndex as any)
-      const textColorHex = resolveCssVarToHex(textColorValue, tokenIndex as any)
+      if (!surfaceHex) continue
       
-      if (!surfaceHex || !textColorHex) continue
+      // Check all element text colors against surface
+      const textColorProperties = [
+        'element-text-color',
+        'element-text-high-emphasis',
+        'element-text-low-emphasis',
+        'element-text-alert',
+        'element-text-success',
+        'element-text-warning',
+      ]
       
-      const ratio = contrastRatio(surfaceHex, textColorHex)
+      textColorProperties.forEach((textProp) => {
+        const textColorVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-${textProp}`
+        const textColorValue = readCssVar(textColorVar)
+        
+        if (!textColorValue) return
+        
+        const textColorHex = resolveCssVarToHex(textColorValue, tokenIndex as any)
+        if (!textColorHex) return
+        
+        const ratio = contrastRatio(surfaceHex, textColorHex)
+        
+        if (ratio < AA_THRESHOLD) {
+          issues.push({
+            type: 'layer-text',
+            mode,
+            location: `Layer ${layer} (${textProp})`,
+            toneHex: surfaceHex,
+            onToneHex: textColorHex,
+            contrastRatio: ratio,
+            message: `Layer ${layer} (${mode}): ${textProp} contrast ratio ${ratio.toFixed(2)} < ${AA_THRESHOLD}`
+          })
+        }
+      })
       
-      if (ratio < AA_THRESHOLD) {
-        issues.push({
-          type: 'layer-text',
-          mode,
-          location: `Layer ${layer}`,
-          toneHex: surfaceHex,
-          onToneHex: textColorHex,
-          contrastRatio: ratio,
-          message: `Layer ${layer} (${mode}): Text color contrast ratio ${ratio.toFixed(2)} < ${AA_THRESHOLD}`
-        })
-      }
-    }
-  }
-  
-  // Check layer interactive colors for both modes
-  for (const mode of ['light', 'dark'] as const) {
-    for (let layer = 0; layer <= 3; layer++) {
-      const surfaceVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-surface`
-      const interactiveToneVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-element-interactive-tone`
-      const interactiveOnToneVar = `--recursica-brand-${mode}-layer-layer-${layer}-property-element-interactive-on-tone`
+      // Check interactive colors
+      const interactiveToneVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-element-interactive-tone`
+      const interactiveOnToneVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-element-interactive-on-tone`
+      const interactiveColorVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-element-interactive-color`
       
-      const surfaceValue = readCssVar(surfaceVar)
       const interactiveToneValue = readCssVar(interactiveToneVar)
       const interactiveOnToneValue = readCssVar(interactiveOnToneVar)
+      const interactiveColorValue = readCssVar(interactiveColorVar)
       
       // Check interactive tone against surface
-      if (surfaceValue && interactiveToneValue) {
-        const surfaceHex = resolveCssVarToHex(surfaceValue, tokenIndex as any)
+      if (interactiveToneValue) {
         const interactiveToneHex = resolveCssVarToHex(interactiveToneValue, tokenIndex as any)
         
-        if (surfaceHex && interactiveToneHex) {
+        if (interactiveToneHex) {
           const ratio = contrastRatio(surfaceHex, interactiveToneHex)
           
           if (ratio < AA_THRESHOLD) {
@@ -137,6 +178,27 @@ export function checkAACompliance(): ComplianceIssue[] {
               onToneHex: interactiveToneHex,
               contrastRatio: ratio,
               message: `Layer ${layer} (${mode}): Interactive tone contrast ratio ${ratio.toFixed(2)} < ${AA_THRESHOLD}`
+            })
+          }
+        }
+      }
+      
+      // Check interactive color against surface
+      if (interactiveColorValue) {
+        const interactiveColorHex = resolveCssVarToHex(interactiveColorValue, tokenIndex as any)
+        
+        if (interactiveColorHex) {
+          const ratio = contrastRatio(surfaceHex, interactiveColorHex)
+          
+          if (ratio < AA_THRESHOLD) {
+            issues.push({
+              type: 'layer-interactive',
+              mode,
+              location: `Layer ${layer} (interactive color)`,
+              toneHex: surfaceHex,
+              onToneHex: interactiveColorHex,
+              contrastRatio: ratio,
+              message: `Layer ${layer} (${mode}): Interactive color contrast ratio ${ratio.toFixed(2)} < ${AA_THRESHOLD}`
             })
           }
         }

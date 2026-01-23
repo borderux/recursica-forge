@@ -15,7 +15,7 @@ import { useVars } from '../../vars/VarsContext'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
+import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, ExportValidationErrorModal } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Tooltip } from '../../../components/adapters/Tooltip'
@@ -31,7 +31,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const { mode, setMode } = useThemeMode()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
-  const { handleExport, showSelectionModal, showComplianceModal, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel } = useJsonExport()
+  const { handleExport, showSelectionModal, showComplianceModal, showValidationModal, validationErrors, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleValidationModalClose } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   const location = useLocation()
   const navigate = useNavigate()
@@ -456,6 +456,11 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
           </div>
         </Modal>
       </div>
+      <ExportValidationErrorModal
+        show={showValidationModal}
+        errors={validationErrors}
+        onClose={handleValidationModalClose}
+      />
       <ExportSelectionModalWrapper
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}

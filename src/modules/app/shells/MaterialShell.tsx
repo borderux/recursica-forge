@@ -13,7 +13,7 @@ import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
+import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, ExportValidationErrorModal } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Tooltip } from '../../../components/adapters/Tooltip'
@@ -32,7 +32,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const [styles, setStyles] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
-  const { handleExport, showSelectionModal, showComplianceModal, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel } = useJsonExport()
+  const { handleExport, showSelectionModal, showComplianceModal, showValidationModal, validationErrors, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleValidationModalClose } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   
   // Determine current route for navigation highlighting
@@ -518,6 +518,11 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           </Button>
         </DialogActions>
       </Dialog>
+      <ExportValidationErrorModal
+        show={showValidationModal}
+        errors={validationErrors}
+        onClose={handleValidationModalClose}
+      />
       <ExportSelectionModalWrapper
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}
