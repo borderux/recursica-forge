@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
@@ -10,6 +10,17 @@ type FontSizeTokensProps = {
 export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProps) {
   const { tokens: tokensJson, updateToken } = useVars()
   const { mode } = useThemeMode()
+  const [updateKey, setUpdateKey] = useState(0)
+  
+  // Listen for CSS variable updates to force re-render of type samples
+  useEffect(() => {
+    const handler = () => setUpdateKey((k) => k + 1)
+    window.addEventListener('cssVarsUpdated', handler as any)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handler as any)
+    }
+  }, [])
+  
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -129,19 +140,23 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
             }}>
               {label}
             </label>
-            <div style={{
-              fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
-              fontSize: `var(${fontSizeVar})`,
-              color: `var(${layer0Base}-element-text-color)`,
-              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
-              lineHeight: 1.5,
-              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-              display: 'flex',
-              alignItems: 'center',
-            }}>
+            <div 
+              key={`sample-${it.name}-${updateKey}`}
+              style={{
+                fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
+                fontSize: `var(${fontSizeVar})`,
+                color: `var(${layer0Base}-element-text-color)`,
+                opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                lineHeight: 1.5,
+                paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
+                paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+                paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+                paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+                display: 'flex',
+                alignItems: 'center',
+                overflow: 'visible',
+                minWidth: 0,
+              }}>
               {exampleText}
             </div>
             <div style={{ 
@@ -156,7 +171,6 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
               paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               width: '350px',
               minWidth: 0,
-              overflow: 'hidden',
             }}>
               <Slider
                 min={8}

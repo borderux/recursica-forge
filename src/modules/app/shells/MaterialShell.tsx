@@ -22,6 +22,8 @@ import { ThemeSidebar } from '../ThemeSidebar'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { createBugReport } from '../utils/bugReport'
+import { randomizeAllVariables } from '../../../core/utils/randomizeVariables'
+import { RandomizeOptionsModal } from '../../../core/utils/RandomizeOptionsModal'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -32,6 +34,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const [styles, setStyles] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
+  const [showRandomizeModal, setShowRandomizeModal] = useState(false)
   const { handleExport, showSelectionModal, showComplianceModal, showValidationModal, validationErrors, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleValidationModalClose } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   
@@ -340,6 +343,19 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                 onClick={() => createBugReport()}
               />
             </Tooltip>
+              {process.env.NODE_ENV === 'development' && (
+              <Tooltip label="Randomize all variables (dev only)">
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon={(() => {
+                    const ShuffleIcon = iconNameToReactComponent('swap')
+                    return ShuffleIcon ? <ShuffleIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  })()}
+                  onClick={() => setShowRandomizeModal(true)}
+                />
+              </Tooltip>
+            )}
             <Select
               size="small"
               value={kit}
@@ -534,6 +550,16 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
         onAcknowledge={handleAcknowledge}
         onCancel={handleCancel}
       />
+      {process.env.NODE_ENV === 'development' && (
+        <RandomizeOptionsModal
+          show={showRandomizeModal}
+          onRandomize={(options) => {
+            randomizeAllVariables(options)
+            setShowRandomizeModal(false)
+          }}
+          onCancel={() => setShowRandomizeModal(false)}
+        />
+      )}
       <ImportDirtyDataModal
         show={showDirtyModal}
         filesToImport={filesToImport}
