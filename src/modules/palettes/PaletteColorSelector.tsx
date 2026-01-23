@@ -147,73 +147,78 @@ export default function PaletteColorSelector({
     if (root?.light?.palettes) visit(root.light.palettes, 'palette', 'Light')
     if (root?.dark?.palettes) visit(root.dark.palettes, 'palette', 'Dark')
     
-    // Check all palettes in theme to see which families they use
-    // Only check palettes that still exist in palettesState (filter out deleted ones)
-    const existingPaletteKeys = new Set<string>()
-    if (palettesState?.dynamic) {
-      palettesState.dynamic.forEach((p: any) => {
-        if (p?.key) existingPaletteKeys.add(p.key)
-      })
-    }
-    // Also include static palettes like 'neutral'
-    existingPaletteKeys.add('neutral')
-    
-    const checkLevels = ['200', '500', '400', '300']
-    const paletteKeys = new Set<string>()
-    
-    // First, find all palette keys from theme index
-    // Note: theme index uses 'palette' prefix (singular) to match resolver
-    Object.keys(themeIndex).forEach((key) => {
-      const match = key.match(/^(?:Light|Dark)::palette\/([^/]+)\//)
-      if (match && match[1]) {
-        const pk = match[1]
-        // Only include if this palette still exists
-        if (existingPaletteKeys.has(pk)) {
-          paletteKeys.add(pk)
-        }
+    // Build a deterministic map of scale keys to aliases upfront
+    // This ensures consistent mapping regardless of iteration order
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
+    const scaleKeyToAlias: Record<string, string> = {}
+    Object.entries(colorsRoot).forEach(([scaleKey, scale]) => {
+      if (!scaleKey.startsWith('scale-')) return
+      const scaleObj = scale as any
+      if (scaleObj?.alias && typeof scaleObj.alias === 'string') {
+        scaleKeyToAlias[scaleKey] = scaleObj.alias
       }
     })
     
-    // Then detect family for each palette
-    // Note: theme index uses 'palette' prefix (singular) to match resolver
-    for (const pk of paletteKeys) {
-      for (const lvl of checkLevels) {
-        const toneName = `palette/${pk}/${lvl}/color/tone`
-        const toneRaw = themeIndex[`Light::${toneName}`]?.value || themeIndex[`Dark::${toneName}`]?.value
-        if (typeof toneRaw === 'string') {
-          // Use centralized parser to check for token references
-          const tokenIndex = buildTokenIndex(tokensJson)
-          const context: TokenReferenceContext = { currentMode: 'light', tokenIndex }
-          const parsed = parseTokenReference(toneRaw, context)
-          if (parsed && parsed.type === 'token') {
-            let familyName: string | null = null
-            
-            // Handle new colors format (colors.scale-XX.level or colors.alias.level)
-            if (parsed.path.length >= 2 && parsed.path[0] === 'colors') {
-              const scaleOrAlias = parsed.path[1]
-              // If it's a scale key, find the alias
-              if (scaleOrAlias.startsWith('scale-')) {
-                const tokensRoot: any = (tokensJson as any)?.tokens || {}
-                const colorsRoot: any = tokensRoot?.colors || {}
-                const scale = colorsRoot?.[scaleOrAlias]
-                if (scale && typeof scale === 'object' && scale.alias) {
-                  familyName = scale.alias
+    // Get existing palette keys from palettesState in deterministic order
+    // Use array instead of Set to preserve order and ensure correct mapping
+    const existingPaletteKeys: string[] = []
+    if (palettesState?.dynamic) {
+      palettesState.dynamic.forEach((p: any) => {
+        if (p?.key) existingPaletteKeys.push(p.key)
+      })
+    }
+    // Also include static palettes like 'neutral'
+    if (!existingPaletteKeys.includes('neutral')) {
+      existingPaletteKeys.push('neutral')
+    }
+    
+    const checkLevels = ['200', '500', '400', '300']
+    
+    // Iterate through existing palettes in deterministic order (from palettesState)
+    // This ensures each palette key maps to its correct family
+    for (const pk of existingPaletteKeys) {
+      let foundFamily = false
+      
+      // Check both light and dark modes (but a palette should use same family in both)
+      for (const modeKey of ['light', 'dark']) {
+        if (foundFamily) break
+        
+        // Check a few levels to detect the family
+        for (const lvl of checkLevels) {
+          const toneName = `palette/${pk}/${lvl}/color/tone`
+          const toneRaw = themeIndex[`${modeKey === 'light' ? 'Light' : 'Dark'}::${toneName}`]?.value
+          
+          if (typeof toneRaw === 'string') {
+            // Use centralized parser to check for token references
+            const tokenIndex = buildTokenIndex(tokensJson)
+            const context: TokenReferenceContext = { currentMode: modeKey as 'light' | 'dark', tokenIndex }
+            const parsed = parseTokenReference(toneRaw, context)
+            if (parsed && parsed.type === 'token') {
+              let familyName: string | null = null
+              
+              // Handle new colors format (colors.scale-XX.level or colors.alias.level)
+              if (parsed.path.length >= 2 && parsed.path[0] === 'colors') {
+                const scaleOrAlias = parsed.path[1]
+                // If it's a scale key, look up the alias from our deterministic map
+                if (scaleOrAlias.startsWith('scale-')) {
+                  familyName = scaleKeyToAlias[scaleOrAlias] || scaleOrAlias
                 } else {
-                  familyName = scaleOrAlias // Fallback to scale key if no alias
+                  // It's already an alias - use it directly
+                  familyName = scaleOrAlias
                 }
-              } else {
-                // It's already an alias
-                familyName = scaleOrAlias
+              } 
+              // Handle old color format (color.family.level)
+              else if (parsed.path.length >= 2 && parsed.path[0] === 'color') {
+                familyName = parsed.path[1]
               }
-            } 
-            // Handle old color format (color.family.level)
-            else if (parsed.path.length >= 2 && parsed.path[0] === 'color') {
-              familyName = parsed.path[1]
-            }
-            
-            if (familyName) {
-              usedBy[pk] = familyName
-              break // Found family for this palette, move to next
+              
+              if (familyName) {
+                // Store the mapping for this specific palette key
+                usedBy[pk] = familyName
+                foundFamily = true
+                break // Found family for this palette, move to next palette
+              }
             }
           }
         }
