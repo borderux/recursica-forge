@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useEffect } from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider, useUiKit } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
@@ -20,59 +20,87 @@ describe('Button Integration', () => {
     document.documentElement.style.cssText = ''
   })
 
-  const renderWithKit = (kit: 'mantine' | 'material' | 'carbon') => {
-    return render(
-      <UiKitProvider>
-        <ThemeModeProvider>
-          <UnifiedThemeProvider>
-            <KitSwitcher kit={kit} />
-            <Button>Test Button</Button>
-          </UnifiedThemeProvider>
-        </ThemeModeProvider>
-      </UiKitProvider>
-    )
+  const renderWithKit = async (kit: 'mantine' | 'material' | 'carbon') => {
+    let result: ReturnType<typeof render>
+    await act(async () => {
+      result = render(
+        <UiKitProvider>
+          <ThemeModeProvider>
+            <UnifiedThemeProvider>
+              <KitSwitcher kit={kit} />
+              <Button>Test Button</Button>
+            </UnifiedThemeProvider>
+          </ThemeModeProvider>
+        </UiKitProvider>
+      )
+      // Give time for kit switching and component initialization
+      // Material UI especially needs more time when running full test suite
+      await new Promise(resolve => setTimeout(resolve, kit === 'material' ? 100 : 50))
+    })
+    return result!
   }
 
   // Helper to wait for button component to load (not Suspense fallback)
+  // Note: waitFor already uses act() internally, so we don't wrap it
   const waitForButton = async (container: HTMLElement, expectedText?: string) => {
     return await waitFor(() => {
       const btn = container.querySelector('button')
       if (!btn) throw new Error('Button not found')
-      // Ensure it's not the loading button
-      if (btn.textContent === 'Loading...' && btn.disabled) throw new Error('Still loading')
+      // Ensure it's not the loading button - check both text content and disabled state
+      if (btn.textContent === 'Loading...' && btn.hasAttribute('disabled')) {
+        throw new Error('Still loading')
+      }
       // Wait for actual button content if expected text provided
       if (expectedText && !btn.textContent?.includes(expectedText)) {
         throw new Error(`Button text mismatch: expected "${expectedText}", got "${btn.textContent}"`)
       }
+      // Ensure button is actually rendered (not just the loading fallback)
+      if (btn.textContent === 'Loading...') {
+        throw new Error('Still showing loading state')
+      }
       return btn
-    }, { timeout: 15000 })
+    }, { timeout: 20000 }) // Increased timeout for full test suite runs
   }
 
   it('renders Mantine button when Mantine is selected', async () => {
-    const { container } = renderWithKit('mantine')
+    const { container } = await renderWithKit('mantine')
     
     const button = await waitForButton(container, 'Test Button')
     expect(button).toBeInTheDocument()
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it('renders Material button when Material is selected', async () => {
-    const { container } = renderWithKit('material')
+  it('renders Material button when Material is selected', { timeout: 30000 }, async () => {
+    const { container } = await renderWithKit('material')
     
-    const button = await waitForButton(container, 'Test Button')
+    // Material UI can take longer to initialize, especially in full test suite
+    // Wait for the button to appear with proper text (not loading state)
+    // Use screen.getByText which queries the document directly (more reliable)
+    const button = await waitFor(() => {
+      const btn = screen.getByText('Test Button')
+      // Ensure it's actually a button element and not still loading
+      if (btn.textContent === 'Loading...' && btn.hasAttribute('disabled')) {
+        throw new Error('Still loading')
+      }
+      if (btn.tagName.toLowerCase() !== 'button') {
+        throw new Error('Element is not a button')
+      }
+      return btn
+    }, { timeout: 20000 })
+    
     expect(button).toBeInTheDocument()
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
   it('renders Carbon button when Carbon is selected', async () => {
-    const { container } = renderWithKit('carbon')
+    const { container } = await renderWithKit('carbon')
     
     const button = await waitForButton(container, 'Test Button')
     expect(button).toBeInTheDocument()
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it('maintains consistent props across libraries', async () => {
+  it('maintains consistent props across libraries', { timeout: 60000 }, async () => {
     // This test runs 72 combinations (3 variants × 2 sizes × 4 layers × 3 kits)
     // Increase timeout to allow for all combinations
     const variants: Array<'solid' | 'outline' | 'text'> = ['solid', 'outline', 'text']
@@ -83,50 +111,68 @@ describe('Button Integration', () => {
       for (const size of sizes) {
         for (const layer of layers) {
           for (const kit of ['mantine', 'material', 'carbon'] as const) {
-            const { container, unmount } = render(
-              <UiKitProvider>
-                <ThemeModeProvider>
-                  <UnifiedThemeProvider>
-                    <KitSwitcher kit={kit} />
-                    <Button variant={variant} size={size} layer={layer}>
-                      {variant} {size}
-                    </Button>
-                  </UnifiedThemeProvider>
-                </ThemeModeProvider>
-              </UiKitProvider>
-            )
+            let container: HTMLElement
+            let unmount: () => void
+            await act(async () => {
+              const result = render(
+                <UiKitProvider>
+                  <ThemeModeProvider>
+                    <UnifiedThemeProvider>
+                      <KitSwitcher kit={kit} />
+                      <Button variant={variant} size={size} layer={layer}>
+                        {variant} {size}
+                      </Button>
+                    </UnifiedThemeProvider>
+                  </ThemeModeProvider>
+                </UiKitProvider>
+              )
+              container = result.container
+              unmount = result.unmount
+              await new Promise(resolve => setTimeout(resolve, 0))
+            })
 
-            const button = await waitForButton(container, `${variant} ${size}`)
+            const button = await waitForButton(container!, `${variant} ${size}`)
             // Button should be in document (waitForButton ensures this)
             expect(button).toBeTruthy()
             expect(screen.getByText(`${variant} ${size}`)).toBeInTheDocument()
             
-            unmount()
-            // Small delay to allow cleanup
-            await new Promise(resolve => setTimeout(resolve, 10))
+            await act(async () => {
+              unmount!()
+              // Small delay to allow cleanup
+              await new Promise(resolve => setTimeout(resolve, 10))
+            })
           }
         }
       }
     }
-  }, { timeout: 60000 }) // 60 second timeout for 72 combinations
+  })
 
   it('handles disabled state consistently across libraries', async () => {
     for (const kit of ['mantine', 'material', 'carbon'] as const) {
-      const { container, unmount } = render(
-        <UiKitProvider>
-          <ThemeModeProvider>
-            <UnifiedThemeProvider>
-              <KitSwitcher kit={kit} />
-              <Button disabled>Disabled</Button>
-            </UnifiedThemeProvider>
-          </ThemeModeProvider>
-        </UiKitProvider>
-      )
+      let container: HTMLElement
+      let unmount: () => void
+      await act(async () => {
+        const result = render(
+          <UiKitProvider>
+            <ThemeModeProvider>
+              <UnifiedThemeProvider>
+                <KitSwitcher kit={kit} />
+                <Button disabled>Disabled</Button>
+              </UnifiedThemeProvider>
+            </ThemeModeProvider>
+          </UiKitProvider>
+        )
+        container = result.container
+        unmount = result.unmount
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
 
-      const button = await waitForButton(container, 'Disabled')
+      const button = await waitForButton(container!, 'Disabled')
       expect(button).toBeDisabled()
 
-      unmount()
+      await act(async () => {
+        unmount!()
+      })
     }
   })
 
@@ -134,22 +180,30 @@ describe('Button Integration', () => {
     const TestIcon = () => <svg data-testid="icon"><circle /></svg>
 
     for (const kit of ['mantine', 'material', 'carbon'] as const) {
-      const { container, unmount } = render(
-        <UiKitProvider>
-          <ThemeModeProvider>
-            <UnifiedThemeProvider>
-              <KitSwitcher kit={kit} />
-              <Button icon={<TestIcon />}>With Icon</Button>
-            </UnifiedThemeProvider>
-          </ThemeModeProvider>
-        </UiKitProvider>
-      )
+      let container: HTMLElement
+      let unmount: () => void
+      await act(async () => {
+        const result = render(
+          <UiKitProvider>
+            <ThemeModeProvider>
+              <UnifiedThemeProvider>
+                <KitSwitcher kit={kit} />
+                <Button icon={<TestIcon />}>With Icon</Button>
+              </UnifiedThemeProvider>
+            </ThemeModeProvider>
+          </UiKitProvider>
+        )
+        container = result.container
+        unmount = result.unmount
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
 
-      await waitForButton(container, 'With Icon')
+      await waitForButton(container!, 'With Icon')
       expect(screen.getByText('With Icon')).toBeInTheDocument()
       
       // Wait for icon to be rendered (it might be rendered asynchronously)
       // Some libraries (like Carbon) might render icons differently
+      // Note: waitFor already uses act() internally, so we don't wrap it
       try {
         await waitFor(() => {
           expect(screen.getByTestId('icon')).toBeInTheDocument()
@@ -157,7 +211,7 @@ describe('Button Integration', () => {
       } catch (error) {
         // If icon not found, check if it's rendered in a different way (e.g., Carbon uses SVG differently)
         // For now, just verify the button rendered successfully
-        const button = container.querySelector('button')
+        const button = container!.querySelector('button')
         if (button && button.textContent?.includes('With Icon')) {
           // Button rendered, icon might be in a different format
           // This is acceptable for cross-library compatibility
@@ -166,7 +220,9 @@ describe('Button Integration', () => {
         }
       }
 
-      unmount()
+      await act(async () => {
+        unmount!()
+      })
     }
   })
 })

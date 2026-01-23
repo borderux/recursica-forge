@@ -16,6 +16,7 @@ import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
+import { Tooltip } from '../../../components/adapters/Tooltip'
 import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { Tabs } from '../../../components/adapters/Tabs'
@@ -263,61 +264,66 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
 
           {/* Chunk 3: Action Buttons and Framework Dropdown */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)', marginLeft: 'auto' }}>
-            <Button
-              variant="outline"
-              size="default"
-              icon={(() => {
-                const RefreshIcon = iconNameToReactComponent('arrow-path')
-                return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-              })()}
-              onClick={() => {
-                clearOverrides(tokensJson as any)
-                resetAll()
-              }}
-              title="Reset all changes"
-            />
-            <Button
-              variant="outline"
-              size="default"
-              icon={(() => {
-                const UploadIcon = iconNameToReactComponent('arrow-up-tray')
-                return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-              })()}
-              onClick={() => setIsOpen(true)}
-              title="Import theme"
-            />
-            <Button
-              variant="outline"
-              size="default"
-              icon={(() => {
-                const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
-                return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-              })()}
-              onClick={handleExport}
-              title="Export theme"
-            />
-            <Button
-              variant="outline"
-              size="small"
-              icon={(() => {
-                const CheckIcon = iconNameToReactComponent('check-circle')
-                return CheckIcon ? <CheckIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-              })()}
-              onClick={() => {
-                getVarsStore().updateCoreColorOnTonesForAA()
-              }}
-              title="Check AA Compliance"
-            />
-            <Button
-              variant="outline"
-              size="small"
-              icon={(() => {
-                const BugIcon = iconNameToReactComponent('bug')
-                return BugIcon ? <BugIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-              })()}
-              onClick={() => createBugReport()}
-              title="Report a bug"
-            />
+            <Tooltip label="Reset all changes">
+              <Button
+                variant="outline"
+                size="default"
+                icon={(() => {
+                  const RefreshIcon = iconNameToReactComponent('arrow-path')
+                  return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                })()}
+                onClick={() => {
+                  clearOverrides(tokensJson as any)
+                  resetAll()
+                }}
+              />
+            </Tooltip>
+            <Tooltip label="Import theme">
+              <Button
+                variant="outline"
+                size="default"
+                icon={(() => {
+                  const UploadIcon = iconNameToReactComponent('arrow-up-tray')
+                  return UploadIcon ? <UploadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                })()}
+                onClick={() => setIsOpen(true)}
+              />
+            </Tooltip>
+            <Tooltip label="Export theme">
+              <Button
+                variant="outline"
+                size="default"
+                icon={(() => {
+                  const DownloadIcon = iconNameToReactComponent('arrow-down-tray')
+                  return DownloadIcon ? <DownloadIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                })()}
+                onClick={handleExport}
+              />
+            </Tooltip>
+            <Tooltip label="Check AA Compliance">
+              <Button
+                variant="outline"
+                size="small"
+                icon={(() => {
+                  const CheckIcon = iconNameToReactComponent('check-circle')
+                  return CheckIcon ? <CheckIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                })()}
+                onClick={() => {
+                  getVarsStore().updateCoreColorOnTonesForAA()
+                }}
+              />
+            </Tooltip>
+            <Tooltip label="Report a bug">
+              <Button
+                variant="outline"
+                size="small"
+                icon={(() => {
+                  const BugIcon = iconNameToReactComponent('bug')
+                  return BugIcon ? <BugIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                })()}
+                onClick={() => createBugReport()}
+              />
+            </Tooltip>
             <div style={{ minWidth: 180 }}>
               <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
                 <SelectItem text="Mantine" value="mantine" />
@@ -349,64 +355,66 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 padding: `var(${buttonSmallIconPadding})`,
                 gap: 0,
               }}>
-                <button
-                  onClick={() => setMode('light')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: `var(${buttonSmallMinWidth})`,
-                    height: `var(${buttonSmallHeight})`,
-                    minWidth: `var(${buttonSmallMinWidth})`,
-                    border: 'none',
-                    borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
-                    backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
-                    color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: mode === 'light' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  title="Light theme"
-                >
-                  {(() => {
-                    const SunIcon = iconNameToReactComponent('sun')
-                    return SunIcon ? <SunIcon 
-                      style={{ 
-                        width: `var(${buttonSmallIcon})`, 
-                        height: `var(${buttonSmallIcon})`,
-                      }} 
-                    /> : null
-                  })()}
-                </button>
-                <button
-                  onClick={() => setMode('dark')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: `var(${buttonSmallMinWidth})`,
-                    height: `var(${buttonSmallHeight})`,
-                    minWidth: `var(${buttonSmallMinWidth})`,
-                    border: 'none',
-                    borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
-                    backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
-                    color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: mode === 'dark' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  title="Dark theme"
-                >
-                  {(() => {
-                    const MoonIcon = iconNameToReactComponent('moon')
-                    return MoonIcon ? <MoonIcon
-                      style={{ 
-                        width: `var(${buttonSmallIcon})`, 
-                        height: `var(${buttonSmallIcon})`,
-                      }} 
-                    /> : null
-                  })()}
-                </button>
+                <Tooltip label="Light theme">
+                  <button
+                    onClick={() => setMode('light')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: `var(${buttonSmallMinWidth})`,
+                      height: `var(${buttonSmallHeight})`,
+                      minWidth: `var(${buttonSmallMinWidth})`,
+                      border: 'none',
+                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
+                      backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                      color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                      opacity: mode === 'light' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {(() => {
+                      const SunIcon = iconNameToReactComponent('sun')
+                      return SunIcon ? <SunIcon 
+                        style={{ 
+                          width: `var(${buttonSmallIcon})`, 
+                          height: `var(${buttonSmallIcon})`,
+                        }} 
+                      /> : null
+                    })()}
+                  </button>
+                </Tooltip>
+                <Tooltip label="Dark theme">
+                  <button
+                    onClick={() => setMode('dark')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: `var(${buttonSmallMinWidth})`,
+                      height: `var(${buttonSmallHeight})`,
+                      minWidth: `var(${buttonSmallMinWidth})`,
+                      border: 'none',
+                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
+                      backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
+                      color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
+                      opacity: mode === 'dark' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {(() => {
+                      const MoonIcon = iconNameToReactComponent('moon')
+                      return MoonIcon ? <MoonIcon
+                        style={{ 
+                          width: `var(${buttonSmallIcon})`, 
+                          height: `var(${buttonSmallIcon})`,
+                        }} 
+                      /> : null
+                    })()}
+                  </button>
+                </Tooltip>
               </div>
             )
           })()}

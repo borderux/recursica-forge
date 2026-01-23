@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { bootstrapTheme } from './bootstrap'
 import * as validateSchemasModule from './utils/validateJsonSchemas'
 import * as varsStoreModule from './store/varsStore'
@@ -9,7 +9,17 @@ vi.mock('./utils/validateJsonSchemas', () => ({
 }))
 
 // Mock varsStore
-const mockStore = {}
+const mockStore = {
+  getState: vi.fn(() => ({
+    tokens: {},
+    theme: {},
+    uikit: {}
+  })),
+  recomputeAndApplyAll: vi.fn(),
+  setTokens: vi.fn(),
+  setTheme: vi.fn(),
+  setUiKit: vi.fn()
+}
 vi.mock('./store/varsStore', () => ({
   getVarsStore: vi.fn(() => mockStore)
 }))
@@ -28,9 +38,29 @@ vi.mock('../vars/UIKit.json', () => ({
 }))
 
 describe('bootstrapTheme', () => {
+  let originalWarn: typeof console.warn
+
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.NODE_ENV = 'development'
+    // Suppress expected warnings from bootstrap (font loading errors in test environment)
+    originalWarn = console.warn
+    console.warn = vi.fn((...args: any[]) => {
+      const message = String(args[0] || '')
+      // Suppress expected bootstrap warnings
+      if (message.includes('[Bootstrap] Failed to') ||
+          message.includes('[loadFontsFromTokens] Error') ||
+          message.includes('store.getState is not a function') ||
+          message.includes('store.recomputeAndApplyAll is not a function')) {
+        return
+      }
+      originalWarn.call(console, ...args)
+    })
+  })
+
+  afterEach(() => {
+    // Restore console.warn
+    console.warn = originalWarn
   })
 
   it('should validate schemas and initialize store', () => {

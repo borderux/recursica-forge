@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { render, waitFor } from '@testing-library/react'
+import { render, waitFor, act } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
@@ -30,6 +30,7 @@ describe('Button CSS Variables', () => {
   }
 
   // Helper to wait for button component to load (not Suspense fallback)
+  // Note: waitFor already uses act() internally, so we don't wrap it
   const waitForButton = async (container: HTMLElement, expectedText?: string) => {
     return await waitFor(() => {
       const btn = container.querySelector('button')
@@ -46,10 +47,16 @@ describe('Button CSS Variables', () => {
 
   describe('CSS Variable Definitions', () => {
     it('uses Recursica CSS variables for button colors', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="solid" size="default" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" size="default" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        // Wait a bit for useEffect hooks to complete
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       expect(button).toBeInTheDocument()
 
       // Check that styles reference Recursica CSS variables
@@ -59,10 +66,15 @@ describe('Button CSS Variables', () => {
     })
 
     it('uses Recursica CSS variables for button sizes', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="solid" size="small" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" size="small" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       expect(button).toBeInTheDocument()
 
       const styles = window.getComputedStyle(button)
@@ -73,12 +85,21 @@ describe('Button CSS Variables', () => {
       const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
 
       for (const layer of layers) {
-        const { container, unmount } = renderWithProviders(
-          <Button variant="solid" size="default" layer={layer}>Test</Button>
-        )
-        const button = await waitForButton(container, 'Test')
+        let container: HTMLElement
+        let unmount: () => void
+        await act(async () => {
+          const result = renderWithProviders(
+            <Button variant="solid" size="default" layer={layer}>Test</Button>
+          )
+          container = result.container
+          unmount = result.unmount
+          await new Promise(resolve => setTimeout(resolve, 0))
+        })
+        const button = await waitForButton(container!, 'Test')
         expect(button).toBeInTheDocument()
-        unmount()
+        await act(async () => {
+          unmount!()
+        })
       }
     })
   })
@@ -86,10 +107,15 @@ describe('Button CSS Variables', () => {
   describe('Component-Level CSS Variables', () => {
     it('sets --button-icon-size when icon is provided', async () => {
       const TestIcon = () => <svg><circle /></svg>
-      const { container } = renderWithProviders(
-        <Button icon={<TestIcon />}>With Icon</Button>
-      )
-      const button = await waitForButton(container, 'With Icon')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button icon={<TestIcon />}>With Icon</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'With Icon')
       expect(button).toBeInTheDocument()
 
       // Check that component-level CSS variable is set
@@ -99,10 +125,15 @@ describe('Button CSS Variables', () => {
 
     it('sets --button-icon-text-gap when icon and children are provided', async () => {
       const TestIcon = () => <svg><circle /></svg>
-      const { container } = renderWithProviders(
-        <Button icon={<TestIcon />}>With Icon</Button>
-      )
-      const button = await waitForButton(container, 'With Icon')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button icon={<TestIcon />}>With Icon</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'With Icon')
       expect(button).toBeInTheDocument()
 
       // Check that gap CSS variable is set
@@ -111,8 +142,13 @@ describe('Button CSS Variables', () => {
     })
 
     it('sets --button-max-width', async () => {
-      const { container } = renderWithProviders(<Button>Test</Button>)
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(<Button>Test</Button>)
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       expect(button).toBeInTheDocument()
 
       // Check that max width CSS variable is set
@@ -124,12 +160,19 @@ describe('Button CSS Variables', () => {
   describe('CSS Variable Fallbacks', () => {
     it('handles missing CSS variables gracefully', async () => {
       // Remove a CSS variable to test fallback behavior
-      document.documentElement.style.removeProperty('--recursica-ui-kit-components-button-color-layer-0-variant-solid-background')
+      await act(async () => {
+        document.documentElement.style.removeProperty('--recursica-ui-kit-components-button-color-layer-0-variant-solid-background')
+      })
       
-      const { container } = renderWithProviders(
-        <Button variant="solid" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       
       // Should still render even if CSS variable is missing
       expect(button).toBeInTheDocument()
@@ -139,44 +182,69 @@ describe('Button CSS Variables', () => {
 
   describe('Variant-Specific CSS Variables', () => {
     it('uses correct CSS variables for solid variant', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="solid" layer="layer-0">Solid</Button>
-      )
-      const button = await waitForButton(container, 'Solid')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" layer="layer-0">Solid</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Solid')
       expect(button).toBeInTheDocument()
     })
 
     it('uses correct CSS variables for outline variant', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="outline" layer="layer-0">Outline</Button>
-      )
-      const button = await waitForButton(container, 'Outline')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="outline" layer="layer-0">Outline</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Outline')
       expect(button).toBeInTheDocument()
     })
 
     it('uses correct CSS variables for text variant', async () => {
-      const { container } = renderWithProviders(
-        <Button variant="text" layer="layer-0">Text</Button>
-      )
-      const button = await waitForButton(container, 'Text')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="text" layer="layer-0">Text</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Text')
       expect(button).toBeInTheDocument()
     })
   })
 
   describe('Size-Specific CSS Variables', () => {
     it('uses correct CSS variables for default size', async () => {
-      const { container } = renderWithProviders(
-        <Button size="default" layer="layer-0">Default</Button>
-      )
-      const button = await waitForButton(container, 'Default')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button size="default" layer="layer-0">Default</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Default')
       expect(button).toBeInTheDocument()
     })
 
     it('uses correct CSS variables for small size', async () => {
-      const { container } = renderWithProviders(
-        <Button size="small" layer="layer-0">Small</Button>
-      )
-      const button = await waitForButton(container, 'Small')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button size="small" layer="layer-0">Small</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Small')
       expect(button).toBeInTheDocument()
     })
   })
@@ -185,10 +253,15 @@ describe('Button CSS Variables', () => {
     it('all CSS variables use --recursica-* namespace', async () => {
       // This test verifies that the component uses properly namespaced CSS variables
       // The actual variable names are generated by getComponentCssVar
-      const { container } = renderWithProviders(
-        <Button variant="solid" size="default" layer="layer-0">Test</Button>
-      )
-      const button = await waitForButton(container, 'Test')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <Button variant="solid" size="default" layer="layer-0">Test</Button>
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const button = await waitForButton(container!, 'Test')
       expect(button).toBeInTheDocument()
 
       // Check inline styles for component-level vars (these are set directly)

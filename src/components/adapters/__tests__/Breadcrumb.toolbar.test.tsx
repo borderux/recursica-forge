@@ -60,7 +60,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
 
     layers.forEach(layer => {
       variants.forEach(variant => {
-        it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, async () => {
+        it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, { timeout: 10000 }, async () => {
           const { container } = renderWithProviders(
             <Breadcrumb items={sampleItems} layer={layer} />
           )
@@ -87,7 +87,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
             // Check that the CSS variable is referenced (either directly or through custom property)
             expect(readCssVar(colorVar)).toBe('#ff0000')
           }, { timeout: 3000 })
-        }, { timeout: 10000 })
+        })
       })
     })
   })
