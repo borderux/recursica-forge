@@ -242,21 +242,52 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     return resolveDefaultLevelForPalette
   })
   
-  // Update primary level when mode changes
+  // Update primary level when mode changes or when palettePrimaryLevelChanged event fires
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(`palette-primary-level:${paletteKey}:${mode}`)
-      if (raw) {
-        const v = JSON.parse(raw)
-        if (typeof v === 'string') {
-          const newLevel = v.padStart(3, '0')
-          setPrimaryLevelStr(newLevel)
+    const updatePrimaryLevel = () => {
+      try {
+        // Use lowercase mode for localStorage key (matching randomization)
+        const modeLower = mode?.toLowerCase() || 'light'
+        const lsKey = `palette-primary-level:${paletteKey}:${modeLower}`
+        const raw = localStorage.getItem(lsKey)
+        if (raw) {
+          const v = JSON.parse(raw)
+          if (typeof v === 'string') {
+            const newLevel = v.padStart(3, '0')
+            setPrimaryLevelStr(newLevel)
+          }
+        } else {
+          // If no mode-specific value exists, use the default
+          setPrimaryLevelStr(resolveDefaultLevelForPalette)
         }
-      } else {
-        // If no mode-specific value exists, use the default
-        setPrimaryLevelStr(resolveDefaultLevelForPalette)
+      } catch (err) {
+        // Ignore errors
       }
-    } catch {}
+    }
+    
+    // Update immediately
+    updatePrimaryLevel()
+    
+    // Listen for palettePrimaryLevelChanged events
+    const handlePrimaryLevelChanged = ((ev: CustomEvent) => {
+      const detail = ev.detail
+      // Normalize mode comparison (event uses lowercase, component might use capitalized)
+      const eventMode = detail?.mode?.toLowerCase()
+      const componentMode = mode?.toLowerCase()
+      
+      // Update if it's a specific palette change for this palette, or if it's a general "all palettes" change for this mode
+      if (detail && (
+        (detail.paletteKey === paletteKey && eventMode === componentMode) ||
+        (detail.allPalettes === true && eventMode === componentMode)
+      )) {
+        updatePrimaryLevel()
+      }
+    }) as EventListener
+    
+    window.addEventListener('palettePrimaryLevelChanged', handlePrimaryLevelChanged)
+    return () => {
+      window.removeEventListener('palettePrimaryLevelChanged', handlePrimaryLevelChanged)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, paletteKey]) // Only update when mode or paletteKey changes, not when primaryLevelStr changes
   

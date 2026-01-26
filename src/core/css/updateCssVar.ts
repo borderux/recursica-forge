@@ -28,6 +28,17 @@ export function suppressCssVarEvents(suppress: boolean) {
 }
 
 /**
+ * Clear pending CSS vars without firing events
+ */
+export function clearPendingCssVars() {
+  pendingCssVars.clear()
+  if (batchTimeout) {
+    clearTimeout(batchTimeout)
+    batchTimeout = null
+  }
+}
+
+/**
  * Fire a batched cssVarsUpdated event with all pending CSS vars
  */
 function fireBatchedEvent() {

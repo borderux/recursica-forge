@@ -49,12 +49,13 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       // tokens, theme, uikit, palettes, and elevation, so we can skip the update
       // to prevent unnecessary re-renders of all consumers
       setState(prevState => {
+        const elevationChanged = prevState.elevation !== newState.elevation
         if (
           prevState.tokens !== newState.tokens ||
           prevState.theme !== newState.theme ||
           prevState.uikit !== newState.uikit ||
           prevState.palettes !== newState.palettes ||
-          prevState.elevation !== newState.elevation
+          elevationChanged
         ) {
           return newState
         }
@@ -69,22 +70,24 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
     dark: buildPaletteVars(state.tokens, state.theme, 'Dark'),
   }), [state.tokens, state.theme])
 
-  const value = useMemo<VarsContextValue>(() => ({
-    tokens: state.tokens,
-    setTokens: (next) => store.setTokens(next),
-    updateToken: (tokenName: string, value: string | number) => store.updateToken(tokenName, value),
-    theme: state.theme,
-    setTheme: (next) => store.setTheme(next),
-    uikit: state.uikit,
-    setUiKit: (next) => store.setUiKit(next),
-    resolvedTheme,
-    palettes: state.palettes,
-    setPalettes: (next) => store.setPalettes(next),
-    elevation: state.elevation,
-    setElevation: (next) => store.setElevation(next),
-    updateElevation: (mutator) => store.updateElevation(mutator),
-    resetAll: () => store.resetAll(),
-  }), [state, store, resolvedTheme])
+  const value = useMemo<VarsContextValue>(() => {
+    return {
+      tokens: state.tokens,
+      setTokens: (next) => store.setTokens(next),
+      updateToken: (tokenName: string, value: string | number) => store.updateToken(tokenName, value),
+      theme: state.theme,
+      setTheme: (next) => store.setTheme(next),
+      uikit: state.uikit,
+      setUiKit: (next) => store.setUiKit(next),
+      resolvedTheme,
+      palettes: state.palettes,
+      setPalettes: (next) => store.setPalettes(next),
+      elevation: state.elevation,
+      setElevation: (next) => store.setElevation(next),
+      updateElevation: (mutator) => store.updateElevation(mutator),
+      resetAll: () => store.resetAll(),
+    }
+  }, [state, store, resolvedTheme])
 
   return <VarsContext.Provider value={value}>{children}</VarsContext.Provider>
 }

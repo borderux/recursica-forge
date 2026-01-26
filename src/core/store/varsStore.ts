@@ -7,7 +7,7 @@ import { buildUIKitVars } from '../resolvers/uikit'
 import { buildDimensionVars } from '../resolvers/dimensions'
 import { applyCssVars, type CssVarMap } from '../css/apply'
 import { findTokenByHex, tokenToCssVar } from '../css/tokenRefs'
-import { suppressCssVarEvents } from '../css/updateCssVar'
+import { suppressCssVarEvents, clearPendingCssVars } from '../css/updateCssVar'
 import { computeBundleVersion } from './versioning'
 import { readCssVar } from '../css/readCssVar'
 import { resolveTokenReferenceToCssVar, parseTokenReference, extractBraceContent, type TokenReferenceContext } from '../utils/tokenReferenceParser'
@@ -493,6 +493,35 @@ class VarsStore {
       // Watch core colors (alert, warning, success, interactive)
       this.aaWatcher?.watchCoreColors()
       
+      // After CSS variables are set, check all palette on-tone values for AA compliance
+      // This ensures on-tone values are correct on app load, especially after randomization
+      // Use a longer delay to ensure recomputeAndApplyAll has finished
+      setTimeout(() => {
+        if (this.aaWatcher && !this.isRecomputing) {
+          // Disable AA watcher to prevent it from reacting to CSS var updates
+          this.aaWatcher.disable()
+          
+          // Suppress CSS var events during AA compliance check to prevent triggering recomputation
+          suppressCssVarEvents(true)
+          
+          this.aaWatcher.checkAllPaletteOnTones()
+          
+          // After AA compliance check updates CSS vars, update theme JSON to match
+          // This prevents recomputeAndApplyAll from overwriting the corrected values
+          // Use skipRecompute to prevent triggering another recomputation cycle
+          setTimeout(() => {
+            this.updateThemeJsonFromOnToneCssVars()
+            
+            // Clear pending CSS vars before re-enabling events to prevent batched event from firing
+            clearPendingCssVars()
+            
+            // Re-enable events and AA watcher after theme JSON is updated
+            suppressCssVarEvents(false)
+            this.aaWatcher.enable()
+          }, 100)
+        }
+      }, 1000) // Wait for CSS variables to be fully applied and recomputeAndApplyAll to complete
+      
       // Don't run startup validation - let JSON values be set first
       // AA compliance checks will only run when user makes explicit changes
     })
@@ -931,41 +960,81 @@ class VarsStore {
         // Delay to ensure recomputeAndApplyAll has finished applying CSS vars to DOM
         setTimeout(() => {
           if (this.aaWatcher) {
-            this.aaWatcher.checkAllPaletteOnTones()
-            // After AA compliance check updates CSS vars, update theme JSON to match
-            this.updateThemeJsonFromOnToneCssVars()
+            // Disable AA watcher to prevent it from reacting to CSS var updates
+            this.aaWatcher.disable()
             
-            // Initialize interactive on-tone values for core colors
-            import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorInteractiveOnTones }) => {
-              const currentMode = this.getCurrentMode()
-              // Get the interactive tone hex
-              const interactiveToneVar = `--recursica-brand-themes-${currentMode}-palettes-core-interactive-default-tone`
-              const interactiveToneValue = readCssVar(interactiveToneVar)
-              if (interactiveToneValue) {
-                import('../../core/compliance/layerColorStepping').then(({ resolveCssVarToHex }) => {
-                  const tokenIndex = buildTokenIndex(this.state.tokens)
-                  const interactiveHex = resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000'
-                  updateCoreColorInteractiveOnTones(interactiveHex, this.state.tokens, this.state.theme, (theme) => {
-                    this.setTheme(theme)
-                  }, currentMode)
+            // Suppress CSS var events during AA compliance check to prevent triggering recomputation
+            suppressCssVarEvents(true)
+            
+            this.aaWatcher.checkAllPaletteOnTones()
+            
+            // After AA compliance check updates CSS vars, update theme JSON to match
+            // Use a delay to ensure CSS vars are updated before reading them
+            setTimeout(() => {
+              this.updateThemeJsonFromOnToneCssVars()
+              
+              // Clear pending CSS vars before re-enabling events to prevent batched event from firing
+              clearPendingCssVars()
+              
+              // Re-enable events after theme JSON is updated
+              suppressCssVarEvents(false)
+              
+              // Initialize interactive on-tone values for core colors
+              // Do this after palette on-tone updates to avoid overwriting them
+              // Use a longer delay to ensure updateThemeJsonFromOnToneCssVars completes first
+              setTimeout(() => {
+                suppressCssVarEvents(true)
+                
+                import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorInteractiveOnTones }) => {
+                  const currentMode = this.getCurrentMode()
+                  // Get the interactive tone hex
+                  const interactiveToneVar = `--recursica-brand-themes-${currentMode}-palettes-core-interactive-default-tone`
+                  const interactiveToneValue = readCssVar(interactiveToneVar)
+                  if (interactiveToneValue) {
+                    import('../../core/compliance/layerColorStepping').then(({ resolveCssVarToHex }) => {
+                      const tokenIndex = buildTokenIndex(this.state.tokens)
+                      const interactiveHex = resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000'
+                      updateCoreColorInteractiveOnTones(interactiveHex, this.state.tokens, this.state.theme, (theme) => {
+                        // Use writeState with skipRecompute to prevent overwriting the palette on-tone fixes
+                        this.writeState({ theme }, true)
+                      }, currentMode)
+                      
+                      // Clear pending CSS vars and re-enable events after interactive on-tone update completes
+                      setTimeout(() => {
+                        clearPendingCssVars()
+                        suppressCssVarEvents(false)
+                        this.aaWatcher.enable()
+                      }, 50)
+                    }).catch((err) => {
+                      console.error('Failed to resolve interactive tone hex:', err)
+                      clearPendingCssVars()
+                      suppressCssVarEvents(false)
+                      this.aaWatcher.enable()
+                    })
+                  } else {
+                    clearPendingCssVars()
+                    suppressCssVarEvents(false)
+                    this.aaWatcher.enable()
+                  }
                 }).catch((err) => {
-                  console.error('Failed to resolve interactive tone hex:', err)
+                  console.error('Failed to update core color interactive on-tones:', err)
+                  clearPendingCssVars()
+                  suppressCssVarEvents(false)
+                  this.aaWatcher.enable()
                 })
-              }
-            }).catch((err) => {
-              console.error('Failed to update core color interactive on-tones:', err)
-            })
+              }, 200) // Additional delay to ensure theme JSON update completes
+            }, 100)
           }
-        }, 50)
+        }, 300)
       }
     })
   }
 
-  private initElevationState(theme: any, tokens?: any): ElevationState {
+  private initElevationState(theme: any, tokens?: any, forceRebuildFromTheme = false): ElevationState {
     let elevationState: ElevationState | null = null
     
-    // Try consolidated key first
-    if (this.lsAvailable) {
+    // Try consolidated key first (unless we're forcing a rebuild from theme)
+    if (this.lsAvailable && !forceRebuildFromTheme) {
       try {
         const saved = localStorage.getItem(STORAGE_KEYS.elevation)
         if (saved) {
@@ -1036,11 +1105,19 @@ class VarsStore {
       controls = {}
       for (let i = 0; i <= 4; i++) {
         const node: any = light[`elevation-${i}`]?.['$value'] || {}
+        const blurRaw = node?.blur
+        const spreadRaw = node?.spread
+        const xRaw = node?.x
+        const yRaw = node?.y
+        const blur = toNumeric(blurRaw)
+        const spread = toNumeric(spreadRaw)
+        const offsetX = toNumeric(xRaw)
+        const offsetY = toNumeric(yRaw)
         controls[`elevation-${i}`] = {
-          blur: toNumeric(node?.blur),
-          spread: toNumeric(node?.spread),
-          offsetX: toNumeric(node?.x),
-          offsetY: toNumeric(node?.y),
+          blur,
+          spread,
+          offsetX,
+          offsetY,
         }
       }
       const parseOpacity = (s?: string) => {
@@ -1303,6 +1380,39 @@ class VarsStore {
     // Skip if already recomputing to prevent infinite loops
     if (!this.isRecomputing) {
       this.recomputeAndApplyAll()
+      
+      // After mode switch, check all palette on-tone values for AA compliance
+      // This ensures on-tone values are correct after switching modes
+      if (this.aaWatcher) {
+        // Update AA watcher with current state
+        this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
+        
+        // Use setTimeout to ensure CSS variables are fully applied before checking AA compliance
+        setTimeout(() => {
+          if (this.aaWatcher && !this.isRecomputing) {
+            // Disable AA watcher to prevent it from reacting to CSS var updates
+            this.aaWatcher.disable()
+            
+            // Suppress CSS var events during AA compliance check to prevent triggering recomputation
+            suppressCssVarEvents(true)
+            
+            this.aaWatcher.checkAllPaletteOnTones()
+            
+            // After AA compliance check updates CSS vars, update theme JSON to match
+            // Use a delay to ensure CSS vars are updated before reading them
+            setTimeout(() => {
+              this.updateThemeJsonFromOnToneCssVars()
+              
+              // Clear pending CSS vars before re-enabling events to prevent batched event from firing
+              clearPendingCssVars()
+              
+              // Re-enable events and AA watcher after theme JSON is updated
+              suppressCssVarEvents(false)
+              this.aaWatcher.enable()
+            }, 100)
+          }
+        }, 300) // Wait for CSS variables to be fully applied
+      }
     }
   }
 
@@ -2193,8 +2303,10 @@ class VarsStore {
       }
 
       // Only update theme if there were changes
+      // Use skipRecompute=true to prevent triggering recomputeAndApplyAll which would overwrite the CSS vars
+      // The CSS variables are already correct from checkAllPaletteOnTones(), we just need to sync the JSON
       if (hasChanges) {
-        this.setTheme(themeCopy)
+        this.writeState({ theme: themeCopy }, true) // skipRecompute=true to prevent overwriting CSS vars
       }
     } catch (err) {
       console.error('Failed to update theme JSON from on-tone CSS vars:', err)

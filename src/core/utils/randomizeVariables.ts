@@ -249,9 +249,10 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
   }
   
   const store = getVarsStore()
+  // Get fresh state each time - ensure we're reading the latest values
   const state = store.getState()
   
-  // Get initial state
+  // Get initial state - deep clone to avoid mutating the original
   const initialTokens = JSON.parse(JSON.stringify(state.tokens)) as JsonLike
   const initialTheme = JSON.parse(JSON.stringify(state.theme)) as JsonLike
   const initialUiKit = JSON.parse(JSON.stringify(state.uikit)) as JsonLike
@@ -264,6 +265,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
   const tokenValuePaths = shouldRandomizeTokens ? findAllValuePaths(initialTokens) : []
   const themeValuePaths = shouldRandomizeTheme ? findAllValuePaths(initialTheme) : []
   const uikitValuePaths = shouldRandomizeUIKit ? findAllValuePaths(initialUiKit) : []
+  
   
   // Modify tokens - handle dimension objects and regular values separately
   const modifiedTokens = JSON.parse(JSON.stringify(initialTokens)) as JsonLike
@@ -361,6 +363,13 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
     })
   }
   
+  // Disable AA compliance watcher BEFORE randomization to prevent it from overwriting randomized values
+  const storeAny = store as any
+  const aaWatcher = storeAny.aaWatcher
+  if (aaWatcher && typeof aaWatcher.disable === 'function') {
+    aaWatcher.disable()
+  }
+  
   // Modify theme/brand - directly modify JSON structure
   const modifiedTheme = JSON.parse(JSON.stringify(initialTheme)) as JsonLike
   if (shouldRandomizeTheme) {
@@ -443,28 +452,40 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       // Type: typography section - use isInsideTypographyValue to ensure we're inside a $value object
       const isType = isInsideTypographyValue
       
-      // Skip token references UNLESS they are core properties, emphasis/disabled opacities, overlay values, or typography (which we want to randomize)
+      // Elevations: elevation definitions (check for "elevations" plural in path, or "elevation-" followed by number)
+      // Exclude layer properties which have "properties.elevation" but not "elevations"
+      const isElevation = pathStr.includes('elevations') || (pathStr.includes('elevation-') && !pathStr.includes('properties'))
+      const isElevationColor = isElevation && pathStr.includes('color')
+      
+      // Skip token references UNLESS they are core properties, emphasis/disabled opacities, overlay values, typography, or elevation colors (which we want to randomize)
       if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
-        // If it's NOT a core property, emphasis/disabled opacity, overlay value, or typography property, or the relevant randomization is disabled, skip it
-        if (!isCoreProperty && !isEmphasisOrDisabledOpacity && !isOverlay && !isType) {
+        // If it's NOT a core property, emphasis/disabled opacity, overlay value, typography property, or elevation color, or the relevant randomization is disabled, skip it
+        if (!isCoreProperty && !isEmphasisOrDisabledOpacity && !isOverlay && !isType && !isElevationColor) {
           return
         }
         if (isCoreProperty && !opts.theme.coreProperties) {
           return
         }
+        if (isEmphasisOrDisabledOpacity && !opts.theme.coreProperties) {
+          return // Only randomize emphasis/disabled opacities when core properties are enabled
+        }
         if (isType && !opts.theme.type) {
           return
         }
-        // For core properties, emphasis/disabled opacities, overlay values, and typography, we'll randomize the token reference itself
+        if (isElevationColor && !opts.theme.elevations) {
+          return // Only randomize elevation colors when elevations are enabled
+        }
+        // For core properties, emphasis/disabled opacities, overlay values, typography, and elevation colors, we'll randomize the token reference itself
         // Continue to randomization logic below - don't return here
       } else if (isCoreProperty && opts.theme.coreProperties && typeof value !== 'string') {
         // Core properties should be token references or color values
         // If it's not a string (not a token reference), it might be a color object - continue
       }
       // Palettes: color palettes (but exclude core-colors which are handled as core properties)
-      const isPalette = (pathStr.includes('palettes') || pathStr.includes('color')) && !pathStr.includes('core-colors') && !pathStr.includes('elements')
-      // Elevations: elevation definitions
-      const isElevation = pathStr.includes('elevations') || (pathStr.includes('elevation') && !pathStr.includes('property'))
+      // Note: Palette randomization is handled separately below, not in the forEach loop
+      const isPalette = false // Disable individual palette value randomization - we handle it separately
+      // Note: isElevation and isElevationColor are already defined above for the token reference check
+      
       // Dimensions: size dimensions (rename to avoid conflict with parameter)
       const isDimensionCategory = pathStr.includes('dimensions') || (pathStr.includes('size') && !pathStr.includes('font'))
       // Layers: layer properties (but not elements, which are core properties)
@@ -472,7 +493,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       
       const shouldRandomize = 
         isCoreProperty && opts.theme.coreProperties ||
-        isEmphasisOrDisabledOpacity ||
+        (isEmphasisOrDisabledOpacity && opts.theme.coreProperties) || // Only randomize emphasis/disabled opacities when core properties are enabled
         (isOverlay && opts.theme.coreProperties) || // Randomize overlay when core properties are enabled
         isType && opts.theme.type ||
         isPalette && opts.theme.palettes ||
@@ -488,8 +509,8 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       const isColor = pathStr.includes('palettes') || pathStr.includes('color') || isCoreProperty
       const isSize = isDimensionCategory || (pathStr.includes('size') && !pathStr.includes('font'))
       // Elevations contain shadow properties (x, y, blur, spread) which are sizes, and color/opacity
+      // Note: isElevation and isElevationColor are already defined above for the token reference check
       const isElevationSize = isElevation && (pathStr.includes('x') || pathStr.includes('y') || pathStr.includes('blur') || pathStr.includes('spread'))
-      const isElevationColor = isElevation && pathStr.includes('color')
       const isElevationOpacity = isElevation && pathStr.includes('opacity')
       
       // For high, low, and disabled opacities, randomize by picking a random opacity token reference
@@ -609,6 +630,75 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
           // For other typography properties, keep as-is
           newValue = value
         }
+      } else if (isElevation && opts.theme.elevations) {
+        // Special handling for elevation properties with specific ranges
+        // Check if this is the color property (token reference)
+        if (isElevationColor && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+          // Randomize shadow color by picking a random palette reference
+          const paletteNames = ['core-colors', 'neutral', 'palette-1', 'palette-2', 'palette-3']
+          const tones = ['tone', 'on-tone']
+          const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
+          
+          // Randomly select a palette
+          const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+          
+          // Build a random reference
+          if (randomPalette === 'core-colors') {
+            const coreColors = ['interactive', 'warning', 'success', 'alert', 'black', 'white']
+            const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+            if (randomCoreColor === 'interactive') {
+              const variants = ['default', 'hover']
+              const randomVariant = variants[Math.floor(Math.random() * variants.length)]
+              const randomTone = tones[Math.floor(Math.random() * tones.length)]
+              newValue = `{brand.palettes.core-colors.interactive.${randomVariant}.${randomTone}}`
+            } else {
+              newValue = `{brand.palettes.core-colors.${randomCoreColor}}`
+            }
+          } else if (randomPalette === 'neutral') {
+            const randomLevel = levels[Math.floor(Math.random() * levels.length)]
+            const randomTone = tones[Math.floor(Math.random() * tones.length)]
+            newValue = `{brand.palettes.neutral.${randomLevel}.color.${randomTone}}`
+          } else {
+            const randomLevel = levels[Math.floor(Math.random() * levels.length)]
+            const randomTone = tones[Math.floor(Math.random() * tones.length)]
+            newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
+          }
+        } else if (isElevationOpacity) {
+          // Elevation opacity: 0-100% (stored as percentage in dimension object)
+          // The value is the number inside the dimension object (0-100)
+          const randomOpacity = Math.floor(Math.random() * 101) // 0-100
+          newValue = randomOpacity
+        } else if (isElevationSize) {
+          // Elevation size properties (blur, spread, x, y) - check which one
+          if (pathStr.includes('blur')) {
+            // Blur: 0-200px
+            const randomBlur = Math.floor(Math.random() * 201) // 0-200
+            newValue = randomBlur
+          } else if (pathStr.includes('spread')) {
+            // Spread: 0-200px
+            const randomSpread = Math.floor(Math.random() * 201) // 0-200
+            newValue = randomSpread
+          } else if (pathStr.includes('.x.') || pathStr.endsWith('.x') || pathStr.includes('offsetX') || (path.length > 0 && path[path.length - 1] === 'x')) {
+            // Offset X: -50 to 50px (check for .x. in path or x as last path segment)
+            const randomOffsetX = Math.floor(Math.random() * 101) - 50 // -50 to 50
+            newValue = randomOffsetX
+          } else if (pathStr.includes('.y.') || pathStr.endsWith('.y') || pathStr.includes('offsetY') || (path.length > 0 && path[path.length - 1] === 'y')) {
+            // Offset Y: -50 to 50px (check for .y. in path or y as last path segment)
+            const randomOffsetY = Math.floor(Math.random() * 101) - 50 // -50 to 50
+            newValue = randomOffsetY
+          } else {
+            // Fallback for other elevation size properties
+            newValue = generateRandomValue(value, index, { isSize: true })
+          }
+        } else {
+          // Fallback for other elevation properties
+          newValue = generateRandomValue(value, index, { 
+            isColor: isColor || isElevationColor, 
+            isSize: isSize || isElevationSize, 
+            isOpacity: isElevationOpacity,
+            randomizeTokenRef: isCoreProperty && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')
+          })
+        }
       } else {
         newValue = generateRandomValue(value, index, { 
           isColor: isColor || isElevationColor, 
@@ -705,10 +795,303 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       }
     }
     
-    // Update store with modified theme
-    // setTheme will trigger recomputeAndApplyAll() internally, but we'll also call it explicitly at the end
-    // to ensure everything is up to date
-    store.setTheme(modifiedTheme)
+    // Handle palette randomization separately
+    // This assigns unique color scales to each palette, adds new palettes if scales are available,
+    // deletes palettes if all scales are used, and randomly sets the default level for each palette
+    if (opts.theme.palettes) {
+      const root: any = modifiedTheme.brand || modifiedTheme
+      const themes = root.themes || root
+      
+      // Get available color scales from tokens - use current state tokens, not initial
+      const currentState = store.getState()
+      const tokensRoot: any = currentState.tokens.tokens || currentState.tokens
+      const colorsRoot = tokensRoot.colors || {}
+      const availableScales = Object.keys(colorsRoot).filter(k => k.startsWith('scale-')).sort()
+      
+      // Process both light and dark modes
+      for (const mode of ['light', 'dark']) {
+        const theme = themes[mode]
+        if (!theme || !theme.palettes) continue
+        
+        const palettes = theme.palettes
+        const paletteKeys = Object.keys(palettes).filter(k => k !== 'core-colors')
+        
+        // Shuffle available scales and assign unique scales to each palette
+        // Use a proper shuffle algorithm to ensure different results each time
+        const shuffledScales = [...availableScales]
+        for (let i = shuffledScales.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledScales[i], shuffledScales[j]] = [shuffledScales[j], shuffledScales[i]]
+        }
+        const scaleAssignments = new Map<string, string>()
+        
+        // Assign unique scales to existing palettes
+        for (let i = 0; i < paletteKeys.length && i < shuffledScales.length; i++) {
+          scaleAssignments.set(paletteKeys[i], shuffledScales[i])
+        }
+        
+        // Update each palette to use its assigned scale
+        const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950', '1000']
+        const defaultLevels = ['100', '200', '300', '400', '500', '600', '700', '800']
+        
+        for (const paletteKey of paletteKeys) {
+          const palette = palettes[paletteKey]
+          if (!palette || typeof palette !== 'object') continue
+          
+          const assignedScale = scaleAssignments.get(paletteKey)
+          if (!assignedScale) continue
+          
+          // Pick a random level from the scale to use for all on-tone values
+          const onToneLevels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950', '1000']
+          const randomOnToneLevel = onToneLevels[Math.floor(Math.random() * onToneLevels.length)]
+          const onToneToken = `{tokens.colors.${assignedScale}.${randomOnToneLevel}}`
+          
+          // Update all levels to use the new scale
+          for (const levelKey of levels) {
+            if (!palette[levelKey]) continue
+            const level = palette[levelKey]
+            if (level && typeof level === 'object' && level.color) {
+              if (level.color.tone) {
+                level.color.tone.$value = `{tokens.colors.${assignedScale}.${levelKey}}`
+              }
+              // Set all on-tone values to the same random token from the assigned scale
+              if (level.color['on-tone']) {
+                level.color['on-tone'].$value = onToneToken
+              }
+            }
+          }
+          
+          // Randomly choose a default level (primary level)
+          const randomDefaultLevel = defaultLevels[Math.floor(Math.random() * defaultLevels.length)]
+          
+          // Ensure default structure exists
+          if (!palette.default) {
+            palette.default = {
+              $type: 'color',
+              $value: `{brand.palettes.${paletteKey}.${randomDefaultLevel}}`
+            }
+          } else {
+            palette.default.$value = `{brand.palettes.${paletteKey}.${randomDefaultLevel}}`
+          }
+          
+          // Also set the primary level in localStorage (mode-specific)
+          // This is what the UI uses to determine which level is the "primary" for the palette
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.setItem(`palette-primary-level:${paletteKey}:${mode}`, JSON.stringify(randomDefaultLevel))
+            }
+          } catch (err) {
+            // Ignore localStorage errors
+          }
+          
+          // Dispatch event to notify PaletteGrid components to re-read primary level from localStorage
+          try {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
+                detail: { paletteKey, mode, level: randomDefaultLevel }
+              }))
+            }
+          } catch (err) {
+            // Ignore event dispatch errors
+          }
+        }
+        
+        // Add or delete palettes based on scale count
+        // If palettes < scales: add a palette using an unused scale
+        // If palettes == scales: delete a palette
+        if (paletteKeys.length < availableScales.length) {
+          // Find an unused scale (not in scaleAssignments)
+          const usedScales = new Set(scaleAssignments.values())
+          const unusedScales = availableScales.filter(scale => !usedScales.has(scale))
+          
+          if (unusedScales.length > 0) {
+            const newPaletteScale = unusedScales[0]
+            const existingPaletteNumbers = paletteKeys
+              .filter(k => k.startsWith('palette-'))
+              .map(k => parseInt(k.replace('palette-', '')))
+              .filter(n => !isNaN(n))
+            const nextPaletteNumber = existingPaletteNumbers.length > 0 
+              ? Math.max(...existingPaletteNumbers) + 1 
+              : 1
+            const newPaletteKey = `palette-${nextPaletteNumber}`
+            
+            // Pick a random level from the scale to use for all on-tone values
+            const onToneLevels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950', '1000']
+            const randomOnToneLevel = onToneLevels[Math.floor(Math.random() * onToneLevels.length)]
+            const onToneToken = `{tokens.colors.${newPaletteScale}.${randomOnToneLevel}}`
+            
+            // Create new palette structure
+            const newPalette: any = {}
+            for (const levelKey of levels) {
+              newPalette[levelKey] = {
+                color: {
+                  $type: 'color',
+                  tone: {
+                    $value: `{tokens.colors.${newPaletteScale}.${levelKey}}`
+                  },
+                  'on-tone': {
+                    $value: onToneToken
+                  }
+                }
+              }
+            }
+            
+            // Set random default level (primary level)
+            const randomDefaultLevel = defaultLevels[Math.floor(Math.random() * defaultLevels.length)]
+            newPalette.default = {
+              $type: 'color',
+              $value: `{brand.palettes.${newPaletteKey}.${randomDefaultLevel}}`
+            }
+            
+            // Also set the primary level in localStorage (mode-specific)
+            try {
+              if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.setItem(`palette-primary-level:${newPaletteKey}:${mode}`, JSON.stringify(randomDefaultLevel))
+              }
+            } catch (err) {
+              // Ignore localStorage errors
+            }
+            
+            // Dispatch event to notify PaletteGrid components to re-read primary level from localStorage
+            try {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
+                  detail: { paletteKey: newPaletteKey, mode, level: randomDefaultLevel }
+                }))
+              }
+            } catch (err) {
+              // Ignore event dispatch errors
+            }
+            
+            palettes[newPaletteKey] = newPalette
+            
+            // Also add to palettesState.dynamic so the UI displays it
+            // Only do this once per palette (e.g., in light mode)
+            if (mode === 'light') {
+              const currentPalettesState = store.getState().palettes
+              const existingPaletteKeys = new Set(currentPalettesState.dynamic.map(p => p.key))
+              if (!existingPaletteKeys.has(newPaletteKey)) {
+                const newPaletteEntry = {
+                  key: newPaletteKey,
+                  title: `Palette ${nextPaletteNumber}`,
+                  defaultLevel: parseInt(randomDefaultLevel),
+                  initialFamily: newPaletteScale
+                }
+                const updatedDynamic = [...currentPalettesState.dynamic, newPaletteEntry]
+                store.setPalettes({ ...currentPalettesState, dynamic: updatedDynamic })
+              }
+            }
+          }
+        } else if (paletteKeys.length === availableScales.length) {
+          // Delete a palette if palettes == scales (delete the last palette-* one, but keep neutral)
+          const paletteToDelete = paletteKeys
+            .filter(k => k.startsWith('palette-'))
+            .sort()
+            .pop()
+          if (paletteToDelete) {
+            delete palettes[paletteToDelete]
+            
+            // Also remove from palettesState.dynamic so the UI updates
+            // Only do this once (e.g., in light mode)
+            if (mode === 'light') {
+              const currentPalettesState = store.getState().palettes
+              const updatedDynamic = currentPalettesState.dynamic.filter(p => p.key !== paletteToDelete)
+              store.setPalettes({ ...currentPalettesState, dynamic: updatedDynamic })
+              
+              // Dispatch event for AA compliance watcher
+              try {
+                window.dispatchEvent(new CustomEvent('paletteDeleted', { detail: { key: paletteToDelete } }))
+              } catch {}
+            }
+          }
+        }
+        
+        // Dispatch a general event after all palettes are randomized for the current mode
+        // This ensures all PaletteGrid components re-read their primary levels
+        try {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
+              detail: { allPalettes: true, mode }
+            }))
+          }
+        } catch (err) {
+          // Ignore event dispatch errors
+        }
+      }
+    }
+    
+    // If elevations were randomized, build elevation state from modifiedTheme BEFORE setTheme
+    // This ensures elevation state is ready when setTheme triggers recomputeAndApplyAll()
+    let newElevationState: any = null
+    if (opts.theme.elevations) {
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          // Clear elevation state from localStorage - it will be rebuilt from the randomized theme
+          const STORAGE_KEYS = {
+            elevation: 'recursica-elevation-state'
+          }
+          localStorage.removeItem(STORAGE_KEYS.elevation)
+          localStorage.removeItem('elevation-color-tokens')
+          localStorage.removeItem('elevation-alpha-tokens')
+          localStorage.removeItem('elevation-palette-selections')
+          localStorage.removeItem('elevation-directions')
+          
+          // Access the private initElevationState method to rebuild elevation state from modifiedTheme
+          const storeAny = store as any
+          if (storeAny?.initElevationState && typeof storeAny.initElevationState === 'function') {
+            const currentState = store.getState()
+            // Build elevation state from modifiedTheme directly (before it's set in store)
+            // Pass true as third parameter to force rebuilding from theme, ignoring localStorage
+            const updatedElevation = storeAny.initElevationState(modifiedTheme, currentState.tokens, true)
+            
+            // CRITICAL: Update the token values that CSS variables reference
+            // The elevation controls have the correct values, but the tokens themselves need to be updated
+            for (let i = 0; i <= 4; i++) {
+              const k = `elevation-${i}`
+              const ctrl = updatedElevation.controls[k]
+              if (ctrl) {
+                const blurTokenName = updatedElevation.blurTokens[k] || `size/elevation-${i}-blur`
+                const spreadTokenName = updatedElevation.spreadTokens[k] || `size/elevation-${i}-spread`
+                const offsetXTokenName = updatedElevation.offsetXTokens[k] || `size/elevation-${i}-offset-x`
+                const offsetYTokenName = updatedElevation.offsetYTokens[k] || `size/elevation-${i}-offset-y`
+                
+                // Update token values to match the randomized elevation controls
+                try {
+                  store.updateToken(blurTokenName, ctrl.blur)
+                  store.updateToken(spreadTokenName, ctrl.spread)
+                  store.updateToken(offsetXTokenName, ctrl.offsetX)
+                  store.updateToken(offsetYTokenName, ctrl.offsetY)
+                } catch (e) {
+                  // Failed to update tokens, continue with other elevations
+                }
+              }
+            }
+            
+            // Ensure we create a completely new elevation state object so React detects the change
+            // Deep clone to ensure all nested objects are new references
+            newElevationState = JSON.parse(JSON.stringify(updatedElevation))
+          }
+        }
+      } catch (err) {
+        // Error building elevation state, continue without elevation state update
+      }
+    }
+    
+    // Update store with modified theme AND elevation state together
+    // This ensures both are set before recomputeAndApplyAll() runs
+    if (newElevationState) {
+      // Set both theme and elevation state together using writeState directly
+      const storeAny = store as any
+      if (storeAny.writeState) {
+        storeAny.writeState({ theme: modifiedTheme, elevation: newElevationState }, false)
+      } else {
+        // Fallback: set theme first, then elevation
+        store.setTheme(modifiedTheme)
+        store.setElevation(newElevationState)
+      }
+    } else {
+      store.setTheme(modifiedTheme)
+    }
   }
   
   // Modify UIKit - directly modify JSON structure
@@ -742,18 +1125,14 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
     store.setUiKit(modifiedUiKit)
   }
   
-  // Disable AA compliance watcher during randomization to prevent it from overwriting randomized values
-  const storeAny = store as any
-  const aaWatcher = storeAny.aaWatcher
-  if (aaWatcher && typeof aaWatcher.disable === 'function') {
-    aaWatcher.disable()
-  }
-  
   // Now trigger recomputation once after all updates are complete
   // This ensures we're reading from the fully updated state
-  // Use a longer delay to ensure setTheme's automatic recomputation completes first
+  // Use a longer delay to ensure setTheme's and setElevation's automatic recomputations complete first
+  // If elevations were randomized, use a slightly longer delay to ensure elevation state update completes
+  const recomputeDelay = opts.theme.elevations ? 150 : 100
   setTimeout(() => {
     // Force a recomputation to ensure all CSS variables are up to date
+    // This will use the updated elevation state with randomized values
     store.recomputeAndApplyAll()
     
     // Dispatch events after recomputation completes
@@ -769,15 +1148,35 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       }
       
       // Dispatch cssVarsUpdated event - include overlay CSS variables if core properties were randomized
-      const overlayCssVars = opts.theme.coreProperties ? [
-        '--recursica-brand-themes-light-state-overlay-color',
-        '--recursica-brand-themes-light-state-overlay-opacity',
-        '--recursica-brand-themes-dark-state-overlay-color',
-        '--recursica-brand-themes-dark-state-overlay-opacity'
-      ] : []
+      // Also include elevation CSS variables if elevations were randomized
+      const cssVarsToNotify: string[] = []
+      
+      if (opts.theme.coreProperties) {
+        cssVarsToNotify.push(
+          '--recursica-brand-themes-light-state-overlay-color',
+          '--recursica-brand-themes-light-state-overlay-opacity',
+          '--recursica-brand-themes-dark-state-overlay-color',
+          '--recursica-brand-themes-dark-state-overlay-opacity'
+        )
+      }
+      
+      if (opts.theme.elevations) {
+        // Include all elevation CSS variables for both light and dark modes
+        for (const themeMode of ['light', 'dark'] as const) {
+          for (let i = 0; i <= 4; i++) {
+            cssVarsToNotify.push(
+              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-x-axis`,
+              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-y-axis`,
+              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-blur`,
+              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-spread`,
+              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-shadow-color`
+            )
+          }
+        }
+      }
       
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-        detail: { cssVars: overlayCssVars.length > 0 ? overlayCssVars : [] } // Include overlay vars if randomized
+        detail: { cssVars: cssVarsToNotify }
       }))
       
       // Re-enable AA compliance watcher after a delay to ensure CSS variables are fully applied
