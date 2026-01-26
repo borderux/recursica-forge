@@ -464,10 +464,13 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       // Check this early so we can use it in the token reference check below
       const isLayer = pathStr.includes('layer') && (pathStr.includes('properties') || pathStr.includes('elements'))
       
-      // Skip token references UNLESS they are core properties, emphasis/disabled opacities, overlay values, typography, elevation colors, or layer properties (which we want to randomize)
+      // Dimensions: size dimensions (check this early so we can use it in the token reference check below)
+      const isDimensionCategory = pathStr.includes('dimensions') || (pathStr.includes('size') && !pathStr.includes('font'))
+      
+      // Skip token references UNLESS they are core properties, emphasis/disabled opacities, overlay values, typography, elevation colors, layer properties, or dimensions (which we want to randomize)
       if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
-        // If it's NOT a core property, emphasis/disabled opacity, overlay value, typography property, elevation color, or layer property, or the relevant randomization is disabled, skip it
-        if (!isCoreProperty && !isEmphasisOrDisabledOpacity && !isOverlay && !isType && !isElevationColor && !isLayer) {
+        // If it's NOT a core property, emphasis/disabled opacity, overlay value, typography property, elevation color, layer property, or dimension, or the relevant randomization is disabled, skip it
+        if (!isCoreProperty && !isEmphasisOrDisabledOpacity && !isOverlay && !isType && !isElevationColor && !isLayer && !isDimensionCategory) {
           return
         }
         if (isLayer && !opts.theme.layers) {
@@ -485,7 +488,10 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         if (isElevationColor && !opts.theme.elevations) {
           return // Only randomize elevation colors when elevations are enabled
         }
-        // For core properties, emphasis/disabled opacities, overlay values, typography, and elevation colors, we'll randomize the token reference itself
+        if (isDimensionCategory && !opts.theme.dimensions) {
+          return // Only randomize dimensions when dimensions are enabled
+        }
+        // For core properties, emphasis/disabled opacities, overlay values, typography, elevation colors, layer properties, and dimensions, we'll randomize the token reference itself
         // Continue to randomization logic below - don't return here
       } else if (isCoreProperty && opts.theme.coreProperties && typeof value !== 'string') {
         // Core properties should be token references or color values
@@ -495,9 +501,6 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       // Note: Palette randomization is handled separately below, not in the forEach loop
       const isPalette = false // Disable individual palette value randomization - we handle it separately
       // Note: isElevation and isElevationColor are already defined above for the token reference check
-      
-      // Dimensions: size dimensions (rename to avoid conflict with parameter)
-      const isDimensionCategory = pathStr.includes('dimensions') || (pathStr.includes('size') && !pathStr.includes('font'))
       // isLayer is already defined above
       
       const shouldRandomize = 
@@ -720,6 +723,34 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
             randomizeTokenRef: isCoreProperty && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')
           })
         }
+      } else if (isDimensionCategory && opts.theme.dimensions && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+        // Randomize dimension token references
+        // Dimensions can reference either {tokens.size.XXX} or {tokens.font.sizes.XXX}
+        const sizeTokenMatch = value.match(/\{tokens\.size\.([a-z0-9-]+)\}/)
+        const fontSizeTokenMatch = value.match(/\{tokens\.font\.sizes\.([a-z0-9-]+)\}/)
+        
+        if (sizeTokenMatch) {
+          // Regular size token reference
+          const sizeTokens = ['none', '0-5x', '1x', '1-5x', '2x', '3x', '4x', '5x', '6x']
+          const currentToken = sizeTokenMatch[1]
+          const availableTokens = currentToken ? sizeTokens.filter(t => t !== currentToken) : sizeTokens
+          const randomToken = availableTokens.length > 0 
+            ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+            : sizeTokens[Math.floor(Math.random() * sizeTokens.length)]
+          newValue = `{tokens.size.${randomToken}}`
+        } else if (fontSizeTokenMatch) {
+          // Font size token reference (for text-size dimensions)
+          const fontSizes = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl']
+          const currentToken = fontSizeTokenMatch[1]
+          const availableTokens = currentToken ? fontSizes.filter(t => t !== currentToken) : fontSizes
+          const randomToken = availableTokens.length > 0 
+            ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+            : fontSizes[Math.floor(Math.random() * fontSizes.length)]
+          newValue = `{tokens.font.sizes.${randomToken}}`
+        } else {
+          // Unknown token reference format, keep as-is
+          newValue = value
+        }
       } else if (isLayer && opts.theme.layers) {
         // Layer-specific randomization
         if (isLayerColor && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
@@ -747,9 +778,9 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
               const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
               newValue = `{brand.palettes.core-colors.${randomCoreColor}}`
             } else {
-              newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
-            }
-          } else {
+            newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
+          }
+        } else {
             // Regular layer color randomization
             const paletteNames = ['core-colors', 'neutral', 'palette-1', 'palette-2', 'palette-3']
             const tones = ['tone', 'on-tone']
