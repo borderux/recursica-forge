@@ -63,6 +63,10 @@ jobs:
       # - Prepare the production build for deployment (publish mode)
       - name: Build
         run: npm run build
+        env:
+          VITE_RECURSICA_API_URL: ${{ vars.VITE_RECURSICA_API_URL }}
+          VITE_RECURSICA_UI_URL: ${{ vars.VITE_RECURSICA_UI_URL }}
+          VITE_PLUGIN_PHRASE: ${{ secrets.PLUGIN_PHRASE }}
 
       # Changesets Action - The Core of Our Release System
       #
