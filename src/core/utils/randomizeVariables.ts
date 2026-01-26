@@ -398,14 +398,15 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         }
       }
       
-      // Skip dimension objects in layer properties (border-thickness, etc.) - these should be token references
+      // Skip dimension objects in layer properties EXCEPT border-thickness (which should be randomized)
       // But allow layer elements (text, interactive, etc.) to be randomized
       // Check if path ends with ['$value', 'value'] which indicates we're inside a dimension object
       const isLayerProperty = /layer.*\.properties/.test(pathStr) || (pathStr.includes('layer-') && pathStr.includes('properties'))
       const isLayerElement = pathStr.includes('layer') && pathStr.includes('elements')
+      const isBorderThickness = pathStr.includes('border-thickness')
       const isInsideDimensionValue = path.length >= 2 && path[path.length - 2] === '$value' && path[path.length - 1] === 'value'
-      // Only skip dimension objects in properties, not in elements
-      if (isLayerProperty && !isLayerElement && (isDimension || isInsideDimensionValue)) {
+      // Only skip dimension objects in properties (except border-thickness), not in elements
+      if (isLayerProperty && !isLayerElement && !isBorderThickness && (isDimension || isInsideDimensionValue)) {
         return
       }
       
@@ -431,11 +432,12 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       
       const isCoreProperty = hasCoreColors
       
-      // Check if this is a high, low, or disabled opacity that should be randomized with token references
+      // Check if this is a high, low, disabled, or hover opacity that should be randomized with token references
       const isHighEmphasisOpacity = pathStr.includes('text-emphasis') && pathStr.includes('high')
       const isLowEmphasisOpacity = pathStr.includes('text-emphasis') && pathStr.includes('low')
       const isDisabledOpacity = pathStr.includes('states') && pathStr.includes('disabled')
-      const isEmphasisOrDisabledOpacity = isHighEmphasisOpacity || isLowEmphasisOpacity || isDisabledOpacity
+      const isHoverOpacity = pathStr.includes('states') && pathStr.includes('hover')
+      const isEmphasisOrDisabledOpacity = isHighEmphasisOpacity || isLowEmphasisOpacity || isDisabledOpacity || isHoverOpacity
       
       // Check if this is an overlay color or opacity that should be randomized
       // Path structure: brand.themes.light.states.overlay.color.$value or themes.light.states.overlay.color.$value
@@ -537,14 +539,18 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       const isLayerSize = isLayer && (pathStr.includes('padding') || pathStr.includes('border-radius') || pathStr.includes('border-thickness'))
       
       
-      // For high, low, and disabled opacities, randomize by picking a random opacity token reference
+      // For high, low, disabled, and hover opacities, randomize by picking a random opacity token reference
       // For overlay opacity, also randomize with a random opacity token reference
       // For overlay color, randomize with a random palette reference
       let newValue: any
       if (isEmphasisOrDisabledOpacity && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
         // Pick a random opacity token reference
         const opacityTokens = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
-        const randomOpacityToken = opacityTokens[Math.floor(Math.random() * opacityTokens.length)]
+        const currentToken = value.match(/\{tokens\.opacity\.([a-z0-9-]+)\}/)?.[1]
+        const availableTokens = currentToken ? opacityTokens.filter(t => t !== currentToken) : opacityTokens
+        const randomOpacityToken = availableTokens.length > 0 
+          ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+          : opacityTokens[Math.floor(Math.random() * opacityTokens.length)]
         newValue = `{tokens.opacity.${randomOpacityToken}}`
       } else if (isOverlayOpacity && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
         // Pick a random opacity token reference for overlay opacity
@@ -769,30 +775,58 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
             const tones = ['tone', 'on-tone']
             const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
             
+            // Extract current value to avoid picking the same one
+            let currentCoreColor: string | null = null
+            let currentPalette: string | null = null
+            if (value.includes('core-colors')) {
+              const coreColorMatch = value.match(/core-colors\.([a-z]+)/)
+              if (coreColorMatch) currentCoreColor = coreColorMatch[1]
+            } else {
+              const paletteMatch = value.match(/palettes\.(palette-\d+|neutral)/)
+              if (paletteMatch) currentPalette = paletteMatch[1]
+            }
+            
             const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
             const randomTone = tones[Math.floor(Math.random() * tones.length)]
             const randomLevel = levels[Math.floor(Math.random() * levels.length)]
             
             if (randomPalette === 'core-colors') {
               const coreColors = ['interactive', 'warning', 'success', 'alert', 'black', 'white']
-              const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+              const availableCoreColors = currentCoreColor ? coreColors.filter(c => c !== currentCoreColor) : coreColors
+              const randomCoreColor = availableCoreColors.length > 0 
+                ? availableCoreColors[Math.floor(Math.random() * availableCoreColors.length)]
+                : coreColors[Math.floor(Math.random() * coreColors.length)]
               newValue = `{brand.palettes.core-colors.${randomCoreColor}}`
             } else {
-            newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
-          }
-        } else {
+              newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
+            }
+          } else {
             // Regular layer color randomization
             const paletteNames = ['core-colors', 'neutral', 'palette-1', 'palette-2', 'palette-3']
             const tones = ['tone', 'on-tone']
             const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
             
+            // Extract current value to avoid picking the same one
+            let currentCoreColor: string | null = null
+            let currentPalette: string | null = null
+            if (value.includes('core-colors')) {
+              const coreColorMatch = value.match(/core-colors\.([a-z]+)/)
+              if (coreColorMatch) currentCoreColor = coreColorMatch[1]
+            } else {
+              const paletteMatch = value.match(/palettes\.(palette-\d+|neutral)/)
+              if (paletteMatch) currentPalette = paletteMatch[1]
+            }
+            
             const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
             const randomTone = tones[Math.floor(Math.random() * tones.length)]
             const randomLevel = levels[Math.floor(Math.random() * levels.length)]
             
             if (randomPalette === 'core-colors') {
               const coreColors = ['interactive', 'warning', 'success', 'alert', 'black', 'white']
-              const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+              const availableCoreColors = currentCoreColor ? coreColors.filter(c => c !== currentCoreColor) : coreColors
+              const randomCoreColor = availableCoreColors.length > 0 
+                ? availableCoreColors[Math.floor(Math.random() * availableCoreColors.length)]
+                : coreColors[Math.floor(Math.random() * coreColors.length)]
               newValue = `{brand.palettes.core-colors.${randomCoreColor}}`
             } else {
               newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
@@ -800,7 +834,30 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
           }
         } else if (isLayerSize) {
           // Layer size properties (padding, border-radius, border-thickness)
-          newValue = generateRandomValue(value, index, { isSize: true, maxSize: 200 })
+          // Check if this is a token reference (dimension token) that should be randomized
+          if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+            // Randomize the token reference by picking a random size token
+            const sizeTokenMatch = value.match(/\{tokens\.size\.([a-z0-9-]+)\}/)
+            if (sizeTokenMatch) {
+              const sizeTokens = ['none', '0-5x', '1x', '1-5x', '2x', '3x', '4x', '5x', '6x']
+              const currentToken = sizeTokenMatch[1]
+              const availableTokens = currentToken ? sizeTokens.filter(t => t !== currentToken) : sizeTokens
+              const randomToken = availableTokens.length > 0 
+                ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
+                : sizeTokens[Math.floor(Math.random() * sizeTokens.length)]
+              newValue = `{tokens.size.${randomToken}}`
+            } else {
+              // Unknown token reference format, keep as-is
+              newValue = value
+            }
+          } else if (typeof value === 'object' && value !== null && 'value' in value && 'unit' in value) {
+            // Dimension object (border-thickness) - randomize the value
+            const randomValue = Math.floor(Math.random() * 201) // 0-200px
+            newValue = { value: randomValue, unit: value.unit }
+          } else {
+            // Direct numeric value
+            newValue = generateRandomValue(value, index, { isSize: true, maxSize: 200 })
+          }
         } else {
           // Fallback for other layer properties
           newValue = generateRandomValue(value, index, { 
