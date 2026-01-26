@@ -1,5 +1,7 @@
 import { iconNameToReactComponent } from '../../../components/iconUtils'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
+import { useVars } from '../../../vars/VarsContext'
+import { useMemo } from 'react'
 import './LayerSegmentedControl.css'
 
 interface LayerSegmentedControlProps {
@@ -10,7 +12,22 @@ interface LayerSegmentedControlProps {
 
 export default function LayerSegmentedControl({ selected, onSelect, className = '' }: LayerSegmentedControlProps) {
   const { mode } = useThemeMode()
-  const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+  const { theme } = useVars()
+  
+  // Dynamically get all available layers from theme
+  const layers = useMemo(() => {
+    const t: any = theme
+    const themeRoot: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
+    const themes = themeRoot?.themes || themeRoot
+    const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+    const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
+      const aNum = parseInt(a.replace('layer-', ''), 10)
+      const bNum = parseInt(b.replace('layer-', ''), 10)
+      return aNum - bNum
+    })
+    return layerKeys.length > 0 ? layerKeys : ['layer-0', 'layer-1', 'layer-2', 'layer-3'] // Fallback for initial load
+  }, [theme, mode])
+  
   const LayerIcon = iconNameToReactComponent('square-3-stack-3d')
 
   const getSelectedIndex = () => {

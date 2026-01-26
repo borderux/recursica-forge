@@ -1800,7 +1800,6 @@ class VarsStore {
     
     // Layer CSS variables are generated from theme JSON - no preservation needed
     // Theme JSON is the single source of truth
-    
     Object.assign(allVars, layerVars)
     // Dimensions - generate for both modes (dimensions are mode-agnostic but vars are generated for both)
     try {

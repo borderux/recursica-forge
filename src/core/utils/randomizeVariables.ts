@@ -399,10 +399,13 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       }
       
       // Skip dimension objects in layer properties (border-thickness, etc.) - these should be token references
+      // But allow layer elements (text, interactive, etc.) to be randomized
       // Check if path ends with ['$value', 'value'] which indicates we're inside a dimension object
       const isLayerProperty = /layer.*\.properties/.test(pathStr) || (pathStr.includes('layer-') && pathStr.includes('properties'))
+      const isLayerElement = pathStr.includes('layer') && pathStr.includes('elements')
       const isInsideDimensionValue = path.length >= 2 && path[path.length - 2] === '$value' && path[path.length - 1] === 'value'
-      if (isLayerProperty && (isDimension || isInsideDimensionValue)) {
+      // Only skip dimension objects in properties, not in elements
+      if (isLayerProperty && !isLayerElement && (isDimension || isInsideDimensionValue)) {
         return
       }
       
@@ -457,11 +460,18 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       const isElevation = pathStr.includes('elevations') || (pathStr.includes('elevation-') && !pathStr.includes('properties'))
       const isElevationColor = isElevation && pathStr.includes('color')
       
-      // Skip token references UNLESS they are core properties, emphasis/disabled opacities, overlay values, typography, or elevation colors (which we want to randomize)
+      // Layers: layer properties and elements (text, interactive, alert, warning, success colors)
+      // Check this early so we can use it in the token reference check below
+      const isLayer = pathStr.includes('layer') && (pathStr.includes('properties') || pathStr.includes('elements'))
+      
+      // Skip token references UNLESS they are core properties, emphasis/disabled opacities, overlay values, typography, elevation colors, or layer properties (which we want to randomize)
       if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
-        // If it's NOT a core property, emphasis/disabled opacity, overlay value, typography property, or elevation color, or the relevant randomization is disabled, skip it
-        if (!isCoreProperty && !isEmphasisOrDisabledOpacity && !isOverlay && !isType && !isElevationColor) {
+        // If it's NOT a core property, emphasis/disabled opacity, overlay value, typography property, elevation color, or layer property, or the relevant randomization is disabled, skip it
+        if (!isCoreProperty && !isEmphasisOrDisabledOpacity && !isOverlay && !isType && !isElevationColor && !isLayer) {
           return
+        }
+        if (isLayer && !opts.theme.layers) {
+          return // Only randomize layer properties when layers are enabled
         }
         if (isCoreProperty && !opts.theme.coreProperties) {
           return
@@ -488,8 +498,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       
       // Dimensions: size dimensions (rename to avoid conflict with parameter)
       const isDimensionCategory = pathStr.includes('dimensions') || (pathStr.includes('size') && !pathStr.includes('font'))
-      // Layers: layer properties (but not elements, which are core properties)
-      const isLayer = pathStr.includes('layer') && pathStr.includes('properties') && !pathStr.includes('layer-0')
+      // isLayer is already defined above
       
       const shouldRandomize = 
         isCoreProperty && opts.theme.coreProperties ||
@@ -512,6 +521,18 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       // Note: isElevation and isElevationColor are already defined above for the token reference check
       const isElevationSize = isElevation && (pathStr.includes('x') || pathStr.includes('y') || pathStr.includes('blur') || pathStr.includes('spread'))
       const isElevationOpacity = isElevation && pathStr.includes('opacity')
+      
+      // Layer-specific value type detection
+      // Layer colors include: surface, border-color, and all element colors (text, interactive, alert, warning, success)
+      const isLayerColor = isLayer && (
+        pathStr.includes('surface') || 
+        pathStr.includes('border-color') || 
+        pathStr.includes('text-color') || 
+        pathStr.includes('element-text-color') ||
+        pathStr.includes('elements') // All element colors (text, interactive, alert, warning, success)
+      )
+      const isLayerSize = isLayer && (pathStr.includes('padding') || pathStr.includes('border-radius') || pathStr.includes('border-thickness'))
+      
       
       // For high, low, and disabled opacities, randomize by picking a random opacity token reference
       // For overlay opacity, also randomize with a random opacity token reference
@@ -699,6 +720,64 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
             randomizeTokenRef: isCoreProperty && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')
           })
         }
+      } else if (isLayer && opts.theme.layers) {
+        // Layer-specific randomization
+        if (isLayerColor && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+          // Check if this is a layer element (text, interactive, etc.) that references core-colors
+          const isLayerElement = pathStr.includes('elements')
+          const isCoreColorRef = value.includes('core-colors') && (value.includes('warning') || value.includes('success') || value.includes('alert') || value.includes('interactive'))
+          
+          // For layer elements that reference core-colors (alert, warning, success, interactive),
+          // randomize by picking a random core color or palette
+          // Check if path contains alert, warning, success, or interactive
+          const isAlertWarningSuccess = pathStr.includes('alert') || pathStr.includes('warning') || pathStr.includes('success')
+          const isInteractive = pathStr.includes('interactive')
+          
+          if (isLayerElement && (isCoreColorRef || isAlertWarningSuccess || isInteractive)) {
+            const paletteNames = ['core-colors', 'neutral', 'palette-1', 'palette-2', 'palette-3']
+            const tones = ['tone', 'on-tone']
+            const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
+            
+            const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+            const randomTone = tones[Math.floor(Math.random() * tones.length)]
+            const randomLevel = levels[Math.floor(Math.random() * levels.length)]
+            
+            if (randomPalette === 'core-colors') {
+              const coreColors = ['interactive', 'warning', 'success', 'alert', 'black', 'white']
+              const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+              newValue = `{brand.palettes.core-colors.${randomCoreColor}}`
+            } else {
+              newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
+            }
+          } else {
+            // Regular layer color randomization
+            const paletteNames = ['core-colors', 'neutral', 'palette-1', 'palette-2', 'palette-3']
+            const tones = ['tone', 'on-tone']
+            const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
+            
+            const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+            const randomTone = tones[Math.floor(Math.random() * tones.length)]
+            const randomLevel = levels[Math.floor(Math.random() * levels.length)]
+            
+            if (randomPalette === 'core-colors') {
+              const coreColors = ['interactive', 'warning', 'success', 'alert', 'black', 'white']
+              const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+              newValue = `{brand.palettes.core-colors.${randomCoreColor}}`
+            } else {
+              newValue = `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
+            }
+          }
+        } else if (isLayerSize) {
+          // Layer size properties (padding, border-radius, border-thickness)
+          newValue = generateRandomValue(value, index, { isSize: true, maxSize: 200 })
+        } else {
+          // Fallback for other layer properties
+          newValue = generateRandomValue(value, index, { 
+            isColor: isLayerColor, 
+            isSize: isLayerSize,
+            randomizeTokenRef: isLayerColor && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')
+          })
+        }
       } else {
         newValue = generateRandomValue(value, index, { 
           isColor: isColor || isElevationColor, 
@@ -710,6 +789,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       if (isCoreProperty && opts.theme.coreProperties) {
         corePropertyCount++
       }
+      
       
       modifyValueAtPath(modifiedTheme, path, newValue)
     })
@@ -1079,6 +1159,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
     
     // Update store with modified theme AND elevation state together
     // This ensures both are set before recomputeAndApplyAll() runs
+    
     if (newElevationState) {
       // Set both theme and elevation state together using writeState directly
       const storeAny = store as any
