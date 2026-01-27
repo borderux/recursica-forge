@@ -137,6 +137,22 @@ export function useJsonExport() {
     setShowGitHubModal(false)
     setGithubExportFiles(null)
   }
+
+  const handleExportToGithub = (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => {
+    setShowSelectionModal(false)
+    setGithubExportFiles(files)
+    setShowGitHubModal(true)
+  }
+
+  const handleGitHubExportCancel = () => {
+    setShowGitHubModal(false)
+    setGithubExportFiles(null)
+  }
+
+  const handleGitHubExportSuccess = () => {
+    setShowGitHubModal(false)
+    setGithubExportFiles(null)
+  }
   
   return {
     handleExport,
