@@ -22,18 +22,23 @@ import JSZip from 'jszip'
 function getAllCssVars(): Record<string, string> {
   const vars: Record<string, string> = {}
   const root = document.documentElement
-  const computed = getComputedStyle(root)
   
-  // Read from inline styles
+  // Read all CSS variables using readCssVar for consistency
+  // This ensures we read from inline styles first (where updateCssVar sets values),
+  // then fall back to computed styles
+  // Collect all potential variable names from inline styles and computed styles
+  const allVarNames = new Set<string>()
+  
+  // Get from inline styles
   for (let i = 0; i < root.style.length; i++) {
     const prop = root.style[i]
     if (prop && prop.startsWith('--recursica-')) {
-      const value = root.style.getPropertyValue(prop).trim()
-      if (value) vars[prop] = value
+      allVarNames.add(prop)
     }
   }
   
   // Also check computed styles for any we might have missed
+  const computed = getComputedStyle(root)
   const allComputed = Array.from(document.styleSheets)
     .flatMap(sheet => {
       try {
@@ -47,15 +52,16 @@ function getAllCssVars(): Record<string, string> {
       const styleRule = rule as CSSStyleRule
       return Array.from(styleRule.style)
         .filter(prop => prop.startsWith('--recursica-'))
-        .map(prop => ({
-          name: prop,
-          value: computed.getPropertyValue(prop).trim()
-        }))
+        .map(prop => prop)
     })
   
-  allComputed.forEach(({ name, value }) => {
-    if (value && !vars[name]) {
-      vars[name] = value
+  allComputed.forEach(name => allVarNames.add(name))
+  
+  // Read each variable using readCssVar (checks inline first, then computed)
+  allVarNames.forEach(varName => {
+    const value = readCssVar(varName)
+    if (value) {
+      vars[varName] = value
     }
   })
   
@@ -80,9 +86,40 @@ function cssVarToTokenRef(cssVar: string): string | null {
   // Handle color tokens: colors-scale-01-100 -> colors.scale-01.100
   // Also support old format: color-gray-500 -> color.gray.500
   if (parts[0] === 'colors' && parts.length >= 3) {
+    // Find where the level starts (it's a number like 000, 050, 100, etc. or 1000)
+    // Look for a pattern like scale-XX-YYY where XX is the scale number and YYY is the level
+    let scaleEndIndex = -1
+    for (let i = 1; i < parts.length - 1; i++) {
+      // Check if parts[i+1] looks like a level (3-4 digits)
+      const nextPart = parts[i + 1]
+      if (/^\d{3,4}$/.test(nextPart)) {
+        scaleEndIndex = i
+        break
+      }
+    }
+    
+    if (scaleEndIndex > 0) {
+      // Scale is parts[1] through parts[scaleEndIndex] (e.g., ['scale', '01'] -> 'scale-01')
+      const scaleParts = parts.slice(1, scaleEndIndex + 1)
+      const scale = scaleParts.join('-')
+      const level = parts.slice(scaleEndIndex + 1).join('-') // Handle levels like '0-5x'
+      return `{tokens.colors.${scale}.${level}}`
+    }
+    
+    // Fallback: assume scale is just parts[1] (old format)
     const scale = parts[1]
-    const level = parts.slice(2).join('-') // Handle levels like '0-5x'
+    const level = parts.slice(2).join('-')
     return `{tokens.colors.${scale}.${level}}`
+  }
+  
+  // Fix malformed token references that may have been created incorrectly
+  // {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
+  if (parts[0] === 'tokens' && parts.length >= 2) {
+    const rest = parts.slice(1).join('-')
+    const malformedMatch = rest.match(/^colors\.scale\.(\d+)-(\d{3,4})$/)
+    if (malformedMatch) {
+      return `{tokens.colors.scale-${malformedMatch[1]}.${malformedMatch[2]}}`
+    }
   }
   if (parts[0] === 'color' && parts.length >= 3) {
     const family = parts[1]
@@ -158,17 +195,34 @@ function cssVarToBrandRef(cssVar: string): string | null {
     let jsonPath = `brand.themes.${mode}`
     
     // Handle palettes
+    // Pattern: palettes-{paletteKey}-{level}-{type}
+    // paletteKey can be: neutral, palette-1, palette-2, core-white, core-black, etc.
     if (parts[0] === 'palettes' && parts.length >= 4) {
       parts.shift() // Remove 'palettes'
-      const paletteKey = parts[0]
-      const level = parts[1]
-      const type = parts.slice(2).join('-') // tone, on-tone, etc.
       
-      if (type === 'tone' || type === 'on-tone') {
-        return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.color.${type}}`
+      // Find the level (it's a number: 000, 050, 100, 200, etc. or 1000)
+      let levelIndex = -1
+      for (let i = 0; i < parts.length; i++) {
+        if (/^\d{3,4}$/.test(parts[i])) {
+          levelIndex = i
+          break
+        }
       }
       
-      return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.${type}}`
+      if (levelIndex > 0 && levelIndex < parts.length - 1) {
+        // Everything before the level is the paletteKey (may contain hyphens)
+        const paletteKeyParts = parts.slice(0, levelIndex)
+        const paletteKey = paletteKeyParts.join('-')
+        const level = parts[levelIndex]
+        // Everything after the level is the type (may contain hyphens like "on-tone")
+        const type = parts.slice(levelIndex + 1).join('-')
+        
+        if (type === 'tone' || type === 'on-tone') {
+          return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.color.${type}}`
+        }
+        
+        return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.${type}}`
+      }
     }
     
     // Handle layers
@@ -699,13 +753,30 @@ export function exportTokensJson(): object {
 function normalizeBrandReferences(obj: any): any {
   if (typeof obj === 'string') {
     // Normalize reference strings - convert theme paths to short aliases
-    // {brand.themes.light.palettes.core-colors.black} -> {brand.palettes.core-colors.black}
-    // {brand.themes.dark.palettes.core-colors.white} -> {brand.palettes.core-colors.white}
-    // Also handle old format {brand.light.palettes.core-colors.X} -> {brand.palettes.core-colors.X}
-    // Note: We preserve {brand.palettes.core-colors.X} format as that's what the source uses
-    return obj
+    // Also fix malformed references that may have been created incorrectly
+    
+    let normalized = obj
+      // Handle core-colors references
       .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)}/g, '{brand.palettes.core-colors.$2}')
       .replace(/{brand\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)}/g, '{brand.palettes.core-colors.$2}')
+      // Handle core-white and core-black (standalone, not in core-colors)
+      .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, '{brand.palettes.$2}')
+      .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, '{brand.palettes.$2}')
+      // Fix malformed references: {brand.palettes.core.white} -> {brand.palettes.core-white}
+      .replace(/{brand\.palettes\.core\.(white|black)}/g, '{brand.palettes.core-$1}')
+      // Fix malformed references: {brand.palettes.palette.2.000.on.tone} -> {brand.palettes.palette-2.000.color.on-tone}
+      .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.on\.tone}/g, '{brand.palettes.palette-$1.$2.color.on-tone}')
+      .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.tone}/g, '{brand.palettes.palette-$1.$2.color.tone}')
+      // Fix malformed token references: {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
+      .replace(/{tokens\.colors\.scale\.(\d+)-(\d{3,4})}/g, '{tokens.colors.scale-$1.$2}')
+      // Remove theme from all other palette references
+      .replace(/{brand\.themes\.(light|dark)\.palettes\./g, '{brand.palettes.')
+      .replace(/{brand\.(light|dark)\.palettes\./g, '{brand.palettes.')
+      // Remove theme from other brand references
+      .replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
+      .replace(/{brand\.(light|dark)\./g, '{brand.')
+    
+    return normalized
   }
   
   if (Array.isArray(obj)) {
@@ -754,16 +825,16 @@ function normalizeUIKitBrandReferences(obj: any): any {
 }
 
 /**
- * Exports brand.json from store state
- * Reads from the VarsStore to ensure all data is exported correctly
- * Similar to tokens export - reads directly from store state
+ * Exports brand.json from CSS variables
+ * Reads CSS variables and converts them back to JSON structure
+ * This ensures AA-compliant on-tone values and other CSS var updates are included in the export
  */
 export function exportBrandJson(): object {
   const store = getVarsStore()
   const storeState = store.getState()
   const theme = storeState.theme as any
   
-  // Read directly from theme.brand, just like tokens export reads from storeState.tokens
+  // Start with the structure from store (preserves JSON structure)
   if (!theme?.brand) {
     return {
       brand: {},
@@ -777,17 +848,127 @@ export function exportBrandJson(): object {
   // Deep clone the brand structure from store
   const result = JSON.parse(JSON.stringify(theme.brand))
   
+  // Read all CSS variables
+  const cssVars = getAllCssVars()
+  const tokenIndex = buildTokenIndex(storeState.tokens as JsonLike)
+  
+  // Helper to set a value in the nested JSON structure
+  const setValueInResult = (mode: string, pathParts: string[], value: any, type: string = 'color') => {
+    // Ensure themes structure exists
+    if (!result.themes) result.themes = {}
+    if (!result.themes[mode]) result.themes[mode] = {}
+    
+    let current: any = result.themes[mode]
+    
+    // Navigate/create the path structure
+    for (let i = 0; i < pathParts.length - 1; i++) {
+      const part = pathParts[i]
+      if (!current[part]) {
+        current[part] = {}
+      }
+      current = current[part]
+    }
+    
+    // Set the value (last part of path)
+    const lastPart = pathParts[pathParts.length - 1]
+    if (!current[lastPart]) {
+      current[lastPart] = {}
+    }
+    
+    // Ensure it has $type and $value structure
+    if (typeof current[lastPart] === 'object' && !Array.isArray(current[lastPart])) {
+      current[lastPart].$type = current[lastPart].$type || type
+      current[lastPart].$value = value
+    }
+  }
+  
+  // Update values from CSS variables
+  // Process all brand CSS variables and update the JSON structure
+  Object.entries(cssVars).forEach(([varName, varValue]) => {
+    if (!varName.startsWith('--recursica-brand-themes-')) return
+    
+    // Extract mode and path from CSS variable name
+    // Pattern: --recursica-brand-themes-{mode}-{path}
+    const varMatch = varName.match(/^--recursica-brand-themes-(light|dark)-(.+)$/)
+    if (!varMatch) return
+    
+    const mode = varMatch[1]
+    const cssPath = varMatch[2]
+    
+    // Parse the CSS path to determine where this value should go in JSON
+    // Pattern: palettes-{paletteKey}-{level}-{type}
+    // paletteKey can be: neutral, palette-1, palette-2, core-white, core-black, etc.
+    // We need to handle hyphens in paletteKey correctly
+    if (!cssPath.startsWith('palettes-')) return
+    
+    const afterPalettes = cssPath.substring('palettes-'.length)
+    
+    // Find the level (it's a number: 000, 050, 100, 200, etc. or 1000)
+    // Levels are always numeric, so we can find them by looking for patterns like -100-, -200-, etc.
+    const levelMatch = afterPalettes.match(/-(\d{3,4})(?:-|$)/)
+    if (!levelMatch) return
+    
+    const level = levelMatch[1]
+    const levelIndex = afterPalettes.indexOf(`-${level}-`)
+    if (levelIndex === -1) return
+    
+    // Everything before the level is the paletteKey (may contain hyphens)
+    const paletteKey = afterPalettes.substring(0, levelIndex)
+    // Everything after the level is the type (may contain hyphens like "on-tone")
+    const type = afterPalettes.substring(levelIndex + level.length + 2) // +2 for the hyphens
+    
+    if (type === 'tone' || type === 'on-tone') {
+      const pathParts = ['palettes', paletteKey, level, 'color', type]
+      
+      // Convert CSS variable value to JSON reference or value
+      const brandRef = cssVarToBrandRef(varValue)
+      if (brandRef) {
+        // It's a reference - normalize to short format
+        let jsonValue = brandRef
+        
+        // Handle core-white and core-black specially
+        const coreMatch = brandRef.match(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/)
+        if (coreMatch) {
+          jsonValue = `{brand.palettes.${coreMatch[2]}}`
+        } else {
+          // Remove theme from reference: {brand.themes.light.palettes.X} -> {brand.palettes.X}
+          jsonValue = brandRef.replace(/{brand\.themes\.(light|dark)\./, '{brand.')
+        }
+        
+        // Set the value in the result structure
+        setValueInResult(mode, pathParts, jsonValue, 'color')
+      } else {
+        // It's a direct value (hex color, etc.)
+        const jsonValue = cssValueToJsonValue(varValue, 'color', tokenIndex)
+        if (jsonValue !== undefined) {
+          setValueInResult(mode, pathParts, jsonValue, 'color')
+        }
+      }
+    }
+  })
+  
   // Normalize all references to use short alias format (no theme paths)
+  // This also fixes any malformed references that may have been created
   const normalized = normalizeBrandReferences(result)
   
-  // Add metadata with export timestamp
-  return {
+  // Build the final export object
+  const exportObject = {
     brand: normalized,
     $metadata: {
       exportedAt: new Date().toISOString(),
       version: '1.0.0'
     }
   }
+  
+  // Validate the exported JSON before returning
+  try {
+    validateBrandJson(exportObject as JsonLike)
+  } catch (error) {
+    console.warn('[Export] Brand.json validation failed, but continuing export:', error)
+    // Don't throw - let the user see the export even if there are validation issues
+  }
+  
+  return exportObject
 }
 
 /**
