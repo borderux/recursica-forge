@@ -543,7 +543,6 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}
         onCancel={handleSelectionCancel}
-        onExportToGithub={handleExportToGithub}
       />
       <GitHubExportModalWrapper
         show={showGitHubModal}
