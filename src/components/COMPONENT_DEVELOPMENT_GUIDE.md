@@ -2,6 +2,27 @@
 
 This guide provides comprehensive instructions for building new components for all UI libraries (Mantine, Material UI, Carbon) in the Recursica Forge.
 
+> **Note**: Steps marked as "(Optional)" are not required for basic component functionality. Focus on Steps 1-6 for essential component development.
+
+## Quick Start
+
+For experienced developers, here's the essential workflow:
+
+1. **Create Adapter** (`src/components/adapters/{ComponentName}.tsx`) - Unified props interface
+2. **Create Library Implementations** (`src/components/adapters/{library}/{ComponentName}/`) - One per library
+3. **Create CSS Files** (`{ComponentName}.css`) - Library-specific overrides
+4. **Register Components** - Add to registry files and `ComponentName` type
+5. **Create Tests** - **MANDATORY**: Toolbar integration tests (`{ComponentName}.toolbar.test.tsx`)
+6. **Create Toolbar Config** (`{ComponentName}.toolbar.json`) - Define toolbar controls
+
+**Key Principles:**
+- Use CSS variables directly (no React listeners) for most properties
+- Elevation is the exception - needs reactive function to compute box-shadow
+- Never modify component structure - only CSS overrides allowed
+- Reference existing Button component for patterns
+
+See [Development Process](#development-process) for detailed instructions.
+
 ## Table of Contents
 
 1. [Overview](#overview)
@@ -18,7 +39,7 @@ Each component in the Recursica Forge consists of:
 - **Adapter Component**: Unified interface that works across all libraries
 - **Library Implementations**: Library-specific implementations (Mantine, Material UI, Carbon)
 - **CSS Overrides**: Library-specific CSS files for styling
-- **Tests**: Unit, integration, and visual regression tests
+- **Tests**: Unit, integration, and toolbar integration tests (mandatory)
 - **Audit**: Documentation of library CSS variables and coverage
 
 ### Supported Libraries
@@ -164,64 +185,22 @@ The adapter component provides a unified interface that works across all librari
    ```
 
 2. **Read Component-Level CSS Variables**
-   **For most properties**: Reference CSS variables directly - they update immediately without React bindings:
+   
+   **Key Principle**: Use CSS variables directly for most properties - they update immediately without React listeners. Elevation is the only exception (needs reactive function to compute box-shadow).
+   
+   See [CSS Variable Guidelines](#css-variable-guidelines) for comprehensive documentation.
+   
+   **Quick Reference:**
    ```typescript
    import { getComponentLevelCssVar } from '../utils/cssVarNames'
    
-   // Direct CSS variable reference - updates immediately when toolbar changes it
+   // Most properties: Direct reference (updates immediately)
    const borderRadiusVar = getComponentLevelCssVar('Button', 'border-radius')
-   const fontSizeVar = getComponentLevelCssVar('Button', 'font-size')
-   const maxWidthVar = getComponentLevelCssVar('Button', 'max-width')
+   style={{ borderRadius: `var(${borderRadiusVar})` }}
    
-   // Use directly in style prop - no React state needed
-   style={{
-     borderRadius: `var(${borderRadiusVar})`,
-     fontSize: `var(${fontSizeVar})`,
-     maxWidth: `var(${maxWidthVar})`,
-   }}
-   ```
-   
-   **For elevations only** (exception - needs reactive function to compute box-shadow):
-   ```typescript
-   import { useState, useEffect } from 'react'
-   import { getComponentLevelCssVar } from '../utils/cssVarNames'
-   import { readCssVar } from '../../core/css/readCssVar'
-   import { parseElevationValue } from '../utils/brandCssVars'
-   
+   // Elevation: Exception - needs reactive function (see CSS Variable Guidelines)
    const elevationVar = getComponentLevelCssVar('Button', 'elevation')
-   
-   // Elevation is an exception - needs reactive function to compute box-shadow
-   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
-     const value = readCssVar(elevationVar)
-     return value ? parseElevationValue(value) : undefined
-   })
-   
-   useEffect(() => {
-     const handleCssVarUpdate = (e: Event) => {
-       const detail = (e as CustomEvent).detail
-       if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
-         const value = readCssVar(elevationVar)
-         setElevationFromVar(value ? parseElevationValue(value) : undefined)
-       }
-     }
-     
-     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-     const observer = new MutationObserver(() => {
-       const value = readCssVar(elevationVar)
-       setElevationFromVar(value ? parseElevationValue(value) : undefined)
-     })
-     observer.observe(document.documentElement, {
-       attributes: true,
-       attributeFilter: ['style'],
-     })
-     
-     return () => {
-       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-       observer.disconnect()
-     }
-   }, [elevationVar])
-   
-   const componentElevation = elevation ?? elevationFromVar ?? undefined
+   // ... useState/useEffect pattern (see CSS Variable Guidelines section)
    ```
 
 3. **Use Component Registry**
@@ -263,105 +242,39 @@ Create implementations for each library simultaneously. Each library implementat
    import './{ComponentName}.css'
    ```
 
-2. **Build CSS Variable Names Using `getComponentCssVar`**
-   This utility builds CSS variable names that match the new UIKit.json structure:
+2. **Build CSS Variable Names**
    
-   **For Color Properties** (use `'colors'` plural, not `'color'`):
-   ```typescript
-   // Pattern: getComponentCssVar(componentName, 'colors', 'variant-property', layer?)
-   // NEW STRUCTURE: variants.styles.{variant}.properties.colors.{layer}.{property}
-   const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
-   const textVar = getComponentCssVar('Button', 'colors', 'solid-text', layer)
-   // For nested variants (Avatar): 'text-solid-background' → variants.styles.text.variants.solid.properties.colors
-   const avatarBgVar = getComponentCssVar('Avatar', 'colors', 'text-solid-background', layer)
-   ```
+   Use utility functions to build CSS variable names that match UIKit.json structure. See [CSS Variable Guidelines](#css-variable-guidelines) for comprehensive documentation.
    
-   **For Size Properties**:
+   **Quick Reference:**
    ```typescript
-   // Pattern: getComponentCssVar(componentName, 'size', 'variant-property', undefined)
-   // NEW STRUCTURE: variants.sizes.{variant}.properties.{property}
-   const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
-   const iconSizeVar = getComponentCssVar('Button', 'size', 'default-icon', undefined)
-   const iconGapVar = getComponentCssVar('Button', 'size', 'default-icon-text-gap', undefined)
-   ```
+   import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
    
-   **For Component-Level Properties** (use `getComponentLevelCssVar`):
-   ```typescript
-   // Pattern: getComponentLevelCssVar(componentName, 'property')
-   // NEW STRUCTURE: properties.{property}
-   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
-   const borderRadiusVar = getComponentLevelCssVar('Button', 'border-radius')
-   const fontSizeVar = getComponentLevelCssVar('Button', 'font-size')
-   const maxWidthVar = getComponentLevelCssVar('Button', 'max-width')
-   ```
-
-3. **Use UIKit.json Structure**
-   The new UIKit.json structure uses:
-   - `variants.styles.{variant}.properties.colors.{layer}.{property}` for color variants
-   - `variants.sizes.{variant}.properties.{property}` for size variants
-   - `properties.{property}` for component-level properties
-   
-   **Examples**:
-   ```typescript
-   // Button colors: variants.styles.solid.properties.colors.layer-0.background
+   // Color properties (use 'colors' plural)
    const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
    
-   // Button sizes: variants.sizes.default.properties.height
+   // Size properties
    const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
    
-   // Component-level: properties.elevation
+   // Component-level properties
    const elevationVar = getComponentLevelCssVar('Button', 'elevation')
    ```
 
-4. **Set CSS Custom Properties on Style Prop**
-   Set CSS custom properties that the CSS file will use. **Reference UIKit CSS vars directly** - they update immediately when the toolbar changes them (no React state needed):
+3. **Set CSS Custom Properties on Style Prop**
+   
+   Set component custom properties that your CSS file will use. **Reference UIKit CSS vars directly** - they update immediately when toolbar changes them (no React state needed):
    ```typescript
    style={{
-     // Reference UIKit CSS vars directly (toolbar updates these immediately)
      '--button-bg': `var(${bgVar})`,
      '--button-color': `var(${textVar})`,
      '--button-height': `var(${heightVar})`,
-     '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
-     '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
-     // Direct CSS var references - no React listeners needed
-     // ... other custom properties
+     // Direct CSS var references - updates immediately
    }}
    ```
 
-5. **Handle Elevation Reactively (Exception)**
-   **Elevation is an exception** - it needs a reactive function because it must compute box-shadow values from elevation tokens. Use centralized utilities:
-   ```typescript
-   // Elevation is an exception - needs reactive function to compute box-shadow
-   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
-   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
-     const value = readCssVar(elevationVar)
-     return value ? parseElevationValue(value) : undefined
-   })
+4. **Handle Elevation Reactively (Exception)**
    
-   useEffect(() => {
-     const handleCssVarUpdate = (e: Event) => {
-       const detail = (e as CustomEvent).detail
-       if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
-         const value = readCssVar(elevationVar)
-         setElevationFromVar(value ? parseElevationValue(value) : undefined)
-       }
-     }
-     
-     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-     const observer = new MutationObserver(() => {
-       const value = readCssVar(elevationVar)
-       setElevationFromVar(value ? parseElevationValue(value) : undefined)
-     })
-     observer.observe(document.documentElement, {
-       attributes: true,
-       attributeFilter: ['style'],
-     })
-     
-     return () => {
-       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-       observer.disconnect()
-     }
-   }, [elevationVar])
+   **Elevation is the only exception** - it needs a reactive function to compute box-shadow from elevation tokens. See [CSS Variable Guidelines - Elevation](#component-level-props-elevation-and-other-properties) for the complete pattern.
    
    const elevationToApply = elevation ?? elevationFromVar ?? undefined
    
@@ -396,9 +309,11 @@ Create implementations for each library simultaneously. Each library implementat
 
 **Adapters must NEVER modify the underlying component structure. Only CSS overrides are allowed.**
 
-### Step 4: Create Component Preview
+### Step 4 (Optional): Create Component Preview
 
 **File**: `src/modules/components/{ComponentName}Preview.tsx`
+
+**Note**: Component previews are optional. Only create one if you want to showcase the component on the components page.
 
 Create a preview component that demonstrates the component with different variants and states. This preview is used on the components page.
 
@@ -503,7 +418,7 @@ Add an entry to the `getComponentSections` function:
 },
 ```
 
-### Step 5: Create Toolbar Configuration
+### Step 7: Create Toolbar Configuration
 
 **File**: `src/modules/toolbar/configs/{ComponentName}.toolbar.json`
 
@@ -602,7 +517,7 @@ case '{component-name-kebab-case}':
 
 The component name should be in kebab-case (e.g., `label`, `button`, `chip`).
 
-### Step 6: Add Component to Left Navigation Sidebar
+### Step 8 (Optional): Add Component to Left Navigation Sidebar
 
 **File**: `src/modules/preview/ComponentsSidebar.tsx`
 
@@ -753,7 +668,7 @@ When working with adapters:
 2. **Always ask**: "Can this be done with CSS?" If yes, move it to the CSS file.
 3. **Always ask**: "Am I using the component's native props?" If no, refactor to use native props.
 
-### Step 4: Register Components
+### Step 5: Register Components
 
 **Files**: 
 - `src/components/registry/mantine.ts`
@@ -770,13 +685,13 @@ registerComponent('carbon', '{ComponentName}', () => import('../adapters/carbon/
 
 **Also update**: `src/components/registry/types.ts` - Add component name to `ComponentName` type union.
 
-### Step 5: Create Tests
+### Step 6: Create Tests
 
 **MANDATORY**: You must create comprehensive test files including toolbar integration tests.
 
 See [Testing Requirements](#testing-requirements) section below.
 
-#### Step 5a: Create Toolbar Integration Tests (MANDATORY)
+#### Step 6a: Create Toolbar Integration Tests (MANDATORY)
 
 **File**: `src/components/adapters/__tests__/{ComponentName}.toolbar.test.tsx`
 
@@ -1006,9 +921,9 @@ See `src/components/adapters/__tests__/Button.toolbar.test.tsx` for a complete r
 
 **Validation Function**: `src/core/utils/validateJsonSchemas.ts` - `validateUIKitJson()`
 
-### Step 7: Create Toolbar Configuration
+### Step 7: Create Toolbar Configuration (Detailed)
 
-**File**: `src/modules/toolbar/configs/{ComponentName}.toolbar.json`
+**Note**: This section provides additional details about toolbar configuration. See Step 7 above for the basic setup.
 
 Each component needs a toolbar configuration file that defines:
 - **Icons**: Which icon to display for each prop in the toolbar
@@ -1451,7 +1366,7 @@ After creating the config file and registering it in `loadToolbarConfig.ts`:
   - Verify the `label` field in config matches what you expect
   - Check that the prop name in config matches the UIKit.json key
 
-### Step 8: Create Audit Documentation
+### Step 10: Create Audit Documentation
 
 **IMPORTANT**: Audits are **library-specific** and must be created for **each library separately**.
 
@@ -1784,28 +1699,17 @@ The toolbar and components use the **same utilities** to build CSS variable name
 const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', selectedLayer)
 updateCssVar(bgVar, newValue) // Updates DOM CSS variable
 
-// Component (Button.tsx) - Reactively reads CSS variable
+// Component (Button.tsx) - Direct reference (updates immediately, no React listeners needed)
 const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
-const [bgFromVar, setBgFromVar] = useState(() => readCssVar(bgVar))
-
-useEffect(() => {
-  const handleUpdate = (e: Event) => {
-    const detail = (e as CustomEvent).detail
-    if (!detail?.cssVars || detail.cssVars.includes(bgVar)) {
-      setBgFromVar(readCssVar(bgVar))
-    }
-  }
-  window.addEventListener('cssVarsUpdated', handleUpdate)
-  return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-}, [bgVar])
-
-style={{ '--button-bg': `var(${bgVar})` }} // References the same CSS variable
+style={{ '--button-bg': `var(${bgVar})` }} // Direct reference - updates immediately
 
 // CSS File (Button.css)
 .mantine-Button-root {
   background-color: var(--button-bg) !important; // Uses component custom property
 }
 ```
+
+**Note**: For elevation only, use reactive functions (see [Component-Level Props](#component-level-props-elevation-and-other-properties) section).
 
 **Key Insight:** Components don't need to know about the toolbar - they just reference CSS variables that the toolbar updates. This creates a clean separation of concerns.
 
@@ -2076,7 +1980,9 @@ describe('{ComponentName} Toolbar Props Integration', () => {
 
 **See**: `src/components/adapters/__tests__/Button.toolbar.test.tsx` for a complete reference implementation.
 
-### 5. Visual Regression Tests
+### 5. Visual Regression Tests (Future - Not Yet Implemented)
+
+**Note**: Visual regression testing is planned but not yet implemented. This section is provided for future reference.
 
 **File**: `{ComponentName}.visual.test.tsx`
 
@@ -2817,99 +2723,67 @@ recursicaVars.forEach(v => console.log(`  - ${v}`))
 console.log(`\nTotal: ${libraryVars.size} library vars, ${recursicaVars.size} Recursica vars`)
 ```
 
-## Migration Checklist
+## Component Checklist
 
-After creating a new component, complete this checklist:
+After creating a new component, use this checklist to ensure completeness.
 
-### Development
+### Essential Checklist (Required)
 
+**Development:**
 - [ ] Adapter component created with unified props interface
-- [ ] Mantine implementation created
-- [ ] Material UI implementation created
-- [ ] Carbon implementation created
+- [ ] All three library implementations created (Mantine, Material UI, Carbon)
 - [ ] CSS override files created for all libraries
 - [ ] Components registered in registry files
 - [ ] Component name added to `ComponentName` type union
-- [ ] **UIKit.json schema validated** (runs automatically on import/bootstrap)
-- [ ] **Component structure in UIKit.json follows schema** (variants.styles, variants.sizes, properties)
-- [ ] Toolbar config file created at `src/modules/toolbar/configs/{ComponentName}.toolbar.json`
-- [ ] **Toolbar config validation test created** (`{ComponentName}.toolbar.test.ts`)
-- [ ] **Toolbar config validation test passes** (all props validated, schema checked)
-- [ ] Toolbar config imported in `loadToolbarConfig.ts` (import statement added)
-- [ ] Toolbar config registered in `loadToolbarConfig.ts` (switch case added with correct kebab-case key)
-- [ ] Toolbar config registration verified (props and variants appear in toolbar, no console errors)
-- [ ] All UIKit.json props have icons, labels, and visible properties defined
+- [ ] UIKit.json structure follows schema (validates automatically)
 
-### CSS Variables
+**Toolbar:**
+- [ ] Toolbar config file created (`{ComponentName}.toolbar.json`)
+- [ ] Toolbar config registered in `loadToolbarConfig.ts`
+- [ ] All UIKit.json props have icons, labels, and visible properties
 
-- [ ] All CSS variables from JSON files use `--recursica-*` namespace
-- [ ] **CSS variables used directly** (no React state/listeners) for all properties except elevations
-- [ ] **Elevation uses reactive function** (useState/useEffect) only when needed to compute box-shadow
+**CSS Variables:**
+- [ ] CSS variables used directly (no React listeners) for all properties except elevations
+- [ ] Elevation uses reactive function (useState/useEffect) to compute box-shadow
 - [ ] Library CSS variables only used as fallbacks in `var()` functions
 - [ ] No direct modification of library CSS variables
-- [ ] Component-level custom properties properly scoped
-- [ ] CSS variable fallback chain documented
-- [ ] **CSS variables update immediately** when toolbar changes them (verified in tests)
 
-### Testing
-
-- [ ] Unit tests written for adapter component
-- [ ] Unit tests written for each library implementation
-- [ ] Integration tests written for library switching
-- [ ] CSS variable coverage tests written
-- [ ] **Toolbar integration tests written (MANDATORY)** - `{ComponentName}.toolbar.test.tsx`
-  - [ ] **ALL** color props tested for **ALL** variants and **ALL** layers
-  - [ ] **ALL** size props tested for **ALL** size variants
-  - [ ] **ALL** component-level props tested
-  - [ ] **ALL** variant combinations tested (every style × every size)
-  - [ ] Multiple simultaneous updates tested
-  - [ ] Variant switching tested for **ALL** variants
-  - [ ] Reactive updates via `cssVarsUpdated` events tested (for elevation)
-  - [ ] Reactive updates via MutationObserver tested (for elevation)
-  - [ ] **Immediate CSS var updates verified** (for non-elevation props - no React listeners needed)
-  - [ ] **Preview CSS variables tested** and update correctly
-- [ ] Visual regression tests written
+**Testing (MANDATORY):**
+- [ ] **Toolbar integration tests created** (`{ComponentName}.toolbar.test.tsx`)
+  - [ ] All color props tested for all variants and layers
+  - [ ] All size props tested for all size variants
+  - [ ] All component-level props tested
+  - [ ] Reactive updates tested (for elevation)
+  - [ ] Immediate CSS var updates verified (for non-elevation props)
 - [ ] All tests passing
 
-### Audit
-
-- [ ] **Mantine audit document created** at `mantine/{ComponentName}/{ComponentName}.mantine.audit.md`
-- [ ] **Material UI audit document created** at `material/{ComponentName}/{ComponentName}.material.audit.md`
-- [ ] **Carbon audit document created** at `carbon/{ComponentName}/{ComponentName}.carbon.audit.md`
-- [ ] All Mantine library CSS variables documented in Mantine audit
-- [ ] All Material UI library CSS variables documented in Material UI audit
-- [ ] All Carbon library CSS variables documented in Carbon audit
-- [ ] All Recursica CSS variables documented (in each library's audit)
-- [ ] Uncovered variables identified and documented (in each library's audit)
-- [ ] **TSX to CSS migration opportunities identified and documented** (in each library's audit)
-- [ ] **No global audit reports created** (audits are library-specific only)
-
-### Migration
-
-- [ ] Consider updating direct library imports to use adapter imports (light touch)
-- [ ] Consider updating component usages to use unified props where it makes sense
-- [ ] Preview/example pages updated (if applicable)
-- [ ] Shell components updated (if applicable)
-- [ ] Token pages updated (if applicable)
-- [ ] Other application code updated where appropriate (not required for every instance)
-
-### Documentation
-
-- [ ] Component props documented
-- [ ] Usage examples provided
-- [ ] CSS variable usage documented
-- [ ] Library-specific considerations documented
-
-### Verification
-
-- [ ] Component works correctly in Mantine
-- [ ] Component works correctly in Material UI
-- [ ] Component works correctly in Carbon
+**Verification:**
+- [ ] Component works correctly in all three libraries
 - [ ] Visual appearance consistent across libraries
-- [ ] All variants, sizes, and layers tested
-- [ ] All states (hover, active, disabled, focus) tested
-- [ ] Icon support tested (if applicable)
-- [ ] Text truncation tested (if applicable)
+- [ ] All variants, sizes, and layers tested manually
+
+### Complete Checklist (Recommended)
+
+**Additional Testing:**
+- [ ] Unit tests written for adapter component
+- [ ] Integration tests written for library switching
+- [ ] CSS variable coverage tests written
+
+**Audit Documentation:**
+- [ ] Library-specific audit documents created (one per library)
+- [ ] All library CSS variables documented
+- [ ] All Recursica CSS variables documented
+- [ ] Uncovered variables identified
+
+**Optional Enhancements:**
+- [ ] Component preview created (`{ComponentName}Preview.tsx`)
+- [ ] Component added to navigation sidebar
+- [ ] Usage examples provided
+- [ ] Component props documented
+
+**Migration (If Applicable):**
+- [ ] Existing component usages updated to use adapter (light touch)
+- [ ] Preview/example pages updated
 
 ## Example: Complete Button Component Implementation
 
@@ -2920,7 +2794,7 @@ See the existing Button component as a reference:
 - **Material**: `src/components/adapters/material/Button/Button.tsx`
 - **Carbon**: `src/components/adapters/carbon/Button/Button.tsx`
 - **CSS Files**: `src/components/adapters/{library}/Button/Button.css`
-- **Tests**: `src/components/adapters/{library}/Button/Button.test.tsx`
+- **Tests**: `src/components/adapters/__tests__/Button.test.tsx`, `Button.toolbar.test.tsx`, etc.
 - **Audits**: `src/components/adapters/{library}/Button/Button.{library}.audit.md`
 
 ## Additional Resources

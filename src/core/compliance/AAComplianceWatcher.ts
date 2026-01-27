@@ -2,8 +2,8 @@ import { buildTokenIndex, type TokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { findAaCompliantColor } from '../resolvers/colorSteppingForAa'
 import { updateCssVar } from '../css/updateCssVar'
-import { readCssVar } from '../css/readCssVar'
-import { contrastRatio } from '../../modules/theme/contrastUtil'
+import { readCssVar, readCssVarResolved, readCssVarNumber } from '../css/readCssVar'
+import { contrastRatio, hexToRgb } from '../../modules/theme/contrastUtil'
 import { parseTokenReference } from '../utils/tokenReferenceParser'
 import {
   resolveCssVarToHex,
@@ -30,6 +30,18 @@ function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): strin
     const toHex = (n: number) => n.toString(16).padStart(2, '0')
     return `#${toHex(rr)}${toHex(rg)}${toHex(rb)}`
   } catch { return fgHex }
+}
+
+// Helper to blend foreground over background with opacity (for palette on-tone calculation)
+function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
+  const fg = hexToRgb(fgHex)
+  const bg = hexToRgb(bgHex)
+  if (!fg || !bg) return fgHex
+  const a = Math.max(0, Math.min(1, opacity))
+  const r = Math.round(a * fg.r + (1 - a) * bg.r)
+  const g = Math.round(a * fg.g + (1 - a) * bg.g)
+  const b = Math.round(a * fg.b + (1 - a) * bg.b)
+  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
 }
 
 // Helper to get opacity value from CSS var
@@ -74,267 +86,27 @@ function parseCoreTokenRef(name: 'interactive' | 'alert' | 'warning' | 'success'
 }
 
 /**
- * Reactive AA Compliance Watcher
+ * AA Compliance Utility
  * 
- * Watches CSS variables for changes and automatically updates dependent colors
- * to maintain AA compliance. This replaces manual AA compliance calls.
+ * Trigger-based utility for updating colors to maintain AA compliance.
+ * No watchers - all methods must be called explicitly when needed.
  */
 export class AAComplianceWatcher {
   private tokenIndex: TokenIndex
   private tokens: JsonLike
   private theme: JsonLike
-  private watchedVars: Set<string> = new Set()
-  private observer: MutationObserver | null = null
-  private checkTimeout: number | null = null
-  private lastValues: Map<string, string> = new Map()
-  private paletteFamilyChangedHandler: ((ev: CustomEvent) => void) | null = null
-  private paletteDeletedHandler: ((ev: CustomEvent) => void) | null = null
-  private isFixing: boolean = false
-  private isUpdating: boolean = false // Prevent loops when AA compliance updates CSS vars
-  private isDisabled: boolean = false // Allow temporary disabling (e.g., during randomization)
 
   constructor(tokens: JsonLike, theme: JsonLike) {
     this.tokens = tokens
     this.theme = theme
     this.tokenIndex = buildTokenIndex(tokens)
-    this.setupWatcher()
-    // Don't run validation on init - let JSON values be set first
-    // Only run checks when user makes explicit changes
   }
 
   /**
-   * Get the current theme mode by checking which CSS variables are active
-   * Checks for the presence of dark mode variables to determine current mode
+   * Update palette on-tone color for AA compliance
+   * Call this explicitly when a palette tone color changes
    */
-  private getCurrentMode(): 'light' | 'dark' {
-    // Check if dark mode layer-0 surface exists and has a value
-    const darkLayer0Surface = readCssVar('--recursica-brand-themes-dark-layer-layer-0-property-surface')
-    const lightLayer0Surface = readCssVar('--recursica-brand-themes-light-layer-layer-0-property-surface')
-    
-    // If dark mode has a value, check if it's different from light (meaning dark mode is active)
-    // For now, we'll check both modes, but typically the active mode will have non-empty values
-    // A more reliable way would be to check a data attribute or use ThemeModeContext, but for now
-    // we'll default to checking both modes when needed
-    
-    // Default to light if we can't determine, but methods should check both modes
-    return 'light'
-  }
-
-  private setupWatcher() {
-    // Guard against Node.js test environments where window may not exist
-    if (typeof window === 'undefined') {
-      return
-    }
-    
-    // Don't watch DOM mutations - only respond to explicit user actions
-    // Listen for palette family changes and deletions
-    this.paletteFamilyChangedHandler = this.handlePaletteFamilyChanged.bind(this)
-    this.paletteDeletedHandler = this.handlePaletteDeleted.bind(this)
-    window.addEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler as EventListener)
-    window.addEventListener('paletteDeleted', this.paletteDeletedHandler as EventListener)
-    
-    // Listen for explicit events that should trigger AA compliance checks
-    // Only trigger on user-initiated changes, not automatic updates
-    window.addEventListener('paletteVarsChanged', () => {
-      if (!this.isUpdating) {
-        this.checkForChanges()
-      }
-    })
-    window.addEventListener('tokenOverridesChanged', () => {
-      if (!this.isUpdating) {
-        this.checkForChanges()
-      }
-    })
-    
-    // Listen for CSS variable updates - specifically check for surface color changes
-    window.addEventListener('cssVarsUpdated', ((ev: CustomEvent) => {
-      if (ev.detail?.cssVars) {
-        // Check if any of the updated CSS vars are layer surface colors
-        const surfaceVars = (ev.detail.cssVars as string[]).filter((varName: string) => 
-          varName.includes('-property-surface')
-        )
-        if (surfaceVars.length > 0) {
-          // Immediately update element colors for affected layers (even if isUpdating is true)
-          // This ensures surface changes always trigger element color updates
-          surfaceVars.forEach((varName: string) => {
-            const layerMatch = varName.match(/--recursica-brand-themes-(light|dark)-layer-layer-(\d+)-property-surface/)
-            if (layerMatch) {
-              const mode = layerMatch[1] as 'light' | 'dark'
-              const layerNumber = parseInt(layerMatch[2], 10)
-              // Update last value to prevent duplicate updates
-              const currentValue = readCssVar(varName)
-              if (currentValue) {
-                this.lastValues.set(varName, currentValue)
-              }
-              // Immediately update element colors for this layer
-              // Use a small delay to ensure surface value is fully updated
-              // Skip if disabled (e.g., during randomization)
-              if (!this.isDisabled) {
-                setTimeout(() => {
-                  this.updateLayerElementColors(layerNumber, mode)
-                }, 0)
-              }
-            }
-          })
-        } else if (!this.isUpdating) {
-          // For non-surface changes, use the debounced check
-          this.checkForChanges()
-        }
-      }
-    }) as EventListener)
-  }
-  
-  private handlePaletteDeleted(ev: CustomEvent) {
-    const detail = ev.detail
-    if (!detail || !detail.key) return
-    
-    const paletteKey = detail.key
-    // Find layers that reference this palette
-    const affectedLayers = this.findLayersUsingPalette(paletteKey)
-    
-    // Only update if the deleted palette was being used
-    if (affectedLayers.length > 0) {
-      affectedLayers.forEach(({ type, key, mode }) => {
-        if (type === 'regular') {
-          this.updateLayerElementColors(key as number, mode)
-        }
-      })
-    }
-  }
-  
-  private handlePaletteFamilyChanged(ev: CustomEvent) {
-    const detail = ev.detail
-    if (!detail || !detail.key) return
-    
-    const paletteKey = detail.key
-    // Find layers that reference this palette
-    const affectedLayers = this.findLayersUsingPalette(paletteKey)
-    
-    // Update only affected layers
-    affectedLayers.forEach(({ type, key, mode }) => {
-      if (type === 'regular') {
-        this.updateLayerElementColors(key as number, mode)
-      }
-    })
-  }
-  
-  /**
-   * Finds which layers (0-3) reference a given palette key
-   * Checks both light and dark modes
-   */
-  private findLayersUsingPalette(paletteKey: string): Array<{ type: 'regular'; key: number; mode: 'light' | 'dark' }> {
-    const affected: Array<{ type: 'regular'; key: number; mode: 'light' | 'dark' }> = []
-    
-    // Check regular layers 0-3 for both modes
-    for (const mode of ['light', 'dark'] as const) {
-      for (let layer = 0; layer <= 3; layer++) {
-        const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-surface`
-        const surfaceValue = readCssVar(surfaceVar)
-        
-        if (surfaceValue && surfaceValue.includes(`palettes-${paletteKey}`)) {
-          affected.push({ type: 'regular', key: layer, mode })
-        }
-      }
-    }
-    
-    return affected
-  }
-
-  private checkForChanges() {
-    // Skip if disabled (e.g., during randomization)
-    if (this.isDisabled) return
-    // Debounce rapid changes - only check when actually triggered by events
-    if (this.checkTimeout !== null) {
-      clearTimeout(this.checkTimeout)
-    }
-    this.checkTimeout = window.setTimeout(() => {
-      this.performChecks()
-    }, 50)
-  }
-
-  /**
-   * Temporarily disable the AA compliance watcher (e.g., during randomization)
-   */
-  public disable(): void {
-    this.isDisabled = true
-  }
-
-  /**
-   * Re-enable the AA compliance watcher
-   */
-  public enable(): void {
-    this.isDisabled = false
-  }
-
-  private performChecks() {
-    // Skip if disabled (e.g., during randomization)
-    if (this.isDisabled) return
-    // Prevent loops - if we're already updating, skip
-    if (this.isUpdating) return
-    
-    this.isUpdating = true
-    try {
-      // Check palette on-tone vars
-      this.checkPaletteOnToneVars()
-      
-      // Check layer element colors
-      this.checkLayerElementColors()
-      
-      // Check core colors
-      this.checkCoreColors()
-      
-      // Check component-level asterisk colors
-      this.checkComponentAsteriskColors()
-    } finally {
-      // Reset flag after a short delay to allow CSS var updates to complete
-      setTimeout(() => {
-        this.isUpdating = false
-      }, 100)
-    }
-  }
-
-  /**
-   * Watch a palette tone variable and update its on-tone when it changes
-   */
-  watchPaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark' = 'light') {
-    const toneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
-    const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
-    
-    this.watchedVars.add(toneVar)
-    this.watchedVars.add(onToneVar)
-    
-    // Record initial value but don't update - let JSON values be set first
-    const initialValue = readCssVar(toneVar)
-    if (initialValue !== undefined) {
-      this.lastValues.set(toneVar, initialValue)
-    }
-  }
-
-  private checkPaletteOnToneVars() {
-    // Only check watched palette tone vars that have actually changed (user action)
-    // Don't update on initialization - let JSON values be set first
-    for (const varName of this.watchedVars) {
-      if (varName.includes('-tone') && !varName.includes('-on-tone')) {
-        const match = varName.match(/--recursica-brand-themes-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
-        if (match) {
-          const [, mode, paletteKey, level] = match
-          const currentValue = readCssVar(varName)
-          const lastValue = this.lastValues.get(varName)
-          
-          // Only update if the value actually changed (user action), not on first initialization
-          if (currentValue !== lastValue && lastValue !== undefined && currentValue && paletteKey && level) {
-            this.lastValues.set(varName, currentValue)
-            this.updatePaletteOnTone(paletteKey, level, mode as 'light' | 'dark')
-          } else if (lastValue === undefined && currentValue) {
-            // First time seeing this var - just record it, don't update
-            this.lastValues.set(varName, currentValue)
-          }
-        }
-      }
-    }
-  }
-
-  private updatePaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark') {
+  public updatePaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark') {
     const toneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
     const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
     
@@ -345,26 +117,84 @@ export class AAComplianceWatcher {
     const toneHex = resolveCssVarToHex(toneValue, this.tokenIndex)
     if (!toneHex) return
     
-    // Use pickAAOnTone logic with strict AA compliance
-    const black = '#000000'
-    const white = '#ffffff'
-    const cBlack = contrastRatio(toneHex, black)
-    const cWhite = contrastRatio(toneHex, white)
+    // Read actual core black and white colors from CSS variables (not hardcoded)
+    const coreBlackVar = `--recursica-brand-themes-${mode}-palettes-core-black`
+    const coreWhiteVar = `--recursica-brand-themes-${mode}-palettes-core-white`
+    const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
+    const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
+    
+    // Normalize hex values (ensure they start with # and are lowercase)
+    const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
+    const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
+    
+    // First, check contrast without opacity (baseline)
+    const whiteBaseContrast = contrastRatio(toneHex, white)
+    const blackBaseContrast = contrastRatio(toneHex, black)
+    
+    // Get emphasis opacity values from CSS variables
+    const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${mode}-text-emphasis-high`)
+    const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${mode}-text-emphasis-low`)
+    
+    // Blend white and black with tone using both opacity values
+    const whiteHighBlended = blendHexOver(white, toneHex, highEmphasisOpacity)
+    const whiteLowBlended = blendHexOver(white, toneHex, lowEmphasisOpacity)
+    const blackHighBlended = blendHexOver(black, toneHex, highEmphasisOpacity)
+    const blackLowBlended = blendHexOver(black, toneHex, lowEmphasisOpacity)
+    
+    // Calculate contrast ratios with opacity applied
+    const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
+    const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
+    const blackHighContrast = contrastRatio(toneHex, blackHighBlended)
+    const blackLowContrast = contrastRatio(toneHex, blackLowBlended)
+    
     const AA = 4.5
     
+    // Check which option meets AA for both emphasis levels
+    const whiteMeetsHighAA = whiteHighContrast >= AA
+    const whiteMeetsLowAA = whiteLowContrast >= AA
+    const whiteMeetsBothAA = whiteMeetsHighAA && whiteMeetsLowAA
+    
+    const blackMeetsHighAA = blackHighContrast >= AA
+    const blackMeetsLowAA = blackLowContrast >= AA
+    const blackMeetsBothAA = blackMeetsHighAA && blackMeetsLowAA
+    
+    // Determine best on-tone color based on AA compliance
+    // Priority: both pass > low emphasis > high emphasis > baseline contrast
     let chosen: 'black' | 'white'
-    // Strict: both must meet AA, prefer higher contrast
-    if (cBlack >= AA && cWhite >= AA) {
-      chosen = cBlack >= cWhite ? 'black' : 'white'
-    } else if (cBlack >= AA) {
-      chosen = 'black'
-    } else if (cWhite >= AA) {
+    
+    // Priority 1: Both meet AA - choose based on baseline contrast first
+    if (whiteMeetsBothAA && blackMeetsBothAA) {
+      if (Math.abs(whiteBaseContrast - blackBaseContrast) > 1.0) {
+        chosen = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+      } else {
+        chosen = whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+      }
+    }
+    // Priority 2: Only one meets both AA levels
+    else if (whiteMeetsBothAA) {
       chosen = 'white'
-    } else {
-      // Neither meets AA - this is a problem, but choose the better one
-      // Log a warning that the tone color itself may need adjustment
-      console.warn(`[AA Compliance] Palette ${paletteKey}-${level}: Neither black nor white meets AA contrast (black: ${cBlack.toFixed(2)}, white: ${cWhite.toFixed(2)}). Tone color may need adjustment.`)
-      chosen = cBlack >= cWhite ? 'black' : 'white'
+    } else if (blackMeetsBothAA) {
+      chosen = 'black'
+    }
+    // Priority 3: Check low emphasis (harder case) - prioritize this
+    else if (whiteMeetsLowAA && !blackMeetsLowAA) {
+      chosen = 'white'
+    } else if (blackMeetsLowAA && !whiteMeetsLowAA) {
+      chosen = 'black'
+    }
+    // Priority 4: Check high emphasis
+    else if (whiteMeetsHighAA && !blackMeetsHighAA) {
+      chosen = 'white'
+    } else if (blackMeetsHighAA && !whiteMeetsHighAA) {
+      chosen = 'black'
+    }
+    // Priority 5: Neither meets AA - choose based on baseline contrast
+    else {
+      if (Math.abs(whiteBaseContrast - blackBaseContrast) > 0.5) {
+        chosen = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+      } else {
+        chosen = whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+      }
     }
     
     const onToneValue = chosen === 'white'
@@ -375,99 +205,13 @@ export class AAComplianceWatcher {
     updateCssVar(onToneVar, onToneValue, this.tokens)
   }
 
-  /**
-   * Watch a layer's surface color and update its element colors when it changes
-   * Watches both light and dark modes
-   */
-  watchLayerSurface(layerNumber: number) {
-    // Watch both light and dark modes
-    for (const mode of ['light', 'dark'] as const) {
-      // Use the correct format with "themes" in the path
-      const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${layerNumber}-property-surface`
-      this.watchedVars.add(surfaceVar)
-      
-      // Initialize last value to track changes
-      const currentValue = readCssVar(surfaceVar)
-      if (currentValue) {
-        this.lastValues.set(surfaceVar, currentValue)
-      }
-      
-      // Initial check
-      this.updateLayerElementColors(layerNumber, mode)
-    }
-  }
-
-  /**
-   * Watch core colors (alert, warning, success, interactive)
-   * Watches both light and dark modes
-   */
-  watchCoreColors() {
-    const coreColors = ['alert', 'warning', 'success', 'interactive']
-    // Watch both light and dark modes
-    for (const mode of ['light', 'dark'] as const) {
-      coreColors.forEach((colorName) => {
-        const coreColorVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}`
-        this.watchedVars.add(coreColorVar)
-      })
-    }
-  }
-
-  private checkCoreColors() {
-    const coreColors = ['alert', 'warning', 'success', 'interactive']
-    
-    // Check both light and dark modes
-    for (const mode of ['light', 'dark'] as const) {
-      coreColors.forEach((colorName) => {
-        const coreColorVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}`
-        const currentValue = readCssVar(coreColorVar)
-        const lastValue = this.lastValues.get(coreColorVar)
-        
-        if (currentValue !== lastValue && currentValue) {
-          this.lastValues.set(coreColorVar, currentValue)
-          
-          // Core color changes affect ALL layers (0-3) for this mode
-          this.updateAllLayers(mode)
-          
-          // If alert color changed, update component-level asterisk colors
-          if (colorName === 'alert') {
-            this.updateComponentAsteriskColors(mode)
-          }
-        }
-      })
-    }
-  }
-  
-  /**
-   * Check and update component-level asterisk colors for all layers
-   * Called when user changes asterisk color or alert core color changes
-   */
-  private checkComponentAsteriskColors() {
-    // Watch asterisk color for all layers (0-3) in both modes
-    for (const mode of ['light', 'dark'] as const) {
-      for (let layer = 0; layer <= 3; layer++) {
-        const asteriskColorVar = `--recursica-ui-kit-components-label-properties-colors-layer-${layer}-asterisk`
-        const currentValue = readCssVar(asteriskColorVar)
-        const lastValue = this.lastValues.get(asteriskColorVar)
-        
-        // If user changed the asterisk color for any layer, update all layers
-        if (currentValue !== lastValue && lastValue !== undefined && currentValue) {
-          this.lastValues.set(asteriskColorVar, currentValue)
-          // Update all layers to maintain consistency and AA compliance
-          this.updateAllComponentAsteriskColors(mode, currentValue)
-          break // Only update once per mode
-        } else if (lastValue === undefined && currentValue) {
-          // First time seeing this var - just record it
-          this.lastValues.set(asteriskColorVar, currentValue)
-        }
-      }
-    }
-  }
   
   /**
    * Update all component-level asterisk colors (layers 0-3) based on a changed color
    * Steps through the palette to maintain AA compliance with each layer's background
+   * Call this explicitly when asterisk color changes
    */
-  private updateAllComponentAsteriskColors(mode: 'light' | 'dark', changedColorValue: string) {
+  public updateAllComponentAsteriskColors(mode: 'light' | 'dark', changedColorValue: string) {
     // Get the hex value of the changed color
     const changedColorHex = resolveCssVarToHex(changedColorValue, this.tokenIndex)
     if (!changedColorHex) return
@@ -503,8 +247,6 @@ export class AAComplianceWatcher {
         const steppedHex = stepUntilAACompliant(hex, surfaceHex, 'darker', this.tokens)
         const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
         updateCssVar(asteriskColorVar, cssVarRef, this.tokens)
-        // Record the new value
-        this.lastValues.set(asteriskColorVar, cssVarRef)
       }
     }
   }
@@ -512,8 +254,9 @@ export class AAComplianceWatcher {
   /**
    * Update component-level asterisk colors for all layers (0-3)
    * Steps through the palette to maintain AA compliance with each layer's background
+   * Call this explicitly when alert core color changes
    */
-  private updateComponentAsteriskColors(mode: 'light' | 'dark' = 'light') {
+  public updateComponentAsteriskColors(mode: 'light' | 'dark' = 'light') {
     // Get the alert core color
     const alertCoreVar = `--recursica-brand-themes-${mode}-palettes-core-alert`
     const alertCoreValue = readCssVar(alertCoreVar)
@@ -571,35 +314,11 @@ export class AAComplianceWatcher {
     }
   }
 
-  private checkLayerElementColors() {
-    // Check all watched layer surface vars
-    for (const varName of this.watchedVars) {
-      if (varName.includes('-property-surface')) {
-        const currentValue = readCssVar(varName)
-        const lastValue = this.lastValues.get(varName)
-        
-        // If no last value, initialize it and run update (for initial setup)
-        // If value changed, update
-        if (lastValue === undefined || currentValue !== lastValue) {
-          if (currentValue) {
-            this.lastValues.set(varName, currentValue)
-          }
-          
-          // Extract mode and layer number from var name
-          // Pattern: --recursica-brand-themes-{mode}-layer-layer-{number}-property-surface
-          const layerMatch = varName.match(/--recursica-brand-themes-(light|dark)-layer-layer-(\d+)-property-surface/)
-          
-          if (layerMatch) {
-            const mode = layerMatch[1] as 'light' | 'dark'
-            const layerNumber = parseInt(layerMatch[2], 10)
-            this.updateLayerElementColors(layerNumber, mode)
-          }
-        }
-      }
-    }
-  }
-
-  private updateLayerElementColors(layerNumber: number, mode: 'light' | 'dark' = 'light') {
+  /**
+   * Update layer element colors for AA compliance
+   * Call this explicitly when a layer's surface color changes
+   */
+  public updateLayerElementColors(layerNumber: number, mode: 'light' | 'dark' = 'light') {
     // Use the correct format with "themes" in the path
     const surfaceCssVar = `--recursica-brand-themes-${mode}-layer-layer-${layerNumber}-property-surface`
     const surfaceValue = readCssVar(surfaceCssVar)
@@ -1027,13 +746,12 @@ export class AAComplianceWatcher {
 
   /**
    * Update tokens and theme (call when they change)
+   * No automatic checks - call update methods explicitly when needed
    */
   updateTokensAndTheme(tokens: JsonLike, theme: JsonLike) {
     this.tokens = tokens
     this.theme = theme
     this.tokenIndex = buildTokenIndex(tokens)
-    // Re-check all watched vars
-    this.performChecks()
   }
 
   /**
@@ -1078,190 +796,5 @@ export class AAComplianceWatcher {
     }
   }
 
-  /**
-   * Validate all color combinations for AA compliance on startup
-   */
-  validateAllCompliance(): void {
-    const issues: Array<{ type: string; message: string; severity: 'error' | 'warning' }> = []
-    const AA = 4.5
-    
-    // Validate all layer element colors for both light and dark modes
-    for (const mode of ['light', 'dark'] as const) {
-      for (let layer = 0; layer <= 3; layer++) {
-        const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-surface`
-        const surfaceValue = readCssVar(surfaceVar)
-        
-        if (!surfaceValue) continue
-        
-        const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
-        if (!surfaceHex) continue
-        
-        const brandBase = `--recursica-brand-${mode}-layer-layer-${layer}-property-`
-        
-        // Check text color
-        const textColorVar = `${brandBase}element-text-color`
-        const textColorValue = readCssVar(textColorVar)
-        if (textColorValue) {
-          const textColorHex = resolveCssVarToHex(textColorValue, this.tokenIndex)
-          if (textColorHex) {
-            const ratio = contrastRatio(surfaceHex, textColorHex)
-            if (ratio < AA) {
-              issues.push({
-                type: 'layer-text',
-                message: `Layer ${layer} (${mode}): Text color contrast ratio ${ratio.toFixed(2)} < ${AA}`,
-                severity: 'error'
-              })
-            }
-          }
-        }
-        
-        // Check interactive colors
-        // Check interactive-tone and interactive-color against surface
-        const interactiveToneVar = `${brandBase}element-interactive-tone`
-        const interactiveColorVar = `${brandBase}element-interactive-color`
-        
-        const interactiveToneValue = readCssVar(interactiveToneVar)
-        const interactiveColorValue = readCssVar(interactiveColorVar)
-        
-        if (interactiveToneValue) {
-          const interactiveToneHex = resolveCssVarToHex(interactiveToneValue, this.tokenIndex)
-          if (interactiveToneHex) {
-            const ratio = contrastRatio(surfaceHex, interactiveToneHex)
-            if (ratio < AA) {
-              issues.push({
-                type: 'layer-interactive',
-                message: `Layer ${layer} (${mode}): Interactive color contrast ratio ${ratio.toFixed(2)} < ${AA} for ${interactiveToneVar}`,
-                severity: 'error'
-              })
-            }
-          }
-        }
-        
-        if (interactiveColorValue) {
-          const interactiveColorHex = resolveCssVarToHex(interactiveColorValue, this.tokenIndex)
-          if (interactiveColorHex) {
-            const ratio = contrastRatio(surfaceHex, interactiveColorHex)
-            if (ratio < AA) {
-              issues.push({
-                type: 'layer-interactive',
-                message: `Layer ${layer} (${mode}): Interactive color contrast ratio ${ratio.toFixed(2)} < ${AA} for ${interactiveColorVar}`,
-                severity: 'error'
-              })
-            }
-          }
-        }
-        
-        // Check interactive-on-tone against interactive-tone (not surface)
-        const interactiveOnToneVar = `${brandBase}element-interactive-on-tone`
-        const interactiveOnToneValue = readCssVar(interactiveOnToneVar)
-        if (interactiveOnToneValue && interactiveToneValue) {
-          const interactiveOnToneHex = resolveCssVarToHex(interactiveOnToneValue, this.tokenIndex)
-          const interactiveToneHex = resolveCssVarToHex(interactiveToneValue, this.tokenIndex)
-          if (interactiveOnToneHex && interactiveToneHex) {
-            const ratio = contrastRatio(interactiveToneHex, interactiveOnToneHex)
-            if (ratio < AA) {
-              issues.push({
-                type: 'layer-interactive',
-                message: `Layer ${layer} (${mode}): Interactive on-tone contrast ratio ${ratio.toFixed(2)} < ${AA}`,
-                severity: 'error'
-              })
-            }
-          }
-        }
-      }
-    }
-    
-    // Validate palette on-tone combinations
-    try {
-      const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
-      const themes = root?.themes || root
-      const lightPal: any = themes?.light?.palettes || {}
-      // Include all standard levels including 1000 and 000
-      const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
-      
-      Object.keys(lightPal).forEach((paletteKey) => {
-        if (paletteKey === 'core' || paletteKey === 'core-colors' || paletteKey === 'neutral') return
-        
-        levels.forEach((level) => {
-          const toneVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
-          const onToneVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-on-tone`
-          
-          const toneValue = readCssVar(toneVar)
-          const onToneValue = readCssVar(onToneVar)
-          
-          if (toneValue && onToneValue) {
-            const toneHex = resolveCssVarToHex(toneValue, this.tokenIndex)
-            const onToneHex = resolveCssVarToHex(onToneValue, this.tokenIndex)
-            
-            if (toneHex && onToneHex) {
-              const ratio = contrastRatio(toneHex, onToneHex)
-              if (ratio < AA) {
-                issues.push({
-                  type: 'palette-on-tone',
-                  message: `Palette ${paletteKey}-${level}: On-tone contrast ratio ${ratio.toFixed(2)} < ${AA}`,
-                  severity: 'error'
-                })
-              }
-            }
-          }
-        })
-      })
-    } catch (err) {
-      // Silently fail palette validation if structure is unexpected
-    }
-    
-    // Log issues
-    if (issues.length > 0) {
-      const errors = issues.filter(i => i.severity === 'error')
-      const warnings = issues.filter(i => i.severity === 'warning')
-      
-      if (errors.length > 0) {
-        console.error(`[AA Compliance] Found ${errors.length} AA compliance errors:`, errors)
-      }
-      if (warnings.length > 0) {
-        console.warn(`[AA Compliance] Found ${warnings.length} AA compliance warnings:`, warnings)
-      }
-      
-      // Auto-fix errors by triggering updates (only if not already fixing to prevent loops)
-      // Only fix when there are actual user changes, not on initialization
-      if (errors.length > 0 && !this.isFixing) {
-        this.isFixing = true
-        this.updateAllLayers()
-        // Only check palette on-tones for watched vars that actually changed
-        // Don't proactively update all palettes - let JSON values be set first
-        this.checkPaletteOnToneVars()
-        
-        // Reset fixing flag after a delay to allow CSS vars to update
-        setTimeout(() => {
-          this.isFixing = false
-        }, 500)
-      }
-    }
-  }
-
-  /**
-   * Cleanup watcher
-   */
-  destroy() {
-    if (this.checkTimeout !== null) {
-      clearTimeout(this.checkTimeout)
-      this.checkTimeout = null
-    }
-    // Guard against Node.js test environments where window may not exist
-    if (typeof window !== 'undefined') {
-      if (this.paletteFamilyChangedHandler) {
-        window.removeEventListener('paletteFamilyChanged', this.paletteFamilyChangedHandler as EventListener)
-      }
-      if (this.paletteDeletedHandler) {
-        window.removeEventListener('paletteDeleted', this.paletteDeletedHandler as EventListener)
-      }
-    }
-    if (this.observer) {
-      this.observer.disconnect()
-      this.observer = null
-    }
-    this.watchedVars.clear()
-    this.lastValues.clear()
-  }
 }
 

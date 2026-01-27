@@ -264,8 +264,10 @@ export function updateCoreColorInteractiveOnToneForCompliance(
         const interactiveVar = `--recursica-brand-themes-${modeLower}-palettes-core-${coreColorName}-interactive`
         updateCssVar(interactiveVar, tokenCssVar)
         
-        // Also update theme JSON to use the token reference
-        if (setTheme && theme) {
+        // Only update theme JSON if setTheme is provided and not a no-op
+        // During AA compliance checks, setTheme is a no-op, so JSON is never updated
+        // Only user-initiated changes should update JSON
+        if (setTheme && theme && setTheme.toString() !== '() => {}') {
           try {
             const themeCopy = JSON.parse(JSON.stringify(theme))
             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy

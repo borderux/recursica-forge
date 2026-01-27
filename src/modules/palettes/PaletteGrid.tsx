@@ -276,9 +276,11 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
       const componentMode = mode?.toLowerCase()
       
       // Update if it's a specific palette change for this palette, or if it's a general "all palettes" change for this mode
+      // Also update on reset events (when detail.reset is true)
       if (detail && (
         (detail.paletteKey === paletteKey && eventMode === componentMode) ||
-        (detail.allPalettes === true && eventMode === componentMode)
+        (detail.allPalettes === true && eventMode === componentMode) ||
+        (detail.reset === true && eventMode === componentMode)
       )) {
         updatePrimaryLevel()
       }
@@ -305,21 +307,25 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     levels.forEach((lvl) => {
       const onToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
       
-      // Always update on-tone values when mode changes to ensure they're correct
-      // This fixes the issue where navigating from another page shows wrong on-tones
-      // We check if the value exists and references the correct mode before skipping
+      // NEVER overwrite on-tone CSS vars - they are set by AA compliance and should persist
+      // Check if the value already exists and is valid - if so, skip entirely
       const existingValue = readCssVar(onToneCssVar)
       
-      // If value exists and correctly references this mode's core color, skip update
-      // Otherwise, always update to ensure correct values when navigating
+      // If value exists and is a valid var() reference to core-white or core-black, NEVER overwrite
+      // This preserves AA-compliant values set by AA compliance checks
       if (existingValue && existingValue.trim() !== '') {
         // Check if it's a valid var() reference for this mode
-        if (existingValue.startsWith('var(') && existingValue.includes(`themes-${modeLower}-palettes-core-`)) {
-          // Already set correctly for this mode, don't override
+        // Must reference core-white or core-black for this mode
+        if (existingValue.startsWith('var(') && 
+            existingValue.includes(`themes-${modeLower}-palettes-core-`) &&
+            (existingValue.includes('core-white') || existingValue.includes('core-black'))) {
+          // Already set correctly - NEVER overwrite AA-compliant values
           return
         }
-        // If it's not a valid reference or references wrong mode, update it
       }
+      
+      // Only set if no existing value or invalid value exists
+      // This should only happen on initial load when CSS vars don't exist yet
       
       // Try both 'palettes' and 'palette' path formats
       const onToneNamePlural = `palettes/${paletteKey}/${lvl}/on-tone`
