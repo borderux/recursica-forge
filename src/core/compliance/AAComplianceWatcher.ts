@@ -247,8 +247,6 @@ export class AAComplianceWatcher {
         const steppedHex = stepUntilAACompliant(hex, surfaceHex, 'darker', this.tokens)
         const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
         updateCssVar(asteriskColorVar, cssVarRef, this.tokens)
-        // Record the new value
-        this.lastValues.set(asteriskColorVar, cssVarRef)
       }
     }
   }
