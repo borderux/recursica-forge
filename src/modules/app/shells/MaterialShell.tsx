@@ -551,6 +551,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
         onAcknowledge={handleAcknowledge}
         onCancel={handleCancel}
       />
+<<<<<<< HEAD
       {process.env.NODE_ENV === 'development' && (
         <RandomizeOptionsModal
           show={showRandomizeModal}
@@ -561,6 +562,11 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           onCancel={() => setShowRandomizeModal(false)}
         />
       )}
+      <ExportValidationErrorModal
+        show={showValidationModal}
+        errors={validationErrors}
+        onClose={handleValidationModalClose}
+      />
       <GitHubExportModalWrapper
         show={showGitHubModal}
         selectedFiles={githubExportFiles}

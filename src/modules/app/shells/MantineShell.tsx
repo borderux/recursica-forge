@@ -499,6 +499,11 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
           onCancel={() => setShowRandomizeModal(false)}
         />
       )}
+      <ExportValidationErrorModal
+        show={showValidationModal}
+        errors={validationErrors}
+        onClose={handleValidationModalClose}
+      />
       <GitHubExportModalWrapper
         show={showGitHubModal}
         selectedFiles={githubExportFiles}
