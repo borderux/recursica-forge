@@ -1,6 +1,7 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex, resolveBraceRef } from './tokens'
 import { resolveTokenReferenceToCssVar, resolveTokenReferenceToValue, extractBraceContent, parseTokenReference, type TokenReferenceContext } from '../utils/tokenReferenceParser'
+import { readCssVar } from '../css/readCssVar'
 
 export type ModeLabel = 'Light' | 'Dark'
 
@@ -396,9 +397,29 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
           onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
         }
         
-        // Always set the on-tone CSS variable - never skip it, even for standard levels like 1000
-        // This ensures reset doesn't cause on-tone colors to disappear
-        vars[`${scope}-on-tone`] = onToneVar
+        // Only set on-tone CSS variable if it doesn't already exist with a valid value
+        // This preserves AA-compliant values set by AA compliance checks
+        // On-tone vars should never be overwritten by recomputeAndApplyAll after initial load
+        const onToneCssVarName = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${lvl}-on-tone`
+        let shouldSetOnTone = true
+        
+        if (typeof document !== 'undefined') {
+          // Use readCssVar to get the actual CSS variable value (var() reference), not the resolved hex color
+          // This is critical: getComputedStyle returns resolved values like #fcfcfc, but we need the var() reference
+          const existingValue = readCssVar(onToneCssVarName)
+          // If on-tone var already exists and is a valid var() reference to core-white or core-black, preserve it
+          if (existingValue && existingValue.trim() !== '' && 
+              existingValue.startsWith('var(') &&
+              (existingValue.includes('core-white') || existingValue.includes('core-black'))) {
+            // Don't overwrite existing AA-compliant value - skip setting from JSON
+            shouldSetOnTone = false
+          }
+        }
+        
+        // Only set from JSON if no existing valid value
+        if (shouldSetOnTone) {
+          vars[`${scope}-on-tone`] = onToneVar
+        }
       }
       // Do not emit per-level palette emphasis vars; consumers should reference brand-level text emphasis tokens directly
     })
