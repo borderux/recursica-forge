@@ -501,7 +501,6 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
         onAcknowledge={handleAcknowledge}
         onCancel={handleCancel}
       />
-<<<<<<< HEAD
       {process.env.NODE_ENV === 'development' && (
         <RandomizeOptionsModal
           show={showRandomizeModal}
