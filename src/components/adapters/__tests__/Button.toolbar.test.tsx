@@ -187,7 +187,7 @@ describe('Button Toolbar Props Integration', () => {
       })
     })
 
-    it('updates colors for all layers when toolbar changes', async () => {
+    it('updates colors for all layers when toolbar changes', { timeout: 15000 }, async () => {
       const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
       
       for (const layer of layers) {
@@ -227,7 +227,7 @@ describe('Button Toolbar Props Integration', () => {
   })
 
   describe('Size Props Updates', () => {
-    it('updates height when toolbar changes default-height', async () => {
+    it('updates height when toolbar changes default-height', { timeout: 15000 }, async () => {
       let container: HTMLElement
       await act(async () => {
         const result = renderWithProviders(

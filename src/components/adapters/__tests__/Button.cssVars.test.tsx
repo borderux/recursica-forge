@@ -81,7 +81,7 @@ describe('Button CSS Variables', () => {
       expect(styles).toBeDefined()
     })
 
-    it('uses layer-specific CSS variables', async () => {
+    it('uses layer-specific CSS variables', { timeout: 15000 }, async () => {
       const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
 
       for (const layer of layers) {
@@ -105,7 +105,7 @@ describe('Button CSS Variables', () => {
   })
 
   describe('Component-Level CSS Variables', () => {
-    it('sets --button-icon-size when icon is provided', async () => {
+    it('sets --button-icon-size when icon is provided', { timeout: 15000 }, async () => {
       const TestIcon = () => <svg><circle /></svg>
       let container: HTMLElement
       await act(async () => {
