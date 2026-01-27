@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   test-and-build:
-    name: Pull RequestTest and Build
+    name: Pull Request Test and Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
