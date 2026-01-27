@@ -74,7 +74,7 @@ export default function FontPropertiesTokens() {
           const val = letterSpacings[k]?.$value
           const num = typeof val === 'number' ? val : Number(val)
           if (Number.isFinite(num)) {
-            updateToken(`font/letter-spacing/${k}`, num)
+            updateToken(`font/letter-spacing/${k}`, num === 0 ? "0" : num)
           }
         })
       } else if (activeTab === 'line-height') {

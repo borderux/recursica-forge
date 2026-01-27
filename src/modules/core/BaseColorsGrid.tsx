@@ -7,6 +7,8 @@ import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import brandDefault from '../../vars/Brand.json'
+import { Button } from '../../components/adapters/Button'
 
 // Helper to blend foreground over background with opacity
 function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
@@ -422,6 +424,123 @@ function InteractiveCell({
 export default function BaseColorsGrid() {
   const { mode } = useThemeMode()
   const modeLower = mode.toLowerCase()
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { theme: themeJson, setTheme } = useVars()
+
+  // Listen for CSS var changes to trigger re-render
+  useEffect(() => {
+    const handleVarsChanged = () => {
+      setRefreshKey(k => k + 1)
+    }
+    
+    window.addEventListener('paletteVarsChanged', handleVarsChanged)
+    window.addEventListener('recheckCoreColorInteractiveOnTones', handleVarsChanged)
+    window.addEventListener('recheckAllPaletteOnTones', handleVarsChanged)
+    window.addEventListener('cssVarsUpdated', handleVarsChanged)
+    return () => {
+      window.removeEventListener('paletteVarsChanged', handleVarsChanged)
+      window.removeEventListener('recheckCoreColorInteractiveOnTones', handleVarsChanged)
+      window.removeEventListener('recheckAllPaletteOnTones', handleVarsChanged)
+      window.removeEventListener('cssVarsUpdated', handleVarsChanged)
+    }
+  }, [])
+
+  const handleResetAll = () => {
+    if (!themeJson || !setTheme) return
+
+    // Get default values from Brand.json
+    const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
+    const themes = root?.themes || root
+    const defaultCoreColors = themes?.[modeLower]?.palettes?.['core-colors']?.$value
+
+    if (!defaultCoreColors) return
+
+    // Create a copy of the current theme
+    const themeCopy = JSON.parse(JSON.stringify(themeJson))
+    const themeRoot: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+    const currentThemes = themeRoot?.themes || themeRoot
+
+    // Ensure structure exists
+    if (!currentThemes[modeLower]) currentThemes[modeLower] = {}
+    if (!currentThemes[modeLower].palettes) currentThemes[modeLower].palettes = {}
+    if (!currentThemes[modeLower].palettes['core-colors']) currentThemes[modeLower].palettes['core-colors'] = {}
+    if (!currentThemes[modeLower].palettes['core-colors'].$value) {
+      currentThemes[modeLower].palettes['core-colors'].$value = {}
+    }
+
+    const currentCoreColors = currentThemes[modeLower].palettes['core-colors'].$value
+
+    // Reset each core color's tone and on-tone to original values
+    const coreColorNames = ['black', 'white', 'alert', 'warning', 'success']
+    coreColorNames.forEach((colorName) => {
+      const defaultColor = defaultCoreColors[colorName]
+      if (!defaultColor) return
+
+      // Ensure structure exists
+      if (!currentCoreColors[colorName]) currentCoreColors[colorName] = {}
+
+      // Reset tone
+      if (defaultColor.tone?.$value) {
+        currentCoreColors[colorName].tone = {
+          $value: defaultColor.tone.$value
+        }
+      }
+
+      // Reset on-tone
+      if (defaultColor['on-tone']?.$value) {
+        currentCoreColors[colorName]['on-tone'] = {
+          $value: defaultColor['on-tone'].$value
+        }
+      }
+    })
+
+    // Reset interactive colors (default and hover)
+    const defaultInteractive = defaultCoreColors.interactive
+    if (defaultInteractive) {
+      if (!currentCoreColors.interactive) currentCoreColors.interactive = {}
+
+      // Reset default tone and on-tone
+      if (defaultInteractive.default) {
+        if (!currentCoreColors.interactive.default) currentCoreColors.interactive.default = {}
+        if (defaultInteractive.default.tone?.$value) {
+          currentCoreColors.interactive.default.tone = {
+            $value: defaultInteractive.default.tone.$value
+          }
+        }
+        if (defaultInteractive.default['on-tone']?.$value) {
+          currentCoreColors.interactive.default['on-tone'] = {
+            $value: defaultInteractive.default['on-tone'].$value
+          }
+        }
+      }
+
+      // Reset hover tone and on-tone
+      if (defaultInteractive.hover) {
+        if (!currentCoreColors.interactive.hover) currentCoreColors.interactive.hover = {}
+        if (defaultInteractive.hover.tone?.$value) {
+          currentCoreColors.interactive.hover.tone = {
+            $value: defaultInteractive.hover.tone.$value
+          }
+        }
+        if (defaultInteractive.hover['on-tone']?.$value) {
+          currentCoreColors.interactive.hover['on-tone'] = {
+            $value: defaultInteractive.hover['on-tone'].$value
+          }
+        }
+      }
+    }
+
+    // Update theme
+    setTheme(themeCopy)
+
+    // Trigger recomputation to update CSS variables
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('paletteVarsChanged', {}))
+      window.dispatchEvent(new CustomEvent('recheckCoreColorInteractiveOnTones', {}))
+      window.dispatchEvent(new CustomEvent('recheckAllPaletteOnTones', {}))
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {}))
+    }, 100)
+  }
 
   const baseColors = ['black', 'white', 'alert', 'warning', 'success', 'interactive'] as const
   const rows = [
@@ -429,6 +548,10 @@ export default function BaseColorsGrid() {
     { key: 'low', label: 'Low', emphasisVar: `--recursica-brand-themes-${modeLower}-text-emphasis-low` },
     { key: 'interactive', label: 'Interactive', emphasisVar: null },
   ] as const
+
+  const ResetIcon = iconNameToReactComponent('arrow-path')
+
+  if (!ResetIcon) return null
 
   return (
     <div style={{
@@ -438,15 +561,25 @@ export default function BaseColorsGrid() {
       padding: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-padding)`,
       boxShadow: `var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-x-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-y-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-blur) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-spread) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-shadow-color)`,
     }}>
-      <h2 style={{ 
-        margin: '0 0 var(--recursica-brand-dimensions-general-md) 0',
-        fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-        fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-        fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-        letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-        lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-        color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
-      }}>Base colors</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--recursica-brand-dimensions-general-md)' }}>
+        <h2 style={{ 
+          margin: 0,
+          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+          color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
+        }}>Base colors</h2>
+        <Button
+          variant="outline"
+          size="small"
+          onClick={handleResetAll}
+          icon={<ResetIcon />}
+        >
+          Reset all
+        </Button>
+      </div>
       
       <div style={{
         display: 'grid',
@@ -504,7 +637,7 @@ export default function BaseColorsGrid() {
               
               return (
                 <div
-                  key={color}
+                  key={`${color}-${refreshKey}`}
                   onClick={(e) => {
                     // Open scale picker for the base color tone
                     if ((window as any).openPicker) {

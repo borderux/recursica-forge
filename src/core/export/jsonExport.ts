@@ -13,7 +13,7 @@ import tokensJson from '../../vars/Tokens.json'
 import brandJson from '../../vars/Brand.json'
 import uikitJson from '../../vars/UIKit.json'
 import { getVarsStore } from '../store/varsStore'
-import { validateTokensJson, validateBrandJson } from '../utils/validateJsonSchemas'
+import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import JSZip from 'jszip'
 
 /**
@@ -22,18 +22,23 @@ import JSZip from 'jszip'
 function getAllCssVars(): Record<string, string> {
   const vars: Record<string, string> = {}
   const root = document.documentElement
-  const computed = getComputedStyle(root)
   
-  // Read from inline styles
+  // Read all CSS variables using readCssVar for consistency
+  // This ensures we read from inline styles first (where updateCssVar sets values),
+  // then fall back to computed styles
+  // Collect all potential variable names from inline styles and computed styles
+  const allVarNames = new Set<string>()
+  
+  // Get from inline styles
   for (let i = 0; i < root.style.length; i++) {
     const prop = root.style[i]
     if (prop && prop.startsWith('--recursica-')) {
-      const value = root.style.getPropertyValue(prop).trim()
-      if (value) vars[prop] = value
+      allVarNames.add(prop)
     }
   }
   
   // Also check computed styles for any we might have missed
+  const computed = getComputedStyle(root)
   const allComputed = Array.from(document.styleSheets)
     .flatMap(sheet => {
       try {
@@ -47,15 +52,16 @@ function getAllCssVars(): Record<string, string> {
       const styleRule = rule as CSSStyleRule
       return Array.from(styleRule.style)
         .filter(prop => prop.startsWith('--recursica-'))
-        .map(prop => ({
-          name: prop,
-          value: computed.getPropertyValue(prop).trim()
-        }))
+        .map(prop => prop)
     })
   
-  allComputed.forEach(({ name, value }) => {
-    if (value && !vars[name]) {
-      vars[name] = value
+  allComputed.forEach(name => allVarNames.add(name))
+  
+  // Read each variable using readCssVar (checks inline first, then computed)
+  allVarNames.forEach(varName => {
+    const value = readCssVar(varName)
+    if (value) {
+      vars[varName] = value
     }
   })
   
@@ -80,9 +86,40 @@ function cssVarToTokenRef(cssVar: string): string | null {
   // Handle color tokens: colors-scale-01-100 -> colors.scale-01.100
   // Also support old format: color-gray-500 -> color.gray.500
   if (parts[0] === 'colors' && parts.length >= 3) {
+    // Find where the level starts (it's a number like 000, 050, 100, etc. or 1000)
+    // Look for a pattern like scale-XX-YYY where XX is the scale number and YYY is the level
+    let scaleEndIndex = -1
+    for (let i = 1; i < parts.length - 1; i++) {
+      // Check if parts[i+1] looks like a level (3-4 digits)
+      const nextPart = parts[i + 1]
+      if (/^\d{3,4}$/.test(nextPart)) {
+        scaleEndIndex = i
+        break
+      }
+    }
+    
+    if (scaleEndIndex > 0) {
+      // Scale is parts[1] through parts[scaleEndIndex] (e.g., ['scale', '01'] -> 'scale-01')
+      const scaleParts = parts.slice(1, scaleEndIndex + 1)
+      const scale = scaleParts.join('-')
+      const level = parts.slice(scaleEndIndex + 1).join('-') // Handle levels like '0-5x'
+      return `{tokens.colors.${scale}.${level}}`
+    }
+    
+    // Fallback: assume scale is just parts[1] (old format)
     const scale = parts[1]
-    const level = parts.slice(2).join('-') // Handle levels like '0-5x'
+    const level = parts.slice(2).join('-')
     return `{tokens.colors.${scale}.${level}}`
+  }
+  
+  // Fix malformed token references that may have been created incorrectly
+  // {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
+  if (parts[0] === 'tokens' && parts.length >= 2) {
+    const rest = parts.slice(1).join('-')
+    const malformedMatch = rest.match(/^colors\.scale\.(\d+)-(\d{3,4})$/)
+    if (malformedMatch) {
+      return `{tokens.colors.scale-${malformedMatch[1]}.${malformedMatch[2]}}`
+    }
   }
   if (parts[0] === 'color' && parts.length >= 3) {
     const family = parts[1]
@@ -158,17 +195,34 @@ function cssVarToBrandRef(cssVar: string): string | null {
     let jsonPath = `brand.themes.${mode}`
     
     // Handle palettes
+    // Pattern: palettes-{paletteKey}-{level}-{type}
+    // paletteKey can be: neutral, palette-1, palette-2, core-white, core-black, etc.
     if (parts[0] === 'palettes' && parts.length >= 4) {
       parts.shift() // Remove 'palettes'
-      const paletteKey = parts[0]
-      const level = parts[1]
-      const type = parts.slice(2).join('-') // tone, on-tone, etc.
       
-      if (type === 'tone' || type === 'on-tone') {
-        return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.color.${type}}`
+      // Find the level (it's a number: 000, 050, 100, 200, etc. or 1000)
+      let levelIndex = -1
+      for (let i = 0; i < parts.length; i++) {
+        if (/^\d{3,4}$/.test(parts[i])) {
+          levelIndex = i
+          break
+        }
       }
       
-      return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.${type}}`
+      if (levelIndex > 0 && levelIndex < parts.length - 1) {
+        // Everything before the level is the paletteKey (may contain hyphens)
+        const paletteKeyParts = parts.slice(0, levelIndex)
+        const paletteKey = paletteKeyParts.join('-')
+        const level = parts[levelIndex]
+        // Everything after the level is the type (may contain hyphens like "on-tone")
+        const type = parts.slice(levelIndex + 1).join('-')
+        
+        if (type === 'tone' || type === 'on-tone') {
+          return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.color.${type}}`
+        }
+        
+        return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.${type}}`
+      }
     }
     
     // Handle layers
@@ -291,21 +345,24 @@ export function exportTokensJson(): object {
   const store = getVarsStore()
   const storeState = store.getState()
   const storeTokens = (storeState.tokens as any)?.tokens || {}
+  const originalTokens = tokensJson as JsonLike
   
-  // Match reference structure: sizes (plural), opacities (plural), font with plural categories
+  // Match reference structure: colors, font, sizes, opacities (matching original order)
   const result: any = {
     tokens: {
-      sizes: {},
-      opacities: {},
+      colors: {},
       font: {
-        typefaces: {},
         sizes: {},
+        typefaces: {},
         weights: {},
         cases: {},
         decorations: {},
         'letter-spacings': {},
-        'line-heights': {}
-      }
+        'line-heights': {},
+        styles: {}
+      },
+      sizes: {},
+      opacities: {}
     }
   }
   
@@ -314,9 +371,13 @@ export function exportTokensJson(): object {
   
   // Export size tokens (export as plural "sizes")
   // Store uses 'sizes' (plural) consistently
+  // Filter out elevation tokens (they shouldn't be in sizes)
   const sizeTokens = storeTokens.sizes || {}
   
   Object.keys(sizeTokens).forEach((key) => {
+    // Skip elevation tokens - they're not part of the original sizes
+    if (key.startsWith('elevation-')) return
+    
     const token = sizeTokens[key]
     if (!token || typeof token !== 'object') return
     
@@ -346,8 +407,8 @@ export function exportTokensJson(): object {
     }
   })
   
-  // Also export colors if they exist (reference doesn't show colors, but they should be exported)
-  // Key ordering will be handled by schema-based sorting during validation
+  // Export colors if they exist
+  // Maintain proper ordering: alias first, then 000, 050, 100-1000
   if (storeTokens.colors) {
     result.tokens.colors = {}
     Object.keys(storeTokens.colors).forEach((scaleKey) => {
@@ -356,14 +417,28 @@ export function exportTokensJson(): object {
       
       result.tokens.colors[scaleKey] = {}
       
-      // Export alias if it exists
+      // Export alias first if it exists
       if (scale.alias) {
         result.tokens.colors[scaleKey].alias = scale.alias
       }
       
-      // Export color levels (will be sorted by schema)
-      Object.keys(scale).forEach((level) => {
-        if (level === 'alias') return
+      // Export color levels in proper order: 000, 050, then 100-1000
+      const levelKeys = Object.keys(scale).filter(key => key !== 'alias')
+      const sortedLevels = levelKeys.sort((a, b) => {
+        // Sort: 000, 050, then numeric order (100, 200, ... 1000)
+        if (a === '000') return -1
+        if (b === '000') return 1
+        if (a === '050') return -1
+        if (b === '050') return 1
+        const numA = parseInt(a, 10)
+        const numB = parseInt(b, 10)
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB
+        }
+        return a.localeCompare(b)
+      })
+      
+      sortedLevels.forEach((level) => {
         const colorToken = scale[level]
         if (colorToken && typeof colorToken === 'object' && colorToken.$value != null) {
           result.tokens.colors[scaleKey][level] = {
@@ -469,50 +544,56 @@ export function exportTokensJson(): object {
       }
     })
     
-    // Font typefaces: extract only the font name (not the CSS font-family value)
-    // Structure should match source: typefaces has $type at parent, each typeface has just $value
-    const fontTypefaces = storeTokens.font.typefaces || storeTokens.font.typeface || {}
-    const typefaceEntries: Array<[string, string]> = []
-    Object.keys(fontTypefaces).forEach((key) => {
-      const token = fontTypefaces[key]
-      if (!token || typeof token !== 'object') return
-      
-      const tokenValue = token.$value
-      if (tokenValue != null) {
-        let fontName: string
-        if (typeof tokenValue === 'string') {
-          // Extract font name from CSS font-family value like "Lexend", sans-serif or "Lexend"
-          // Remove quotes and extract the first part before comma
-          const cleaned = tokenValue.replace(/^["']|["']$/g, '').trim()
-          const parts = cleaned.split(',')
-          fontName = parts[0].trim().replace(/^["']|["']$/g, '')
-        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
-          const str = String(tokenValue.value)
-          const cleaned = str.replace(/^["']|["']$/g, '').trim()
-          const parts = cleaned.split(',')
-          fontName = parts[0].trim().replace(/^["']|["']$/g, '')
-        } else {
-          const str = String(tokenValue)
-          const cleaned = str.replace(/^["']|["']$/g, '').trim()
-          const parts = cleaned.split(',')
-          fontName = parts[0].trim().replace(/^["']|["']$/g, '')
-        }
-        
-        if (fontName) {
-          typefaceEntries.push([key, fontName])
-        }
-      }
-    })
+    // Font typefaces: preserve original structure with extensions from original tokens.json
+    // Read from original tokens.json to preserve $extensions (Google Fonts URLs, variants)
+    const originalFont = (originalTokens as any)?.tokens?.font || {}
+    const originalTypefaces = originalFont.typefaces || {}
     
-    // Set $type at parent level if we have typefaces
-    if (typefaceEntries.length > 0) {
+    if (Object.keys(originalTypefaces).length > 0) {
       result.tokens.font.typefaces = {
         $type: 'fontFamily'
       }
-      typefaceEntries.forEach(([key, fontName]) => {
-        result.tokens.font.typefaces[key] = {
-          $value: fontName
+      
+      // Copy typefaces from original to preserve extensions, but update $value from store if changed
+      Object.keys(originalTypefaces).forEach((key) => {
+        if (key === '$type') return
+        
+        const originalTypeface = originalTypefaces[key]
+        const storeTypeface = storeTokens.font.typefaces?.[key] || storeTokens.font.typeface?.[key]
+        
+        // Start with original structure (preserves extensions)
+        const exportedTypeface: any = JSON.parse(JSON.stringify(originalTypeface))
+        
+        // Update $value from store if it exists and differs
+        if (storeTypeface?.$value != null) {
+          const storeValue = storeTypeface.$value
+          // If store has a string value, extract font name
+          if (typeof storeValue === 'string') {
+            const cleaned = storeValue.replace(/^["']|["']$/g, '').trim()
+            const parts = cleaned.split(',')
+            const fontName = parts[0].trim().replace(/^["']|["']$/g, '')
+            // If original was an array, keep array format; otherwise use string
+            if (Array.isArray(originalTypeface.$value)) {
+              exportedTypeface.$value = [fontName, originalTypeface.$value[1] || 'sans-serif']
+            } else {
+              exportedTypeface.$value = fontName
+            }
+          } else if (Array.isArray(storeValue)) {
+            exportedTypeface.$value = storeValue
+          } else {
+            exportedTypeface.$value = storeValue
+          }
         }
+        
+        result.tokens.font.typefaces[key] = exportedTypeface
+      })
+    }
+    
+    // Font styles: preserve from original tokens.json (not stored in store)
+    const originalStyles = originalFont.styles || {}
+    if (Object.keys(originalStyles).length > 0) {
+      Object.keys(originalStyles).forEach((key) => {
+        result.tokens.font.styles[key] = JSON.parse(JSON.stringify(originalStyles[key]))
       })
     }
     
@@ -641,10 +722,8 @@ export function exportTokensJson(): object {
     })
   }
   
-  // Remove empty sections
+  // Remove empty sections (but preserve order)
   if (result.tokens.colors && Object.keys(result.tokens.colors).length === 0) delete result.tokens.colors
-  if (Object.keys(result.tokens.sizes).length === 0) delete result.tokens.sizes
-  if (Object.keys(result.tokens.opacities).length === 0) delete result.tokens.opacities
   // Don't delete typefaces if it has $type (it's a special structure)
   if (result.tokens.font.typefaces && !result.tokens.font.typefaces.$type && Object.keys(result.tokens.font.typefaces).length === 0) delete result.tokens.font.typefaces
   if (Object.keys(result.tokens.font.sizes).length === 0) delete result.tokens.font.sizes
@@ -653,7 +732,16 @@ export function exportTokensJson(): object {
   if (Object.keys(result.tokens.font.decorations).length === 0) delete result.tokens.font.decorations
   if (Object.keys(result.tokens.font['letter-spacings']).length === 0) delete result.tokens.font['letter-spacings']
   if (Object.keys(result.tokens.font['line-heights']).length === 0) delete result.tokens.font['line-heights']
+  if (Object.keys(result.tokens.font.styles).length === 0) delete result.tokens.font.styles
   if (Object.keys(result.tokens.font).length === 0) delete result.tokens.font
+  if (Object.keys(result.tokens.sizes).length === 0) delete result.tokens.sizes
+  if (Object.keys(result.tokens.opacities).length === 0) delete result.tokens.opacities
+  
+  // Add metadata with export timestamp
+  result.$metadata = {
+    exportedAt: new Date().toISOString(),
+    version: '1.0.0'
+  }
   
   return result
 }
@@ -665,13 +753,30 @@ export function exportTokensJson(): object {
 function normalizeBrandReferences(obj: any): any {
   if (typeof obj === 'string') {
     // Normalize reference strings - convert theme paths to short aliases
-    // {brand.themes.light.palettes.core-colors.black} -> {brand.palettes.core-colors.black}
-    // {brand.themes.dark.palettes.core-colors.white} -> {brand.palettes.core-colors.white}
-    // Also handle old format {brand.light.palettes.core-colors.X} -> {brand.palettes.core-colors.X}
-    // Note: We preserve {brand.palettes.core-colors.X} format as that's what the source uses
-    return obj
+    // Also fix malformed references that may have been created incorrectly
+    
+    let normalized = obj
+      // Handle core-colors references
       .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)}/g, '{brand.palettes.core-colors.$2}')
       .replace(/{brand\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)}/g, '{brand.palettes.core-colors.$2}')
+      // Handle core-white and core-black (standalone, not in core-colors)
+      .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, '{brand.palettes.$2}')
+      .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, '{brand.palettes.$2}')
+      // Fix malformed references: {brand.palettes.core.white} -> {brand.palettes.core-white}
+      .replace(/{brand\.palettes\.core\.(white|black)}/g, '{brand.palettes.core-$1}')
+      // Fix malformed references: {brand.palettes.palette.2.000.on.tone} -> {brand.palettes.palette-2.000.color.on-tone}
+      .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.on\.tone}/g, '{brand.palettes.palette-$1.$2.color.on-tone}')
+      .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.tone}/g, '{brand.palettes.palette-$1.$2.color.tone}')
+      // Fix malformed token references: {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
+      .replace(/{tokens\.colors\.scale\.(\d+)-(\d{3,4})}/g, '{tokens.colors.scale-$1.$2}')
+      // Remove theme from all other palette references
+      .replace(/{brand\.themes\.(light|dark)\.palettes\./g, '{brand.palettes.')
+      .replace(/{brand\.(light|dark)\.palettes\./g, '{brand.palettes.')
+      // Remove theme from other brand references
+      .replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
+      .replace(/{brand\.(light|dark)\./g, '{brand.')
+    
+    return normalized
   }
   
   if (Array.isArray(obj)) {
@@ -690,27 +795,180 @@ function normalizeBrandReferences(obj: any): any {
 }
 
 /**
- * Exports brand.json from store state
- * Reads from the VarsStore to ensure all data is exported correctly
- * Similar to tokens export - reads directly from store state
+ * Normalizes brand references in UIKit exports to remove theme information
+ * Converts theme-specific references to theme-agnostic ones
+ * Examples:
+ * - {brand.themes.light.layer.layer.0.property.surface} -> {brand.layer.layer.0.property.surface}
+ * - {brand.themes.light.palettes.neutral.100.tone} -> {brand.palettes.neutral.100.tone}
+ * - {brand.themes.light.text.emphasis.low} -> {brand.text.emphasis.low}
+ */
+function normalizeUIKitBrandReferences(obj: any): any {
+  if (typeof obj === 'string') {
+    // Remove theme information from brand references
+    // Pattern: {brand.themes.(light|dark).<rest>} -> {brand.<rest>}
+    return obj.replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(normalizeUIKitBrandReferences)
+  }
+  
+  if (obj && typeof obj === 'object') {
+    const normalized: any = {}
+    for (const key in obj) {
+      normalized[key] = normalizeUIKitBrandReferences(obj[key])
+    }
+    return normalized
+  }
+  
+  return obj
+}
+
+/**
+ * Exports brand.json from CSS variables
+ * Reads CSS variables and converts them back to JSON structure
+ * This ensures AA-compliant on-tone values and other CSS var updates are included in the export
  */
 export function exportBrandJson(): object {
   const store = getVarsStore()
   const storeState = store.getState()
   const theme = storeState.theme as any
   
-  // Read directly from theme.brand, just like tokens export reads from storeState.tokens
+  // Start with the structure from store (preserves JSON structure)
   if (!theme?.brand) {
-    return { brand: {} }
+    return {
+      brand: {},
+      $metadata: {
+        exportedAt: new Date().toISOString(),
+        version: '1.0.0'
+      }
+    }
   }
   
   // Deep clone the brand structure from store
   const result = JSON.parse(JSON.stringify(theme.brand))
   
+  // Read all CSS variables
+  const cssVars = getAllCssVars()
+  const tokenIndex = buildTokenIndex(storeState.tokens as JsonLike)
+  
+  // Helper to set a value in the nested JSON structure
+  const setValueInResult = (mode: string, pathParts: string[], value: any, type: string = 'color') => {
+    // Ensure themes structure exists
+    if (!result.themes) result.themes = {}
+    if (!result.themes[mode]) result.themes[mode] = {}
+    
+    let current: any = result.themes[mode]
+    
+    // Navigate/create the path structure
+    for (let i = 0; i < pathParts.length - 1; i++) {
+      const part = pathParts[i]
+      if (!current[part]) {
+        current[part] = {}
+      }
+      current = current[part]
+    }
+    
+    // Set the value (last part of path)
+    const lastPart = pathParts[pathParts.length - 1]
+    if (!current[lastPart]) {
+      current[lastPart] = {}
+    }
+    
+    // Ensure it has $type and $value structure
+    if (typeof current[lastPart] === 'object' && !Array.isArray(current[lastPart])) {
+      current[lastPart].$type = current[lastPart].$type || type
+      current[lastPart].$value = value
+    }
+  }
+  
+  // Update values from CSS variables
+  // Process all brand CSS variables and update the JSON structure
+  Object.entries(cssVars).forEach(([varName, varValue]) => {
+    if (!varName.startsWith('--recursica-brand-themes-')) return
+    
+    // Extract mode and path from CSS variable name
+    // Pattern: --recursica-brand-themes-{mode}-{path}
+    const varMatch = varName.match(/^--recursica-brand-themes-(light|dark)-(.+)$/)
+    if (!varMatch) return
+    
+    const mode = varMatch[1]
+    const cssPath = varMatch[2]
+    
+    // Parse the CSS path to determine where this value should go in JSON
+    // Pattern: palettes-{paletteKey}-{level}-{type}
+    // paletteKey can be: neutral, palette-1, palette-2, core-white, core-black, etc.
+    // We need to handle hyphens in paletteKey correctly
+    if (!cssPath.startsWith('palettes-')) return
+    
+    const afterPalettes = cssPath.substring('palettes-'.length)
+    
+    // Find the level (it's a number: 000, 050, 100, 200, etc. or 1000)
+    // Levels are always numeric, so we can find them by looking for patterns like -100-, -200-, etc.
+    const levelMatch = afterPalettes.match(/-(\d{3,4})(?:-|$)/)
+    if (!levelMatch) return
+    
+    const level = levelMatch[1]
+    const levelIndex = afterPalettes.indexOf(`-${level}-`)
+    if (levelIndex === -1) return
+    
+    // Everything before the level is the paletteKey (may contain hyphens)
+    const paletteKey = afterPalettes.substring(0, levelIndex)
+    // Everything after the level is the type (may contain hyphens like "on-tone")
+    const type = afterPalettes.substring(levelIndex + level.length + 2) // +2 for the hyphens
+    
+    if (type === 'tone' || type === 'on-tone') {
+      const pathParts = ['palettes', paletteKey, level, 'color', type]
+      
+      // Convert CSS variable value to JSON reference or value
+      const brandRef = cssVarToBrandRef(varValue)
+      if (brandRef) {
+        // It's a reference - normalize to short format
+        let jsonValue = brandRef
+        
+        // Handle core-white and core-black specially
+        const coreMatch = brandRef.match(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/)
+        if (coreMatch) {
+          jsonValue = `{brand.palettes.${coreMatch[2]}}`
+        } else {
+          // Remove theme from reference: {brand.themes.light.palettes.X} -> {brand.palettes.X}
+          jsonValue = brandRef.replace(/{brand\.themes\.(light|dark)\./, '{brand.')
+        }
+        
+        // Set the value in the result structure
+        setValueInResult(mode, pathParts, jsonValue, 'color')
+      } else {
+        // It's a direct value (hex color, etc.)
+        const jsonValue = cssValueToJsonValue(varValue, 'color', tokenIndex)
+        if (jsonValue !== undefined) {
+          setValueInResult(mode, pathParts, jsonValue, 'color')
+        }
+      }
+    }
+  })
+  
   // Normalize all references to use short alias format (no theme paths)
+  // This also fixes any malformed references that may have been created
   const normalized = normalizeBrandReferences(result)
   
-  return { brand: normalized }
+  // Build the final export object
+  const exportObject = {
+    brand: normalized,
+    $metadata: {
+      exportedAt: new Date().toISOString(),
+      version: '1.0.0'
+    }
+  }
+  
+  // Validate the exported JSON before returning
+  try {
+    validateBrandJson(exportObject as JsonLike)
+  } catch (error) {
+    console.warn('[Export] Brand.json validation failed, but continuing export:', error)
+    // Don't throw - let the user see the export even if there are validation issues
+  }
+  
+  return exportObject
 }
 
 /**
@@ -755,265 +1013,42 @@ function extractNumericValue(cssValue: string, tokenIndex: any): number | null {
 }
 
 /**
- * Exports uikit.json from current CSS variables ONLY
- * Only includes UIKit data that has corresponding CSS variables
+ * Exports uikit.json from store state
+ * Reads from the VarsStore to ensure all data is exported correctly
+ * Similar to tokens and brand export - reads directly from store state
  */
 export function exportUIKitJson(): object {
-  const vars = getAllCssVars()
-  const tokenIndex = buildTokenIndex(tokensJson as JsonLike)
-  const result: any = {
-    'ui-kit': {
-      globals: {},
-      components: {}
+  const store = getVarsStore()
+  const storeState = store.getState()
+  const uikit = storeState.uikit as any
+  
+  // Read directly from uikit, just like tokens export reads from storeState.tokens
+  // UIKit in store may have 'ui-kit' wrapper or be the raw structure
+  if (!uikit) {
+    return {
+      'ui-kit': {},
+      $metadata: {
+        exportedAt: new Date().toISOString(),
+        version: '1.0.0'
+      }
     }
   }
   
-  // Process UIKit CSS variables
-  Object.entries(vars).forEach(([cssVar, cssValue]) => {
-    if (!cssVar.startsWith('--recursica-ui-kit-')) return
-    
-    const path = cssVar.replace('--recursica-ui-kit-', '').split('-')
-    
-    // Handle global paths: globals-icon-style
-    if (path[0] === 'globals' && path.length >= 2) {
-      path.shift() // Remove 'globals'
-      const globalPath = path.join('.')
-      
-      // Build structure from CSS vars only
-      const parts = globalPath.split('.')
-      let current = result['ui-kit'].globals
-      
-      for (let i = 0; i < parts.length - 1; i++) {
-        if (!current[parts[i]]) {
-          current[parts[i]] = {}
-        }
-        current = current[parts[i]]
-      }
-      
-      const lastPart = parts[parts.length - 1]
-      const type = cssValue.includes('var') ? 'string' : 
-                  /^\d+px$/.test(cssValue) ? 'dimension' : 'string'
-      const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
-      if (jsonValue !== undefined) {
-        current[lastPart] = {
-          $type: type,
-          $value: jsonValue
-        }
-      }
-    }
-    
-    // Handle component paths with new structure:
-    // - components-switch-properties-colors-layer-0-thumb-selected
-    // - components-button-variants-styles-solid-properties-colors-layer-0-background
-    // - components-button-variants-sizes-default-properties-height
-    // - components-button-properties-border-radius
-    if (path[0] === 'components' && path.length >= 4) {
-      path.shift() // Remove 'components'
-      const componentName = path[0]
-      path.shift() // Remove component name
-      
-      // Initialize component if needed
-      if (!result['ui-kit'].components[componentName]) {
-        result['ui-kit'].components[componentName] = {}
-      }
-      
-      // Check the structure based on the path
-      // NEW STRUCTURE patterns:
-      // 1. properties.colors (Switch): components-switch-properties-colors-layer-0-thumb-selected
-      // 2. variants.styles.{variant}.properties.colors: components-button-variants-styles-solid-properties-colors-layer-0-background
-      // 3. variants.sizes.{variant}.properties.{property}: components-button-variants-sizes-default-properties-height
-      // 4. properties.{property}: components-button-properties-border-radius
-      
-      if ((path[0] as string) === 'properties') {
-        // Pattern 1 or 4: properties.colors or properties.{property}
-        path.shift() // Remove 'properties'
-        
-        if ((path[0] as string) === 'colors') {
-          // Pattern 1: properties.colors (Switch)
-          path.shift() // Remove 'colors'
-          const componentPath = path.join('.')
-          
-          if (!result['ui-kit'].components[componentName]['properties']) {
-            result['ui-kit'].components[componentName]['properties'] = {}
-          }
-          if (!result['ui-kit'].components[componentName]['properties']['colors']) {
-            result['ui-kit'].components[componentName]['properties']['colors'] = {}
-          }
-          
-          const parts = componentPath.split('.')
-          let current = result['ui-kit'].components[componentName]['properties']['colors']
-          
-          for (let i = 0; i < parts.length - 1; i++) {
-            if (!current[parts[i]]) {
-              current[parts[i]] = {}
-            }
-            current = current[parts[i]]
-          }
-          
-          const lastPart = parts[parts.length - 1]
-          const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
-          if (jsonValue !== undefined) {
-            current[lastPart] = {
-              $type: 'color',
-              $value: jsonValue
-            }
-          }
-        } else {
-          // Pattern 4: properties.{property} (component-level properties)
-          const componentPath = path.join('.')
-          
-          if (!result['ui-kit'].components[componentName]['properties']) {
-            result['ui-kit'].components[componentName]['properties'] = {}
-          }
-          
-          const parts = componentPath.split('.')
-          let current = result['ui-kit'].components[componentName]['properties']
-          
-          for (let i = 0; i < parts.length - 1; i++) {
-            if (!current[parts[i]]) {
-              current[parts[i]] = {}
-            }
-            current = current[parts[i]]
-          }
-          
-          const lastPart = parts[parts.length - 1]
-          // Determine type based on property name or default to dimension
-          const type = lastPart.includes('elevation') ? 'elevation' :
-                      lastPart.includes('size') && !lastPart.includes('text') ? 'dimension' :
-                      lastPart.includes('typography') || lastPart.includes('font') ? 'typography' :
-                      'dimension'
-          const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
-          if (jsonValue !== undefined) {
-            current[lastPart] = {
-              $type: type,
-              $value: jsonValue
-            }
-          }
-        }
-      } else if ((path[0] as string) === 'variants') {
-        // Pattern 2 or 3: variants.styles or variants.sizes
-        path.shift() // Remove 'variants'
-        
-        if (!result['ui-kit'].components[componentName]['variants']) {
-          result['ui-kit'].components[componentName]['variants'] = {}
-        }
-        
-        if ((path[0] as string) === 'styles' || (path[0] as string) === 'sizes') {
-          const category = path[0] // 'styles' or 'sizes'
-          path.shift() // Remove category
-          
-          if (!result['ui-kit'].components[componentName]['variants'][category]) {
-            result['ui-kit'].components[componentName]['variants'][category] = {}
-          }
-          
-          // Next should be variant name (e.g., 'solid', 'default')
-          if (path.length > 0) {
-            const variantName = path[0]
-            path.shift() // Remove variant name
-            
-            if (!result['ui-kit'].components[componentName]['variants'][category][variantName]) {
-              result['ui-kit'].components[componentName]['variants'][category][variantName] = {}
-            }
-            
-            // Check if next is 'properties'
-            if ((path[0] as string) === 'properties') {
-              path.shift() // Remove 'properties'
-              
-              if (!result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']) {
-                result['ui-kit'].components[componentName]['variants'][category][variantName]['properties'] = {}
-              }
-              
-              if ((path[0] as string) === 'colors') {
-                // Pattern 2: variants.styles.{variant}.properties.colors
-                path.shift() // Remove 'colors'
-                const componentPath = path.join('.')
-                
-                if (!result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']['colors']) {
-                  result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']['colors'] = {}
-                }
-                
-                const parts = componentPath.split('.')
-                let current = result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']['colors']
-                
-                for (let i = 0; i < parts.length - 1; i++) {
-                  if (!current[parts[i]]) {
-                    current[parts[i]] = {}
-                  }
-                  current = current[parts[i]]
-                }
-                
-                const lastPart = parts[parts.length - 1]
-                const jsonValue = cssValueToJsonValue(cssValue, 'color', tokenIndex)
-                if (jsonValue !== undefined) {
-                  current[lastPart] = {
-                    $type: 'color',
-                    $value: jsonValue
-                  }
-                }
-              } else {
-                // Pattern 3: variants.sizes.{variant}.properties.{property}
-                const componentPath = path.join('.')
-                
-                const parts = componentPath.split('.')
-                let current = result['ui-kit'].components[componentName]['variants'][category][variantName]['properties']
-                
-                for (let i = 0; i < parts.length - 1; i++) {
-                  if (!current[parts[i]]) {
-                    current[parts[i]] = {}
-                  }
-                  current = current[parts[i]]
-                }
-                
-                const lastPart = parts[parts.length - 1]
-                const jsonValue = cssValueToJsonValue(cssValue, 'dimension', tokenIndex)
-                if (jsonValue !== undefined) {
-                  current[lastPart] = {
-                    $type: 'dimension',
-                    $value: jsonValue
-                  }
-                }
-              }
-            }
-          }
-        }
-      } else {
-        // Legacy structure: direct category (colors, size)
-      let category = path[0] // colors, size
-      path.shift() // Remove category
-      
-      // Map CSS variable category to JSON structure
-      const jsonCategory = category === 'size' ? 'sizes' : category === 'colors' ? 'variants' : category
-      
-      const componentPath = path.join('.')
-      
-      if (!result['ui-kit'].components[componentName][jsonCategory]) {
-        result['ui-kit'].components[componentName][jsonCategory] = {}
-      }
-      
-      const parts = componentPath.split('.')
-      let current = result['ui-kit'].components[componentName][jsonCategory]
-      
-      for (let i = 0; i < parts.length - 1; i++) {
-        if (!current[parts[i]]) {
-          current[parts[i]] = {}
-        }
-        current = current[parts[i]]
-      }
-      
-      const lastPart = parts[parts.length - 1]
-      const type = category === 'colors' ? 'color' : 'dimension'
-      const jsonValue = cssValueToJsonValue(cssValue, type, tokenIndex)
-      if (jsonValue !== undefined) {
-        current[lastPart] = {
-          $type: type,
-          $value: jsonValue
-          }
-        }
-      }
-    }
-  })
+  // Deep clone the UIKit structure from store
+  // Ensure it has the 'ui-kit' wrapper if it doesn't already
+  const uikitWithWrapper = (uikit as any)?.['ui-kit'] ? uikit : { 'ui-kit': uikit }
+  const result = JSON.parse(JSON.stringify(uikitWithWrapper))
   
-  return result
+  // Normalize brand references to remove theme information (UIKit should be theme-agnostic)
+  const normalized = normalizeUIKitBrandReferences(result)
+  
+  // Add metadata with export timestamp
+  normalized.$metadata = {
+    exportedAt: new Date().toISOString(),
+    version: '1.0.0'
+  }
+  
+  return normalized
 }
 
 /**
@@ -1087,7 +1122,242 @@ function getBrandSortKey(varName: string): string {
   return varName
 }
 
-export function exportCssStylesheet(): string {
+/**
+ * Parses a CSS variable name to extract theme and layer information
+ * Returns an object with theme, layer, and base name (without theme/layer)
+ */
+function parseCssVarName(varName: string): {
+  theme: 'light' | 'dark' | null
+  layer: string | null
+  baseName: string
+  hasTheme: boolean
+  hasLayer: boolean
+} {
+  // Brand vars: --recursica-brand-themes-{light|dark}-...
+  const brandThemeMatch = varName.match(/^--recursica-brand-themes-(light|dark)-(.*)$/)
+  if (brandThemeMatch) {
+    const theme = brandThemeMatch[1] as 'light' | 'dark'
+    const rest = brandThemeMatch[2]
+    
+    // Check for layer in brand vars: ...-layer-layer-{N}-...
+    // Pattern: --recursica-brand-themes-{theme}-layer-layer-{N}-...
+    const layerMatch = rest.match(/^layer-layer-(\d+)-(.*)$/)
+    if (layerMatch) {
+      const layer = layerMatch[1]
+      const afterLayer = layerMatch[2]
+      // Base name: --recursica-brand-layer-{rest}
+      const baseName = `--recursica-brand-layer-${afterLayer}`
+      return {
+        theme,
+        layer,
+        baseName,
+        hasTheme: true,
+        hasLayer: true
+      }
+    }
+    
+    // No layer, just theme
+    // Base name: remove themes-{mode}- prefix
+    const baseName = varName.replace(/^--recursica-brand-themes-(light|dark)-/, '--recursica-brand-')
+    return {
+      theme,
+      layer: null,
+      baseName,
+      hasTheme: true,
+      hasLayer: false
+    }
+  }
+  
+  // UIKit vars: --recursica-ui-kit-components-{component}-...-layer-{N}-...
+  // Need to find the layer-{N} pattern and remove it
+  const uikitMatch = varName.match(/^(--recursica-ui-kit-components-.*?)-layer-(\d+)(.*)$/)
+  if (uikitMatch) {
+    const beforeLayer = uikitMatch[1]
+    const layer = uikitMatch[2]
+    const afterLayer = uikitMatch[3]
+    // Base name: remove -layer-{N} part
+    const baseName = `${beforeLayer}${afterLayer}`
+    return {
+      theme: null,
+      layer,
+      baseName,
+      hasTheme: false,
+      hasLayer: true
+    }
+  }
+  
+  // No theme or layer
+  return {
+    theme: null,
+    layer: null,
+    baseName: varName,
+    hasTheme: false,
+    hasLayer: false
+  }
+}
+
+/**
+ * Converts hyphens to underscores in key segments of CSS variable names
+ * Only converts hyphens in the actual key names, not in path segments (which were originally dots)
+ * 
+ * @example
+ * convertKeyHyphensToUnderscores('--recursica-ui-kit-globals-form-properties-label-field-gap-horizontal')
+ * => '--recursica-ui-kit-globals-form-properties-label_field_gap_horizontal'
+ * 
+ * @example
+ * convertKeyHyphensToUnderscores('--recursica-tokens-color-gray-500')
+ * => '--recursica-tokens-color-gray_500'
+ */
+function convertKeyHyphensToUnderscores(varName: string): string {
+  // Pattern: --recursica-{category}-{path-segments}-{key-name}
+  // We need to identify where the path ends and the key begins
+  
+  // For tokens: --recursica-tokens-{type}-{family}-{level}
+  // The last segment (level) is the key
+  const tokensMatch = varName.match(/^(--recursica-tokens-[^-]+-[^-]+)-(.+)$/)
+  if (tokensMatch) {
+    const prefix = tokensMatch[1]
+    const key = tokensMatch[2]
+    return `${prefix}-${key.replace(/-/g, '_')}`
+  }
+  
+  // For brand: --recursica-brand-{path}-{key}
+  // The structure is complex, but typically the last segment(s) are the key
+  // Common patterns:
+  // - --recursica-brand-dimensions-{path}-{key}
+  // - --recursica-brand-palettes-{palette}-{level}-{property}
+  // - --recursica-brand-layer-layer-{N}-{path}-{key}
+  // For now, convert hyphens to underscores in the last segment
+  const brandMatch = varName.match(/^(--recursica-brand-[^-]+(?:-[^-]+)*)-(.+)$/)
+  if (brandMatch) {
+    const prefix = brandMatch[1]
+    const key = brandMatch[2]
+    // Check if key contains known path separators (like "layer-0" or numeric patterns)
+    // If it's just a simple key name, convert hyphens to underscores
+    // Otherwise, be more conservative
+    if (!key.match(/^(layer-\d+|properties|elements|colors|sizes|palettes)/)) {
+      return `${prefix}-${key.replace(/-/g, '_')}`
+    }
+    // For complex paths, convert only the final segment
+    const parts = key.split('-')
+    if (parts.length > 1) {
+      const lastPart = parts.pop()!
+      const path = parts.join('-')
+      return `${prefix}-${path}-${lastPart.replace(/-/g, '_')}`
+    }
+  }
+  
+  // For UIKit: --recursica-ui-kit-{path}-{key}
+  // The path structure is: globals|components-{component}-{category}-{path}-{key}
+  // We need to identify the key part (everything after known path segments)
+  // Common path patterns end with: properties-, colors-, size-, variants-styles-, variants-sizes-
+  // Strategy: Find the last occurrence of known path keywords followed by hyphen, then convert the rest
+  if (varName.startsWith('--recursica-ui-kit-')) {
+    // Try to match known path patterns that end before the key
+    // Pattern: --recursica-ui-kit-{path}-{key} where path ends with known keywords
+    const knownPathEndings = [
+      'properties-',
+      'colors-',
+      'size-',
+      'variants-styles-',
+      'variants-sizes-',
+      'field-',
+      'form-'
+    ]
+    
+    for (const ending of knownPathEndings) {
+      const pattern = new RegExp(`^(--recursica-ui-kit-.+?-${ending.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})(.+)$`)
+      const match = varName.match(pattern)
+      if (match) {
+        const prefix = match[1]
+        const key = match[2]
+        // Convert hyphens to underscores in the key part
+        return `${prefix}${key.replace(/-/g, '_')}`
+      }
+    }
+    
+    // Fallback: if no known path pattern matches, find the last hyphen-separated segment
+    // and convert hyphens to underscores in it
+    // This handles cases like: --recursica-ui-kit-globals-icon-style
+    const parts = varName.split('-')
+    if (parts.length > 4) { // At least: --, recursica, ui, kit, ...
+      // Keep prefix up to and including the second-to-last segment
+      const prefixParts = parts.slice(0, -1)
+      const lastPart = parts[parts.length - 1]
+      // Convert hyphens to underscores in the last part
+      return `${prefixParts.join('-')}-${lastPart.replace(/-/g, '_')}`
+    }
+  }
+  
+  // Fallback: if no pattern matches, convert all hyphens after the prefix
+  const prefixMatch = varName.match(/^(--recursica-[^-]+-[^-]+)-(.+)$/)
+  if (prefixMatch) {
+    const prefix = prefixMatch[1]
+    const rest = prefixMatch[2]
+    // Convert hyphens to underscores in the rest
+    return `${prefix}-${rest.replace(/-/g, '_')}`
+  }
+  
+  // If no pattern matches, return as-is
+  return varName
+}
+
+/**
+ * Groups CSS variables by theme and layer for scoped export
+ */
+function groupVarsByThemeAndLayer(
+  vars: Array<[string, string]>
+): {
+  byTheme: Map<'light' | 'dark', Array<[string, string]>> // [baseName, value] - only vars with theme but no layer
+  byLayer: Map<string, Array<[string, string]>> // [baseName, value] - only vars with layer but no theme
+  byThemeAndLayer: Map<string, Map<string, Array<[string, string]>>> // [theme][layer] -> [baseName, value] - vars with both
+  unscoped: Array<[string, string]> // vars without theme/layer
+} {
+  const byTheme = new Map<'light' | 'dark', Array<[string, string]>>()
+  const byLayer = new Map<string, Array<[string, string]>>()
+  const byThemeAndLayer = new Map<string, Map<string, Array<[string, string]>>>()
+  const unscoped: Array<[string, string]> = []
+  
+  vars.forEach(([name, value]) => {
+    const parsed = parseCssVarName(name)
+    
+    if (parsed.hasTheme && parsed.hasLayer) {
+      // Var has both theme and layer - goes into combined scoping
+      const themeKey = parsed.theme!
+      const layerKey = parsed.layer!
+      if (!byThemeAndLayer.has(themeKey)) {
+        byThemeAndLayer.set(themeKey, new Map())
+      }
+      if (!byThemeAndLayer.get(themeKey)!.has(layerKey)) {
+        byThemeAndLayer.get(themeKey)!.set(layerKey, [])
+      }
+      byThemeAndLayer.get(themeKey)!.get(layerKey)!.push([parsed.baseName, value])
+    } else if (parsed.hasTheme && !parsed.hasLayer) {
+      // Var has theme but no layer - goes into theme scoping only
+      if (!byTheme.has(parsed.theme!)) {
+        byTheme.set(parsed.theme!, [])
+      }
+      byTheme.get(parsed.theme!)!.push([parsed.baseName, value])
+    } else if (!parsed.hasTheme && parsed.hasLayer) {
+      // Var has layer but no theme - goes into layer scoping only
+      if (!byLayer.has(parsed.layer!)) {
+        byLayer.set(parsed.layer!, [])
+      }
+      byLayer.get(parsed.layer!)!.push([parsed.baseName, value])
+    } else {
+      // No theme or layer
+      unscoped.push([name, value])
+    }
+  })
+  
+  return { byTheme, byLayer, byThemeAndLayer, unscoped }
+}
+
+/**
+ * Exports CSS stylesheet - can export specific, scoped, or both
+ * Returns an object with 'specific' and/or 'scoped' CSS strings
+ */
+export function exportCssStylesheet(options: { specific?: boolean; scoped?: boolean } = { specific: true, scoped: true }): { specific?: string; scoped?: string } {
   const vars = getAllCssVars()
   
   // Filter to only --recursica- variables
@@ -1201,29 +1471,236 @@ export function exportCssStylesheet(): string {
   const componentsList = Array.from(components).sort().join(', ') || 'None'
   const colorsList = Array.from(colorFamilies).sort().join(', ') || 'None'
   
-  let css = `/*\n`
-  css += ` * Recursica CSS Variables Export\n`
-  css += ` * Generated: ${buildDate}\n`
-  css += ` *\n`
-  css += ` * Total CSS Variables: ${totalVars}\n`
-  css += ` *\n`
-  css += ` * Components Included: ${componentsList}\n`
-  css += ` *\n`
-  css += ` * Color Families Included: ${colorsList}\n`
-  css += ` */\n\n`
+  // Group vars by theme and layer for scoped export
+  const brandGrouped = groupVarsByThemeAndLayer(brandVars)
+  const uikitGrouped = groupVarsByThemeAndLayer(uikitVars)
+  const tokensGrouped = groupVarsByThemeAndLayer(tokensVars)
   
-  // Build CSS content
-  css += ':root {\n'
-  
-  recursicaVars.forEach(([name, value]) => {
-    // Escape any special characters in the value if needed
-    // Keep var() references as-is
-    css += `  ${name}: ${value};\n`
+  // Collect all scoped variable names to avoid duplicating them in :root
+  const scopedVarNames = new Set<string>()
+  brandGrouped.byTheme.forEach((vars) => {
+    vars.forEach(([baseName]) => scopedVarNames.add(baseName))
+  })
+  brandGrouped.byThemeAndLayer.forEach((layers) => {
+    layers.forEach((vars) => {
+      vars.forEach(([baseName]) => scopedVarNames.add(baseName))
+    })
+  })
+  uikitGrouped.byLayer.forEach((vars) => {
+    vars.forEach(([baseName]) => scopedVarNames.add(baseName))
+  })
+  uikitGrouped.byThemeAndLayer.forEach((themes) => {
+    themes.forEach((layers) => {
+      layers.forEach((vars) => {
+        vars.forEach(([baseName]) => scopedVarNames.add(baseName))
+      })
+    })
   })
   
-  css += '}\n'
+  const result: { specific?: string; scoped?: string } = {}
   
-  return css
+  // Build specific CSS (all variables with their full names, including theme/layer)
+  if (options.specific) {
+    let specificCss = `/*\n`
+    specificCss += ` * Recursica CSS Variables - Specific (Backward Compatibility)\n`
+    specificCss += ` * Generated: ${buildDate}\n`
+    specificCss += ` *\n`
+    specificCss += ` * Total CSS Variables: ${totalVars}\n`
+    specificCss += ` *\n`
+    specificCss += ` * Components Included: ${componentsList}\n`
+    specificCss += ` *\n`
+    specificCss += ` * Color Families Included: ${colorsList}\n`
+    specificCss += ` *\n`
+    specificCss += ` * This file contains all CSS variables with their full names,\n`
+    specificCss += ` * including theme and layer information in the variable names.\n`
+    specificCss += ` * Use this for backward compatibility with existing code.\n`
+    specificCss += ` */\n\n`
+    specificCss += `:root {\n`
+    
+    recursicaVars.forEach(([name, value]) => {
+      // Convert hyphens to underscores in key segments for export
+      const exportedName = convertKeyHyphensToUnderscores(name)
+      specificCss += `  ${exportedName}: ${value};\n`
+    })
+    
+    specificCss += `}\n`
+    result.specific = specificCss
+  }
+  
+  // Build scoped CSS (variables without theme/layer in names, using data attributes)
+  if (options.scoped) {
+    // Filter :root vars to exclude those that will be in scoped blocks
+    const rootVars = recursicaVars.filter(([name]) => {
+      const parsed = parseCssVarName(name)
+      // Include in :root if it has no theme/layer (unscoped)
+      return !parsed.hasTheme && !parsed.hasLayer
+    })
+    
+    let scopedCss = `/*\n`
+    scopedCss += ` * Recursica CSS Variables - Scoped\n`
+    scopedCss += ` * Generated: ${buildDate}\n`
+    scopedCss += ` *\n`
+    scopedCss += ` * Total CSS Variables: ${totalVars}\n`
+    scopedCss += ` *\n`
+    scopedCss += ` * Components Included: ${componentsList}\n`
+    scopedCss += ` *\n`
+    scopedCss += ` * Color Families Included: ${colorsList}\n`
+    scopedCss += ` *\n`
+    scopedCss += ` * This file contains CSS variables using data-recursica-theme\n`
+    scopedCss += ` * and data-recursica-layer attributes for scoping.\n`
+    scopedCss += ` * Variables do not include theme/layer in their names.\n`
+    scopedCss += ` *\n`
+      scopedCss += ` * Usage:\n`
+      scopedCss += ` * - Set data-recursica-theme="light" or "dark" on root <html> element\n`
+      scopedCss += ` * - Set data-recursica-layer="N" on any element to override layer for that element and descendants\n`
+      scopedCss += ` * - CSS cascading ensures variables flow through all nested elements\n`
+      scopedCss += ` * - Elements between root and layer declaration inherit from their nearest ancestor\n`
+      scopedCss += ` * - Combined theme+layer selectors override individual theme or layer selectors\n`
+      scopedCss += ` */\n\n`
+    
+    // Section 1: Unscoped CSS variables in :root (no theme/layer)
+    if (rootVars.length > 0) {
+      scopedCss += `/*\n`
+      scopedCss += ` * Unscoped CSS Variables (:root)\n`
+      scopedCss += ` * These variables have no theme/layer and are available globally\n`
+      scopedCss += ` */\n`
+      scopedCss += `:root {\n`
+      
+      rootVars.forEach(([name, value]) => {
+        const exportedName = convertKeyHyphensToUnderscores(name)
+        scopedCss += `  ${exportedName}: ${value};\n`
+      })
+      
+      scopedCss += `}\n\n`
+    }
+    
+    // Section 2: Scoped CSS variables using data-recursica-theme
+    // These selectors cascade through all descendant elements
+    // Set data-recursica-theme on the root <html> element
+    if (brandGrouped.byTheme.size > 0) {
+      scopedCss += `/*\n`
+      scopedCss += ` * Scoped CSS Variables - Theme (data-recursica-theme)\n`
+      scopedCss += ` * These variables cascade through all descendant elements\n`
+      scopedCss += ` * Set data-recursica-theme="light" or "dark" on the root <html> element\n`
+      scopedCss += ` */\n`
+      
+      // Export light theme
+      if (brandGrouped.byTheme.has('light')) {
+        scopedCss += `[data-recursica-theme="light"] {\n`
+        brandGrouped.byTheme.get('light')!.forEach(([baseName, value]) => {
+          const exportedName = convertKeyHyphensToUnderscores(baseName)
+          scopedCss += `  ${exportedName}: ${value};\n`
+        })
+        scopedCss += `}\n\n`
+      }
+      
+      // Export dark theme
+      if (brandGrouped.byTheme.has('dark')) {
+        scopedCss += `[data-recursica-theme="dark"] {\n`
+        brandGrouped.byTheme.get('dark')!.forEach(([baseName, value]) => {
+          const exportedName = convertKeyHyphensToUnderscores(baseName)
+          scopedCss += `  ${exportedName}: ${value};\n`
+        })
+        scopedCss += `}\n\n`
+      }
+    }
+    
+    // Section 3: Scoped CSS variables using data-recursica-layer
+    // These selectors cascade through all descendant elements
+    // Can be set on any element in the DOM hierarchy to override layer for that element and its children
+    if (uikitGrouped.byLayer.size > 0) {
+      scopedCss += `/*\n`
+      scopedCss += ` * Scoped CSS Variables - Layer (data-recursica-layer)\n`
+      scopedCss += ` * These variables cascade through all descendant elements\n`
+      scopedCss += ` * Set data-recursica-layer="N" on any element to apply layer N to that element and all descendants\n`
+      scopedCss += ` * Root element should have data-recursica-layer="0" by default\n`
+      scopedCss += ` * Elements between root and layer declaration will inherit from their nearest ancestor\n`
+      scopedCss += ` */\n`
+      
+      // Sort layers numerically
+      const sortedLayers = Array.from(uikitGrouped.byLayer.keys()).sort((a, b) => {
+        const numA = parseInt(a, 10)
+        const numB = parseInt(b, 10)
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB
+        }
+        return a.localeCompare(b)
+      })
+      
+      sortedLayers.forEach((layer) => {
+        scopedCss += `[data-recursica-layer="${layer}"] {\n`
+        uikitGrouped.byLayer.get(layer)!.forEach(([baseName, value]) => {
+          const exportedName = convertKeyHyphensToUnderscores(baseName)
+          scopedCss += `  ${exportedName}: ${value};\n`
+        })
+        scopedCss += `}\n\n`
+      })
+    }
+    
+    // Section 4: Combined theme + layer scoping for vars with both theme and layer
+    // These selectors have higher specificity and override theme-only or layer-only selectors
+    // They cascade through all descendant elements when both attributes are present on an element or ancestor
+    if (brandGrouped.byThemeAndLayer.size > 0) {
+      scopedCss += `/*\n`
+      scopedCss += ` * Scoped CSS Variables - Theme + Layer (data-recursica-theme + data-recursica-layer)\n`
+      scopedCss += ` * These variables combine both theme and layer scoping with higher specificity\n`
+      scopedCss += ` * They cascade through all descendant elements when both attributes are present\n`
+      scopedCss += ` * Example: <html data-recursica-theme="light"> with <div data-recursica-layer="1"> inside\n`
+      scopedCss += ` *          Elements inside the div will use these combined theme+layer variables\n`
+      scopedCss += ` */\n`
+      
+      const sortedThemes = Array.from(brandGrouped.byThemeAndLayer.keys()).sort()
+      sortedThemes.forEach((theme) => {
+        const layers = brandGrouped.byThemeAndLayer.get(theme)!
+        const sortedLayers = Array.from(layers.keys()).sort((a, b) => {
+          const numA = parseInt(a, 10)
+          const numB = parseInt(b, 10)
+          if (!isNaN(numA) && !isNaN(numB)) {
+            return numA - numB
+          }
+          return a.localeCompare(b)
+        })
+        
+        sortedLayers.forEach((layer) => {
+          scopedCss += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"] {\n`
+          layers.get(layer)!.forEach(([baseName, value]) => {
+            const exportedName = convertKeyHyphensToUnderscores(baseName)
+            scopedCss += `  ${exportedName}: ${value};\n`
+          })
+          scopedCss += `}\n\n`
+        })
+      })
+    }
+    
+    // Also handle UIKit vars with both theme and layer (if any exist in future)
+    if (uikitGrouped.byThemeAndLayer.size > 0) {
+      const sortedThemes = Array.from(uikitGrouped.byThemeAndLayer.keys()).sort()
+      sortedThemes.forEach((theme) => {
+        const layers = uikitGrouped.byThemeAndLayer.get(theme)!
+        const sortedLayers = Array.from(layers.keys()).sort((a, b) => {
+          const numA = parseInt(a, 10)
+          const numB = parseInt(b, 10)
+          if (!isNaN(numA) && !isNaN(numB)) {
+            return numA - numB
+          }
+          return a.localeCompare(b)
+        })
+        
+        sortedLayers.forEach((layer) => {
+          scopedCss += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"] {\n`
+          layers.get(layer)!.forEach(([baseName, value]) => {
+            const exportedName = convertKeyHyphensToUnderscores(baseName)
+            scopedCss += `  ${exportedName}: ${value};\n`
+          })
+          scopedCss += `}\n\n`
+        })
+      })
+    }
+    
+    result.scoped = scopedCss
+  }
+  
+  return result
 }
 
 /**
@@ -1231,7 +1708,7 @@ export function exportCssStylesheet(): string {
  * If multiple files are selected, they are zipped together
  * Validates JSON files before export and throws error if validation fails
  */
-export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; css?: boolean } = { tokens: true, brand: true, uikit: true }): Promise<void> {
+export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; cssSpecific?: boolean; cssScoped?: boolean } = { tokens: true, brand: true, uikit: true }): Promise<void> {
   // Count how many files are selected
   const selectedFiles: Array<{ content: string | object; filename: string; isJson: boolean }> = []
   
@@ -1261,12 +1738,30 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
   
   if (files.uikit) {
     const uikit = exportUIKitJson()
+    // Validate UIKit before adding to export
+    try {
+      validateUIKitJson(uikit as JsonLike)
+    } catch (error) {
+      console.error('[Export] UIKit.json validation failed:', error)
+      throw new Error(`Cannot export uikit.json: ${error instanceof Error ? error.message : String(error)}`)
+    }
     selectedFiles.push({ content: uikit, filename: 'uikit.json', isJson: true })
   }
   
-  if (files.css) {
-    const css = exportCssStylesheet()
-    selectedFiles.push({ content: css, filename: 'recursica-variables.css', isJson: false })
+  // Export CSS files (specific and/or scoped)
+  if (files.cssSpecific || files.cssScoped) {
+    const cssExports = exportCssStylesheet({ 
+      specific: files.cssSpecific ?? false, 
+      scoped: files.cssScoped ?? false 
+    })
+    
+    if (cssExports.specific) {
+      selectedFiles.push({ content: cssExports.specific, filename: 'recursica-variables-specific.css', isJson: false })
+    }
+    
+    if (cssExports.scoped) {
+      selectedFiles.push({ content: cssExports.scoped, filename: 'recursica-variables-scoped.css', isJson: false })
+    }
   }
   
   // If only one file, download it directly

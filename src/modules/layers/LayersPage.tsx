@@ -1,7 +1,8 @@
 import '../theme/index.css'
 import LayerModule from './LayerModule'
 import LayerStylePanel from './LayerStylePanel'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import React from 'react'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { Button } from '../../components/adapters/Button'
@@ -26,9 +27,15 @@ export default function LayersPage() {
     const themes = root?.themes || root
     const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
     
+    // Get all available layer keys dynamically
+    const allLayerKeys = Object.keys(defaults).filter(key => /^layer-\d+$/.test(key))
+    const allLayers = allLayerKeys.map(key => {
+      const match = /^layer-(\d+)$/.exec(key)
+      return match ? parseInt(match[1], 10) : null
+    }).filter((lvl): lvl is number => lvl !== null).sort((a, b) => a - b)
+    
     // Clear CSS variables for all layers so they regenerate from theme defaults
     const rootEl = document.documentElement
-    const allLayers = [0, 1, 2, 3]
     allLayers.forEach((lvl) => {
       const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-surface`
       const borderVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-border-color`
@@ -82,6 +89,50 @@ export default function LayersPage() {
   }
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property-element`
+  
+  // Dynamically get all available layers from theme
+  const layerModules = useMemo(() => {
+    // Try to get layers from current theme, fallback to brandDefault if theme not loaded
+    const sourceTheme: any = theme || brandDefault
+    // Theme structure is always { brand: { themes: { light: { layers: {...} }, dark: { layers: {...} } } } }
+    const brand = sourceTheme?.brand || sourceTheme
+    const themes = brand?.themes || {}
+    const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+    
+    const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
+      const aNum = parseInt(a.replace('layer-', ''), 10)
+      const bNum = parseInt(b.replace('layer-', ''), 10)
+      return aNum - bNum
+    })
+    
+    if (layerKeys.length === 0) {
+      return null
+    }
+    
+    // Build nested LayerModule components dynamically
+    const buildLayerModules = (keys: string[], index: number): React.ReactElement | null => {
+      if (index >= keys.length) return null
+      const key = keys[index]
+      const level = parseInt(key.replace('layer-', ''), 10)
+      const title = level === 0 ? `Layer ${level} (Background)` : `Layer ${level}`
+      const child = buildLayerModules(keys, index + 1)
+      
+      return (
+        <LayerModule
+          key={key}
+          level={level}
+          title={title}
+          onSelect={() => { setSelectedLayerLevels(new Set([level])) }}
+          isSelected={selectedLayerLevels.has(level)}
+        >
+          {child}
+        </LayerModule>
+      )
+    }
+    
+    return buildLayerModules(layerKeys, 0)
+  }, [theme, mode, selectedLayerLevels])
+  
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
@@ -110,13 +161,7 @@ export default function LayersPage() {
             </Button>
           </div>
           <div style={{ display: 'grid', gap: 12 }}>
-            <LayerModule level={0} title="Layer 0 (Background)" onSelect={() => { setSelectedLayerLevels(new Set([0])) }} isSelected={selectedLayerLevels.has(0)}>
-              <LayerModule level={1} title="Layer 1" onSelect={() => { setSelectedLayerLevels(new Set([1])) }} isSelected={selectedLayerLevels.has(1)}>
-                <LayerModule level={2} title="Layer 2" onSelect={() => { setSelectedLayerLevels(new Set([2])) }} isSelected={selectedLayerLevels.has(2)}>
-                  <LayerModule level={3} title="Layer 3" onSelect={() => { setSelectedLayerLevels(new Set([3])) }} isSelected={selectedLayerLevels.has(3)} />
-                </LayerModule>
-              </LayerModule>
-            </LayerModule>
+            {layerModules}
           </div>
         </div>
         {selectedLayerLevels.size > 0 && (

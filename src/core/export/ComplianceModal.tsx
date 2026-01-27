@@ -129,7 +129,7 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
               cursor: acknowledged ? 'pointer' : 'not-allowed',
             }}
           >
-            Acknowledge & Export
+            Continue
           </button>
         </div>
       </div>

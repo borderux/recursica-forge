@@ -1,6 +1,7 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex, resolveBraceRef } from './tokens'
 import { resolveTokenReferenceToCssVar, resolveTokenReferenceToValue, extractBraceContent, parseTokenReference, type TokenReferenceContext } from '../utils/tokenReferenceParser'
+import { readCssVar } from '../css/readCssVar'
 
 export type ModeLabel = 'Light' | 'Dark'
 
@@ -396,9 +397,29 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
           onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
         }
         
-        // Always set the on-tone CSS variable - never skip it, even for standard levels like 1000
-        // This ensures reset doesn't cause on-tone colors to disappear
-        vars[`${scope}-on-tone`] = onToneVar
+        // Only set on-tone CSS variable if it doesn't already exist with a valid value
+        // This preserves AA-compliant values set by AA compliance checks
+        // On-tone vars should never be overwritten by recomputeAndApplyAll after initial load
+        const onToneCssVarName = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${lvl}-on-tone`
+        let shouldSetOnTone = true
+        
+        if (typeof document !== 'undefined') {
+          // Use readCssVar to get the actual CSS variable value (var() reference), not the resolved hex color
+          // This is critical: getComputedStyle returns resolved values like #fcfcfc, but we need the var() reference
+          const existingValue = readCssVar(onToneCssVarName)
+          // If on-tone var already exists and is a valid var() reference to core-white or core-black, preserve it
+          if (existingValue && existingValue.trim() !== '' && 
+              existingValue.startsWith('var(') &&
+              (existingValue.includes('core-white') || existingValue.includes('core-black'))) {
+            // Don't overwrite existing AA-compliant value - skip setting from JSON
+            shouldSetOnTone = false
+          }
+        }
+        
+        // Only set from JSON if no existing valid value
+        if (shouldSetOnTone) {
+          vars[`${scope}-on-tone`] = onToneVar
+        }
       }
       // Do not emit per-level palette emphasis vars; consumers should reference brand-level text emphasis tokens directly
     })
@@ -409,71 +430,53 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const primaryToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-primary-tone`
     const primaryOnToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-primary-on-tone`
     
-      if (!vars[primaryToneVar]) {
-        // First, check if the CSS variable already exists in the DOM (user may have set it manually)
-        // Import readCssVar at the top of the file if not already imported
-        const existingPrimaryTone = typeof window !== 'undefined' ? (() => {
-          try {
-            const root = document.documentElement
-            const inlineValue = root.style.getPropertyValue(primaryToneVar)
-            if (inlineValue) return inlineValue.trim()
-            const computedValue = getComputedStyle(root).getPropertyValue(primaryToneVar)
-            if (computedValue) return computedValue.trim()
-          } catch {}
-          return null
-        })() : null
-        
-        // If it exists in DOM and is a valid var() reference, use it
-        if (existingPrimaryTone && existingPrimaryTone.startsWith('var(')) {
-          vars[primaryToneVar] = existingPrimaryTone
-          // Also check for on-tone
-          const existingPrimaryOnTone = typeof window !== 'undefined' ? (() => {
-            try {
-              const root = document.documentElement
-              const inlineValue = root.style.getPropertyValue(primaryOnToneVar)
-              if (inlineValue) return inlineValue.trim()
-              const computedValue = getComputedStyle(root).getPropertyValue(primaryOnToneVar)
-              if (computedValue) return computedValue.trim()
-            } catch {}
-            return null
-          })() : null
-          if (existingPrimaryOnTone && existingPrimaryOnTone.startsWith('var(')) {
-            vars[primaryOnToneVar] = existingPrimaryOnTone
+      // Always check localStorage first for primary level, even if primary-tone var already exists
+      // This ensures randomization updates are reflected
+      let primaryLevel: string | null = null
+      try {
+        const raw = localStorage.getItem(`palette-primary-level:${pk}:${modeLower}`)
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          if (typeof parsed === 'string') {
+            primaryLevel = parsed.padStart(3, '0')
           }
-        } else {
-          // Otherwise, check localStorage for user-selected primary level (mode-specific)
-          let primaryLevel: string | null = null
-          try {
-            const raw = localStorage.getItem(`palette-primary-level:${pk}:${modeLower}`)
-            if (raw) {
-              const parsed = JSON.parse(raw)
-              if (typeof parsed === 'string') {
-                primaryLevel = parsed.padStart(3, '0')
-              }
-            }
-          } catch {}
-        
-          // If no localStorage value, try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
-          if (!primaryLevel) {
-            const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
-            for (const level of fallbackLevels) {
-              const fallbackToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${level}-tone`
-              if (vars[fallbackToneVar]) {
-                primaryLevel = level
-                break
-              }
-            }
+        }
+      } catch (err) {
+        // Ignore localStorage errors
+      }
+      
+      // If we have a primary level from localStorage, use it (even if primary-tone var already exists)
+      // This ensures randomization updates override the JSON default
+      if (primaryLevel) {
+        const targetToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-tone`
+        const targetOnToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-on-tone`
+        if (vars[targetToneVar]) {
+          vars[primaryToneVar] = `var(${targetToneVar})`
+          if (vars[targetOnToneVar]) {
+            vars[primaryOnToneVar] = `var(${targetOnToneVar})`
           }
-          
-          // If we found a primary level (from localStorage or fallback), create primary-tone and primary-on-tone by referencing it
-          if (primaryLevel) {
-            const targetToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-tone`
-            const targetOnToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-on-tone`
-            if (vars[targetToneVar]) {
-              vars[primaryToneVar] = `var(${targetToneVar})`
-              if (vars[targetOnToneVar]) {
-                vars[primaryOnToneVar] = `var(${targetOnToneVar})`
-              }
+        }
+      } else if (!vars[primaryToneVar]) {
+        // Generate primary tone from theme JSON - no DOM preservation
+        // Theme JSON is the single source of truth
+        // If no localStorage value, try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
+        const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
+        for (const level of fallbackLevels) {
+          const fallbackToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${level}-tone`
+          if (vars[fallbackToneVar]) {
+            primaryLevel = level
+            break
+          }
+        }
+        
+        // If we found a primary level (from fallback), create primary-tone and primary-on-tone by referencing it
+        if (primaryLevel) {
+          const targetToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-tone`
+          const targetOnToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-on-tone`
+          if (vars[targetToneVar]) {
+            vars[primaryToneVar] = `var(${targetToneVar})`
+            if (vars[targetOnToneVar]) {
+              vars[primaryOnToneVar] = `var(${targetOnToneVar})`
             }
           }
         }

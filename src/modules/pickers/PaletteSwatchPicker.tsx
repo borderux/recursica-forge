@@ -486,12 +486,29 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return false
   }, [targetCssVar])
 
-  // Get elevation level from layer 3
+  // Get the highest available layer for picker overlay styling
+  const highestLayer = useMemo(() => {
+    try {
+      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+      const themes = root?.themes || root
+      const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+      const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
+        const aNum = parseInt(a.replace('layer-', ''), 10)
+        const bNum = parseInt(b.replace('layer-', ''), 10)
+        return bNum - aNum // Sort descending to get highest first
+      })
+      return layerKeys.length > 0 ? layerKeys[0] : 'layer-3' // Fallback to layer-3 if no layers found
+    } catch {}
+    return 'layer-3'
+  }, [themeJson, mode])
+  
+  // Get elevation level from the highest available layer
   const elevationLevel = useMemo(() => {
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       const themes = root?.themes || root
-      const layerSpec: any = themes?.[mode]?.layers?.['layer-3'] || themes?.[mode]?.layer?.['layer-3'] || {}
+      const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+      const layerSpec: any = layersData[highestLayer] || {}
       const v: any = layerSpec?.properties?.elevation?.$value
       if (typeof v === 'string') {
         // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
@@ -500,7 +517,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       }
     } catch {}
     return '3' // Default to elevation-3 if not found
-  }, [themeJson, mode])
+  }, [themeJson, mode, highestLayer])
 
   // Reset hex match ref when target changes
   useEffect(() => {
@@ -700,8 +717,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     setIsDragging(true)
   }
 
+  const highestLayerNum = highestLayer.replace('layer-', '')
+  
   return createPortal(
-    <div style={{ position: 'absolute', top: pos.top, left: pos.left, width: 'auto', minWidth: overlayWidth, maxWidth: '90vw', background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`, boxShadow: elevationBoxShadow, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding))`, zIndex: 20000, cursor: isDragging ? 'grabbing' : 'default' }}>
+    <div style={{ position: 'absolute', top: pos.top, left: pos.left, width: 'auto', minWidth: overlayWidth, maxWidth: '90vw', background: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-element-text-color))`, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-radius))`, boxShadow: elevationBoxShadow, padding: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-padding))`, zIndex: 20000, cursor: isDragging ? 'grabbing' : 'default' }}>
       <div 
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
         onMouseDown={handleHeaderMouseDown}
@@ -840,7 +859,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 style={{
                   width: '100%',
                   height: '100%',
-                  background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
+                  background: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface)`,
                   borderRadius: isNoneSelected ? '4px' : '0',
                   position: 'relative',
                 }}
@@ -1031,10 +1050,100 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                     title={coreColor.label}
                     onClick={(e) => {
                       e.stopPropagation()
+                      console.log(`[PaletteSwatchPicker] Core color clicked: key=${coreColor.key}, cssVar=${coreColor.cssVar}, targetCssVar=${targetCssVar}`)
                       try {
                         const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                         const coreColorPrefix = `--recursica-brand-themes-${mode}-palettes-core-`
                         
+                        // Check if this is an overlay color selection
+                        const isOverlayColor = cssVarsToUpdate.some(cssVar => cssVar.includes('state-overlay-color'))
+                        console.log(`[PaletteSwatchPicker] isOverlayColor=${isOverlayColor}, cssVarsToUpdate=`, cssVarsToUpdate)
+                        
+                        if (isOverlayColor) {
+                          // Handle overlay color selection (similar to palette color handler)
+                          console.log(`[PaletteSwatchPicker] Handling overlay color selection for core color: ${coreColor.key}`)
+                          
+                          // Extract core color name from CSS var (e.g., "black", "white", "alert", etc.)
+                          const coreColorMatch = coreColor.cssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-default-tone|-hover-tone|-tone)?)/i)
+                          if (!coreColorMatch) {
+                            console.error('[PaletteSwatchPicker] Failed to extract core color name from CSS var')
+                            return
+                          }
+                          
+                          const [, coreColorKey] = coreColorMatch
+                          // Normalize the key (remove -tone, -default-tone, -hover-tone suffixes)
+                          let normalizedKey = coreColorKey.replace(/-tone$/, '').replace(/-default-tone$/, '-default').replace(/-hover-tone$/, '-hover')
+                          
+                          // For non-interactive core colors, we need just the base name (black, white, alert, warning, success)
+                          if (normalizedKey === 'black' || normalizedKey === 'white' || normalizedKey === 'alert' || normalizedKey === 'warning' || normalizedKey === 'success') {
+                            // Update CSS vars FIRST for immediate visual feedback
+                            cssVarsToUpdate.forEach((cssVar) => {
+                              const prefixedTarget = cssVar.startsWith('--recursica-')
+                                ? cssVar
+                                : cssVar.startsWith('--')
+                                  ? `--recursica-${cssVar.slice(2)}`
+                                  : `--recursica-${cssVar}`
+                              
+                              console.log(`[PaletteSwatchPicker] Updating overlay CSS var ${prefixedTarget} to var(${coreColor.cssVar})`)
+                              updateCssVar(prefixedTarget, `var(${coreColor.cssVar})`, tokensJson)
+                            })
+                            
+                            // Persist to theme JSON
+                            if (setTheme && themeJson) {
+                              try {
+                                const themeCopy = JSON.parse(JSON.stringify(themeJson))
+                                const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                                const themes = root?.themes || root
+                                
+                                // Determine which mode (light or dark)
+                                const isDark = cssVarsToUpdate.some(cssVar => cssVar.includes('-dark-'))
+                                const modeKey = isDark ? 'dark' : 'light'
+                                
+                                // Ensure state structure exists
+                                if (!themes[modeKey]) themes[modeKey] = {}
+                                if (!themes[modeKey].states) themes[modeKey].states = {}
+                                if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+                                
+                                // Update the overlay color reference in theme JSON
+                                // Format: {brand.palettes.core-colors.{colorName}.tone}
+                                themes[modeKey].states.overlay.color = {
+                                  $type: 'color',
+                                  $value: `{brand.palettes.core-colors.${normalizedKey}.tone}`
+                                }
+                                
+                                console.log(`[PaletteSwatchPicker] Updating theme JSON overlay color to: {brand.palettes.core-colors.${normalizedKey}.tone}`)
+                                setTheme(themeCopy)
+                              } catch (err) {
+                                console.error('[PaletteSwatchPicker] Failed to update theme JSON for overlay color:', err)
+                              }
+                            }
+                            
+                            // Force re-render to update selection state
+                            setRefreshTrigger(prev => prev + 1)
+                            
+                            // Dispatch cssVarsUpdated event
+                            setTimeout(() => {
+                              try {
+                                window.dispatchEvent(new CustomEvent('cssVarsUpdated', { 
+                                  detail: { cssVars: cssVarsToUpdate } 
+                                }))
+                              } catch {}
+                            }, 0)
+                            
+                            onSelect?.(coreColor.cssVar)
+                            
+                            // Close the picker
+                            setAnchor(null)
+                            setTargetCssVar(null)
+                            setTargetCssVars([])
+                            setTargetOpacityCssVar(null)
+                            setShowOpacityDropdown(false)
+                            setSelectedOpacity('')
+                            return
+                          }
+                        }
+                        
+                        // Original logic for core color tone updates (not overlay colors)
                         // Extract token reference from selected core color CSS var
                         // First try to get it from theme JSON (most reliable)
                         let tokenRef: string | null = null

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
-import { updateCssVar } from '../../core/css/updateCssVar'
+import { updateCssVar, clearPendingCssVars, suppressCssVarEvents } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateInteractiveColor, updateCoreColorInteractiveOnTones } from './interactiveColorUpdater'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
@@ -588,15 +588,28 @@ export default function ColorTokenPicker() {
       
       setTheme(themeCopy)
       
-      // After core color changes, update all layers to ensure AA compliance
-      // This checks each layer and steps through color scales as needed to find compliant colors
+      // After core color changes, trigger AA compliance checks
+      // This updates all layers and all palette on-tones
       setTimeout(() => {
         const varsStore = getVarsStore()
         if (varsStore.aaWatcher) {
+          // Suppress CSS var events during AA compliance check
+          suppressCssVarEvents(true)
+          
           // Update the watcher with the latest theme so it has the updated core color values
           varsStore.aaWatcher.updateTokensAndTheme(tokensJson, themeCopy)
-          // Update all layers (0-3) for the current mode
-          varsStore.aaWatcher.updateAllLayers(modeLower as 'light' | 'dark')
+          
+          // Update all layers (0-3) for both modes
+          varsStore.aaWatcher.updateAllLayers()
+          
+          // Update all palette on-tones (core color changes affect all palettes)
+          // CSS vars only, never JSON
+          varsStore.aaWatcher.checkAllPaletteOnTones()
+          
+          setTimeout(() => {
+            clearPendingCssVars()
+            suppressCssVarEvents(false)
+          }, 100)
         }
       }, 0)
     } catch (err) {

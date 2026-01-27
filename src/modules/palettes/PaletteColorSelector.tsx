@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
-import { updateCssVar } from '../../core/css/updateCssVar'
+import { updateCssVar, suppressCssVarEvents, clearPendingCssVars } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { getVarsStore } from '../../core/store/varsStore'
 
 type PaletteColorSelectorProps = {
   paletteKey: string
@@ -417,7 +418,35 @@ export default function PaletteColorSelector({
     if (detected && detected !== selectedFamily) {
       setSelectedFamily(detected)
     }
-  }, [detectFamilyFromTheme])
+  }, [detectFamilyFromTheme, selectedFamily])
+  
+  // Also listen for theme reset to force refresh
+  useEffect(() => {
+    const handleThemeReset = () => {
+      // Force recalculation - the theme has been reset, so re-read from theme
+      // Use a small delay to ensure theme state has updated
+      setTimeout(() => {
+        const currentDetected = familiesUsedByPalettes[paletteKey]
+        if (currentDetected) {
+          // If it's a scale key, find the alias
+          let alias = currentDetected
+          if (currentDetected.startsWith('scale-')) {
+            const tokensRoot: any = (tokensJson as any)?.tokens || {}
+            const colorsRoot: any = tokensRoot?.colors || {}
+            const scale = colorsRoot?.[currentDetected]
+            if (scale && typeof scale === 'object' && scale.alias) {
+              alias = scale.alias
+            }
+          }
+          setSelectedFamily(alias)
+        } else if (families.length > 0) {
+          setSelectedFamily(families[0])
+        }
+      }, 50)
+    }
+    window.addEventListener('themeReset', handleThemeReset)
+    return () => window.removeEventListener('themeReset', handleThemeReset)
+  }, [familiesUsedByPalettes, paletteKey, tokensJson, families])
 
   // Build theme index to read token levels from Brand.json (needed for recheckAACompliance)
   const themeIndex = useMemo(() => {
@@ -471,14 +500,13 @@ export default function PaletteColorSelector({
     // Store verified on-tone values for theme JSON update
     const verifiedOnTones: Record<string, 'white' | 'black'> = {}
     
+    // Calculate on-tone values for all levels first
     headerLevels.forEach((lvl) => {
       // Get the actual token level from Brand.json (not the palette level)
       const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
       const tokenName = `color/${familyToUse}/${tokenLevel}`
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
-        const onToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
-        
         // Get actual core color values (read from CSS variables to get current values)
         const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
         const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
@@ -534,29 +562,19 @@ export default function PaletteColorSelector({
           onToneCore = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
         }
         
-        // Update CSS variable with verified on-tone
-        updateCssVar(
-          onToneCssVar,
-          `var(--recursica-brand-themes-${modeLower}-palettes-core-${onToneCore})`
-        )
-        
         // Store verified value for theme JSON update
         verifiedOnTones[lvl] = onToneCore
       }
     })
     
-    // Don't dispatch paletteVarsChanged here - it will be dispatched by the explicit user action that triggered this
-    // (e.g., when user changes family via dropdown)
-    
-    // Also update theme JSON for both modes to persist the new on-tone values
-    // Use verified on-tone values for current mode, recalculate for other mode
+    // Update theme JSON FIRST before updating CSS vars
+    // This ensures recomputeAndApplyAll reads correct values from JSON
     if (setTheme && themeJson) {
       try {
         const themeCopy = JSON.parse(JSON.stringify(themeJson))
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
         
         for (const modeKey of ['light', 'dark']) {
-          const modeLabel = modeKey === 'light' ? 'Light' : 'Dark'
           const modeKeyLower = modeKey.toLowerCase()
           if (!root[modeKey]?.palettes?.[paletteKey]) continue
           
@@ -628,7 +646,19 @@ export default function PaletteColorSelector({
           })
         }
         
+        // Update theme JSON first - this ensures recomputeAndApplyAll reads correct values
         setTheme(themeCopy)
+        
+        // Then update CSS vars to match JSON (they should already match, but ensure consistency)
+        headerLevels.forEach((lvl) => {
+          if (verifiedOnTones[lvl]) {
+            const onToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
+            updateCssVar(
+              onToneCssVar,
+              `var(--recursica-brand-themes-${modeLower}-palettes-core-${verifiedOnTones[lvl]})`
+            )
+          }
+        })
       } catch (err) {
         console.error('Failed to update theme for AA compliance:', err)
       }
@@ -887,6 +917,31 @@ export default function PaletteColorSelector({
       // Update theme AFTER CSS vars are set to minimize flicker
       // Other palettes will re-render but CSS vars are already correct
       setTheme(themeCopy)
+      
+      // Trigger AA compliance check for this palette after color scale change
+      // The tone colors have changed, so on-tone values need to be recalculated
+      setTimeout(() => {
+        const varsStore = getVarsStore()
+        if (varsStore.aaWatcher) {
+          suppressCssVarEvents(true)
+          
+          // Update watcher with latest state
+          varsStore.aaWatcher.updateTokensAndTheme(tokensJson, themeCopy)
+          
+          // Check all levels for this palette in both modes
+          const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
+          for (const modeKey of ['light', 'dark'] as const) {
+            levels.forEach((lvl) => {
+              varsStore.aaWatcher?.updatePaletteOnTone(paletteKey, lvl, modeKey)
+            })
+          }
+          
+          setTimeout(() => {
+            clearPendingCssVars()
+            suppressCssVarEvents(false)
+          }, 100)
+        }
+      }, 100)
       
       // Dispatch event to notify that palette vars changed (user-initiated action)
       try {

@@ -13,6 +13,7 @@ export default function ElevationsPage() {
   const { tokens: tokensJson, theme, elevation, updateElevation, updateToken } = useVars()
   const { mode } = useThemeMode()
   const [selectedLevels, setSelectedLevels] = useState<Set<number>>(() => new Set<number>())
+  
 
   // Close panels when mode changes
   useEffect(() => {
@@ -331,7 +332,9 @@ export default function ElevationsPage() {
         {selectedLevels.size > 0 && elevation && (
           <ElevationStylePanel
             selectedLevels={selectedLevels}
-            elevationControls={elevation.controls}
+            elevationControls={(() => {
+              return elevation.controls
+            })()}
             availableSizeTokens={availableSizeTokens}
             availableOpacityTokens={availableOpacityTokens}
             shadowColorControl={elevation.shadowColorControl}

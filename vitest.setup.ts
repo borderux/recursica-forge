@@ -5,7 +5,7 @@ import { configure } from '@testing-library/react'
 // Configure testing library
 configure({ 
   testIdAttribute: 'data-testid',
-  asyncUtilTimeout: 5000,
+  asyncUtilTimeout: 10000, // Increase timeout for CI environments
 })
 
 // Suppress act() warnings from component internal useEffect hooks

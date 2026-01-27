@@ -19,20 +19,15 @@ export type Section = {
   render: (selectedLayers: Set<LayerOption>) => JSX.Element
 }
 
-// Sort layers: standard layers 0-3
+// Sort layers numerically by layer number
 export function sortLayers(layers: LayerOption[]): LayerOption[] {
-  const standardLayers: LayerOption[] = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
-  
-  const sorted: LayerOption[] = []
-  
-  // Add standard layers in order
-  for (const layer of standardLayers) {
-    if (layers.includes(layer)) {
-      sorted.push(layer)
-    }
-  }
-  
-  return sorted
+  return [...layers].sort((a, b) => {
+    const aMatch = /^layer-(\d+)$/.exec(a)
+    const bMatch = /^layer-(\d+)$/.exec(b)
+    const aNum = aMatch ? parseInt(aMatch[1], 10) : Infinity
+    const bNum = bMatch ? parseInt(bMatch[1], 10) : Infinity
+    return aNum - bNum
+  })
 }
 
 export function getComponentSections(mode: 'light' | 'dark'): Section[] {
