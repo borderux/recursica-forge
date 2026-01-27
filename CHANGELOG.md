@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.1.1
+
+### Patch Changes
+
+- 020c7e1: Updated documentation and layout of docs
+
 ## 0.1.0
 
 ### Minor Changes
