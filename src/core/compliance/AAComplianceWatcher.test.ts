@@ -95,9 +95,14 @@ describe('AAComplianceWatcher', () => {
     }))
     
     // Wait for watcher to process the change (checkForChanges has 50ms debounce + update time + isUpdating reset)
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // In CI, this can take longer, so wait up to 2 seconds with polling
+    let onTone: string | undefined
+    for (let i = 0; i < 20; i++) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      onTone = readCssVar(onToneVar)
+      if (onTone) break
+    }
     
-    const onTone = readCssVar(onToneVar)
     expect(onTone).toBeDefined()
     // Should be either black or white based on contrast
     // Gray (#808080) has better contrast with white (#ffffff) than black (#000000)
