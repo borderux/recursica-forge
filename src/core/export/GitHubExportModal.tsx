@@ -337,11 +337,19 @@ export function GitHubExportModal({
       }
 
       if (selectedFiles.css) {
-        const css = exportCssStylesheet()
-        files.push({
-          path: 'recursica-variables.css',
-          content: css,
-        })
+        const cssExports = exportCssStylesheet({ specific: true, scoped: true })
+        if (cssExports.specific) {
+          files.push({
+            path: 'recursica-variables-specific.css',
+            content: cssExports.specific,
+          })
+        }
+        if (cssExports.scoped) {
+          files.push({
+            path: 'recursica-variables-scoped.css',
+            content: cssExports.scoped,
+          })
+        }
       }
 
       // Create/update files

@@ -551,6 +551,8 @@ export default function BaseColorsGrid() {
 
   const ResetIcon = iconNameToReactComponent('arrow-path')
 
+  if (!ResetIcon) return null
+
   return (
     <div style={{
       backgroundColor: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-surface)`,

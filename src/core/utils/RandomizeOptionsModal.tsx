@@ -275,7 +275,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
             type="checkbox"
             checked={isSelected}
             ref={(el) => {
-              if (el) el.indeterminate = isIndeterminate
+              if (el) (el as HTMLInputElement).indeterminate = isIndeterminate ?? false
             }}
             onChange={(e) => {
               if (isParent) {

@@ -892,7 +892,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         for (const [styleName, styleObj] of Object.entries(root.typography)) {
           if (!styleObj || typeof styleObj !== 'object' || !('$value' in styleObj)) continue
           
-          const $value = styleObj.$value
+          const $value = styleObj.$value as Record<string, any>
           if (!$value || typeof $value !== 'object') continue
           
           // Randomize fontFamily

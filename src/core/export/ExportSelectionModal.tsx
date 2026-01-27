@@ -59,11 +59,17 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
 
   const handleExportToGithub = () => {
     // Ensure at least one file is selected (CSS is independent, so check JSON files)
-    if (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) {
+    const hasCss = selectedFiles.cssSpecific || selectedFiles.cssScoped
+    if (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !hasCss) {
       return
     }
     if (onExportToGithub) {
-      onExportToGithub(selectedFiles)
+      onExportToGithub({
+        tokens: selectedFiles.tokens,
+        brand: selectedFiles.brand,
+        uikit: selectedFiles.uikit,
+        css: hasCss,
+      })
     }
   }
   
@@ -289,14 +295,14 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
           {onExportToGithub && (
             <button
               onClick={handleExportToGithub}
-              disabled={!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css}
+              disabled={!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.cssSpecific && !selectedFiles.cssScoped}
               style={{
                 padding: '8px 16px',
                 border: 'none',
                 borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-                backgroundColor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) ? '#ccc' : '#24292e',
+                backgroundColor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.cssSpecific && !selectedFiles.cssScoped) ? '#ccc' : '#24292e',
                 color: 'white',
-                cursor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) ? 'not-allowed' : 'pointer',
+                cursor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.cssSpecific && !selectedFiles.cssScoped) ? 'not-allowed' : 'pointer',
               }}
             >
               Export to GitHub

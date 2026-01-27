@@ -517,7 +517,7 @@ class VarsStore {
             
             // Re-enable events and AA watcher after theme JSON is updated
             suppressCssVarEvents(false)
-            this.aaWatcher.enable()
+            this.aaWatcher?.enable()
           }, 100)
         }
       }, 1000) // Wait for CSS variables to be fully applied and recomputeAndApplyAll to complete
@@ -1003,24 +1003,24 @@ class VarsStore {
                       setTimeout(() => {
                         clearPendingCssVars()
                         suppressCssVarEvents(false)
-                        this.aaWatcher.enable()
+                        this.aaWatcher?.enable()
                       }, 50)
                     }).catch((err) => {
                       console.error('Failed to resolve interactive tone hex:', err)
                       clearPendingCssVars()
                       suppressCssVarEvents(false)
-                      this.aaWatcher.enable()
+                      this.aaWatcher?.enable()
                     })
                   } else {
                     clearPendingCssVars()
                     suppressCssVarEvents(false)
-                    this.aaWatcher.enable()
+                    this.aaWatcher?.enable()
                   }
                 }).catch((err) => {
                   console.error('Failed to update core color interactive on-tones:', err)
                   clearPendingCssVars()
                   suppressCssVarEvents(false)
-                  this.aaWatcher.enable()
+                  this.aaWatcher?.enable()
                 })
               }, 200) // Additional delay to ensure theme JSON update completes
             }, 100)
@@ -1408,7 +1408,7 @@ class VarsStore {
               
               // Re-enable events and AA watcher after theme JSON is updated
               suppressCssVarEvents(false)
-              this.aaWatcher.enable()
+              this.aaWatcher?.enable()
             }, 100)
           }
         }, 300) // Wait for CSS variables to be fully applied
