@@ -363,12 +363,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
     })
   }
   
-  // Disable AA compliance watcher BEFORE randomization to prevent it from overwriting randomized values
-  const storeAny = store as any
-  const aaWatcher = storeAny.aaWatcher
-  if (aaWatcher && typeof aaWatcher.disable === 'function') {
-    aaWatcher.disable()
-  }
+  // AA compliance is now trigger-based, no need to disable watchers
   
   // Modify theme/brand - directly modify JSON structure
   const modifiedTheme = JSON.parse(JSON.stringify(initialTheme)) as JsonLike
@@ -1348,12 +1343,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         detail: { cssVars: cssVarsToNotify }
       }))
       
-      // Re-enable AA compliance watcher after a delay to ensure CSS variables are fully applied
-      setTimeout(() => {
-        if (aaWatcher && typeof aaWatcher.enable === 'function') {
-          aaWatcher.enable()
-        }
-      }, 100)
+      // AA compliance is now trigger-based, no need to re-enable watchers
     }, 300)
   }, 100)
 }

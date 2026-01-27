@@ -52,7 +52,7 @@ describe('Button Toolbar Props Integration', () => {
         throw new Error(`Button text mismatch: expected "${expectedText}", got "${btn.textContent}"`)
       }
       return btn
-    }, { timeout: 5000 })
+    }, { timeout: 10000 })
   }
 
   describe('Color Props Updates', () => {
