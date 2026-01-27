@@ -683,6 +683,12 @@ export function exportTokensJson(): object {
   if (Object.keys(result.tokens.sizes).length === 0) delete result.tokens.sizes
   if (Object.keys(result.tokens.opacities).length === 0) delete result.tokens.opacities
   
+  // Add metadata with export timestamp
+  result.$metadata = {
+    exportedAt: new Date().toISOString(),
+    version: '1.0.0'
+  }
+  
   return result
 }
 
@@ -759,7 +765,13 @@ export function exportBrandJson(): object {
   
   // Read directly from theme.brand, just like tokens export reads from storeState.tokens
   if (!theme?.brand) {
-    return { brand: {} }
+    return {
+      brand: {},
+      $metadata: {
+        exportedAt: new Date().toISOString(),
+        version: '1.0.0'
+      }
+    }
   }
   
   // Deep clone the brand structure from store
@@ -768,7 +780,14 @@ export function exportBrandJson(): object {
   // Normalize all references to use short alias format (no theme paths)
   const normalized = normalizeBrandReferences(result)
   
-  return { brand: normalized }
+  // Add metadata with export timestamp
+  return {
+    brand: normalized,
+    $metadata: {
+      exportedAt: new Date().toISOString(),
+      version: '1.0.0'
+    }
+  }
 }
 
 /**
@@ -825,7 +844,13 @@ export function exportUIKitJson(): object {
   // Read directly from uikit, just like tokens export reads from storeState.tokens
   // UIKit in store may have 'ui-kit' wrapper or be the raw structure
   if (!uikit) {
-    return { 'ui-kit': {} }
+    return {
+      'ui-kit': {},
+      $metadata: {
+        exportedAt: new Date().toISOString(),
+        version: '1.0.0'
+      }
+    }
   }
   
   // Deep clone the UIKit structure from store
@@ -835,6 +860,12 @@ export function exportUIKitJson(): object {
   
   // Normalize brand references to remove theme information (UIKit should be theme-agnostic)
   const normalized = normalizeUIKitBrandReferences(result)
+  
+  // Add metadata with export timestamp
+  normalized.$metadata = {
+    exportedAt: new Date().toISOString(),
+    version: '1.0.0'
+  }
   
   return normalized
 }
