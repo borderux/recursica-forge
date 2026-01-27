@@ -8,13 +8,16 @@ import { useState } from 'react'
 import { checkAACompliance } from './aaComplianceCheck'
 import { ComplianceModal } from './ComplianceModal'
 import { ExportSelectionModal } from './ExportSelectionModal'
+import { GitHubExportModal } from './GitHubExportModal'
 import { downloadJsonFiles } from './jsonExport'
 
 export function useJsonExport() {
   const [showSelectionModal, setShowSelectionModal] = useState(false)
   const [showComplianceModal, setShowComplianceModal] = useState(false)
+  const [showGitHubModal, setShowGitHubModal] = useState(false)
   const [complianceIssues, setComplianceIssues] = useState<ReturnType<typeof checkAACompliance>>([])
   const [pendingExportFiles, setPendingExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null>(null)
+  const [githubExportFiles, setGithubExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null>(null)
   
   const handleExport = () => {
     // Show selection modal first
@@ -57,16 +60,37 @@ export function useJsonExport() {
     setComplianceIssues([])
     setPendingExportFiles(null)
   }
+
+  const handleExportToGithub = (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => {
+    setShowSelectionModal(false)
+    setGithubExportFiles(files)
+    setShowGitHubModal(true)
+  }
+
+  const handleGitHubExportCancel = () => {
+    setShowGitHubModal(false)
+    setGithubExportFiles(null)
+  }
+
+  const handleGitHubExportSuccess = () => {
+    setShowGitHubModal(false)
+    setGithubExportFiles(null)
+  }
   
   return {
     handleExport,
     showSelectionModal,
     showComplianceModal,
+    showGitHubModal,
     complianceIssues,
+    githubExportFiles,
     handleSelectionConfirm,
     handleSelectionCancel,
     handleAcknowledge,
     handleCancel,
+    handleExportToGithub,
+    handleGitHubExportCancel,
+    handleGitHubExportSuccess,
   }
 }
 
@@ -90,11 +114,28 @@ export function ExportSelectionModalWrapper({
   show,
   onConfirm,
   onCancel,
+  onExportToGithub,
 }: {
   show: boolean
   onConfirm: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
   onCancel: () => void
+  onExportToGithub?: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
 }) {
-  return <ExportSelectionModal show={show} onExport={onConfirm} onCancel={onCancel} />
+  return <ExportSelectionModal show={show} onExport={onConfirm} onCancel={onCancel} onExportToGithub={onExportToGithub} />
+}
+
+export function GitHubExportModalWrapper({
+  show,
+  selectedFiles,
+  onCancel,
+  onSuccess,
+}: {
+  show: boolean
+  selectedFiles: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null
+  onCancel: () => void
+  onSuccess?: () => void
+}) {
+  if (!selectedFiles) return null
+  return <GitHubExportModal show={show} selectedFiles={selectedFiles} onCancel={onCancel} onSuccess={onSuccess} />
 }
 

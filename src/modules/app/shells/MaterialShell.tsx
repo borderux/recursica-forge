@@ -13,7 +13,7 @@ import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper } from '../../../core/export/exportWithCompliance'
+import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, GitHubExportModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Tooltip } from '../../../components/adapters/Tooltip'
@@ -32,7 +32,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const [styles, setStyles] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
-  const { handleExport, showSelectionModal, showComplianceModal, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel } = useJsonExport()
+  const { handleExport, showSelectionModal, showComplianceModal, showGitHubModal, complianceIssues, githubExportFiles, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleExportToGithub, handleGitHubExportCancel, handleGitHubExportSuccess } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   
   // Determine current route for navigation highlighting
@@ -522,12 +522,19 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}
         onCancel={handleSelectionCancel}
+        onExportToGithub={handleExportToGithub}
       />
       <ExportComplianceModal
         show={showComplianceModal}
         issues={complianceIssues}
         onAcknowledge={handleAcknowledge}
         onCancel={handleCancel}
+      />
+      <GitHubExportModalWrapper
+        show={showGitHubModal}
+        selectedFiles={githubExportFiles}
+        onCancel={handleGitHubExportCancel}
+        onSuccess={handleGitHubExportSuccess}
       />
       <ImportDirtyDataModal
         show={showDirtyModal}

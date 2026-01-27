@@ -12,9 +12,10 @@ interface ExportSelectionModalProps {
   show: boolean
   onExport: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
   onCancel: () => void
+  onExportToGithub?: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
 }
 
-export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelectionModalProps) {
+export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithub }: ExportSelectionModalProps) {
   const { mode } = useThemeMode()
   const [selectedFiles, setSelectedFiles] = useState({
     tokens: true,
@@ -31,6 +32,16 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
       return
     }
     onExport(selectedFiles)
+  }
+
+  const handleExportToGithub = () => {
+    // Ensure at least one file is selected (CSS is independent, so check JSON files)
+    if (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) {
+      return
+    }
+    if (onExportToGithub) {
+      onExportToGithub(selectedFiles)
+    }
   }
   
   return (
@@ -60,7 +71,8 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
           border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
           borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
           padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding)`,
-          maxWidth: '400px',
+          maxWidth: '510px',
+          minHeight: '300px',
           boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
         }}
         onClick={(e) => e.stopPropagation()}
@@ -149,8 +161,24 @@ export function ExportSelectionModal({ show, onExport, onCancel }: ExportSelecti
               cursor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) ? 'not-allowed' : 'pointer',
             }}
           >
-            Export Selected
+            Export Files
           </button>
+          {onExportToGithub && (
+            <button
+              onClick={handleExportToGithub}
+              disabled={!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css}
+              style={{
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
+                backgroundColor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) ? '#ccc' : '#24292e',
+                color: 'white',
+                cursor: (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.css) ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Export to GitHub
+            </button>
+          )}
         </div>
       </div>
     </div>
