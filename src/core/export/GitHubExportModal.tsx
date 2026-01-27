@@ -273,7 +273,10 @@ export function GitHubExportModal({
     if (selectedFiles.tokens) fileList.push('tokens.json')
     if (selectedFiles.brand) fileList.push('brand.json')
     if (selectedFiles.uikit) fileList.push('uikit.json')
-    if (selectedFiles.css) fileList.push('recursica-variables.css')
+    if (selectedFiles.css) {
+      fileList.push('recursica-variables-specific.css')
+      fileList.push('recursica-variables-scoped.css')
+    }
     return `This PR exports the following Recursica design token files:\n\n${fileList.map(f => `- ${f}`).join('\n')}`
   }
 
