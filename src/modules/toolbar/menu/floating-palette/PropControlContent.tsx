@@ -1075,9 +1075,14 @@ export default function PropControlContent({
                          propNameLower === 'height' ||
                          (propNameLower.includes('size') && !propNameLower.includes('font-size') && !propNameLower.includes('text-size'))
       
-      // Check if this is an icon-related size (for Avatar, Button icons, etc.)
+      // Check if this is an icon-related size (for Avatar, Button icons, Accordion icons, etc.)
       const isIconSize = (componentName.toLowerCase() === 'avatar' && propNameLower === 'size') ||
-                         (componentName.toLowerCase() === 'button' && propNameLower.includes('icon'))
+                         (componentName.toLowerCase() === 'button' && propNameLower.includes('icon')) ||
+                         (componentName.toLowerCase() === 'accordion' && propNameLower === 'icon-size') ||
+                         (componentName.toLowerCase() === 'chip' && propNameLower === 'icon-size') ||
+                         (componentName.toLowerCase() === 'breadcrumb' && propNameLower === 'icon-size') ||
+                         (componentName.toLowerCase() === 'switch' && propNameLower === 'thumb-icon-size') ||
+                         (componentName.toLowerCase() === 'toast' && propNameLower === 'icon')
       
       if (isSizeProp) {
         const dimensionCategory: 'icons' | 'general' = isIconSize ? 'icons' : 'general'

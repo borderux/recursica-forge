@@ -89,14 +89,37 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
         const items = [
           { id: 'item-1', title: 'Accordion', content: 'Replace slot with content (component instance)', open: false, divider: true },
-          { id: 'item-2', title: 'Accordion', content: 'Replace slot with content (component instance)', open: false, divider: true },
-          { id: 'item-3', title: 'Accordion', content: 'Replace slot with content (component instance)', open: true, divider: true },
-          { id: 'item-4', title: 'Accordion', content: 'Replace slot with content (component instance)', open: true, divider: true },
-          { id: 'item-5', title: 'Accordion', content: 'Replace slot with content (component instance)', open: false, divider: false },
+          { id: 'item-2', title: 'The quick brown fox jumps over the lazy dog, and as the fox gracefully landed on the other side, the lazy dog slowly opened one eye, yawned, and decided that perhaps today was the day to finally get up and chase after that clever fox who had been teasing him for so long', content: 'Replace slot with content (component instance)', open: false, divider: false },
         ]
         return (
           <div style={{ width: '100%', maxWidth: 520 }}>
             <Accordion items={items} layer={layer as any} allowMultiple />
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Accordion item',
+      url: `${base}/accordion-item`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const { Accordion } = require('../../components/adapters/Accordion')
+        
+        return (
+          <div style={{ width: '100%', maxWidth: 520 }}>
+            <Accordion
+              items={[
+                { 
+                  id: 'item-1', 
+                  title: 'Accordion item', 
+                  content: 'This demonstrates AccordionItem properties. The header uses AccordionItem colors, padding, icon-size, and icon-gap. The content uses AccordionItem content-background, content-text, and content-padding.', 
+                  open: true, 
+                  divider: false 
+                },
+              ]}
+              layer={layer as any}
+              allowMultiple={false}
+            />
           </div>
         )
       },

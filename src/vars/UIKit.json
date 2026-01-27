@@ -1470,7 +1470,64 @@
       },
       "accordion": {
         "properties": {
-          "item-padding": {
+          "border-radius": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.border-radii.none}",
+              "unit": "px"
+            }
+          },
+          "item-gap": {
+            "$type": "dimension",
+            "$value": null
+          },
+          "colors": {
+            "layer-0": {
+              "background": {
+                "$type": "color",
+                "$value": null
+              },
+              "border": {
+                "$type": "color",
+                "$value": null
+              }
+            },
+            "layer-1": {
+              "background": {
+                "$type": "color",
+                "$value": null
+              },
+              "border": {
+                "$type": "color",
+                "$value": null
+              }
+            },
+            "layer-2": {
+              "background": {
+                "$type": "color",
+                "$value": null
+              },
+              "border": {
+                "$type": "color",
+                "$value": null
+              }
+            },
+            "layer-3": {
+              "background": {
+                "$type": "color",
+                "$value": null
+              },
+              "border": {
+                "$type": "color",
+                "$value": null
+              }
+            }
+          }
+        }
+      },
+      "accordion-item": {
+        "properties": {
+          "padding": {
             "$type": "dimension",
             "$value": {
               "value": "{brand.dimensions.general.md}",

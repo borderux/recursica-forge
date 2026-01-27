@@ -51,6 +51,7 @@ export function ComponentsSidebar({
     const base = 'https://www.recursica.com/docs/components'
     return [
       { name: 'Accordion', url: `${base}/accordion` },
+      { name: 'Accordion item', url: `${base}/accordion-item` },
       { name: 'Avatar', url: `${base}/avatar` },
       { name: 'Badge', url: `${base}/badge` },
       { name: 'Breadcrumb', url: `${base}/breadcrumb` },

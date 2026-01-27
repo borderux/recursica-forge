@@ -1,76 +1,36 @@
 {
+  "variants": {},
   "props": {
-    "header": {
-      "icon": "text-aa",
-      "label": "Header",
-      "visible": true,
-      "group": {
-        "text": {
-          "label": "Text",
-          "visible": true
-        },
-        "background": {
-          "label": "Background",
-          "visible": true
-        },
-        "background-hover": {
-          "label": "Background Hover",
-          "visible": true
-        },
-        "icon": {
-          "label": "Icon",
-          "visible": true
-        },
-        "item-padding": {
-          "label": "Padding",
-          "visible": true
-        },
-        "icon-gap": {
-          "label": "Icon Gap",
-          "visible": true
-        }
-      }
-    },
-    "content": {
+    "background": {
       "icon": "paint-bucket",
-      "label": "Content",
+      "label": "Background",
       "visible": true,
-      "group": {
-        "content-text": {
-          "label": "Text",
-          "visible": true
-        },
-        "content-background": {
-          "label": "Background",
-          "visible": true
-        },
-        "content-padding": {
-          "label": "Padding",
-          "visible": true
-        }
-      }
+      "floatingPaletteLabel": "Background Color"
     },
-    "divider": {
-      "icon": "minus",
-      "label": "Divider",
+    "border": {
+      "icon": "square",
+      "label": "Border",
       "visible": true,
+      "floatingPaletteLabel": "Border",
       "group": {
-        "divider": {
-          "label": "Color",
-          "visible": true
+        "border": {
+          "label": "Border Color",
+          "visible": true,
+          "floatingPaletteLabel": "Border Color"
         }
       }
     },
     "border-radius": {
       "icon": "corners-out",
       "label": "Border Radius",
-      "visible": true
+      "visible": true,
+      "floatingPaletteLabel": "Border Radius"
     },
-    "icon-size": {
-      "icon": "arrows-up-down",
-      "label": "Icon Size",
-      "visible": true
+    "item-gap": {
+      "icon": "split-horizontal",
+      "label": "Item Gap",
+      "visible": true,
+      "floatingPaletteLabel": "Item Gap"
     }
   }
 }
-

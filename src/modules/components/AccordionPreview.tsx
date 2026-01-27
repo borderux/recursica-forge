@@ -10,7 +10,7 @@ interface AccordionPreviewProps {
 export default function AccordionPreview({
   selectedLayer,
 }: AccordionPreviewProps) {
-  const [openItems, setOpenItems] = useState<Set<string>>(() => new Set(['item-3', 'item-4']))
+  const [openItems, setOpenItems] = useState<Set<string>>(() => new Set([]))
   const allowMultiple = true
 
   const handleToggle = useCallback((id: string, open: boolean) => {
@@ -26,25 +26,32 @@ export default function AccordionPreview({
     })
   }, [allowMultiple])
 
-  const items = [
-    { id: 'item-1', title: 'Accordion', content: 'Replace slot with content (component instance)', divider: true },
-    { id: 'item-2', title: 'Accordion', content: 'Replace slot with content (component instance)', divider: true },
-    { id: 'item-3', title: 'Accordion', content: 'Replace slot with content (component instance)', divider: true },
-    { id: 'item-4', title: 'Accordion', content: 'Replace slot with content (component instance)', divider: true },
-    { id: 'item-5', title: 'Accordion', content: 'Replace slot with content (component instance)', divider: false },
-  ].map(item => ({
-    ...item,
-    open: openItems.has(item.id),
-  }))
-
+  const fruits = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry']
+  
   return (
-    <div style={{ width: '100%', maxWidth: 520 }}>
-      <Accordion
-        items={items}
-        layer={selectedLayer as any}
-        allowMultiple={allowMultiple}
-        onToggle={handleToggle}
-      />
+    <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {fruits.map((fruit, index) => {
+        const itemId = `item-${index + 1}`
+        const items = [
+          {
+            id: itemId,
+            title: fruit,
+            content: 'Replace slot with content (component instance)',
+            divider: false,
+            open: openItems.has(itemId),
+          }
+        ]
+        
+        return (
+          <Accordion
+            key={fruit}
+            items={items}
+            layer={selectedLayer as any}
+            allowMultiple={allowMultiple}
+            onToggle={handleToggle}
+          />
+        )
+      })}
     </div>
   )
 }

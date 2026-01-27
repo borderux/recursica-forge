@@ -1,11 +1,22 @@
 /* Carbon Accordion overrides using Recursica CSS variables */
 
-.recursica-accordion.carbon-accordion .cds--accordion__item {
+/* Container styles */
+.recursica-accordion.carbon-accordion {
+  background: var(--accordion-bg) !important;
+  border: 1px solid var(--accordion-border) !important;
   border-radius: var(--accordion-border-radius) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--accordion-item-gap) !important;
+}
+
+/* Item styles */
+.recursica-accordion.carbon-accordion .cds--accordion__item {
+  border-radius: var(--accordion-item-border-radius) !important;
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__item[data-divider='true'] {
-  border-bottom: 1px solid var(--accordion-divider-color) !important;
+  border-bottom: 1px solid var(--accordion-item-divider-color) !important;
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__item[data-divider='false'] {
@@ -14,28 +25,34 @@
 
 .recursica-accordion.carbon-accordion .cds--accordion__heading,
 .recursica-accordion.carbon-accordion .cds--accordion__button {
-  background: var(--accordion-header-bg) !important;
-  color: var(--accordion-header-text) !important;
+  background: var(--accordion-item-header-bg) !important;
+  color: var(--accordion-item-header-text) !important;
   padding: var(--accordion-item-padding) !important;
-  font-family: var(--accordion-font-family) !important;
-  font-size: var(--accordion-font-size) !important;
-  font-weight: var(--accordion-font-weight) !important;
-  letter-spacing: var(--accordion-letter-spacing) !important;
-  line-height: var(--accordion-line-height) !important;
-  gap: var(--accordion-icon-gap) !important;
+  font-family: var(--accordion-item-font-family) !important;
+  font-size: var(--accordion-item-font-size) !important;
+  font-weight: var(--accordion-item-font-weight) !important;
+  letter-spacing: var(--accordion-item-letter-spacing) !important;
+  line-height: var(--accordion-item-line-height) !important;
+  gap: var(--accordion-item-icon-gap) !important;
+  min-width: 0 !important;
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__heading:hover,
 .recursica-accordion.carbon-accordion .cds--accordion__button:hover {
-  background: var(--accordion-header-hover, var(--accordion-header-bg)) !important;
+  background: var(--accordion-item-header-hover, var(--accordion-item-header-bg)) !important;
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__title {
-  color: var(--accordion-header-text) !important;
+  color: var(--accordion-item-header-text) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  flex: 1 !important;
+  min-width: 0 !important;
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__arrow {
-  color: var(--accordion-icon-color) !important;
+  color: var(--accordion-item-icon-color) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -43,9 +60,9 @@
   line-height: 0 !important;
   transform-origin: center !important;
   transition: transform 150ms ease !important;
-  width: var(--accordion-icon-size) !important;
-  height: var(--accordion-icon-size) !important;
-  min-width: var(--accordion-icon-size) !important;
+  width: var(--accordion-item-icon-size) !important;
+  height: var(--accordion-item-icon-size) !important;
+  min-width: var(--accordion-item-icon-size) !important;
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__arrow svg {
@@ -55,14 +72,12 @@
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__content {
-  padding: var(--accordion-content-padding) !important;
-  background: var(--accordion-content-bg) !important;
-  color: var(--accordion-content-text) !important;
-  font-family: var(--accordion-font-family) !important;
-  font-size: var(--accordion-font-size) !important;
-  font-weight: var(--accordion-font-weight) !important;
-  letter-spacing: var(--accordion-letter-spacing) !important;
-  line-height: var(--accordion-line-height) !important;
+  padding: var(--accordion-item-content-padding) !important;
+  background: var(--accordion-item-content-bg) !important;
+  color: var(--accordion-item-content-text) !important;
+  font-family: var(--accordion-item-font-family) !important;
+  font-size: var(--accordion-item-font-size) !important;
+  font-weight: var(--accordion-item-font-weight) !important;
+  letter-spacing: var(--accordion-item-letter-spacing) !important;
+  line-height: var(--accordion-item-line-height) !important;
 }
-
-/* Legacy overrides removed; use recursica-accordion scoped rules above. */

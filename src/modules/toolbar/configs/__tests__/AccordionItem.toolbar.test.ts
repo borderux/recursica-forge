@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import config from '../Accordion.toolbar.json'
+import config from '../AccordionItem.toolbar.json'
 import uikitJson from '../../../../vars/UIKit.json'
 
-describe('Accordion Toolbar Config', () => {
+describe('AccordionItem Toolbar Config', () => {
   it('should have valid JSON structure', () => {
     expect(config).toBeDefined()
     expect(typeof config).toBe('object')
@@ -29,10 +29,8 @@ describe('Accordion Toolbar Config', () => {
   })
 
   it('should have props that match UIKit.json structure', () => {
-    const componentKey = 'accordion'
-    const itemComponentKey = 'accordion-item'
+    const componentKey = 'accordion-item'
     const component = uikitJson['ui-kit']?.components?.[componentKey]
-    const itemComponent = uikitJson['ui-kit']?.components?.[itemComponentKey]
 
     if (!component) {
       console.warn(`Component ${componentKey} not found in UIKit.json - skipping prop validation`)
@@ -41,7 +39,6 @@ describe('Accordion Toolbar Config', () => {
 
     const uikitProps = new Set<string>()
 
-    // Add container (Accordion) properties
     if (component.properties) {
       Object.keys(component.properties).forEach(prop => {
         if (prop !== 'colors') {
@@ -52,21 +49,6 @@ describe('Accordion Toolbar Config', () => {
 
     if (component.properties?.colors) {
       Object.values(component.properties.colors).forEach((layer: any) => {
-        Object.keys(layer || {}).forEach(prop => uikitProps.add(prop))
-      })
-    }
-
-    // Add item (AccordionItem) properties
-    if (itemComponent?.properties) {
-      Object.keys(itemComponent.properties).forEach(prop => {
-        if (prop !== 'colors') {
-          uikitProps.add(prop)
-        }
-      })
-    }
-
-    if (itemComponent?.properties?.colors) {
-      Object.values(itemComponent.properties.colors).forEach((layer: any) => {
         Object.keys(layer || {}).forEach(prop => uikitProps.add(prop))
       })
     }
@@ -89,8 +71,8 @@ describe('Accordion Toolbar Config', () => {
     })
   })
 
-  it('should have all required props from UIKit.json (container only)', () => {
-    const componentKey = 'accordion'
+  it('should have all required props from UIKit.json', () => {
+    const componentKey = 'accordion-item'
     const component = uikitJson['ui-kit']?.components?.[componentKey]
 
     if (!component) {
@@ -100,7 +82,6 @@ describe('Accordion Toolbar Config', () => {
 
     const requiredProps = new Set<string>()
 
-    // Only check container (Accordion) properties - item properties are in AccordionItem toolbar
     if (component.properties) {
       Object.keys(component.properties).forEach(prop => {
         if (prop !== 'colors') {
@@ -127,8 +108,7 @@ describe('Accordion Toolbar Config', () => {
     }
 
     requiredProps.forEach(prop => {
-      expect(configProps.has(prop), `Required container prop ${prop} missing from Accordion toolbar config`).toBe(true)
+      expect(configProps.has(prop), `Required prop ${prop} missing from AccordionItem toolbar config`).toBe(true)
     })
   })
 })
-
