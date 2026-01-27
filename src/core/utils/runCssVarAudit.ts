@@ -268,8 +268,8 @@ function getAllCssVars(): string[] {
   return Array.from(allVars).sort()
 }
 
-// Make it available globally for easy console access
-if (typeof window !== 'undefined') {
+// Make it available globally for easy console access (dev mode only)
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   const win = window as any
   win.auditCssVars = runCssVarAudit
   win.deepAuditCssVars = deepAuditCssVars
@@ -470,8 +470,8 @@ if (typeof window !== 'undefined') {
     return results
   }
   
-  // Auto-run audit on localhost after app fully initializes
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  // Auto-run audit only in development mode after app fully initializes
+  if (process.env.NODE_ENV === 'development') {
     const runAuditWhenReady = () => {
       // Wait for app to be fully loaded, then run audit
       setTimeout(() => {

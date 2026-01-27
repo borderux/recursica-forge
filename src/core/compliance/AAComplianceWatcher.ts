@@ -91,6 +91,7 @@ export class AAComplianceWatcher {
   private paletteDeletedHandler: ((ev: CustomEvent) => void) | null = null
   private isFixing: boolean = false
   private isUpdating: boolean = false // Prevent loops when AA compliance updates CSS vars
+  private isDisabled: boolean = false // Allow temporary disabling (e.g., during randomization)
 
   constructor(tokens: JsonLike, theme: JsonLike) {
     this.tokens = tokens
@@ -167,9 +168,12 @@ export class AAComplianceWatcher {
               }
               // Immediately update element colors for this layer
               // Use a small delay to ensure surface value is fully updated
-              setTimeout(() => {
-                this.updateLayerElementColors(layerNumber, mode)
-              }, 0)
+              // Skip if disabled (e.g., during randomization)
+              if (!this.isDisabled) {
+                setTimeout(() => {
+                  this.updateLayerElementColors(layerNumber, mode)
+                }, 0)
+              }
             }
           })
         } else if (!this.isUpdating) {
@@ -237,6 +241,8 @@ export class AAComplianceWatcher {
   }
 
   private checkForChanges() {
+    // Skip if disabled (e.g., during randomization)
+    if (this.isDisabled) return
     // Debounce rapid changes - only check when actually triggered by events
     if (this.checkTimeout !== null) {
       clearTimeout(this.checkTimeout)
@@ -246,7 +252,23 @@ export class AAComplianceWatcher {
     }, 50)
   }
 
+  /**
+   * Temporarily disable the AA compliance watcher (e.g., during randomization)
+   */
+  public disable(): void {
+    this.isDisabled = true
+  }
+
+  /**
+   * Re-enable the AA compliance watcher
+   */
+  public enable(): void {
+    this.isDisabled = false
+  }
+
   private performChecks() {
+    // Skip if disabled (e.g., during randomization)
+    if (this.isDisabled) return
     // Prevent loops - if we're already updating, skip
     if (this.isUpdating) return
     

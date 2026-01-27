@@ -7,7 +7,7 @@ import { buildUIKitVars } from '../resolvers/uikit'
 import { buildDimensionVars } from '../resolvers/dimensions'
 import { applyCssVars, type CssVarMap } from '../css/apply'
 import { findTokenByHex, tokenToCssVar } from '../css/tokenRefs'
-import { suppressCssVarEvents } from '../css/updateCssVar'
+import { suppressCssVarEvents, clearPendingCssVars } from '../css/updateCssVar'
 import { computeBundleVersion } from './versioning'
 import { readCssVar } from '../css/readCssVar'
 import { resolveTokenReferenceToCssVar, parseTokenReference, extractBraceContent, type TokenReferenceContext } from '../utils/tokenReferenceParser'
@@ -493,6 +493,35 @@ class VarsStore {
       // Watch core colors (alert, warning, success, interactive)
       this.aaWatcher?.watchCoreColors()
       
+      // After CSS variables are set, check all palette on-tone values for AA compliance
+      // This ensures on-tone values are correct on app load, especially after randomization
+      // Use a longer delay to ensure recomputeAndApplyAll has finished
+      setTimeout(() => {
+        if (this.aaWatcher && !this.isRecomputing) {
+          // Disable AA watcher to prevent it from reacting to CSS var updates
+          this.aaWatcher.disable()
+          
+          // Suppress CSS var events during AA compliance check to prevent triggering recomputation
+          suppressCssVarEvents(true)
+          
+          this.aaWatcher.checkAllPaletteOnTones()
+          
+          // After AA compliance check updates CSS vars, update theme JSON to match
+          // This prevents recomputeAndApplyAll from overwriting the corrected values
+          // Use skipRecompute to prevent triggering another recomputation cycle
+          setTimeout(() => {
+            this.updateThemeJsonFromOnToneCssVars()
+            
+            // Clear pending CSS vars before re-enabling events to prevent batched event from firing
+            clearPendingCssVars()
+            
+            // Re-enable events and AA watcher after theme JSON is updated
+            suppressCssVarEvents(false)
+            this.aaWatcher?.enable()
+          }, 100)
+        }
+      }, 1000) // Wait for CSS variables to be fully applied and recomputeAndApplyAll to complete
+      
       // Don't run startup validation - let JSON values be set first
       // AA compliance checks will only run when user makes explicit changes
     })
@@ -931,41 +960,81 @@ class VarsStore {
         // Delay to ensure recomputeAndApplyAll has finished applying CSS vars to DOM
         setTimeout(() => {
           if (this.aaWatcher) {
-            this.aaWatcher.checkAllPaletteOnTones()
-            // After AA compliance check updates CSS vars, update theme JSON to match
-            this.updateThemeJsonFromOnToneCssVars()
+            // Disable AA watcher to prevent it from reacting to CSS var updates
+            this.aaWatcher.disable()
             
-            // Initialize interactive on-tone values for core colors
-            import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorInteractiveOnTones }) => {
-              const currentMode = this.getCurrentMode()
-              // Get the interactive tone hex
-              const interactiveToneVar = `--recursica-brand-themes-${currentMode}-palettes-core-interactive-default-tone`
-              const interactiveToneValue = readCssVar(interactiveToneVar)
-              if (interactiveToneValue) {
-                import('../../core/compliance/layerColorStepping').then(({ resolveCssVarToHex }) => {
-                  const tokenIndex = buildTokenIndex(this.state.tokens)
-                  const interactiveHex = resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000'
-                  updateCoreColorInteractiveOnTones(interactiveHex, this.state.tokens, this.state.theme, (theme) => {
-                    this.setTheme(theme)
-                  }, currentMode)
+            // Suppress CSS var events during AA compliance check to prevent triggering recomputation
+            suppressCssVarEvents(true)
+            
+            this.aaWatcher.checkAllPaletteOnTones()
+            
+            // After AA compliance check updates CSS vars, update theme JSON to match
+            // Use a delay to ensure CSS vars are updated before reading them
+            setTimeout(() => {
+              this.updateThemeJsonFromOnToneCssVars()
+              
+              // Clear pending CSS vars before re-enabling events to prevent batched event from firing
+              clearPendingCssVars()
+              
+              // Re-enable events after theme JSON is updated
+              suppressCssVarEvents(false)
+              
+              // Initialize interactive on-tone values for core colors
+              // Do this after palette on-tone updates to avoid overwriting them
+              // Use a longer delay to ensure updateThemeJsonFromOnToneCssVars completes first
+              setTimeout(() => {
+                suppressCssVarEvents(true)
+                
+                import('../../modules/pickers/interactiveColorUpdater').then(({ updateCoreColorInteractiveOnTones }) => {
+                  const currentMode = this.getCurrentMode()
+                  // Get the interactive tone hex
+                  const interactiveToneVar = `--recursica-brand-themes-${currentMode}-palettes-core-interactive-default-tone`
+                  const interactiveToneValue = readCssVar(interactiveToneVar)
+                  if (interactiveToneValue) {
+                    import('../../core/compliance/layerColorStepping').then(({ resolveCssVarToHex }) => {
+                      const tokenIndex = buildTokenIndex(this.state.tokens)
+                      const interactiveHex = resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000'
+                      updateCoreColorInteractiveOnTones(interactiveHex, this.state.tokens, this.state.theme, (theme) => {
+                        // Use writeState with skipRecompute to prevent overwriting the palette on-tone fixes
+                        this.writeState({ theme }, true)
+                      }, currentMode)
+                      
+                      // Clear pending CSS vars and re-enable events after interactive on-tone update completes
+                      setTimeout(() => {
+                        clearPendingCssVars()
+                        suppressCssVarEvents(false)
+                        this.aaWatcher?.enable()
+                      }, 50)
+                    }).catch((err) => {
+                      console.error('Failed to resolve interactive tone hex:', err)
+                      clearPendingCssVars()
+                      suppressCssVarEvents(false)
+                      this.aaWatcher?.enable()
+                    })
+                  } else {
+                    clearPendingCssVars()
+                    suppressCssVarEvents(false)
+                    this.aaWatcher?.enable()
+                  }
                 }).catch((err) => {
-                  console.error('Failed to resolve interactive tone hex:', err)
+                  console.error('Failed to update core color interactive on-tones:', err)
+                  clearPendingCssVars()
+                  suppressCssVarEvents(false)
+                  this.aaWatcher?.enable()
                 })
-              }
-            }).catch((err) => {
-              console.error('Failed to update core color interactive on-tones:', err)
-            })
+              }, 200) // Additional delay to ensure theme JSON update completes
+            }, 100)
           }
-        }, 50)
+        }, 300)
       }
     })
   }
 
-  private initElevationState(theme: any, tokens?: any): ElevationState {
+  private initElevationState(theme: any, tokens?: any, forceRebuildFromTheme = false): ElevationState {
     let elevationState: ElevationState | null = null
     
-    // Try consolidated key first
-    if (this.lsAvailable) {
+    // Try consolidated key first (unless we're forcing a rebuild from theme)
+    if (this.lsAvailable && !forceRebuildFromTheme) {
       try {
         const saved = localStorage.getItem(STORAGE_KEYS.elevation)
         if (saved) {
@@ -1036,11 +1105,19 @@ class VarsStore {
       controls = {}
       for (let i = 0; i <= 4; i++) {
         const node: any = light[`elevation-${i}`]?.['$value'] || {}
+        const blurRaw = node?.blur
+        const spreadRaw = node?.spread
+        const xRaw = node?.x
+        const yRaw = node?.y
+        const blur = toNumeric(blurRaw)
+        const spread = toNumeric(spreadRaw)
+        const offsetX = toNumeric(xRaw)
+        const offsetY = toNumeric(yRaw)
         controls[`elevation-${i}`] = {
-          blur: toNumeric(node?.blur),
-          spread: toNumeric(node?.spread),
-          offsetX: toNumeric(node?.x),
-          offsetY: toNumeric(node?.y),
+          blur,
+          spread,
+          offsetX,
+          offsetY,
         }
       }
       const parseOpacity = (s?: string) => {
@@ -1303,6 +1380,39 @@ class VarsStore {
     // Skip if already recomputing to prevent infinite loops
     if (!this.isRecomputing) {
       this.recomputeAndApplyAll()
+      
+      // After mode switch, check all palette on-tone values for AA compliance
+      // This ensures on-tone values are correct after switching modes
+      if (this.aaWatcher) {
+        // Update AA watcher with current state
+        this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
+        
+        // Use setTimeout to ensure CSS variables are fully applied before checking AA compliance
+        setTimeout(() => {
+          if (this.aaWatcher && !this.isRecomputing) {
+            // Disable AA watcher to prevent it from reacting to CSS var updates
+            this.aaWatcher.disable()
+            
+            // Suppress CSS var events during AA compliance check to prevent triggering recomputation
+            suppressCssVarEvents(true)
+            
+            this.aaWatcher.checkAllPaletteOnTones()
+            
+            // After AA compliance check updates CSS vars, update theme JSON to match
+            // Use a delay to ensure CSS vars are updated before reading them
+            setTimeout(() => {
+              this.updateThemeJsonFromOnToneCssVars()
+              
+              // Clear pending CSS vars before re-enabling events to prevent batched event from firing
+              clearPendingCssVars()
+              
+              // Re-enable events and AA watcher after theme JSON is updated
+              suppressCssVarEvents(false)
+              this.aaWatcher?.enable()
+            }, 100)
+          }
+        }, 300) // Wait for CSS variables to be fully applied
+      }
     }
   }
 
@@ -1313,6 +1423,20 @@ class VarsStore {
       return
     }
     this.isRecomputing = true
+    
+    // Clear overlay CSS variables from DOM before recomputing to ensure new values from theme JSON are used
+    // This prevents stale inline values from being preserved during recomputation
+    if (typeof document !== 'undefined') {
+      const overlayVars = [
+        '--recursica-brand-themes-light-state-overlay-color',
+        '--recursica-brand-themes-light-state-overlay-opacity',
+        '--recursica-brand-themes-dark-state-overlay-color',
+        '--recursica-brand-themes-dark-state-overlay-opacity'
+      ]
+      overlayVars.forEach((cssVar) => {
+        document.documentElement.style.removeProperty(cssVar)
+      })
+    }
     
     // Suppress cssVarsUpdated events during bulk update to prevent infinite loops
     suppressCssVarEvents(true)
@@ -1648,64 +1772,8 @@ class VarsStore {
           colors[cssVar] = tokenRef
         })
         
-        // Preserve existing core color CSS variables if they exist in DOM (user customizations)
-        // This ensures user changes to core colors persist across mode switches and page navigation
-        Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
-          const existingValue = readCssVar(cssVar)
-          const generatedValue = colors[cssVar]
-          
-          // Preserve if it exists in DOM and is different from generated (user customization)
-          // OR if it exists but wasn't generated (customization not in theme JSON)
-          if (existingValue && existingValue.startsWith('var(')) {
-            if (!generatedValue || existingValue !== generatedValue) {
-              colors[cssVar] = existingValue
-            }
-          }
-        })
-        
-        // Preserve individual core color interactive CSS variables (e.g., core-black-interactive, core-white-interactive)
-        const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success']
-        coreColorKeys.forEach((colorName) => {
-          const interactiveVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`
-          const existingValue = readCssVar(interactiveVar)
-          const generatedValue = colors[interactiveVar]
-          
-          // Preserve if it exists in DOM and is different from generated (user customization)
-          // OR if it exists but wasn't generated (customization not in theme JSON)
-          if (existingValue && existingValue.startsWith('var(')) {
-            if (!generatedValue || existingValue !== generatedValue) {
-              colors[interactiveVar] = existingValue
-            }
-          }
-        })
-        
-        // Also preserve interactive sub-properties if they exist
-        if (core['interactive'] && typeof core['interactive'] === 'object') {
-          const interactiveSubVars = [
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`,
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`,
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`,
-            `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone`,
-          ]
-          
-          interactiveSubVars.forEach((cssVar) => {
-            const existingValue = typeof document !== 'undefined'
-              ? document.documentElement.style.getPropertyValue(cssVar).trim()
-              : readCssVar(cssVar)
-            const generatedValue = colors[cssVar]
-            
-            // Preserve if it exists in DOM inline styles (user customization via direct CSS var update)
-            // This is similar to how we preserve core color tone vars
-            if (existingValue && existingValue !== '' && existingValue.startsWith('var(')) {
-              if (!generatedValue || existingValue !== generatedValue) {
-                colors[cssVar] = existingValue
-              }
-            } else if (existingValue && existingValue.startsWith('var(') && !generatedValue) {
-              // Preserve if it exists but wasn't generated (customization not in theme JSON)
-              colors[cssVar] = existingValue
-            }
-          })
-        }
+        // Core color CSS variables are generated from theme JSON - no preservation needed
+        // Theme JSON is the single source of truth
         
         Object.assign(allVars, colors)
       }
@@ -1714,62 +1782,14 @@ class VarsStore {
     const paletteVarsLight = buildPaletteVars(this.state.tokens, this.state.theme, 'Light')
     const paletteVarsDark = buildPaletteVars(this.state.tokens, this.state.theme, 'Dark')
     
-    // Preserve palette on-tone CSS variables that were set directly by the user
-    // This prevents recomputes from overwriting user changes
+    // Palette CSS variables are generated from theme JSON - no preservation needed
+    // Theme JSON is the single source of truth
     const allPaletteVars = { ...paletteVarsLight, ...paletteVarsDark }
-    Object.keys(allPaletteVars).forEach((cssVar) => {
-      // Only check on-tone vars (not tone vars, as those can change)
-      if (cssVar.includes('-on-tone')) {
-        // Check inline style directly (user overrides are always inline)
-        const inlineValue = typeof document !== 'undefined' 
-          ? document.documentElement.style.getPropertyValue(cssVar).trim()
-          : ''
-        const generatedValue = allPaletteVars[cssVar]
-        
-        // Preserve if there's an inline override and it differs from generated (user customization)
-        if (inlineValue !== '' && inlineValue !== generatedValue) {
-          allPaletteVars[cssVar] = inlineValue
-        }
-      }
-    })
     
-    // Preserve overlay color and opacity CSS variables that were set directly by the user
-    // This prevents recomputes from overwriting user changes
-    // Overlay vars are generated in buildPaletteVars, so they're already in allPaletteVars
-    const overlayVars = [
-      '--recursica-brand-themes-light-state-overlay-color',
-      '--recursica-brand-themes-light-state-overlay-opacity',
-      '--recursica-brand-themes-dark-state-overlay-color',
-      '--recursica-brand-themes-dark-state-overlay-opacity'
-    ]
-    overlayVars.forEach((cssVar) => {
-      const inlineValue = typeof document !== 'undefined' 
-        ? document.documentElement.style.getPropertyValue(cssVar).trim()
-        : ''
-      const generatedValue = allPaletteVars[cssVar]
-      
-      // Preserve if there's an inline override and it differs from generated (user customization)
-      if (inlineValue !== '' && inlineValue !== generatedValue) {
-        allPaletteVars[cssVar] = inlineValue
-      }
-    })
+    // Note: Overlay CSS variables are now cleared at the start of recomputeAndApplyAll()
+    // so we don't need to preserve them here - they'll be set from the generated values in allPaletteVars
+    // This ensures that theme JSON changes (like randomization) are properly reflected in the DOM
     
-    // Preserve core color tone CSS variables that were set directly by the user
-    // This prevents recomputes from overwriting user changes (like we do for on-tone vars)
-    Object.keys(allPaletteVars).forEach((cssVar) => {
-      // Check for core color tone vars (not on-tone or interactive)
-      if (cssVar.includes('-palettes-core-') && cssVar.includes('-tone') && !cssVar.includes('-on-tone') && !cssVar.includes('-interactive')) {
-        const inlineValue = typeof document !== 'undefined' 
-          ? document.documentElement.style.getPropertyValue(cssVar).trim()
-          : ''
-        const generatedValue = allPaletteVars[cssVar]
-        
-        // Preserve if there's an inline override and it differs from generated (user customization)
-        if (inlineValue !== '' && inlineValue !== generatedValue) {
-          allPaletteVars[cssVar] = inlineValue
-        }
-      }
-    })
     
     Object.assign(allVars, allPaletteVars)
     // allPaletteVars already defined above with preserved values
@@ -1778,74 +1798,8 @@ class VarsStore {
     const layerVarsDark = buildLayerVars(this.state.tokens, this.state.theme, 'dark', undefined, allPaletteVars)
     const layerVars = { ...layerVarsLight, ...layerVarsDark }
     
-    // Preserve existing palette CSS variables for layer colors (surface and border-color)
-    // Also preserve AA compliance updates for text and interactive colors
-    // Check all layers (0-4) for both modes
-    try {
-      for (const modeLoop of ['light', 'dark'] as const) {
-        for (let i = 0; i <= 4; i++) {
-          const prefixedBase = `--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-`
-          
-          // Check surface color
-          const existingSurface = readCssVar(`${prefixedBase}surface`)
-          if (existingSurface && existingSurface.startsWith('var(') && existingSurface.includes('palettes')) {
-            layerVars[`--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-surface`] = existingSurface
-          }
-          
-          // Check border color (only for non-zero layers)
-          if (i > 0) {
-            const existingBorderColor = readCssVar(`${prefixedBase}border-color`)
-            if (existingBorderColor && existingBorderColor.startsWith('var(') && existingBorderColor.includes('palettes')) {
-              layerVars[`--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-border-color`] = existingBorderColor
-            }
-          }
-          
-          // Preserve AA compliance updates for text and interactive colors
-          // These are set by AAComplianceWatcher and should not be overwritten
-          const textColorBase = `${prefixedBase}element-text-`
-          const interColorBase = `${prefixedBase}element-interactive-`
-          
-          // Text color - only preserve if it exists AND wasn't just generated (to avoid overwriting on init/reset)
-          // Check if this variable was already generated by buildLayerVars
-          const textColorKey = `--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-element-text-color`
-          const existingTextColor = readCssVar(`${textColorBase}color`)
-          // IMPORTANT: Only preserve if:
-          // 1. layerVars doesn't already have this key (meaning buildLayerVars generated it)
-          // 2. The existing value is different from what was just generated (meaning AAComplianceWatcher updated it)
-          // This ensures we always use the value from buildLayerVars on init/mode switch, not stale DOM values
-          // But we preserve AA compliance updates that were made after initial generation
-          const generatedValue = layerVars[textColorKey]
-          if (existingTextColor && existingTextColor.startsWith('var(') && generatedValue && existingTextColor !== generatedValue) {
-            // Only preserve if it's different from generated (AA compliance update)
-            layerVars[textColorKey] = existingTextColor
-          }
-          
-          // Interactive color - only preserve if it's different from generated (AA compliance update)
-          const interColorKey = `--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-element-interactive-color`
-          const existingInterColor = readCssVar(`${interColorBase}color`)
-          const generatedInterColor = layerVars[interColorKey]
-          if (existingInterColor && existingInterColor.startsWith('var(') && generatedInterColor && existingInterColor !== generatedInterColor) {
-            // Only preserve if it's different from generated (AA compliance update)
-            layerVars[interColorKey] = existingInterColor
-          }
-          
-          // Status colors (alert, warning, success) - only preserve if different from generated (AA compliance update)
-          const statusColors = ['alert', 'warning', 'success']
-          statusColors.forEach((status) => {
-            const statusColorKey = `--recursica-brand-themes-${modeLoop}-layer-layer-${i}-property-element-text-${status}`
-            const existingStatusColor = readCssVar(`${textColorBase}${status}`)
-            const generatedStatusColor = layerVars[statusColorKey]
-            if (existingStatusColor && existingStatusColor.startsWith('var(') && generatedStatusColor && existingStatusColor !== generatedStatusColor) {
-              // Only preserve if it's different from generated (AA compliance update)
-              layerVars[statusColorKey] = existingStatusColor
-            }
-          })
-        }
-      }
-    } catch (e) {
-      console.error('[VarsStore] Error preserving layer variables:', e)
-    }
-    
+    // Layer CSS variables are generated from theme JSON - no preservation needed
+    // Theme JSON is the single source of truth
     Object.assign(allVars, layerVars)
     // Dimensions - generate for both modes (dimensions are mode-agnostic but vars are generated for both)
     try {
@@ -1860,21 +1814,8 @@ class VarsStore {
     try {
       const uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, currentMode)
       
-      // Preserve UIKit CSS variables that were set directly by the user (e.g., via ComponentToolbar)
-      // This prevents recomputes from overwriting user changes
-      Object.keys(uikitVars).forEach((cssVar) => {
-        // Check inline style directly (user overrides are always inline)
-        const inlineValue = typeof document !== 'undefined' 
-          ? document.documentElement.style.getPropertyValue(cssVar).trim()
-          : ''
-        const generatedValue = uikitVars[cssVar]
-        
-        // Preserve if there's an inline override and it differs from generated (user customization)
-        // This ensures user changes via ComponentToolbar persist across recomputes
-        if (inlineValue !== '' && inlineValue !== generatedValue) {
-          uikitVars[cssVar] = inlineValue
-        }
-      })
+      // UIKit CSS variables are generated from UIKit JSON - no preservation needed
+      // UIKit JSON is the single source of truth
       
       Object.assign(allVars, uikitVars)
     } catch {}
@@ -1882,22 +1823,8 @@ class VarsStore {
     const typeChoices = this.readTypeChoices()
     const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, typeChoices)
     
-    // Always preserve typography CSS variables that were set DIRECTLY (user customization via UI)
-    // This allows direct CSS variable updates (like from TypeStylePanel) to persist across recomputes
-    // Direct CSS variable overrides take precedence over generated values from choices/defaults
-    Object.keys(typeVars).forEach((cssVar) => {
-      // Check inline style directly (direct updates are always inline)
-      const inlineValue = typeof document !== 'undefined' 
-        ? document.documentElement.style.getPropertyValue(cssVar).trim()
-        : ''
-      const generatedValue = typeVars[cssVar]
-      
-      // Preserve if it exists in inline style and is different from generated (user customization)
-      // Inline styles take precedence as they represent direct user updates
-      if (inlineValue !== '' && inlineValue !== generatedValue) {
-        typeVars[cssVar] = inlineValue
-      }
-    })
+    // Typography CSS variables are generated from theme JSON and type choices - no preservation needed
+    // Theme JSON and type choices are the single source of truth
     
     Object.assign(allVars, typeVars)
     // Load fonts asynchronously - don't wait, don't trigger recomputes
@@ -2375,8 +2302,10 @@ class VarsStore {
       }
 
       // Only update theme if there were changes
+      // Use skipRecompute=true to prevent triggering recomputeAndApplyAll which would overwrite the CSS vars
+      // The CSS variables are already correct from checkAllPaletteOnTones(), we just need to sync the JSON
       if (hasChanges) {
-        this.setTheme(themeCopy)
+        this.writeState({ theme: themeCopy }, true) // skipRecompute=true to prevent overwriting CSS vars
       }
     } catch (err) {
       console.error('Failed to update theme JSON from on-tone CSS vars:', err)

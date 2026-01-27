@@ -27,20 +27,26 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('theme-mode', next)
       // Update varsStore to switch mode and regenerate CSS vars
       getVarsStore().switchMode(next)
-      // Set data attribute on html element for CSS targeting
+      // Set data attributes on html element for CSS targeting
       if (typeof document !== 'undefined') {
         document.documentElement.setAttribute('data-theme-mode', next)
+        document.documentElement.setAttribute('data-recursica-theme', next)
       }
       // Close all open pickers, overlays, and panels when switching modes
       window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
     } catch {}
   }
 
-  // Sync varsStore mode on mount and set data attribute
+  // Sync varsStore mode on mount and set data attributes
   useEffect(() => {
     getVarsStore().switchMode(mode)
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme-mode', mode)
+      document.documentElement.setAttribute('data-recursica-theme', mode)
+      // Ensure data-recursica-layer is set to 0 (always 0 on root)
+      if (!document.documentElement.hasAttribute('data-recursica-layer')) {
+        document.documentElement.setAttribute('data-recursica-layer', '0')
+      }
     }
   }, []) // Only run on mount
 

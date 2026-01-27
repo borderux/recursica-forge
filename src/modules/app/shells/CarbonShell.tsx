@@ -13,7 +13,7 @@ import { clearOverrides } from '../../theme/tokenOverrides'
 import tokensJson from '../../../vars/Tokens.json'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, GitHubExportModalWrapper } from '../../../core/export/exportWithCompliance'
+import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, ExportValidationErrorModal, GitHubExportModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Tooltip } from '../../../components/adapters/Tooltip'
@@ -23,6 +23,8 @@ import { Tabs } from '../../../components/adapters/Tabs'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { createBugReport } from '../utils/bugReport'
+import { randomizeAllVariables } from '../../../core/utils/randomizeVariables'
+import { RandomizeOptionsModal } from '../../../core/utils/RandomizeOptionsModal'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -39,7 +41,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
   const [carbon, setCarbon] = useState<any>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
-  const { handleExport, showSelectionModal, showComplianceModal, showGitHubModal, complianceIssues, githubExportFiles, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleExportToGithub, handleGitHubExportCancel, handleGitHubExportSuccess } = useJsonExport()
+  const [showRandomizeModal, setShowRandomizeModal] = useState(false)
+  const { handleExport, showSelectionModal, showComplianceModal, showValidationModal, showGitHubModal, validationErrors, complianceIssues, githubExportFiles, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleValidationModalClose, handleExportToGithub, handleGitHubExportCancel, handleGitHubExportSuccess } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   
   // Determine current route for navigation highlighting
@@ -324,6 +327,19 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 onClick={() => createBugReport()}
               />
             </Tooltip>
+            {process.env.NODE_ENV === 'development' && (
+              <Tooltip label="Randomize all variables (dev only)">
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon={(() => {
+                    const ShuffleIcon = iconNameToReactComponent('swap')
+                    return ShuffleIcon ? <ShuffleIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  })()}
+                  onClick={() => setShowRandomizeModal(true)}
+                />
+              </Tooltip>
+            )}
             <div style={{ minWidth: 180 }}>
               <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
                 <SelectItem text="Mantine" value="mantine" />
@@ -468,6 +484,11 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           </Button>
         </ModalFooter>
       </ComposedModal>
+      <ExportValidationErrorModal
+        show={showValidationModal}
+        errors={validationErrors}
+        onClose={handleValidationModalClose}
+      />
       <ExportSelectionModalWrapper
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}
@@ -479,6 +500,21 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
         issues={complianceIssues}
         onAcknowledge={handleAcknowledge}
         onCancel={handleCancel}
+      />
+      {process.env.NODE_ENV === 'development' && (
+        <RandomizeOptionsModal
+          show={showRandomizeModal}
+          onRandomize={(options) => {
+            randomizeAllVariables(options)
+            setShowRandomizeModal(false)
+          }}
+          onCancel={() => setShowRandomizeModal(false)}
+        />
+      )}
+      <ExportValidationErrorModal
+        show={showValidationModal}
+        errors={validationErrors}
+        onClose={handleValidationModalClose}
       />
       <GitHubExportModalWrapper
         show={showGitHubModal}

@@ -1,5 +1,7 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
+import { useThemeMode } from '../../../theme/ThemeModeContext'
+import { useVars } from '../../../vars/VarsContext'
 import './Dropdown.css'
 
 interface LayerDropdownProps {
@@ -14,6 +16,8 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const ref = useRef<HTMLDivElement>(null)
+  const { mode } = useThemeMode()
+  const { theme } = useVars()
   
   const setOpen = useCallback((isOpen: boolean) => {
     if (onOpenChange) {
@@ -43,7 +47,19 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
     }
   }, [controlledOpen])
 
-  const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+  // Dynamically get all available layers from theme
+  const layers = useMemo(() => {
+    const t: any = theme
+    const themeRoot: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
+    const themes = themeRoot?.themes || themeRoot
+    const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+    const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
+      const aNum = parseInt(a.replace('layer-', ''), 10)
+      const bNum = parseInt(b.replace('layer-', ''), 10)
+      return aNum - bNum
+    })
+    return layerKeys.length > 0 ? layerKeys : ['layer-0', 'layer-1', 'layer-2', 'layer-3'] // Fallback for initial load
+  }, [theme, mode])
 
   // Layer icon (hardcoded since it's system-level, not component-specific)
   const LayerIcon = iconNameToReactComponent('square-3-stack-3d')

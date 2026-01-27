@@ -531,6 +531,7 @@
             "2xs": { "$ref": "#/definitions/dimensionValue" },
             "xs": { "$ref": "#/definitions/dimensionValue" },
             "sm": { "$ref": "#/definitions/dimensionValue" },
+            "default": { "$ref": "#/definitions/dimensionValue" },
             "md": { "$ref": "#/definitions/dimensionValue" },
             "lg": { "$ref": "#/definitions/dimensionValue" },
             "xl": { "$ref": "#/definitions/dimensionValue" },

@@ -322,6 +322,7 @@ export default function ElevationStylePanel({
       </div>
       <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
         <Slider
+          key={`blur-${levelsArr[0]}-${elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0}`}
           value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0) : 0}
           onChange={(val) => {
             const value = typeof val === 'number' ? val : val[0]
@@ -339,6 +340,7 @@ export default function ElevationStylePanel({
         />
 
         <Slider
+          key={`spread-${levelsArr[0]}-${elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0}`}
           value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0) : 0}
           onChange={(val) => {
             const value = typeof val === 'number' ? val : val[0]
@@ -364,6 +366,7 @@ export default function ElevationStylePanel({
           const signedValue = dir === 'right' ? absValue : -absValue
           return (
             <Slider
+              key={`offsetX-${firstKey}-${signedValue}`}
               value={signedValue}
               onChange={(val) => {
                 const value = typeof val === 'number' ? val : val[0]
@@ -375,7 +378,6 @@ export default function ElevationStylePanel({
               layer="layer-3"
               layout="stacked"
               showInput={false}
-              showValueLabel={true}
               valueLabel={(val) => `${val}px`}
               label={<Label layer="layer-3" layout="stacked">Offset X</Label>}
             />
@@ -391,6 +393,7 @@ export default function ElevationStylePanel({
           const signedValue = dir === 'down' ? absValue : -absValue
           return (
             <Slider
+              key={`offsetY-${firstKey}-${signedValue}`}
               value={signedValue}
               onChange={(val) => {
                 const value = typeof val === 'number' ? val : val[0]

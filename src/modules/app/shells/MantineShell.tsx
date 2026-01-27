@@ -15,7 +15,7 @@ import { useVars } from '../../vars/VarsContext'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { UiKit } from '../../uikit/UiKitContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, GitHubExportModalWrapper } from '../../../core/export/exportWithCompliance'
+import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, ExportValidationErrorModal, GitHubExportModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Tooltip } from '../../../components/adapters/Tooltip'
@@ -25,13 +25,16 @@ import { ComponentsSidebar } from '../../preview/ComponentsSidebar'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { createBugReport } from '../utils/bugReport'
+import { randomizeAllVariables } from '../../../core/utils/randomizeVariables'
+import { RandomizeOptionsModal } from '../../../core/utils/RandomizeOptionsModal'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
   const { mode, setMode } = useThemeMode()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
-  const { handleExport, showSelectionModal, showComplianceModal, showGitHubModal, complianceIssues, githubExportFiles, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleExportToGithub, handleGitHubExportCancel, handleGitHubExportSuccess } = useJsonExport()
+  const [showRandomizeModal, setShowRandomizeModal] = useState(false)
+  const { handleExport, showSelectionModal, showComplianceModal, showValidationModal, showGitHubModal, validationErrors, complianceIssues, githubExportFiles, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleValidationModalClose, handleExportToGithub, handleGitHubExportCancel, handleGitHubExportSuccess } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   const location = useLocation()
   const navigate = useNavigate()
@@ -294,6 +297,19 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   onClick={() => createBugReport()}
                 />
               </Tooltip>
+              {process.env.NODE_ENV === 'development' && (
+                <Tooltip label="Randomize all variables (dev only)">
+                  <Button
+                    variant="outline"
+                    size="small"
+                    icon={(() => {
+                      const ShuffleIcon = iconNameToReactComponent('swap')
+                      return ShuffleIcon ? <ShuffleIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                    })()}
+                    onClick={() => setShowRandomizeModal(true)}
+                  />
+                </Tooltip>
+              )}
               <Select
                 value={kit}
                 onChange={(v) => onKitChange((v as UiKit) ?? 'mantine')}
@@ -456,6 +472,11 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
           </div>
         </Modal>
       </div>
+      <ExportValidationErrorModal
+        show={showValidationModal}
+        errors={validationErrors}
+        onClose={handleValidationModalClose}
+      />
       <ExportSelectionModalWrapper
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}
@@ -467,6 +488,21 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
         issues={complianceIssues}
         onAcknowledge={handleAcknowledge}
         onCancel={handleCancel}
+      />
+      {process.env.NODE_ENV === 'development' && (
+        <RandomizeOptionsModal
+          show={showRandomizeModal}
+          onRandomize={(options) => {
+            randomizeAllVariables(options)
+            setShowRandomizeModal(false)
+          }}
+          onCancel={() => setShowRandomizeModal(false)}
+        />
+      )}
+      <ExportValidationErrorModal
+        show={showValidationModal}
+        errors={validationErrors}
+        onClose={handleValidationModalClose}
       />
       <GitHubExportModalWrapper
         show={showGitHubModal}

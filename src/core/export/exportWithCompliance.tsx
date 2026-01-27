@@ -1,46 +1,109 @@
 /**
- * Export with AA Compliance Check
+ * Export with Validation and AA Compliance Check
  * 
- * Wrapper component that checks AA compliance before allowing export.
+ * Wrapper component that validates JSON/CSS and checks AA compliance before allowing export.
+ * Flow: Validate → Check AA Compliance → Show Export Modal
  */
 
 import { useState } from 'react'
 import { checkAACompliance } from './aaComplianceCheck'
 import { ComplianceModal } from './ComplianceModal'
 import { ExportSelectionModal } from './ExportSelectionModal'
+import { ValidationErrorModal, ValidationError } from './ValidationErrorModal'
 import { GitHubExportModal } from './GitHubExportModal'
 import { downloadJsonFiles } from './jsonExport'
+import { exportTokensJson, exportBrandJson, exportUIKitJson } from './jsonExport'
+import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
+import { validateCssExport } from './validateCss'
+import type { JsonLike } from '../resolvers/tokens'
 
 export function useJsonExport() {
   const [showSelectionModal, setShowSelectionModal] = useState(false)
   const [showComplianceModal, setShowComplianceModal] = useState(false)
+  const [showValidationModal, setShowValidationModal] = useState(false)
   const [showGitHubModal, setShowGitHubModal] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
   const [complianceIssues, setComplianceIssues] = useState<ReturnType<typeof checkAACompliance>>([])
-  const [pendingExportFiles, setPendingExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null>(null)
+  const [pendingExportFiles, setPendingExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; cssSpecific: boolean; cssScoped: boolean } | null>(null)
   const [githubExportFiles, setGithubExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null>(null)
   
   const handleExport = () => {
-    // Show selection modal first
-    setShowSelectionModal(true)
-  }
-  
-  const handleSelectionConfirm = (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => {
-    setShowSelectionModal(false)
-    setPendingExportFiles(files)
+    // Step 1: Validate all JSON files and CSS
+    const errors: ValidationError[] = []
     
-    // Check compliance before exporting JSON files (CSS export is independent)
-    // Only check if at least one JSON file is selected
-    const hasJsonFiles = files.tokens || files.brand || files.uikit
-    const issues = hasJsonFiles ? checkAACompliance() : []
+    // Validate JSON files (always validate all, even if not exporting them)
+    try {
+      const tokens = exportTokensJson()
+      validateTokensJson(tokens as JsonLike)
+    } catch (error) {
+      errors.push({
+        file: 'tokens',
+        message: error instanceof Error ? error.message : String(error)
+      })
+    }
+    
+    try {
+      const brand = exportBrandJson()
+      validateBrandJson(brand as JsonLike)
+    } catch (error) {
+      errors.push({
+        file: 'brand',
+        message: error instanceof Error ? error.message : String(error)
+      })
+    }
+    
+    try {
+      const uikit = exportUIKitJson()
+      validateUIKitJson(uikit as JsonLike)
+    } catch (error) {
+      errors.push({
+        file: 'uikit',
+        message: error instanceof Error ? error.message : String(error)
+      })
+    }
+    
+    // Validate CSS files (always validate both)
+    const cssErrors = validateCssExport({ specific: true, scoped: true })
+    cssErrors.forEach(cssError => {
+      errors.push({
+        file: cssError.file === 'specific' ? 'css-specific' : 'css-scoped',
+        message: cssError.message
+      })
+    })
+    
+    // If validation errors, show validation modal
+    if (errors.length > 0) {
+      setValidationErrors(errors)
+      setShowValidationModal(true)
+      return
+    }
+    
+    // Step 2: Validation passed, check AA compliance
+    const issues = checkAACompliance()
     
     if (issues.length > 0) {
+      // Show compliance modal
       setComplianceIssues(issues)
       setShowComplianceModal(true)
     } else {
-      // No issues, proceed with export (CSS will be exported independently)
-      downloadJsonFiles(files).catch(console.error)
-      setPendingExportFiles(null)
+      // No AA issues, proceed directly to export modal
+      setShowSelectionModal(true)
     }
+  }
+  
+  const handleValidationModalClose = () => {
+    setShowValidationModal(false)
+    setValidationErrors([])
+  }
+  
+  const handleSelectionConfirm = (files: { tokens: boolean; brand: boolean; uikit: boolean; cssSpecific: boolean; cssScoped: boolean }) => {
+    setShowSelectionModal(false)
+    
+    // Export files (validation already passed)
+    downloadJsonFiles(files).catch((error) => {
+      console.error('Export failed:', error)
+      alert(`Export failed: ${error instanceof Error ? error.message : 'Failed to export files. Please check the console for details.'}`)
+    })
   }
   
   const handleSelectionCancel = () => {
@@ -49,16 +112,30 @@ export function useJsonExport() {
   
   const handleAcknowledge = () => {
     setShowComplianceModal(false)
-    if (pendingExportFiles) {
-      downloadJsonFiles(pendingExportFiles).catch(console.error)
-      setPendingExportFiles(null)
-    }
+    setComplianceIssues([])
+    // After acknowledging AA compliance, show export modal
+    setShowSelectionModal(true)
   }
   
   const handleCancel = () => {
     setShowComplianceModal(false)
     setComplianceIssues([])
-    setPendingExportFiles(null)
+  }
+
+  const handleExportToGithub = (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => {
+    setShowSelectionModal(false)
+    setGithubExportFiles(files)
+    setShowGitHubModal(true)
+  }
+
+  const handleGitHubExportCancel = () => {
+    setShowGitHubModal(false)
+    setGithubExportFiles(null)
+  }
+
+  const handleGitHubExportSuccess = () => {
+    setShowGitHubModal(false)
+    setGithubExportFiles(null)
   }
 
   const handleExportToGithub = (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => {
@@ -81,13 +158,16 @@ export function useJsonExport() {
     handleExport,
     showSelectionModal,
     showComplianceModal,
+    showValidationModal,
     showGitHubModal,
+    validationErrors,
     complianceIssues,
     githubExportFiles,
     handleSelectionConfirm,
     handleSelectionCancel,
     handleAcknowledge,
     handleCancel,
+    handleValidationModalClose,
     handleExportToGithub,
     handleGitHubExportCancel,
     handleGitHubExportSuccess,
@@ -110,6 +190,18 @@ export function ExportComplianceModal({
   return <ComplianceModal issues={issues} onAcknowledge={onAcknowledge} onCancel={onCancel} />
 }
 
+export function ExportValidationErrorModal({
+  show,
+  errors,
+  onClose,
+}: {
+  show: boolean
+  errors: ValidationError[]
+  onClose: () => void
+}) {
+  return <ValidationErrorModal show={show} errors={errors} onClose={onClose} />
+}
+
 export function ExportSelectionModalWrapper({
   show,
   onConfirm,
@@ -117,7 +209,7 @@ export function ExportSelectionModalWrapper({
   onExportToGithub,
 }: {
   show: boolean
-  onConfirm: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
+  onConfirm: (files: { tokens: boolean; brand: boolean; uikit: boolean; cssSpecific: boolean; cssScoped: boolean }) => void
   onCancel: () => void
   onExportToGithub?: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
 }) {
