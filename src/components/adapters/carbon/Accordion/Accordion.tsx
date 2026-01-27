@@ -17,12 +17,14 @@ export default function Accordion({
   onOpenItemsChange: _onOpenItemsChange,
   onToggle: _onToggle,
   className,
-  style,
+  style: _style,
   carbon,
   ...props
-}: AdapterAccordionProps & {
+}: Omit<AdapterAccordionProps, 'onOpenItemsChange' | 'onToggle'> & {
   openItems: string[]
   onItemToggle: (id: string, open: boolean) => void
+  onOpenItemsChange?: (openItems: string[]) => void
+  onToggle?: (id: string, open: boolean) => void
 }) {
   const headerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background')
   const headerHoverVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background-hover')
@@ -45,7 +47,7 @@ export default function Accordion({
   const lineHeightVar = getBrandTypographyCssVar('body', 'line-height')
 
   return (
-    <CarbonAccordion
+    <div
       className={`recursica-accordion carbon-accordion ${className || ''}`}
       style={{
         ['--accordion-header-bg' as string]: `var(${headerBgVar})`,
@@ -65,11 +67,13 @@ export default function Accordion({
         ['--accordion-font-weight' as string]: `var(${fontWeightVar})`,
         ['--accordion-letter-spacing' as string]: `var(${letterSpacingVar})`,
         ['--accordion-line-height' as string]: `var(${lineHeightVar})`,
-        ...style,
+        ..._style,
       } as React.CSSProperties}
-      {...carbon}
-      {...props}
     >
+      <CarbonAccordion
+        {...carbon}
+        {...props}
+      >
       {items.map((item, index) => {
         const showDivider = item.divider !== false && index < items.length - 1
         const isOpen = openItems.includes(item.id)
@@ -87,7 +91,8 @@ export default function Accordion({
           </AccordionItem>
         )
       })}
-    </CarbonAccordion>
+      </CarbonAccordion>
+    </div>
   )
 }
 

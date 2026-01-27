@@ -30,9 +30,11 @@ export default function Accordion({
   style,
   material,
   ...props
-}: AdapterAccordionProps & {
+}: Omit<AdapterAccordionProps, 'onOpenItemsChange' | 'onToggle'> & {
   openItems: string[]
   onItemToggle: (id: string, open: boolean) => void
+  onOpenItemsChange?: (openItems: string[]) => void
+  onToggle?: (id: string, open: boolean) => void
 }) {
   const headerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background')
   const headerHoverVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background-hover')

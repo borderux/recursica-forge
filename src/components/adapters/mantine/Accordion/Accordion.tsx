@@ -92,7 +92,7 @@ export default function Accordion({
             value={item.id}
             data-divider={showDivider}
             data-open={isOpen}
-            disabled={item.disabled}
+            {...(item.disabled ? { 'data-disabled': true } : {})}
           >
             <MantineAccordion.Control>{item.title}</MantineAccordion.Control>
             <MantineAccordion.Panel>{item.content}</MantineAccordion.Panel>
