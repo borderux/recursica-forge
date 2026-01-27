@@ -1,0 +1,46 @@
+# Pull Request Checks
+#
+# Purpose: Validates that pull requests pass tests and build successfully.
+#
+# This workflow runs on every pull request to ensure:
+# 1. All tests pass (npm run test)
+# 2. The application builds successfully (npm run build)
+#
+# If either step fails, the PR check will fail and block merging.
+
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    name: Test and Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_RECURSICA_API_URL: ${{ vars.VITE_RECURSICA_API_URL }}
+          VITE_RECURSICA_UI_URL: ${{ vars.VITE_RECURSICA_UI_URL }}
+          VITE_PLUGIN_PHRASE: ${{ secrets.PLUGIN_PHRASE }}
