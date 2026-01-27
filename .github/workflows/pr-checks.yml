@@ -37,10 +37,16 @@ jobs:
 
       - name: Run Tests
         run: npm run test
+        env:
+          # Environment variables are optional for tests
+          VITE_RECURSICA_API_URL: ${{ vars.VITE_RECURSICA_API_URL || '' }}
+          VITE_RECURSICA_UI_URL: ${{ vars.VITE_RECURSICA_UI_URL || '' }}
+          VITE_PLUGIN_PHRASE: ${{ secrets.PLUGIN_PHRASE || '' }}
 
       - name: Build
         run: npm run build
         env:
-          VITE_RECURSICA_API_URL: ${{ vars.VITE_RECURSICA_API_URL }}
-          VITE_RECURSICA_UI_URL: ${{ vars.VITE_RECURSICA_UI_URL }}
-          VITE_PLUGIN_PHRASE: ${{ secrets.PLUGIN_PHRASE }}
+          # Environment variables are optional for build (only needed for runtime)
+          VITE_RECURSICA_API_URL: ${{ vars.VITE_RECURSICA_API_URL || '' }}
+          VITE_RECURSICA_UI_URL: ${{ vars.VITE_RECURSICA_UI_URL || '' }}
+          VITE_PLUGIN_PHRASE: ${{ secrets.PLUGIN_PHRASE || '' }}
