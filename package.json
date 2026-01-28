@@ -1,7 +1,7 @@
 {
   "name": "recursica-forge",
   "description": "A tool for managing Recursica variables, themes, and token definitions",
-  "private": false,
+  "private": true,
   "version": "0.1.3",
   "homepage": "https://forge.recursica.com",
   "repository": {
@@ -29,7 +29,7 @@
     "watch:icons": "node scripts/watch-icon-mapping.mjs",
     "watch:toolbar-icons": "node scripts/watch-toolbar-icons.mjs",
     "changeset": "changeset",
-    "release": "changeset publish --access public"
+    "release": "changeset publish"
   },
   "dependencies": {
     "@carbon/react": "^1.93.0",
