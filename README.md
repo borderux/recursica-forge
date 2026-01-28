@@ -1,4 +1,5 @@
 # recursica-forge
+
 A tool for managing Recursica variables, themes, and token definitions
 
 ## Development
@@ -6,6 +7,16 @@ A tool for managing Recursica variables, themes, and token definitions
 - Start dev server: `npm run dev` (Vite, default: http://localhost:5173)
 - Run tests: `npm test` (Vitest)
 - Type-check: `npm run type-check`
+- Lint: `npm run lint` (ESLint)
+- Lint & fix: `npm run lint:fix` (ESLint with auto-fix)
+- Format: `npm run format` (Prettier)
+- Format check: `npm run format:check` (Prettier, no changes)
+
+### Code Quality Tools
+
+- **ESLint**: Code linting with TypeScript and React support
+- **Prettier**: Code formatting
+- **Husky**: Git hooks (pre-commit runs linting, formatting, and type-checking)
 
 ## Versioning and Releases
 
@@ -52,4 +63,3 @@ This project uses [Changesets](https://github.com/changesets/changesets) to mana
 - Tokens: Nested under `tokens.*` (e.g., `tokens.font.size.md.$value`)
 - Brand Theme: `brand.*` (e.g., `brand.light.palette.neutral.500.text['high-emphasis'].$value`)
 - UIKit: `src/vars/UIKit.json`
-
