@@ -7,7 +7,7 @@
 import { SegmentedControl as MantineSegmentedControl } from '@mantine/core'
 import type { SegmentedControlProps as AdapterSegmentedControlProps } from '../../SegmentedControl'
 import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -24,6 +24,7 @@ export default function SegmentedControl({
   layer = 'layer-0',
   elevation,
   disabled = false,
+  showLabel = true,
   className,
   style,
   mantine,
@@ -73,8 +74,8 @@ export default function SegmentedControl({
   // Convert items to Mantine format with icons and labels
   const mantineData = items.map(item => {
     const hasIcon = !!item.icon
-    const hasLabel = !!item.label
-    let label: React.ReactNode = item.label
+    const hasLabel = !!item.label && showLabel
+    let label: React.ReactNode = null
     
     // If item has both icon and label, combine them
     if (hasIcon && hasLabel) {
@@ -104,6 +105,9 @@ export default function SegmentedControl({
           {item.icon}
         </span>
       )
+    } else if (hasLabel && !hasIcon) {
+      // Label only
+      label = item.label
     }
     
     return {
@@ -195,6 +199,26 @@ export default function SegmentedControl({
     ? getElevationBoxShadow(mode, selectedElevationFromVar)
     : undefined
   
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  
+  // Add tooltips to segments when labels are hidden
+  useEffect(() => {
+    if (showLabel || !wrapperRef.current) return
+    
+    const controls = wrapperRef.current.querySelectorAll('.mantine-SegmentedControl-control')
+    controls.forEach((control, index) => {
+      const item = items[index]
+      if (!item) return
+      
+      const tooltipText = item.tooltip || (typeof item.label === 'string' ? item.label : '')
+      if (!tooltipText) return
+      
+      // Add data attribute for tooltip
+      control.setAttribute('data-tooltip', tooltipText)
+      control.setAttribute('title', tooltipText) // Fallback for native tooltip
+    })
+  }, [items, showLabel, value, defaultValue])
+  
   const mantineProps = {
     data: mantineData,
     value: value ?? defaultValue,
@@ -239,5 +263,17 @@ export default function SegmentedControl({
     ...props,
   }
   
-  return <MantineSegmentedControl {...mantineProps} />
+  const segmentedControl = <MantineSegmentedControl {...mantineProps} />
+  
+  // If labels are hidden and we have tooltips, wrap with tooltip support
+  if (!showLabel && items.some(item => item.tooltip || (typeof item.label === 'string' && item.label))) {
+    return (
+      <div ref={wrapperRef} style={{ position: 'relative', display: 'inline-block' }}>
+        {segmentedControl}
+        {/* Tooltips will be added via useEffect and event delegation */}
+      </div>
+    )
+  }
+  
+  return segmentedControl
 }

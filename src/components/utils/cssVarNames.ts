@@ -13,9 +13,11 @@ import type { ComponentName, ComponentLayer } from '../registry/types'
 /**
  * Converts PascalCase component name to kebab-case
  * Examples: 'MenuItem' -> 'menu-item', 'TextField' -> 'text-field', 'Button' -> 'button'
+ * Also handles spaces: 'Accordion item' -> 'accordion-item'
  */
 function pascalToKebabCase(str: string): string {
   return str
+    .replace(/\s+/g, '-') // Replace spaces with hyphens first
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2') // Insert hyphen before capital letters
     .toLowerCase()
 }

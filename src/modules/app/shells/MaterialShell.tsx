@@ -17,6 +17,7 @@ import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, Expo
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Tooltip } from '../../../components/adapters/Tooltip'
+import { Switch } from '../../../components/adapters/Switch'
 import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
@@ -24,6 +25,7 @@ import { getVarsStore } from '../../../core/store/varsStore'
 import { createBugReport } from '../utils/bugReport'
 import { randomizeAllVariables } from '../../../core/utils/randomizeVariables'
 import { RandomizeOptionsModal } from '../../../core/utils/RandomizeOptionsModal'
+import { getCssAuditAutoRun, setCssAuditAutoRun } from '../../../core/utils/cssAuditPreference'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -35,6 +37,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
   const [showRandomizeModal, setShowRandomizeModal] = useState(false)
+  const [cssAuditAutoRun, setCssAuditAutoRunState] = useState(() => getCssAuditAutoRun())
   const { handleExport, showSelectionModal, showComplianceModal, showValidationModal, showGitHubModal, githubExportFiles, validationErrors, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleValidationModalClose, handleExportToGithub, handleGitHubExportCancel, handleGitHubExportSuccess } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   
@@ -344,17 +347,31 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               />
             </Tooltip>
               {process.env.NODE_ENV === 'development' && (
-              <Tooltip label="Randomize all variables (dev only)">
-                <Button
-                  variant="outline"
-                  size="small"
-                  icon={(() => {
-                    const ShuffleIcon = iconNameToReactComponent('swap')
-                    return ShuffleIcon ? <ShuffleIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                  })()}
-                  onClick={() => setShowRandomizeModal(true)}
-                />
-              </Tooltip>
+              <>
+                <Tooltip label="Randomize all variables (dev only)">
+                  <Button
+                    variant="outline"
+                    size="small"
+                    icon={(() => {
+                      const ShuffleIcon = iconNameToReactComponent('swap')
+                      return ShuffleIcon ? <ShuffleIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                    })()}
+                    onClick={() => setShowRandomizeModal(true)}
+                  />
+                </Tooltip>
+                <Tooltip label="Auto-run CSS audit (dev only)">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
+                    <Switch
+                      checked={cssAuditAutoRun}
+                      onChange={(checked) => {
+                        setCssAuditAutoRunState(checked)
+                        setCssAuditAutoRun(checked)
+                      }}
+                      sizeVariant="small"
+                    />
+                  </div>
+                </Tooltip>
+              </>
             )}
             <Select
               size="small"

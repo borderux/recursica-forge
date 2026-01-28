@@ -119,8 +119,9 @@ export default function ComponentToolbar({
       const propNameLower = prop.name.toLowerCase()
       
       // Check if this prop is part of a group in the config (but not if it's the parent prop itself)
+      // IMPORTANT: Skip grouping check for text-group props - they are always standalone
       let groupedParent: string | null = null
-      if (toolbarConfig?.props) {
+      if (prop.type !== 'text-group' && toolbarConfig?.props) {
         for (const [key, propConfig] of Object.entries(toolbarConfig.props)) {
           if (propConfig.group && propConfig.group[propNameLower]) {
             groupedParent = key
@@ -143,8 +144,9 @@ export default function ComponentToolbar({
       const propNameLower = prop.name.toLowerCase()
       
       // Skip props that are in a group (they'll be handled in the grouping pass)
+      // IMPORTANT: Skip grouping check for text-group props - they are always standalone
       let isGrouped = false
-      if (toolbarConfig?.props) {
+      if (prop.type !== 'text-group' && toolbarConfig?.props) {
         for (const [, propConfig] of Object.entries(toolbarConfig.props)) {
           if (propConfig.group && propConfig.group[propNameLower]) {
             isGrouped = true
@@ -356,7 +358,8 @@ export default function ComponentToolbar({
     }
 
     // Filter props based on selected variants and layer
-    const filteredProps = Array.from(propsMap.values()).filter(prop => {
+    const propsArray = Array.from(propsMap.values())
+    const filteredProps = propsArray.filter(prop => {
       // Props with groups (borderProps) should never be filtered out - they handle their own variant logic internally
       if (prop.borderProps && prop.borderProps.size > 0) {
         return true
@@ -605,7 +608,8 @@ export default function ComponentToolbar({
           if (!propConfig) {
             return false
           }
-          return getPropVisible(componentName, prop.name)
+          const isVisible = getPropVisible(componentName, prop.name)
+          return isVisible
         }).map(prop => {
           const Icon = getPropIconComponent(prop)
           const propKey = prop.name

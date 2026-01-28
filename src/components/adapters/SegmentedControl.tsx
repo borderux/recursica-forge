@@ -11,6 +11,7 @@ import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, 
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
+import { Tooltip } from './Tooltip'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type SegmentedControlItem = {
@@ -18,6 +19,7 @@ export type SegmentedControlItem = {
   label?: React.ReactNode
   icon?: React.ReactNode
   disabled?: boolean
+  tooltip?: string // Tooltip text to show when label is hidden
 }
 
 export type SegmentedControlProps = {
@@ -30,6 +32,7 @@ export type SegmentedControlProps = {
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
   disabled?: boolean
+  showLabel?: boolean // Whether to show labels (default: true)
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -44,6 +47,7 @@ export function SegmentedControl({
   layer = 'layer-0',
   elevation,
   disabled = false,
+  showLabel = true,
   className,
   style,
   mantine,
@@ -115,9 +119,10 @@ export function SegmentedControl({
         {items.map((item, index) => {
           const isSelected = currentValue === item.value
           const hasIcon = !!item.icon
-          const hasLabel = !!item.label
+          const hasLabel = !!item.label && showLabel
+          const shouldShowTooltip = !showLabel && (item.tooltip || (typeof item.label === 'string' ? item.label : undefined))
           
-          return (
+          const button = (
             <button
               key={item.value}
               type="button"
@@ -154,6 +159,21 @@ export function SegmentedControl({
               {hasLabel && <span>{item.label}</span>}
             </button>
           )
+          
+          if (shouldShowTooltip) {
+            return (
+              <Tooltip
+                key={item.value}
+                label={item.tooltip || (typeof item.label === 'string' ? item.label : '')}
+                position="top"
+                layer={layer}
+              >
+                {button}
+              </Tooltip>
+            )
+          }
+          
+          return button
         })}
       </div>
     )
@@ -171,6 +191,7 @@ export function SegmentedControl({
         layer={layer}
         elevation={elevation}
         disabled={disabled}
+        showLabel={showLabel}
         className={className}
         style={style}
         mantine={mantine}

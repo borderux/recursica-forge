@@ -12,6 +12,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { useState, useEffect } from 'react'
 import { useCssVar } from '../../../hooks/useCssVar'
+import { Tooltip } from '../../Tooltip'
 import './SegmentedControl.css'
 
 export default function SegmentedControl({
@@ -24,6 +25,7 @@ export default function SegmentedControl({
   layer = 'layer-0',
   elevation,
   disabled = false,
+  showLabel = true,
   className,
   style,
   material,
@@ -199,9 +201,10 @@ export default function SegmentedControl({
     >
       {items.map((item) => {
         const hasIcon = !!item.icon
-        const hasLabel = !!item.label
+        const hasLabel = !!item.label && showLabel
+        const shouldShowTooltip = !showLabel && (item.tooltip || (typeof item.label === 'string' ? item.label : undefined))
         
-        return (
+        const toggleButton = (
           <ToggleButton
             key={item.value}
             value={item.value}
@@ -222,6 +225,21 @@ export default function SegmentedControl({
             {hasLabel && <span>{item.label}</span>}
           </ToggleButton>
         )
+        
+        if (shouldShowTooltip) {
+          return (
+            <Tooltip
+              key={item.value}
+              label={item.tooltip || (typeof item.label === 'string' ? item.label : '')}
+              position="top"
+              layer={layer}
+            >
+              {toggleButton}
+            </Tooltip>
+          )
+        }
+        
+        return toggleButton
       })}
     </ToggleButtonGroup>
   )

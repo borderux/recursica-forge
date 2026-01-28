@@ -4,6 +4,7 @@
  */
 
 import { auditRecursicaCssVars, deepAuditCssVars, type DeepAuditIssue } from './auditCssVars'
+import { getCssAuditAutoRun } from './cssAuditPreference'
 
 export interface AuditSummary {
   totalVars: number
@@ -470,7 +471,8 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   }
   
   // Auto-run audit only in development mode after app fully initializes
-  if (process.env.NODE_ENV === 'development') {
+  // and only if the user has enabled auto-run via the header switch
+  if (process.env.NODE_ENV === 'development' && getCssAuditAutoRun()) {
     const runAuditWhenReady = () => {
       // Wait for app to be fully loaded, then run audit
       setTimeout(() => {

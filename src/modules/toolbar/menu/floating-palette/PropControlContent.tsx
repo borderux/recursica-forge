@@ -1331,9 +1331,10 @@ export default function PropControlContent({
         if (textPropertyGroup && typeof textPropertyGroup === 'object' && !('$type' in textPropertyGroup)) {
           // This is an object (not a value), check if it has text properties
           const textPropertyNames = ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'text-decoration', 'text-transform', 'font-style']
-          return textPropertyNames.some(textPropName => 
+          const hasTextProps = textPropertyNames.some(textPropName => 
             textPropertyGroup[textPropName] !== undefined
           )
+          return hasTextProps
         }
       } catch (error) {
         console.warn('Error checking text property group:', error)

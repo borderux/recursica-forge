@@ -16,7 +16,9 @@ import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
 import { Tooltip } from '../../../../components/adapters/Tooltip'
 import { Button } from '../../../../components/adapters/Button'
+import { SegmentedControl } from '../../../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
+import { getVarsStore } from '../../../../core/store/varsStore'
 import './TextStyleToolbar.css'
 
 interface TextStyleToolbarProps {
@@ -105,7 +107,161 @@ export default function TextStyleToolbar({
     return options
   }, [tokensFromVars])
 
-  // Get available font weights
+  // Get current font family state - declared early so it can be used in useMemo dependencies
+  const [currentFontFamily, setCurrentFontFamily] = useState<string>(() => {
+    const currentFontFamilyValue = readCssVar(fontFamilyVar) || ''
+    // Extract CSS var name from value (e.g., "var(--recursica-tokens-font-typefaces-primary)" -> "--recursica-tokens-font-typefaces-primary")
+    const extracted = currentFontFamilyValue.match(/var\(([^)]+)\)/)?.[1] || currentFontFamilyValue
+    return extracted
+  })
+
+  // Helper function to get available weight keys for the current font
+  const getAvailableWeightKeysForFont = useCallback((fontName: string): Set<string> | null => {
+    if (!fontName || !fontName.trim()) return null
+    
+    try {
+      const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '').toLowerCase()
+      const store = getVarsStore()
+      const state = store.getState()
+      const tokens = state.tokens as any
+      const fontRoot = tokens?.tokens?.font || tokens?.font || {}
+      
+      // Check fontVariants structure first (newer structure)
+      const fontVariants = fontRoot.fontVariants || {}
+      const variants = fontVariants[cleanFontName]
+      
+      if (variants && Array.isArray(variants) && variants.length > 0) {
+        const weightKeys = new Set<string>()
+        variants.forEach((variant: any) => {
+          if (variant && typeof variant === 'object' && typeof variant.weight === 'string') {
+            // Extract weight key from token reference like {tokens.font.weights.regular}
+            const weightMatch = variant.weight.match(/\{tokens?\.font\.weights?\.([a-z0-9\-_]+)\}/i)
+            if (weightMatch && weightMatch[1]) {
+              weightKeys.add(weightMatch[1])
+            }
+          }
+        })
+        return weightKeys.size > 0 ? weightKeys : null
+      }
+      
+      // Fallback: check $extensions.variants in typefaces (older structure)
+      const typefaces = fontRoot?.typefaces || fontRoot?.typeface || {}
+      for (const [key, typefaceDef] of Object.entries(typefaces)) {
+        if (key.startsWith('$')) continue
+        
+        const typeface = typefaceDef as any
+        const value = typeface?.$value
+        let typefaceFontName = ''
+        
+        // Extract font name from value
+        if (Array.isArray(value) && value.length > 0) {
+          typefaceFontName = typeof value[0] === 'string' ? value[0].trim().replace(/^["']|["']$/g, '').toLowerCase() : ''
+        } else if (typeof value === 'string') {
+          typefaceFontName = value.trim().replace(/^["']|["']$/g, '').toLowerCase()
+        }
+        
+        // Check if this typeface matches our font
+        if (typefaceFontName === cleanFontName) {
+          const extensions = typeface?.$extensions
+          const googleFontsExt = extensions?.['com.google.fonts']
+          const variants = googleFontsExt?.variants || extensions?.variants
+          
+          if (variants && Array.isArray(variants) && variants.length > 0) {
+            const weightKeys = new Set<string>()
+            variants.forEach((variant: any) => {
+              if (variant && typeof variant === 'object' && typeof variant.weight === 'string') {
+                // Extract weight key from token reference like {tokens.font.weights.regular}
+                const weightMatch = variant.weight.match(/\{tokens?\.font\.weights?\.([a-z0-9\-_]+)\}/i)
+                if (weightMatch && weightMatch[1]) {
+                  weightKeys.add(weightMatch[1])
+                }
+              }
+            })
+            return weightKeys.size > 0 ? weightKeys : null
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error getting available weights for font:', error)
+    }
+    
+    return null
+  }, [])
+
+  // Helper function to get available style keys for the current font
+  const getAvailableStyleKeysForFont = useCallback((fontName: string): Set<string> | null => {
+    if (!fontName || !fontName.trim()) return null
+    
+    try {
+      const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '').toLowerCase()
+      const store = getVarsStore()
+      const state = store.getState()
+      const tokens = state.tokens as any
+      const fontRoot = tokens?.tokens?.font || tokens?.font || {}
+      
+      // Check fontVariants structure first (newer structure)
+      const fontVariants = fontRoot.fontVariants || {}
+      const variants = fontVariants[cleanFontName]
+      
+      if (variants && Array.isArray(variants) && variants.length > 0) {
+        const styleKeys = new Set<string>()
+        variants.forEach((variant: any) => {
+          if (variant && typeof variant === 'object' && typeof variant.style === 'string') {
+            // Extract style key from token reference like {tokens.font.styles.normal} or {tokens.font.styles.italic}
+            const styleMatch = variant.style.match(/\{tokens?\.font\.styles?\.([a-z0-9\-_]+)\}/i)
+            if (styleMatch && styleMatch[1]) {
+              styleKeys.add(styleMatch[1])
+            }
+          }
+        })
+        return styleKeys.size > 0 ? styleKeys : null
+      }
+      
+      // Fallback: check $extensions.variants in typefaces (older structure)
+      const typefaces = fontRoot?.typefaces || fontRoot?.typeface || {}
+      for (const [key, typefaceDef] of Object.entries(typefaces)) {
+        if (key.startsWith('$')) continue
+        
+        const typeface = typefaceDef as any
+        const value = typeface?.$value
+        let typefaceFontName = ''
+        
+        // Extract font name from value
+        if (Array.isArray(value) && value.length > 0) {
+          typefaceFontName = typeof value[0] === 'string' ? value[0].trim().replace(/^["']|["']$/g, '').toLowerCase() : ''
+        } else if (typeof value === 'string') {
+          typefaceFontName = value.trim().replace(/^["']|["']$/g, '').toLowerCase()
+        }
+        
+        // Check if this typeface matches our font
+        if (typefaceFontName === cleanFontName) {
+          const extensions = typeface?.$extensions
+          const googleFontsExt = extensions?.['com.google.fonts']
+          const variants = googleFontsExt?.variants || extensions?.variants
+          
+          if (variants && Array.isArray(variants) && variants.length > 0) {
+            const styleKeys = new Set<string>()
+            variants.forEach((variant: any) => {
+              if (variant && typeof variant === 'object' && typeof variant.style === 'string') {
+                // Extract style key from token reference like {tokens.font.styles.normal} or {tokens.font.styles.italic}
+                const styleMatch = variant.style.match(/\{tokens?\.font\.styles?\.([a-z0-9\-_]+)\}/i)
+                if (styleMatch && styleMatch[1]) {
+                  styleKeys.add(styleMatch[1])
+                }
+              }
+            })
+            return styleKeys.size > 0 ? styleKeys : null
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error getting available styles for font:', error)
+    }
+    
+    return null
+  }, [])
+
+  // Get available font weights - filtered by selected font
   const fontWeights = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: number }> = []
     
@@ -113,8 +269,28 @@ export default function TextStyleToolbar({
       const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
       const weights = tokensRoot?.font?.weights || tokensRoot?.font?.weight || {}
       
+      // Get available weight keys for the current font
+      let availableWeightKeys: Set<string> | null = null
+      if (currentFontFamily) {
+        // Extract font name from the CSS variable
+        const resolvedValue = readCssVarResolved(currentFontFamily)
+        if (resolvedValue) {
+          const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
+          const fontNameMatch = cleanValue.match(/^([^,]+)/)
+          if (fontNameMatch) {
+            const fontName = fontNameMatch[1].trim()
+            availableWeightKeys = getAvailableWeightKeysForFont(fontName)
+          }
+        }
+      }
+      
       Object.keys(weights).forEach(key => {
         if (key.startsWith('$')) return
+        
+        // Filter by available weights if we have them
+        if (availableWeightKeys && !availableWeightKeys.has(key)) {
+          return
+        }
         
         const weightValue = weights[key]
         const weightNum = typeof weightValue === 'object' && weightValue?.$value
@@ -140,7 +316,7 @@ export default function TextStyleToolbar({
     
     // Sort by numeric value
     return options.sort((a, b) => a.value - b.value)
-  }, [tokensFromVars])
+  }, [tokensFromVars, currentFontFamily, getAvailableWeightKeysForFont])
 
   // Get available letter spacing tokens
   const letterSpacings = useMemo(() => {
@@ -299,31 +475,79 @@ export default function TextStyleToolbar({
   }, [tokensFromVars])
 
   // Text decoration options with Radix UI icons
-  const textDecorationOptions = [
-    { value: 'none', label: 'None', icon: 'radix-text-none' },
-    { value: 'underline', label: 'Underline', icon: 'radix-underline' },
-    { value: 'line-through', label: 'Line Through', icon: 'radix-strikethrough' },
-  ]
+  const textDecorationOptions = useMemo(() => {
+    const NoneIcon = iconNameToReactComponent('radix-text-none')
+    const UnderlineIcon = iconNameToReactComponent('radix-underline')
+    const StrikethroughIcon = iconNameToReactComponent('radix-strikethrough')
+    return [
+      { value: 'none', label: 'None', icon: NoneIcon ? <NoneIcon size={16} /> : null, tooltip: 'None' },
+      { value: 'underline', label: 'Underline', icon: UnderlineIcon ? <UnderlineIcon size={16} /> : null, tooltip: 'Underline' },
+      { value: 'line-through', label: 'Line Through', icon: StrikethroughIcon ? <StrikethroughIcon size={16} /> : null, tooltip: 'Line Through' },
+    ]
+  }, [])
 
   // Text transform options with Radix UI icons
-  const textTransformOptions = [
-    { value: 'none', label: 'Original', icon: 'radix-text-none' },
-    { value: 'uppercase', label: 'Uppercase', icon: 'radix-letter-case-uppercase' },
-    { value: 'lowercase', label: 'Lowercase', icon: 'radix-letter-case-lowercase' },
-    { value: 'capitalize', label: 'Capitalize', icon: 'radix-letter-case-capitalize' },
-  ]
+  const textTransformOptions = useMemo(() => {
+    const TextNoneIcon = iconNameToReactComponent('radix-text-none')
+    const UppercaseIcon = iconNameToReactComponent('radix-letter-case-uppercase')
+    const LowercaseIcon = iconNameToReactComponent('radix-letter-case-lowercase')
+    const CapitalizeIcon = iconNameToReactComponent('radix-letter-case-capitalize')
+    return [
+      { value: 'none', label: 'Original', icon: TextNoneIcon ? <TextNoneIcon size={16} /> : null, tooltip: 'Original' },
+      { value: 'uppercase', label: 'Uppercase', icon: UppercaseIcon ? <UppercaseIcon size={16} /> : null, tooltip: 'Uppercase' },
+      { value: 'lowercase', label: 'Lowercase', icon: LowercaseIcon ? <LowercaseIcon size={16} /> : null, tooltip: 'Lowercase' },
+      { value: 'capitalize', label: 'Capitalize', icon: CapitalizeIcon ? <CapitalizeIcon size={16} /> : null, tooltip: 'Capitalize' },
+    ]
+  }, [])
 
-  // Font style options with Radix UI icons (for italics)
-  const fontStyleOptions = [
-    { value: 'normal', label: 'Normal', icon: 'radix-font-roman' },
-    { value: 'italic', label: 'Italic', icon: 'radix-font-italic' },
-  ]
+  // Font style options with Radix UI icons (for italics) - filtered by selected font
+  const fontStyleOptions = useMemo(() => {
+    const RomanIcon = iconNameToReactComponent('radix-font-roman')
+    const ItalicIcon = iconNameToReactComponent('radix-font-italic')
+    
+    const allOptions = [
+      { value: 'normal', label: 'Normal', icon: RomanIcon ? <RomanIcon size={16} /> : null, tooltip: 'Normal' },
+      { value: 'italic', label: 'Italic', icon: ItalicIcon ? <ItalicIcon size={16} /> : null, tooltip: 'Italic' },
+    ]
+    
+    // Filter based on available styles for the current font
+    if (currentFontFamily) {
+      // Extract font name from the CSS variable
+      const resolvedValue = readCssVarResolved(currentFontFamily)
+      if (resolvedValue) {
+        const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
+        const fontNameMatch = cleanValue.match(/^([^,]+)/)
+        if (fontNameMatch) {
+          const fontName = fontNameMatch[1].trim()
+          const availableStyleKeys = getAvailableStyleKeysForFont(fontName)
+          
+          // If we have variant restrictions, filter the options
+          if (availableStyleKeys && availableStyleKeys.size > 0) {
+            // Map style keys to CSS values (normal/italic)
+            // Style keys from tokens might be "normal" or "italic"
+            const filteredOptions = allOptions.filter(option => {
+              // Check if the style is available
+              // Normalize the option value to match token style keys
+              const optionStyleKey = option.value.toLowerCase()
+              return availableStyleKeys.has(optionStyleKey)
+            })
+            
+            // Only return filtered options if we have at least one
+            // If only "normal" is available, we'll still show it (but the control will be hidden if there's only one option)
+            return filteredOptions.length > 0 ? filteredOptions : allOptions
+          }
+        }
+      }
+    }
+    
+    // Default: return all options if no restrictions found
+    return allOptions
+  }, [currentFontFamily, getAvailableStyleKeysForFont])
 
   // Get current values - make font family reactive
-  const [currentFontFamily, setCurrentFontFamily] = useState<string>('')
-  const currentTextDecoration = readCssVar(textDecorationVar) || 'none'
-  const currentTextTransform = readCssVar(textTransformVar) || 'none'
-  const currentFontStyle = readCssVar(fontStyleVar) || 'normal'
+  const [currentTextDecoration, setCurrentTextDecoration] = useState<string>(() => readCssVar(textDecorationVar) || 'none')
+  const [currentTextTransform, setCurrentTextTransform] = useState<string>(() => readCssVar(textTransformVar) || 'none')
+  const [currentFontStyle, setCurrentFontStyle] = useState<string>(() => readCssVar(fontStyleVar) || 'normal')
 
   // Update current font family when CSS variable changes
   useEffect(() => {
@@ -344,6 +568,81 @@ export default function TextStyleToolbar({
     window.addEventListener('cssVarsUpdated', handleUpdate)
     return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
   }, [fontFamilyVar])
+
+  // Validate font style when font family changes
+  useEffect(() => {
+    if (!currentFontFamily || !currentFontStyle) return
+    
+    const resolvedValue = readCssVarResolved(currentFontFamily)
+    if (!resolvedValue) return
+    
+    const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
+    const fontNameMatch = cleanValue.match(/^([^,]+)/)
+    if (!fontNameMatch) return
+    
+    const fontName = fontNameMatch[1].trim()
+    const availableStyleKeys = getAvailableStyleKeysForFont(fontName)
+    
+    // If we have variant restrictions and current style is not available, switch to normal
+    if (availableStyleKeys && availableStyleKeys.size > 0) {
+      const currentStyleKey = currentFontStyle.toLowerCase()
+      if (!availableStyleKeys.has(currentStyleKey)) {
+        // Current style is not available, switch to normal (which should always be available)
+        if (availableStyleKeys.has('normal')) {
+          updateCssVar(fontStyleVar, 'normal')
+          setCurrentFontStyle('normal')
+          requestAnimationFrame(() => {
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: [fontStyleVar] }
+            }))
+          })
+        }
+      }
+    }
+  }, [currentFontFamily, currentFontStyle, fontStyleVar, getAvailableStyleKeysForFont])
+
+  // Update current text decoration, transform, and font style when CSS variables change
+  useEffect(() => {
+    const updateValues = () => {
+      const decorationValue = readCssVar(textDecorationVar) || 'none'
+      const transformValue = readCssVar(textTransformVar) || 'none'
+      const styleValue = readCssVar(fontStyleVar) || 'normal'
+      setCurrentTextDecoration(decorationValue)
+      setCurrentTextTransform(transformValue)
+      setCurrentFontStyle(styleValue)
+    }
+    
+    updateValues()
+    
+    // Listen for CSS var updates
+    const handleUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      // Update if any of these vars were updated, or if no specific vars were mentioned (global update)
+      if (updatedVars.length === 0 || 
+          updatedVars.includes(textDecorationVar) || 
+          updatedVars.includes(textTransformVar) || 
+          updatedVars.includes(fontStyleVar)) {
+        updateValues()
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      updateValues()
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleUpdate)
+      observer.disconnect()
+    }
+  }, [textDecorationVar, textTransformVar, fontStyleVar])
 
   // Find current font weight token
   const [currentFontWeightToken, setCurrentFontWeightToken] = useState<string | undefined>(undefined)
@@ -661,26 +960,155 @@ export default function TextStyleToolbar({
   // Handlers
   const handleFontFamilyChange = useCallback((cssVar: string) => {
     const tokenValue = `var(${cssVar})`
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontFamilyChange',message:'Updating font family',data:{componentName,textElementName,fontFamilyVar,tokenValue:tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     updateCssVar(fontFamilyVar, tokenValue)
     // Update state immediately for UI responsiveness
     setCurrentFontFamily(cssVar)
+    
+    // Check if current font weight is available for the new font
+    // Extract font name from the new CSS variable
+    const resolvedValue = readCssVarResolved(cssVar)
+    if (resolvedValue && currentFontWeightToken) {
+      const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
+      const fontNameMatch = cleanValue.match(/^([^,]+)/)
+      if (fontNameMatch) {
+        const fontName = fontNameMatch[1].trim()
+        const availableWeightKeys = getAvailableWeightKeysForFont(fontName)
+        
+        if (availableWeightKeys && availableWeightKeys.size > 0) {
+          // Extract current weight key from CSS var (e.g., "--recursica-tokens-font-weights-regular" -> "regular")
+          const weightKeyMatch = currentFontWeightToken.match(/--recursica-tokens-font-weights-([a-z0-9-]+)/)
+          const currentWeightKey = weightKeyMatch ? weightKeyMatch[1] : null
+          
+          // If current weight is not available, switch to first available weight
+          if (currentWeightKey && !availableWeightKeys.has(currentWeightKey)) {
+            // Find the first available weight token
+            const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
+            const weights = tokensRoot?.font?.weights || tokensRoot?.font?.weight || {}
+            
+            // Get all available weights sorted by value
+            const availableWeights: Array<{ key: string; cssVar: string; value: number }> = []
+            Object.keys(weights).forEach(key => {
+              if (key.startsWith('$')) return
+              if (!availableWeightKeys.has(key)) return
+              
+              const weightValue = weights[key]
+              const weightNum = typeof weightValue === 'object' && weightValue?.$value
+                ? (typeof weightValue.$value === 'number' ? weightValue.$value : Number(weightValue.$value))
+                : (typeof weightValue === 'number' ? weightValue : Number(weightValue))
+              
+              if (Number.isFinite(weightNum)) {
+                const cssVar = `--recursica-tokens-font-weights-${key}`
+                const cssValue = readCssVar(cssVar)
+                if (cssValue) {
+                  availableWeights.push({ key, cssVar, value: weightNum })
+                }
+              }
+            })
+            
+            // Sort by value and use the first one (or closest to current if possible)
+            availableWeights.sort((a, b) => a.value - b.value)
+            
+            if (availableWeights.length > 0) {
+              // Try to find closest weight to current, otherwise use first
+              let targetWeight = availableWeights[0]
+              if (currentWeightKey) {
+                const currentWeightValue = weights[currentWeightKey]
+                const currentWeightNum = typeof currentWeightValue === 'object' && currentWeightValue?.$value
+                  ? (typeof currentWeightValue.$value === 'number' ? currentWeightValue.$value : Number(currentWeightValue.$value))
+                  : (typeof currentWeightValue === 'number' ? currentWeightValue : Number(currentWeightValue))
+                
+                if (Number.isFinite(currentWeightNum)) {
+                  // Find closest available weight
+                  let closest = availableWeights[0]
+                  let closestDiff = Math.abs(closest.value - currentWeightNum)
+                  for (const weight of availableWeights) {
+                    const diff = Math.abs(weight.value - currentWeightNum)
+                    if (diff < closestDiff) {
+                      closestDiff = diff
+                      closest = weight
+                    }
+                  }
+                  targetWeight = closest
+                }
+              }
+              
+              // Update to the target weight directly (inline the handler logic to avoid dependency)
+              setCurrentFontWeightToken(targetWeight.cssVar)
+              const tokenValue = `var(${targetWeight.cssVar})`
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontFamilyChange',message:'Updating font weight',data:{componentName,textElementName,fontWeightVar,tokenValue:tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'A'})}).catch(()=>{});
+              // #endregion
+              updateCssVar(fontWeightVar, tokenValue)
+              requestAnimationFrame(() => {
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontFamilyChange',message:'Dispatching cssVarsUpdated',data:{fontWeightVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'B'})}).catch(()=>{});
+                // #endregion
+                window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+                  detail: { cssVars: [fontWeightVar] }
+                }))
+              })
+            }
+          }
+        }
+      }
+    }
+    
+    // Check if current font style is available for the new font
+    if (resolvedValue && currentFontStyle) {
+      const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
+      const fontNameMatch = cleanValue.match(/^([^,]+)/)
+      if (fontNameMatch) {
+        const fontName = fontNameMatch[1].trim()
+        const availableStyleKeys = getAvailableStyleKeysForFont(fontName)
+        
+        // If we have variant restrictions and current style is not available, switch to normal
+        if (availableStyleKeys && availableStyleKeys.size > 0) {
+          const currentStyleKey = currentFontStyle.toLowerCase()
+          if (!availableStyleKeys.has(currentStyleKey)) {
+            // Current style is not available, switch to normal (which should always be available)
+            if (availableStyleKeys.has('normal')) {
+              updateCssVar(fontStyleVar, 'normal')
+              setCurrentFontStyle('normal')
+              requestAnimationFrame(() => {
+                window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+                  detail: { cssVars: [fontStyleVar] }
+                }))
+              })
+            }
+          }
+        }
+      }
+    }
+    
     requestAnimationFrame(() => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontFamilyChange',message:'Dispatching cssVarsUpdated',data:{fontFamilyVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [fontFamilyVar] }
       }))
     })
-  }, [fontFamilyVar])
+  }, [fontFamilyVar, componentName, textElementName, currentFontWeightToken, tokensFromVars, getAvailableWeightKeysForFont, fontWeightVar, currentFontStyle, fontStyleVar, getAvailableStyleKeysForFont])
 
   const handleFontWeightChange = useCallback((tokenCssVar: string) => {
     setCurrentFontWeightToken(tokenCssVar)
     const tokenValue = `var(${tokenCssVar})`
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontWeightChange',message:'Updating font weight',data:{componentName,textElementName,fontWeightVar,tokenValue:tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     updateCssVar(fontWeightVar, tokenValue)
     requestAnimationFrame(() => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontWeightChange',message:'Dispatching cssVarsUpdated',data:{fontWeightVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [fontWeightVar] }
       }))
     })
-  }, [fontWeightVar])
+  }, [fontWeightVar, componentName, textElementName])
 
   const handleLetterSpacingChange = useCallback((tokenCssVar: string) => {
     setCurrentLetterSpacingToken(tokenCssVar)
@@ -707,25 +1135,41 @@ export default function TextStyleToolbar({
   const handleFontSizeChange = useCallback((tokenCssVar: string) => {
     setCurrentFontSizeToken(tokenCssVar)
     const tokenValue = `var(${tokenCssVar})`
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontSizeChange',message:'Updating font size',data:{componentName,textElementName,fontSizeVar,tokenValue:tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     updateCssVar(fontSizeVar, tokenValue)
     requestAnimationFrame(() => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontSizeChange',message:'Dispatching cssVarsUpdated',data:{fontSizeVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [fontSizeVar] }
       }))
     })
-  }, [fontSizeVar])
+  }, [fontSizeVar, componentName, textElementName])
 
   const handleTextDecorationChange = useCallback((value: string) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleTextDecorationChange',message:'Updating text decoration',data:{componentName,textElementName,textDecorationVar,value},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     updateCssVar(textDecorationVar, value)
+    // Update state immediately for UI responsiveness
+    setCurrentTextDecoration(value)
     requestAnimationFrame(() => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleTextDecorationChange',message:'Dispatching cssVarsUpdated',data:{textDecorationVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [textDecorationVar] }
       }))
     })
-  }, [textDecorationVar])
+  }, [textDecorationVar, componentName, textElementName])
 
   const handleTextTransformChange = useCallback((value: string) => {
     updateCssVar(textTransformVar, value)
+    // Update state immediately for UI responsiveness
+    setCurrentTextTransform(value)
     requestAnimationFrame(() => {
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [textTransformVar] }
@@ -735,6 +1179,8 @@ export default function TextStyleToolbar({
 
   const handleFontStyleChange = useCallback((value: string) => {
     updateCssVar(fontStyleVar, value)
+    // Update state immediately for UI responsiveness
+    setCurrentFontStyle(value)
     requestAnimationFrame(() => {
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [fontStyleVar] }
@@ -977,175 +1423,42 @@ export default function TextStyleToolbar({
             </div>
           )}
 
-          {/* Font Style (Italics) */}
-          <div className="text-style-control">
-            <Label layer="layer-3" layout="stacked">Style</Label>
-            <div 
-              className="text-style-segmented-control"
-              style={{
-                display: 'inline-flex',
-                overflow: 'hidden',
-                width: 'auto',
-              }}
-            >
-              {fontStyleOptions.map((option, index) => {
-                const Icon = iconNameToReactComponent(option.icon)
-                const isSelected = currentFontStyle === option.value
-                return (
-                  <Tooltip key={option.value} label={option.label} position="top" layer="layer-3">
-                    <button
-                      onClick={() => handleFontStyleChange(option.value)}
-                      className={`text-style-segmented-button ${isSelected ? 'selected' : ''}`}
-                      style={{
-                        padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm)',
-                        border: 'none',
-                        borderRight: index < fontStyleOptions.length - 1
-                          ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`
-                          : 'none',
-                        background: isSelected
-                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
-                          : 'transparent',
-                        color: isSelected
-                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
-                          : `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        minWidth: '32px',
-                        transition: 'background-color 0.2s',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.background = 'transparent'
-                        }
-                      }}
-                    >
-                      {Icon && <Icon size={16} />}
-                    </button>
-              </Tooltip>
-            )
-          })}
-        </div>
-      </div>
+          {/* Font Style (Italics) - Only show if there are multiple options */}
+          {fontStyleOptions.length > 1 && (
+            <div className="text-style-control">
+              <Label layer="layer-3" layout="stacked">Style</Label>
+              <SegmentedControl
+                items={fontStyleOptions}
+                value={currentFontStyle}
+                onChange={handleFontStyleChange}
+                layer="layer-3"
+                showLabel={false}
+              />
+            </div>
+          )}
 
           {/* Text Decoration - Moved below Style */}
           <div className="text-style-control">
             <Label layer="layer-3" layout="stacked">Decoration</Label>
-            <div 
-              className="text-style-segmented-control"
-              style={{
-                display: 'inline-flex',
-                overflow: 'hidden',
-                width: 'auto',
-              }}
-            >
-              {textDecorationOptions.map((option, index) => {
-                const Icon = iconNameToReactComponent(option.icon)
-                const isSelected = currentTextDecoration === option.value
-                return (
-                  <Tooltip key={option.value} label={option.label} position="top" layer="layer-3">
-                    <button
-                      onClick={() => handleTextDecorationChange(option.value)}
-                      className={`text-style-segmented-button ${isSelected ? 'selected' : ''}`}
-                      style={{
-                        padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm)',
-                        border: 'none',
-                        borderRight: index < textDecorationOptions.length - 1
-                          ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`
-                          : 'none',
-                        background: isSelected
-                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
-                          : 'transparent',
-                        color: isSelected
-                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
-                          : `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        minWidth: '32px',
-                        transition: 'background-color 0.2s',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.background = 'transparent'
-                        }
-                      }}
-                    >
-                      {Icon && <Icon size={16} />}
-                    </button>
-                  </Tooltip>
-                )
-              })}
-            </div>
+            <SegmentedControl
+              items={textDecorationOptions}
+              value={currentTextDecoration}
+              onChange={handleTextDecorationChange}
+              layer="layer-3"
+              showLabel={false}
+            />
           </div>
 
           {/* Text Transform */}
           <div className="text-style-control">
             <Label layer="layer-3" layout="stacked">Case</Label>
-            <div 
-              className="text-style-segmented-control"
-              style={{
-                display: 'inline-flex',
-                overflow: 'hidden',
-                width: 'auto',
-              }}
-            >
-              {textTransformOptions.map((option, index) => {
-                const Icon = iconNameToReactComponent(option.icon)
-                const isSelected = currentTextTransform === option.value
-                return (
-                  <Tooltip key={option.value} label={option.label} position="top" layer="layer-3">
-                    <button
-                      onClick={() => handleTextTransformChange(option.value)}
-                      className={`text-style-segmented-button ${isSelected ? 'selected' : ''}`}
-                      style={{
-                        padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm)',
-                        border: 'none',
-                        borderRight: index < textTransformOptions.length - 1
-                          ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`
-                          : 'none',
-                        background: isSelected
-                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
-                          : 'transparent',
-                        color: isSelected
-                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
-                          : `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        minWidth: '32px',
-                        transition: 'background-color 0.2s',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.background = 'transparent'
-                        }
-                      }}
-                    >
-                      {Icon && <Icon size={16} />}
-                    </button>
-                  </Tooltip>
-                )
-              })}
-            </div>
+            <SegmentedControl
+              items={textTransformOptions}
+              value={currentTextTransform}
+              onChange={handleTextTransformChange}
+              layer="layer-3"
+              showLabel={false}
+            />
           </div>
         </>
       )}
