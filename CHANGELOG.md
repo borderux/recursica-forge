@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.1.5
+
+### Patch Changes
+
+- 45a9398: added google analytics tag
+
 ## 0.1.4
 
 ### Patch Changes
