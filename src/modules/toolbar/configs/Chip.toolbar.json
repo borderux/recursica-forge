@@ -38,7 +38,7 @@
         },
         "border-radius": {
           "icon": "corners-out",
-          "label": "Corner Radius",
+          "label": "Corner radius",
           "visible": true
         },
         "border-color": {
@@ -55,24 +55,24 @@
       "group": {
         "horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal Padding",
+          "label": "Horizontal padding",
           "visible": true
         },
         "vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical Padding",
+          "label": "Vertical padding",
           "visible": true
         }
       }
     },
     "icon-text-gap": {
       "icon": "split-horizontal",
-      "label": "Icon/Text Gap",
+      "label": "Icon/text gap",
       "visible": true
     },
     "icon-size": {
       "icon": "diamond",
-      "label": "Icon Size",
+      "label": "Icon size",
       "visible": true
     },
     "width": {
@@ -82,12 +82,12 @@
       "group": {
         "min-width": {
           "icon": "arrows-in-line-horizontal",
-          "label": "Min Width",
+          "label": "Min width",
           "visible": true
         },
         "max-width": {
           "icon": "arrows-out-line-horizontal",
-          "label": "Max Width",
+          "label": "Max width",
           "visible": true
         }
       }

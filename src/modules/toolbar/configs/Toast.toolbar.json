@@ -21,7 +21,7 @@
           "visible": true
         },
         "text-size": {
-          "label": "Font Size",
+          "label": "Font size",
       "visible": true
         }
       }
@@ -38,12 +38,12 @@
       "group": {
         "vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical Padding",
+          "label": "Vertical padding",
           "visible": true
         },
         "horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal Padding",
+          "label": "Horizontal padding",
           "visible": true
         }
       }

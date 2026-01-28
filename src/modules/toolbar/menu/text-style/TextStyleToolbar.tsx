@@ -35,6 +35,10 @@ export default function TextStyleToolbar({
 }: TextStyleToolbarProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
+  
+  // State to track whether all properties are shown
+  // This resets automatically when the accordion collapses (component unmounts)
+  const [showAllProperties, setShowAllProperties] = useState(false)
 
   // Get CSS variables for all text properties
   const fontFamilyVar = getComponentTextCssVar(componentName as any, textElementName, 'font-family')
@@ -62,8 +66,27 @@ export default function TextStyleToolbar({
         const cssValue = readCssVar(cssVar)
         
         if (cssValue) {
+          // Get the resolved font name to display in parentheses
+          const resolvedValue = readCssVarResolved(cssVar)
+          let fontName = ''
+          
+          if (resolvedValue) {
+            // Extract font name from resolved value (e.g., "Lexend" or "Lexend, sans-serif" -> "Lexend")
+            // Remove quotes if present
+            const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
+            // Take the first part before comma (font name)
+            const fontNameMatch = cleanValue.match(/^([^,]+)/)
+            if (fontNameMatch) {
+              fontName = fontNameMatch[1].trim()
+            }
+          }
+          
+          // Build label with font name in parentheses if available
+          const sequenceLabel = toSentenceCase(key)
+          const label = fontName ? `${sequenceLabel} (${fontName})` : sequenceLabel
+          
           options.push({
-            label: toSentenceCase(key),
+            label,
             cssVar,
             value: `var(${cssVar})`,
           })
@@ -497,10 +520,10 @@ export default function TextStyleToolbar({
 
   return (
     <div className="text-style-toolbar">
-      {/* Font Family */}
+      {/* Font Family - Always visible */}
       {fontFamilies.length > 0 && (
         <div className="text-style-control">
-          <Label layer="layer-3" layout="stacked">Font Family</Label>
+          <Label layer="layer-3" layout="stacked">Font</Label>
           <select
             value={currentFontFamily}
             onChange={(e) => {
@@ -528,7 +551,7 @@ export default function TextStyleToolbar({
         </div>
       )}
 
-      {/* Font Size */}
+      {/* Font Size - Always visible */}
       {fontSizes.length > 0 && (
         <div className="text-style-control">
           <Slider
@@ -560,15 +583,50 @@ export default function TextStyleToolbar({
               const token = fontSizes[Math.round(val)]
               return token?.label || String(val)
             }}
+            tooltipText={(val) => {
+              const token = fontSizes[Math.round(val)]
+              return token?.label || String(val)
+            }}
             minLabel={fontSizes[0]?.label || '2Xs'}
             maxLabel={fontSizes[fontSizes.length - 1]?.label || '6Xl'}
-            label={<Label layer="layer-3" layout="stacked">Font Size</Label>}
+            label={<Label layer="layer-3" layout="stacked">Size</Label>}
           />
         </div>
       )}
 
-      {/* Font Weight */}
-      {fontWeights.length > 0 && (
+      {/* Show All Properties Button - Only shown when not showing all */}
+      {!showAllProperties && (
+        <div className="text-style-control">
+          <button
+            onClick={() => setShowAllProperties(true)}
+            style={{
+              width: '100%',
+              padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
+              borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
+              background: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-elements-text-color)`,
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`
+            }}
+          >
+            Show all properties
+          </button>
+        </div>
+      )}
+
+      {/* Additional Properties - Only shown when showAllProperties is true */}
+      {showAllProperties && (
+        <>
+          {/* Font Weight */}
+          {fontWeights.length > 0 && (
         <div className="text-style-control">
           <Slider
             value={fontWeightIndex >= 0 ? fontWeightIndex : 0}
@@ -599,267 +657,281 @@ export default function TextStyleToolbar({
               const token = fontWeights[Math.round(val)]
               return token?.label || String(val)
             }}
+            tooltipText={(val) => {
+              const token = fontWeights[Math.round(val)]
+              return token?.label || String(val)
+            }}
             minLabel={fontWeights[0]?.label || 'Thin'}
             maxLabel={fontWeights[fontWeights.length - 1]?.label || 'Black'}
-            label={<Label layer="layer-3" layout="stacked">Font Weight</Label>}
+            label={<Label layer="layer-3" layout="stacked">Weight</Label>}
           />
         </div>
       )}
 
-      {/* Letter Spacing */}
-      {letterSpacings.length > 0 && (
-        <div className="text-style-control">
-          <Slider
-            value={letterSpacingIndex >= 0 ? letterSpacingIndex : 0}
-            onChange={(val) => {
-              const idx = typeof val === 'number' ? val : val[0]
-              const roundedIdx = Math.round(idx)
-              const token = letterSpacings[roundedIdx]
-              if (token) {
-                handleLetterSpacingChange(token.cssVar)
-              }
-            }}
-            onChangeCommitted={(val) => {
-              const idx = typeof val === 'number' ? val : val[0]
-              const roundedIdx = Math.round(idx)
-              const token = letterSpacings[roundedIdx]
-              if (token) {
-                handleLetterSpacingChange(token.cssVar)
-              }
-            }}
-            min={0}
-            max={letterSpacings.length - 1}
-            step={1}
-            layer="layer-3"
-            layout="stacked"
-            showInput={false}
-            showValueLabel={true}
-            valueLabel={(val) => {
-              const token = letterSpacings[Math.round(val)]
-              return token?.label || String(val)
-            }}
-            minLabel={letterSpacings[0]?.label || 'Tight'}
-            maxLabel={letterSpacings[letterSpacings.length - 1]?.label || 'Wide'}
-            label={<Label layer="layer-3" layout="stacked">Letter Spacing</Label>}
-          />
-        </div>
-      )}
+          {/* Letter Spacing */}
+          {letterSpacings.length > 0 && (
+            <div className="text-style-control">
+              <Slider
+                value={letterSpacingIndex >= 0 ? letterSpacingIndex : 0}
+                onChange={(val) => {
+                  const idx = typeof val === 'number' ? val : val[0]
+                  const roundedIdx = Math.round(idx)
+                  const token = letterSpacings[roundedIdx]
+                  if (token) {
+                    handleLetterSpacingChange(token.cssVar)
+                  }
+                }}
+                onChangeCommitted={(val) => {
+                  const idx = typeof val === 'number' ? val : val[0]
+                  const roundedIdx = Math.round(idx)
+                  const token = letterSpacings[roundedIdx]
+                  if (token) {
+                    handleLetterSpacingChange(token.cssVar)
+                  }
+                }}
+                min={0}
+                max={letterSpacings.length - 1}
+                step={1}
+                layer="layer-3"
+                layout="stacked"
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={(val) => {
+                  const token = letterSpacings[Math.round(val)]
+                  return token?.label || String(val)
+                }}
+                tooltipText={(val) => {
+                  const token = letterSpacings[Math.round(val)]
+                  return token?.label || String(val)
+                }}
+                minLabel={letterSpacings[0]?.label || 'Tight'}
+                maxLabel={letterSpacings[letterSpacings.length - 1]?.label || 'Wide'}
+                label={<Label layer="layer-3" layout="stacked">Letter spacing</Label>}
+              />
+            </div>
+          )}
 
-      {/* Line Height */}
-      {lineHeights.length > 0 && (
-        <div className="text-style-control">
-          <Slider
-            value={lineHeightIndex >= 0 ? lineHeightIndex : 0}
-            onChange={(val) => {
-              const idx = typeof val === 'number' ? val : val[0]
-              const roundedIdx = Math.round(idx)
-              const token = lineHeights[roundedIdx]
-              if (token) {
-                handleLineHeightChange(token.cssVar)
-              }
-            }}
-            onChangeCommitted={(val) => {
-              const idx = typeof val === 'number' ? val : val[0]
-              const roundedIdx = Math.round(idx)
-              const token = lineHeights[roundedIdx]
-              if (token) {
-                handleLineHeightChange(token.cssVar)
-              }
-            }}
-            min={0}
-            max={lineHeights.length - 1}
-            step={1}
-            layer="layer-3"
-            layout="stacked"
-            showInput={false}
-            showValueLabel={true}
-            valueLabel={(val) => {
-              const token = lineHeights[Math.round(val)]
-              return token?.label || String(val)
-            }}
-            minLabel={lineHeights[0]?.label || 'Tight'}
-            maxLabel={lineHeights[lineHeights.length - 1]?.label || 'Loose'}
-            label={<Label layer="layer-3" layout="stacked">Line Height</Label>}
-          />
-        </div>
-      )}
+          {/* Line Height */}
+          {lineHeights.length > 0 && (
+            <div className="text-style-control">
+              <Slider
+                value={lineHeightIndex >= 0 ? lineHeightIndex : 0}
+                onChange={(val) => {
+                  const idx = typeof val === 'number' ? val : val[0]
+                  const roundedIdx = Math.round(idx)
+                  const token = lineHeights[roundedIdx]
+                  if (token) {
+                    handleLineHeightChange(token.cssVar)
+                  }
+                }}
+                onChangeCommitted={(val) => {
+                  const idx = typeof val === 'number' ? val : val[0]
+                  const roundedIdx = Math.round(idx)
+                  const token = lineHeights[roundedIdx]
+                  if (token) {
+                    handleLineHeightChange(token.cssVar)
+                  }
+                }}
+                min={0}
+                max={lineHeights.length - 1}
+                step={1}
+                layer="layer-3"
+                layout="stacked"
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={(val) => {
+                  const token = lineHeights[Math.round(val)]
+                  return token?.label || String(val)
+                }}
+                tooltipText={(val) => {
+                  const token = lineHeights[Math.round(val)]
+                  return token?.label || String(val)
+                }}
+                minLabel={lineHeights[0]?.label || 'Tight'}
+                maxLabel={lineHeights[lineHeights.length - 1]?.label || 'Loose'}
+                label={<Label layer="layer-3" layout="stacked">Line height</Label>}
+              />
+            </div>
+          )}
 
-      {/* Text Decoration */}
-      <div className="text-style-control">
-        <Label layer="layer-3" layout="stacked">Text Decoration</Label>
-        <div 
-          className="text-style-segmented-control"
-          style={{
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-            borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
-            display: 'inline-flex',
-            overflow: 'hidden',
-            width: 'auto',
-          }}
-        >
-          {textDecorationOptions.map((option, index) => {
-            const Icon = iconNameToReactComponent(option.icon)
-            const isSelected = currentTextDecoration === option.value
-            return (
-              <Tooltip key={option.value} label={option.label} position="top" layer="layer-3">
-                <button
-                  onClick={() => handleTextDecorationChange(option.value)}
-                  className={`text-style-segmented-button ${isSelected ? 'selected' : ''}`}
-                  style={{
-                    padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm)',
-                    border: 'none',
-                    borderRight: index < textDecorationOptions.length - 1
-                      ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`
-                      : 'none',
-                    background: isSelected
-                      ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
-                      : 'transparent',
-                    color: isSelected
-                      ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
-                      : `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: '32px',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = 'transparent'
-                    }
-                  }}
-                >
-                  {Icon && <Icon size={16} />}
-                </button>
+          {/* Font Style (Italics) */}
+          <div className="text-style-control">
+            <Label layer="layer-3" layout="stacked">Style</Label>
+            <div 
+              className="text-style-segmented-control"
+              style={{
+                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
+                borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
+                display: 'inline-flex',
+                overflow: 'hidden',
+                width: 'auto',
+              }}
+            >
+              {fontStyleOptions.map((option, index) => {
+                const Icon = iconNameToReactComponent(option.icon)
+                const isSelected = currentFontStyle === option.value
+                return (
+                  <Tooltip key={option.value} label={option.label} position="top" layer="layer-3">
+                    <button
+                      onClick={() => handleFontStyleChange(option.value)}
+                      className={`text-style-segmented-button ${isSelected ? 'selected' : ''}`}
+                      style={{
+                        padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm)',
+                        border: 'none',
+                        borderRight: index < fontStyleOptions.length - 1
+                          ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`
+                          : 'none',
+                        background: isSelected
+                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
+                          : 'transparent',
+                        color: isSelected
+                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
+                          : `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: '32px',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = 'transparent'
+                        }
+                      }}
+                    >
+                      {Icon && <Icon size={16} />}
+                    </button>
               </Tooltip>
             )
           })}
         </div>
       </div>
 
-      {/* Text Transform */}
-      <div className="text-style-control">
-        <Label layer="layer-3" layout="stacked">Text Transform</Label>
-        <div 
-          className="text-style-segmented-control"
-          style={{
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-            borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
-            display: 'inline-flex',
-            overflow: 'hidden',
-            width: 'auto',
-          }}
-        >
-          {textTransformOptions.map((option, index) => {
-            const Icon = iconNameToReactComponent(option.icon)
-            const isSelected = currentTextTransform === option.value
-            return (
-              <Tooltip key={option.value} label={option.label} position="top" layer="layer-3">
-                <button
-                  onClick={() => handleTextTransformChange(option.value)}
-                  className={`text-style-segmented-button ${isSelected ? 'selected' : ''}`}
-                  style={{
-                    padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm)',
-                    border: 'none',
-                    borderRight: index < textTransformOptions.length - 1
-                      ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`
-                      : 'none',
-                    background: isSelected
-                      ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
-                      : 'transparent',
-                    color: isSelected
-                      ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
-                      : `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: '32px',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = 'transparent'
-                    }
-                  }}
-                >
-                  {Icon && <Icon size={16} />}
-                </button>
-              </Tooltip>
-            )
-          })}
-        </div>
-      </div>
+          {/* Text Decoration - Moved below Style */}
+          <div className="text-style-control">
+            <Label layer="layer-3" layout="stacked">Decoration</Label>
+            <div 
+              className="text-style-segmented-control"
+              style={{
+                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
+                borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
+                display: 'inline-flex',
+                overflow: 'hidden',
+                width: 'auto',
+              }}
+            >
+              {textDecorationOptions.map((option, index) => {
+                const Icon = iconNameToReactComponent(option.icon)
+                const isSelected = currentTextDecoration === option.value
+                return (
+                  <Tooltip key={option.value} label={option.label} position="top" layer="layer-3">
+                    <button
+                      onClick={() => handleTextDecorationChange(option.value)}
+                      className={`text-style-segmented-button ${isSelected ? 'selected' : ''}`}
+                      style={{
+                        padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm)',
+                        border: 'none',
+                        borderRight: index < textDecorationOptions.length - 1
+                          ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`
+                          : 'none',
+                        background: isSelected
+                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
+                          : 'transparent',
+                        color: isSelected
+                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
+                          : `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: '32px',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = 'transparent'
+                        }
+                      }}
+                    >
+                      {Icon && <Icon size={16} />}
+                    </button>
+                  </Tooltip>
+                )
+              })}
+            </div>
+          </div>
 
-      {/* Font Style (Italics) */}
-      <div className="text-style-control">
-        <Label layer="layer-3" layout="stacked">Type Style</Label>
-        <div 
-          className="text-style-segmented-control"
-          style={{
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-            borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
-            display: 'inline-flex',
-            overflow: 'hidden',
-            width: 'auto',
-          }}
-        >
-          {fontStyleOptions.map((option, index) => {
-            const Icon = iconNameToReactComponent(option.icon)
-            const isSelected = currentFontStyle === option.value
-            return (
-              <Tooltip key={option.value} label={option.label} position="top" layer="layer-3">
-                <button
-                  onClick={() => handleFontStyleChange(option.value)}
-                  className={`text-style-segmented-button ${isSelected ? 'selected' : ''}`}
-                  style={{
-                    padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm)',
-                    border: 'none',
-                    borderRight: index < fontStyleOptions.length - 1
-                      ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`
-                      : 'none',
-                    background: isSelected
-                      ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
-                      : 'transparent',
-                    color: isSelected
-                      ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
-                      : `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: '32px',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.background = 'transparent'
-                    }
-                  }}
-                >
-                  {Icon && <Icon size={16} />}
-                </button>
-              </Tooltip>
-            )
-          })}
-        </div>
-      </div>
+          {/* Text Transform */}
+          <div className="text-style-control">
+            <Label layer="layer-3" layout="stacked">Case</Label>
+            <div 
+              className="text-style-segmented-control"
+              style={{
+                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
+                borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
+                display: 'inline-flex',
+                overflow: 'hidden',
+                width: 'auto',
+              }}
+            >
+              {textTransformOptions.map((option, index) => {
+                const Icon = iconNameToReactComponent(option.icon)
+                const isSelected = currentTextTransform === option.value
+                return (
+                  <Tooltip key={option.value} label={option.label} position="top" layer="layer-3">
+                    <button
+                      onClick={() => handleTextTransformChange(option.value)}
+                      className={`text-style-segmented-button ${isSelected ? 'selected' : ''}`}
+                      style={{
+                        padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm)',
+                        border: 'none',
+                        borderRight: index < textTransformOptions.length - 1
+                          ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`
+                          : 'none',
+                        background: isSelected
+                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
+                          : 'transparent',
+                        color: isSelected
+                          ? `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`
+                          : `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: '32px',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = 'transparent'
+                        }
+                      }}
+                    >
+                      {Icon && <Icon size={16} />}
+                    </button>
+                  </Tooltip>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

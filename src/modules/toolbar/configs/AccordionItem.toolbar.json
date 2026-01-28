@@ -7,7 +7,7 @@
       "visible": true,
       "group": {
         "text": {
-          "label": "Text Color",
+          "label": "Text color",
           "visible": true
         },
         "background": {
@@ -15,7 +15,7 @@
           "visible": true
         },
         "background-hover": {
-          "label": "Background Hover",
+          "label": "Background hover",
           "visible": true
         },
         "icon": {
@@ -27,14 +27,14 @@
           "visible": true
         },
         "icon-gap": {
-          "label": "Icon Gap",
+          "label": "Icon gap",
           "visible": true
         }
       }
     },
     "header-text": {
       "icon": "text-aa",
-      "label": "Header Text Style",
+      "label": "Header text style",
       "visible": true
     },
     "content": {
@@ -43,7 +43,7 @@
       "visible": true,
       "group": {
         "content-text": {
-          "label": "Text Color",
+          "label": "Text color",
           "visible": true
         },
         "content-background": {
@@ -58,7 +58,7 @@
     },
     "content-text": {
       "icon": "text-aa",
-      "label": "Content Text Style",
+      "label": "Content text style",
       "visible": true
     },
     "divider": {
@@ -71,19 +71,19 @@
           "visible": true
         },
         "header-content-gap": {
-          "label": "Header-Content Gap",
+          "label": "Header-content gap",
           "visible": true
         }
       }
     },
     "border-radius": {
       "icon": "corners-out",
-      "label": "Border Radius",
+      "label": "Border radius",
       "visible": true
     },
     "icon-size": {
       "icon": "arrows-up-down",
-      "label": "Icon Size",
+      "label": "Icon size",
       "visible": true
     },
     "elevation": {

@@ -21,7 +21,7 @@
           "visible": true
         },
         "text-size": {
-          "label": "Font Size",
+          "label": "Font size",
           "visible": true
         }
       }
@@ -33,19 +33,19 @@
       "group": {
         "padding-horizontal": {
           "icon": "arrows-left-right",
-          "label": "Horizontal Padding",
+          "label": "Horizontal padding",
           "visible": true
         },
         "padding-vertical": {
           "icon": "arrows-up-down",
-          "label": "Vertical Padding",
+          "label": "Vertical padding",
           "visible": true
         }
       }
     },
     "border-radius": {
       "icon": "corners-out",
-      "label": "Corner Radius",
+      "label": "Corner radius",
       "visible": true
     },
     "height": {

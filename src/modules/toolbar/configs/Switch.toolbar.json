@@ -6,23 +6,23 @@
       "visible": true,
       "group": {
         "thumb-selected": {
-          "label": "Thumb Selected",
+          "label": "Thumb selected",
           "visible": true
         },
         "thumb-unselected": {
-          "label": "Thumb Unselected",
+          "label": "Thumb unselected",
           "visible": true
         },
         "thumb-height": {
-          "label": "Thumb Height",
+          "label": "Thumb height",
           "visible": true
         },
         "thumb-width": {
-          "label": "Thumb Width",
+          "label": "Thumb width",
           "visible": true
         },
         "thumb-border-radius": {
-          "label": "Thumb Corner Radius",
+          "label": "Thumb corner radius",
           "visible": true
         }
       }
@@ -33,35 +33,35 @@
       "visible": true,
       "group": {
         "track-selected": {
-          "label": "Track Selected",
+          "label": "Track selected",
           "visible": true
         },
         "track-unselected": {
-          "label": "Track Unselected",
+          "label": "Track unselected",
           "visible": true
         },
         "track-width": {
-          "label": "Track Width",
+          "label": "Track width",
           "visible": true
         },
         "track-inner-padding": {
-          "label": "Track Inner Padding",
+          "label": "Track inner padding",
           "visible": true
         },
         "track-border-radius": {
-          "label": "Track Corner Radius",
+          "label": "Track corner radius",
           "visible": true
         }
       }
     },
     "label-switch-gap": {
       "icon": "split-horizontal",
-      "label": "Gap between Label and Switch",
+      "label": "Gap between label and switch",
       "visible": true
     },
     "thumb-icon": {
       "icon": "diamond",
-      "label": "Thumb Icon",
+      "label": "Thumb icon",
       "visible": false,
       "group": {
         "thumb-icon-size": {

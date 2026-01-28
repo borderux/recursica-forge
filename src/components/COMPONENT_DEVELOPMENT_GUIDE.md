@@ -486,7 +486,7 @@ These abstractions automatically:
     },
     "required-indicator-gap": {
       "icon": "split-horizontal",
-      "label": "Required Indicator Gap",
+      "label": "Required indicator gap",
       "visible": true
     }
   }
@@ -500,6 +500,13 @@ These abstractions automatically:
 3. **Groups**: Use groups for related properties (e.g., border properties grouped together)
 4. **Icons**: Use Phosphor icon names (see `src/modules/components/iconUtils.ts` for available icons)
 5. **Visible**: Set `visible: true` for properties that should appear in the toolbar
+6. **Label Formatting**: **All labels must use sentence case** (first word capitalized, subsequent words lowercase). Examples:
+   - ✅ "Font size" (not "Font Size")
+   - ✅ "Icon size" (not "Icon Size")
+   - ✅ "Corner radius" (not "Corner Radius")
+   - ✅ "Horizontal padding" (not "Horizontal Padding")
+   - ✅ "Text color" (not "Text Color")
+   - ✅ "Background hover" (not "Background Hover")
 
 #### Register Toolbar Config
 
@@ -947,13 +954,13 @@ Each component needs a toolbar configuration file that defines:
     }
   },
   "props": {
-    "prop-name": {
+      "prop-name": {
       "icon": "icon-name",
-      "label": "Display Label",
+      "label": "Display label",
       "visible": true,
       "group": {
         "sub-prop": {
-          "label": "Sub Property",
+          "label": "Sub property",
           "visible": true
         }
       }
@@ -974,7 +981,9 @@ Each component needs a toolbar configuration file that defines:
    - See available icons in `src/modules/components/iconLibrary.ts`
 
 2. **`label`** (required): The display label shown in the toolbar tooltip
-   - Should be user-friendly (e.g., `"Background"`, `"Horizontal Padding"`)
+   - **Must use sentence case** (first word capitalized, subsequent words lowercase)
+   - Examples: `"Background"`, `"Horizontal padding"`, `"Icon size"`, `"Corner radius"`, `"Text color"`
+   - ❌ Avoid: `"Horizontal Padding"`, `"Icon Size"`, `"Corner Radius"`, `"Text Color"`
 
 3. **`floatingPaletteLabel`** (required): The title shown in the floating palette when editing
    - Should be descriptive (e.g., `"Background Color"`, `"Border Settings"`)
@@ -1031,12 +1040,12 @@ The prop names in the config file should match the keys in `UIKit.json`:
   "props": {
     "horizontal-padding": {
       "icon": "arrows-left-right",
-      "label": "Horizontal Padding",
+      "label": "Horizontal padding",
       "floatingPaletteLabel": "Horizontal Padding"
     },
     "border-radius": {
       "icon": "corners-out",
-      "label": "Border Radius",
+      "label": "Corner radius",
       "floatingPaletteLabel": "Border Radius"
     }
   }

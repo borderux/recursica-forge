@@ -26,7 +26,7 @@
         },
         "border-radius": {
           "icon": "corners-out",
-          "label": "Corner Radius",
+          "label": "Corner radius",
           "visible": true
         },
         "border-color": {
@@ -48,7 +48,7 @@
         },
         "icon-color": {
           "icon": "frame-corners",
-          "label": "Icon Color",
+          "label": "Icon color",
           "visible": true
         }
       }
@@ -63,7 +63,7 @@
           "visible": true
         },
         "text-size": {
-          "label": "Font Size",
+          "label": "Font size",
           "visible": true
         }
       }
