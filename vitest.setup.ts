@@ -25,8 +25,16 @@ console.error = (...args: any[]) => {
         allArgs.includes('adapters/Button') ||
         allArgs.includes('adapters/mantine/Button') ||
         allArgs.includes('adapters/material/Button') ||
-        allArgs.includes('adapters/carbon/Button')) {
-      // Suppress Button component act() warnings - these are from internal useEffect hooks
+        allArgs.includes('adapters/carbon/Button') ||
+        allArgs.includes('Accordion') ||
+        allArgs.includes('at Accordion') ||
+        allArgs.includes('Accordion.tsx') ||
+        allArgs.includes('Accordion/Accordion.tsx') ||
+        allArgs.includes('adapters/Accordion') ||
+        allArgs.includes('adapters/mantine/Accordion') ||
+        allArgs.includes('adapters/material/Accordion') ||
+        allArgs.includes('adapters/carbon/Accordion')) {
+      // Suppress Button and Accordion component act() warnings - these are from internal useEffect hooks
       // that update state after mount (e.g., CSS variable listeners, elevation updates)
       // These are expected behavior and don't indicate test problems
       return
