@@ -886,7 +886,6 @@ export default function PropControlContent({
           if (correctProp) {
             validPrimaryVar = correctProp.cssVar
             validCssVars = [correctProp.cssVar]
-            console.log('PropControlContent: Corrected read-only color CSS var to:', validPrimaryVar)
           }
         }
       }

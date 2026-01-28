@@ -49,7 +49,11 @@ export default function TextStyleToolbar({
   }, []) // Empty dependency array - only run on mount
 
   // Get size variant for variant-specific text properties (e.g., Avatar)
-  const sizeVariant = selectedVariants?.size || selectedVariants?.sizeVariant || undefined
+  // Only use size variants for components that actually have size-specific text properties
+  // Button, Chip, etc. have text properties at the component level, not per size variant
+  const componentsWithSizeSpecificText = ['Avatar'] // Components that have text properties under size variants
+  const hasSizeSpecificText = componentsWithSizeSpecificText.includes(componentName)
+  const sizeVariant = hasSizeSpecificText ? (selectedVariants?.size || selectedVariants?.sizeVariant || undefined) : undefined
   
   // Get CSS variables for all text properties
   // Use size variant if available (for components like Avatar where text properties are per size variant)
@@ -1139,14 +1143,8 @@ export default function TextStyleToolbar({
   const handleFontSizeChange = useCallback((tokenCssVar: string) => {
     setCurrentFontSizeToken(tokenCssVar)
     const tokenValue = `var(${tokenCssVar})`
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontSizeChange',message:'Updating font size',data:{componentName,textElementName,fontSizeVar,tokenValue:tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     updateCssVar(fontSizeVar, tokenValue)
     requestAnimationFrame(() => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontSizeChange',message:'Dispatching cssVarsUpdated',data:{fontSizeVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [fontSizeVar] }
       }))

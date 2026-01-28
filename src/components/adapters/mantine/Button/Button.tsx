@@ -100,6 +100,7 @@ export default function Button({
     
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
       const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
       
       if (shouldUpdateText) {
