@@ -922,6 +922,7 @@ export default function DimensionTokenSelector({
       valueLabel={getValueLabel}
       minLabel={minToken?.label || 'None'}
       maxLabel={maxToken?.label || 'Xl'}
+      showMinMaxLabels={false}
       label={<Label layer="layer-3" layout="stacked">{label}</Label>}
     />
   )

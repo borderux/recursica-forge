@@ -31,6 +31,7 @@ export type SliderProps = {
   tooltipText?: string | ((value: number) => string)
   minLabel?: string
   maxLabel?: string
+  showMinMaxLabels?: boolean
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -52,6 +53,7 @@ export function Slider({
   tooltipText,
   minLabel,
   maxLabel,
+  showMinMaxLabels = true,
   className,
   style,
   mantine,
@@ -141,15 +143,17 @@ export function Slider({
     const sliderElement = (
       <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: showInput ? `var(${inputGapVar}, 8px)` : 0, overflow: 'visible' }}>
         {/* Min value display */}
-        <span style={{ 
-          fontSize: 12, 
-          color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
-          opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
-          flexShrink: 0,
-          marginRight: '8px',
-        }}>
-          {minLabel ?? min}
-        </span>
+        {showMinMaxLabels && (
+          <span style={{ 
+            fontSize: 12, 
+            color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
+            opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
+            flexShrink: 0,
+            marginRight: '8px',
+          }}>
+            {minLabel ?? min}
+          </span>
+        )}
         <div style={{ 
           position: 'relative', 
           flex: 1, 
@@ -276,15 +280,17 @@ export function Slider({
           `}</style>
         </div>
         {/* Max value display */}
-        <span style={{ 
-          fontSize: 12, 
-          color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
-          opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
-          flexShrink: 0,
-          marginLeft: '8px',
-        }}>
-          {maxLabel ?? max}
-        </span>
+        {showMinMaxLabels && (
+          <span style={{ 
+            fontSize: 12, 
+            color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
+            opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
+            flexShrink: 0,
+            marginLeft: '8px',
+          }}>
+            {maxLabel ?? max}
+          </span>
+        )}
         
         {/* Input field */}
         {showInput && (
@@ -417,6 +423,7 @@ export function Slider({
         tooltipText={computedTooltipText}
         minLabel={minLabel}
         maxLabel={maxLabel}
+        showMinMaxLabels={showMinMaxLabels}
         className={className}
         style={style}
         mantine={mantine}
@@ -492,6 +499,7 @@ export function Slider({
           tooltipText={tooltipText}
           minLabel={minLabel}
           maxLabel={maxLabel}
+          showMinMaxLabels={showMinMaxLabels}
           className={className}
           style={style}
           mantine={mantine}

@@ -29,6 +29,7 @@ export default function Slider({
   tooltipText,
   minLabel,
   maxLabel,
+  showMinMaxLabels = true,
   className,
   style,
   material,
@@ -118,15 +119,17 @@ export default function Slider({
   const sliderElement = (
     <div style={{ display: 'flex', alignItems: 'center', gap: (showInput || showValueLabel) ? `var(${inputGapVar}, 8px)` : 0, width: '100%', minWidth: 0 }}>
       {/* Min value display */}
-      <span style={{ 
-        fontSize: 12, 
-        color: `var(${layerTextColorVar})`,
-        opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
-        flexShrink: 0,
-        marginRight: '8px',
-      }}>
-        {minLabel ?? min}
-      </span>
+      {showMinMaxLabels && (
+        <span style={{ 
+          fontSize: 12, 
+          color: `var(${layerTextColorVar})`,
+          opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
+          flexShrink: 0,
+          marginRight: '8px',
+        }}>
+          {minLabel ?? min}
+        </span>
+      )}
       <MaterialSlider
         value={singleValue}
         onChange={handleChange}
@@ -173,15 +176,17 @@ export default function Slider({
         {...props}
       />
       {/* Max value display */}
-      <span style={{ 
-        fontSize: 12, 
-        color: `var(${layerTextColorVar})`,
-        opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
-        flexShrink: 0,
-        marginLeft: '8px',
-      }}>
-        {maxLabel ?? max}
-      </span>
+      {showMinMaxLabels && (
+        <span style={{ 
+          fontSize: 12, 
+          color: `var(${layerTextColorVar})`,
+          opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
+          flexShrink: 0,
+          marginLeft: '8px',
+        }}>
+          {maxLabel ?? max}
+        </span>
+      )}
       {showInput && (
         <input
           type="number"

@@ -139,6 +139,7 @@ export default function TextStyleToolbar({
   // Get available letter spacing tokens
   const letterSpacings = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: number }> = []
+    const foundKeys = new Set<string>()
     
     try {
       const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
@@ -148,25 +149,43 @@ export default function TextStyleToolbar({
         if (key.startsWith('$')) return
         
         const spacingValue = spacings[key]
-        const spacingNum = typeof spacingValue === 'object' && spacingValue?.$value
+        const spacingNum = typeof spacingValue === 'object' && spacingValue?.$value !== undefined
           ? (typeof spacingValue.$value === 'number' ? spacingValue.$value : Number(spacingValue.$value))
           : (typeof spacingValue === 'number' ? spacingValue : Number(spacingValue))
         
-        if (Number.isFinite(spacingNum)) {
+        // Include all valid tokens, including 0 (default)
+        // Check for NaN explicitly since Number.isFinite(0) is true but we want to ensure it's a valid number
+        if (Number.isFinite(spacingNum) && !isNaN(spacingNum)) {
           const cssVar = `--recursica-tokens-font-letter-spacings-${key}`
-          const cssValue = readCssVar(cssVar)
-          
-          if (cssValue) {
-            options.push({
-              label: toSentenceCase(key),
-              cssVar,
-              value: spacingNum,
-            })
-          }
+          // Include all valid tokens, even if CSS variable doesn't exist yet
+          // The CSS variable will be created when the token is used
+          options.push({
+            label: toSentenceCase(key),
+            cssVar,
+            value: spacingNum,
+          })
+          foundKeys.add(key)
         }
       })
+      
+      // Ensure "default" token is always included (it has value 0)
+      if (!foundKeys.has('default')) {
+        options.push({
+          label: 'Default',
+          cssVar: '--recursica-tokens-font-letter-spacings-default',
+          value: 0,
+        })
+      }
     } catch (error) {
       console.error('Error loading letter spacings:', error)
+      // Even on error, ensure default is available
+      if (!options.find(opt => opt.cssVar === '--recursica-tokens-font-letter-spacings-default')) {
+        options.push({
+          label: 'Default',
+          cssVar: '--recursica-tokens-font-letter-spacings-default',
+          value: 0,
+        })
+      }
     }
     
     // Sort by numeric value
@@ -191,15 +210,13 @@ export default function TextStyleToolbar({
         
         if (Number.isFinite(heightNum)) {
           const cssVar = `--recursica-tokens-font-line-heights-${key}`
-          const cssValue = readCssVar(cssVar)
-          
-          if (cssValue) {
-            options.push({
-              label: toSentenceCase(key),
-              cssVar,
-              value: heightNum,
-            })
-          }
+          // Include all valid tokens, even if CSS variable doesn't exist yet
+          // The CSS variable will be created when the token is used
+          options.push({
+            label: toSentenceCase(key),
+            cssVar,
+            value: heightNum,
+          })
         }
       })
     } catch (error) {
@@ -341,12 +358,38 @@ export default function TextStyleToolbar({
       if (sizeMatch) {
         setCurrentFontSizeToken(`--recursica-tokens-font-sizes-${sizeMatch[1]}`)
       } else {
-        // Try to extract size key from resolved value
+        // Try to match by resolved pixel value
         const resolved = readCssVarResolved(fontSizeVar)
         if (resolved) {
+          // First try to find a CSS variable reference in the resolved value
           const sizeMatchResolved = resolved.match(/--recursica-tokens-font-sizes-([a-z0-9-]+)/)
           if (sizeMatchResolved) {
             setCurrentFontSizeToken(`--recursica-tokens-font-sizes-${sizeMatchResolved[1]}`)
+          } else {
+            // Try to match by pixel/rem/em value
+            const pixelMatch = resolved.match(/([\d.]+)(px|rem|em)/)
+            if (pixelMatch && fontSizes.length > 0) {
+              const value = parseFloat(pixelMatch[1])
+              const unit = pixelMatch[2]
+              const pixelValue = unit === 'px' ? value : (unit === 'rem' || unit === 'em' ? value * 16 : value)
+              
+              // Find the closest matching font size by pixel value
+              let closestToken = fontSizes[0]
+              let closestDiff = Math.abs(closestToken.fontSize - pixelValue)
+              
+              for (const token of fontSizes) {
+                const diff = Math.abs(token.fontSize - pixelValue)
+                if (diff < closestDiff) {
+                  closestDiff = diff
+                  closestToken = token
+                }
+              }
+              
+              // Only use the match if it's reasonably close (within 2px)
+              if (closestDiff <= 2) {
+                setCurrentFontSizeToken(closestToken.cssVar)
+              }
+            }
           }
         }
       }
@@ -375,6 +418,40 @@ export default function TextStyleToolbar({
       const spacingMatch = letterSpacingValue.match(/--recursica-tokens-font-letter-spacings-([a-z0-9-]+)/)
       if (spacingMatch) {
         setCurrentLetterSpacingToken(`--recursica-tokens-font-letter-spacings-${spacingMatch[1]}`)
+      } else {
+        // Try to match by resolved value (letter spacing is typically in em units)
+        const resolved = readCssVarResolved(letterSpacingVar)
+        if (resolved && letterSpacings.length > 0) {
+          // Letter spacing is typically stored as "Xem" or just a number
+          // Try to extract numeric value from various formats
+          const emMatch = resolved.match(/([\d.+-]+)(em|rem|px)?/)
+          if (emMatch) {
+            const value = parseFloat(emMatch[1])
+            if (!isNaN(value)) {
+              const unit = emMatch[2]
+              // Letter spacing tokens store values in em, so compare directly
+              const emValue = unit === 'px' ? value / 16 : (unit === 'rem' || unit === 'em' || !unit ? value : value)
+              
+              // Find the closest matching letter spacing by value
+              let closestToken = letterSpacings[0]
+              let closestDiff = Math.abs(closestToken.value - emValue)
+              
+              for (const token of letterSpacings) {
+                const diff = Math.abs(token.value - emValue)
+                if (diff < closestDiff) {
+                  closestDiff = diff
+                  closestToken = token
+                }
+              }
+              
+              // Use a percentage-based tolerance: 5% of the value or 0.0001, whichever is larger
+              const tolerance = Math.max(Math.abs(emValue) * 0.05, 0.0001)
+              if (closestDiff <= tolerance) {
+                setCurrentLetterSpacingToken(closestToken.cssVar)
+              }
+            }
+          }
+        }
       }
     }
 
@@ -383,9 +460,50 @@ export default function TextStyleToolbar({
       const heightMatch = lineHeightValue.match(/--recursica-tokens-font-line-heights-([a-z0-9-]+)/)
       if (heightMatch) {
         setCurrentLineHeightToken(`--recursica-tokens-font-line-heights-${heightMatch[1]}`)
+      } else {
+        // Try to match by resolved value (line height can be unitless, px, em, or rem)
+        const resolved = readCssVarResolved(lineHeightVar)
+        if (resolved && lineHeights.length > 0) {
+          // Line height can be unitless or have units
+          const heightMatch = resolved.match(/([\d.]+)(px|rem|em)?/)
+          if (heightMatch) {
+            const value = parseFloat(heightMatch[1])
+            if (!isNaN(value)) {
+              const unit = heightMatch[2]
+              
+              // Line height tokens store values as numbers (could be unitless multipliers or pixel values)
+              let numericValue = value
+              
+              if (unit === 'px') {
+                numericValue = value
+              } else if (unit === 'rem' || unit === 'em') {
+                numericValue = value
+              }
+              // If no unit, it's already a unitless multiplier
+              
+              // Find the closest matching line height by value
+              let closestToken = lineHeights[0]
+              let closestDiff = Math.abs(closestToken.value - numericValue)
+              
+              for (const token of lineHeights) {
+                const diff = Math.abs(token.value - numericValue)
+                if (diff < closestDiff) {
+                  closestDiff = diff
+                  closestToken = token
+                }
+              }
+              
+              // Use a percentage-based tolerance: 1% of the value or 0.01, whichever is larger
+              const tolerance = Math.max(Math.abs(numericValue) * 0.01, 0.01)
+              if (closestDiff <= tolerance) {
+                setCurrentLineHeightToken(closestToken.cssVar)
+              }
+            }
+          }
+        }
       }
     }
-  }, [fontWeightVar, letterSpacingVar, lineHeightVar, fontSizeVar, fontWeights])
+  }, [fontWeightVar, letterSpacingVar, lineHeightVar, fontSizeVar, fontWeights, fontSizes, letterSpacings, lineHeights])
 
   // Listen for CSS var updates
   useEffect(() => {
@@ -399,6 +517,40 @@ export default function TextStyleToolbar({
         const sizeMatch = fontSizeValue.match(/--recursica-tokens-font-sizes-([a-z0-9-]+)/)
         if (sizeMatch) {
           setCurrentFontSizeToken(`--recursica-tokens-font-sizes-${sizeMatch[1]}`)
+        } else {
+          // Try to match by resolved pixel value
+          const resolved = readCssVarResolved(fontSizeVar)
+          if (resolved) {
+            const sizeMatchResolved = resolved.match(/--recursica-tokens-font-sizes-([a-z0-9-]+)/)
+            if (sizeMatchResolved) {
+              setCurrentFontSizeToken(`--recursica-tokens-font-sizes-${sizeMatchResolved[1]}`)
+            } else if (fontSizes.length > 0) {
+              // Try to match by pixel/rem/em value
+              const pixelMatch = resolved.match(/([\d.]+)(px|rem|em)/)
+              if (pixelMatch) {
+                const value = parseFloat(pixelMatch[1])
+                const unit = pixelMatch[2]
+                const pixelValue = unit === 'px' ? value : (unit === 'rem' || unit === 'em' ? value * 16 : value)
+                
+                // Find the closest matching font size by pixel value
+                let closestToken = fontSizes[0]
+                let closestDiff = Math.abs(closestToken.fontSize - pixelValue)
+                
+                for (const token of fontSizes) {
+                  const diff = Math.abs(token.fontSize - pixelValue)
+                  if (diff < closestDiff) {
+                    closestDiff = diff
+                    closestToken = token
+                  }
+                }
+                
+                // Only use the match if it's reasonably close (within 2px)
+                if (closestDiff <= 2) {
+                  setCurrentFontSizeToken(closestToken.cssVar)
+                }
+              }
+            }
+          }
         }
       }
 
@@ -413,6 +565,38 @@ export default function TextStyleToolbar({
         const spacingMatch = letterSpacingValue.match(/--recursica-tokens-font-letter-spacings-([a-z0-9-]+)/)
         if (spacingMatch) {
           setCurrentLetterSpacingToken(`--recursica-tokens-font-letter-spacings-${spacingMatch[1]}`)
+        } else if (letterSpacings.length > 0) {
+          // Try to match by resolved value (letter spacing is typically in em units)
+          const resolved = readCssVarResolved(letterSpacingVar)
+          if (resolved) {
+            const emMatch = resolved.match(/([\d.+-]+)(em|rem|px)?/)
+            if (emMatch) {
+              const value = parseFloat(emMatch[1])
+              if (!isNaN(value)) {
+                const unit = emMatch[2]
+                // Letter spacing tokens store values in em, so compare directly
+                const emValue = unit === 'px' ? value / 16 : (unit === 'rem' || unit === 'em' || !unit ? value : value)
+                
+                // Find the closest matching letter spacing by value
+                let closestToken = letterSpacings[0]
+                let closestDiff = Math.abs(closestToken.value - emValue)
+                
+                for (const token of letterSpacings) {
+                  const diff = Math.abs(token.value - emValue)
+                  if (diff < closestDiff) {
+                    closestDiff = diff
+                    closestToken = token
+                  }
+                }
+                
+                // Use a percentage-based tolerance: 5% of the value or 0.0001, whichever is larger
+                const tolerance = Math.max(Math.abs(emValue) * 0.05, 0.0001)
+                if (closestDiff <= tolerance) {
+                  setCurrentLetterSpacingToken(closestToken.cssVar)
+                }
+              }
+            }
+          }
         }
       }
 
@@ -420,13 +604,53 @@ export default function TextStyleToolbar({
         const heightMatch = lineHeightValue.match(/--recursica-tokens-font-line-heights-([a-z0-9-]+)/)
         if (heightMatch) {
           setCurrentLineHeightToken(`--recursica-tokens-font-line-heights-${heightMatch[1]}`)
+        } else if (lineHeights.length > 0) {
+          // Try to match by resolved value (line height can be unitless, px, em, or rem)
+          const resolved = readCssVarResolved(lineHeightVar)
+          if (resolved) {
+            const heightMatch = resolved.match(/([\d.]+)(px|rem|em)?/)
+            if (heightMatch) {
+              const value = parseFloat(heightMatch[1])
+              if (!isNaN(value)) {
+                const unit = heightMatch[2]
+                
+                // Line height tokens store values as numbers (could be unitless multipliers or pixel values)
+                let numericValue = value
+                
+                if (unit === 'px') {
+                  numericValue = value
+                } else if (unit === 'rem' || unit === 'em') {
+                  numericValue = value
+                }
+                // If no unit, it's already a unitless multiplier
+                
+                // Find the closest matching line height by value
+                let closestToken = lineHeights[0]
+                let closestDiff = Math.abs(closestToken.value - numericValue)
+                
+                for (const token of lineHeights) {
+                  const diff = Math.abs(token.value - numericValue)
+                  if (diff < closestDiff) {
+                    closestDiff = diff
+                    closestToken = token
+                  }
+                }
+                
+                // Use a percentage-based tolerance: 1% of the value or 0.01, whichever is larger
+                const tolerance = Math.max(Math.abs(numericValue) * 0.01, 0.01)
+                if (closestDiff <= tolerance) {
+                  setCurrentLineHeightToken(closestToken.cssVar)
+                }
+              }
+            }
+          }
         }
       }
     }
 
     window.addEventListener('cssVarsUpdated', handleUpdate)
     return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-  }, [fontWeightVar, letterSpacingVar, lineHeightVar, fontSizeVar])
+  }, [fontWeightVar, letterSpacingVar, lineHeightVar, fontSizeVar, fontSizes, letterSpacings, lineHeights])
 
   // Handlers
   const handleFontFamilyChange = useCallback((cssVar: string) => {
@@ -536,8 +760,8 @@ export default function TextStyleToolbar({
               padding: '8px',
               borderRadius: '4px',
               border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-background)`,
-              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-elements-text-color)`,
+              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
               fontSize: '14px',
               width: '100%',
             }}
@@ -589,6 +813,7 @@ export default function TextStyleToolbar({
             }}
             minLabel={fontSizes[0]?.label || '2Xs'}
             maxLabel={fontSizes[fontSizes.length - 1]?.label || '6Xl'}
+            showMinMaxLabels={false}
             label={<Label layer="layer-3" layout="stacked">Size</Label>}
           />
         </div>
@@ -605,7 +830,7 @@ export default function TextStyleToolbar({
               borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
               border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
               background: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
-              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-elements-text-color)`,
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
               fontSize: '14px',
               cursor: 'pointer',
               transition: 'background-color 0.2s',
@@ -663,6 +888,7 @@ export default function TextStyleToolbar({
             }}
             minLabel={fontWeights[0]?.label || 'Thin'}
             maxLabel={fontWeights[fontWeights.length - 1]?.label || 'Black'}
+            showMinMaxLabels={false}
             label={<Label layer="layer-3" layout="stacked">Weight</Label>}
           />
         </div>
@@ -706,6 +932,7 @@ export default function TextStyleToolbar({
                 }}
                 minLabel={letterSpacings[0]?.label || 'Tight'}
                 maxLabel={letterSpacings[letterSpacings.length - 1]?.label || 'Wide'}
+                showMinMaxLabels={false}
                 label={<Label layer="layer-3" layout="stacked">Letter spacing</Label>}
               />
             </div>
@@ -749,6 +976,7 @@ export default function TextStyleToolbar({
                 }}
                 minLabel={lineHeights[0]?.label || 'Tight'}
                 maxLabel={lineHeights[lineHeights.length - 1]?.label || 'Loose'}
+                showMinMaxLabels={false}
                 label={<Label layer="layer-3" layout="stacked">Line height</Label>}
               />
             </div>

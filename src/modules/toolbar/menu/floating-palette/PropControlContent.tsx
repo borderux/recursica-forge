@@ -275,6 +275,7 @@ function BrandDimensionSliderInline({
       tooltipText={tooltipText}
       minLabel={minLabel}
       maxLabel={maxLabel}
+      showMinMaxLabels={false}
       label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
     />
   )
@@ -523,6 +524,7 @@ function TypographySliderInline({
       tooltipText={currentToken?.label || String(safeSelectedIndex)}
       minLabel={minLabel}
       maxLabel={maxLabel}
+      showMinMaxLabels={false}
       label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
     />
   )
@@ -682,6 +684,7 @@ function ElevationSliderInline({
       })()}
       minLabel={minLabel}
       maxLabel={maxLabel}
+      showMinMaxLabels={false}
       label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
     />
   )
@@ -1057,6 +1060,7 @@ export default function PropControlContent({
               valueLabel={getValueLabel}
               minLabel="0px"
               maxLabel="500px"
+              showMinMaxLabels={false}
               label={<Label layer="layer-1" layout="stacked">{label}</Label>}
             />
           )
@@ -1139,6 +1143,7 @@ export default function PropControlContent({
               valueLabel={getValueLabel}
               minLabel={`${minValue}px`}
               maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
               label={<Label layer="layer-1" layout="stacked">{label}</Label>}
             />
           )
