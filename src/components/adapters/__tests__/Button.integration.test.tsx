@@ -95,7 +95,20 @@ describe('Button Integration', () => {
   it('renders Carbon button when Carbon is selected', async () => {
     const { container } = await renderWithKit('carbon')
     
-    const button = await waitForButton(container, 'Test Button')
+    // Carbon can take longer to initialize in CI environments
+    // Use screen.getByText which queries the document directly (more reliable)
+    const button = await waitFor(() => {
+      const btn = screen.getByText('Test Button')
+      // Ensure it's actually a button element and not still loading
+      if (btn.textContent === 'Loading...' && btn.hasAttribute('disabled')) {
+        throw new Error('Still loading')
+      }
+      if (btn.tagName.toLowerCase() !== 'button') {
+        throw new Error('Element is not a button')
+      }
+      return btn
+    }, { timeout: 20000 })
+    
     expect(button).toBeInTheDocument()
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })

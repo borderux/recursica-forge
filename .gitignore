@@ -24,7 +24,6 @@ debug.log
 .idea/
 
 # Env files
-.env
 .env.*.local
 *.local
 

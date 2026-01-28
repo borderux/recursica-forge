@@ -1,7 +1,16 @@
 {
   "name": "recursica-forge",
-  "private": true,
+  "description": "A tool for managing Recursica variables, themes, and token definitions",
+  "private": false,
   "version": "0.1.2",
+  "homepage": "https://forge.recursica.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/borderux/recursica-forge.git"
+  },
+  "author": "Border LLC",
+  "license": "MIT",
+  "keywords": ["recursica", "forge", "variables", "themes", "tokens"],
   "type": "module",
   "scripts": {
     "dev": "vite",

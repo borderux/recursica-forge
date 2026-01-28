@@ -7,34 +7,12 @@ A tool for managing Recursica variables, themes, and token definitions
 - Run tests: `npm test` (Vitest)
 - Type-check: `npm run type-check`
 
-## Changesets
+## Versioning and Releases
 
-This project uses [Changesets](https://github.com/changesets/changesets) to manage versioning and releases.
+This project uses [Changesets](https://github.com/changesets/changesets) to manage versioning and releases. For detailed information about:
 
-### Creating a Changeset
-
-When you make changes that should be tracked:
-
-1. Run `npm run changeset` to create a changeset file
-2. Select the change type (patch/minor/major) and provide a description
-3. Commit the generated changeset file in `.changeset/`
-
-### Making a Public Release
-
-The release process is automated via GitHub Actions:
-
-1. **Create Changeset**: After making your changes, run `npm run changeset` and commit the changeset file
-2. **Push to Main**: Push your changes (including the changeset) to the `main` branch
-3. **Version Packages PR**: The Changesets workflow automatically creates a "Version Packages" pull request that includes:
-   - Version bump in `package.json` (based on changeset types: patch/minor/major)
-   - Updated `CHANGELOG.md` with release notes
-4. **Review and Merge**: Review the version PR and merge it when ready
-5. **Automatic Release**: Once merged, the workflow automatically:
-   - Creates a git tag for the release version (e.g., `v1.2.3`)
-   - Creates a GitHub release with changelog and links to PRs/commits
-   - Deploys the application to GitHub Pages
-
-The entire process is automated—you just need to create changesets and merge the version PR when ready to release.
+- **Creating changesets**: See [CONTRIBUTING.md](./CONTRIBUTING.md#changesets)
+- **Release process**: See [RELEASE.md](./RELEASE.md)
 
 ## Architecture Overview
 

@@ -20,3 +20,19 @@ Please visit the [recursica-forge GitHub repository](https://github.com/borderux
 - Type-check: `npm run type-check`
 
 For more details, see the [README.md](./README.md).
+
+## Changesets
+
+This project uses [Changesets](https://github.com/changesets/changesets) to manage versioning and changelog generation. **Please create a changeset when submitting a pull request** if your changes affect the public API or user-facing functionality.
+
+### Creating a Changeset
+
+1. After making your changes, run `npm run changeset`
+2. Select the change type:
+   - **patch**: Bug fixes, minor corrections
+   - **minor**: New features, additions (backwards compatible)
+   - **major**: Breaking changes
+3. Provide a clear description of your changes
+4. Commit the generated changeset file in `.changeset/` along with your changes
+
+The changeset will be included in the next release's changelog. For more information about the release process, see [RELEASE.md](./RELEASE.md).
