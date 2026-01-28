@@ -298,6 +298,15 @@ export default function Accordion({
       {items.map((item, index) => {
         const showDivider = item.divider !== false && index < items.length - 1
         const isOpen = openItems.includes(item.id)
+        const ItemIcon = item.icon
+        const titleWithIcon = ItemIcon ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--accordion-item-icon-gap, 8px)' }}>
+            <div style={{ flexShrink: 0, color: `var(--accordion-item-icon-color)`, width: 'var(--accordion-item-icon-size, 16px)', height: 'var(--accordion-item-icon-size, 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ItemIcon size={16} />
+            </div>
+            <span>{item.title}</span>
+          </div>
+        ) : item.title
         return (
           <MantineAccordion.Item
             key={item.id}
@@ -324,7 +333,7 @@ export default function Accordion({
                 borderRight: 'none',
               }}
             >
-              {item.title}
+              {titleWithIcon}
             </MantineAccordion.Control>
             <MantineAccordion.Panel>{item.content}</MantineAccordion.Panel>
           </MantineAccordion.Item>

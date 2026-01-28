@@ -49,7 +49,9 @@
 
 /* Ensure outline variant (secondary) has a border with the correct color */
 /* Use --button-border-color if set, fallback to text color */
-.cds--btn--secondary {
+.cds--btn--secondary,
+.recursica-accordion .cds--btn--secondary,
+.recursica-accordion .cds--accordion__content .cds--btn--secondary {
   border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
 }
 

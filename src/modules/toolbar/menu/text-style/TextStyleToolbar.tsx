@@ -15,6 +15,7 @@ import { getComponentTextCssVar } from '../../../../components/utils/cssVarNames
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
 import { Tooltip } from '../../../../components/adapters/Tooltip'
+import { Button } from '../../../../components/adapters/Button'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
 import './TextStyleToolbar.css'
 
@@ -37,8 +38,13 @@ export default function TextStyleToolbar({
   const { mode } = useThemeMode()
   
   // State to track whether all properties are shown
-  // This resets automatically when the accordion collapses (component unmounts)
+  // Reset when component mounts (accordion opens)
   const [showAllProperties, setShowAllProperties] = useState(false)
+  
+  // Reset showAllProperties when component mounts (accordion opens)
+  useEffect(() => {
+    setShowAllProperties(false)
+  }, []) // Empty dependency array - only run on mount
 
   // Get CSS variables for all text properties
   const fontFamilyVar = getComponentTextCssVar(componentName as any, textElementName, 'font-family')
@@ -822,28 +828,17 @@ export default function TextStyleToolbar({
       {/* Show All Properties Button - Only shown when not showing all */}
       {!showAllProperties && (
         <div className="text-style-control">
-          <button
+          <Button
             onClick={() => setShowAllProperties(true)}
+            variant="outline"
+            size="small"
+            layer="layer-0"
             style={{
               width: '100%',
-              padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
-              borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-              background: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
-              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
-              fontSize: '14px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`
             }}
           >
             Show all properties
-          </button>
+          </Button>
         </div>
       )}
 
@@ -988,8 +983,6 @@ export default function TextStyleToolbar({
             <div 
               className="text-style-segmented-control"
               style={{
-                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-                borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
                 display: 'inline-flex',
                 overflow: 'hidden',
                 width: 'auto',
@@ -1047,8 +1040,6 @@ export default function TextStyleToolbar({
             <div 
               className="text-style-segmented-control"
               style={{
-                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-                borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
                 display: 'inline-flex',
                 overflow: 'hidden',
                 width: 'auto',
@@ -1106,8 +1097,6 @@ export default function TextStyleToolbar({
             <div 
               className="text-style-segmented-control"
               style={{
-                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-                borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
                 display: 'inline-flex',
                 overflow: 'hidden',
                 width: 'auto',

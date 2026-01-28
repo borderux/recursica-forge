@@ -114,3 +114,23 @@
   text-decoration: var(--accordion-item-content-text-decoration) !important;
   text-transform: var(--accordion-item-content-text-transform) !important;
 }
+
+/* Restore borders for buttons inside accordion content - use Button component CSS variables */
+.recursica-accordion.material-accordion .MuiAccordionDetails-root button,
+.recursica-accordion.material-accordion .MuiAccordionDetails-root .recursica-button,
+.recursica-accordion.material-accordion .MuiAccordionDetails-root .MuiButton-root {
+  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
+}
+
+/* Ensure segmented control buttons maintain their custom styling - no borders on individual buttons */
+.recursica-accordion.material-accordion .MuiAccordionDetails-root .text-style-segmented-button,
+.recursica-accordion.material-accordion .MuiAccordionDetails-root .layer-segmented-control-button {
+  border: none !important;
+  border-right: revert !important;
+}
+
+/* Ensure segmented control container maintains its border */
+.recursica-accordion.material-accordion .MuiAccordionDetails-root .text-style-segmented-control,
+.recursica-accordion.material-accordion .MuiAccordionDetails-root .layer-segmented-control-buttons {
+  border: revert !important;
+}

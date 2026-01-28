@@ -269,10 +269,19 @@ export default function Accordion({
         const showDivider = item.divider !== false && index < items.length - 1
         const isOpen = openItems.includes(item.id)
         const open = allowMultiple ? isOpen : isOpen
+        const ItemIcon = item.icon
+        const titleWithIcon = ItemIcon ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--accordion-item-icon-gap, 8px)' }}>
+            <div style={{ flexShrink: 0, color: `var(--accordion-item-icon-color)`, width: 'var(--accordion-item-icon-size, 16px)', height: 'var(--accordion-item-icon-size, 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ItemIcon size={16} />
+            </div>
+            <span>{item.title}</span>
+          </div>
+        ) : item.title
         return (
           <AccordionItem
             key={item.id}
-            title={item.title}
+            title={titleWithIcon}
             open={open}
             onHeadingClick={() => onItemToggle(item.id, !isOpen)}
             disabled={item.disabled}

@@ -9,7 +9,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { parseComponentStructure, toSentenceCase, ComponentProp } from './utils/componentToolbarUtils'
 import VariantDropdown from './menu/dropdown/VariantDropdown'
 import LayerSegmentedControl from './menu/segmented/LayerSegmentedControl'
-import AccordionSection from './menu/accordion/AccordionSection'
+import { Accordion } from '../../components/adapters/Accordion'
 import PropControlContent from './menu/floating-palette/PropControlContent'
 import MenuIcon from './menu/MenuIcon'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -19,6 +19,7 @@ import { useVars } from '../vars/VarsContext'
 import { buildUIKitVars } from '../../core/resolvers/uikit'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { Switch } from '../../components/adapters/Switch'
+import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from '../preview/PreviewPage'
 import uikitJson from '../../vars/UIKit.json'
 import './ComponentToolbar.css'
@@ -597,83 +598,69 @@ export default function ComponentToolbar({
       )}
 
       {/* Dynamic Props Section - Accordion Style */}
-      {allProps.filter(prop => {
-        const propNameLower = prop.name.toLowerCase()
-        const propConfig = toolbarConfig?.props?.[propNameLower]
-        if (!propConfig) {
-          return false
-        }
-        return getPropVisible(componentName, prop.name)
-      }).map(prop => {
-        const Icon = getPropIconComponent(prop)
-        const propKey = prop.name
-        const isOpen = openPropControl.has(propKey)
-        
-        if (!Icon) {
-          return null
-        }
-        
-        return (
-          <AccordionSection
-            key={propKey}
-            title={getPropLabel(componentName, prop.name) || toSentenceCase(prop.name)}
-            icon={Icon}
-            open={isOpen}
-            onToggle={(open) => {
-              if (open) {
-                setOpenPropControl(prev => new Set(prev).add(propKey))
-              } else {
-                setOpenPropControl(prev => {
-                  const next = new Set(prev)
-                  next.delete(propKey)
-                  return next
-                })
-              }
-            }}
-          >
-            <PropControlContent
-              prop={prop}
-              componentName={componentName}
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-            />
-          </AccordionSection>
-        )
-      }).filter(Boolean)}
+      <Accordion
+        items={allProps.filter(prop => {
+          const propNameLower = prop.name.toLowerCase()
+          const propConfig = toolbarConfig?.props?.[propNameLower]
+          if (!propConfig) {
+            return false
+          }
+          return getPropVisible(componentName, prop.name)
+        }).map(prop => {
+          const Icon = getPropIconComponent(prop)
+          const propKey = prop.name
+          const isOpen = openPropControl.has(propKey)
+          
+          return {
+            id: propKey,
+            title: getPropLabel(componentName, prop.name) || toSentenceCase(prop.name),
+            icon: Icon || undefined,
+            content: (
+              <PropControlContent
+                key={`${propKey}-${isOpen ? 'open' : 'closed'}`}
+                prop={prop}
+                componentName={componentName}
+                selectedVariants={selectedVariants}
+                selectedLayer={selectedLayer}
+              />
+            ),
+            open: isOpen,
+          }
+        }).filter(item => item.icon != null).sort((a, b) => {
+          // Sort alphabetically by title
+          return a.title.localeCompare(b.title)
+        })}
+        allowMultiple={true}
+        onToggle={(id, open) => {
+          if (open) {
+            setOpenPropControl(prev => new Set(prev).add(id))
+          } else {
+            setOpenPropControl(prev => {
+              const next = new Set(prev)
+              next.delete(id)
+              return next
+            })
+          }
+        }}
+        layer="layer-0"
+      />
 
       {/* Reset Button */}
       <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderTop: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
-        <button
+        <Button
           onClick={handleReset}
+          variant="outline"
+          layer="layer-0"
           style={{
             width: '100%',
-            padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
-            background: 'transparent',
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-            borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
-            color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-interactive-tone)`,
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 'var(--recursica-brand-dimensions-general-default)',
-            transition: 'background-color 0.2s',
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent'
-          }}
-        >
-          {(() => {
+          icon={(() => {
             const ResetIcon = iconNameToReactComponent('arrow-path')
-            return ResetIcon ? <ResetIcon style={{ width: 16, height: 16 }} /> : null
+            return ResetIcon ? <ResetIcon style={{ width: 16, height: 16 }} /> : undefined
           })()}
+        >
           Reset to defaults
-        </button>
+        </Button>
       </div>
 
       {/* Switches Section */}

@@ -112,3 +112,23 @@
   text-decoration: var(--accordion-item-content-text-decoration) !important;
   text-transform: var(--accordion-item-content-text-transform) !important;
 }
+
+/* Restore borders for buttons inside accordion content - use Button component CSS variables */
+.recursica-accordion.carbon-accordion .cds--accordion__content button,
+.recursica-accordion.carbon-accordion .cds--accordion__content .recursica-button,
+.recursica-accordion.carbon-accordion .cds--accordion__content .cds--btn {
+  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
+}
+
+/* Ensure segmented control buttons maintain their custom styling - no borders on individual buttons */
+.recursica-accordion.carbon-accordion .cds--accordion__content .text-style-segmented-button,
+.recursica-accordion.carbon-accordion .cds--accordion__content .layer-segmented-control-button {
+  border: none !important;
+  border-right: revert !important;
+}
+
+/* Ensure segmented control container maintains its border */
+.recursica-accordion.carbon-accordion .cds--accordion__content .text-style-segmented-control,
+.recursica-accordion.carbon-accordion .cds--accordion__content .layer-segmented-control-buttons {
+  border: revert !important;
+}
