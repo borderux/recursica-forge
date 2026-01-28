@@ -7,6 +7,9 @@
 # 2. The application builds successfully (npm run build)
 #
 # If either step fails, the PR check will fail and block merging.
+#
+# Note: This workflow skips running on PRs titled "Version Packages" (created by changesets),
+# as those PRs are automatically generated and will be validated when merged.
 
 name: PR Checks
 
@@ -22,6 +25,7 @@ jobs:
   test-and-build:
     name: Pull Request Test and Build
     runs-on: ubuntu-latest
+    if: github.event.pull_request.title != 'Version Packages'
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
