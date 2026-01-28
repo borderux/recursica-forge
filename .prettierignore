@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+
+# Production build
+dist
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Vite cache
+.vite
+
+# Logs
+*.log
+
+# Editor directories and files
+.DS_Store
+.vscode
+.idea
+
+# Env files
+.env.*.local
+*.local
+
+# Audit files
+*.audit.md
+
+# Generated files
+*.config.js
+vite-plugins/**/*.js
+vite-plugins/**/*.d.ts
+
+# Public assets
+public
+
+# Schemas
+schemas
+
+# Package lock
+package-lock.json
