@@ -5,18 +5,20 @@ import { buildLayerVars } from '../resolvers/layers'
 import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
 import { buildUIKitVars } from '../resolvers/uikit'
 import { buildDimensionVars } from '../resolvers/dimensions'
-import { applyCssVars, type CssVarMap } from '../css/apply'
+import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
 import { findTokenByHex, tokenToCssVar } from '../css/tokenRefs'
 import { suppressCssVarEvents, clearPendingCssVars } from '../css/updateCssVar'
 import { computeBundleVersion } from './versioning'
-import { readCssVar } from '../css/readCssVar'
+import { readCssVar, readCssVarResolved } from '../css/readCssVar'
 import { resolveTokenReferenceToCssVar, parseTokenReference, extractBraceContent, type TokenReferenceContext } from '../utils/tokenReferenceParser'
+import { AAComplianceWatcher } from '../compliance/AAComplianceWatcher'
+import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneForCompliance } from '../compliance/coreColorAaCompliance'
+import { resolveCssVarToHex } from '../compliance/layerColorStepping'
+import { ensureFontLoaded } from '../../modules/type/fontUtils'
 import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
-// Note: clearCustomFonts is imported dynamically to avoid circular dependencies
 // Note: Override system removed - tokens are now the single source of truth
-// Note: populateFontUrlMapFromTokens is imported dynamically to avoid circular dependencies
 
 type PaletteStore = {
   opacity: Record<'disabled' | 'overlay' | 'text-high' | 'text-low', { token: string; value: number }>
@@ -200,7 +202,7 @@ class VarsStore {
   private state: VarsState
   private listeners: Set<Listener> = new Set()
   private lsAvailable = isLocalStorageAvailable()
-  public aaWatcher: import('../compliance/AAComplianceWatcher').AAComplianceWatcher | null = null
+  public aaWatcher: AAComplianceWatcher | null = null
   private isRecomputing: boolean = false
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
   private hasRunInitialReset: boolean = false
@@ -482,61 +484,59 @@ class VarsStore {
   }
 
   private initAAWatcher() {
-    // Import and initialize AA compliance utility (no watchers - trigger-based only)
-    import('../compliance/AAComplianceWatcher').then(({ AAComplianceWatcher }) => {
-      this.aaWatcher = new AAComplianceWatcher(this.state.tokens, this.state.theme)
+    // Initialize AA compliance utility (no watchers - trigger-based only)
+    this.aaWatcher = new AAComplianceWatcher(this.state.tokens, this.state.theme)
+    
+    // After CSS variables are set, check all palette and core color on-tone values for AA compliance
+    // This ensures on-tone values are correct on app load, regardless of which route the user starts on
+    
+    const runAACompliance = (trigger: string = 'initial load') => {
+      if (!this.aaWatcher || this.hasRunInitialAA) return
       
-      // After CSS variables are set, check all palette and core color on-tone values for AA compliance
-      // This ensures on-tone values are correct on app load, regardless of which route the user starts on
-      
-      const runAACompliance = (trigger: string = 'initial load') => {
-        if (!this.aaWatcher || this.hasRunInitialAA) return
-        
-        // Wait for recompute to finish if it's in progress
-        if (this.isRecomputing) {
-          // Retry after a short delay
-          setTimeout(() => runAACompliance(trigger), 200)
-          return
-        }
-        
-        // Mark as run to prevent multiple executions
-        this.hasRunInitialAA = true
-        
-        // Suppress CSS var events during AA compliance check to prevent triggering recomputation
-        suppressCssVarEvents(true)
-        
-        // Check all palette on-tones - updates CSS vars only, never JSON
-        this.aaWatcher.checkAllPaletteOnTones()
-        
-        // Also check core color on-tones - updates CSS vars only, never JSON
-        this.updateCoreColorOnTonesForAA()
-        
-        // Clear pending CSS vars and re-enable events
-        setTimeout(() => {
-          clearPendingCssVars()
-          suppressCssVarEvents(false)
-        }, 100)
+      // Wait for recompute to finish if it's in progress
+      if (this.isRecomputing) {
+        // Retry after a short delay
+        setTimeout(() => runAACompliance(trigger), 200)
+        return
       }
       
-      // Listen for cssVarsUpdated event to know when initial recompute is done
-      const onCssVarsUpdated = () => {
-        if (!this.hasRunInitialAA) {
-          // Run AA compliance after CSS vars are updated
-          setTimeout(() => runAACompliance('initial load (after cssVarsUpdated event)'), 100)
-        }
-      }
+      // Mark as run to prevent multiple executions
+      this.hasRunInitialAA = true
       
-      // Listen for the event (will fire after recomputeAndApplyAll completes)
-      // Keep listener active so it can handle resetAll() calls
-      window.addEventListener('cssVarsUpdated', onCssVarsUpdated as any)
+      // Suppress CSS var events during AA compliance check to prevent triggering recomputation
+      suppressCssVarEvents(true)
       
-      // Also set a fallback timeout in case the event doesn't fire (only on initial load)
+      // Check all palette on-tones - updates CSS vars only, never JSON
+      this.aaWatcher.checkAllPaletteOnTones()
+      
+      // Also check core color on-tones - updates CSS vars only, never JSON
+      this.updateCoreColorOnTonesForAA()
+      
+      // Clear pending CSS vars and re-enable events
       setTimeout(() => {
-        if (!this.hasRunInitialAA) {
-          runAACompliance('initial load (fallback timeout)')
-        }
-      }, 2000)
-    })
+        clearPendingCssVars()
+        suppressCssVarEvents(false)
+      }, 100)
+    }
+    
+    // Listen for cssVarsUpdated event to know when initial recompute is done
+    const onCssVarsUpdated = () => {
+      if (!this.hasRunInitialAA) {
+        // Run AA compliance after CSS vars are updated
+        setTimeout(() => runAACompliance('initial load (after cssVarsUpdated event)'), 100)
+      }
+    }
+    
+    // Listen for the event (will fire after recomputeAndApplyAll completes)
+    // Keep listener active so it can handle resetAll() calls
+    window.addEventListener('cssVarsUpdated', onCssVarsUpdated as any)
+    
+    // Also set a fallback timeout in case the event doesn't fire (only on initial load)
+    setTimeout(() => {
+      if (!this.hasRunInitialAA) {
+        runAACompliance('initial load (fallback timeout)')
+      }
+    }, 2000)
   }
 
   getState(): VarsState { return this.state }
@@ -921,15 +921,14 @@ class VarsStore {
 
   resetAll() {
     // Clear all CSS variables first
-    import('../css/apply').then(({ clearAllCssVars }) => {
-      clearAllCssVars()
-      
-      // Reset state from original JSON imports
-      const sortedTokens = sortFontTokenObjects(tokensImport as any)
-      const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
-      
-      // Reset localStorage to original values
-      if (this.lsAvailable) {
+    clearAllCssVars()
+    
+    // Reset state from original JSON imports
+    const sortedTokens = sortFontTokenObjects(tokensImport as any)
+    const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
+    
+    // Reset localStorage to original values
+    if (this.lsAvailable) {
         // Clear elevation localStorage to ensure clean reset
         try {
           localStorage.removeItem(STORAGE_KEYS.elevation)
@@ -1027,77 +1026,76 @@ class VarsStore {
             }
           } catch {}
         } catch {}
-      }
+    }
+    
+    // Initialize elevation state (this will create elevation tokens in sortedTokens)
+    const elevation = this.initElevationState(normalizedTheme as any, sortedTokens)
+    
+    // Reset state (elevation tokens are now in sortedTokens from initElevationState)
+    this.state = {
+      tokens: sortedTokens,
+      theme: normalizedTheme as any,
+      uikit: uikitImport as any,
+      palettes: migratePaletteLocalKeys(),
+      elevation,
+      version: (this.state?.version || 0) + 1
+    }
+    
+    // Recompute and apply all CSS variables from clean state
+    // Reset the recomputing flag first since we're doing a full reset
+    this.isRecomputing = false
+    this.recomputeAndApplyAll()
+    
+    // Update AA watcher with new state
+    // Reset the hasRunInitialAA flag so the cssVarsUpdated event listener can trigger AA compliance
+    // This prevents duplicate runs - the event from recomputeAndApplyAll will handle it
+    if (this.aaWatcher) {
+      this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
+      // Reset flag so cssVarsUpdated event can trigger AA compliance check
+      this.hasRunInitialAA = false
+    }
+    
+    // Notify all listeners that state has been reset
+    this.emit()
+    
+    // Dispatch events to notify components of the reset
+    try {
+      window.dispatchEvent(new CustomEvent('themeReset', {}))
+      window.dispatchEvent(new CustomEvent('paletteVarsChanged', {}))
       
-      // Initialize elevation state (this will create elevation tokens in sortedTokens)
-      const elevation = this.initElevationState(normalizedTheme as any, sortedTokens)
+      // Dispatch palettePrimaryLevelChanged events for all palettes in both modes
+      // This ensures all PaletteGrid components re-read primary levels from theme JSON
+      // Get palette keys from the reset state
+      const root: any = normalizedTheme?.brand ? normalizedTheme.brand : normalizedTheme
+      const themes = root?.themes || root
+      const allPaletteKeys = new Set<string>()
       
-      // Reset state (elevation tokens are now in sortedTokens from initElevationState)
-      this.state = {
-        tokens: sortedTokens,
-        theme: normalizedTheme as any,
-        uikit: uikitImport as any,
-        palettes: migratePaletteLocalKeys(),
-        elevation,
-        version: (this.state?.version || 0) + 1
-      }
-      
-      // Recompute and apply all CSS variables from clean state
-      // Reset the recomputing flag first since we're doing a full reset
-      this.isRecomputing = false
-      this.recomputeAndApplyAll()
-      
-      // Update AA watcher with new state
-      // Reset the hasRunInitialAA flag so the cssVarsUpdated event listener can trigger AA compliance
-      // This prevents duplicate runs - the event from recomputeAndApplyAll will handle it
-      if (this.aaWatcher) {
-        this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
-        // Reset flag so cssVarsUpdated event can trigger AA compliance check
-        this.hasRunInitialAA = false
-      }
-      
-      // Notify all listeners that state has been reset
-      this.emit()
-      
-      // Dispatch events to notify components of the reset
-      try {
-        window.dispatchEvent(new CustomEvent('themeReset', {}))
-        window.dispatchEvent(new CustomEvent('paletteVarsChanged', {}))
-        
-        // Dispatch palettePrimaryLevelChanged events for all palettes in both modes
-        // This ensures all PaletteGrid components re-read primary levels from theme JSON
-        // Get palette keys from the reset state
-        const root: any = normalizedTheme?.brand ? normalizedTheme.brand : normalizedTheme
-        const themes = root?.themes || root
-        const allPaletteKeys = new Set<string>()
-        
-        for (const modeKey of ['light', 'dark']) {
-          const palettes = themes?.[modeKey]?.palettes || {}
-          Object.keys(palettes).forEach(key => {
-            if (key !== 'core' && key !== 'core-colors') {
-              allPaletteKeys.add(key)
-            }
-          })
-        }
-        
-        // Dispatch events for all palettes in both modes
-        for (const modeKey of ['light', 'dark']) {
-          for (const paletteKey of allPaletteKeys) {
-            try {
-              window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
-                detail: { paletteKey, mode: modeKey, reset: true }
-              }))
-            } catch {}
+      for (const modeKey of ['light', 'dark']) {
+        const palettes = themes?.[modeKey]?.palettes || {}
+        Object.keys(palettes).forEach(key => {
+          if (key !== 'core' && key !== 'core-colors') {
+            allPaletteKeys.add(key)
           }
-          // Also dispatch a general "all palettes" event for this mode
+        })
+      }
+      
+      // Dispatch events for all palettes in both modes
+      for (const modeKey of ['light', 'dark']) {
+        for (const paletteKey of allPaletteKeys) {
           try {
             window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
-              detail: { allPalettes: true, mode: modeKey, reset: true }
+              detail: { paletteKey, mode: modeKey, reset: true }
             }))
           } catch {}
         }
-      } catch {}
-    })
+        // Also dispatch a general "all palettes" event for this mode
+        try {
+          window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
+            detail: { allPalettes: true, mode: modeKey, reset: true }
+          }))
+        } catch {}
+      }
+    } catch {}
   }
 
   private initElevationState(theme: any, tokens?: any, forceRebuildFromTheme = false): ElevationState {
@@ -1901,14 +1899,12 @@ class VarsStore {
         try {
           const trimmed = String(family).trim()
           if (!trimmed) return
-          // Dynamically import fontUtils
-          const { ensureFontLoaded } = await import('../../modules/type/fontUtils')
           // Load font (async is fine, but it must load)
           await ensureFontLoaded(trimmed).catch((error) => {
             console.warn(`Failed to load font "${trimmed}" during recompute:`, error)
           })
         } catch (error) {
-          console.warn(`Failed to import fontUtils or load font:`, error)
+          console.warn(`Failed to load font:`, error)
         }
       })).catch((error) => {
         console.warn('Failed to load some fonts during recompute:', error)
@@ -2341,60 +2337,45 @@ class VarsStore {
 
   public updateCoreColorOnTonesForAA() {
     try {
-      // Dynamically import to avoid circular dependencies
-      Promise.all([
-        import('../../core/compliance/coreColorAaCompliance'),
-        import('../../core/css/readCssVar'),
-        import('../../core/compliance/layerColorStepping'),
-        import('../../core/resolvers/tokens')
-      ]).then(([
-        { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneForCompliance },
-        { readCssVarResolved, readCssVar },
-        { resolveCssVarToHex },
-        { buildTokenIndex }
-      ]) => {
-        const currentMode = this.getCurrentMode()
-        const mode = currentMode === 'dark' ? 'dark' : 'light'
+      const currentMode = this.getCurrentMode()
+      const mode = currentMode === 'dark' ? 'dark' : 'light'
+      
+      // Get all core colors and update their on-tones
+      const coreColors = ['black', 'white', 'alert', 'warning', 'success']
+      
+      for (const colorName of coreColors) {
+        // Get the tone hex for this core color
+        const toneCssVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`
+        const tokenIndex = buildTokenIndex(this.state.tokens)
+        const toneValue = readCssVarResolved(toneCssVar) || readCssVar(toneCssVar)
+        const toneHex = toneValue 
+          ? (resolveCssVarToHex(toneValue, tokenIndex) || '#000000')
+          : '#000000'
         
-        // Get all core colors and update their on-tones
-        const coreColors = ['black', 'white', 'alert', 'warning', 'success']
-        
-        for (const colorName of coreColors) {
-          // Get the tone hex for this core color
-          const toneCssVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`
-          const tokenIndex = buildTokenIndex(this.state.tokens)
-          const toneValue = readCssVarResolved(toneCssVar) || readCssVar(toneCssVar)
-          const toneHex = toneValue 
-            ? (resolveCssVarToHex(toneValue, tokenIndex) || '#000000')
-            : '#000000'
+        if (toneHex && toneHex !== '#000000') {
+          // Update high/low emphasis on-tones with alternating pattern
+          // CSS vars only, never JSON - pass no-op callback
+          updateCoreColorOnTonesForCompliance(
+            colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
+            toneHex,
+            this.state.tokens,
+            this.state.theme,
+            () => {}, // No-op - never update JSON during AA compliance
+            mode
+          )
           
-          if (toneHex && toneHex !== '#000000') {
-            // Update high/low emphasis on-tones with alternating pattern
-            // CSS vars only, never JSON - pass no-op callback
-            updateCoreColorOnTonesForCompliance(
-              colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
-              toneHex,
-              this.state.tokens,
-              this.state.theme,
-              () => {}, // No-op - never update JSON during AA compliance
-              mode
-            )
-            
-            // Update interactive on-tone with alternating pattern on interactive scale
-            // CSS vars only, never JSON - pass no-op callback
-            updateCoreColorInteractiveOnToneForCompliance(
-              colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
-              toneHex,
-              this.state.tokens,
-              this.state.theme,
-              () => {}, // No-op - never update JSON during AA compliance
-              mode
-            )
-          }
+          // Update interactive on-tone with alternating pattern on interactive scale
+          // CSS vars only, never JSON - pass no-op callback
+          updateCoreColorInteractiveOnToneForCompliance(
+            colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
+            toneHex,
+            this.state.tokens,
+            this.state.theme,
+            () => {}, // No-op - never update JSON during AA compliance
+            mode
+          )
         }
-      }).catch((err) => {
-        console.error('Failed to update core color on-tones:', err)
-      })
+      }
     } catch (err) {
       console.error('Failed to update core color on-tones:', err)
     }
