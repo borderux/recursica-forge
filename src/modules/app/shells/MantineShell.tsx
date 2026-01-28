@@ -5,6 +5,7 @@
  * and import/export of CSS variables.
  */
 import { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
+import type { CSSProperties } from 'react'
 import { AppShell, Group, Select, MantineProvider, Modal, Tabs as MantineTabs } from '@mantine/core'
 import '@mantine/core/styles.css'
 import './MantineShell.css'
@@ -182,7 +183,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   style={{
                     '--header-tab-active-bg': `var(${buttonSolidBg})`,
                     '--header-tab-active-text': `var(${buttonSolidText})`,
-                  } as React.CSSProperties}
+                  } as CSSProperties}
                 >
                 <MantineTabs
                   value={currentRoute}

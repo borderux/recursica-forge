@@ -23,6 +23,7 @@ export type ComponentName =
   | 'Badge'
   | 'Avatar'
   | 'Accordion'
+  | 'AccordionItem'
   | 'Breadcrumb'
   | 'DatePicker'
   | 'FileInput'

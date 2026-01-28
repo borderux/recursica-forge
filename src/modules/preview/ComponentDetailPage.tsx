@@ -5,6 +5,8 @@ import { useVars } from '../vars/VarsContext'
 import { getComponentSections } from './componentSections'
 import { ComponentToolbar } from '../toolbar'
 import ButtonPreview from '../components/ButtonPreview'
+import AccordionPreview from '../components/AccordionPreview'
+import AccordionItemPreview from '../components/AccordionItemPreview'
 import AvatarPreview from '../components/AvatarPreview'
 import ToastPreview from '../components/ToastPreview'
 import BadgePreview from '../components/BadgePreview'
@@ -280,6 +282,18 @@ export default function ComponentDetailPage() {
             <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
               {component.name === 'Button' ? (
                 <ButtonPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Accordion' ? (
+                <AccordionPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Accordion item' ? (
+                <AccordionItemPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}

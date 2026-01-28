@@ -10,6 +10,8 @@ import BadgeConfig from '../configs/Badge.toolbar.json'
 import ChipConfig from '../configs/Chip.toolbar.json'
 import LabelConfig from '../configs/Label.toolbar.json'
 import BreadcrumbConfig from '../configs/Breadcrumb.toolbar.json'
+import AccordionConfig from '../configs/Accordion.toolbar.json'
+import AccordionItemConfig from '../configs/AccordionItem.toolbar.json'
 import MenuItemConfig from '../configs/MenuItem.toolbar.json'
 import MenuConfig from '../configs/Menu.toolbar.json'
 import SliderConfig from '../configs/Slider.toolbar.json'
@@ -58,7 +60,13 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return LabelConfig as unknown as ToolbarConfig
       case 'breadcrumb':
         return BreadcrumbConfig as unknown as ToolbarConfig
+      case 'accordion':
+        return AccordionConfig as unknown as ToolbarConfig
+      case 'accordion-item':
+      case 'accordion item':
+        return AccordionItemConfig as unknown as ToolbarConfig
       case 'menu-item':
+      case 'menu item':
         return MenuItemConfig as unknown as ToolbarConfig
       case 'menu':
         return MenuConfig as unknown as ToolbarConfig

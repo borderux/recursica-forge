@@ -6,6 +6,7 @@ import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
+import { Accordion } from '../../components/adapters/Accordion'
 import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import type { ComponentLayer } from '../../components/registry/types'
@@ -84,18 +85,44 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Accordion',
       url: `${base}/accordion`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div>
-          <details open>
-            <summary>Open Accordion</summary>
-            <div style={{ padding: 8 }}>Content</div>
-          </details>
-          <details>
-            <summary>Closed Accordion</summary>
-            <div style={{ padding: 8 }}>Content</div>
-          </details>
-        </div>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const items = [
+          { id: 'item-1', title: 'Accordion', content: 'Replace slot with content (component instance)', open: false, divider: true },
+          { id: 'item-2', title: 'The quick brown fox jumps over the lazy dog, and as the fox gracefully landed on the other side, the lazy dog slowly opened one eye, yawned, and decided that perhaps today was the day to finally get up and chase after that clever fox who had been teasing him for so long', content: 'Replace slot with content (component instance)', open: false, divider: false },
+        ]
+        return (
+          <div style={{ width: '100%', maxWidth: 520 }}>
+            <Accordion items={items} layer={layer as any} allowMultiple />
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Accordion item',
+      url: `${base}/accordion-item`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const { Accordion } = require('../../components/adapters/Accordion')
+        
+        return (
+          <div style={{ width: '100%', maxWidth: 520 }}>
+            <Accordion
+              items={[
+                { 
+                  id: 'item-1', 
+                  title: 'Accordion item', 
+                  content: 'This demonstrates AccordionItem properties. The header uses AccordionItem colors, padding, icon-size, and icon-gap. The content uses AccordionItem content-background, content-text, and content-padding.', 
+                  open: true, 
+                  divider: false 
+                },
+              ]}
+              layer={layer as any}
+              allowMultiple={false}
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Avatar',
