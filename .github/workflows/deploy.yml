@@ -79,14 +79,13 @@ jobs:
       #
       # Publish Mode (no changesets, version PR was merged):
       # - Runs the `publish` command: `npm run release`
-      # - Which executes: `changeset publish --access public`
+      # - Which executes: `changeset publish`
       # - This creates:
       #   * A git tag for the release version (e.g., v1.2.3)
       #   * A GitHub release with changelog (using @changesets/changelog-github for PR/commit links)
       #   * Sets the `published` output to `true` when successful
       #
       # Note: Since this package is marked `private: true` in package.json, it won't publish to npm.
-      # The `--access public` flag is harmless but has no effect for private packages.
       - name: Create Release Pull Request or Publish
         id: changesets-action
         uses: changesets/action@v1
