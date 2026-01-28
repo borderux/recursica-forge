@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.1.4
+
+### Patch Changes
+
+- dd045ec: Fixed package to be private for deployment
+
 ## 0.1.3
 
 ### Patch Changes
