@@ -47,6 +47,9 @@ registerComponent('mantine', 'Menu', () => import('../adapters/mantine/Menu/Menu
 // Slider
 registerComponent('mantine', 'Slider', () => import('../adapters/mantine/Slider/Slider'))
 
+// SegmentedControl
+registerComponent('mantine', 'SegmentedControl', () => import('../adapters/mantine/SegmentedControl/SegmentedControl'))
+
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))
 // registerComponent('mantine', 'TextField', () => import('../../adapters/mantine/TextField'))

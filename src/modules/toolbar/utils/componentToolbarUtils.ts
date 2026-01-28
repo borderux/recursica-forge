@@ -77,9 +77,9 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         return
       }
 
-      // Check if this key is a category container (styles, sizes, layouts) when traversing nested variants
+      // Check if this key is a category container (styles, sizes, layouts, orientation, fill-width) when traversing nested variants
       // This handles cases like variants.layouts.stacked.variants.sizes where we traverse directly into the nested variants object
-      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts') && 
+      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width') && 
                                    typeof value === 'object' && 
                                    value !== null &&
                                    !('$value' in value) &&
@@ -92,8 +92,13 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         const variantNames = Object.keys(categoryObj).filter(k => !k.startsWith('$'))
         
         if (variantNames.length > 0) {
-          const finalPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
-          const isNestedSize = finalPropName === 'size' && variantProp === 'layout'
+            const finalPropName = categoryKey === 'styles' ? 'style' 
+              : categoryKey === 'sizes' ? 'size' 
+              : categoryKey === 'layouts' ? 'layout'
+              : categoryKey === 'orientation' ? 'orientation'
+              : categoryKey === 'fill-width' ? 'fill-width'
+              : categoryKey
+            const isNestedSize = finalPropName === 'size' && variantProp === 'layout'
           const shouldAdd = isNestedSize || !seenVariants.has(finalPropName)
           
           if (shouldAdd) {
@@ -115,7 +120,12 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         }
         
         // Continue traversing into the category container
-        const variantPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
+        const variantPropName = categoryKey === 'styles' ? 'style' 
+          : categoryKey === 'sizes' ? 'size' 
+          : categoryKey === 'layouts' ? 'layout'
+          : categoryKey === 'orientation' ? 'orientation'
+          : categoryKey === 'fill-width' ? 'fill-width'
+          : categoryKey
         traverse(categoryObj, currentPath, variantPropName)
         return
       }
@@ -138,7 +148,12 @@ export function parseComponentStructure(componentName: string): ComponentStructu
               
               if (variantNames.length > 0) {
                 // Determine prop name based on category
-                const finalPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
+                const finalPropName = categoryKey === 'styles' ? 'style' 
+                  : categoryKey === 'sizes' ? 'size' 
+                  : categoryKey === 'layouts' ? 'layout'
+                  : categoryKey === 'orientation' ? 'orientation'
+                  : categoryKey === 'fill-width' ? 'fill-width'
+                  : categoryKey
                 
                 // For nested variants (e.g., size inside layout), check if we should add it
                 // If we're already inside a layout variant, and this is a size category, add it

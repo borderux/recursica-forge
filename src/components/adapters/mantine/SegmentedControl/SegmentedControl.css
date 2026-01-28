@@ -1,0 +1,34 @@
+/* Mantine SegmentedControl overrides using Recursica CSS variables */
+
+.mantine-SegmentedControl-root {
+  background: var(--segmented-control-bg) !important;
+  border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color) !important;
+  border-radius: var(--segmented-control-border-radius) !important;
+  padding: var(--segmented-control-padding) !important;
+  gap: var(--segmented-control-item-gap) !important;
+  font-family: var(--segmented-control-font-family) !important;
+  font-size: var(--segmented-control-font-size) !important;
+  font-weight: var(--segmented-control-font-weight) !important;
+  letter-spacing: var(--segmented-control-letter-spacing) !important;
+  line-height: var(--segmented-control-line-height) !important;
+}
+
+.mantine-SegmentedControl-control {
+  color: var(--segmented-control-text) !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.mantine-SegmentedControl-control[data-active] {
+  background: var(--segmented-control-selected-bg) !important;
+  color: var(--segmented-control-selected-text) !important;
+}
+
+.mantine-SegmentedControl-label {
+  color: inherit !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  letter-spacing: inherit !important;
+  line-height: inherit !important;
+}

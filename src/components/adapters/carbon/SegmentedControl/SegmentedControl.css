@@ -1,0 +1,40 @@
+/* Carbon SegmentedControl overrides using Recursica CSS variables */
+
+.recursica-segmented-control.carbon-segmented-control {
+  display: inline-flex;
+  gap: var(--segmented-control-item-gap);
+  border-radius: var(--segmented-control-border-radius);
+  border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color);
+  background: var(--segmented-control-bg);
+  padding: var(--segmented-control-padding);
+  font-family: var(--segmented-control-font-family);
+  font-size: var(--segmented-control-font-size);
+  font-weight: var(--segmented-control-font-weight);
+  letter-spacing: var(--segmented-control-letter-spacing);
+  line-height: var(--segmented-control-line-height);
+}
+
+.carbon-segmented-control-button {
+  padding: var(--segmented-control-padding);
+  background: transparent;
+  color: var(--segmented-control-text);
+  border: none;
+  border-radius: var(--segmented-control-border-radius);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+}
+
+.carbon-segmented-control-button.selected {
+  background: var(--segmented-control-selected-bg) !important;
+  color: var(--segmented-control-selected-text) !important;
+}
+
+.carbon-segmented-control-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
