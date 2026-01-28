@@ -58,29 +58,3 @@ npm run test:watch
 npm run test:coverage
 ```
 
-## Test Results
-
-✅ **All 85 tests passing**
-- 6 test files
-- 0 failures
-- Comprehensive coverage of core utilities
-
-## Areas Covered
-
-1. ✅ CSS variable reading (inline → computed fallback)
-2. ✅ CSS variable updating (validation, auto-fixing)
-3. ✅ CSS variable removal
-4. ✅ Token reference conversion
-5. ✅ Brand variable validation
-6. ✅ Contrast ratio calculations
-7. ✅ AA compliance helpers
-8. ✅ Edge cases and error handling
-
-## Future Test Additions
-
-Consider adding tests for:
-- `AAComplianceWatcher` (integration tests with DOM)
-- Resolver functions (`palettes.ts`, `layers.ts`, `typography.ts`)
-- `varsStore` (state management)
-- React component integration tests
-
