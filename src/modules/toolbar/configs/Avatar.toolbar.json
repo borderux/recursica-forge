@@ -56,17 +56,7 @@
     "text": {
       "icon": "text-aa",
       "label": "Text",
-      "visible": true,
-      "group": {
-        "text-color": {
-          "label": "Color",
-          "visible": true
-        },
-        "text-size": {
-          "label": "Font size",
-          "visible": true
-        }
-      }
+      "visible": true
     },
     "padding": {
       "icon": "square-logo",

@@ -6,7 +6,7 @@
 
 import { Avatar as MaterialAvatar } from '@mui/material'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -44,13 +44,19 @@ export default function Avatar({
   
   // Get size and other CSS variables
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
-  // Get text-size from size variant (e.g., variants.sizes.default.properties.text-size)
-  const textSizeVar = getComponentCssVar('Avatar', 'size', `${sizeVariant}-text-size`, undefined)
-  // Reactively read text-size to trigger re-renders when it changes
-  const textSizeValue = useCssVar(textSizeVar, '')
   const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
   const borderSizeVar = getComponentLevelCssVar('Avatar', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
+  
+  // Get text CSS variables - use size variant for variant-specific text properties
+  const fontFamilyVar = getComponentTextCssVar('Avatar', 'text', 'font-family', sizeVariant)
+  const fontSizeVar = getComponentTextCssVar('Avatar', 'text', 'font-size', sizeVariant)
+  const fontWeightVar = getComponentTextCssVar('Avatar', 'text', 'font-weight', sizeVariant)
+  const letterSpacingVar = getComponentTextCssVar('Avatar', 'text', 'letter-spacing', sizeVariant)
+  const lineHeightVar = getComponentTextCssVar('Avatar', 'text', 'line-height', sizeVariant)
+  const textDecorationVar = getComponentTextCssVar('Avatar', 'text', 'text-decoration', sizeVariant)
+  const textTransformVar = getComponentTextCssVar('Avatar', 'text', 'text-transform', sizeVariant)
+  const fontStyleVar = getComponentTextCssVar('Avatar', 'text', 'font-style', sizeVariant)
   
   // Map unified size to Material UI size
   const materialSize = sizeVariant === 'small' ? 'small' : sizeVariant === 'large' ? 'medium' : undefined
@@ -70,7 +76,14 @@ export default function Avatar({
         color: `var(${labelVar})`,
         border: `var(${borderSizeVar}) solid ${borderColorValue || `var(${borderVar})`}`,
         borderRadius: shape === 'circle' ? '50%' : `var(${borderRadiusVar})`,
-        fontSize: textSizeValue || `var(${textSizeVar})`,
+        fontFamily: `var(${fontFamilyVar})`,
+        fontSize: `var(${fontSizeVar})`,
+        fontWeight: `var(${fontWeightVar})`,
+        letterSpacing: `var(${letterSpacingVar})`,
+        lineHeight: `var(${lineHeightVar})`,
+        textDecoration: `var(${textDecorationVar})`,
+        textTransform: `var(${textTransformVar})`,
+        fontStyle: `var(${fontStyleVar})`,
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...material?.sx,
       }}

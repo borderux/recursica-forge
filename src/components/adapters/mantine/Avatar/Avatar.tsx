@@ -6,7 +6,7 @@
 
 import { Avatar as MantineAvatar } from '@mantine/core'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -44,10 +44,16 @@ export default function Avatar({
   
   // Get size and other CSS variables
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
-  // Get text-size from size variant (e.g., variants.sizes.default.properties.text-size)
-  const textSizeVar = getComponentCssVar('Avatar', 'size', `${sizeVariant}-text-size`, undefined)
-  // Reactively read text-size to trigger re-renders when it changes
-  const textSizeValue = useCssVar(textSizeVar, '')
+  
+  // Get text CSS variables - use size variant for variant-specific text properties
+  const fontFamilyVar = getComponentTextCssVar('Avatar', 'text', 'font-family', sizeVariant)
+  const fontSizeVar = getComponentTextCssVar('Avatar', 'text', 'font-size', sizeVariant)
+  const fontWeightVar = getComponentTextCssVar('Avatar', 'text', 'font-weight', sizeVariant)
+  const letterSpacingVar = getComponentTextCssVar('Avatar', 'text', 'letter-spacing', sizeVariant)
+  const lineHeightVar = getComponentTextCssVar('Avatar', 'text', 'line-height', sizeVariant)
+  const textDecorationVar = getComponentTextCssVar('Avatar', 'text', 'text-decoration', sizeVariant)
+  const textTransformVar = getComponentTextCssVar('Avatar', 'text', 'text-transform', sizeVariant)
+  const fontStyleVar = getComponentTextCssVar('Avatar', 'text', 'font-style', sizeVariant)
   
   // Map unified size to Mantine size
   const mantineSize = sizeVariant === 'small' ? 'xs' : sizeVariant === 'default' ? 'md' : 'lg'
@@ -67,7 +73,14 @@ export default function Avatar({
         '--avatar-border': borderColorValue || `var(${borderVar})`,
         '--avatar-label': `var(${labelVar})`,
         '--avatar-size': `var(${sizeVar})`,
-        '--avatar-text-size': textSizeValue || `var(${textSizeVar})`,
+        '--avatar-font-family': `var(${fontFamilyVar})`,
+        '--avatar-font-size': `var(${fontSizeVar})`,
+        '--avatar-font-weight': `var(${fontWeightVar})`,
+        '--avatar-letter-spacing': `var(${letterSpacingVar})`,
+        '--avatar-line-height': `var(${lineHeightVar})`,
+        '--avatar-text-decoration': `var(${textDecorationVar})`,
+        '--avatar-text-transform': `var(${textTransformVar})`,
+        '--avatar-font-style': `var(${fontStyleVar})`,
         // Only set non-CSS-variable styles here (like borderRadius for circle shape)
         ...(shape === 'circle' ? { borderRadius: '50%' } : {}),
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),

@@ -26,7 +26,14 @@
 /* Override avatar placeholder/fallback text */
 .mantine-Avatar-placeholder {
   color: var(--avatar-label) !important;
-  font-size: var(--avatar-text-size) !important;
+  font-family: var(--avatar-font-family) !important;
+  font-size: var(--avatar-font-size) !important;
+  font-weight: var(--avatar-font-weight) !important;
+  letter-spacing: var(--avatar-letter-spacing) !important;
+  line-height: var(--avatar-line-height) !important;
+  text-decoration: var(--avatar-text-decoration) !important;
+  text-transform: var(--avatar-text-transform) !important;
+  font-style: var(--avatar-font-style) !important;
   border-radius: inherit !important;
   background-color: transparent !important;
   border: none !important;

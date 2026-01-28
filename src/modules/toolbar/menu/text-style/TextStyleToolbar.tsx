@@ -48,15 +48,19 @@ export default function TextStyleToolbar({
     setShowAllProperties(false)
   }, []) // Empty dependency array - only run on mount
 
+  // Get size variant for variant-specific text properties (e.g., Avatar)
+  const sizeVariant = selectedVariants?.size || selectedVariants?.sizeVariant || undefined
+  
   // Get CSS variables for all text properties
-  const fontFamilyVar = getComponentTextCssVar(componentName as any, textElementName, 'font-family')
-  const fontSizeVar = getComponentTextCssVar(componentName as any, textElementName, 'font-size')
-  const fontWeightVar = getComponentTextCssVar(componentName as any, textElementName, 'font-weight')
-  const letterSpacingVar = getComponentTextCssVar(componentName as any, textElementName, 'letter-spacing')
-  const lineHeightVar = getComponentTextCssVar(componentName as any, textElementName, 'line-height')
-  const textDecorationVar = getComponentTextCssVar(componentName as any, textElementName, 'text-decoration')
-  const textTransformVar = getComponentTextCssVar(componentName as any, textElementName, 'text-transform')
-  const fontStyleVar = getComponentTextCssVar(componentName as any, textElementName, 'font-style')
+  // Use size variant if available (for components like Avatar where text properties are per size variant)
+  const fontFamilyVar = getComponentTextCssVar(componentName as any, textElementName, 'font-family', sizeVariant)
+  const fontSizeVar = getComponentTextCssVar(componentName as any, textElementName, 'font-size', sizeVariant)
+  const fontWeightVar = getComponentTextCssVar(componentName as any, textElementName, 'font-weight', sizeVariant)
+  const letterSpacingVar = getComponentTextCssVar(componentName as any, textElementName, 'letter-spacing', sizeVariant)
+  const lineHeightVar = getComponentTextCssVar(componentName as any, textElementName, 'line-height', sizeVariant)
+  const textDecorationVar = getComponentTextCssVar(componentName as any, textElementName, 'text-decoration', sizeVariant)
+  const textTransformVar = getComponentTextCssVar(componentName as any, textElementName, 'text-transform', sizeVariant)
+  const fontStyleVar = getComponentTextCssVar(componentName as any, textElementName, 'font-style', sizeVariant)
 
 
   // Get available font families (typefaces)
