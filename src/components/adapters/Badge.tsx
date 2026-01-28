@@ -7,7 +7,7 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
@@ -39,11 +39,20 @@ export function Badge({
     // Fallback to native implementation if component not available
     const bgVar = getComponentCssVar('Badge', 'colors', `${variant}-background`, layer)
     const textVar = getComponentCssVar('Badge', 'colors', `${variant}-text`, layer)
-    const textSizeVar = getComponentLevelCssVar('Badge', 'text-size')
     const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
     const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
     const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
     const heightVar = getComponentLevelCssVar('Badge', 'height')
+    
+    // Get text CSS variables
+    const fontFamilyVar = getComponentTextCssVar('Badge', 'text', 'font-family')
+    const fontSizeVar = getComponentTextCssVar('Badge', 'text', 'font-size')
+    const fontWeightVar = getComponentTextCssVar('Badge', 'text', 'font-weight')
+    const letterSpacingVar = getComponentTextCssVar('Badge', 'text', 'letter-spacing')
+    const lineHeightVar = getComponentTextCssVar('Badge', 'text', 'line-height')
+    const textDecorationVar = getComponentTextCssVar('Badge', 'text', 'text-decoration')
+    const textTransformVar = getComponentTextCssVar('Badge', 'text', 'text-transform')
+    const fontStyleVar = getComponentTextCssVar('Badge', 'text', 'font-style')
     
     // Get size variant CSS variable for min-height (used as fallback if height is not set)
     // Use 'small' as default if size is undefined
@@ -56,7 +65,14 @@ export function Badge({
         style={{
           backgroundColor: `var(${bgVar})`,
           color: `var(${textVar})`,
-          fontSize: `var(${textSizeVar})`,
+          fontFamily: `var(${fontFamilyVar})`,
+          fontSize: `var(${fontSizeVar})`,
+          fontWeight: `var(${fontWeightVar})`,
+          letterSpacing: `var(${letterSpacingVar})`,
+          lineHeight: `var(${lineHeightVar})`,
+          textDecoration: `var(${textDecorationVar})`,
+          textTransform: `var(${textTransformVar})`,
+          fontStyle: `var(${fontStyleVar})`,
           padding: `var(${paddingVerticalVar}, 4px) var(${paddingHorizontalVar}, 8px)`,
           borderRadius: `var(${borderRadiusVar})`,
           // Use height if set, otherwise fall back to min-height from size variant
