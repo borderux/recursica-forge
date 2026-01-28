@@ -288,3 +288,27 @@ export function buildVariantSizeCssVar(
   return buildComponentCssVarPath(component, 'variants', 'sizes', variant, 'properties', property)
 }
 
+/**
+ * Generates CSS variable name for component text properties
+ * 
+ * @example
+ * getComponentTextCssVar('Button', 'text', 'font-size')
+ * => '--recursica-ui-kit-components-button-properties-text-font-size'
+ * 
+ * @example
+ * getComponentTextCssVar('AccordionItem', 'header-text', 'font-weight')
+ * => '--recursica-ui-kit-components-accordion-item-properties-header-text-font-weight'
+ * 
+ * @param componentName - Component name (e.g., 'Button', 'Label')
+ * @param textElementName - Text element name (e.g., 'text', 'header-text', 'content-text', 'label-text', 'optional-text')
+ * @param property - Text property (e.g., 'font-size', 'font-weight', 'font-family', 'letter-spacing', 'line-height', 'text-decoration', 'text-transform')
+ * @returns CSS variable name
+ */
+export function getComponentTextCssVar(
+  componentName: ComponentName,
+  textElementName: string,
+  property: string
+): string {
+  return buildComponentCssVarPath(componentName, 'properties', textElementName, property)
+}
+

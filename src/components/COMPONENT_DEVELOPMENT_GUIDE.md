@@ -235,7 +235,8 @@ Create implementations for each library simultaneously. Each library implementat
    ```typescript
    import { {ComponentName} as Library{ComponentName} } from '@library/package'
    import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
-   import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+   import { getComponentTextCssVar } from '../../../utils/cssVarNames'
+   import { getBrandStateCssVar, getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
    import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
    import { readCssVar } from '../../../../core/css/readCssVar'
    import { useState, useEffect } from 'react'
@@ -1425,6 +1426,165 @@ import { Button } from '../../components/adapters/Button'
 4. **Any other application code using the component**
 
 **Note**: Update instances where it makes sense, but don't require updating every single instance if it's not critical.
+
+## Text Property Groups
+
+Components can have text properties organized into property groups. This allows granular control over text styling (font-family, font-size, font-weight, etc.) via the `TextStyleToolbar`.
+
+### Text Property Group Structure
+
+Text properties are organized into groups in `UIKit.json`. Common group names:
+- `text` - For components with a single text element (e.g., Button)
+- `label-text` - For label text (e.g., Label component)
+- `optional-text` - For optional indicator text (e.g., Label component)
+- `header-text` - For header text (e.g., AccordionItem)
+- `content-text` - For content text (e.g., AccordionItem)
+
+### UIKit.json Structure
+
+```json
+{
+  "button": {
+    "properties": {
+      "text": {
+        "font-family": {
+          "$type": "string",
+          "$value": "{tokens.font.typefaces.primary}"
+        },
+        "font-size": {
+          "$type": "dimension",
+          "$value": {
+            "value": "{tokens.font.sizes.sm}",
+            "unit": "px"
+          }
+        },
+        "font-weight": {
+          "$type": "number",
+          "$value": "{tokens.font.weights.regular}"
+        },
+        "letter-spacing": {
+          "$type": "string",
+          "$value": "{tokens.font.letter-spacings.wide}"
+        },
+        "line-height": {
+          "$type": "number",
+          "$value": "{tokens.font.line-heights.default}"
+        },
+        "text-decoration": {
+          "$type": "string",
+          "$value": "none"
+        },
+        "text-transform": {
+          "$type": "string",
+          "$value": "none"
+        },
+        "font-style": {
+          "$type": "string",
+          "$value": "normal"
+        }
+      }
+    }
+  }
+}
+```
+
+### Using Text Properties in Component Adapters
+
+1. **Get Text CSS Variables**
+   ```typescript
+   import { getComponentTextCssVar } from '../../../utils/cssVarNames'
+   import { readCssVar } from '../../../../core/css/readCssVar'
+   
+   // For single text element (e.g., Button)
+   const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
+   const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
+   const fontWeightVar = getComponentTextCssVar('Button', 'text', 'font-weight')
+   const letterSpacingVar = getComponentTextCssVar('Button', 'text', 'letter-spacing')
+   const lineHeightVar = getComponentTextCssVar('Button', 'text', 'line-height')
+   const textDecorationVar = getComponentTextCssVar('Button', 'text', 'text-decoration')
+   const textTransformVar = getComponentTextCssVar('Button', 'text', 'text-transform')
+   const fontStyleVar = getComponentTextCssVar('Button', 'text', 'font-style')
+   
+   // For multiple text elements (e.g., Label)
+   const labelFontFamilyVar = getComponentTextCssVar('Label', 'label-text', 'font-family')
+   const optionalFontFamilyVar = getComponentTextCssVar('Label', 'optional-text', 'font-family')
+   ```
+
+2. **Apply Text Properties to Styles**
+   ```typescript
+   style={{
+     fontFamily: `var(${fontFamilyVar})`,
+     fontSize: `var(${fontSizeVar})`,
+     fontWeight: `var(${fontWeightVar})`,
+     fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal',
+     letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+     lineHeight: `var(${lineHeightVar})`,
+     textDecoration: (readCssVar(textDecorationVar) || 'none') as any,
+     textTransform: (readCssVar(textTransformVar) || 'none') as any,
+   }}
+   ```
+
+3. **Add Reactive Updates for Text Properties**
+   
+   Text properties need reactive updates to respond to toolbar changes:
+   ```typescript
+   import { useState, useEffect } from 'react'
+   
+   // State to force re-renders when text CSS variables change
+   const [, setTextVarsUpdate] = useState(0)
+   
+   // Listen for CSS variable updates from the toolbar
+   useEffect(() => {
+     const textCssVars = [
+       fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar,
+       lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar
+     ]
+     
+     const handleCssVarUpdate = (e: Event) => {
+       const detail = (e as CustomEvent).detail
+       const updatedVars = detail?.cssVars || []
+       const shouldUpdate = updatedVars.length === 0 || 
+         updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
+       
+       if (shouldUpdate) {
+         setTextVarsUpdate(prev => prev + 1)
+       }
+     }
+     
+     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+     
+     // Also watch for direct style changes using MutationObserver
+     const observer = new MutationObserver(() => {
+       setTextVarsUpdate(prev => prev + 1)
+     })
+     observer.observe(document.documentElement, {
+       attributes: true,
+       attributeFilter: ['style'],
+     })
+     
+     return () => {
+       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+       observer.disconnect()
+     }
+   }, [
+     fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar,
+     lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar
+   ])
+   ```
+
+### Toolbar Configuration
+
+Text property groups are automatically detected and rendered using the `TextStyleToolbar`. No special toolbar configuration is needed - just ensure the property group exists in `UIKit.json` with the standard text property names.
+
+The toolbar will automatically show controls for:
+- Font Family (dropdown)
+- Font Size (slider with token selector)
+- Font Weight (slider with token selector)
+- Letter Spacing (slider with token selector)
+- Line Height (slider with token selector)
+- Text Decoration (segmented control: none, underline, line-through)
+- Text Transform (segmented control: original, uppercase, lowercase, capitalize)
+- Type Style (segmented control: normal, italic)
 
 ## CSS Variable Guidelines
 
