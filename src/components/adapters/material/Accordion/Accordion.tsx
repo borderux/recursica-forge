@@ -11,7 +11,7 @@ import {
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import type { AccordionProps as AdapterAccordionProps } from '../../Accordion'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
+import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './Accordion.css'
 
@@ -97,15 +97,12 @@ export default function Accordion({
 
   // Item properties (AccordionItem)
   const headerBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background')
+  const headerHoverVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background-hover')
   const headerTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'text')
   const iconColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'icon')
   const dividerColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'divider')
   const contentBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-background')
   const contentTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-text')
-  
-  // Get hover opacity and overlay color from brand theme (not user-configurable)
-  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
-  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
 
   const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
   const contentPaddingVar = getComponentLevelCssVar('AccordionItem', 'content-padding')
@@ -239,9 +236,8 @@ export default function Accordion({
         boxShadow: elevationBoxShadow,
         // Item properties
         ['--accordion-item-header-bg' as string]: `var(${headerBgVar})`,
+        ['--accordion-item-header-hover' as string]: `var(${headerHoverVar})`,
         ['--accordion-item-header-text' as string]: `var(${headerTextVar})`,
-        ['--accordion-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-        ['--accordion-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
         ['--accordion-item-icon-color' as string]: `var(${iconColorVar})`,
         ['--accordion-item-divider-color' as string]: `var(${dividerColorVar})`,
         ['--accordion-item-content-bg' as string]: `var(${contentBgVar})`,
@@ -259,18 +255,18 @@ export default function Accordion({
         ['--accordion-item-header-font-weight' as string]: `var(${headerFontWeightVar})`,
         ['--accordion-item-header-letter-spacing' as string]: headerLetterSpacingVar ? `var(${headerLetterSpacingVar})` : 'normal',
         ['--accordion-item-header-line-height' as string]: `var(${headerLineHeightVar})`,
-        ['--accordion-item-header-text-decoration' as string]: `var(${headerTextDecorationVar}, none)`,
-        ['--accordion-item-header-text-transform' as string]: `var(${headerTextTransformVar}, none)`,
-        ['--accordion-item-header-font-style' as string]: `var(${headerFontStyleVar}, normal)`,
+        ['--accordion-item-header-text-decoration' as string]: (readCssVar(headerTextDecorationVar) || 'none'),
+        ['--accordion-item-header-text-transform' as string]: (readCssVar(headerTextTransformVar) || 'none'),
+        ['--accordion-item-header-font-style' as string]: (readCssVar(headerFontStyleVar) || 'normal'),
         // Content text properties
         ['--accordion-item-content-font-family' as string]: `var(${contentFontFamilyVar})`,
         ['--accordion-item-content-font-size' as string]: `var(${contentFontSizeVar})`,
         ['--accordion-item-content-font-weight' as string]: `var(${contentFontWeightVar})`,
         ['--accordion-item-content-letter-spacing' as string]: contentLetterSpacingVar ? `var(${contentLetterSpacingVar})` : 'normal',
         ['--accordion-item-content-line-height' as string]: `var(${contentLineHeightVar})`,
-        ['--accordion-item-content-text-decoration' as string]: `var(${contentTextDecorationVar}, none)`,
-        ['--accordion-item-content-text-transform' as string]: `var(${contentTextTransformVar}, none)`,
-        ['--accordion-item-content-font-style' as string]: `var(${contentFontStyleVar}, normal)`,
+        ['--accordion-item-content-text-decoration' as string]: (readCssVar(contentTextDecorationVar) || 'none'),
+        ['--accordion-item-content-text-transform' as string]: (readCssVar(contentTextTransformVar) || 'none'),
+        ['--accordion-item-content-font-style' as string]: (readCssVar(contentFontStyleVar) || 'normal'),
         ...style,
       } as React.CSSProperties}
       {...material}
@@ -280,15 +276,6 @@ export default function Accordion({
         const showDivider = item.divider !== false && index < items.length - 1
         const isOpen = openItems.includes(item.id)
         const expanded = allowMultiple ? isOpen : isOpen
-        const ItemIcon = item.icon
-        const titleWithIcon = ItemIcon ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--accordion-item-icon-gap, 8px)' }}>
-            <div style={{ flexShrink: 0, color: `var(--accordion-item-icon-color)`, width: 'var(--accordion-item-icon-size, 16px)', height: 'var(--accordion-item-icon-size, 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ItemIcon size={16} />
-            </div>
-            <span>{item.title}</span>
-          </div>
-        ) : item.title
         return (
           <MaterialAccordion
             key={item.id}
@@ -299,7 +286,7 @@ export default function Accordion({
             className="material-accordion-item"
           >
             <AccordionSummary expandIcon={ExpandIcon}>
-              {titleWithIcon}
+              {item.title}
             </AccordionSummary>
             <AccordionDetails>{item.content}</AccordionDetails>
           </MaterialAccordion>

@@ -13,16 +13,28 @@
     "background": {
       "icon": "paint-bucket",
       "label": "Background",
-      "visible": true
+      "visible": true,
+      "group": {
+        "background": {
+          "icon": "paint-bucket",
+          "label": "Background",
+          "visible": true
+        },
+        "background-hover": {
+          "icon": "paint-bucket",
+          "label": "Background Hover",
+          "visible": true
+        }
+      }
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text style",
+      "label": "Text Style",
       "visible": true
     },
     "text-color": {
       "icon": "text-aa",
-      "label": "Text color",
+      "label": "Text Color",
       "visible": true,
       "group": {
         "text": {
@@ -32,7 +44,7 @@
         },
         "text-hover": {
           "icon": "text-aa",
-          "label": "Text hover",
+          "label": "Text Hover",
           "visible": true
         }
       }
@@ -49,7 +61,7 @@
         },
         "border-radius": {
           "icon": "corners-out",
-          "label": "Corner radius",
+          "label": "Corner Radius",
           "visible": true
         },
         "border-color": {
@@ -71,19 +83,19 @@
       "group": {
         "min-width": {
           "icon": "arrows-in-line-horizontal",
-          "label": "Min width",
+          "label": "Min Width",
           "visible": true
         },
         "max-width": {
           "icon": "arrows-out-line-horizontal",
-          "label": "Max content width",
+          "label": "Max Width",
           "visible": true
         }
       }
     },
     "icon": {
       "icon": "diamond",
-      "label": "Icon size",
+      "label": "Icon Size",
       "visible": true
     },
     "spacing": {
@@ -92,11 +104,11 @@
       "visible": true,
       "group": {
         "icon-text-gap": {
-          "label": "Gap between icon and text",
+          "label": "Gap between Icon and Text",
           "visible": true
         },
         "horizontal-padding": {
-          "label": "Horizontal padding",
+          "label": "Horizontal Padding",
           "visible": true
         }
       }

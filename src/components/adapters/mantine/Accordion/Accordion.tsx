@@ -2,13 +2,13 @@
  * Mantine Accordion Implementation
  */
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Accordion as MantineAccordion } from '@mantine/core'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import type { AccordionProps as AdapterAccordionProps } from '../../Accordion'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
-import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
+import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { readCssVar } from '../../../../core/css/readCssVar'
 import './Accordion.css'
 
 export default function Accordion({
@@ -86,15 +86,12 @@ export default function Accordion({
 
   // Item properties (AccordionItem)
   const headerBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background')
+  const headerHoverVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background-hover')
   const headerTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'text')
   const iconColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'icon')
   const dividerColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'divider')
   const contentBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-background')
   const contentTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-text')
-  
-  // Get hover opacity and overlay color from brand theme (not user-configurable)
-  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
-  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
 
   const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
   const contentPaddingVar = getComponentLevelCssVar('AccordionItem', 'content-padding')
@@ -166,19 +163,7 @@ export default function Accordion({
   const contentFontStyleVar = getComponentTextCssVar('AccordionItem', 'content-text', 'font-style')
   
   // State to force re-renders when text CSS variables change
-  const [textVarsUpdate, setTextVarsUpdate] = useState(0)
-  
-  // Read resolved CSS variable values for use in Mantine's styles prop
-  // Mantine's styles prop may not resolve CSS variables properly, so we use resolved values
-  // These are recalculated on every render when textVarsUpdate changes
-  const headerFontWeight = readCssVarResolved(headerFontWeightVar) || '400'
-  const headerFontFamily = readCssVarResolved(headerFontFamilyVar) || undefined
-  const headerFontSize = readCssVarResolved(headerFontSizeVar) || undefined
-  const headerFontStyle = readCssVarResolved(headerFontStyleVar) || undefined
-  const headerLetterSpacing = readCssVarResolved(headerLetterSpacingVar) || undefined
-  const headerLineHeight = readCssVarResolved(headerLineHeightVar) || undefined
-  const headerTextDecoration = readCssVarResolved(headerTextDecorationVar) || undefined
-  const headerTextTransform = readCssVarResolved(headerTextTransformVar) || undefined
+  const [, setTextVarsUpdate] = useState(0)
   
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
@@ -225,59 +210,6 @@ export default function Accordion({
   ])
 
   const value = allowMultiple ? openItems : openItems[0] || null
-  
-  // Memoize styles object to ensure it's recreated when textVarsUpdate changes
-  const mantineStyles = useMemo(() => {
-    const controlStyles = {
-      border: 'none',
-      borderTop: 'none',
-      borderBottom: 'none',
-      borderLeft: 'none',
-      borderRight: 'none',
-      ...(headerFontFamily && { fontFamily: headerFontFamily }),
-      ...(headerFontSize && { fontSize: headerFontSize }),
-      fontWeight: headerFontWeight,
-      ...(headerFontStyle && { fontStyle: headerFontStyle }),
-      ...(headerLetterSpacing && { letterSpacing: headerLetterSpacing }),
-      ...(headerLineHeight && { lineHeight: headerLineHeight }),
-      ...(headerTextDecoration && { textDecoration: headerTextDecoration }),
-      ...(headerTextTransform && { textTransform: headerTextTransform }),
-    }
-    // Merge with mantine?.styles, ensuring our control styles override any existing ones
-    // We spread mantine?.styles first, then override with our control styles
-    return {
-      ...(mantine?.styles || {}),
-      root: {
-        ...(mantine?.styles?.root || {}),
-        border: `var(--accordion-border-size, 1px) solid var(--accordion-border)`,
-        borderRadius: `var(--accordion-border-radius)`,
-        background: `var(--accordion-bg)`,
-      },
-      item: {
-        ...(mantine?.styles?.item || {}),
-        border: 'none',
-        borderTop: 'none',
-        borderBottom: 'none',
-        borderLeft: 'none',
-        borderRight: 'none',
-      },
-      control: {
-        ...(mantine?.styles?.control || {}),
-        ...controlStyles, // Our styles come last to ensure they override
-      },
-    }
-  }, [
-    textVarsUpdate,
-    headerFontWeight,
-    headerFontFamily,
-    headerFontSize,
-    headerFontStyle,
-    headerLetterSpacing,
-    headerLineHeight,
-    headerTextDecoration,
-    headerTextTransform,
-    mantine?.styles,
-  ])
 
   return (
     <MantineAccordion
@@ -305,9 +237,8 @@ export default function Accordion({
         boxShadow: elevationBoxShadow,
         // Item properties
         ['--accordion-item-header-bg' as string]: `var(${headerBgVar})`,
+        ['--accordion-item-header-hover' as string]: `var(${headerHoverVar})`,
         ['--accordion-item-header-text' as string]: `var(${headerTextVar})`,
-        ['--accordion-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-        ['--accordion-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
         ['--accordion-item-icon-color' as string]: `var(${iconColorVar})`,
         ['--accordion-item-divider-color' as string]: `var(${dividerColorVar})`,
         ['--accordion-item-content-bg' as string]: `var(${contentBgVar})`,
@@ -324,36 +255,49 @@ export default function Accordion({
         ['--accordion-item-header-font-weight' as string]: `var(${headerFontWeightVar})`,
         ['--accordion-item-header-letter-spacing' as string]: headerLetterSpacingVar ? `var(${headerLetterSpacingVar})` : 'normal',
         ['--accordion-item-header-line-height' as string]: `var(${headerLineHeightVar})`,
-        ['--accordion-item-header-text-decoration' as string]: `var(${headerTextDecorationVar}, none)`,
-        ['--accordion-item-header-text-transform' as string]: `var(${headerTextTransformVar}, none)`,
-        ['--accordion-item-header-font-style' as string]: `var(${headerFontStyleVar}, normal)`,
+        ['--accordion-item-header-text-decoration' as string]: (readCssVar(headerTextDecorationVar) || 'none'),
+        ['--accordion-item-header-text-transform' as string]: (readCssVar(headerTextTransformVar) || 'none'),
+        ['--accordion-item-header-font-style' as string]: (readCssVar(headerFontStyleVar) || 'normal'),
         // Content text properties
         ['--accordion-item-content-font-family' as string]: `var(${contentFontFamilyVar})`,
         ['--accordion-item-content-font-size' as string]: `var(${contentFontSizeVar})`,
         ['--accordion-item-content-font-weight' as string]: `var(${contentFontWeightVar})`,
         ['--accordion-item-content-letter-spacing' as string]: contentLetterSpacingVar ? `var(${contentLetterSpacingVar})` : 'normal',
         ['--accordion-item-content-line-height' as string]: `var(${contentLineHeightVar})`,
-        ['--accordion-item-content-text-decoration' as string]: `var(${contentTextDecorationVar}, none)`,
-        ['--accordion-item-content-text-transform' as string]: `var(${contentTextTransformVar}, none)`,
-        ['--accordion-item-content-font-style' as string]: `var(${contentFontStyleVar}, normal)`,
+        ['--accordion-item-content-text-decoration' as string]: (readCssVar(contentTextDecorationVar) || 'none'),
+        ['--accordion-item-content-text-transform' as string]: (readCssVar(contentTextTransformVar) || 'none'),
+        ['--accordion-item-content-font-style' as string]: (readCssVar(contentFontStyleVar) || 'normal'),
         ...style,
       } as React.CSSProperties}
-      styles={mantineStyles}
+      styles={{
+        root: {
+          border: `var(--accordion-border-size, 1px) solid var(--accordion-border)`,
+          borderRadius: `var(--accordion-border-radius)`,
+          background: `var(--accordion-bg)`,
+          overflow: 'hidden',
+        },
+        item: {
+          border: 'none',
+          borderTop: 'none',
+          borderBottom: 'none',
+          borderLeft: 'none',
+          borderRight: 'none',
+        },
+        control: {
+          border: 'none',
+          borderTop: 'none',
+          borderBottom: 'none',
+          borderLeft: 'none',
+          borderRight: 'none',
+        },
+        ...(mantine?.styles || {}),
+      }}
       {...mantine}
       {...props}
     >
       {items.map((item, index) => {
         const showDivider = item.divider !== false && index < items.length - 1
         const isOpen = openItems.includes(item.id)
-        const ItemIcon = item.icon
-        const titleWithIcon = ItemIcon ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--accordion-item-icon-gap, 8px)' }}>
-            <div style={{ flexShrink: 0, color: `var(--accordion-item-icon-color)`, width: 'var(--accordion-item-icon-size, 16px)', height: 'var(--accordion-item-icon-size, 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ItemIcon size={16} />
-            </div>
-            <span>{item.title}</span>
-          </div>
-        ) : item.title
         return (
           <MantineAccordion.Item
             key={item.id}
@@ -380,7 +324,7 @@ export default function Accordion({
                 borderRight: 'none',
               }}
             >
-              {titleWithIcon}
+              {item.title}
             </MantineAccordion.Control>
             <MantineAccordion.Panel>{item.content}</MantineAccordion.Panel>
           </MantineAccordion.Item>

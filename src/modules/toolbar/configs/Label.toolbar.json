@@ -12,7 +12,7 @@
   "props": {
     "text": {
       "icon": "text-aa",
-      "label": "Text color",
+      "label": "Text Color",
       "visible": true,
       "group": {
         "text": {
@@ -23,7 +23,7 @@
     },
     "label-text": {
       "icon": "text-aa",
-      "label": "Label text style",
+      "label": "Label Text Style",
       "visible": true
     },
     "asterisk": {
@@ -32,30 +32,19 @@
       "visible": true,
       "group": {
         "asterisk": {
-          "label": "Indicator color",
+          "label": "Indicator Color",
           "visible": true
         },
         "required-indicator-gap": {
-          "label": "Indicator gap",
+          "label": "Indicator Gap",
           "visible": true
         }
       }
     },
     "optional-text": {
       "icon": "text-aa",
-      "label": "Optional text style",
-      "visible": true,
-      "group": {
-        "optional-text": {
-          "label": "Text style",
-          "visible": true
-        },
-        "optional-text-opacity": {
-          "icon": "eye",
-          "label": "Opacity",
-          "visible": true
-        }
-      }
+      "label": "Optional Text Style",
+      "visible": true
     },
     "spacing": {
       "icon": "square-logo",
@@ -63,7 +52,7 @@
       "visible": true,
       "group": {
         "bottom-padding": {
-          "label": "Bottom padding",
+          "label": "Bottom Padding",
           "visible": true
         },
         "height": {
@@ -76,14 +65,14 @@
         },
         "vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding",
+          "label": "Vertical Padding",
           "visible": true
         }
       }
     },
     "label-width": {
       "icon": "arrows-left-right",
-      "label": "Label width",
+      "label": "Label Width",
       "visible": true
     }
   }
