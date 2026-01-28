@@ -59,6 +59,10 @@
         "divider": {
           "label": "Color",
           "visible": true
+        },
+        "header-content-gap": {
+          "label": "Header-Content Gap",
+          "visible": true
         }
       }
     },
@@ -70,6 +74,11 @@
     "icon-size": {
       "icon": "arrows-up-down",
       "label": "Icon Size",
+      "visible": true
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
       "visible": true
     }
   }

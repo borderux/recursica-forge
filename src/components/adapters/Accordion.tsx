@@ -22,6 +22,7 @@ export type AccordionProps = {
   items: AccordionItem[]
   layer?: ComponentLayer
   allowMultiple?: boolean
+  elevation?: string
   onToggle?: (id: string, open: boolean) => void
   className?: string
   style?: React.CSSProperties
@@ -31,6 +32,7 @@ type AccordionLibraryProps = {
   items: AccordionItem[]
   layer?: ComponentLayer
   allowMultiple: boolean
+  elevation?: string
   openItems: string[]
   onOpenItemsChange: (openItems: string[]) => void
   onItemToggle: (id: string, open: boolean) => void
@@ -42,6 +44,7 @@ export function Accordion({
   items,
   layer = 'layer-0',
   allowMultiple = false,
+  elevation,
   onToggle,
   className,
   style,
@@ -145,6 +148,7 @@ export function Accordion({
     items,
     layer,
     allowMultiple,
+    elevation,
     openItems,
     onOpenItemsChange: handleOpenItemsChange,
     onItemToggle: handleItemToggle,

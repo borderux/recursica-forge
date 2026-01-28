@@ -212,6 +212,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'pencil-square': Pencil,
   'edit': Pencil,
   'warning': Warning,
+  'arrows-in': ArrowsIn,
 }
 
 /**

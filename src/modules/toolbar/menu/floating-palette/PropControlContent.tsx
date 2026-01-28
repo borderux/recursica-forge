@@ -1068,6 +1068,88 @@ export default function PropControlContent({
         )
       }
       
+      // Use pixel slider for accordion min-width and max-width (raw pixel values, not tokens)
+      if ((propNameLower === 'min-width' || propNameLower === 'max-width') && componentName.toLowerCase() === 'accordion') {
+        const AccordionWidthSlider = () => {
+          const minValue = propNameLower === 'min-width' ? 20 : 100
+          const maxValue = propNameLower === 'min-width' ? 200 : 1500
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || `${minValue}px`
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || `${minValue}px`
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+          
+          const updateCssVars = useCallback((clampedValue: number) => {
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [cssVars, primaryVar])
+          
+          const handleChange = (newValue: number | [number, number]) => {
+            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
+            setValue(clampedValue)
+            updateCssVars(clampedValue)
+          }
+          
+          const handleChangeCommitted = (newValue: number | [number, number]) => {
+            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
+            updateCssVars(clampedValue)
+          }
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return (
+          <AccordionWidthSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+          />
+        )
+      }
+      
       // Use brand dimension slider for size-related properties that use general dimension tokens
       const isSizeProp = propNameLower === 'size' ||
                          propNameLower === 'border-size' ||
@@ -1076,13 +1158,14 @@ export default function PropControlContent({
                          (propNameLower.includes('size') && !propNameLower.includes('font-size') && !propNameLower.includes('text-size'))
       
       // Check if this is an icon-related size (for Avatar, Button icons, Accordion icons, etc.)
-      const isIconSize = (componentName.toLowerCase() === 'avatar' && propNameLower === 'size') ||
-                         (componentName.toLowerCase() === 'button' && propNameLower.includes('icon')) ||
-                         (componentName.toLowerCase() === 'accordion' && propNameLower === 'icon-size') ||
-                         (componentName.toLowerCase() === 'chip' && propNameLower === 'icon-size') ||
-                         (componentName.toLowerCase() === 'breadcrumb' && propNameLower === 'icon-size') ||
-                         (componentName.toLowerCase() === 'switch' && propNameLower === 'thumb-icon-size') ||
-                         (componentName.toLowerCase() === 'toast' && propNameLower === 'icon')
+      const componentNameLower = componentName.toLowerCase()
+      const isIconSize = (componentNameLower === 'avatar' && propNameLower === 'size') ||
+                         (componentNameLower === 'button' && propNameLower.includes('icon')) ||
+                         ((componentNameLower === 'accordion' || componentNameLower === 'accordion item' || componentNameLower === 'accordion-item') && propNameLower === 'icon-size') ||
+                         (componentNameLower === 'chip' && propNameLower === 'icon-size') ||
+                         (componentNameLower === 'breadcrumb' && propNameLower === 'icon-size') ||
+                         (componentNameLower === 'switch' && propNameLower === 'thumb-icon-size') ||
+                         (componentNameLower === 'toast' && propNameLower === 'icon')
       
       if (isSizeProp) {
         const dimensionCategory: 'icons' | 'general' = isIconSize ? 'icons' : 'general'
@@ -1139,6 +1222,7 @@ export default function PropControlContent({
                          componentName === 'MenuItem' ||
                          componentName === 'Menu item'
       const isMenu = componentName.toLowerCase() === 'menu'
+      const isAccordion = componentName.toLowerCase() === 'accordion'
       
       let maxPixelValue: number | undefined = undefined
       
@@ -1149,6 +1233,12 @@ export default function PropControlContent({
       } else if ((isMenuItem || isMenu) && propNameLower === 'max-width') {
         minPixelValue = 200
         maxPixelValue = 1000
+      } else if (isAccordion && propNameLower === 'min-width') {
+        minPixelValue = 20
+        maxPixelValue = 200
+      } else if (isAccordion && propNameLower === 'max-width') {
+        minPixelValue = 100
+        maxPixelValue = 500
       } else if (isLabelWidth) {
         // Default maxPixelValue for label-width
         maxPixelValue = 500

@@ -1470,6 +1470,13 @@
       },
       "accordion": {
         "properties": {
+          "border-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
           "border-radius": {
             "$type": "dimension",
             "$value": {
@@ -1479,7 +1486,35 @@
           },
           "item-gap": {
             "$type": "dimension",
-            "$value": null
+            "$value": {
+              "value": "{brand.dimensions.general.none}",
+              "unit": "px"
+            }
+          },
+          "padding": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.none}",
+              "unit": "px"
+            }
+          },
+          "min-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 20,
+              "unit": "px"
+            }
+          },
+          "max-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1500,
+              "unit": "px"
+            }
+          },
+          "elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-0}"
           },
           "colors": {
             "layer-0": {
@@ -1561,6 +1596,17 @@
               "value": "{brand.dimensions.border-radii.none}",
               "unit": "px"
             }
+          },
+          "header-content-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.sm}",
+              "unit": "px"
+            }
+          },
+          "elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-0}"
           },
           "colors": {
             "layer-0": {

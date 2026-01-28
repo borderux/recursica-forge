@@ -28,30 +28,25 @@ export default function AccordionPreview({
 
   const fruits = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry']
   
+  const items = fruits.map((fruit, index) => {
+    const itemId = `item-${index + 1}`
+    return {
+      id: itemId,
+      title: fruit,
+      content: 'Replace slot with content (component instance)',
+      divider: index < fruits.length - 1, // Add divider between items except the last one
+      open: openItems.has(itemId),
+    }
+  })
+  
   return (
-    <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {fruits.map((fruit, index) => {
-        const itemId = `item-${index + 1}`
-        const items = [
-          {
-            id: itemId,
-            title: fruit,
-            content: 'Replace slot with content (component instance)',
-            divider: false,
-            open: openItems.has(itemId),
-          }
-        ]
-        
-        return (
-          <Accordion
-            key={fruit}
-            items={items}
-            layer={selectedLayer as any}
-            allowMultiple={allowMultiple}
-            onToggle={handleToggle}
-          />
-        )
-      })}
+    <div style={{ width: '100%', maxWidth: 520 }}>
+      <Accordion
+        items={items}
+        layer={selectedLayer as any}
+        allowMultiple={allowMultiple}
+        onToggle={handleToggle}
+      />
     </div>
   )
 }

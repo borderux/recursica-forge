@@ -1,26 +1,46 @@
 /* Mantine Accordion overrides using Recursica CSS variables */
 
-/* Container styles */
+/* Container styles - border should be on the Accordion container (root) */
 .recursica-accordion.mantine-accordion {
   background: var(--accordion-bg) !important;
-  border: 1px solid var(--accordion-border) !important;
+  border: var(--accordion-border-size, 1px) solid var(--accordion-border) !important;
   border-radius: var(--accordion-border-radius) !important;
   display: flex !important;
   flex-direction: column !important;
   gap: var(--accordion-item-gap) !important;
+  padding: var(--accordion-padding, 0) !important;
+  min-width: var(--accordion-min-width) !important;
+  max-width: var(--accordion-max-width) !important;
+  overflow: hidden !important;
 }
 
-/* Item styles */
+/* Remove borders from ALL nested elements - only the root container should have border */
+.recursica-accordion.mantine-accordion .mantine-Accordion-item,
+.recursica-accordion.mantine-accordion .mantine-Accordion-item *,
+.recursica-accordion.mantine-accordion > * {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  outline: none !important;
+}
+
+/* Item styles - ensure no borders on items */
 .recursica-accordion.mantine-accordion .mantine-Accordion-item {
   border-radius: var(--accordion-item-border-radius) !important;
+  /* box-shadow is applied via inline style from component */
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-item[data-divider='true'] {
   border-bottom: 1px solid var(--accordion-item-divider-color) !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-item[data-divider='false'] {
-  border-bottom: none !important;
+  border: none !important;
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-control {
@@ -34,6 +54,10 @@
   line-height: var(--accordion-item-line-height) !important;
   gap: var(--accordion-item-icon-gap) !important;
   min-width: 0 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: var(--accordion-item-border-radius) !important;
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-control:hover {
@@ -70,6 +94,7 @@
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-panel {
   padding: var(--accordion-item-content-padding) !important;
+  padding-top: calc(var(--accordion-item-header-content-gap, 0px) + var(--accordion-item-content-padding, 0px)) !important;
   background: var(--accordion-item-content-bg) !important;
   color: var(--accordion-item-content-text) !important;
   font-family: var(--accordion-item-font-family) !important;

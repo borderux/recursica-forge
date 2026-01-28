@@ -31,7 +31,7 @@ describe('Accordion CSS Variables', () => {
     }, { timeout: 15000 })
   }
 
-  it('sets CSS custom properties using UIKit variables', async () => {
+  it('sets CSS custom properties for Accordion container using UIKit variables', async () => {
     const { container } = renderWithProviders(
       <Accordion
         items={[
@@ -42,14 +42,41 @@ describe('Accordion CSS Variables', () => {
 
     const root = await waitForAccordion(container)
 
-    const headerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-0', 'background')
-    const itemPaddingVar = getComponentLevelCssVar('Accordion', 'item-padding')
+    const containerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-0', 'background')
+    const containerPaddingVar = getComponentLevelCssVar('Accordion', 'padding')
+    const itemGapVar = getComponentLevelCssVar('Accordion', 'item-gap')
 
-    const headerBgValue = root.style.getPropertyValue('--accordion-header-bg')
+    const containerBgValue = root.style.getPropertyValue('--accordion-bg')
+    const containerPaddingValue = root.style.getPropertyValue('--accordion-padding')
+    const itemGapValue = root.style.getPropertyValue('--accordion-item-gap')
+
+    expect(containerBgValue).toContain(`var(${containerBgVar})`)
+    expect(containerPaddingValue).toContain(`var(${containerPaddingVar})`)
+    expect(itemGapValue).toContain(`var(${itemGapVar})`)
+  })
+
+  it('sets CSS custom properties for AccordionItem using UIKit variables', async () => {
+    const { container } = renderWithProviders(
+      <Accordion
+        items={[
+          { id: 'a', title: 'Item A', content: 'Content A', open: true },
+        ]}
+      />
+    )
+
+    const root = await waitForAccordion(container)
+
+    const itemHeaderBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', 'layer-0', 'background')
+    const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
+    const iconSizeVar = getComponentLevelCssVar('AccordionItem', 'icon-size')
+
+    const itemHeaderBgValue = root.style.getPropertyValue('--accordion-item-header-bg')
     const itemPaddingValue = root.style.getPropertyValue('--accordion-item-padding')
+    const iconSizeValue = root.style.getPropertyValue('--accordion-item-icon-size')
 
-    expect(headerBgValue).toContain(`var(${headerBgVar})`)
+    expect(itemHeaderBgValue).toContain(`var(${itemHeaderBgVar})`)
     expect(itemPaddingValue).toContain(`var(${itemPaddingVar})`)
+    expect(iconSizeValue).toContain(`var(${iconSizeVar})`)
   })
 })
 

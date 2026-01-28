@@ -17,20 +17,56 @@
           "label": "Border Color",
           "visible": true,
           "floatingPaletteLabel": "Border Color"
+        },
+        "border-size": {
+          "label": "Border Size",
+          "visible": true,
+          "floatingPaletteLabel": "Border Size"
+        },
+        "border-radius": {
+          "label": "Border Radius",
+          "visible": true,
+          "floatingPaletteLabel": "Border Radius"
         }
       }
-    },
-    "border-radius": {
-      "icon": "corners-out",
-      "label": "Border Radius",
-      "visible": true,
-      "floatingPaletteLabel": "Border Radius"
     },
     "item-gap": {
       "icon": "split-horizontal",
       "label": "Item Gap",
       "visible": true,
       "floatingPaletteLabel": "Item Gap"
+    },
+    "padding": {
+      "icon": "arrows-in",
+      "label": "Padding",
+      "visible": true,
+      "floatingPaletteLabel": "Padding"
+    },
+    "width": {
+      "icon": "arrows-left-right",
+      "label": "Width",
+      "visible": true,
+      "floatingPaletteLabel": "Width",
+      "group": {
+        "min-width": {
+          "icon": "arrows-in-line-horizontal",
+          "label": "Min Width",
+          "visible": true,
+          "floatingPaletteLabel": "Minimum Width"
+        },
+        "max-width": {
+          "icon": "arrows-out-line-horizontal",
+          "label": "Max Width",
+          "visible": true,
+          "floatingPaletteLabel": "Maximum Width"
+        }
+      }
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "visible": true,
+      "floatingPaletteLabel": "Elevation"
     }
   }
 }
