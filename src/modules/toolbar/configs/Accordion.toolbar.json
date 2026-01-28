@@ -49,13 +49,11 @@
       "floatingPaletteLabel": "Width",
       "group": {
         "min-width": {
-          "icon": "arrows-in-line-horizontal",
           "label": "Min Width",
           "visible": true,
           "floatingPaletteLabel": "Minimum Width"
         },
         "max-width": {
-          "icon": "arrows-out-line-horizontal",
           "label": "Max Width",
           "visible": true,
           "floatingPaletteLabel": "Maximum Width"
