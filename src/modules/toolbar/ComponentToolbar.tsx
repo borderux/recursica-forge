@@ -203,8 +203,25 @@ export default function ComponentToolbar({
       propsMap.set(key, prop)
     })
     
-    // Third pass: create grouped props from config
+    // Third pass: create grouped props from config AND add props from config that aren't in structure yet
     if (toolbarConfig?.props) {
+      // First, add any props from config that aren't in structure yet (like text-group props)
+      for (const [configPropName, propConfig] of Object.entries(toolbarConfig.props)) {
+        const configPropNameLower = configPropName.toLowerCase()
+        // Skip if it's already in propsMap or if it has a group (groups are handled separately)
+        if (!propsMap.has(configPropNameLower) && !propConfig.group) {
+          // Check if this prop exists in structure but wasn't added (shouldn't happen, but check anyway)
+          const structureProp = structure.props.find(p => p.name.toLowerCase() === configPropNameLower)
+          if (structureProp) {
+            // It exists in structure but wasn't added - add it now
+            if (!seenProps.has(configPropNameLower)) {
+              seenProps.add(configPropNameLower)
+              propsMap.set(configPropNameLower, structureProp)
+            }
+          }
+        }
+      }
+      
       for (const [parentPropName, parentPropConfig] of Object.entries(toolbarConfig.props)) {
         if (parentPropConfig.group) {
           // Get or create the grouped props map for this parent prop
@@ -340,6 +357,7 @@ export default function ComponentToolbar({
     
     // Fourth pass: create virtual props for props in toolbar config but not in structure
     // This allows props like "label-width" that are handled specially but don't exist as component-level props
+    // Also handles text-group props that might not have been parsed correctly
     if (toolbarConfig?.props) {
       for (const [propName, propConfig] of Object.entries(toolbarConfig.props)) {
         const propNameLower = propName.toLowerCase()
@@ -347,6 +365,20 @@ export default function ComponentToolbar({
         // Skip if prop already exists or is a grouped prop
         if (propsMap.has(propNameLower) || propConfig.group) {
           continue
+        }
+        
+        // Check if this is a text-group prop that exists in UIKit.json but wasn't parsed
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
+        if (textPropertyGroupNames.includes(propNameLower)) {
+          // Try to find it in structure.props - it should have been parsed
+          const structureProp = structure.props.find(p => p.name.toLowerCase() === propNameLower && p.type === 'text-group')
+          if (structureProp) {
+            // It exists but wasn't added - add it now
+            if (!seenProps.has(propNameLower)) {
+              seenProps.add(propNameLower)
+              propsMap.set(propNameLower, structureProp)
+            }
+          }
         }
         
         // Create virtual prop for label-width

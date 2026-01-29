@@ -23,9 +23,18 @@
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text",
+      "label": "Text style",
+      "visible": true
+    },
+    "supporting-text": {
+      "icon": "text-aa",
+      "label": "Supporting text style",
+      "visible": true
+    },
+    "text-color": {
+      "icon": "text-aa",
+      "label": "Text color",
       "visible": true,
-      "floatingPaletteLabel": "Text Color",
       "group": {
         "text": {
           "icon": "text-aa",

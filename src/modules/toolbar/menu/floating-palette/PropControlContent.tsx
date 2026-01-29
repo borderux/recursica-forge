@@ -1458,7 +1458,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
   
   // Always check UIKit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly
