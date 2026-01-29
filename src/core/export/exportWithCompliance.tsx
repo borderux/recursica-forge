@@ -190,12 +190,14 @@ export function ExportSelectionModalWrapper({
   show,
   onConfirm,
   onCancel,
+  onExportToGithub,
 }: {
   show: boolean
   onConfirm: (files: { tokens: boolean; brand: boolean; uikit: boolean; cssSpecific: boolean; cssScoped: boolean }) => void
   onCancel: () => void
+  onExportToGithub?: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
 }) {
-  return <ExportSelectionModal show={show} onExport={onConfirm} onCancel={onCancel} />
+  return <ExportSelectionModal show={show} onExport={onConfirm} onCancel={onCancel} onExportToGithub={onExportToGithub} />
 }
 
 export function GitHubExportModalWrapper({
