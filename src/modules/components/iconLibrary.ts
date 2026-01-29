@@ -79,6 +79,7 @@ import {
   SplitHorizontal,
   Square,
   SquareLogo,
+  SquaresFour,
   Stack,
   Sun,
   Swap,
@@ -297,6 +298,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'arrows-in': ArrowsIn,
   'x': X,
   'check-square': CheckSquare,
+  'squares-four': SquaresFour,
 }
 
 /**

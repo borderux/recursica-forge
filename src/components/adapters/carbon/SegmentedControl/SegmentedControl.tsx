@@ -38,25 +38,34 @@ export default function SegmentedControl({
   const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'border-color')
   const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-size')
   const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-radius')
-  const containerPaddingVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'padding')
   const containerElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'elevation')
+  
+  // Get CSS variables - padding (applied to all items)
+  const paddingHorizontalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'padding-horizontal')
+  const paddingVerticalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'padding-vertical')
   
   // Get CSS variables - selected properties
   const selectedBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'background')
   const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'border-color')
   const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'border-size')
   const selectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'border-radius')
-  const selectedPaddingVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'padding')
   const selectedElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'elevation')
   
-  // Get CSS variables - text colors (still at component level)
+  // Get CSS variables - text colors
   const textVar = getComponentCssVar('SegmentedControl', 'colors', 'text', layer)
-  const selectedTextVar = getComponentCssVar('SegmentedControl', 'colors', 'selected-text', layer)
+  const selectedTextVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'text-color')
   
   // Get other properties
   const itemGapVar = getComponentLevelCssVar('SegmentedControl', 'item-gap')
-  const iconSizeVar = getComponentLevelCssVar('SegmentedControl', 'icon')
-  const iconGapVar = getComponentLevelCssVar('SegmentedControl', 'icon-text-gap')
+  const iconSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'icon-size')
+  const iconGapVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'icon-text-gap')
+  
+  // #region agent log
+  const paddingHorizontalValue = readCssVar(paddingHorizontalVar)
+  const paddingVerticalValue = readCssVar(paddingVerticalVar)
+  const iconGapValueForStyles = iconGapVar ? readCssVar(iconGapVar) : null
+  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'carbon/SegmentedControl.tsx:padding-var-reads',message:'Carbon padding CSS variable values',data:{paddingHorizontalVar,paddingHorizontalValue,paddingVerticalVar,paddingVerticalValue,iconGapVar,iconGapValueForStyles},timestamp:Date.now(),sessionId:'debug-session',runId:'padding-gap-debug',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion agent log
   
   // Get divider properties
   const dividerColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'divider-color')
@@ -72,6 +81,9 @@ export default function SegmentedControl({
   const fontWeightVar = getComponentTextCssVar('SegmentedControl', 'text', 'font-weight')
   const letterSpacingVar = getComponentTextCssVar('SegmentedControl', 'text', 'letter-spacing')
   const lineHeightVar = getComponentTextCssVar('SegmentedControl', 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar('SegmentedControl', 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar('SegmentedControl', 'text', 'text-transform')
+  const fontStyleVar = getComponentTextCssVar('SegmentedControl', 'text', 'font-style')
   
   // Reactively read border-size and divider-size
   const borderSizeValue = useCssVar(containerBorderSizeVar, '1px')
@@ -109,7 +121,7 @@ export default function SegmentedControl({
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [dividerSizeVar, dividerColorVar, dividerSizeValue])
+  }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, paddingVerticalVar])
   
   // Get elevation from CSS vars if not provided as props
   const [containerElevationFromVar, setContainerElevationFromVar] = useState<string | undefined>(() => {
@@ -237,10 +249,10 @@ export default function SegmentedControl({
         '--segmented-control-border-size': borderSizeValue,
         '--segmented-control-selected-border-size': selectedBorderSizeValue,
         '--segmented-control-selected-border-radius': `var(${selectedBorderRadiusVar})`,
-        '--segmented-control-padding': `var(${containerPaddingVar})`,
-        '--segmented-control-selected-padding': `var(${selectedPaddingVar})`,
+        '--segmented-control-padding-horizontal': paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
+        '--segmented-control-padding-vertical': paddingVerticalValue ? `var(${paddingVerticalVar})` : '0px',
         '--segmented-control-item-gap': `var(${itemGapVar})`,
-        '--segmented-control-icon-text-gap': `var(${iconGapVar})`,
+        '--segmented-control-icon-text-gap': iconGapVar && iconGapValueForStyles ? `var(${iconGapVar})` : '0px',
         '--segmented-control-divider-color': `var(${dividerColorVar || containerBorderColorVar || textVar})`,
         '--segmented-control-divider-size': dividerSizeValue,
         '--segmented-control-font-family': `var(${fontFamilyVar})`,
@@ -253,7 +265,7 @@ export default function SegmentedControl({
         borderRadius: `var(${containerBorderRadiusVar})`,
         border: `${borderSizeValue} solid var(${containerBorderColorVar || textVar})`,
         background: `var(${containerBgVar})`,
-        padding: `var(${containerPaddingVar})`,
+        padding: `${paddingVerticalValue ? `var(${paddingVerticalVar})` : '0px'} ${paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px'}`,
         width: fullWidth ? '100%' : 'auto',
         maxWidth: !isVertical && maxWidthVar ? `var(${maxWidthVar})` : undefined,
         maxHeight: isVertical && maxHeightVar ? `var(${maxHeightVar})` : undefined,
@@ -299,7 +311,11 @@ export default function SegmentedControl({
             onClick={() => !disabled && !item.disabled && onChange?.(item.value)}
             className={`carbon-segmented-control-button ${isSelected ? 'selected' : ''}`}
             style={{
-              padding: isSelected ? `var(${selectedPaddingVar})` : `var(${containerPaddingVar})`,
+              // Base padding - will be overridden below if item-gap applies
+              paddingTop: paddingVerticalValue ? `var(${paddingVerticalVar})` : '0px',
+              paddingBottom: paddingVerticalValue ? `var(${paddingVerticalVar})` : '0px',
+              paddingLeft: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
+              paddingRight: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
               background: isSelected ? `var(${selectedBgVar})` : 'transparent',
               color: isSelected ? `var(${selectedTextVar})` : `var(${textVar})`,
               borderRadius: isSelected ? `var(${selectedBorderRadiusVar})` : `var(${containerBorderRadiusVar})`,
@@ -309,32 +325,55 @@ export default function SegmentedControl({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: hasIcon && hasLabel ? (iconGapVar ? `var(${iconGapVar})` : '8px') : undefined,
+              gap: hasIcon && hasLabel ? (iconGapVar && iconGapValueForStyles ? `var(${iconGapVar})` : (iconGapVar && !iconGapValueForStyles ? '0px' : '8px')) : undefined,
               transition: 'background-color 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s',
-              // Always add padding and margin for item-gap between items (except after the last one)
-              paddingRight: !isLastItem && !isVertical ? `var(${itemGapVar})` : undefined,
-              paddingBottom: !isLastItem && isVertical ? `var(${itemGapVar})` : undefined,
+              // Always add margin for item-gap between items (except after the last one)
+              // Item-gap only affects margin, not padding - padding remains uniform for all items
               marginRight: !isLastItem && !isVertical ? `var(${itemGapVar})` : undefined,
               marginBottom: !isLastItem && isVertical ? `var(${itemGapVar})` : undefined,
-              // Add divider border (only if divider should be added)
-              borderRight: shouldAddDivider && !isVertical ? `${dividerSizeValue} solid var(${dividerColorVar || containerBorderColorVar || textVar})` : undefined,
-              borderBottom: shouldAddDivider && isVertical ? `${dividerSizeValue} solid var(${dividerColorVar || containerBorderColorVar || textVar})` : undefined,
               ...(isSelected && selectedElevationBoxShadow ? { boxShadow: selectedElevationBoxShadow } : {}),
-              ...borderStyle, // Selected borders
+              // Add divider border (only if divider should be added) - applied first
+              ...(shouldAddDivider && !isVertical ? { borderRight: `${dividerSizeValue} solid var(${dividerColorVar || containerBorderColorVar || textVar})` } : {}),
+              ...(shouldAddDivider && isVertical ? { borderBottom: `${dividerSizeValue} solid var(${dividerColorVar || containerBorderColorVar || textVar})` } : {}),
+              ...borderStyle, // Selected borders (applied last to ensure they override divider borders)
             }}
           >
             {hasIcon && (
-              <span style={{
-                display: 'flex',
-                alignItems: 'center',
-                width: iconSizeVar ? `var(${iconSizeVar})` : '16px',
-                height: iconSizeVar ? `var(${iconSizeVar})` : '16px',
-                flexShrink: 0,
-              }}>
+              <span 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: iconSizeVar ? `var(${iconSizeVar})` : '16px',
+                  height: iconSizeVar ? `var(${iconSizeVar})` : '16px',
+                  flexShrink: 0,
+                }}
+                // #region agent log
+                ref={(el) => {
+                  if (el && hasIcon && !hasLabel && index === 0) {
+                    const computedStyle = window.getComputedStyle(el)
+                    const buttonStyle = window.getComputedStyle(el.parentElement as HTMLElement)
+                    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'carbon/SegmentedControl.tsx:icon-span-ref',message:'Carbon icon-only span computed styles',data:{iconMarginLeft:computedStyle.marginLeft,iconMarginRight:computedStyle.marginRight,iconPaddingLeft:computedStyle.paddingLeft,iconPaddingRight:computedStyle.paddingRight,buttonPaddingLeft:buttonStyle.paddingLeft,buttonPaddingRight:buttonStyle.paddingRight,buttonGap:buttonStyle.gap,buttonJustifyContent:buttonStyle.justifyContent,buttonDisplay:buttonStyle.display,hasIcon,hasLabel},timestamp:Date.now(),sessionId:'debug-session',runId:'icon-centering-debug',hypothesisId:'C'})}).catch(()=>{});
+                  }
+                }}
+                // #endregion agent log
+              >
                 {item.icon}
               </span>
             )}
-            {hasLabel && <span>{item.label}</span>}
+            {hasLabel && (
+              <span style={{
+                fontFamily: `var(${fontFamilyVar})`,
+                fontSize: `var(${fontSizeVar})`,
+                fontWeight: `var(${fontWeightVar})`,
+                letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+                lineHeight: `var(${lineHeightVar})`,
+                textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') as any : 'none',
+                textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') as any : 'none',
+                fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal',
+              }}>
+                {item.label}
+              </span>
+            )}
           </button>
         )
         

@@ -4,23 +4,38 @@
   background: var(--segmented-control-bg) !important;
   border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color) !important;
   border-radius: var(--segmented-control-border-radius) !important;
-  padding: var(--segmented-control-padding) !important;
+  padding-top: var(--segmented-control-padding-vertical) !important;
+  padding-bottom: var(--segmented-control-padding-vertical) !important;
+  padding-left: var(--segmented-control-padding-horizontal) !important;
+  padding-right: var(--segmented-control-padding-horizontal) !important;
   font-family: var(--segmented-control-font-family) !important;
   font-size: var(--segmented-control-font-size) !important;
   font-weight: var(--segmented-control-font-weight) !important;
   letter-spacing: var(--segmented-control-letter-spacing) !important;
   line-height: var(--segmented-control-line-height) !important;
+  text-decoration: var(--segmented-control-text-decoration, none) !important;
+  text-transform: var(--segmented-control-text-transform, none) !important;
+  font-style: var(--segmented-control-font-style, normal) !important;
 }
 
 .recursica-segmented-control.material-segmented-control .MuiToggleButton-root {
   color: var(--segmented-control-text) !important;
   background: transparent !important;
   border: none !important;
+  /* Explicitly reset all padding first to override Material UI defaults */
+  padding: 0 !important;
+  padding-top: var(--segmented-control-padding-vertical) !important;
+  padding-bottom: var(--segmented-control-padding-vertical) !important;
+  padding-left: var(--segmented-control-padding-horizontal) !important;
+  padding-right: var(--segmented-control-padding-horizontal) !important;
   font-family: inherit !important;
   font-size: inherit !important;
   font-weight: inherit !important;
   letter-spacing: inherit !important;
   line-height: inherit !important;
+  text-decoration: inherit !important;
+  text-transform: inherit !important;
+  font-style: inherit !important;
 }
 
 .recursica-segmented-control.material-segmented-control .MuiToggleButton-root.Mui-selected {
@@ -31,11 +46,12 @@
   border-left: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-right: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  /* Elevation box-shadow will be applied via inline styles from the component */
 }
 
-/* Always add spacing between items (except after the last one) */
+/* Always add margin for item-gap between items (except after the last one) */
+/* Item-gap only affects margin, not padding - padding remains uniform for all items */
 .recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:not(:last-child) {
-  padding-right: var(--segmented-control-item-gap) !important;
   margin-right: var(--segmented-control-item-gap) !important;
 }
 
@@ -49,9 +65,9 @@
   border-right: none !important;
 }
 
-/* Always add spacing between items (except after the last one) */
+/* Always add margin for item-gap between items (except after the last one) */
+/* Item-gap only affects margin, not padding - padding remains uniform for all items */
 .recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:not(:last-child) {
-  padding-bottom: var(--segmented-control-item-gap) !important;
   margin-bottom: var(--segmented-control-item-gap) !important;
 }
 

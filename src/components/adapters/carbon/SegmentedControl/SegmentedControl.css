@@ -5,7 +5,10 @@
   border-radius: var(--segmented-control-border-radius);
   border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color);
   background: var(--segmented-control-bg);
-  padding: var(--segmented-control-padding);
+  padding-top: var(--segmented-control-padding-vertical);
+  padding-bottom: var(--segmented-control-padding-vertical);
+  padding-left: var(--segmented-control-padding-horizontal);
+  padding-right: var(--segmented-control-padding-horizontal);
   font-family: var(--segmented-control-font-family);
   font-size: var(--segmented-control-font-size);
   font-weight: var(--segmented-control-font-weight);
@@ -14,7 +17,12 @@
 }
 
 .carbon-segmented-control-button {
-  padding: var(--segmented-control-padding);
+  /* Explicitly reset all padding first to override any defaults */
+  padding: 0;
+  padding-top: var(--segmented-control-padding-vertical, 0px);
+  padding-bottom: var(--segmented-control-padding-vertical, 0px);
+  padding-left: var(--segmented-control-padding-horizontal, 0px);
+  padding-right: var(--segmented-control-padding-horizontal, 0px);
   background: transparent;
   color: var(--segmented-control-text);
   border: none;
@@ -31,7 +39,6 @@
 .carbon-segmented-control-button.selected {
   background: var(--segmented-control-selected-bg) !important;
   color: var(--segmented-control-selected-text) !important;
-  padding: var(--segmented-control-selected-padding, var(--segmented-control-padding)) !important;
   border-radius: var(--segmented-control-selected-border-radius, var(--segmented-control-border-radius)) !important;
   /* Selected border - use individual properties to avoid overriding divider borders */
   border-top: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;

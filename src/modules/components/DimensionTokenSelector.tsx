@@ -114,9 +114,11 @@ export default function DimensionTokenSelector({
         })
       }
       
-      // For horizontal-padding, padding, item-gap, and divider-item-gap props, only collect general dimensions
+      // For horizontal-padding, padding, item-gap, divider-item-gap, padding-horizontal, padding-vertical, and icon-text-gap props, only collect general dimensions
       if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' || 
-          propNameLower === 'item-gap' || propNameLower === 'divider-item-gap') {
+          propNameLower === 'item-gap' || propNameLower === 'divider-item-gap' ||
+          propNameLower === 'padding-horizontal' || propNameLower === 'padding-vertical' ||
+          propNameLower === 'icon-text-gap') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
         const general = dimensions?.general || {}
@@ -169,18 +171,29 @@ export default function DimensionTokenSelector({
         })
       }
       
-      // For icon prop, only collect icon dimensions
-      if (propNameLower === 'icon') {
+      // For icon or icon-size prop, collect icon dimensions AND general dimensions
+      if (propNameLower === 'icon' || propNameLower === 'icon-size') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
         const icons = dimensions?.icons || dimensions?.icon || {}
+        const general = dimensions?.general || {}
         
-        // Collect icon dimensions (xs, sm, default, lg)
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DimensionTokenSelector.tsx:icon-size-collection',message:'Icon-size token collection start',data:{propNameLower,iconKeys:Object.keys(icons),generalKeys:Object.keys(general),dimensionsKeys:Object.keys(dimensions)},timestamp:Date.now(),sessionId:'debug-session',runId:'icon-size-tokens-debug',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion agent log
+        
+        // Collect icon dimensions (xs, sm, default, lg) - ONLY icon tokens for icon-size
         Object.keys(icons).forEach(iconKey => {
           const iconValue = icons[iconKey]
           if (iconValue && typeof iconValue === 'object' && '$value' in iconValue) {
             const cssVar = `--recursica-brand-dimensions-icons-${iconKey}`
             const cssValue = readCssVar(cssVar)
+            
+            // #region agent log
+            if (propNameLower === 'icon-size') {
+              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DimensionTokenSelector.tsx:icon-token-check',message:'Checking icon token',data:{iconKey,cssVar,cssValue,hasValue:!!cssValue},timestamp:Date.now(),sessionId:'debug-session',runId:'icon-size-tokens-debug',hypothesisId:'D'})}).catch(()=>{});
+            }
+            // #endregion agent log
             
             // Only add if the CSS var exists (has been generated)
             if (cssValue) {
@@ -192,6 +205,12 @@ export default function DimensionTokenSelector({
             }
           }
         })
+        
+        // #region agent log
+        if (propNameLower === 'icon-size') {
+          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DimensionTokenSelector.tsx:icon-tokens-collected',message:'Icon tokens collected',data:{optionsCount:options.length,options:options.map(o=>({label:o.label,cssVar:o.cssVar}))},timestamp:Date.now(),sessionId:'debug-session',runId:'icon-size-tokens-debug',hypothesisId:'D'})}).catch(()=>{});
+        }
+        // #endregion agent log
         
         // Convert to Token format with numeric values for sorting
         const iconTokens = options.map(opt => {
@@ -490,11 +509,17 @@ export default function DimensionTokenSelector({
           }
         }
         
-        // Keep common spacing/sizing categories (general.*, icon.*)
-        const commonCategories = ['general', 'icon']
-        if (commonCategories.includes(firstPart)) {
-          return true
-        }
+      // Keep common spacing/sizing categories (general.*, icon.*)
+      const commonCategories = ['general', 'icon']
+      if (commonCategories.includes(firstPart)) {
+        return true
+      }
+      
+      // #region agent log
+      if (propNameLower === 'icon-size') {
+        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DimensionTokenSelector.tsx:filter-check',message:'Icon-size token filtering',data:{propNameLower,firstPart,cssVarName,willKeep:commonCategories.includes(firstPart),allOptionsCount:options.length},timestamp:Date.now(),sessionId:'debug-session',runId:'icon-size-tokens-debug',hypothesisId:'D'})}).catch(()=>{});
+      }
+      // #endregion agent log
         
         // Filter out layout-specific categories like "gutter" that aren't relevant for component props
         const layoutCategories = ['gutter']
@@ -581,8 +606,44 @@ export default function DimensionTokenSelector({
       // If no value found, try to read the resolved value (might be a token reference)
       const resolvedValue = readCssVarResolved(targetCssVar)
       if (resolvedValue) {
-        // We have a resolved value, treat it as the current value
+        // Check if resolved value is a CSS variable reference (not a pixel value)
+        if (isThemeVar(resolvedValue)) {
+          // It's a CSS variable reference, try to match it to a token
+          setIsPixelMode(false)
+          const matchingToken = dimensionTokens.find(token => {
+            if (resolvedValue === `var(${token.name})` || resolvedValue === token.name) return true
+            const tokenResolved = readCssVarResolved(token.name)
+            if (tokenResolved && readCssVarResolved(targetCssVar) === tokenResolved) return true
+            return false
+          })
+          if (matchingToken) {
+            setSelectedToken(matchingToken.name)
+            return
+          }
+        }
+        
+        // We have a resolved pixel value, try to match it to a token by comparing resolved values
         const pxValue = extractPixelValue(resolvedValue)
+        if (pxValue > 0 && dimensionTokens.length > 0) {
+          // Try to find a token that resolves to the same pixel value
+          const matchingToken = dimensionTokens.find(token => {
+            const tokenResolved = readCssVarResolved(token.name)
+            if (tokenResolved) {
+              const tokenPxValue = extractPixelValue(tokenResolved)
+              // Match if pixel values are very close (within 0.1px tolerance)
+              return Math.abs(tokenPxValue - pxValue) < 0.1
+            }
+            return false
+          })
+          
+          if (matchingToken) {
+            setIsPixelMode(false)
+            setSelectedToken(matchingToken.name)
+            return
+          }
+        }
+        
+        // No matching token found, use pixel mode
         if (pxValue > 0) {
           setIsPixelMode(true)
           const maxPixelValue = propNameLower === 'max-width' ? 500 : 200
@@ -592,12 +653,15 @@ export default function DimensionTokenSelector({
         }
       }
       
-      // For divider-item-gap, padding, item-gap, vertical-padding, and horizontal-padding, null means "none"
+      // For divider-item-gap, padding, item-gap, vertical-padding, horizontal-padding, padding-horizontal, padding-vertical, and icon-text-gap, null means "none"
       // Find the "none" token from Brand.json (general-none)
       if (propNameLower === 'divider-item-gap' || 
           propNameLower === 'padding' || 
           propNameLower === 'item-gap' ||
-          propNameLower === 'horizontal-padding') {
+          propNameLower === 'horizontal-padding' ||
+          propNameLower === 'padding-horizontal' ||
+          propNameLower === 'padding-vertical' ||
+          propNameLower === 'icon-text-gap') {
         // These use general tokens
         const noneToken = dimensionTokens.find(t => t.name.includes('general-none'))
         setSelectedToken(noneToken?.name)
@@ -642,6 +706,12 @@ export default function DimensionTokenSelector({
       // Resolve the current value to see what it actually points to
       const resolvedValue = readCssVarResolved(targetCssVar)
       
+      // #region agent log
+      if (propNameLower === 'icon-size') {
+        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DimensionTokenSelector.tsx:icon-size-matching',message:'Icon-size token matching',data:{targetCssVar,currentValue,resolvedValue,availableTokens:dimensionTokens.map(t=>({name:t.name,value:t.value,label:t.label})),propNameLower},timestamp:Date.now(),sessionId:'debug-session',runId:'icon-size-tokens-debug',hypothesisId:'E'})}).catch(()=>{});
+      }
+      // #endregion agent log
+      
       const matchingToken = dimensionTokens.find(token => {
         // Exact match with var() wrapper
         if (currentValue === `var(${token.name})` || currentValue === token.name) return true
@@ -662,6 +732,12 @@ export default function DimensionTokenSelector({
         
         return false
       })
+      
+      // #region agent log
+      if (propNameLower === 'icon-size') {
+        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DimensionTokenSelector.tsx:icon-size-match-result',message:'Icon-size token match result',data:{matchingToken:matchingToken ? {name:matchingToken.name,value:matchingToken.value,label:matchingToken.label} : null,willUsePixelMode:!matchingToken},timestamp:Date.now(),sessionId:'debug-session',runId:'icon-size-tokens-debug',hypothesisId:'E'})}).catch(()=>{});
+      }
+      // #endregion agent log
       
       if (matchingToken) {
         setSelectedToken(matchingToken.name)
@@ -766,11 +842,28 @@ export default function DimensionTokenSelector({
   
   const foundIdx = sortedTokens.length > 0 ? sortedTokens.findIndex(t => t.name === selectedToken) : -1
   const currentIdx = foundIdx >= 0 ? foundIdx : 0
+  
+  // #region agent log
+  const propNameLower = propName.toLowerCase()
+  if (propNameLower === 'icon-size' || propNameLower === 'icon-text-gap') {
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DimensionTokenSelector.tsx:value-label-debug',message:'Value label debug',data:{propNameLower,selectedToken,foundIdx,currentIdx,sortedTokensCount:sortedTokens.length,sortedTokens:sortedTokens.map(t=>({name:t.name,label:t.label,value:t.value}))},timestamp:Date.now(),sessionId:'debug-session',runId:'value-label-debug',hypothesisId:'F'})}).catch(()=>{});
+  }
+  // #endregion agent log
+  
   const getValueLabel = useCallback((value: number) => {
     if (sortedTokens.length === 0) return '—'
-    const token = sortedTokens[Math.round(value)]
+    const roundedValue = Math.round(value)
+    const token = sortedTokens[roundedValue]
+    
+    // #region agent log
+    const propNameLower = propName.toLowerCase()
+    if (propNameLower === 'icon-size' || propNameLower === 'icon-text-gap') {
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DimensionTokenSelector.tsx:getValueLabel-call',message:'getValueLabel called',data:{value,roundedValue,tokenFound:!!token,tokenName:token?.name,tokenLabel:token?.label,willReturn:token?.label || token?.name.split('-').pop() || token?.name || String(value)},timestamp:Date.now(),sessionId:'debug-session',runId:'value-label-debug',hypothesisId:'F'})}).catch(()=>{});
+    }
+    // #endregion agent log
+    
     return token?.label || token?.name.split('-').pop() || token?.name || String(value)
-  }, [sortedTokens])
+  }, [sortedTokens, propName])
   const minToken = sortedTokens[0]
   const maxToken = sortedTokens.length > 0 ? sortedTokens[sortedTokens.length - 1] : undefined
 

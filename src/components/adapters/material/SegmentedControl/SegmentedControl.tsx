@@ -43,25 +43,34 @@ export default function SegmentedControl({
   const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'border-color')
   const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-size')
   const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-radius')
-  const containerPaddingVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'padding')
   const containerElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'elevation')
+  
+  // Get CSS variables - padding (applied to all items)
+  const paddingHorizontalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'padding-horizontal')
+  const paddingVerticalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'padding-vertical')
   
   // Get CSS variables - selected properties
   const selectedBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'background')
   const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'border-color')
   const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'border-size')
   const selectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'border-radius')
-  const selectedPaddingVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'padding')
   const selectedElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'elevation')
   
-  // Get CSS variables - text colors (still at component level)
+  // Get CSS variables - text colors
   const textVar = getComponentCssVar('SegmentedControl', 'colors', 'text', layer)
-  const selectedTextVar = getComponentCssVar('SegmentedControl', 'colors', 'selected-text', layer)
+  const selectedTextVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'text-color')
   
   // Get other properties
   const itemGapVar = getComponentLevelCssVar('SegmentedControl', 'item-gap')
-  const iconSizeVar = getComponentLevelCssVar('SegmentedControl', 'icon')
-  const iconGapVar = getComponentLevelCssVar('SegmentedControl', 'icon-text-gap')
+  const iconSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'icon-size')
+  const iconGapVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'icon-text-gap')
+  
+  // #region agent log
+  const paddingHorizontalValue = readCssVar(paddingHorizontalVar)
+  const paddingVerticalValue = readCssVar(paddingVerticalVar)
+  const iconGapValueForStyles = iconGapVar ? readCssVar(iconGapVar) : null
+  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'material/SegmentedControl.tsx:padding-var-reads',message:'Material padding CSS variable values',data:{paddingHorizontalVar,paddingHorizontalValue,paddingVerticalVar,paddingVerticalValue,iconGapVar,iconGapValueForStyles},timestamp:Date.now(),sessionId:'debug-session',runId:'padding-gap-debug',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion agent log
   
   // Get divider properties
   const dividerColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'divider-color')
@@ -77,6 +86,9 @@ export default function SegmentedControl({
   const fontWeightVar = getComponentTextCssVar('SegmentedControl', 'text', 'font-weight')
   const letterSpacingVar = getComponentTextCssVar('SegmentedControl', 'text', 'letter-spacing')
   const lineHeightVar = getComponentTextCssVar('SegmentedControl', 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar('SegmentedControl', 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar('SegmentedControl', 'text', 'text-transform')
+  const fontStyleVar = getComponentTextCssVar('SegmentedControl', 'text', 'font-style')
   
   // Reactively read border-size and divider-size
   const borderSizeValue = useCssVar(containerBorderSizeVar, '1px')
@@ -114,7 +126,7 @@ export default function SegmentedControl({
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [dividerSizeVar, dividerColorVar, dividerSizeValue])
+  }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, paddingVerticalVar])
   
   // Get elevation from CSS vars if not provided as props
   const [containerElevationFromVar, setContainerElevationFromVar] = useState<string | undefined>(() => {
@@ -226,10 +238,10 @@ export default function SegmentedControl({
         '--segmented-control-selected-border-size': selectedBorderSizeValue,
         '--segmented-control-selected-border-radius': `var(${selectedBorderRadiusVar})`,
         '--segmented-control-selected-elevation': selectedElevationFromVar || 'elevation-0',
-        '--segmented-control-padding': `var(${containerPaddingVar})`,
-        '--segmented-control-selected-padding': `var(${selectedPaddingVar})`,
+        '--segmented-control-padding-horizontal': paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
+        '--segmented-control-padding-vertical': paddingVerticalValue ? `var(${paddingVerticalVar})` : '0px',
         '--segmented-control-item-gap': `var(${itemGapVar})`,
-        '--segmented-control-icon-text-gap': `var(${iconGapVar})`,
+        '--segmented-control-icon-text-gap': iconGapVar && iconGapValueForStyles ? `var(${iconGapVar})` : '0px',
         '--segmented-control-divider-color': `var(${dividerColorVar || containerBorderColorVar || textVar})`,
         '--segmented-control-divider-size': dividerSizeValue,
         '--segmented-control-font-family': `var(${fontFamilyVar})`,
@@ -237,6 +249,9 @@ export default function SegmentedControl({
         '--segmented-control-font-weight': `var(${fontWeightVar})`,
         '--segmented-control-letter-spacing': letterSpacingVar ? `var(${letterSpacingVar})` : 'normal',
         '--segmented-control-line-height': `var(${lineHeightVar})`,
+        '--segmented-control-text-decoration': textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
+        '--segmented-control-text-transform': textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
+        '--segmented-control-font-style': fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
         width: fullWidth ? '100%' : 'auto',
         maxWidth: !isVertical && maxWidthVar ? `var(${maxWidthVar})` : undefined,
         maxHeight: isVertical && maxHeightVar ? `var(${maxHeightVar})` : undefined,
@@ -247,30 +262,54 @@ export default function SegmentedControl({
       {...material}
       {...props}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const hasIcon = !!item.icon
         const hasLabel = !!item.label && showLabel
         const shouldShowTooltip = !showLabel && (item.tooltip || (typeof item.label === 'string' ? item.label : undefined))
+        
+        const isSelected = currentValue === item.value
         
         const toggleButton = (
           <ToggleButton
             key={item.value}
             value={item.value}
             disabled={item.disabled || disabled}
+            sx={isSelected && selectedElevationBoxShadow ? {
+              boxShadow: selectedElevationBoxShadow,
+            } : undefined}
           >
             {hasIcon && (
-              <span style={{
-                display: 'flex',
-                alignItems: 'center',
-                width: iconSizeVar ? `var(${iconSizeVar})` : '16px',
-                height: iconSizeVar ? `var(${iconSizeVar})` : '16px',
-                flexShrink: 0,
-                marginRight: hasLabel && iconGapVar ? `var(${iconGapVar})` : undefined,
-              }}>
+              <span 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: iconSizeVar ? `var(${iconSizeVar})` : '16px',
+                  height: iconSizeVar ? `var(${iconSizeVar})` : '16px',
+                  flexShrink: 0,
+                  marginRight: hasLabel && iconGapVar && iconGapValueForStyles ? `var(${iconGapVar})` : (hasLabel && iconGapVar && !iconGapValueForStyles ? '0px' : undefined),
+                }}
+                // #region agent log
+                ref={(el) => {
+                  if (el && hasIcon && !hasLabel && index === 0) {
+                    const computedStyle = window.getComputedStyle(el)
+                    const buttonStyle = window.getComputedStyle(el.parentElement as HTMLElement)
+                    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'material/SegmentedControl.tsx:icon-span-ref',message:'Material icon-only span computed styles',data:{iconMarginLeft:computedStyle.marginLeft,iconMarginRight:computedStyle.marginRight,iconPaddingLeft:computedStyle.paddingLeft,iconPaddingRight:computedStyle.paddingRight,buttonPaddingLeft:buttonStyle.paddingLeft,buttonPaddingRight:buttonStyle.paddingRight,buttonGap:buttonStyle.gap,buttonJustifyContent:buttonStyle.justifyContent,buttonDisplay:buttonStyle.display,hasIcon,hasLabel,marginRightValue:hasLabel && iconGapVar ? `var(${iconGapVar})` : undefined},timestamp:Date.now(),sessionId:'debug-session',runId:'icon-centering-debug',hypothesisId:'A'})}).catch(()=>{});
+                  }
+                }}
+                // #endregion agent log
+              >
                 {item.icon}
               </span>
             )}
-            {hasLabel && <span>{item.label}</span>}
+            {hasLabel && (
+              <span style={{
+                textDecoration: 'var(--segmented-control-text-decoration)',
+                textTransform: 'var(--segmented-control-text-transform)',
+                fontStyle: 'var(--segmented-control-font-style)',
+              }}>
+                {item.label}
+              </span>
+            )}
           </ToggleButton>
         )
         

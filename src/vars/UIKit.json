@@ -1721,10 +1721,10 @@
             }
           },
           "fill-width": {
-            "true": {
+            "false": {
               "properties": {}
             },
-            "false": {
+            "true": {
               "properties": {}
             }
           }
@@ -1847,13 +1847,6 @@
                 }
               }
             },
-            "padding": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
-              }
-            },
             "elevation": {
               "$type": "elevation",
               "$value": "{brand.elevations.elevation-0}"
@@ -1932,13 +1925,6 @@
                 }
               }
             },
-            "padding": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
-              }
-            },
             "elevation": {
               "$type": "elevation",
               "$value": "{brand.elevations.elevation-0}"
@@ -1972,18 +1958,34 @@
               "unit": "px"
             }
           },
-          "icon": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.icons.default}",
-              "unit": "px"
-            }
-          },
-          "icon-text-gap": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.general.sm}",
-              "unit": "px"
+          "item": {
+            "padding-horizontal": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{brand.dimensions.general.sm}",
+                "unit": "px"
+              }
+            },
+            "padding-vertical": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{brand.dimensions.general.sm}",
+                "unit": "px"
+              }
+            },
+            "icon-size": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{brand.dimensions.icons.default}",
+                "unit": "px"
+              }
+            },
+            "icon-text-gap": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{brand.dimensions.general.sm}",
+                "unit": "px"
+              }
             }
           },
           "text": {

@@ -6,7 +6,7 @@
     },
     "fill-width": {
       "icon": "arrows-out-line-horizontal",
-      "label": "Full width"
+      "label": "Fill container width"
     }
   },
   "props": {
@@ -28,11 +28,6 @@
         "text-color": {
           "icon": "text-aa",
           "label": "Text color",
-          "visible": true
-        },
-        "padding": {
-          "icon": "arrows-in",
-          "label": "Padding",
           "visible": true
         },
         "elevation": {
@@ -72,11 +67,6 @@
           "label": "Text color",
           "visible": true
         },
-        "padding": {
-          "icon": "arrows-in",
-          "label": "Padding",
-          "visible": true
-        },
         "elevation": {
           "icon": "copy-simple",
           "label": "Elevation",
@@ -106,7 +96,7 @@
     },
     "fill-width": {
       "icon": "arrows-out-line-horizontal",
-      "label": "Fill width",
+      "label": "Fill container width",
       "visible": true
     },
     "divider": {
@@ -127,6 +117,33 @@
         "divider-size": {
           "icon": "arrows-left-right",
           "label": "Divider size",
+          "visible": true
+        }
+      }
+    },
+    "item": {
+      "icon": "squares-four",
+      "label": "Item",
+      "visible": true,
+      "group": {
+        "padding-horizontal": {
+          "icon": "arrows-left-right",
+          "label": "Horizontal",
+          "visible": true
+        },
+        "padding-vertical": {
+          "icon": "arrows-up-down",
+          "label": "Vertical",
+          "visible": true
+        },
+        "icon-size": {
+          "icon": "squares-four",
+          "label": "Icon size",
+          "visible": true
+        },
+        "icon-text-gap": {
+          "icon": "arrows-left-right",
+          "label": "Icon text gap",
           "visible": true
         }
       }

@@ -4,7 +4,8 @@
   background: var(--segmented-control-bg) !important;
   border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color) !important;
   border-radius: var(--segmented-control-border-radius) !important;
-  padding: var(--segmented-control-padding) !important;
+  /* Padding should be on control elements, not the root container */
+  padding: 0 !important;
   font-family: var(--segmented-control-font-family) !important;
   font-size: var(--segmented-control-font-size) !important;
   font-weight: var(--segmented-control-font-weight) !important;
@@ -25,6 +26,8 @@
   outline: none !important;
   /* Remove any default Mantine spacing that might create visual dividers */
   gap: 0 !important;
+  /* Explicitly reset all padding first to override Mantine defaults */
+  padding: 0 !important;
   /* Ensure vertical centering */
   display: flex !important;
   align-items: center !important;
@@ -68,6 +71,7 @@
   border-bottom: none !important;
   box-shadow: none !important;
   outline: none !important;
+  /* Elevation box-shadow is applied to the control element, not the indicator */
 }
 
 /* Ensure no default gaps or spacing create visual dividers */
@@ -82,8 +86,9 @@
 /* Add spacing and divider between items (vertical for horizontal orientation) */
 /* Don't add divider to selected items */
 /* First, ensure ALL controls have no borders by default - this must come before our custom dividers */
-.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control,
-.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control * {
+/* But don't override selected item borders */
+.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not([data-active]),
+.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not([data-active]) * {
   border-right: none !important;
 }
 
@@ -93,9 +98,9 @@
   border-left: none !important;
 }
 
-/* Always add spacing between items (except after the last one) */
+/* Always add margin for item-gap between items (except after the last one) */
+/* Item-gap only affects margin, not padding - padding remains uniform for all items */
 .mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not(:last-child) {
-  padding-right: var(--segmented-control-item-gap) !important;
   margin-right: var(--segmented-control-item-gap) !important;
 }
 
@@ -116,8 +121,9 @@
 /* Add spacing and divider between items (horizontal for vertical orientation) */
 /* Don't add divider to selected items */
 /* First, ensure ALL controls have no borders by default - this must come before our custom dividers */
-.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control,
-.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control * {
+/* But don't override selected item borders */
+.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not([data-active]),
+.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not([data-active]) * {
   border-bottom: none !important;
 }
 
@@ -127,9 +133,9 @@
   border-top: none !important;
 }
 
-/* Always add spacing between items (except after the last one) */
+/* Always add margin for item-gap between items (except after the last one) */
+/* Item-gap only affects margin, not padding - padding remains uniform for all items */
 .mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not(:last-child) {
-  padding-bottom: var(--segmented-control-item-gap) !important;
   margin-bottom: var(--segmented-control-item-gap) !important;
 }
 
@@ -147,16 +153,26 @@
   border-bottom: none !important;
 }
 
+.mantine-SegmentedControl-control {
+  padding-top: var(--segmented-control-padding-vertical, 0px) !important;
+  padding-bottom: var(--segmented-control-padding-vertical, 0px) !important;
+  padding-left: var(--segmented-control-padding-horizontal, 0px) !important;
+  padding-right: var(--segmented-control-padding-horizontal, 0px) !important;
+}
+
 .mantine-SegmentedControl-control[data-active] {
   background: var(--segmented-control-selected-bg) !important;
   color: var(--segmented-control-selected-text) !important;
-  padding: var(--segmented-control-selected-padding, var(--segmented-control-padding)) !important;
   border-radius: var(--segmented-control-selected-border-radius, var(--segmented-control-border-radius)) !important;
-  /* Selected border - use individual properties */
+  /* Selected border - use individual properties - ensure all sides are set */
   border-top: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-left: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-right: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  /* Elevation box-shadow - applied to control element, not indicator */
+  box-shadow: var(--segmented-control-selected-elevation-shadow, none) !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 /* Remove divider from selected item's right/bottom side if not last */
@@ -175,7 +191,20 @@
   font-weight: inherit !important;
   letter-spacing: inherit !important;
   line-height: inherit !important;
+  text-decoration: var(--segmented-control-text-decoration, none) !important;
+  text-transform: var(--segmented-control-text-transform, none) !important;
+  font-style: var(--segmented-control-font-style, normal) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  /* Reset padding - padding should be controlled by the control element, not the label */
+  padding: 0 !important;
+}
+
+/* Ensure SVG icons are centered within their containers */
+.mantine-SegmentedControl-label svg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  flex-shrink: 0 !important;
 }

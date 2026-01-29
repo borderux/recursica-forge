@@ -724,10 +724,34 @@ export default function PropControlContent({
   }, [themeJson])
 
   const getCssVarsForProp = (propToCheck: ComponentProp): string[] => {
+    // If the prop already has a CSS var and a path, use it directly to avoid mismatching
+    // This is especially important for grouped props like "container" vs "selected"
+    if (propToCheck.cssVar && propToCheck.path && propToCheck.path.length > 0) {
+      // For grouped props, ensure we match the exact path
+      // Check if this is a grouped prop by looking for "container" or "selected" in path
+      const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected')
+      if (isGroupedProp) {
+        // Use the prop's CSS var directly to ensure we're updating the correct one
+        return [propToCheck.cssVar]
+      }
+    }
+    
     const structure = parseComponentStructure(componentName)
     const matchingProp = structure.props.find(p => {
       if (p.name !== propToCheck.name || p.category !== propToCheck.category) {
         return false
+      }
+      // For grouped props, ensure the path matches exactly
+      if (propToCheck.path && propToCheck.path.length > 0) {
+        const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected')
+        if (isGroupedProp) {
+          // Match the exact path segments for grouped props
+          const propToCheckPathStr = propToCheck.path.join('/')
+          const pPathStr = p.path.join('/')
+          if (propToCheckPathStr !== pPathStr) {
+            return false
+          }
+        }
       }
       if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
         const selectedVariant = selectedVariants[propToCheck.variantProp]
@@ -2236,7 +2260,10 @@ export default function PropControlContent({
                              componentName === 'MenuItem' ||
                              componentName === 'Menu item'
           
-          let cssVars = getCssVarsForProp(groupedProp)
+          // For grouped props, use the prop's CSS var directly to ensure we're updating the correct one
+          // (e.g., "selected" background vs "container" background)
+          // Only use getCssVarsForProp if the prop doesn't have a cssVar set
+          let cssVars = groupedProp.cssVar ? [groupedProp.cssVar] : getCssVarsForProp(groupedProp)
           let primaryVar = cssVars[0] || groupedProp.cssVar
           
           if (groupedPropKey === 'background' && isMenuItem) {
