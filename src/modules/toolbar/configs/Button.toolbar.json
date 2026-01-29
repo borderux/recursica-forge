@@ -88,7 +88,7 @@
         },
         "max-width": {
           "icon": "arrows-out-line-horizontal",
-          "label": "Max width",
+          "label": "Max content width",
           "visible": true
         }
       }

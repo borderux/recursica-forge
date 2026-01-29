@@ -118,6 +118,7 @@ function ElevationPropControl({
       valueLabel={getValueLabel}
       minLabel={minLabel}
       maxLabel={maxLabel}
+      showMinMaxLabels={false}
       label={<Label layer="layer-1" layout="stacked">{label}</Label>}
     />
   )
@@ -503,6 +504,7 @@ export default function PropControl({
               valueLabel={getValueLabel}
               minLabel="0px"
               maxLabel="500px"
+              showMinMaxLabels={false}
               label={<Label layer="layer-1" layout="stacked">{label}</Label>}
             />
           )
