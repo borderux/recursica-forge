@@ -89,3 +89,17 @@
 .recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root.Mui-selected:not(:last-child) {
   border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
 }
+
+/* Override Material UI's default full-width behavior for buttons in vertical orientation */
+/* When fullWidth is false, force auto width for buttons */
+.recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="vertical"] {
+  display: inline-flex !important;
+  width: auto !important;
+}
+
+.recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="vertical"] .MuiToggleButton-root {
+  width: auto !important;
+  flex: none !important;
+  min-width: auto !important;
+  max-width: none !important;
+}

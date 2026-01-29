@@ -737,6 +737,15 @@ export default function PropControlContent({
     }
     
     const structure = parseComponentStructure(componentName)
+    
+    // #region agent log
+    const componentNameLower = componentName.toLowerCase()
+    const normalizedComponentName = componentNameLower.replace(/\s+/g, '-')
+    if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol') && propToCheck.path && (propToCheck.path.includes('container') || propToCheck.path.includes('selected'))) {
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent:getCssVarsForProp-start',message:'getCssVarsForProp called for grouped prop',data:{componentName,componentNameLower,propToCheckName:propToCheck.name,propToCheckCategory:propToCheck.category,propToCheckPath:propToCheck.path,propToCheckCssVar:propToCheck.cssVar,allMatchingProps:structure.props.filter(p=>p.name===propToCheck.name&&p.category===propToCheck.category).map(p=>({name:p.name,path:p.path,cssVar:p.cssVar}))},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'B'})}).catch(()=>{});
+    }
+    // #endregion agent log
+    
     const matchingProp = structure.props.find(p => {
       if (p.name !== propToCheck.name || p.category !== propToCheck.category) {
         return false
@@ -767,6 +776,13 @@ export default function PropControlContent({
       }
       return true
     })
+    
+    // #region agent log
+    if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol') && propToCheck.path && (propToCheck.path.includes('container') || propToCheck.path.includes('selected'))) {
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent:getCssVarsForProp-result',message:'getCssVarsForProp result',data:{componentName,componentNameLower,normalizedComponentName,propToCheckName:propToCheck.name,propToCheckPath:propToCheck.path,matchingPropFound:!!matchingProp,matchingPropPath:matchingProp?.path,matchingPropCssVar:matchingProp?.cssVar,willReturn:matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'B'})}).catch(()=>{});
+    }
+    // #endregion agent log
+    
     return matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]
   }
 
@@ -992,6 +1008,14 @@ export default function PropControlContent({
       const contrastColorVar = getContrastColorVar(propToRender)
       let validPrimaryVar = (primaryVar && primaryVar.trim()) || (cssVars.length > 0 && cssVars[0]?.trim()) || propToRender.cssVar
       let validCssVars = cssVars.length > 0 ? cssVars.filter(v => v && v.trim()) : [propToRender.cssVar]
+      
+      // #region agent log
+      const normalizedComponentName = componentName.toLowerCase().replace(/\s+/g, '-')
+      const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item' || normalizedComponentName === 'segmentedcontrolitem'
+      if (isSegmentedControlItem && (propToRender.name.toLowerCase() === 'text' || propToRender.name.toLowerCase() === 'selected-text')) {
+        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent:color-control-debug',message:'Color control rendering',data:{componentName,normalizedComponentName,propName:propToRender.name,propPath:propToRender.path,propCssVar:propToRender.cssVar,primaryVar,validPrimaryVar,cssVars,validCssVars,label},timestamp:Date.now(),sessionId:'debug-session',runId:'colors-debug',hypothesisId:'B'})}).catch(()=>{});
+      }
+      // #endregion agent log
       
       // Special validation for breadcrumb read-only color
       if (componentName.toLowerCase() === 'breadcrumb' && label.toLowerCase().includes('read only')) {
@@ -1302,7 +1326,7 @@ export default function PropControlContent({
       const isSwitch = componentName.toLowerCase() === 'switch'
       // Normalize component name for comparison (same as loadToolbarConfig)
       const normalizedComponentName = componentName.toLowerCase().replace(/\s+/g, '-')
-      const isSegmentedControl = normalizedComponentName === 'segmented-control'
+      const isSegmentedControl = normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmented-control-item'
       
       // Use Slider component for Chip border-size, min-width, and max-width properties
       if (isChip && (propNameLower === 'border-size' || propNameLower === 'min-width' || propNameLower === 'max-width')) {
@@ -2077,8 +2101,20 @@ export default function PropControlContent({
   // Handle grouped props
   const groupedPropsConfig = getGroupedProps(componentName, prop.name)
   
+  // #region agent log
+  if (prop.name.toLowerCase() === 'container' || prop.name.toLowerCase() === 'selected') {
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent:grouped-props-check',message:'Checking grouped props',data:{componentName,propName:prop.name,hasGroupedPropsConfig:!!groupedPropsConfig,hasBorderProps:!!prop.borderProps,borderPropsSize:prop.borderProps?.size || 0,propCssVar:prop.cssVar,propPath:prop.path},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'D'})}).catch(()=>{});
+  }
+  // #endregion agent log
+  
   if (groupedPropsConfig && prop.borderProps && prop.borderProps.size > 0) {
     const groupedPropEntries = Object.entries(groupedPropsConfig)
+    
+    // #region agent log
+    if (prop.name.toLowerCase() === 'container' || prop.name.toLowerCase() === 'selected') {
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent:grouped-props-processing',message:'Processing grouped props',data:{componentName,propName:prop.name,groupedPropEntriesCount:groupedPropEntries.length,groupedPropEntries:groupedPropEntries.map(([name])=>name),borderPropsKeys:Array.from(prop.borderProps.keys())},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'D'})}).catch(()=>{});
+    }
+    // #endregion agent log
     
     
     return (
@@ -2263,8 +2299,24 @@ export default function PropControlContent({
           // For grouped props, use the prop's CSS var directly to ensure we're updating the correct one
           // (e.g., "selected" background vs "container" background)
           // Only use getCssVarsForProp if the prop doesn't have a cssVar set
+          
+          // #region agent log
+          const componentNameLower = componentName.toLowerCase()
+          const normalizedComponentName = componentNameLower.replace(/\s+/g, '-')
+          const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item' || normalizedComponentName === 'segmentedcontrolitem'
+          if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol' || isSegmentedControlItem) && (prop.name.toLowerCase() === 'container' || prop.name.toLowerCase() === 'selected' || prop.name.toLowerCase() === 'colors')) {
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent:grouped-prop-debug',message:'Grouped prop CSS var resolution',data:{componentName,componentNameLower,normalizedComponentName,isSegmentedControlItem,parentPropName:prop.name,groupedPropName:groupedPropName,groupedPropKey,selectedLayer,groupedPropHasCssVar:!!groupedProp.cssVar,groupedPropCssVar:groupedProp.cssVar,groupedPropPath:groupedProp.path,groupedPropName:groupedProp.name,groupedPropCategory:groupedProp.category,groupedPropLayerInPath:groupedProp.path.find(p=>p.startsWith('layer-'))},timestamp:Date.now(),sessionId:'debug-session',runId:'layer-filter-debug',hypothesisId:'B'})}).catch(()=>{});
+          }
+          // #endregion agent log
+          
           let cssVars = groupedProp.cssVar ? [groupedProp.cssVar] : getCssVarsForProp(groupedProp)
           let primaryVar = cssVars[0] || groupedProp.cssVar
+          
+          // #region agent log
+          if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol' || isSegmentedControlItem) && (prop.name.toLowerCase() === 'container' || prop.name.toLowerCase() === 'selected' || prop.name.toLowerCase() === 'colors')) {
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent:css-vars-result',message:'CSS vars result',data:{componentName,componentNameLower,normalizedComponentName,isSegmentedControlItem,parentPropName:prop.name,groupedPropName:groupedPropName,selectedLayer,willUseCssVars:cssVars,willUsePrimaryVar:primaryVar,primaryVarLayerInPath:primaryVar.match(/layer-(\d+)/)?.[0]},timestamp:Date.now(),sessionId:'debug-session',runId:'layer-filter-debug',hypothesisId:'B'})}).catch(()=>{});
+          }
+          // #endregion agent log
           
           if (groupedPropKey === 'background' && isMenuItem) {
             const defaultBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'background')

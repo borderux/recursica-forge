@@ -1866,6 +1866,24 @@
               }
             }
           },
+          "item-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": 0,
+              "unit": "px"
+            }
+          },
+          "divider-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          }
+        }
+      },
+      "segmented-control-item": {
+        "properties": {
           "selected": {
             "colors": {
               "layer-0": {
@@ -1944,21 +1962,33 @@
               }
             }
           },
-          "item-gap": {
-            "$type": "dimension",
-            "$value": {
-              "value": 0,
-              "unit": "px"
-            }
-          },
-          "divider-size": {
-            "$type": "dimension",
-            "$value": {
-              "value": 1,
-              "unit": "px"
-            }
-          },
           "item": {
+            "colors": {
+              "layer-0": {
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.elements.text.color}"
+                }
+              },
+              "layer-1": {
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.elements.text.color}"
+                }
+              },
+              "layer-2": {
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.elements.text.color}"
+                }
+              },
+              "layer-3": {
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.elements.text.color}"
+                }
+              }
+            },
             "padding-horizontal": {
               "$type": "dimension",
               "$value": {

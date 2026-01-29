@@ -78,6 +78,7 @@ export function ComponentsSidebar({
       { name: 'Read-only field', url: `${base}/read-only-field` },
       { name: 'Search', url: `${base}/search` },
       { name: 'Segmented control', url: `${base}/segmented-control` },
+      { name: 'Segmented control item', url: `${base}/segmented-control-item` },
       { name: 'Slider', url: `${base}/slider` },
       { name: 'Stepper', url: `${base}/stepper` },
       { name: 'Switch', url: `${base}/switch` },

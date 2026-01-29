@@ -33,6 +33,12 @@ export function applyCssVars(theme: ThemeVars) {
     const pref = toPrefixed(key)
     // Write ONLY the prefixed variable
     root.style.setProperty(pref, value)
+    // #region agent log
+    if (pref.includes('segmented-control-item') && (pref.includes('selected') || pref.includes('item')) && (pref.includes('background') || pref.includes('text'))) {
+      const afterValue = root.style.getPropertyValue(pref)
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsUtil.ts:applyCssVars:after-set',message:'CSS var set in applyCssVars',data:{cssVar:pref,valueSet:value,afterValue,matches:afterValue === value},timestamp:Date.now(),sessionId:'debug-session',runId:'colors-debug',hypothesisId:'A'})}).catch(()=>{});
+    }
+    // #endregion agent log
     // Remove the legacy/unprefixed variable if present
     if (pref !== key) root.style.removeProperty(key)
   }

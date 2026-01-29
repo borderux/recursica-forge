@@ -563,7 +563,34 @@ export default function TextStyleToolbar({
       const currentFontFamilyValue = readCssVar(fontFamilyVar) || ''
       // Extract CSS var name from value (e.g., "var(--recursica-tokens-font-typefaces-primary)" -> "--recursica-tokens-font-typefaces-primary")
       const extracted = currentFontFamilyValue.match(/var\(([^)]+)\)/)?.[1] || currentFontFamilyValue
-      setCurrentFontFamily(extracted)
+      
+      // Ensure the extracted value matches one of the available font families
+      // If not, try to find a match by comparing resolved values
+      let matchedCssVar = extracted
+      if (fontFamilies.length > 0) {
+        // First, try exact match
+        const exactMatch = fontFamilies.find(f => f.cssVar === extracted)
+        if (exactMatch) {
+          matchedCssVar = exactMatch.cssVar
+        } else {
+          // Try to match by resolved value
+          const currentResolved = readCssVarResolved(extracted)
+          if (currentResolved) {
+            const resolvedMatch = fontFamilies.find(f => {
+              const fResolved = readCssVarResolved(f.cssVar)
+              return fResolved && fResolved.trim() === currentResolved.trim()
+            })
+            if (resolvedMatch) {
+              matchedCssVar = resolvedMatch.cssVar
+            } else {
+              // No match found, keep the extracted value (will default to first option in select)
+              matchedCssVar = extracted
+            }
+          }
+        }
+      }
+      
+      setCurrentFontFamily(matchedCssVar)
     }
     
     updateCurrentFontFamily()
@@ -575,7 +602,7 @@ export default function TextStyleToolbar({
     
     window.addEventListener('cssVarsUpdated', handleUpdate)
     return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-  }, [fontFamilyVar])
+  }, [fontFamilyVar, fontFamilies])
 
   // Validate font style when font family changes
   useEffect(() => {

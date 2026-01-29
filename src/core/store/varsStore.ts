@@ -1490,7 +1490,6 @@ class VarsStore {
     this.isRecomputing = true
     
     // Clear overlay CSS variables from DOM before recomputing to ensure new values from theme JSON are used
-    // This prevents stale inline values from being preserved during recomputation
     if (typeof document !== 'undefined') {
       const overlayVars = [
         '--recursica-brand-themes-light-state-overlay-color',
@@ -1510,6 +1509,10 @@ class VarsStore {
     // Note: Tokens are now the single source of truth - no overrides needed
     const currentMode = this.getCurrentMode()
     const allVars: Record<string, string> = {}
+    // Declare uikitVars outside try block so it's accessible in finally block
+    let uikitVars: Record<string, string> = {}
+    // Track which UIKit vars actually changed to avoid unnecessary re-renders
+    const changedUikitVars = new Set<string>()
     
     try {
     
@@ -1876,13 +1879,53 @@ class VarsStore {
       console.error('[VarsStore] Error generating dimension variables:', e)
     }
     // UIKit components
+    // CRITICAL: Only generate UIKit vars if they don't exist in DOM yet (initial bootstrap)
+    // After initial bootstrap, UIKit vars should only be set via updateCssVar from the toolbar
+    // This prevents flickering and ensures toolbar overrides persist
     try {
-      const uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, currentMode)
+      // Check if any UIKit vars exist in DOM - if they do, skip regenerating (they're managed via toolbar)
+      let shouldGenerateUIKitVars = true
+      if (typeof document !== 'undefined') {
+        // Sample a few UIKit vars to check if they're already initialized
+        const sampleVars = [
+          '--recursica-ui-kit-components-segmented-control-item-properties-selected-colors-layer-0-background',
+          '--recursica-ui-kit-components-button-properties-colors-layer-0-background',
+          '--recursica-ui-kit-components-accordion-properties-colors-layer-0-background'
+        ]
+        const hasAnyUIKitVars = sampleVars.some(v => {
+          const value = document.documentElement.style.getPropertyValue(v)
+          return value && value.trim() !== ''
+        })
+        // If UIKit vars exist, don't regenerate them (they're managed via toolbar)
+        if (hasAnyUIKitVars) {
+          shouldGenerateUIKitVars = false
+        }
+      }
       
-      // UIKit CSS variables are generated from UIKit JSON - no preservation needed
-      // UIKit JSON is the single source of truth
-      
-      Object.assign(allVars, uikitVars)
+      if (shouldGenerateUIKitVars) {
+        // Initial bootstrap - generate UIKit vars from JSON
+        uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, currentMode)
+        
+        // Track which UIKit vars actually changed by comparing generated values with current DOM values
+        if (typeof document !== 'undefined') {
+          for (const [cssVar, generatedValue] of Object.entries(uikitVars)) {
+            const generatedValueTrimmed = generatedValue ? generatedValue.trim() : ''
+            // Read current value from DOM
+            const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
+            const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
+            
+            // Track if this var will actually change from what's currently in the DOM
+            if (generatedValueTrimmed !== inlineValue) {
+              changedUikitVars.add(cssVar)
+            }
+          }
+        }
+        
+        Object.assign(allVars, uikitVars)
+      } else {
+        // UIKit vars already exist - skip regenerating them (they're managed via toolbar)
+        uikitVars = {}
+      }
     } catch {}
     // Typography
     const typeChoices = this.readTypeChoices()
@@ -2174,15 +2217,26 @@ class VarsStore {
       this.isRecomputing = false
       // Explicitly dispatch cssVarsUpdated event to ensure components are notified
       // Use requestAnimationFrame to ensure DOM updates are complete
-      requestAnimationFrame(() => {
-        try {
-          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-            detail: { cssVars: Object.keys(allVars) }
-          }))
-        } catch (e) {
-          // Ignore errors if window is not available (SSR)
-        }
-      })
+      // Only dispatch vars that actually changed (not preserved) to prevent unnecessary re-renders
+      // CRITICAL: Filter out UIKit vars - they're silent and don't need component re-renders
+      const nonUIKitChangedVars = Array.from(changedUikitVars).filter(v => 
+        !v.startsWith('--recursica-ui-kit-components-') && 
+        !v.startsWith('--recursica-ui-kit-globals-')
+      )
+      if (nonUIKitChangedVars.length > 0) {
+        requestAnimationFrame(() => {
+          try {
+            // Only include non-UIKit CSS variables that actually changed
+            // UIKit vars are silent and don't need component re-renders
+            const changedVarsArray = nonUIKitChangedVars
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: changedVarsArray }
+            }))
+          } catch (e) {
+            // Ignore errors if window is not available (SSR)
+          }
+        })
+      }
     }
   }
 

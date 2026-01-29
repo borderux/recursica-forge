@@ -47,9 +47,10 @@ function fireBatchedEvent() {
   }
   batchTimeout = setTimeout(() => {
     if (pendingCssVars.size > 0 && !suppressEvents) {
+      const varsToDispatch = Array.from(pendingCssVars)
       try {
         window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: Array.from(pendingCssVars) }
+          detail: { cssVars: varsToDispatch }
         }))
       } catch (e) {
         // Ignore errors if window is not available (SSR)
@@ -78,6 +79,15 @@ export function updateCssVar(
   const root = document.documentElement
   const trimmedValue = value.trim()
   
+  // CRITICAL: UIKit CSS variables should ALWAYS be silent - they're managed via toolbar
+  // and don't need to trigger component re-renders (CSS var() references resolve automatically)
+  // UIKit vars should never dispatch cssVarsUpdated events - they update the DOM directly
+  // and CSS automatically picks up the changes via var() references
+  const isUIKitVar = cssVarName.startsWith('--recursica-ui-kit-components-') || cssVarName.startsWith('--recursica-ui-kit-globals-')
+  // UIKit vars are ALWAYS silent, regardless of the silent parameter
+  // For non-UIKit vars, respect the silent parameter
+  const shouldBeSilent = isUIKitVar || (silent === true)
+  
   // Validate brand vars must use token references
   if (isBrandVar(cssVarName)) {
     const validation = validateCssVarValue(cssVarName, trimmedValue)
@@ -87,7 +97,8 @@ export function updateCssVar(
       if (fixed) {
         console.warn(`Auto-fixed brand CSS variable ${cssVarName}: ${trimmedValue} -> ${fixed}`)
         root.style.setProperty(cssVarName, fixed)
-        if (!silent && !suppressEvents) {
+        // Use shouldBeSilent (which respects UIKit var detection) instead of silent
+        if (!shouldBeSilent && !suppressEvents) {
           pendingCssVars.add(cssVarName)
           fireBatchedEvent()
         }
@@ -105,10 +116,11 @@ export function updateCssVar(
   // Dispatch event to notify components of CSS variable updates
   // This allows components to reactively update when CSS vars change
   // But suppress during bulk updates to prevent infinite loops
-  if (!silent && !suppressEvents) {
+  // CRITICAL: UIKit vars are silent by default - they don't need component re-renders
+  if (!shouldBeSilent && !suppressEvents) {
     pendingCssVars.add(cssVarName)
     fireBatchedEvent()
-  } else if (!silent) {
+  } else if (!shouldBeSilent) {
     // During suppression, just track the var for later batching
     pendingCssVars.add(cssVarName)
   }

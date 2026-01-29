@@ -34,21 +34,36 @@
   justify-content: center !important;
 }
 
+/* Override Mantine's default full-width behavior for controls in vertical orientation */
+/* When fullWidth is false, force auto width for controls */
+.mantine-SegmentedControl-root.recursica-auto-width[data-orientation="vertical"] {
+  display: inline-flex !important;
+  width: auto !important;
+}
+
+.mantine-SegmentedControl-root.recursica-auto-width[data-orientation="vertical"] .mantine-SegmentedControl-control {
+  width: auto !important;
+  flex: none !important;
+  min-width: auto !important;
+  max-width: none !important;
+}
+
 /* Ensure no default Mantine dividers are applied */
 .mantine-SegmentedControl-root .mantine-SegmentedControl-control {
   border: none !important;
 }
 
 /* Override any Mantine default control styles that might add borders */
-/* Remove all default borders from all controls first */
-.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control {
+/* Remove all default borders from non-selected controls only */
+/* Selected controls will have borders applied via .mantine-SegmentedControl-control[data-active] rule */
+.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not([data-active]) {
   border-right: none !important;
   border-left: none !important;
   border-top: none !important;
   border-bottom: none !important;
 }
 
-.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control {
+.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not([data-active]) {
   border-bottom: none !important;
   border-top: none !important;
   border-left: none !important;

@@ -923,7 +923,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                             : cssVar.startsWith('--')
                               ? `--recursica-${cssVar.slice(2)}`
                               : `--recursica-${cssVar}`
-
+                          
                           // Set the target CSS variable to reference the selected palette CSS variable
                           updateCssVar(prefixedTarget, `var(${paletteCssVar})`, tokensJson)
                         })

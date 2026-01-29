@@ -722,6 +722,35 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       ),
     },
     {
+      name: 'Segmented control item',
+      url: `${base}/segmented-control-item`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const { SegmentedControl } = require('../../components/adapters/SegmentedControl')
+        const { iconNameToReactComponent } = require('../components/iconUtils')
+        const HouseIcon = iconNameToReactComponent('house')
+        const SlidersIcon = iconNameToReactComponent('sliders-horizontal')
+        const UserIcon = iconNameToReactComponent('user')
+        
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', alignItems: 'center' }}>
+            <SegmentedControl
+              items={[
+                { value: 'first', label: 'First', icon: HouseIcon ? <HouseIcon size={16} /> : undefined },
+                { value: 'second', label: 'Second', icon: SlidersIcon ? <SlidersIcon size={16} /> : undefined },
+                { value: 'third', label: 'Third', icon: UserIcon ? <UserIcon size={16} /> : undefined },
+              ]}
+              value="first"
+              onChange={() => {}}
+              orientation="horizontal"
+              fullWidth={false}
+              layer={layer as any}
+            />
+          </div>
+        )
+      },
+    },
+    {
       name: 'Slider',
       url: `${base}/slider`,
       render: (selectedLayers: Set<LayerOption>) => {

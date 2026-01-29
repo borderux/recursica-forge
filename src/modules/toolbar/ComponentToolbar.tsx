@@ -240,19 +240,68 @@ export default function ComponentToolbar({
           // Also add any props from the group config that might not have been found yet
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
             const groupedPropKey = groupedPropName.toLowerCase()
-            if (!groupedProps.has(groupedPropKey)) {
+            // Check if we need to update the cached prop (if layer changed or prop doesn't exist)
+            const cachedProp = groupedProps.get(groupedPropKey)
+            const needsUpdate = !cachedProp || 
+              (cachedProp.category === 'colors' && 
+               cachedProp.path.some(part => part.startsWith('layer-')) && 
+               !cachedProp.path.includes(selectedLayer))
+            
+            if (!groupedProps.has(groupedPropKey) || needsUpdate) {
               // For nested property groups like "container" and "selected", match props by name AND path
               // Check if the parent prop name is in the path (e.g., "container" or "selected")
               const parentPropNameLower = parentPropName.toLowerCase()
+              const isContainerOrSelected = parentPropNameLower === 'container' || parentPropNameLower === 'selected'
+              
+              // #region agent log
+              const componentNameLower = componentName.toLowerCase()
+              const normalizedComponentName = componentNameLower.replace(/\s+/g, '-')
+              if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol') && isContainerOrSelected) {
+                const allMatchingProps = structure.props.filter(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  const pathMatches = p.path.includes(parentPropNameLower)
+                  return nameMatches && pathMatches
+                })
+                const allPropsWithSameName = structure.props.filter(p => p.name.toLowerCase() === groupedPropKey)
+                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar:grouped-prop-matching',message:'Matching grouped prop for container/selected',data:{componentName,componentNameLower,parentPropName,groupedPropName,groupedPropKey,parentPropNameLower,isContainerOrSelected,allMatchingProps:allMatchingProps.map(p=>({name:p.name,path:p.path,cssVar:p.cssVar})),allPropsWithSameName:allPropsWithSameName.map(p=>({name:p.name,path:p.path,cssVar:p.cssVar}))},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'C'})}).catch(()=>{});
+              }
+              // #endregion agent log
+              
               let groupedProp = structure.props.find(p => {
                 const nameMatches = p.name.toLowerCase() === groupedPropKey
                 const pathMatches = p.path.includes(parentPropNameLower)
-                return nameMatches && pathMatches
+                // For color props, also filter by selectedLayer to ensure we get the correct layer
+                const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                return nameMatches && pathMatches && layerMatches
               })
               
-              // If not found with path check, fall back to name-only match
-              if (!groupedProp) {
-                groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
+              // #region agent log
+              const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item' || normalizedComponentName === 'segmentedcontrolitem'
+              if (isSegmentedControlItem && (parentPropNameLower === 'selected' || parentPropNameLower === 'item')) {
+                const allMatchingProps = structure.props.filter(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  const pathMatches = p.path.includes(parentPropNameLower)
+                  return nameMatches && pathMatches
+                })
+                const allMatchingPropsWithLayer = structure.props.filter(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  const pathMatches = p.path.includes(parentPropNameLower)
+                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                  return nameMatches && pathMatches && layerMatches
+                })
+                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar:grouped-prop-layer-filter',message:'Grouped prop layer filtering',data:{componentName,normalizedComponentName,parentPropName,groupedPropName,groupedPropKey,selectedLayer,foundGroupedProp:!!groupedProp,groupedPropPath:groupedProp?.path,groupedPropCssVar:groupedProp?.cssVar,allMatchingProps:allMatchingProps.map(p=>({name:p.name,path:p.path,cssVar:p.cssVar,category:p.category})),allMatchingPropsWithLayer:allMatchingPropsWithLayer.map(p=>({name:p.name,path:p.path,cssVar:p.cssVar,category:p.category}))},timestamp:Date.now(),sessionId:'debug-session',runId:'layer-filter-debug',hypothesisId:'A'})}).catch(()=>{});
+              }
+              // #endregion agent log
+              
+              // For container/selected props, NEVER fall back to name-only match - this would cause wrong props to be selected
+              // Only fall back to name-only match for other grouped props
+              if (!groupedProp && !isContainerOrSelected) {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  // For color props, also filter by selectedLayer
+                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                  return nameMatches && layerMatches
+                })
               }
               
               // Special case: border-color is stored as "border" in the color category
@@ -260,11 +309,19 @@ export default function ComponentToolbar({
                 groupedProp = structure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'border-color' || (p.name.toLowerCase() === 'border' && p.category === 'colors')
                   const pathMatches = p.path.includes(parentPropNameLower)
-                  return nameMatches && pathMatches
+                  // For color props, also filter by selectedLayer
+                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                  return nameMatches && pathMatches && layerMatches
                 })
-                // Fallback to name-only match
-                if (!groupedProp) {
-                  groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
+                // For container/selected props, NEVER fall back to name-only match
+                // Only fall back to name-only match for other grouped props
+                if (!groupedProp && !isContainerOrSelected) {
+                  groupedProp = structure.props.find(p => {
+                    const nameMatches = p.name.toLowerCase() === 'border' && p.category === 'colors'
+                    // For color props, also filter by selectedLayer
+                    const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                    return nameMatches && layerMatches
+                  })
                 }
               }
               // Special case: interactive-color maps to "interactive" prop under colors.layer-X.interactive
@@ -313,12 +370,13 @@ export default function ComponentToolbar({
                   !p.isVariantSpecific &&
                   p.path.includes('colors') &&
                   p.path.includes('separator-color') &&
-                  p.path.some(part => part.startsWith('layer-'))
+                  p.path.includes(selectedLayer)
                 )
               }
               // If still not found, try to find it by exact name match (case-insensitive)
               // For variant-specific props, find the first matching prop regardless of variant
-              if (!groupedProp) {
+              // BUT: For container/selected props, NEVER fall back to name-only match
+              if (!groupedProp && !isContainerOrSelected) {
                 groupedProp = structure.props.find(p => 
                   p.name.toLowerCase() === groupedPropKey ||
                   p.name === groupedPropName
@@ -338,11 +396,28 @@ export default function ComponentToolbar({
                 }
               }
               if (groupedProp) {
+                // #region agent log
+                if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol') && isContainerOrSelected) {
+                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar:grouped-prop-found',message:'Grouped prop found and set',data:{componentName,componentNameLower,normalizedComponentName,parentPropName,groupedPropName,groupedPropKey,foundPropName:groupedProp.name,foundPropPath:groupedProp.path,foundPropCssVar:groupedProp.cssVar},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'C'})}).catch(()=>{});
+                }
+                // #endregion agent log
+                
                 groupedProps.set(groupedPropKey, groupedProp)
                 // Also update the groupedPropsMap to ensure consistency
                 groupedPropsMap.set(parentPropName.toLowerCase(), groupedProps)
+              } else if (needsUpdate && cachedProp) {
+                // If we couldn't find a matching prop for the new layer, remove the cached one
+                // This prevents using the wrong layer's prop
+                groupedProps.delete(groupedPropKey)
+                groupedPropsMap.set(parentPropName.toLowerCase(), groupedProps)
               } else {
                 // Debug: log if prop is not found
+                // #region agent log
+                if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol') && isContainerOrSelected) {
+                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar:grouped-prop-not-found',message:'Grouped prop NOT found',data:{componentName,componentNameLower,normalizedComponentName,parentPropName,groupedPropName,groupedPropKey,isContainerOrSelected,allPropsWithSameName:structure.props.filter(p=>p.name.toLowerCase()===groupedPropKey).map(p=>({name:p.name,path:p.path,cssVar:p.cssVar}))},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'C'})}).catch(()=>{});
+                }
+                // #endregion agent log
+                
                 console.warn(`ComponentToolbar: Grouped prop "${groupedPropName}" not found in structure.props for ${componentName}. Available props:`, structure.props.map(p => `${p.name} (${p.isVariantSpecific ? 'variant' : 'component-level'})`))
               }
             }
@@ -561,7 +636,7 @@ export default function ComponentToolbar({
       if (!a.isVariantSpecific && b.isVariantSpecific) return -1
       return a.name.localeCompare(b.name)
     })
-  }, [structure.props, componentName, selectedVariants, toolbarConfig])
+  }, [structure.props, componentName, selectedVariants, selectedLayer, toolbarConfig])
 
   const handleReset = () => {
     // Get all CSS variables for this component from structure

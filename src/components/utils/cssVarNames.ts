@@ -322,4 +322,3 @@ export function getComponentTextCssVar(
   }
   return buildComponentCssVarPath(componentName, 'properties', textElementName, property)
 }
-

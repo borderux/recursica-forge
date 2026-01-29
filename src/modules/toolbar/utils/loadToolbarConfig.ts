@@ -16,6 +16,7 @@ import MenuItemConfig from '../configs/MenuItem.toolbar.json'
 import MenuConfig from '../configs/Menu.toolbar.json'
 import SliderConfig from '../configs/Slider.toolbar.json'
 import SegmentedControlConfig from '../configs/SegmentedControl.toolbar.json'
+import SegmentedControlItemConfig from '../configs/SegmentedControlItem.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -76,6 +77,9 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'segmented-control':
       case 'segmented control':
         return SegmentedControlConfig as unknown as ToolbarConfig
+      case 'segmented-control-item':
+      case 'segmented control item':
+        return SegmentedControlItemConfig as unknown as ToolbarConfig
       default:
         return null
     }

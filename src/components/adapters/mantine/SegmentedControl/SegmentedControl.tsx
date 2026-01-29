@@ -25,6 +25,7 @@ export default function SegmentedControl({
   elevation,
   disabled = false,
   showLabel = true,
+  componentNameForCssVars = 'SegmentedControl',
   className,
   style,
   mantine,
@@ -37,32 +38,45 @@ export default function SegmentedControl({
   const mantineSize = 'md' // Default size
   const isVertical = orientation === 'vertical'
   
-  // Get CSS variables - container properties
+  // Get CSS variables - container properties (always from SegmentedControl)
   const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'background')
   const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'border-color')
   const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-size')
   const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-radius')
   const containerElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'elevation')
   
-  // Get CSS variables - padding (applied to all items)
-  const paddingHorizontalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'padding-horizontal')
-  const paddingVerticalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'padding-vertical')
+  // Get CSS variables - padding (applied to all items) - use componentNameForCssVars
+  const paddingHorizontalVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'padding-horizontal')
+  const paddingVerticalVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'padding-vertical')
   
-  // Get CSS variables - selected properties
-  const selectedBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'background')
-  const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'border-color')
-  const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'border-size')
-  const selectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'border-radius')
-  const selectedElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'elevation')
+  // Get CSS variables - selected properties - use componentNameForCssVars
+  const selectedBgVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'background')
+  const selectedBorderColorVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'border-color')
+  const selectedBorderSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'border-size')
+  const selectedBorderRadiusVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'border-radius')
+  const selectedElevationVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'elevation')
   
-  // Get CSS variables - text colors
-  const textVar = getComponentCssVar('SegmentedControl', 'colors', 'text', layer)
-  const selectedTextVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'text-color')
+  // Get CSS variables - text colors - use componentNameForCssVars
+  // For SegmentedControlItem, text color is under properties.item.colors.layer-X.text-color
+  // For SegmentedControl, colors are directly under colors.layer-X.text (legacy)
+  // Selected text color is always under properties.selected.colors.layer-X.text-color
+  const textVar = componentNameForCssVars === 'SegmentedControlItem'
+    ? buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'colors', layer, 'text-color')
+    : getComponentCssVar(componentNameForCssVars, 'colors', 'text', layer)
+  const selectedTextVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'text-color')
   
-  // Get other properties
+  // #region agent log
+  if (componentNameForCssVars === 'SegmentedControlItem') {
+    const textVarValue = readCssVar(textVar)
+    const selectedTextVarValue = readCssVar(selectedTextVar)
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'mantine/SegmentedControl.tsx:color-vars-debug',message:'Color CSS variables for SegmentedControlItem',data:{componentNameForCssVars,layer,textVar,textVarValue,selectedTextVar,selectedTextVarValue,textVarPath:'properties.item.colors.'+layer+'.text-color',selectedTextVarPath:'properties.selected.colors.'+layer+'.text-color'},timestamp:Date.now(),sessionId:'debug-session',runId:'colors-debug',hypothesisId:'A'})}).catch(()=>{});
+  }
+  // #endregion agent log
+  
+  // Get other properties - use componentNameForCssVars for item properties, SegmentedControl for container properties
   const itemGapVar = getComponentLevelCssVar('SegmentedControl', 'item-gap')
-  const iconSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'icon-size')
-  const iconGapVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'item', 'icon-text-gap')
+  const iconSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'icon-size')
+  const iconGapVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'icon-text-gap')
   
   // #region agent log
   const paddingHorizontalValue = readCssVar(paddingHorizontalVar)
@@ -81,15 +95,15 @@ export default function SegmentedControl({
   const maxWidthVar = buildComponentCssVarPath('SegmentedControl', 'variants', 'orientation', 'horizontal', 'properties', 'max-width')
   const maxHeightVar = buildComponentCssVarPath('SegmentedControl', 'variants', 'orientation', 'vertical', 'properties', 'max-height')
   
-  // Get text properties
-  const fontFamilyVar = getComponentTextCssVar('SegmentedControl', 'text', 'font-family')
-  const fontSizeVar = getComponentTextCssVar('SegmentedControl', 'text', 'font-size')
-  const fontWeightVar = getComponentTextCssVar('SegmentedControl', 'text', 'font-weight')
-  const letterSpacingVar = getComponentTextCssVar('SegmentedControl', 'text', 'letter-spacing')
-  const lineHeightVar = getComponentTextCssVar('SegmentedControl', 'text', 'line-height')
-  const textDecorationVar = getComponentTextCssVar('SegmentedControl', 'text', 'text-decoration')
-  const textTransformVar = getComponentTextCssVar('SegmentedControl', 'text', 'text-transform')
-  const fontStyleVar = getComponentTextCssVar('SegmentedControl', 'text', 'font-style')
+  // Get text properties - use componentNameForCssVars
+  const fontFamilyVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'font-family')
+  const fontSizeVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'font-size')
+  const fontWeightVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'font-weight')
+  const letterSpacingVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'letter-spacing')
+  const lineHeightVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'text-transform')
+  const fontStyleVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'font-style')
   
   // Reactively read border-size and divider-size
   const borderSizeValue = useCssVar(containerBorderSizeVar, '1px')
@@ -355,16 +369,146 @@ export default function SegmentedControl({
   // Force re-render when CSS variables change (including divider vars)
   const [, forceUpdate] = useState(0)
   
+  // Track CSS vars updated via events to prevent MutationObserver from double-handling
+  const eventUpdatedVars = useRef<Set<string>>(new Set())
+  const eventUpdateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  
   useEffect(() => {
-    const handleCssVarUpdate = () => {
-      forceUpdate(prev => prev + 1)
+    // Build list of CSS variables this component cares about
+    const relevantCssVars = new Set([
+      dividerSizeVar,
+      dividerColorVar,
+      textDecorationVar,
+      textTransformVar,
+      fontStyleVar,
+      selectedTextVar,
+      selectedElevationVar,
+      selectedBorderSizeVar,
+      paddingHorizontalVar,
+      paddingVerticalVar,
+      textVar,
+      selectedBgVar,
+      selectedBorderColorVar,
+      selectedBorderRadiusVar,
+      iconGapVar,
+      iconSizeVar,
+    ].filter(Boolean))
+    
+    // CSS vars that are pure colors/text - these resolve automatically via CSS, no re-render needed
+    const colorOnlyVars = new Set([
+      selectedBgVar,
+      selectedTextVar,
+      selectedBorderColorVar,
+      textVar,
+      dividerColorVar,
+    ].filter(Boolean))
+    
+    const handleCssVarUpdate = (e?: Event) => {
+      const detail = (e as CustomEvent)?.detail
+      const updatedVars = detail?.cssVars || []
+      
+      // CRITICAL: Filter out UIKit CSS variables - they're silent and don't need re-renders
+      const nonUIKitVars = updatedVars.filter(v => 
+        !v.startsWith('--recursica-ui-kit-components-') && 
+        !v.startsWith('--recursica-ui-kit-globals-')
+      )
+      
+      // Only update if a relevant CSS variable was updated (excluding UIKit vars)
+      // If no specific vars listed (cssVarsReset case), check if there are any non-UIKit vars
+      // If all vars are UIKit vars (nonUIKitVars.length === 0), don't update
+      const shouldUpdate = updatedVars.length === 0 
+        ? false // cssVarsReset with no vars - don't update
+        : nonUIKitVars.length > 0 && nonUIKitVars.some(v => relevantCssVars.has(v))
+      
+      // Mark relevant vars as updated via event (excluding UIKit vars)
+      if (shouldUpdate) {
+        nonUIKitVars.forEach(v => {
+          if (relevantCssVars.has(v)) {
+            eventUpdatedVars.current.add(v)
+          }
+        })
+        // Clear the set after a delay (longer than MutationObserver debounce)
+        if (eventUpdateTimeout.current) {
+          clearTimeout(eventUpdateTimeout.current)
+        }
+        eventUpdateTimeout.current = setTimeout(() => {
+          eventUpdatedVars.current.clear()
+        }, 100) // Clear after 100ms (longer than MutationObserver debounce of 16ms)
+      }
+      
+      // CRITICAL: Don't force re-render for pure color CSS var changes - CSS variables resolve automatically
+      // The inline styles use var() references which automatically pick up changes from document.documentElement
+      // Only re-render if non-color vars changed (like border-size, elevation, padding which are read in JS)
+      if (shouldUpdate) {
+        const relevantUpdatedVars = nonUIKitVars.filter(v => relevantCssVars.has(v))
+        const onlyColorVarsChanged = relevantUpdatedVars.length > 0 && relevantUpdatedVars.every(v => colorOnlyVars.has(v))
+        if (!onlyColorVarsChanged) {
+          // Non-color vars changed (border-size, elevation, padding, etc.) - need re-render to read new values
+          forceUpdate(prev => prev + 1)
+        }
+        // If only color vars changed, skip re-render - CSS will automatically apply the new colors
+      }
     }
     
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     window.addEventListener('cssVarsReset', handleCssVarUpdate)
     
+    let lastMutationTime = 0
+    const mutationDebounceMs = 16 // ~1 frame at 60fps
+    let lastValues = new Map<string, string>()
+    
+    // Initialize last values
+    for (const cssVar of relevantCssVars) {
+      const value = readCssVar(cssVar)
+      if (value !== undefined && value !== null) {
+        lastValues.set(cssVar, value)
+      }
+    }
+    
     const observer = new MutationObserver(() => {
-      forceUpdate(prev => prev + 1)
+      const now = Date.now()
+      // Debounce mutations to avoid excessive updates
+      if (now - lastMutationTime < mutationDebounceMs) {
+        return
+      }
+      lastMutationTime = now
+      
+      // Check if any relevant CSS variables actually changed
+      let hasRelevantChange = false
+      const changedVars: string[] = []
+      for (const cssVar of relevantCssVars) {
+        // CRITICAL: Skip UIKit CSS variables entirely - they're managed via toolbar
+        // and don't need component re-renders (CSS var() references resolve automatically)
+        const isUIKitVar = cssVar.startsWith('--recursica-ui-kit-components-') || cssVar.startsWith('--recursica-ui-kit-globals-')
+        if (isUIKitVar) {
+          continue // Skip UIKit vars - they don't need re-renders
+        }
+        
+        // Skip if this var was already updated via cssVarsUpdated event
+        if (eventUpdatedVars.current.has(cssVar)) {
+          continue
+        }
+        const currentValue = readCssVar(cssVar)
+        const lastValue = lastValues.get(cssVar)
+        if (currentValue !== undefined && currentValue !== null && currentValue !== lastValue) {
+          hasRelevantChange = true
+          changedVars.push(cssVar)
+          lastValues.set(cssVar, currentValue)
+        }
+      }
+      
+      // CRITICAL: Don't force re-render for pure color CSS var changes - CSS variables resolve automatically
+      // The inline styles use var() references which automatically pick up changes from document.documentElement
+      // Only re-render if non-color vars changed (like border-size, elevation, padding which are read in JS)
+      if (hasRelevantChange) {
+        const changedColorVars = changedVars.filter(v => colorOnlyVars.has(v))
+        const onlyColorVarsChanged = changedVars.length > 0 && changedVars.every(v => colorOnlyVars.has(v))
+        if (!onlyColorVarsChanged) {
+          // Non-color vars changed (border-size, elevation, padding, etc.) - need re-render to read new values
+          forceUpdate(prev => prev + 1)
+        }
+        // If only color vars changed, skip re-render - CSS will automatically apply the new colors
+      }
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -375,8 +519,11 @@ export default function SegmentedControl({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
+      if (eventUpdateTimeout.current) {
+        clearTimeout(eventUpdateTimeout.current)
+      }
     }
-  }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, paddingVerticalVar])
+  }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, paddingVerticalVar, textVar, selectedBgVar, selectedBorderColorVar, selectedBorderRadiusVar, iconGapVar, iconSizeVar, componentNameForCssVars, layer])
   
   const mantineProps = {
     data: mantineData,
@@ -385,14 +532,23 @@ export default function SegmentedControl({
     size: mantineSize,
     orientation: mantineOrientation as 'horizontal' | 'vertical',
     disabled,
-    fullWidth,
-    className,
+    // Don't pass fullWidth to Mantine when we want auto width - control it via our styles/CSS instead
+    // Only pass fullWidth when we actually want full width
+    ...(fullWidth ? { fullWidth: true } : {}),
+    className: `${className || ''} ${fullWidth ? 'recursica-full-width' : 'recursica-auto-width'}`.trim(),
     styles: {
       root: {
         '--segmented-control-bg': `var(${containerBgVar})`,
         '--segmented-control-text': `var(${textVar})`,
         '--segmented-control-selected-bg': `var(${selectedBgVar})`,
         '--segmented-control-selected-text': `var(${selectedTextVar})`,
+        // #region agent log
+        ...(componentNameForCssVars === 'SegmentedControlItem' ? {
+          '--debug-selected-bg-var': selectedBgVar,
+          '--debug-selected-text-var': selectedTextVar,
+          '--debug-text-var': textVar,
+        } : {}),
+        // #endregion agent log
         '--segmented-control-border-color': `var(${containerBorderColorVar || textVar})`,
         '--segmented-control-selected-border-color': `var(${selectedBorderColorVar || selectedBgVar})`,
         '--segmented-control-border-radius': `var(${containerBorderRadiusVar})`,
@@ -415,6 +571,9 @@ export default function SegmentedControl({
         '--segmented-control-text-decoration': textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
         '--segmented-control-text-transform': textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
         '--segmented-control-font-style': fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
+        '--segmented-control-full-width': fullWidth ? '1' : '0',
+        // Ensure root element doesn't become block-level when fullWidth is false
+        display: isVertical ? (fullWidth ? 'flex' : 'inline-flex') : (fullWidth ? 'flex' : 'inline-flex'),
         width: fullWidth ? '100%' : 'auto',
         maxWidth: !isVertical && maxWidthVar ? `var(${maxWidthVar})` : undefined,
         maxHeight: isVertical && maxHeightVar ? `var(${maxHeightVar})` : undefined,
@@ -431,6 +590,9 @@ export default function SegmentedControl({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        // Control width based on fullWidth prop
+        flex: fullWidth && !isVertical ? 1 : 'none',
+        width: fullWidth && isVertical ? '100%' : 'auto',
         ...mantine?.styles?.control,
       },
       // Apply elevation to the control element when selected, not the indicator

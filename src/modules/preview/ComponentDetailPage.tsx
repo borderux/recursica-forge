@@ -17,6 +17,7 @@ import MenuItemPreview from '../components/MenuItemPreview'
 import MenuPreview from '../components/MenuPreview'
 import SliderPreview from '../components/SliderPreview'
 import SegmentedControlPreview from '../components/SegmentedControlPreview'
+import SegmentedControlItemPreview from '../components/SegmentedControlItemPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -356,6 +357,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Segmented control' ? (
                 <SegmentedControlPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Segmented control item' ? (
+                <SegmentedControlItemPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}
