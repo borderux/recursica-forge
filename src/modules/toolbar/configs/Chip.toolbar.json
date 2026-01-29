@@ -13,18 +13,13 @@
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text",
-      "visible": true,
-      "group": {
-        "text-color": {
-          "label": "Color",
-          "visible": true
-        },
-        "text-size": {
-          "label": "Size",
-          "visible": true
-        }
-      }
+      "label": "Text style",
+      "visible": true
+    },
+    "text-color": {
+      "icon": "text-aa",
+      "label": "Text color",
+      "visible": true
     },
     "border": {
       "icon": "square",
@@ -65,15 +60,37 @@
         }
       }
     },
-    "icon-text-gap": {
-      "icon": "split-horizontal",
-      "label": "Icon/text gap",
-      "visible": true
-    },
-    "icon-size": {
+    "icon": {
       "icon": "diamond",
-      "label": "Icon size",
-      "visible": true
+      "label": "Icon",
+      "visible": true,
+      "group": {
+        "icon-size": {
+          "icon": "diamond",
+          "label": "Leading icon size",
+          "visible": true
+        },
+        "close-icon-size": {
+          "icon": "x",
+          "label": "Close icon size",
+          "visible": true
+        },
+        "icon-text-gap": {
+          "icon": "split-horizontal",
+          "label": "Icon/text gap",
+          "visible": true
+        },
+        "leading-icon-color": {
+          "icon": "paint-bucket",
+          "label": "Leading icon color",
+          "visible": true
+        },
+        "close-icon-color": {
+          "icon": "paint-bucket",
+          "label": "Close icon color",
+          "visible": true
+        }
+      }
     },
     "width": {
       "icon": "arrows-left-right",

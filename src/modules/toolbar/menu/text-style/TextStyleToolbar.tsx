@@ -968,9 +968,6 @@ export default function TextStyleToolbar({
   // Handlers
   const handleFontFamilyChange = useCallback((cssVar: string) => {
     const tokenValue = `var(${cssVar})`
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontFamilyChange',message:'Updating font family',data:{componentName,textElementName,fontFamilyVar,tokenValue:tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     updateCssVar(fontFamilyVar, tokenValue)
     // Update state immediately for UI responsiveness
     setCurrentFontFamily(cssVar)
@@ -1046,14 +1043,8 @@ export default function TextStyleToolbar({
               // Update to the target weight directly (inline the handler logic to avoid dependency)
               setCurrentFontWeightToken(targetWeight.cssVar)
               const tokenValue = `var(${targetWeight.cssVar})`
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontFamilyChange',message:'Updating font weight',data:{componentName,textElementName,fontWeightVar,tokenValue:tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'A'})}).catch(()=>{});
-              // #endregion
               updateCssVar(fontWeightVar, tokenValue)
               requestAnimationFrame(() => {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontFamilyChange',message:'Dispatching cssVarsUpdated',data:{fontWeightVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'B'})}).catch(()=>{});
-                // #endregion
                 window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
                   detail: { cssVars: [fontWeightVar] }
                 }))
@@ -1092,9 +1083,6 @@ export default function TextStyleToolbar({
     }
     
     requestAnimationFrame(() => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontFamilyChange',message:'Dispatching cssVarsUpdated',data:{fontFamilyVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [fontFamilyVar] }
       }))
@@ -1104,14 +1092,8 @@ export default function TextStyleToolbar({
   const handleFontWeightChange = useCallback((tokenCssVar: string) => {
     setCurrentFontWeightToken(tokenCssVar)
     const tokenValue = `var(${tokenCssVar})`
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontWeightChange',message:'Updating font weight',data:{componentName,textElementName,fontWeightVar,tokenValue:tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     updateCssVar(fontWeightVar, tokenValue)
     requestAnimationFrame(() => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleFontWeightChange',message:'Dispatching cssVarsUpdated',data:{fontWeightVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [fontWeightVar] }
       }))
@@ -1152,16 +1134,10 @@ export default function TextStyleToolbar({
   }, [fontSizeVar, componentName, textElementName])
 
   const handleTextDecorationChange = useCallback((value: string) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleTextDecorationChange',message:'Updating text decoration',data:{componentName,textElementName,textDecorationVar,value},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     updateCssVar(textDecorationVar, value)
     // Update state immediately for UI responsiveness
     setCurrentTextDecoration(value)
     requestAnimationFrame(() => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextStyleToolbar.tsx:handleTextDecorationChange',message:'Dispatching cssVarsUpdated',data:{textDecorationVar,componentName,textElementName},timestamp:Date.now(),sessionId:'debug-session',runId:'accordion-fix',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [textDecorationVar] }
       }))

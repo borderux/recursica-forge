@@ -1194,6 +1194,21 @@
               "unit": "px"
             }
           },
+          "close-icon-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.icons.sm}",
+              "unit": "px"
+            }
+          },
+          "leading-icon-color": {
+            "$type": "color",
+            "$value": "{brand.layers.layer-0.elements.text.color}"
+          },
+          "close-icon-color": {
+            "$type": "color",
+            "$value": "{brand.layers.layer-0.elements.text.color}"
+          },
           "max-width": {
             "$type": "dimension",
             "$value": {
@@ -1218,6 +1233,43 @@
           "elevation": {
             "$type": "elevation",
             "$value": "{brand.elevations.elevation-0}"
+          },
+          "text": {
+            "font-family": {
+              "$type": "string",
+              "$value": "{tokens.font.typefaces.primary}"
+            },
+            "font-size": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{tokens.font.sizes.sm}",
+                "unit": "px"
+              }
+            },
+            "font-weight": {
+              "$type": "number",
+              "$value": "{tokens.font.weights.regular}"
+            },
+            "letter-spacing": {
+              "$type": "string",
+              "$value": "{tokens.font.letter-spacings.default}"
+            },
+            "line-height": {
+              "$type": "number",
+              "$value": "{tokens.font.line-heights.default}"
+            },
+            "text-decoration": {
+              "$type": "string",
+              "$value": "none"
+            },
+            "text-transform": {
+              "$type": "string",
+              "$value": "none"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "normal"
+            }
           }
         }
       },
@@ -2779,64 +2831,64 @@
           }
         },
         "properties": {
-            "colors": {
-              "layer-0": {
-                "optional-text-opacity": {
-                  "$type": "number",
-                  "$value": "{brand.text-emphasis.low}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.text.color}"
-                },
-                "asterisk": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-0.elements.text.alert}"
-                }
+          "colors": {
+            "layer-0": {
+              "optional-text-opacity": {
+                "$type": "number",
+                "$value": "{brand.text-emphasis.low}"
               },
-              "layer-1": {
-                "optional-text-opacity": {
-                  "$type": "number",
-                  "$value": "{brand.text-emphasis.low}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.text.color}"
-                },
-                "asterisk": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-1.elements.text.alert}"
-                }
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
               },
-              "layer-2": {
-                "optional-text-opacity": {
-                  "$type": "number",
-                  "$value": "{brand.text-emphasis.low}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.text.color}"
-                },
-                "asterisk": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-2.elements.text.alert}"
-                }
-              },
-              "layer-3": {
-                "optional-text-opacity": {
-                  "$type": "number",
-                  "$value": "{brand.text-emphasis.low}"
-                },
-                "text": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.text.color}"
-                },
-                "asterisk": {
-                  "$type": "color",
-                  "$value": "{brand.layers.layer-3.elements.text.alert}"
-                }
+              "asterisk": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.alert}"
               }
             },
+            "layer-1": {
+              "optional-text-opacity": {
+                "$type": "number",
+                "$value": "{brand.text-emphasis.low}"
+              },
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              },
+              "asterisk": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.alert}"
+              }
+            },
+            "layer-2": {
+              "optional-text-opacity": {
+                "$type": "number",
+                "$value": "{brand.text-emphasis.low}"
+              },
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              },
+              "asterisk": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.alert}"
+              }
+            },
+            "layer-3": {
+              "optional-text-opacity": {
+                "$type": "number",
+                "$value": "{brand.text-emphasis.low}"
+              },
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "asterisk": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.alert}"
+              }
+            }
+          },
           "label-text": {
             "font-family": {
               "$type": "string",

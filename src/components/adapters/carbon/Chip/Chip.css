@@ -19,6 +19,15 @@
   /* This is reactive and updates in real time when the toolbar changes Chip's width */
   min-width: var(--chip-min-width, var(--recursica-ui-kit-components-chip-properties-min-width)) !important;
   max-width: var(--chip-max-width, var(--recursica-ui-kit-components-chip-properties-max-width)) !important;
+  /* Use UIKit text property CSS variables directly for reactive updates */
+  font-family: var(--recursica-ui-kit-components-chip-properties-text-font-family) !important;
+  font-size: var(--recursica-ui-kit-components-chip-properties-text-font-size) !important;
+  font-weight: var(--recursica-ui-kit-components-chip-properties-text-font-weight) !important;
+  letter-spacing: var(--recursica-ui-kit-components-chip-properties-text-letter-spacing) !important;
+  line-height: var(--recursica-ui-kit-components-chip-properties-text-line-height) !important;
+  text-decoration: var(--recursica-ui-kit-components-chip-properties-text-text-decoration) !important;
+  text-transform: var(--recursica-ui-kit-components-chip-properties-text-text-transform) !important;
+  font-style: var(--recursica-ui-kit-components-chip-properties-text-font-style) !important;
 }
 
 .cds--tag[disabled] {
@@ -29,10 +38,34 @@
 .cds--tag svg {
   width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
   height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
-  color: var(--chip-icon-color, var(--chip-color)) !important;
+  color: var(--chip-leading-icon-color, var(--chip-icon-color, var(--chip-color))) !important;
   /* Use UIKit variable directly for real-time updates - toolbar updates this on document root */
   /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-properties-icon-text-gap */
   margin-right: var(--recursica-ui-kit-components-chip-properties-icon-text-gap, 8px) !important;
   flex-shrink: 0 !important;
+}
+
+/* Close icon styling */
+.cds--tag .cds--tag__close-icon,
+.cds--tag button[aria-label*="close"],
+.cds--tag button[aria-label*="Close"] {
+  width: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
+  height: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
+  font-size: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
+  color: var(--chip-close-icon-color, var(--chip-icon-color, inherit)) !important;
+  opacity: 0.7 !important;
+}
+
+.cds--tag .cds--tag__close-icon:hover,
+.cds--tag button[aria-label*="close"]:hover,
+.cds--tag button[aria-label*="Close"]:hover {
+  opacity: 1 !important;
+}
+
+.cds--tag .cds--tag__close-icon svg,
+.cds--tag button[aria-label*="close"] svg,
+.cds--tag button[aria-label*="Close"] svg {
+  width: 100% !important;
+  height: 100% !important;
 }
 

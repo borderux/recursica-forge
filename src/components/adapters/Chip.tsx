@@ -7,10 +7,11 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { buildVariantColorCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
+import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type ChipProps = {
@@ -19,7 +20,6 @@ export type ChipProps = {
   size?: 'default' | 'small'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  alternativeLayer?: string | null // e.g., "high-contrast", "none", null
   disabled?: boolean
   onClick?: (e: React.MouseEvent) => void
   onDelete?: (e: React.MouseEvent) => void
@@ -35,7 +35,6 @@ export function Chip({
   size = 'default',
   layer = 'layer-0',
   elevation,
-  alternativeLayer,
   disabled = false,
   onClick,
   onDelete,
@@ -50,9 +49,8 @@ export function Chip({
   const Component = useComponent('Chip')
   const { mode } = useThemeMode()
   
-  // Get elevation and alternative-layer from CSS vars if not provided as props
+  // Get elevation from CSS vars if not provided as props
   const elevationVar = getComponentLevelCssVar('Chip', 'elevation')
-  const alternativeLayerVar = getComponentLevelCssVar('Chip', 'alternative-layer')
   
   // Reactively read elevation from CSS variable
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
@@ -60,23 +58,48 @@ export function Chip({
     return value ? parseElevationValue(value) : undefined
   })
   
+  // State to force re-renders when text CSS variables change
+  const [, setTextVarsUpdate] = useState(0)
+  
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
+    // Get text CSS variables for reactive updates
+    const fontFamilyVar = getComponentTextCssVar('Chip', 'text', 'font-family')
+    const fontSizeVar = getComponentTextCssVar('Chip', 'text', 'font-size')
+    const fontWeightVar = getComponentTextCssVar('Chip', 'text', 'font-weight')
+    const letterSpacingVar = getComponentTextCssVar('Chip', 'text', 'letter-spacing')
+    const lineHeightVar = getComponentTextCssVar('Chip', 'text', 'line-height')
+    const textDecorationVar = getComponentTextCssVar('Chip', 'text', 'text-decoration')
+    const textTransformVar = getComponentTextCssVar('Chip', 'text', 'text-transform')
+    const fontStyleVar = getComponentTextCssVar('Chip', 'text', 'font-style')
+    
+    const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
+    
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       // Update elevation if it was changed
-      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
+      const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(elevationVar)
+      const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      
+      if (shouldUpdateElevation) {
         const value = readCssVar(elevationVar)
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+      
+      if (shouldUpdateText) {
+        // Force re-render by updating state
+        setTextVarsUpdate(prev => prev + 1)
       }
     }
     
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     
-    // Also watch for direct style changes using MutationObserver (only for elevation)
+    // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       const value = readCssVar(elevationVar)
       setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      // Force re-render for text vars
+      setTextVarsUpdate(prev => prev + 1)
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -90,9 +113,6 @@ export function Chip({
   }, [elevationVar])
   
   const componentElevation = elevation ?? elevationFromVar ?? undefined
-  const componentAlternativeLayer = alternativeLayer !== undefined 
-    ? alternativeLayer 
-    : (readCssVar(alternativeLayerVar) === 'none' ? null : readCssVar(alternativeLayerVar)) ?? null
   
   if (!Component) {
     // Fallback to native element if component not available
@@ -100,6 +120,7 @@ export function Chip({
     // Icon is a component-level property (not layer-specific)
     // NEW STRUCTURE: properties.icon-size
     const iconSizeVar = getComponentLevelCssVar('Chip', 'icon-size')
+    const closeIconSizeVar = getComponentLevelCssVar('Chip', 'close-icon-size')
     // icon-text-gap is at component level (not under size) in UIKit.json
     // NEW STRUCTURE: properties.icon-text-gap
     const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
@@ -109,7 +130,7 @@ export function Chip({
         onClick={disabled ? undefined : onClick}
         className={className}
         style={{
-          ...getChipStyles(variant, size, layer, disabled, componentElevation, componentAlternativeLayer, mode),
+          ...getChipStyles(variant, size, layer, disabled, componentElevation, mode),
           display: 'inline-flex',
           alignItems: 'center',
           gap: icon && children ? `var(${iconGapVar})` : 0,
@@ -117,38 +138,86 @@ export function Chip({
           ...style,
         }}
       >
-        {icon && (
-          <span style={{
-            display: 'inline-flex',
-            width: `var(${iconSizeVar})`,
-            height: `var(${iconSizeVar})`,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            {icon}
-          </span>
-        )}
+        {(() => {
+          const CheckIcon = iconNameToReactComponent('check')
+          const isSelected = variant === 'selected' || variant === 'error-selected'
+          const showCheckmark = isSelected && !!CheckIcon
+          
+          if (!icon && !showCheckmark) return null
+          
+          return (
+            <span style={{
+              display: 'inline-flex',
+              width: `var(${iconSizeVar})`,
+              height: `var(${iconSizeVar})`,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              position: 'relative',
+            }}>
+              {/* Leading icon with disabled opacity if checkmark is present */}
+              {icon && (
+                <span
+                  style={{
+                    position: showCheckmark ? 'absolute' : 'relative',
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: showCheckmark ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : 1,
+                  }}
+                >
+                  {icon}
+                </span>
+              )}
+              {/* Checkmark icon on top */}
+              {showCheckmark && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1,
+                  }}
+                >
+                  <CheckIcon width="100%" height="100%" />
+                </span>
+              )}
+            </span>
+          )
+        })()}
         {children}
-        {deletable && onDelete && (
-          <button
-            disabled={disabled}
-            onClick={disabled ? undefined : (e) => {
-              e.stopPropagation()
-              onDelete(e)
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              padding: 0,
-              marginLeft: '4px',
-              opacity: disabled ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : undefined,
-            }}
-          >
-            ×
-          </button>
-        )}
+        {deletable && onDelete && (() => {
+          const CloseIcon = iconNameToReactComponent('x')
+          return (
+            <button
+              disabled={disabled}
+              onClick={disabled ? undefined : (e) => {
+                e.stopPropagation()
+                onDelete(e)
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                padding: 0,
+                marginLeft: '4px',
+                opacity: disabled ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : undefined,
+                width: `var(${closeIconSizeVar}, 16px)`,
+                height: `var(${closeIconSizeVar}, 16px)`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {CloseIcon ? <CloseIcon width="100%" height="100%" /> : '×'}
+            </button>
+          )
+        })()}
       </div>
     )
   }
@@ -159,7 +228,6 @@ export function Chip({
     size,
     layer,
     elevation: componentElevation,
-    alternativeLayer: componentAlternativeLayer,
     disabled,
     onClick,
     onDelete,
@@ -185,43 +253,22 @@ function getChipStyles(
   layer: ComponentLayer,
   disabled: boolean,
   elevation?: string,
-  alternativeLayer?: string | null,
   mode: 'light' | 'dark' = 'light'
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
   
-  // If alternativeLayer is set (not null and not "none"), override all surface/color props
-  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
-  const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
-  
   // Get color CSS variables
-  let bgVar: string
-  let textVar: string
-  let borderVar: string
+  // Use UIKit.json chip colors for standard layers
+  // Use explicit path building instead of parsing variant names from strings
+  const bgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
+  const borderVar = buildVariantColorCssVar('Chip', variant, 'border', layer)
   
-  if (hasComponentAlternativeLayer) {
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${alternativeLayer}-property`
-    bgVar = `${layerBase}-surface`
-    textVar = `${layerBase}-element-interactive-on-tone`
-    borderVar = `${layerBase}-border-color`
-  } else if (isAlternativeLayer) {
-    const altKey = layer.replace('layer-alternative-', '')
-    const layerBase = `--recursica-brand-${mode}-layer-layer-alternative-${altKey}-property`
-    bgVar = `${layerBase}-surface`
-    textVar = `${layerBase}-element-interactive-on-tone`
-    borderVar = `${layerBase}-border-color`
+  // For error variant (including error-selected), use component-level error color CSS variables
+  let textVar: string
+  if (variant === 'error' || variant === 'error-selected') {
+    textVar = getComponentLevelCssVar('Chip', 'colors.error.text-color')
   } else {
-    // Use UIKit.json chip colors for standard layers
-    // Use explicit path building instead of parsing variant names from strings
-    bgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
-    borderVar = buildVariantColorCssVar('Chip', variant, 'border', layer)
-    
-    // For error variant (including error-selected), use component-level error color CSS variables
-    if (variant === 'error' || variant === 'error-selected') {
-      textVar = getComponentLevelCssVar('Chip', 'colors.error.text-color')
-    } else {
-      textVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
-    }
+    textVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
   }
   
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)
@@ -234,21 +281,30 @@ function getChipStyles(
   const minWidthVar = getComponentLevelCssVar('Chip', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Chip', 'max-width')
   
-  // Get text styling CSS variables - text-size or font-size is at component level (not under size)
-  // Try text-size first (new), fallback to font-size (legacy)
-  const fontSizeVar = getComponentLevelCssVar('Chip', 'text-size') || getComponentLevelCssVar('Chip', 'font-size')
+  // Get text styling CSS variables using getComponentTextCssVar (for text style toolbar)
+  const fontFamilyVar = getComponentTextCssVar('Chip', 'text', 'font-family')
+  const fontSizeVar = getComponentTextCssVar('Chip', 'text', 'font-size')
+  const fontWeightVar = getComponentTextCssVar('Chip', 'text', 'font-weight')
+  const letterSpacingVar = getComponentTextCssVar('Chip', 'text', 'letter-spacing')
+  const lineHeightVar = getComponentTextCssVar('Chip', 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar('Chip', 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar('Chip', 'text', 'text-transform')
+  const fontStyleVar = getComponentTextCssVar('Chip', 'text', 'font-style')
   
   // Apply color styles
   styles.backgroundColor = `var(${bgVar})`
   styles.color = `var(${textVar})`
   styles.border = `var(${borderSizeVar}, 1px) solid var(${borderVar})`
   
-  // Apply text styles - Chip uses caption typography
+  // Apply text styles using CSS variables from text style toolbar
+  styles.fontFamily = fontFamilyVar ? `var(${fontFamilyVar})` : undefined
   styles.fontSize = fontSizeVar ? `var(${fontSizeVar})` : undefined
-  // Set CSS variable for font-weight so it can be overridden by inline styles
-  ;(styles as any)['--chip-font-weight'] = 'var(--recursica-brand-typography-caption-font-weight)'
-  styles.fontWeight = 'var(--chip-font-weight, var(--recursica-brand-typography-caption-font-weight))'
-  styles.textTransform = 'none' // Ensure text is not uppercase
+  styles.fontWeight = fontWeightVar ? `var(${fontWeightVar})` : undefined
+  styles.letterSpacing = letterSpacingVar ? `var(${letterSpacingVar})` : undefined
+  styles.lineHeight = lineHeightVar ? `var(${lineHeightVar})` : undefined
+  styles.textDecoration = textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none'
+  styles.textTransform = textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none'
+  styles.fontStyle = fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal'
   
   // Apply size styles - height and width are derived from content and padding
   // Add fallbacks to ensure padding is always applied even if UIKit variables aren't set
@@ -274,7 +330,7 @@ function getChipStyles(
   return styles
 }
 
-function mapChipProps(props: ChipProps & { elevation?: string; alternativeLayer?: string | null }): any {
+function mapChipProps(props: ChipProps & { elevation?: string }): any {
   const { mantine, material, carbon, ...rest } = props
   
   const baseProps: any = {

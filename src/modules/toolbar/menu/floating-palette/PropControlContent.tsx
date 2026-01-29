@@ -13,6 +13,7 @@ import OpacitySelector from './OpacitySelector'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
 import TextStyleToolbar from '../text-style/TextStyleToolbar'
+import uikitJson from '../../../../vars/UIKit.json'
 import './PropControl.css'
 
 // Helper to format dimension label from key
@@ -1163,6 +1164,108 @@ export default function PropControlContent({
       const isMenu = componentName.toLowerCase() === 'menu'
       const isAccordion = componentName.toLowerCase() === 'accordion'
       const isButton = componentName.toLowerCase() === 'button'
+      const isChip = componentName.toLowerCase() === 'chip'
+      
+      // Use Slider component for Chip border-size, min-width, and max-width properties
+      if (isChip && (propNameLower === 'border-size' || propNameLower === 'min-width' || propNameLower === 'max-width')) {
+        const ChipDimensionSlider = () => {
+          let minValue = 0
+          let maxValue = 500
+          if (propNameLower === 'border-size') {
+            minValue = 0
+            maxValue = 10
+          } else if (propNameLower === 'min-width') {
+            minValue = 0
+            maxValue = 500
+          } else if (propNameLower === 'max-width') {
+            minValue = 0
+            maxValue = 1000
+          }
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+          
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return (
+          <ChipDimensionSlider
+            key={`${primaryVar}-${selectedVariants.size || ''}`}
+          />
+        )
+      }
       
       // Use Slider component for Button width and height properties (must be before isSizeProp check)
       if (isButton && (propNameLower === 'min-width' || propNameLower === 'max-width' || propNameLower === 'height')) {
@@ -1265,11 +1368,6 @@ export default function PropControlContent({
         )
       }
       
-      // For font-size or text-size prop on Button component, also update the theme typography CSS var
-      // Note: Button now uses text-size dimension tokens, but we keep this for backwards compatibility
-      const additionalCssVars = (propToRender.name === 'font-size' || propToRender.name === 'text-size') && componentName.toLowerCase() === 'button'
-        ? ['--recursica-brand-typography-button-font-size']
-        : []
       
       let minPixelValue: number | undefined = undefined
       let maxPixelValue: number | undefined = undefined
@@ -1296,7 +1394,7 @@ export default function PropControlContent({
         <DimensionTokenSelector
           key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           targetCssVar={primaryVar}
-          targetCssVars={[...cssVars, ...additionalCssVars]}
+          targetCssVars={cssVars}
           label={label}
           propName={propToRender.name}
           minPixelValue={minPixelValue}
@@ -1361,14 +1459,35 @@ export default function PropControlContent({
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
   const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text']
+  
+  // Always check UIKit.json structure directly for text property groups, regardless of prop type
+  // This ensures we catch text property groups even if they weren't parsed correctly
   const isTextPropertyGroup = textPropertyGroupNames.includes(propNameLower) && 
     (prop.type === 'text-group' || (() => {
-      // Fallback: Check UIKit.json structure
+      // Fallback: Check UIKit.json structure directly
       try {
-        const uikitRoot: any = (themeJson as any)?.['ui-kit'] || (themeJson as any)
+        const uikitRoot: any = uikitJson
+        const components = uikitRoot?.['ui-kit']?.components || {}
         const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
-        const component = uikitRoot?.components?.[componentKey]
-        const textPropertyGroup = component?.properties?.[propNameLower]
+        const component = components[componentKey]
+        
+        // Try multiple paths to find the text property group
+        // Path 1: component.properties.text (component-level)
+        let textPropertyGroup = component?.properties?.[propNameLower]
+        
+        // Path 2: If not found, check if it's nested under variants (like Button has text under variants.sizes.default.properties.text)
+        if (!textPropertyGroup && component?.variants) {
+          // Check all size variants for text property groups
+          const sizes = component.variants.sizes
+          if (sizes) {
+            for (const sizeKey in sizes) {
+              if (sizes[sizeKey]?.properties?.[propNameLower]) {
+                textPropertyGroup = sizes[sizeKey].properties[propNameLower]
+                break
+              }
+            }
+          }
+        }
         
         if (textPropertyGroup && typeof textPropertyGroup === 'object' && !('$type' in textPropertyGroup)) {
           // This is an object (not a value), check if it has text properties
@@ -1376,6 +1495,7 @@ export default function PropControlContent({
           const hasTextProps = textPropertyNames.some(textPropName => 
             textPropertyGroup[textPropName] !== undefined
           )
+          
           return hasTextProps
         }
       } catch (error) {

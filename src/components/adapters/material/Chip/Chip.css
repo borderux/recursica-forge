@@ -17,6 +17,15 @@
   padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px))) !important;
   padding-left: var(--chip-padding-x, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px))) !important;
   padding-right: var(--chip-padding-x, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px))) !important;
+  /* Use UIKit text property CSS variables directly for reactive updates */
+  font-family: var(--recursica-ui-kit-components-chip-properties-text-font-family) !important;
+  font-size: var(--recursica-ui-kit-components-chip-properties-text-font-size) !important;
+  font-weight: var(--recursica-ui-kit-components-chip-properties-text-font-weight) !important;
+  letter-spacing: var(--recursica-ui-kit-components-chip-properties-text-letter-spacing) !important;
+  line-height: var(--recursica-ui-kit-components-chip-properties-text-line-height) !important;
+  text-decoration: var(--recursica-ui-kit-components-chip-properties-text-text-decoration) !important;
+  text-transform: var(--recursica-ui-kit-components-chip-properties-text-text-transform) !important;
+  font-style: var(--recursica-ui-kit-components-chip-properties-text-font-style) !important;
 }
 
 .MuiChip-root.Mui-disabled {
@@ -27,7 +36,7 @@
 .MuiChip-root .MuiChip-icon {
   width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
   height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
-  color: var(--chip-icon-color, var(--chip-color)) !important;
+  color: var(--chip-leading-icon-color, var(--chip-icon-color, var(--chip-color))) !important;
   /* Use UIKit variable directly for real-time updates - toolbar updates this on document root */
   /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-properties-icon-text-gap */
   margin-right: var(--recursica-ui-kit-components-chip-properties-icon-text-gap, 8px) !important;
@@ -38,6 +47,24 @@
 }
 
 .MuiChip-root .MuiChip-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Delete icon styling */
+.MuiChip-root .MuiChip-deleteIcon {
+  width: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
+  height: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
+  font-size: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
+  color: var(--chip-close-icon-color, var(--chip-icon-color, inherit)) !important;
+  opacity: 0.7 !important;
+}
+
+.MuiChip-root .MuiChip-deleteIcon:hover {
+  opacity: 1 !important;
+}
+
+.MuiChip-root .MuiChip-deleteIcon svg {
   width: 100% !important;
   height: 100% !important;
 }

@@ -385,11 +385,6 @@ export default function PropControl({
         return null
       }
       
-      // For font-size or text-size prop on Button component, also update the theme typography CSS var
-      // Note: Button now uses text-size dimension tokens, but we keep this for backwards compatibility
-      const additionalCssVars = (propToRender.name === 'font-size' || propToRender.name === 'text-size') && componentName.toLowerCase() === 'button'
-        ? ['--recursica-brand-typography-button-font-size']
-        : []
       
       // For Badge height, get min value from size variant's min-height in UIKit.json
       // Read from JSON structure directly, not from CSS var (which can be modified)
@@ -522,7 +517,7 @@ export default function PropControl({
         <DimensionTokenSelector
           key={`${validPrimaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           targetCssVar={validPrimaryVar}
-          targetCssVars={[...validCssVars, ...additionalCssVars]}
+          targetCssVars={validCssVars}
           label={label}
           propName={propToRender.name}
           minPixelValue={minPixelValue}

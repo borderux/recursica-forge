@@ -175,28 +175,12 @@ export default function Accordion({
       contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar,
       contentLineHeightVar, contentTextDecorationVar, contentTextTransformVar, contentFontStyleVar
     ]
-    // #region agent log
-    console.log('[Carbon Accordion] Setting up listeners', { headerFontWeightVar, textCssVars })
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'carbon/Accordion.tsx:useEffect',message:'Setting up listeners',data:{textCssVars,headerFontWeightVar,contentFontWeightVar,headerFontSizeVar,contentFontSizeVar,headerFontWeightValue:readCssVar(headerFontWeightVar),headerFontWeightResolved:readCssVarResolved(headerFontWeightVar)},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
     
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const updatedVars = detail?.cssVars || []
-      // #region agent log
-      console.log('[Carbon Accordion] Event received', { updatedVars, headerFontWeightVar, matches: updatedVars.includes(headerFontWeightVar) })
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'carbon/Accordion.tsx:handleCssVarUpdate',message:'Event received',data:{updatedVars,headerFontWeightVar,contentFontWeightVar,fontWeightMatches:updatedVars.includes(headerFontWeightVar) || updatedVars.includes(contentFontWeightVar),allMatches:updatedVars.some((cssVar: string) => textCssVars.includes(cssVar)),headerFontWeightValue:readCssVar(headerFontWeightVar),headerFontWeightResolved:readCssVarResolved(headerFontWeightVar)},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
       const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
-      // #region agent log
-      if (shouldUpdate) {
-        const fontWeightValue = readCssVar(headerFontWeightVar)
-        const fontWeightResolved = readCssVarResolved(headerFontWeightVar)
-        console.log('[Carbon Accordion] Triggering re-render', { shouldUpdate, headerFontWeightVar, fontWeightValue, fontWeightResolved })
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'carbon/Accordion.tsx:handleCssVarUpdate',message:'Triggering re-render',data:{shouldUpdate,headerFontWeightVar,fontWeightValue,fontWeightResolved},timestamp:Date.now(),sessionId:'debug-session',runId:'font-weight-fix',hypothesisId:'D'})}).catch(()=>{});
-      }
-      // #endregion
       if (shouldUpdate) {
         // Force re-render by updating state
         setTextVarsUpdate(prev => prev + 1)
@@ -264,27 +248,6 @@ export default function Accordion({
         ['--accordion-item-header-text-decoration' as string]: `var(${headerTextDecorationVar}, none)`,
         ['--accordion-item-header-text-transform' as string]: `var(${headerTextTransformVar}, none)`,
         ['--accordion-item-header-font-style' as string]: `var(${headerFontStyleVar}, normal)`,
-        // #region agent log
-        // Log CSS variable values for debugging
-        ...(process.env.NODE_ENV === 'development' ? {
-          ['--debug-header-font-weight-var' as string]: headerFontWeightVar,
-          ['--debug-header-font-weight-value' as string]: readCssVar(headerFontWeightVar) || 'undefined',
-          ['--debug-header-font-weight-resolved' as string]: readCssVarResolved(headerFontWeightVar) || 'undefined',
-        } : {}),
-        // Log on every render to track changes
-        ...(process.env.NODE_ENV === 'development' ? (() => {
-          const fontWeightValue = readCssVar(headerFontWeightVar)
-          const fontWeightResolved = readCssVarResolved(headerFontWeightVar)
-          console.log('[Carbon Accordion] Render - font-weight values', { 
-            headerFontWeightVar, 
-            fontWeightValue, 
-            fontWeightResolved,
-            localVar: '--accordion-item-header-font-weight',
-            localVarValue: readCssVar('--accordion-item-header-font-weight')
-          })
-          return {}
-        })() : {}),
-        // #endregion
         // Content text properties
         ['--accordion-item-content-font-family' as string]: `var(${contentFontFamilyVar})`,
         ['--accordion-item-content-font-size' as string]: `var(${contentFontSizeVar})`,

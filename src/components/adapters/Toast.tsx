@@ -20,7 +20,6 @@ export type ToastProps = {
   variant?: 'default' | 'success' | 'error'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  alternativeLayer?: string | null // e.g., "high-contrast", "none", null
   className?: string
   style?: React.CSSProperties
   icon?: React.ReactNode
@@ -33,7 +32,6 @@ export function Toast({
   variant = 'default',
   layer = 'layer-0',
   elevation,
-  alternativeLayer,
   className,
   style,
   icon,
@@ -46,10 +44,9 @@ export function Toast({
   const Component = useComponent('Toast')
   const { mode } = useThemeMode()
   
-  // Get elevation and alternative-layer from CSS vars if not provided as props
+  // Get elevation from CSS vars if not provided as props
   // These are set by the toolbar and initialized from UIKit.json
   const elevationVar = getComponentLevelCssVar('Toast', 'elevation')
-  const alternativeLayerVar = getComponentLevelCssVar('Toast', 'alternative-layer')
   
   // Reactively read elevation from CSS variable
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
@@ -57,23 +54,14 @@ export function Toast({
     return value ? parseElevationValue(value) : undefined
   })
   
-  // Reactively read alternative layer from CSS variable
-  const [alternativeLayerFromVar, setAlternativeLayerFromVar] = useState<string | null>(() => {
-    const value = readCssVar(alternativeLayerVar)
-    return value === 'none' ? null : (value || null)
-  })
-  
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       // Update if these CSS vars were updated or if no specific vars were specified
-      if (!detail?.cssVars || detail.cssVars.includes(elevationVar) || detail.cssVars.includes(alternativeLayerVar)) {
+      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
         const elevationValue = readCssVar(elevationVar)
         setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
-        
-        const altLayerValue = readCssVar(alternativeLayerVar)
-        setAlternativeLayerFromVar(altLayerValue === 'none' ? null : (altLayerValue || null))
       }
     }
     
@@ -83,9 +71,6 @@ export function Toast({
     const observer = new MutationObserver(() => {
       const elevationValue = readCssVar(elevationVar)
       setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
-      
-      const altLayerValue = readCssVar(alternativeLayerVar)
-      setAlternativeLayerFromVar(altLayerValue === 'none' ? null : (altLayerValue || null))
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -96,12 +81,9 @@ export function Toast({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [elevationVar, alternativeLayerVar])
+  }, [elevationVar])
   
   const componentElevation = elevation ?? elevationFromVar ?? undefined
-  const componentAlternativeLayer = alternativeLayer !== undefined 
-    ? alternativeLayer 
-    : alternativeLayerFromVar
   
   if (!Component) {
     // Fallback to native div if component not available
@@ -200,7 +182,6 @@ export function Toast({
     variant,
     layer,
     elevation: componentElevation,
-    alternativeLayer: componentAlternativeLayer,
     className,
     style,
     icon,
@@ -218,7 +199,7 @@ export function Toast({
   )
 }
 
-function mapToastProps(props: ToastProps & { elevation?: string; alternativeLayer?: string | null }): any {
+function mapToastProps(props: ToastProps & { elevation?: string }): any {
   const { mantine, material, carbon, ...rest } = props
   
   // Base props that work across libraries

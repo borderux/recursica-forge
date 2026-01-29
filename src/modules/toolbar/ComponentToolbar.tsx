@@ -163,9 +163,20 @@ export default function ComponentToolbar({
 
       // Skip if we've already seen this prop name
       if (seenProps.has(key)) {
-        // If we already have this prop, prefer non-variant over variant-specific
+        // If we already have this prop, prefer text-group props over other types
+        // OR prefer non-variant over variant-specific
         // OR prefer the one that matches the selected variant
         const existing = propsMap.get(key)!
+        
+        // Always prefer text-group props over other types (e.g., color props with same name)
+        if (prop.type === 'text-group' && existing.type !== 'text-group') {
+          propsMap.set(key, prop)
+          return
+        }
+        if (existing.type === 'text-group' && prop.type !== 'text-group') {
+          // Keep existing text-group prop
+          return
+        }
         
         // If new prop is non-variant and existing is variant-specific, use new one
         if (!prop.isVariantSpecific && existing.isVariantSpecific) {
