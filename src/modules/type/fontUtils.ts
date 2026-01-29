@@ -679,8 +679,10 @@ export function setFontUrl(fontName: string, url: string): void {
 /**
  * Loads fonts from font family token values
  * Checks token overrides and tokens.json for font family values
+ * @param tokens - Tokens object to read font information from.
+ *                 Passing tokens directly breaks the circular dependency between fontUtils and varsStore.
  */
-export async function loadFontsFromTokens(): Promise<void> {
+export async function loadFontsFromTokens(tokens: any): Promise<void> {
   try {
     const fontNames = new Set<string>()
     
@@ -704,13 +706,9 @@ export async function loadFontsFromTokens(): Promise<void> {
       console.warn('[loadFontsFromTokens] Error reading from token overrides:', error)
     }
     
-    // Read from tokens.json via varsStore
+    // Read from tokens.json
     try {
-      if (typeof window !== 'undefined') {
-        const { getVarsStore } = await import('../../core/store/varsStore')
-        const store = getVarsStore()
-        const state = store.getState()
-        const tokens = state.tokens as any
+      if (tokens) {
         const fontRoot = tokens?.tokens?.font || tokens?.font || {}
         
         // Collect from font.family (handle both string and array values)

@@ -41,7 +41,8 @@ export function bootstrapTheme() {
         // Load fonts from token values FIRST to populate fontUrlMap
         // This MUST complete before recomputeAndApplyAll tries to load fonts
         // This will load all fonts from Tokens.json including those with URLs in extensions
-        await loadFontsFromTokens().catch((error) => {
+        // Pass tokens directly to avoid circular dependency with varsStore
+        await loadFontsFromTokens(tokensImport).catch((error) => {
           console.warn('[Bootstrap] Failed to load fonts from tokens:', error)
         })
         
