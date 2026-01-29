@@ -584,6 +584,181 @@ const allComponents = useMemo(() => {
 
 5. **Icon Handling**
    - ✅ **DO** pass icons through native icon props (`startIcon`, `leftSection`, `icon`, etc.)
+   - ✅ **DO** use library-specific icon prop names (e.g., Mantine's `leftSection`, Material's `startIcon`)
+   - ❌ **DO NOT** wrap icons in custom wrapper elements
+   - ❌ **DO NOT** conditionally render different icon structures
+
+## Component Structure Best Practices
+
+### General Principles
+
+1. **Consistency Across Libraries**
+   - ✅ All library implementations should have the same visual appearance
+   - ✅ All implementations should use the same CSS variable names
+   - ✅ Props should map consistently across libraries
+
+2. **CSS Variables First**
+   - ✅ Use CSS variables for all dynamic styling
+   - ✅ Set CSS custom properties on root element's `style` prop
+   - ✅ Reference CSS custom properties in CSS files
+   - ❌ Avoid inline styles for complex styling logic
+
+3. **Reactive Updates Only When Needed**
+   - ✅ Use direct CSS variable references for most properties (colors, dimensions, etc.)
+   - ✅ Use reactive updates (`useState`/`useEffect`) only for:
+     - **Elevations** (need to compute box-shadow)
+     - **Text style properties** (need `readCssVar()` calls)
+   - ❌ Don't add reactive updates unnecessarily
+
+4. **Text Style Module Usage**
+   - ✅ Use `getComponentTextCssVar()` for text style properties
+   - ✅ Apply text styles as inline styles to text elements
+   - ✅ Always add reactive updates (`useState`/`useEffect`) for text properties
+   - ✅ Remove `!important` font-size rules from CSS files
+   - ❌ Don't forget to add text property group names to `textPropertyGroupNames` arrays
+
+5. **Component Organization**
+   - ✅ Keep adapter component simple - just props mapping and registry usage
+   - ✅ Put complex logic in library-specific implementations
+   - ✅ Use helper functions for reusable logic
+   - ✅ Group related CSS variables together
+   - ❌ Don't duplicate logic across library implementations
+
+### File Structure Checklist
+
+**Adapter Component** (`{ComponentName}.tsx`):
+- [ ] Unified props interface defined
+- [ ] Component registry hook used (`useComponent`)
+- [ ] Props mapped to library-specific props
+- [ ] Suspense wrapper for lazy loading
+- [ ] Fallback UI if component not available
+
+**Library Implementation** (`{library}/{ComponentName}/{ComponentName}.tsx`):
+- [ ] All CSS variables defined at top
+- [ ] Reactive updates (if needed) defined before render
+- [ ] CSS custom properties set on root element
+- [ ] Library component rendered with correct props
+- [ ] Text style properties applied (if applicable)
+
+**CSS File** (`{library}/{ComponentName}/{ComponentName}.css`):
+- [ ] High-specificity selectors used
+- [ ] `!important` used when necessary (but not for font-size if using text style module)
+- [ ] CSS custom properties referenced
+- [ ] Library fallbacks included in `var()` functions
+- [ ] No conflicting `!important` rules for text style properties
+
+### Common Structure Patterns
+
+**Pattern 1: Simple Component (e.g., Button)**
+```typescript
+// 1. Define CSS variables
+const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
+const textVar = getComponentCssVar('Button', 'colors', 'solid-text', layer)
+const borderRadiusVar = getComponentLevelCssVar('Button', 'border-radius')
+
+// 2. Set CSS custom properties
+style={{
+  '--button-bg': `var(${bgVar})`,
+  '--button-text': `var(${textVar})`,
+  '--button-border-radius': `var(${borderRadiusVar})`,
+}}
+
+// 3. Render library component
+return <MantineButton style={style} {...props}>{children}</MantineButton>
+```
+
+**Pattern 2: Component with Text Style Module**
+```typescript
+// 1. Define text CSS variables
+const fontFamilyVar = getComponentTextCssVar('MenuItem', 'text', 'font-family')
+const fontSizeVar = getComponentTextCssVar('MenuItem', 'text', 'font-size')
+// ... (other text vars)
+
+// 2. Add reactive updates
+const [, setTextVarsUpdate] = useState(0)
+useEffect(() => {
+  // ... (reactive update logic)
+}, [fontFamilyVar, fontSizeVar, ...])
+
+// 3. Apply text styles as inline styles
+<span style={{
+  fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
+  fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
+  // ... (other text styles)
+}}>
+  {children}
+</span>
+```
+
+**Pattern 3: Component with Elevation**
+```typescript
+// 1. Define elevation CSS variable
+const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+
+// 2. Add reactive updates (REQUIRED for elevation)
+const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+  const value = readCssVar(elevationVar)
+  return value ? parseElevationValue(value) : undefined
+})
+useEffect(() => {
+  // ... (reactive update logic)
+}, [elevationVar])
+
+// 3. Compute box-shadow
+const componentElevation = elevation ?? elevationFromVar ?? undefined
+if (componentElevation && componentElevation !== 'elevation-0') {
+  style.boxShadow = getElevationBoxShadow(mode, componentElevation) || undefined
+}
+```
+
+### Anti-Patterns to Avoid
+
+**❌ Don't: Wrap components unnecessarily**
+```typescript
+// ❌ Bad - unnecessary wrapper
+return (
+  <div className="wrapper">
+    <MantineButton>{children}</MantineButton>
+  </div>
+)
+```
+
+**❌ Don't: Use inline styles for complex logic**
+```typescript
+// ❌ Bad - complex inline styles
+style={{
+  backgroundColor: variant === 'solid' ? 'blue' : variant === 'outline' ? 'transparent' : 'none',
+  border: variant === 'outline' ? '1px solid blue' : 'none',
+  // ... (many more conditional styles)
+}}
+```
+
+**✅ Do: Use CSS custom properties**
+```typescript
+// ✅ Good - CSS custom properties
+style={{
+  '--button-bg': `var(${bgVar})`,
+  '--button-border': `var(${borderVar})`,
+}}
+```
+
+**❌ Don't: Forget reactive updates for text styles**
+```typescript
+// ❌ Bad - text styles won't update
+const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
+<span style={{ fontSize: `var(${fontSizeVar})` }}>{children}</span>
+```
+
+**✅ Do: Add reactive updates**
+```typescript
+// ✅ Good - text styles will update
+const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
+const [, setTextVarsUpdate] = useState(0)
+useEffect(() => {
+  // ... (reactive update logic)
+}, [fontSizeVar])
+<span style={{ fontSize: `var(${fontSizeVar})` }}>{children}</span>
+```
    - ✅ **DO** use CSS to size and space icons
    - ✅ **DO** set CSS custom properties for icon size and gap
    - ❌ **DO NOT** wrap icons in custom span/div elements
@@ -1436,18 +1611,43 @@ import { Button } from '../../components/adapters/Button'
 
 **Note**: Update instances where it makes sense, but don't require updating every single instance if it's not critical.
 
-## Text Property Groups
+## Text Property Groups (Toolbar Type Module)
 
-Components can have text properties organized into property groups. This allows granular control over text styling (font-family, font-size, font-weight, etc.) via the `TextStyleToolbar`.
+Components can have text properties organized into property groups. This allows granular control over text styling (font-family, font-size, font-weight, etc.) via the `TextStyleToolbar` (also called the "toolbar type module").
+
+### When to Use Text Style Module
+
+Use the text style module when your component has:
+- **Text content** that needs typography control (font-family, font-size, font-weight, etc.)
+- **Multiple text elements** that need separate styling (e.g., Label has `label-text` and `optional-text`)
+- **Component-specific text styling** that differs from brand typography defaults
+
+**Examples:**
+- ✅ Button - has `text` property group for button label text
+- ✅ Label - has `label-text` and `optional-text` property groups
+- ✅ MenuItem - has `text` and `supporting-text` property groups
+- ✅ Toast - has `text` property group for toast message
+- ✅ Slider - has `min-max-label` and `read-only-value` property groups
+- ✅ Switch - has `label-text` property group for text next to switch
+- ✅ AccordionItem - has `header-text` and `content-text` property groups
+
+### Recognized Text Property Group Names
+
+The toolbar automatically detects these text property group names:
+- `text` - Primary text element (most common)
+- `label-text` - Label text (e.g., Label component)
+- `optional-text` - Optional indicator text (e.g., Label component)
+- `header-text` - Header text (e.g., AccordionItem)
+- `content-text` - Content text (e.g., AccordionItem)
+- `supporting-text` - Supporting/secondary text (e.g., MenuItem)
+- `min-max-label` - Min/max label text (e.g., Slider)
+- `read-only-value` - Read-only value text (e.g., Slider)
+
+**Note**: If you need a new text property group name, add it to:
+1. `src/modules/toolbar/utils/componentToolbarUtils.ts` - `textPropertyGroupNames` array
+2. `src/modules/toolbar/menu/floating-palette/PropControlContent.tsx` - `textPropertyGroupNames` array
 
 ### Text Property Group Structure
-
-Text properties are organized into groups in `UIKit.json`. Common group names:
-- `text` - For components with a single text element (e.g., Button)
-- `label-text` - For label text (e.g., Label component)
-- `optional-text` - For optional indicator text (e.g., Label component)
-- `header-text` - For header text (e.g., AccordionItem)
-- `content-text` - For content text (e.g., AccordionItem)
 
 ### UIKit.json Structure
 
@@ -1533,9 +1733,30 @@ Text properties are organized into groups in `UIKit.json`. Common group names:
    }}
    ```
 
-3. **Add Reactive Updates for Text Properties**
+3. **Apply Text Properties to Styles**
    
-   Text properties need reactive updates to respond to toolbar changes:
+   Apply text style CSS variables as inline styles to the text element:
+   ```typescript
+   <span
+     style={{
+       fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
+       fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
+       fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
+       letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+       lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
+       textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') as any : 'none',
+       textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') as any : 'none',
+       fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal',
+     } as React.CSSProperties}
+   >
+     {children}
+   </span>
+   ```
+
+4. **Add Reactive Updates for Text Properties** ⚠️ **REQUIRED**
+   
+   **CRITICAL**: Text properties require reactive updates because `readCssVar()` calls are not reactive. You MUST add `useState` and `useEffect` hooks to listen for CSS variable changes:
+   
    ```typescript
    import { useState, useEffect } from 'react'
    
@@ -1581,11 +1802,165 @@ Text properties are organized into groups in `UIKit.json`. Common group names:
    ])
    ```
 
+   **Why Reactive Updates Are Required:**
+   - Unlike other CSS variables (colors, dimensions), text style properties use `readCssVar()` for some properties (`text-decoration`, `text-transform`, `font-style`)
+   - `readCssVar()` calls are not reactive - they read the current value but don't trigger re-renders
+   - The `useState`/`useEffect` pattern forces React to re-render when CSS variables change
+   - Both `cssVarsUpdated` events and `MutationObserver` are needed to catch all update scenarios
+
+5. **Common Pitfalls and Solutions**
+
+   **❌ Problem: Text styles not updating**
+   - **Cause**: Missing reactive updates (`useState`/`useEffect`)
+   - **Solution**: Always add reactive update hooks for text properties
+
+   **❌ Problem: Font-size not updating (but other properties work)**
+   - **Cause**: CSS file has `font-size: ... !important;` rule overriding inline styles
+   - **Solution**: Remove `!important` font-size rules from component CSS files
+   - **Example Fix**:
+     ```css
+     /* ❌ Bad - prevents inline styles from working */
+     .toast-message {
+       font-size: var(--toast-text-size, 14px) !important;
+     }
+     
+     /* ✅ Good - allows inline styles to take precedence */
+     .toast-message {
+       /* font-size removed - handled by inline styles */
+     }
+     ```
+
+   **❌ Problem: Text property group not appearing in toolbar**
+   - **Cause**: Text property group name not recognized
+   - **Solution**: Add the property group name to `textPropertyGroupNames` arrays in:
+     - `src/modules/toolbar/utils/componentToolbarUtils.ts`
+     - `src/modules/toolbar/menu/floating-palette/PropControlContent.tsx`
+
+   **❌ Problem: Multiple text elements need separate styling**
+   - **Cause**: Using same property group name for different elements
+   - **Solution**: Use different property group names (e.g., `text` and `supporting-text`)
+
+6. **Complete Example: MenuItem Component**
+
+   This example shows a component with two text elements (`text` and `supporting-text`):
+
+   ```typescript
+   import { useState, useEffect } from 'react'
+   import { getComponentTextCssVar } from '../../../utils/cssVarNames'
+   import { readCssVar } from '../../../../core/css/readCssVar'
+   
+   export default function MenuItem({ children, supportingText, ...props }) {
+     // Get text CSS variables for primary text
+     const fontFamilyVar = getComponentTextCssVar('MenuItem', 'text', 'font-family')
+     const fontSizeVar = getComponentTextCssVar('MenuItem', 'text', 'font-size')
+     const fontWeightVar = getComponentTextCssVar('MenuItem', 'text', 'font-weight')
+     const letterSpacingVar = getComponentTextCssVar('MenuItem', 'text', 'letter-spacing')
+     const lineHeightVar = getComponentTextCssVar('MenuItem', 'text', 'line-height')
+     const textDecorationVar = getComponentTextCssVar('MenuItem', 'text', 'text-decoration')
+     const textTransformVar = getComponentTextCssVar('MenuItem', 'text', 'text-transform')
+     const fontStyleVar = getComponentTextCssVar('MenuItem', 'text', 'font-style')
+     
+     // Get supporting text CSS variables
+     const supportingFontFamilyVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-family')
+     const supportingFontSizeVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-size')
+     // ... (other supporting text vars)
+     
+     // Reactive updates for primary text
+     const [, setTextVarsUpdate] = useState(0)
+     useEffect(() => {
+       const textCssVars = [
+         fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar,
+         lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar
+       ]
+       const handleCssVarUpdate = (e: Event) => {
+         const detail = (e as CustomEvent).detail
+         const updatedVars = detail?.cssVars || []
+         if (updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))) {
+           setTextVarsUpdate(prev => prev + 1)
+         }
+       }
+       window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+       const observer = new MutationObserver(() => {
+         setTextVarsUpdate(prev => prev + 1)
+       })
+       observer.observe(document.documentElement, {
+         attributes: true,
+         attributeFilter: ['style'],
+       })
+       return () => {
+         window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+         observer.disconnect()
+       }
+     }, [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar])
+     
+     // Reactive updates for supporting text (similar pattern)
+     const [, setSupportingTextVarsUpdate] = useState(0)
+     useEffect(() => {
+       // ... (similar useEffect for supporting text vars)
+     }, [supportingFontFamilyVar, supportingFontSizeVar, ...])
+     
+     return (
+       <button>
+         <span
+           style={{
+             fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
+             fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
+             fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
+             letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+             lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
+             textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') as any : 'none',
+             textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') as any : 'none',
+             fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal',
+           } as React.CSSProperties}
+         >
+           {children}
+         </span>
+         {supportingText && (
+           <span
+             style={{
+               fontFamily: supportingFontFamilyVar ? `var(${supportingFontFamilyVar})` : undefined,
+               fontSize: supportingFontSizeVar ? `var(${supportingFontSizeVar})` : undefined,
+               // ... (other supporting text styles)
+             } as React.CSSProperties}
+           >
+             {supportingText}
+           </span>
+         )}
+       </button>
+     )
+   }
+   ```
+
 ### Toolbar Configuration
 
-Text property groups are automatically detected and rendered using the `TextStyleToolbar`. No special toolbar configuration is needed - just ensure the property group exists in `UIKit.json` with the standard text property names.
+Text property groups are automatically detected and rendered using the `TextStyleToolbar`. The toolbar configuration is minimal - just add the text property group to your component's toolbar config.
 
-The toolbar will automatically show controls for:
+**Example Toolbar Config** (`{ComponentName}.toolbar.json`):
+
+```json
+{
+  "props": {
+    "text": {
+      "icon": "text-aa",
+      "label": "Text style",
+      "visible": true
+    },
+    "supporting-text": {
+      "icon": "text-aa",
+      "label": "Supporting text style",
+      "visible": true
+    }
+  }
+}
+```
+
+**Key Points:**
+- ✅ Use `icon: "text-aa"` (or another text-related icon) for text style properties
+- ✅ Set `visible: true` to show the control in the toolbar
+- ✅ No `group` structure needed - text properties are standalone controls
+- ✅ The toolbar automatically detects text property groups and renders `TextStyleToolbar`
+
+**The toolbar will automatically show controls for:**
 - Font Family (dropdown)
 - Font Size (slider with token selector)
 - Font Weight (slider with token selector)
@@ -2912,10 +3287,22 @@ After creating a new component, use this checklist to ensure completeness.
 - [ ] All UIKit.json props have icons, labels, and visible properties
 
 **CSS Variables:**
-- [ ] CSS variables used directly (no React listeners) for all properties except elevations
+- [ ] CSS variables used directly (no React listeners) for all properties except elevations and text styles
 - [ ] Elevation uses reactive function (useState/useEffect) to compute box-shadow
+- [ ] Text style properties use reactive updates (useState/useEffect) - **REQUIRED**
 - [ ] Library CSS variables only used as fallbacks in `var()` functions
 - [ ] No direct modification of library CSS variables
+- [ ] No `!important` font-size rules in CSS files that would override text style inline styles
+
+**Text Style Module (If Applicable):**
+- [ ] Text property groups defined in `UIKit.json` with all 8 standard properties
+- [ ] Text property groups added to toolbar config (`{ComponentName}.toolbar.json`)
+- [ ] Text property group names added to `textPropertyGroupNames` arrays if using custom names
+- [ ] `getComponentTextCssVar()` used to get CSS variable names
+- [ ] Text style CSS variables applied as inline styles to text elements
+- [ ] Reactive updates (`useState`/`useEffect`) implemented for text properties
+- [ ] Both `cssVarsUpdated` event listener and `MutationObserver` implemented
+- [ ] All text style properties tested (font-family, font-size, font-weight, letter-spacing, line-height, text-decoration, text-transform, font-style)
 
 **Testing (MANDATORY):**
 - [ ] **Toolbar integration tests created** (`{ComponentName}.toolbar.test.tsx`)
