@@ -59,6 +59,11 @@
       "label": "Gap between label and switch",
       "visible": true
     },
+    "label-text": {
+      "icon": "text-aa",
+      "label": "Label text style",
+      "visible": true
+    },
     "thumb-icon": {
       "icon": "diamond",
       "label": "Thumb icon",

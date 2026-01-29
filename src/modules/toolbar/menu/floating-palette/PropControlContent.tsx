@@ -854,6 +854,115 @@ export default function PropControlContent({
     return undefined
   }
 
+  // Helper function to render Switch dimension slider
+  const renderSwitchDimensionSlider = (propName: string, cssVars: string[], primaryVar: string, label: string) => {
+    const propNameLower = propName.toLowerCase()
+    let minValue = 0
+    let maxValue = 500
+    
+    if (propNameLower === 'thumb-height') {
+      minValue = 10
+      maxValue = 40
+    } else if (propNameLower === 'thumb-width') {
+      minValue = 10
+      maxValue = 40
+    } else if (propNameLower === 'thumb-border-radius') {
+      minValue = 0
+      maxValue = 20
+    } else if (propNameLower === 'track-width') {
+      minValue = 40
+      maxValue = 120
+    } else if (propNameLower === 'track-inner-padding') {
+      minValue = 0
+      maxValue = 10
+    } else if (propNameLower === 'track-border-radius') {
+      minValue = 0
+      maxValue = 20
+    }
+    
+    const SwitchDimensionSlider = () => {
+      const [value, setValue] = useState(() => {
+        const currentValue = readCssVar(primaryVar)
+        const resolvedValue = readCssVarResolved(primaryVar)
+        const valueStr = resolvedValue || currentValue || '0px'
+        const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+        return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+      })
+      
+      useEffect(() => {
+        const handleUpdate = () => {
+          const currentValue = readCssVar(primaryVar)
+          const resolvedValue = readCssVarResolved(primaryVar)
+          const valueStr = resolvedValue || currentValue || '0px'
+          const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+          if (match) {
+            setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+          }
+        }
+        window.addEventListener('cssVarsUpdated', handleUpdate)
+        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+      }, [primaryVar, minValue, maxValue])
+      
+      const handleChange = useCallback((val: number | [number, number]) => {
+        const numValue = typeof val === 'number' ? val : val[0]
+        const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+        setValue(clampedValue)
+        
+        // Update CSS vars directly with pixel value
+        const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+        cssVarsToUpdate.forEach(cssVar => {
+          updateCssVar(cssVar, `${clampedValue}px`)
+        })
+        // Dispatch event to notify components of CSS var updates
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: cssVarsToUpdate }
+        }))
+      }, [primaryVar, cssVars, minValue, maxValue])
+      
+      const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+        const numValue = typeof val === 'number' ? val : val[0]
+        const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+        setValue(clampedValue)
+        
+        // Update CSS vars directly with pixel value
+        const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+        cssVarsToUpdate.forEach(cssVar => {
+          updateCssVar(cssVar, `${clampedValue}px`)
+        })
+        // Dispatch event to notify components of CSS var updates
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: cssVarsToUpdate }
+        }))
+      }, [primaryVar, cssVars, minValue, maxValue])
+      
+      const getValueLabel = useCallback((val: number) => {
+        return `${Math.round(val)}px`
+      }, [])
+      
+      return (
+        <Slider
+          value={value}
+          onChange={handleChange}
+          onChangeCommitted={handleChangeCommitted}
+          min={minValue}
+          max={maxValue}
+          step={1}
+          layer="layer-1"
+          layout="stacked"
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={getValueLabel}
+          minLabel={`${minValue}px`}
+          maxLabel={`${maxValue}px`}
+          showMinMaxLabels={false}
+          label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+        />
+      )
+    }
+    
+    return <SwitchDimensionSlider key={`${primaryVar}-${selectedVariants.size || ''}`} />
+  }
+
   const renderControl = (propToRender: ComponentProp, cssVars: string[], primaryVar: string, label: string) => {
     if (propToRender.type === 'color') {
       const contrastColorVar = getContrastColorVar(propToRender)
@@ -1166,6 +1275,7 @@ export default function PropControlContent({
       const isButton = componentName.toLowerCase() === 'button'
       const isChip = componentName.toLowerCase() === 'chip'
       const isSlider = componentName.toLowerCase() === 'slider'
+      const isSwitch = componentName.toLowerCase() === 'switch'
       
       // Use Slider component for Chip border-size, min-width, and max-width properties
       if (isChip && (propNameLower === 'border-size' || propNameLower === 'min-width' || propNameLower === 'max-width')) {
@@ -1364,6 +1474,131 @@ export default function PropControlContent({
         
         return (
           <ButtonDimensionSlider
+            key={`${primaryVar}-${selectedVariants.size || ''}`}
+          />
+        )
+      }
+      
+      // Use Slider component for Switch dimension properties
+      if (isSwitch && (
+        propNameLower === 'thumb-height' ||
+        propNameLower === 'thumb-width' ||
+        propNameLower === 'thumb-border-radius' ||
+        propNameLower === 'track-width' ||
+        propNameLower === 'track-inner-padding' ||
+        propNameLower === 'track-border-radius' ||
+        propNameLower === 'label-switch-gap' ||
+        propNameLower === 'thumb-icon-size'
+      )) {
+        const SwitchDimensionSlider = () => {
+          let minValue = 0
+          let maxValue = 500
+          if (propNameLower === 'thumb-height') {
+            minValue = 10
+            maxValue = 40
+          } else if (propNameLower === 'thumb-width') {
+            minValue = 10
+            maxValue = 40
+          } else if (propNameLower === 'thumb-border-radius') {
+            minValue = 0
+            maxValue = 20
+          } else if (propNameLower === 'track-width') {
+            minValue = 40
+            maxValue = 120
+          } else if (propNameLower === 'track-inner-padding') {
+            minValue = 0
+            maxValue = 10
+          } else if (propNameLower === 'track-border-radius') {
+            minValue = 0
+            maxValue = 20
+          } else if (propNameLower === 'label-switch-gap') {
+            minValue = 0
+            maxValue = 32
+          } else if (propNameLower === 'thumb-icon-size') {
+            minValue = 8
+            maxValue = 24
+          }
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+          
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return (
+          <SwitchDimensionSlider
             key={`${primaryVar}-${selectedVariants.size || ''}`}
           />
         )
@@ -1969,6 +2204,9 @@ export default function PropControlContent({
             {(() => {
               const cssVars = getCssVarsForProp(trackWidthProp)
               const primaryVar = cssVars[0] || trackWidthProp.cssVar
+              if (isSwitch) {
+                return renderSwitchDimensionSlider(trackWidthProp.name, cssVars, primaryVar, "Track Width")
+              }
               return (
                 <DimensionTokenSelector
                   targetCssVar={primaryVar}
@@ -1985,6 +2223,9 @@ export default function PropControlContent({
             {(() => {
               const cssVars = getCssVarsForProp(trackInnerPaddingProp)
               const primaryVar = cssVars[0] || trackInnerPaddingProp.cssVar
+              if (isSwitch) {
+                return renderSwitchDimensionSlider(trackInnerPaddingProp.name, cssVars, primaryVar, "Track Inner Padding")
+              }
               return (
                 <DimensionTokenSelector
                   targetCssVar={primaryVar}
@@ -2001,6 +2242,9 @@ export default function PropControlContent({
             {(() => {
               const cssVars = getCssVarsForProp(trackBorderRadiusProp)
               const primaryVar = cssVars[0] || trackBorderRadiusProp.cssVar
+              if (isSwitch) {
+                return renderSwitchDimensionSlider(trackBorderRadiusProp.name, cssVars, primaryVar, "Track Border Radius")
+              }
               return (
                 <DimensionTokenSelector
                   targetCssVar={primaryVar}
@@ -2063,6 +2307,9 @@ export default function PropControlContent({
             {(() => {
               const cssVars = getCssVarsForProp(thumbHeightProp)
               const primaryVar = cssVars[0] || thumbHeightProp.cssVar
+              if (isSwitch) {
+                return renderSwitchDimensionSlider(thumbHeightProp.name, cssVars, primaryVar, "Thumb Height")
+              }
               return (
                 <DimensionTokenSelector
                   targetCssVar={primaryVar}
@@ -2079,6 +2326,9 @@ export default function PropControlContent({
             {(() => {
               const cssVars = getCssVarsForProp(thumbWidthProp)
               const primaryVar = cssVars[0] || thumbWidthProp.cssVar
+              if (isSwitch) {
+                return renderSwitchDimensionSlider(thumbWidthProp.name, cssVars, primaryVar, "Thumb Width")
+              }
               return (
                 <DimensionTokenSelector
                   targetCssVar={primaryVar}
@@ -2095,6 +2345,9 @@ export default function PropControlContent({
             {(() => {
               const cssVars = getCssVarsForProp(thumbBorderRadiusProp)
               const primaryVar = cssVars[0] || thumbBorderRadiusProp.cssVar
+              if (isSwitch) {
+                return renderSwitchDimensionSlider(thumbBorderRadiusProp.name, cssVars, primaryVar, "Thumb Border Radius")
+              }
               return (
                 <DimensionTokenSelector
                   targetCssVar={primaryVar}
