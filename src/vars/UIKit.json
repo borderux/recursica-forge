@@ -1883,6 +1883,16 @@
         }
       },
       "segmented-control-item": {
+        "variants": {
+          "fill-width": {
+            "false": {
+              "properties": {}
+            },
+            "true": {
+              "properties": {}
+            }
+          }
+        },
         "properties": {
           "selected": {
             "colors": {

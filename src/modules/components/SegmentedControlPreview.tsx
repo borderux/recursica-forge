@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -23,6 +23,12 @@ export default function SegmentedControlPreview({
   const fillWidthVariant = (selectedVariants['fill-width'] || 'false') as 'true' | 'false'
   
   const fillWidth = fillWidthVariant === 'true'
+  
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControlPreview.tsx:25',message:'fillWidth values',data:{fillWidthVariant,fillWidth,selectedVariants:JSON.stringify(selectedVariants)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  }, [fillWidthVariant, fillWidth, selectedVariants]);
+  // #endregion agent log
   
   // State for selected values (one for each SegmentedControl)
   const [selectedValue1, setSelectedValue1] = useState<string>('option1')
@@ -98,9 +104,9 @@ export default function SegmentedControlPreview({
   ], [Icon1, Icon2, Icon3])
   
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%', minWidth: 0, maxWidth: '100%' }}>
       {/* Original: Icons and Labels */}
-      <div>
+      <div style={{ display: 'block', width: '100%' }}>
         <SegmentedControl
           items={itemsWithIconsAndLabels}
           value={selectedValue1}
@@ -113,7 +119,7 @@ export default function SegmentedControlPreview({
       </div>
       
       {/* Labels Only */}
-      <div>
+      <div style={{ display: 'block', width: '100%' }}>
         <SegmentedControl
           items={itemsWithLabelsOnly}
           value={selectedValue2}
@@ -126,7 +132,7 @@ export default function SegmentedControlPreview({
       </div>
       
       {/* Icons Only (with tooltips) */}
-      <div>
+      <div style={{ display: 'block', width: '100%' }}>
         <SegmentedControl
           items={itemsWithIconsOnly}
           value={selectedValue3}

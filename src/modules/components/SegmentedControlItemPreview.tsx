@@ -13,6 +13,16 @@ export default function SegmentedControlItemPreview({
   selectedLayer,
   componentElevation,
 }: SegmentedControlItemPreviewProps) {
+  // Extract fill-width variant from selectedVariants
+  const fillWidthVariant = (selectedVariants['fill-width'] || 'false') as 'true' | 'false'
+  const fillWidth = fillWidthVariant === 'true'
+  
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControlItemPreview.tsx:18',message:'fillWidth values',data:{fillWidthVariant,fillWidth,selectedVariants:JSON.stringify(selectedVariants)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  }, [fillWidthVariant, fillWidth, selectedVariants]);
+  // #endregion agent log
+  
   const [updateKey, setUpdateKey] = useState(0)
   
   // Listen for CSS variable updates to force re-render
@@ -126,14 +136,14 @@ export default function SegmentedControlItemPreview({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
       {/* Icons and Labels - showing selected item styling */}
-      <div>
+      <div style={{ width: '100%' }}>
         <SegmentedControl
           key={`icons-labels-${updateKey}`}
           items={itemsWithIconsAndLabels}
           value={selectedValue1}
           onChange={setSelectedValue1}
           orientation="horizontal"
-          fullWidth={false}
+          fullWidth={fillWidth}
           layer={selectedLayer as any}
           elevation={componentElevation}
           componentNameForCssVars="SegmentedControlItem"
@@ -141,14 +151,14 @@ export default function SegmentedControlItemPreview({
       </div>
       
       {/* Labels Only - showing selected item styling */}
-      <div>
+      <div style={{ width: '100%' }}>
         <SegmentedControl
           key={`labels-only-${updateKey}`}
           items={itemsWithLabelsOnly}
           value={selectedValue2}
           onChange={setSelectedValue2}
           orientation="horizontal"
-          fullWidth={false}
+          fullWidth={fillWidth}
           layer={selectedLayer as any}
           elevation={componentElevation}
           componentNameForCssVars="SegmentedControlItem"
@@ -156,14 +166,14 @@ export default function SegmentedControlItemPreview({
       </div>
       
       {/* Icons Only - showing selected item styling */}
-      <div>
+      <div style={{ width: '100%' }}>
         <SegmentedControl
           key={`icons-only-${updateKey}`}
           items={itemsWithIconsOnly}
           value={selectedValue3}
           onChange={setSelectedValue3}
           orientation="horizontal"
-          fullWidth={false}
+          fullWidth={fillWidth}
           layer={selectedLayer as any}
           elevation={componentElevation}
           showLabel={false}

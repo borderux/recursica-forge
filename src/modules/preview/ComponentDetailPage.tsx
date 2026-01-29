@@ -265,7 +265,7 @@ export default function ComponentDetailPage() {
             flex: debugMode ? undefined : 1,
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
+            alignItems: 'stretch',
             justifyContent: 'space-between',
             gap: 'var(--recursica-brand-dimensions-general-md)',
             background: `var(${baseLayerBase}-surface)`,
@@ -281,7 +281,7 @@ export default function ComponentDetailPage() {
             minHeight: debugMode ? '400px' : 0,
           }}>
             {/* Component Preview */}
-            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start', width: '100%', minWidth: 0 }}>
               {component.name === 'Button' ? (
                 <ButtonPreview
                   selectedVariants={selectedVariants}
@@ -356,17 +356,21 @@ export default function ComponentDetailPage() {
                   componentElevation={componentElevation}
                 />
               ) : component.name === 'Segmented control' ? (
-                <SegmentedControlPreview
-                  selectedVariants={selectedVariants}
-                  selectedLayer={selectedLayer}
-                  componentElevation={componentElevation}
-                />
+                <div style={{ width: '100%', minWidth: 0, alignSelf: 'stretch', flex: '1 1 0%' }}>
+                  <SegmentedControlPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                </div>
               ) : component.name === 'Segmented control item' ? (
-                <SegmentedControlItemPreview
-                  selectedVariants={selectedVariants}
-                  selectedLayer={selectedLayer}
-                  componentElevation={componentElevation}
-                />
+                <div style={{ width: '100%', minWidth: 0, alignSelf: 'stretch', flex: '1 1 0%' }}>
+                  <SegmentedControlItemPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                </div>
               ) : (
                 <div style={{
                   minHeight: 200,

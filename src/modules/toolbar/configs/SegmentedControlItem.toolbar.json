@@ -1,5 +1,10 @@
 {
-  "variants": {},
+  "variants": {
+    "fill-width": {
+      "icon": "arrows-out-line-horizontal",
+      "label": "Fill container width"
+    }
+  },
   "props": {
     "text": {
       "icon": "text-aa",

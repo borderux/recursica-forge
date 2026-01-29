@@ -34,6 +34,24 @@
   justify-content: center !important;
 }
 
+/* Auto-width behavior - when fullWidth is false */
+.mantine-SegmentedControl-root.recursica-auto-width[data-orientation="horizontal"] {
+  display: inline-flex !important;
+  width: auto !important;
+}
+
+.mantine-SegmentedControl-root.recursica-auto-width[data-orientation="horizontal"] .mantine-SegmentedControl-control {
+  flex: none !important;
+  width: auto !important;
+  min-width: auto !important;
+  max-width: none !important;
+}
+
+.mantine-SegmentedControl-root.recursica-auto-width[data-orientation="horizontal"] .mantine-SegmentedControl-control .mantine-SegmentedControl-label {
+  flex-grow: 0 !important;
+  width: auto !important;
+}
+
 /* Override Mantine's default full-width behavior for controls in vertical orientation */
 /* When fullWidth is false, force auto width for controls */
 .mantine-SegmentedControl-root.recursica-auto-width[data-orientation="vertical"] {
@@ -46,6 +64,54 @@
   flex: none !important;
   min-width: auto !important;
   max-width: none !important;
+}
+
+.mantine-SegmentedControl-root.recursica-auto-width[data-orientation="vertical"] .mantine-SegmentedControl-control .mantine-SegmentedControl-label {
+  flex-grow: 0 !important;
+  width: auto !important;
+}
+
+/* Full-width behavior - ensure controls fill available space */
+/* Override Mantine's default fullWidth behavior completely */
+.mantine-SegmentedControl-root.recursica-full-width[data-orientation="horizontal"] {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.mantine-SegmentedControl-root.recursica-full-width[data-orientation="horizontal"] .mantine-SegmentedControl-control {
+  flex: 1 1 0% !important;
+  width: auto !important;
+  min-width: 0 !important;
+  flex-basis: 0 !important;
+  max-width: none !important;
+}
+
+.mantine-SegmentedControl-root.recursica-full-width[data-orientation="horizontal"] .mantine-SegmentedControl-control .mantine-SegmentedControl-label {
+  flex-grow: 1 !important;
+  width: 100% !important;
+}
+
+/* Override Mantine's default fullWidth CSS that might set fixed widths */
+.mantine-SegmentedControl-root[data-full-width="true"].recursica-full-width[data-orientation="horizontal"] .mantine-SegmentedControl-control {
+  flex: 1 1 0% !important;
+  width: auto !important;
+  min-width: 0 !important;
+  flex-basis: 0 !important;
+  max-width: none !important;
+}
+
+.mantine-SegmentedControl-root.recursica-full-width[data-orientation="vertical"] {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+.mantine-SegmentedControl-root.recursica-full-width[data-orientation="vertical"] .mantine-SegmentedControl-control {
+  width: 100% !important;
+  flex: none !important;
 }
 
 /* Ensure no default Mantine dividers are applied */

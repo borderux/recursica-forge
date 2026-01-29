@@ -65,27 +65,15 @@ export default function SegmentedControl({
     : getComponentCssVar(componentNameForCssVars, 'colors', 'text', layer)
   const selectedTextVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'text-color')
   
-  // #region agent log
-  if (componentNameForCssVars === 'SegmentedControlItem') {
-    const textVarValue = readCssVar(textVar)
-    const selectedTextVarValue = readCssVar(selectedTextVar)
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'mantine/SegmentedControl.tsx:color-vars-debug',message:'Color CSS variables for SegmentedControlItem',data:{componentNameForCssVars,layer,textVar,textVarValue,selectedTextVar,selectedTextVarValue,textVarPath:'properties.item.colors.'+layer+'.text-color',selectedTextVarPath:'properties.selected.colors.'+layer+'.text-color'},timestamp:Date.now(),sessionId:'debug-session',runId:'colors-debug',hypothesisId:'A'})}).catch(()=>{});
-  }
-  // #endregion agent log
-  
   // Get other properties - use componentNameForCssVars for item properties, SegmentedControl for container properties
   const itemGapVar = getComponentLevelCssVar('SegmentedControl', 'item-gap')
   const iconSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'icon-size')
   const iconGapVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'icon-text-gap')
   
-  // #region agent log
+  // Read padding and icon gap values
   const paddingHorizontalValue = readCssVar(paddingHorizontalVar)
   const paddingVerticalValue = readCssVar(paddingVerticalVar)
-  const paddingHorizontalResolved = readCssVarResolved(paddingHorizontalVar)
-  const paddingVerticalResolved = readCssVarResolved(paddingVerticalVar)
   const iconGapValueForStyles = iconGapVar ? readCssVar(iconGapVar) : null
-  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'mantine/SegmentedControl.tsx:padding-var-reads',message:'Padding CSS variable values',data:{paddingHorizontalVar,paddingHorizontalValue,paddingHorizontalResolved,paddingVerticalVar,paddingVerticalValue,paddingVerticalResolved,iconGapVar,iconGapValueForStyles},timestamp:Date.now(),sessionId:'debug-session',runId:'padding-gap-debug',hypothesisId:'A'})}).catch(()=>{});
-  // #endregion agent log
   
   // Get divider properties
   const dividerColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'divider-color')
@@ -118,15 +106,8 @@ export default function SegmentedControl({
     
     // If item has both icon and label, combine them
     if (hasIcon && hasLabel) {
-      // #region agent log
-      const iconGapValue = iconGapVar ? readCssVar(iconGapVar) : null
-      const iconGapResolved = iconGapVar ? readCssVarResolved(iconGapVar) : null
-      if (items.indexOf(item) === 0) {
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'mantine/SegmentedControl.tsx:icon-gap-check',message:'Icon gap CSS variable check',data:{iconGapVar,iconGapValue,iconGapResolved,hasIcon,hasLabel,willUseGap:iconGapVar ? `var(${iconGapVar})` : '8px'},timestamp:Date.now(),sessionId:'debug-session',runId:'padding-gap-debug',hypothesisId:'A'})}).catch(()=>{});
-      }
-      // #endregion agent log
       label = (
-        <span style={{ display: 'flex', alignItems: 'center', gap: iconGapVar && iconGapValue ? `var(${iconGapVar})` : (iconGapVar && !iconGapValue ? '0px' : '8px') }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: iconGapVar && iconGapValueForStyles ? `var(${iconGapVar})` : (iconGapVar && !iconGapValueForStyles ? '0px' : '8px') }}>
           <span style={{
             display: 'flex',
             alignItems: 'center',
@@ -165,18 +146,6 @@ export default function SegmentedControl({
             width: iconSizeVar ? `var(${iconSizeVar})` : '16px',
             height: iconSizeVar ? `var(${iconSizeVar})` : '16px',
           }}
-          // #region agent log
-          ref={(el) => {
-            if (el && items.indexOf(item) === 0) {
-              setTimeout(() => {
-                const computedStyle = window.getComputedStyle(el)
-                const controlEl = el.closest('.mantine-SegmentedControl-control')
-                const buttonStyle = controlEl ? window.getComputedStyle(controlEl as HTMLElement) : null
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'mantine/SegmentedControl.tsx:icon-only-span-ref',message:'Mantine icon-only span computed styles',data:{iconMarginLeft:computedStyle.marginLeft,iconMarginRight:computedStyle.marginRight,iconPaddingLeft:computedStyle.paddingLeft,iconPaddingRight:computedStyle.paddingRight,buttonPaddingLeft:buttonStyle?.paddingLeft,buttonPaddingRight:buttonStyle?.paddingRight,buttonGap:buttonStyle?.gap,buttonJustifyContent:buttonStyle?.justifyContent,buttonDisplay:buttonStyle?.display,hasIcon,hasLabel},timestamp:Date.now(),sessionId:'debug-session',runId:'icon-centering-debug',hypothesisId:'C'})}).catch(()=>{});
-              }, 100)
-            }
-          }}
-          // #endregion agent log
         >
           <span style={{
             display: 'flex',
@@ -532,9 +501,8 @@ export default function SegmentedControl({
     size: mantineSize,
     orientation: mantineOrientation as 'horizontal' | 'vertical',
     disabled,
-    // Don't pass fullWidth to Mantine when we want auto width - control it via our styles/CSS instead
-    // Only pass fullWidth when we actually want full width
-    ...(fullWidth ? { fullWidth: true } : {}),
+    // Don't pass fullWidth to Mantine - we control it entirely via our CSS and inline styles
+    // Mantine's fullWidth prop might conflict with our custom flex behavior
     className: `${className || ''} ${fullWidth ? 'recursica-full-width' : 'recursica-auto-width'}`.trim(),
     styles: {
       root: {
@@ -542,13 +510,6 @@ export default function SegmentedControl({
         '--segmented-control-text': `var(${textVar})`,
         '--segmented-control-selected-bg': `var(${selectedBgVar})`,
         '--segmented-control-selected-text': `var(${selectedTextVar})`,
-        // #region agent log
-        ...(componentNameForCssVars === 'SegmentedControlItem' ? {
-          '--debug-selected-bg-var': selectedBgVar,
-          '--debug-selected-text-var': selectedTextVar,
-          '--debug-text-var': textVar,
-        } : {}),
-        // #endregion agent log
         '--segmented-control-border-color': `var(${containerBorderColorVar || textVar})`,
         '--segmented-control-selected-border-color': `var(${selectedBorderColorVar || selectedBgVar})`,
         '--segmented-control-border-radius': `var(${containerBorderRadiusVar})`,
@@ -574,6 +535,7 @@ export default function SegmentedControl({
         '--segmented-control-full-width': fullWidth ? '1' : '0',
         // Ensure root element doesn't become block-level when fullWidth is false
         display: isVertical ? (fullWidth ? 'flex' : 'inline-flex') : (fullWidth ? 'flex' : 'inline-flex'),
+        flexDirection: fullWidth ? (isVertical ? 'column' : 'row') : undefined,
         width: fullWidth ? '100%' : 'auto',
         maxWidth: !isVertical && maxWidthVar ? `var(${maxWidthVar})` : undefined,
         maxHeight: isVertical && maxHeightVar ? `var(${maxHeightVar})` : undefined,
@@ -591,7 +553,9 @@ export default function SegmentedControl({
         alignItems: 'center',
         justifyContent: 'center',
         // Control width based on fullWidth prop
-        flex: fullWidth && !isVertical ? 1 : 'none',
+        flex: fullWidth && !isVertical ? '1 1 0%' : 'none',
+        flexBasis: fullWidth && !isVertical ? '0%' : undefined,
+        minWidth: fullWidth && !isVertical ? 0 : undefined,
         width: fullWidth && isVertical ? '100%' : 'auto',
         ...mantine?.styles?.control,
       },
@@ -601,6 +565,8 @@ export default function SegmentedControl({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        flexGrow: fullWidth ? 1 : 0,
+        width: fullWidth ? '100%' : 'auto',
         ...mantine?.styles?.label,
       },
       indicator: {
