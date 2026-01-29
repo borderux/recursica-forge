@@ -241,10 +241,31 @@ export default function ComponentToolbar({
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
             const groupedPropKey = groupedPropName.toLowerCase()
             if (!groupedProps.has(groupedPropKey)) {
+              // For nested property groups like "container" and "selected", match props by name AND path
+              // Check if the parent prop name is in the path (e.g., "container" or "selected")
+              const parentPropNameLower = parentPropName.toLowerCase()
+              let groupedProp = structure.props.find(p => {
+                const nameMatches = p.name.toLowerCase() === groupedPropKey
+                const pathMatches = p.path.includes(parentPropNameLower)
+                return nameMatches && pathMatches
+              })
+              
+              // If not found with path check, fall back to name-only match
+              if (!groupedProp) {
+                groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
+              }
+              
               // Special case: border-color is stored as "border" in the color category
-              let groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
               if (!groupedProp && groupedPropKey === 'border-color') {
-                groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === 'border-color' || (p.name.toLowerCase() === 'border' && p.category === 'colors')
+                  const pathMatches = p.path.includes(parentPropNameLower)
+                  return nameMatches && pathMatches
+                })
+                // Fallback to name-only match
+                if (!groupedProp) {
+                  groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
+                }
               }
               // Special case: interactive-color maps to "interactive" prop under colors.layer-X.interactive
               if (!groupedProp && groupedPropKey === 'interactive-color') {

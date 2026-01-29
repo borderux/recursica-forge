@@ -1732,129 +1732,230 @@
         "properties": {
           "colors": {
             "layer-0": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-0.properties.surface}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.elements.text.color}"
               },
-              "selected-background": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.surface}"
-              },
               "selected-text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.text.color}"
               },
-              "border": {
+              "divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.properties.border-color}"
-              },
-              "selected-border": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.border-color}"
               }
             },
             "layer-1": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.surface}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.text.color}"
               },
-              "selected-background": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-2.properties.surface}"
-              },
               "selected-text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.text.color}"
               },
-              "border": {
+              "divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.border-color}"
-              },
-              "selected-border": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-2.properties.border-color}"
               }
             },
             "layer-2": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-2.properties.surface}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.text.color}"
-              },
-              "selected-background": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-3.properties.surface}"
               },
               "selected-text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.text.color}"
               },
-              "border": {
+              "divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.properties.border-color}"
-              },
-              "selected-border": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-3.properties.border-color}"
               }
             },
             "layer-3": {
-              "background": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-3.properties.surface}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.elements.text.color}"
-              },
-              "selected-background": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-3.properties.surface}"
               },
               "selected-text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.elements.text.color}"
               },
-              "border": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-3.properties.border-color}"
-              },
-              "selected-border": {
+              "divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.properties.border-color}"
               }
             }
           },
-          "border-size": {
-            "$type": "dimension",
-            "$value": {
-              "value": 1,
-              "unit": "px"
+          "container": {
+            "colors": {
+              "layer-0": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.properties.surface}"
+                },
+                "border-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.properties.border-color}"
+                },
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-0.elements.text.color}"
+                }
+              },
+              "layer-1": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.properties.surface}"
+                },
+                "border-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.properties.border-color}"
+                },
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.elements.text.color}"
+                }
+              },
+              "layer-2": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.properties.surface}"
+                },
+                "border-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.properties.border-color}"
+                },
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.elements.text.color}"
+                }
+              },
+              "layer-3": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.properties.surface}"
+                },
+                "border-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.properties.border-color}"
+                },
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.elements.text.color}"
+                }
+              }
+            },
+            "padding": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{brand.dimensions.general.sm}",
+                "unit": "px"
+              }
+            },
+            "elevation": {
+              "$type": "elevation",
+              "$value": "{brand.elevations.elevation-0}"
+            },
+            "border-size": {
+              "$type": "dimension",
+              "$value": {
+                "value": 1,
+                "unit": "px"
+              }
+            },
+            "border-radius": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{brand.dimensions.border-radii.default}",
+                "unit": "px"
+              }
             }
           },
-          "selected-border-size": {
-            "$type": "dimension",
-            "$value": {
-              "value": 1,
-              "unit": "px"
-            }
-          },
-          "border-radius": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.border-radii.default}",
-              "unit": "px"
+          "selected": {
+            "colors": {
+              "layer-0": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.properties.surface}"
+                },
+                "border-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.properties.border-color}"
+                },
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-1.elements.text.color}"
+                }
+              },
+              "layer-1": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.properties.surface}"
+                },
+                "border-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.properties.border-color}"
+                },
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-2.elements.text.color}"
+                }
+              },
+              "layer-2": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.properties.surface}"
+                },
+                "border-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.properties.border-color}"
+                },
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.elements.text.color}"
+                }
+              },
+              "layer-3": {
+                "background": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.properties.surface}"
+                },
+                "border-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.properties.border-color}"
+                },
+                "text-color": {
+                  "$type": "color",
+                  "$value": "{brand.layers.layer-3.elements.text.color}"
+                }
+              }
+            },
+            "padding": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{brand.dimensions.general.sm}",
+                "unit": "px"
+              }
+            },
+            "elevation": {
+              "$type": "elevation",
+              "$value": "{brand.elevations.elevation-0}"
+            },
+            "border-size": {
+              "$type": "dimension",
+              "$value": {
+                "value": 1,
+                "unit": "px"
+              }
+            },
+            "border-radius": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{brand.dimensions.border-radii.default}",
+                "unit": "px"
+              }
             }
           },
           "item-gap": {
@@ -1864,10 +1965,10 @@
               "unit": "px"
             }
           },
-          "padding": {
+          "divider-size": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.general.sm}",
+              "value": 1,
               "unit": "px"
             }
           },
@@ -1884,10 +1985,6 @@
               "value": "{brand.dimensions.general.sm}",
               "unit": "px"
             }
-          },
-          "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
           },
           "text": {
             "font-family": {

@@ -2,7 +2,6 @@
 
 .recursica-segmented-control.carbon-segmented-control {
   display: inline-flex;
-  gap: var(--segmented-control-item-gap);
   border-radius: var(--segmented-control-border-radius);
   border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color);
   background: var(--segmented-control-bg);
@@ -21,7 +20,7 @@
   border: none;
   border-radius: var(--segmented-control-border-radius);
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition: background-color 0.2s, color 0.2s, border 0.2s, padding 0.2s, border-radius 0.2s;
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
@@ -32,7 +31,17 @@
 .carbon-segmented-control-button.selected {
   background: var(--segmented-control-selected-bg) !important;
   color: var(--segmented-control-selected-text) !important;
+  padding: var(--segmented-control-selected-padding, var(--segmented-control-padding)) !important;
+  border-radius: var(--segmented-control-selected-border-radius, var(--segmented-control-border-radius)) !important;
+  /* Selected border - use individual properties to avoid overriding divider borders */
+  border-top: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-left: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-right: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
 }
+
+/* Dividers are handled via inline styles to avoid showing dividers adjacent to selected items */
+/* CSS rules removed - dividers are now conditionally applied in component code */
 
 .carbon-segmented-control-button:disabled {
   cursor: not-allowed;

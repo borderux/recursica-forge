@@ -5,7 +5,6 @@
   border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color) !important;
   border-radius: var(--segmented-control-border-radius) !important;
   padding: var(--segmented-control-padding) !important;
-  gap: var(--segmented-control-item-gap) !important;
   font-family: var(--segmented-control-font-family) !important;
   font-size: var(--segmented-control-font-size) !important;
   font-weight: var(--segmented-control-font-weight) !important;
@@ -27,4 +26,50 @@
 .recursica-segmented-control.material-segmented-control .MuiToggleButton-root.Mui-selected {
   background: var(--segmented-control-selected-bg) !important;
   color: var(--segmented-control-selected-text) !important;
+  /* Selected border - use individual properties to avoid overriding divider borders */
+  border-top: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-left: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-right: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+}
+
+/* Always add spacing between items (except after the last one) */
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:not(:last-child) {
+  padding-right: var(--segmented-control-item-gap) !important;
+  margin-right: var(--segmented-control-item-gap) !important;
+}
+
+/* Then add divider border only where needed (not on selected items or items before selected) */
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:not(:last-child):not(.Mui-selected):not(:has(+ .MuiToggleButton-root.Mui-selected)) {
+  border-right: var(--segmented-control-divider-size, 1px) solid var(--segmented-control-divider-color) !important;
+}
+
+/* Remove divider border from item immediately before selected item */
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:not(.Mui-selected):has(+ .MuiToggleButton-root.Mui-selected) {
+  border-right: none !important;
+}
+
+/* Always add spacing between items (except after the last one) */
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:not(:last-child) {
+  padding-bottom: var(--segmented-control-item-gap) !important;
+  margin-bottom: var(--segmented-control-item-gap) !important;
+}
+
+/* Then add divider border only where needed (not on selected items or items before selected) */
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:not(:last-child):not(.Mui-selected):not(:has(+ .MuiToggleButton-root.Mui-selected)) {
+  border-bottom: var(--segmented-control-divider-size, 1px) solid var(--segmented-control-divider-color) !important;
+}
+
+/* Remove divider border from item immediately before selected item */
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:not(.Mui-selected):has(+ .MuiToggleButton-root.Mui-selected) {
+  border-bottom: none !important;
+}
+
+/* Remove divider from selected item's right/bottom side if not last */
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root.Mui-selected:not(:last-child) {
+  border-right: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+}
+
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root.Mui-selected:not(:last-child) {
+  border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
 }

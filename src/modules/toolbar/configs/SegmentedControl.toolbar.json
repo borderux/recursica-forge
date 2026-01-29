@@ -10,51 +10,91 @@
     }
   },
   "props": {
-    "background": {
-      "icon": "paint-bucket",
-      "label": "Background",
-      "visible": true
-    },
     "text": {
       "icon": "text-aa",
       "label": "Text style",
       "visible": true
     },
-    "text-color": {
-      "icon": "text-aa",
-      "label": "Text color",
+    "container": {
+      "icon": "square",
+      "label": "Container",
       "visible": true,
       "group": {
-        "text": {
-          "icon": "text-aa",
-          "label": "Text",
+        "background": {
+          "icon": "paint-bucket",
+          "label": "Background",
           "visible": true
         },
-        "selected-text": {
+        "text-color": {
           "icon": "text-aa",
-          "label": "Selected text",
+          "label": "Text color",
           "visible": true
-        }
-      }
-    },
-    "border": {
-      "icon": "square",
-      "label": "Border",
-      "visible": true,
-      "group": {
+        },
+        "padding": {
+          "icon": "arrows-in",
+          "label": "Padding",
+          "visible": true
+        },
+        "elevation": {
+          "icon": "copy-simple",
+          "label": "Elevation",
+          "visible": true
+        },
         "border-size": {
           "icon": "arrows-left-right",
-          "label": "Size",
-          "visible": true
-        },
-        "border-radius": {
-          "icon": "corners-out",
-          "label": "Corner radius",
+          "label": "Border size",
           "visible": true
         },
         "border-color": {
           "icon": "paint-bucket",
-          "label": "Color",
+          "label": "Border color",
+          "visible": true
+        },
+        "border-radius": {
+          "icon": "corners-out",
+          "label": "Border radius",
+          "visible": true
+        }
+      }
+    },
+    "selected": {
+      "icon": "check-square",
+      "label": "Selected",
+      "visible": true,
+      "group": {
+        "background": {
+          "icon": "paint-bucket",
+          "label": "Background",
+          "visible": true
+        },
+        "text-color": {
+          "icon": "text-aa",
+          "label": "Text color",
+          "visible": true
+        },
+        "padding": {
+          "icon": "arrows-in",
+          "label": "Padding",
+          "visible": true
+        },
+        "elevation": {
+          "icon": "copy-simple",
+          "label": "Elevation",
+          "visible": true
+        },
+        "border-size": {
+          "icon": "arrows-left-right",
+          "label": "Border size",
+          "visible": true
+        },
+        "border-color": {
+          "icon": "paint-bucket",
+          "label": "Border color",
+          "visible": true
+        },
+        "border-radius": {
+          "icon": "corners-out",
+          "label": "Border radius",
           "visible": true
         }
       }
@@ -69,15 +109,27 @@
       "label": "Fill width",
       "visible": true
     },
-    "item-gap": {
+    "divider": {
       "icon": "split-horizontal",
-      "label": "Item gap",
-      "visible": true
-    },
-    "elevation": {
-      "icon": "copy-simple",
-      "label": "Elevation",
-      "visible": true
+      "label": "Divider",
+      "visible": true,
+      "group": {
+        "item-gap": {
+          "icon": "split-horizontal",
+          "label": "Item gap",
+          "visible": true
+        },
+        "divider-color": {
+          "icon": "paint-bucket",
+          "label": "Divider color",
+          "visible": true
+        },
+        "divider-size": {
+          "icon": "arrows-left-right",
+          "label": "Divider size",
+          "visible": true
+        }
+      }
     }
   }
 }

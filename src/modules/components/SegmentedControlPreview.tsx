@@ -28,7 +28,7 @@ export default function SegmentedControlPreview({
   const [selectedValue, setSelectedValue] = useState<string>('option1')
   
   // Get icons
-  const Icon1 = iconNameToReactComponent('graduation-cap')
+  const Icon1 = iconNameToReactComponent('house')
   const Icon2 = iconNameToReactComponent('sliders-horizontal')
   const Icon3 = iconNameToReactComponent('user')
   

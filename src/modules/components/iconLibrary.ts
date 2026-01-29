@@ -39,6 +39,7 @@ import {
   CaretUp,
   Check,
   CheckCircle,
+  CheckSquare,
   Circle,
   CircleHalf,
   CircleHalfTilt,
@@ -81,12 +82,12 @@ import {
   Stack,
   Sun,
   Swap,
+  TextAUnderline,
   TextAa,
+  TextItalic,
   TextStrikethrough,
   TextT,
   TextUnderline,
-  TextAUnderline,
-  TextItalic,
   Trash,
   Upload,
   User,
@@ -295,6 +296,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'warning': Warning,
   'arrows-in': ArrowsIn,
   'x': X,
+  'check-square': CheckSquare,
 }
 
 /**

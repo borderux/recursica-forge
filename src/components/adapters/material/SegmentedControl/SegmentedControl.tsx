@@ -38,20 +38,34 @@ export default function SegmentedControl({
   const materialSize = 'medium' // Default size
   const isVertical = orientation === 'vertical'
   
-  // Get CSS variables - colors are now at component level
-  const bgVar = getComponentCssVar('SegmentedControl', 'colors', 'background', layer)
+  // Get CSS variables - container properties
+  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'background')
+  const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'border-color')
+  const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-size')
+  const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-radius')
+  const containerPaddingVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'padding')
+  const containerElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'elevation')
+  
+  // Get CSS variables - selected properties
+  const selectedBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'background')
+  const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', layer, 'border-color')
+  const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'border-size')
+  const selectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'border-radius')
+  const selectedPaddingVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'padding')
+  const selectedElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'elevation')
+  
+  // Get CSS variables - text colors (still at component level)
   const textVar = getComponentCssVar('SegmentedControl', 'colors', 'text', layer)
-  const selectedBgVar = getComponentCssVar('SegmentedControl', 'colors', 'selected-background', layer)
   const selectedTextVar = getComponentCssVar('SegmentedControl', 'colors', 'selected-text', layer)
-  const borderColorVar = getComponentCssVar('SegmentedControl', 'colors', 'border', layer)
-  const selectedBorderColorVar = getComponentCssVar('SegmentedControl', 'colors', 'selected-border', layer)
-  const borderRadiusVar = getComponentLevelCssVar('SegmentedControl', 'border-radius')
-  const borderSizeVar = getComponentLevelCssVar('SegmentedControl', 'border-size')
-  const selectedBorderSizeVar = getComponentLevelCssVar('SegmentedControl', 'selected-border-size')
-  const paddingVar = getComponentLevelCssVar('SegmentedControl', 'padding')
+  
+  // Get other properties
   const itemGapVar = getComponentLevelCssVar('SegmentedControl', 'item-gap')
   const iconSizeVar = getComponentLevelCssVar('SegmentedControl', 'icon')
   const iconGapVar = getComponentLevelCssVar('SegmentedControl', 'icon-text-gap')
+  
+  // Get divider properties
+  const dividerColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'divider-color')
+  const dividerSizeVar = getComponentLevelCssVar('SegmentedControl', 'divider-size')
   
   // Get orientation-specific max-width/max-height
   const maxWidthVar = buildComponentCssVarPath('SegmentedControl', 'variants', 'orientation', 'horizontal', 'properties', 'max-width')
@@ -64,29 +78,23 @@ export default function SegmentedControl({
   const letterSpacingVar = getComponentTextCssVar('SegmentedControl', 'text', 'letter-spacing')
   const lineHeightVar = getComponentTextCssVar('SegmentedControl', 'text', 'line-height')
   
-  // Get elevation
-  const selectedElevationVar = getComponentLevelCssVar('SegmentedControl', 'selected-elevation')
-  
-  // Reactively read border-size
-  const borderSizeValue = useCssVar(borderSizeVar, '1px')
+  // Reactively read border-size and divider-size
+  const borderSizeValue = useCssVar(containerBorderSizeVar, '1px')
   const selectedBorderSizeValue = useCssVar(selectedBorderSizeVar, '1px')
+  const dividerSizeValue = useCssVar(dividerSizeVar, '1px')
   
-  // Get elevation from CSS vars if not provided as props
-  const elevationVar = getComponentLevelCssVar('SegmentedControl', 'elevation')
-  const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
-    if (!elevationVar) return undefined
-    const value = readCssVar(elevationVar)
-    return value ? parseElevationValue(value) : undefined
-  })
+  // Force re-render when divider CSS variables change
+  const [, forceUpdate] = useState(0)
   
   useEffect(() => {
-    if (!elevationVar) return
-    
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
-        const value = readCssVar(elevationVar)
-        setElevationFromVar(value ? parseElevationValue(value) : undefined)
+    const handleCssVarUpdate = (e?: Event) => {
+      const detail = (e as CustomEvent)?.detail
+      const updatedVars = detail?.cssVars || []
+      const dividerVarUpdated = updatedVars.length === 0 || updatedVars.some((v: string) => 
+        v === dividerSizeVar || v === dividerColorVar || v.includes('divider')
+      )
+      if (dividerVarUpdated) {
+        forceUpdate(prev => prev + 1)
       }
     }
     
@@ -94,8 +102,7 @@ export default function SegmentedControl({
     window.addEventListener('cssVarsReset', handleCssVarUpdate)
     
     const observer = new MutationObserver(() => {
-      const value = readCssVar(elevationVar)
-      setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      forceUpdate(prev => prev + 1)
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -107,7 +114,44 @@ export default function SegmentedControl({
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [elevationVar])
+  }, [dividerSizeVar, dividerColorVar, dividerSizeValue])
+  
+  // Get elevation from CSS vars if not provided as props
+  const [containerElevationFromVar, setContainerElevationFromVar] = useState<string | undefined>(() => {
+    if (!containerElevationVar) return undefined
+    const value = readCssVar(containerElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+  
+  useEffect(() => {
+    if (!containerElevationVar) return
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(containerElevationVar)) {
+        const value = readCssVar(containerElevationVar)
+        setContainerElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    window.addEventListener('cssVarsReset', handleCssVarUpdate)
+    
+    const observer = new MutationObserver(() => {
+      const value = readCssVar(containerElevationVar)
+      setContainerElevationFromVar(value ? parseElevationValue(value) : undefined)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [containerElevationVar])
   
   // Get selected elevation
   const [selectedElevationFromVar, setSelectedElevationFromVar] = useState<string | undefined>(() => {
@@ -146,7 +190,7 @@ export default function SegmentedControl({
     }
   }, [selectedElevationVar])
   
-  const componentElevation = elevation ?? elevationFromVar ?? undefined
+  const componentElevation = elevation ?? containerElevationFromVar ?? undefined
   const elevationBoxShadow = componentElevation && componentElevation !== 'elevation-0'
     ? getElevationBoxShadow(mode, componentElevation)
     : undefined
@@ -171,19 +215,23 @@ export default function SegmentedControl({
       fullWidth={fullWidth}
       className={`recursica-segmented-control material-segmented-control ${className || ''}`}
       sx={{
-        '--segmented-control-bg': `var(${bgVar})`,
+        '--segmented-control-bg': `var(${containerBgVar})`,
         '--segmented-control-text': `var(${textVar})`,
         '--segmented-control-selected-bg': `var(${selectedBgVar})`,
         '--segmented-control-selected-text': `var(${selectedTextVar})`,
-        '--segmented-control-border-color': `var(${borderColorVar || textVar})`,
+        '--segmented-control-border-color': `var(${containerBorderColorVar || textVar})`,
         '--segmented-control-selected-border-color': `var(${selectedBorderColorVar || selectedBgVar})`,
-        '--segmented-control-border-radius': `var(${borderRadiusVar})`,
+        '--segmented-control-border-radius': `var(${containerBorderRadiusVar})`,
         '--segmented-control-border-size': borderSizeValue,
         '--segmented-control-selected-border-size': selectedBorderSizeValue,
+        '--segmented-control-selected-border-radius': `var(${selectedBorderRadiusVar})`,
         '--segmented-control-selected-elevation': selectedElevationFromVar || 'elevation-0',
-        '--segmented-control-padding': `var(${paddingVar})`,
+        '--segmented-control-padding': `var(${containerPaddingVar})`,
+        '--segmented-control-selected-padding': `var(${selectedPaddingVar})`,
         '--segmented-control-item-gap': `var(${itemGapVar})`,
         '--segmented-control-icon-text-gap': `var(${iconGapVar})`,
+        '--segmented-control-divider-color': `var(${dividerColorVar || containerBorderColorVar || textVar})`,
+        '--segmented-control-divider-size': dividerSizeValue,
         '--segmented-control-font-family': `var(${fontFamilyVar})`,
         '--segmented-control-font-size': `var(${fontSizeVar})`,
         '--segmented-control-font-weight': `var(${fontWeightVar})`,
