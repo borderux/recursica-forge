@@ -408,10 +408,10 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         // Continue traversing - this is an object (not a value)
         // In new structure, variant values like "solid" are objects containing "color"
         
-        // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text)
+        // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text, min-max-label, read-only-value)
         // Text property groups are objects containing text-related properties (font-family, font-size, etc.)
         // We need to create a prop for the parent group so it shows up in the toolbar
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value']
         const isTextPropertyGroup = textPropertyGroupNames.includes(key.toLowerCase()) && 
                                      typeof value === 'object' && 
                                      value !== null &&

@@ -76,6 +76,16 @@
       "icon": "arrows-left-right",
       "label": "Input width",
       "visible": true
+    },
+    "min-max-label": {
+      "icon": "text-aa",
+      "label": "Min/max label style",
+      "visible": true
+    },
+    "read-only-value": {
+      "icon": "text-aa",
+      "label": "Read-only value style",
+      "visible": true
     }
   }
 }

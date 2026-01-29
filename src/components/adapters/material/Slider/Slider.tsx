@@ -4,9 +4,10 @@
  * Material UI-specific Slider component that uses CSS variables for theming.
  */
 
+import { useState, useEffect } from 'react'
 import { Slider as MaterialSlider } from '@mui/material'
 import type { SliderProps as AdapterSliderProps } from '../../Slider'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
@@ -100,33 +101,94 @@ export default function Slider({
     ? String(displayValue).trim() 
     : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '—')
 
-  // Get label typography styles (not using Label component, just the typography)
-  const labelFontVar = getComponentLevelCssVar('Label', 'label-font')
-  const labelFontValue = readCssVar(labelFontVar)
-  const labelFontStyle = extractTypographyStyleName(labelFontValue) || 'body-small'
-  const labelFontSizeVar = getTypographyCssVar(labelFontStyle, 'font-size')
-  const labelFontFamilyVar = getTypographyCssVar(labelFontStyle, 'font-family')
-  const labelFontWeightVar = getTypographyCssVar(labelFontStyle, 'font-weight')
-  const labelLetterSpacingVar = getTypographyCssVar(labelFontStyle, 'font-letter-spacing')
-  const labelLineHeightVar = getTypographyCssVar(labelFontStyle, 'line-height')
-  const labelTextColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
-  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+  // Get min-max label text styling CSS variables using getComponentTextCssVar (for text style toolbar)
+  const minMaxLabelFontFamilyVar = getComponentTextCssVar('Slider', 'min-max-label', 'font-family')
+  const minMaxLabelFontSizeVar = getComponentTextCssVar('Slider', 'min-max-label', 'font-size')
+  const minMaxLabelFontWeightVar = getComponentTextCssVar('Slider', 'min-max-label', 'font-weight')
+  const minMaxLabelLetterSpacingVar = getComponentTextCssVar('Slider', 'min-max-label', 'letter-spacing')
+  const minMaxLabelLineHeightVar = getComponentTextCssVar('Slider', 'min-max-label', 'line-height')
+  const minMaxLabelTextDecorationVar = getComponentTextCssVar('Slider', 'min-max-label', 'text-decoration')
+  const minMaxLabelTextTransformVar = getComponentTextCssVar('Slider', 'min-max-label', 'text-transform')
+  const minMaxLabelFontStyleVar = getComponentTextCssVar('Slider', 'min-max-label', 'font-style')
+  
+  // Get read-only value text styling CSS variables using getComponentTextCssVar (for text style toolbar)
+  const readOnlyValueFontFamilyVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-family')
+  const readOnlyValueFontSizeVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-size')
+  const readOnlyValueFontWeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-weight')
+  const readOnlyValueLetterSpacingVar = getComponentTextCssVar('Slider', 'read-only-value', 'letter-spacing')
+  const readOnlyValueLineHeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'line-height')
+  const readOnlyValueTextDecorationVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-decoration')
+  const readOnlyValueTextTransformVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-transform')
+  const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
   
   // Use layer text color directly for labels and values
   const layerTextColorVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color`
   const layerTextEmphasisVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis`
+
+  // State to force re-render when text CSS variables change
+  const [textVarsUpdate, setTextVarsUpdate] = useState(0)
+
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const textCssVars = [
+      minMaxLabelFontFamilyVar, minMaxLabelFontSizeVar, minMaxLabelFontWeightVar, minMaxLabelLetterSpacingVar,
+      minMaxLabelLineHeightVar, minMaxLabelTextDecorationVar, minMaxLabelTextTransformVar, minMaxLabelFontStyleVar,
+      readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
+      readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
+    ]
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
+      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      if (shouldUpdate) {
+        // Force re-render by updating state
+        setTextVarsUpdate(prev => prev + 1)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      // Force re-render for text vars
+      setTextVarsUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [
+    minMaxLabelFontFamilyVar, minMaxLabelFontSizeVar, minMaxLabelFontWeightVar, minMaxLabelLetterSpacingVar,
+    minMaxLabelLineHeightVar, minMaxLabelTextDecorationVar, minMaxLabelTextTransformVar, minMaxLabelFontStyleVar,
+    readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
+    readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
+  ])
 
   const sliderElement = (
     <div style={{ display: 'flex', alignItems: 'center', gap: (showInput || showValueLabel) ? `var(${inputGapVar}, 8px)` : 0, width: '100%', minWidth: 0 }}>
       {/* Min value display */}
       {showMinMaxLabels && (
         <span style={{ 
-          fontSize: 12, 
+          fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
+          fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
+          fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
+          letterSpacing: minMaxLabelLetterSpacingVar ? `var(${minMaxLabelLetterSpacingVar})` : undefined,
+          lineHeight: minMaxLabelLineHeightVar ? `var(${minMaxLabelLineHeightVar})` : undefined,
+          textDecoration: minMaxLabelTextDecorationVar ? (readCssVar(minMaxLabelTextDecorationVar) || 'none') : 'none',
+          textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
+          fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
           opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
           flexShrink: 0,
           marginRight: '8px',
-        }}>
+        } as React.CSSProperties}>
           {minLabel ?? min}
         </span>
       )}
@@ -178,12 +240,19 @@ export default function Slider({
       {/* Max value display */}
       {showMinMaxLabels && (
         <span style={{ 
-          fontSize: 12, 
+          fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
+          fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
+          fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
+          letterSpacing: minMaxLabelLetterSpacingVar ? `var(${minMaxLabelLetterSpacingVar})` : undefined,
+          lineHeight: minMaxLabelLineHeightVar ? `var(${minMaxLabelLineHeightVar})` : undefined,
+          textDecoration: minMaxLabelTextDecorationVar ? (readCssVar(minMaxLabelTextDecorationVar) || 'none') : 'none',
+          textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
+          fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
           opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
           flexShrink: 0,
           marginLeft: '8px',
-        }}>
+        } as React.CSSProperties}>
           {maxLabel ?? max}
         </span>
       )}
@@ -228,16 +297,19 @@ export default function Slider({
         <span
           style={{
             minWidth: `var(${inputWidthVar}, 60px)`,
-            fontSize: `var(${labelFontSizeVar})`,
-            fontFamily: `var(${labelFontFamilyVar})`,
-            fontWeight: `var(${labelFontWeightVar})`,
-            letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
-            lineHeight: `var(${labelLineHeightVar})`,
+            fontFamily: readOnlyValueFontFamilyVar ? `var(${readOnlyValueFontFamilyVar})` : undefined,
+            fontSize: readOnlyValueFontSizeVar ? `var(${readOnlyValueFontSizeVar})` : undefined,
+            fontWeight: readOnlyValueFontWeightVar ? `var(${readOnlyValueFontWeightVar})` : undefined,
+            letterSpacing: readOnlyValueLetterSpacingVar ? `var(${readOnlyValueLetterSpacingVar})` : undefined,
+            lineHeight: readOnlyValueLineHeightVar ? `var(${readOnlyValueLineHeightVar})` : undefined,
+            textDecoration: readOnlyValueTextDecorationVar ? (readCssVar(readOnlyValueTextDecorationVar) || 'none') : 'none',
+            textTransform: readOnlyValueTextTransformVar ? (readCssVar(readOnlyValueTextTransformVar) || 'none') : 'none',
+            fontStyle: readOnlyValueFontStyleVar ? (readCssVar(readOnlyValueFontStyleVar) || 'normal') : 'normal',
             color: `var(${layerTextColorVar})`,
             opacity: disabled ? 0.5 : `var(${layerTextEmphasisVar})`,
             whiteSpace: 'nowrap',
             textAlign: 'right',
-          }}
+          } as React.CSSProperties}
         >
           {displayValueStr}
         </span>

@@ -1165,6 +1165,7 @@ export default function PropControlContent({
       const isAccordion = componentName.toLowerCase() === 'accordion'
       const isButton = componentName.toLowerCase() === 'button'
       const isChip = componentName.toLowerCase() === 'chip'
+      const isSlider = componentName.toLowerCase() === 'slider'
       
       // Use Slider component for Chip border-size, min-width, and max-width properties
       if (isChip && (propNameLower === 'border-size' || propNameLower === 'min-width' || propNameLower === 'max-width')) {
@@ -1368,6 +1369,119 @@ export default function PropControlContent({
         )
       }
       
+      // Use Slider component for Slider input-width, thumb-size, thumb-border-radius, track-height, and track-border-radius properties
+      if (isSlider && (
+        propNameLower === 'input-width' || 
+        propNameLower === 'thumb-size' || 
+        propNameLower === 'thumb-border-radius' ||
+        propNameLower === 'track-height' ||
+        propNameLower === 'track-border-radius'
+      )) {
+        const SliderDimensionSlider = () => {
+          let minValue = 0
+          let maxValue = 500
+          if (propNameLower === 'input-width') {
+            minValue = 40
+            maxValue = 200
+          } else if (propNameLower === 'thumb-size') {
+            minValue = 10
+            maxValue = 40
+          } else if (propNameLower === 'thumb-border-radius') {
+            minValue = 0
+            maxValue = 20
+          } else if (propNameLower === 'track-height') {
+            minValue = 2
+            maxValue = 20
+          } else if (propNameLower === 'track-border-radius') {
+            minValue = 0
+            maxValue = 20
+          }
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+          
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return (
+          <SliderDimensionSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}`}
+          />
+        )
+      }
+      
       
       let minPixelValue: number | undefined = undefined
       let maxPixelValue: number | undefined = undefined
@@ -1458,7 +1572,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value']
   
   // Always check UIKit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly

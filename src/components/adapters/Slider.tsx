@@ -5,9 +5,9 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar } from '../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Label } from './Label'
@@ -81,18 +81,57 @@ export function Slider({
     computedTooltipText = undefined
   }
   
-  // Get label typography styles (not using Label component, just the typography)
-  // Calculate these unconditionally to avoid hook order issues
-  const labelFontVar = getComponentLevelCssVar('Label', 'label-font')
-  const labelFontValue = readCssVar(labelFontVar)
-  const labelFontStyle = extractTypographyStyleName(labelFontValue) || 'body-small'
-  const labelFontSizeVar = getTypographyCssVar(labelFontStyle, 'font-size')
-  const labelFontFamilyVar = getTypographyCssVar(labelFontStyle, 'font-family')
-  const labelFontWeightVar = getTypographyCssVar(labelFontStyle, 'font-weight')
-  const labelLetterSpacingVar = getTypographyCssVar(labelFontStyle, 'font-letter-spacing')
-  const labelLineHeightVar = getTypographyCssVar(labelFontStyle, 'line-height')
-  const labelTextColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
-  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+  // Get read-only value text styling CSS variables using getComponentTextCssVar (for text style toolbar)
+  const readOnlyValueFontFamilyVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-family')
+  const readOnlyValueFontSizeVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-size')
+  const readOnlyValueFontWeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-weight')
+  const readOnlyValueLetterSpacingVar = getComponentTextCssVar('Slider', 'read-only-value', 'letter-spacing')
+  const readOnlyValueLineHeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'line-height')
+  const readOnlyValueTextDecorationVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-decoration')
+  const readOnlyValueTextTransformVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-transform')
+  const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
+  
+  // State to force re-render when text CSS variables change
+  const [textVarsUpdate, setTextVarsUpdate] = useState(0)
+
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const textCssVars = [
+      readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
+      readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
+    ]
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
+      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      if (shouldUpdate) {
+        // Force re-render by updating state
+        setTextVarsUpdate(prev => prev + 1)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      // Force re-render for text vars
+      setTextVarsUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [
+    readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
+    readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
+  ])
   
   if (!Component) {
     // Fallback to native input range
@@ -455,15 +494,18 @@ export function Slider({
         minWidth: 0,
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        fontSize: `var(${labelFontSizeVar})`,
-        fontFamily: `var(${labelFontFamilyVar})`,
-        fontWeight: `var(${labelFontWeightVar})`,
-        letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
-        lineHeight: `var(${labelLineHeightVar})`,
+        fontFamily: readOnlyValueFontFamilyVar ? `var(${readOnlyValueFontFamilyVar})` : undefined,
+        fontSize: readOnlyValueFontSizeVar ? `var(${readOnlyValueFontSizeVar})` : undefined,
+        fontWeight: readOnlyValueFontWeightVar ? `var(${readOnlyValueFontWeightVar})` : undefined,
+        letterSpacing: readOnlyValueLetterSpacingVar ? `var(${readOnlyValueLetterSpacingVar})` : undefined,
+        lineHeight: readOnlyValueLineHeightVar ? `var(${readOnlyValueLineHeightVar})` : undefined,
+        textDecoration: readOnlyValueTextDecorationVar ? (readCssVar(readOnlyValueTextDecorationVar) || 'none') : 'none',
+        textTransform: readOnlyValueTextTransformVar ? (readCssVar(readOnlyValueTextTransformVar) || 'none') : 'none',
+        fontStyle: readOnlyValueFontStyleVar ? (readCssVar(readOnlyValueFontStyleVar) || 'normal') : 'normal',
         color: `var(${layerTextColorVar})`,
-        opacity: `var(${layerTextEmphasisVar})`,
+        opacity: disabled ? 0.5 : `var(${layerTextEmphasisVar})`,
         textAlign: 'right',
-      }}
+      } as React.CSSProperties}
     >
       {finalDisplayValue}
     </span>
