@@ -455,6 +455,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
         show={showSelectionModal}
         onConfirm={handleSelectionConfirm}
         onCancel={handleSelectionCancel}
+        onExportToGithub={handleExportToGithub}
       />
       <GitHubExportModalWrapper
         show={showGitHubModal}
