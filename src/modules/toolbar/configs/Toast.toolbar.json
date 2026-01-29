@@ -13,18 +13,8 @@
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text",
-      "visible": true,
-      "group": {
-        "text": {
-          "label": "Color",
-          "visible": true
-        },
-        "text-size": {
-          "label": "Font size",
+      "label": "Text style",
       "visible": true
-        }
-      }
     },
     "button": {
       "icon": "cursor-click",

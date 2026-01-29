@@ -5,9 +5,9 @@
  * Uses a simple div-based approach for maximum flexibility.
  */
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import type { ToastProps as AdapterToastProps } from '../../Toast'
-import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -46,7 +46,53 @@ export default function Toast({
   const maxWidthVar = getComponentLevelCssVar('Toast', 'max-width')
   const iconVar = getComponentLevelCssVar('Toast', 'icon')
   const spacingVar = getComponentLevelCssVar('Toast', 'spacing')
-  const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
+  
+  // Get text style CSS variables
+  const textFontFamilyVar = getComponentTextCssVar('Toast', 'text', 'font-family')
+  const textFontSizeVar = getComponentTextCssVar('Toast', 'text', 'font-size')
+  const textFontWeightVar = getComponentTextCssVar('Toast', 'text', 'font-weight')
+  const textLetterSpacingVar = getComponentTextCssVar('Toast', 'text', 'letter-spacing')
+  const textLineHeightVar = getComponentTextCssVar('Toast', 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar('Toast', 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar('Toast', 'text', 'text-transform')
+  const textFontStyleVar = getComponentTextCssVar('Toast', 'text', 'font-style')
+  
+  // Reactivity for text style CSS variables
+  const [textVarsUpdate, setTextVarsUpdate] = useState(0)
+  useEffect(() => {
+    const textCssVars = [
+      textFontFamilyVar,
+      textFontSizeVar,
+      textFontWeightVar,
+      textLetterSpacingVar,
+      textLineHeightVar,
+      textDecorationVar,
+      textTransformVar,
+      textFontStyleVar,
+    ].filter(Boolean) as string[]
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || textCssVars.some(v => detail.cssVars.includes(v))) {
+        setTextVarsUpdate(prev => prev + 1)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    const observer = new MutationObserver(() => {
+      setTextVarsUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [textFontFamilyVar, textFontSizeVar, textFontWeightVar, textLetterSpacingVar, textLineHeightVar, textDecorationVar, textTransformVar, textFontStyleVar])
   
   // Build box-shadow from elevation CSS variables if set (and not elevation-0)
   const boxShadow = getElevationBoxShadow(mode, elevation)
@@ -64,7 +110,6 @@ export default function Toast({
       '--toast-max-width': `var(${maxWidthVar})`,
       '--toast-icon-size': icon ? `var(${iconVar})` : '0px',
       '--toast-spacing': icon || action ? `var(${spacingVar})` : '0px',
-      '--toast-text-size': `var(${textSizeVar})`,
       backgroundColor: `var(${toastBgVar})`,
       color: `var(${toastTextVar})`,
       ...(boxShadow && { boxShadow }),
@@ -82,7 +127,16 @@ export default function Toast({
             {icon}
           </span>
         )}
-        <span className="recursica-toast-message">{children}</span>
+        <span className="recursica-toast-message" style={{
+          fontFamily: textFontFamilyVar ? `var(${textFontFamilyVar})` : undefined,
+          fontSize: textFontSizeVar ? `var(${textFontSizeVar})` : undefined,
+          fontWeight: textFontWeightVar ? `var(${textFontWeightVar})` : undefined,
+          letterSpacing: textLetterSpacingVar ? `var(${textLetterSpacingVar})` : undefined,
+          lineHeight: textLineHeightVar ? `var(${textLineHeightVar})` : undefined,
+          textDecoration: textDecorationVar ? `var(${textDecorationVar})` : undefined,
+          textTransform: textTransformVar ? `var(${textTransformVar})` : undefined,
+          fontStyle: textFontStyleVar ? `var(${textFontStyleVar})` : undefined,
+        }}>{children}</span>
         {action && (
           <span className="recursica-toast-action">{action}</span>
         )}
