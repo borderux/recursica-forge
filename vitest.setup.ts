@@ -59,6 +59,9 @@ Promise.all([
   // Ignore errors - providers will load when needed
 })
 
+// Component preloading is now handled in vitest.global-setup.ts
+// which runs once before all tests, ensuring components are ready
+
 // Mock window.matchMedia for Mantine components
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -87,12 +90,15 @@ import { afterEach, afterAll } from 'vitest'
 
 afterEach(async () => {
   // Cleanup React Testing Library (unmounts all components)
+  // This should trigger useEffect cleanup functions that disconnect observers
   rtlCleanup()
   
   // Clear all timers
   vi.clearAllTimers()
   
   // Clear document styles to reset CSS variables
+  // Note: This may trigger MutationObserver callbacks, but components should be unmounted
+  // so the callbacks won't cause re-renders
   document.documentElement.style.cssText = ''
   
   // Wait a tick to allow any pending async operations to complete
