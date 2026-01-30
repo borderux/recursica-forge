@@ -157,6 +157,45 @@
   flex: none !important;
 }
 
+/* Trailing icons - use Mantine's rightSection */
+.mantine-Button-root .mantine-Button-rightSection,
+.mantine-Button-root .recursica-button-right-section {
+  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon)) !important;
+  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon)) !important;
+  margin-inline-start: var(--button-icon-text-gap, var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon-text-gap)) !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.mantine-Button-root .mantine-Button-rightSection svg,
+.mantine-Button-root .recursica-button-right-section svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Hide trailing icons in children when rightSection is present - prevent duplicate icons */
+/* Target the specific class we add to rightIconElement */
+.mantine-Button-root:has(.mantine-Button-rightSection) .mantine-Button-label .recursica-button-trailing-icon,
+.mantine-Button-root:has(.recursica-button-right-section) .mantine-Button-label .recursica-button-trailing-icon,
+.mantine-Button-root:has(.mantine-Button-rightSection) .recursica-button-trailing-icon,
+.mantine-Button-root:has(.recursica-button-right-section) .recursica-button-trailing-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
 
 /* For icon-only buttons, set the span (or container) around the SVG to display: flex */
 /* Mantine may wrap the icon in a span or other container for icon-only buttons */

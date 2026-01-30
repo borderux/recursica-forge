@@ -103,15 +103,17 @@ export default function ButtonPreview({
 
   // Icon element with proper container for right-side icons
   const rightIconElement = (
-    <span style={{
-      display: 'inline-flex',
-      width: `var(${iconSizeVar})`,
-      height: `var(${iconSizeVar})`,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      marginLeft: `var(${iconGapVar})`,
-    }}>
+    <span 
+      className="recursica-button-trailing-icon"
+      style={{
+        display: 'inline-flex',
+        width: `var(${iconSizeVar})`,
+        height: `var(${iconSizeVar})`,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        marginLeft: `var(${iconGapVar})`,
+      }}>
       <span style={{
         display: 'flex',
         width: '100%',
@@ -173,8 +175,13 @@ export default function ButtonPreview({
           material={{
             endIcon: iconSvg
           }}
+          mantine={{
+            rightSection: iconSvg
+          }}
         >
           Button
+          {/* Only add rightIconElement for Carbon - Mantine uses rightSection prop, Material uses endIcon */}
+          {rightIconElement}
         </Button>
         
         {/* Disabled button */}

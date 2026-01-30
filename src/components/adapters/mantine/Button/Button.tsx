@@ -5,7 +5,7 @@
  */
 
 import { Button as MantineButton } from '@mantine/core'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Children, isValidElement, cloneElement } from 'react'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
@@ -196,10 +196,13 @@ export default function Button({
     // Add custom class names for CSS targeting
     classNames: {
       leftSection: 'recursica-button-left-section',
+      rightSection: 'recursica-button-right-section',
       ...mantine?.classNames,
     },
     // Use Mantine's native leftSection prop - CSS will handle sizing and spacing
     leftSection: icon && !isIconOnly ? icon : undefined,
+    // Support trailing icon via rightSection prop
+    rightSection: mantine?.rightSection,
     // Use Mantine's styles prop to override leftSection margin-inline-end and disabled state
     styles: {
       root: {
@@ -253,10 +256,11 @@ export default function Button({
         '--button-border-color': buttonBorderColorRef,
       } : {}),
       // Set icon-text-gap CSS variable for CSS file override
-      '--button-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      // Set gap when there's a leading icon or trailing icon (rightSection)
+      '--button-icon-text-gap': (icon && children) || (mantine?.rightSection && children) ? `var(${iconGapVar})` : '0px',
       // Set icon size CSS variable for CSS file override
-      // Always set it, even for icon-only buttons, so CSS can use it
-      '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      // Always set it when there's a leading icon, trailing icon (rightSection), or icon-only button
+      '--button-icon-size': icon || mantine?.rightSection ? `var(${iconSizeVar})` : '0px',
       // Set content max width CSS variable for CSS file override
       '--button-max-width': `var(${maxWidthVar})`,
       // Use actual CSS border instead of box-shadow
@@ -318,7 +322,47 @@ export default function Button({
     ...props,
   }
   
+  // Filter out trailing icon from children when rightSection is present to prevent duplicates
+  const filteredChildren = useMemo(() => {
+    if (isIconOnly) {
+      return icon
+    }
+    
+    // If rightSection is present, filter out elements with recursica-button-trailing-icon class
+    if (mantine?.rightSection && children) {
+      if (typeof children === 'string') {
+        // If children is a string, check if it contains the trailing icon element
+        // In this case, children is just "Button", so return as-is
+        return children
+      }
+      
+      // Filter out any child elements with the trailing icon class
+      const filterTrailingIcon = (node: any): any => {
+        if (!node) return null
+        
+        // If it's a React element with the trailing icon class, remove it
+        if (isValidElement(node)) {
+          if (node.props?.className === 'recursica-button-trailing-icon') {
+            return null
+          }
+          // Recursively filter children
+          if (node.props?.children) {
+            const filtered = Children.map(node.props.children, filterTrailingIcon).filter(Boolean)
+            return cloneElement(node, {}, ...filtered)
+          }
+        }
+        
+        return node
+      }
+      
+      const filtered = Children.map(children, filterTrailingIcon).filter(Boolean)
+      return filtered.length > 0 ? filtered : children
+    }
+    
+    return children
+  }, [children, mantine?.rightSection, isIconOnly, icon])
+  
   // For icon-only buttons, render icon as children - CSS will handle centering
-  return <MantineButton {...mantineProps}>{isIconOnly ? icon : children}</MantineButton>
+  return <MantineButton {...mantineProps}>{filteredChildren}</MantineButton>
 }
 

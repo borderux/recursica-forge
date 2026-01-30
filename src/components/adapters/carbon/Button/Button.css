@@ -10,11 +10,24 @@
 
 /* Size and space Carbon button icons */
 /* Carbon buttons render icons as direct children, so we need to target them */
+/* Leading icons (first child, not last) */
 .cds--btn > svg:first-child:not(:last-child) {
   width: var(--button-icon-size, 0px) !important;
   height: var(--button-icon-size, 0px) !important;
   margin-right: var(--button-icon-text-gap, 0px) !important;
   flex-shrink: 0 !important;
+}
+
+/* Trailing icons (last child, not first) - icons that come after text */
+.cds--btn > svg:last-child:not(:first-child),
+.cds--btn > span:last-child:has(svg):not(:first-child) {
+  width: var(--button-icon-size, 0px) !important;
+  height: var(--button-icon-size, 0px) !important;
+  margin-left: var(--button-icon-text-gap, 0px) !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Carbon buttons render text as direct children */
