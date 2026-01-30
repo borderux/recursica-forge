@@ -24,18 +24,11 @@ export default defineConfig({
         pool: 'forks',
         poolOptions: {
             forks: {
-                singleFork: true, // Run tests sequentially
+                singleFork: true, // Run tests sequentially to ensure preloading works
             },
         },
         coverage: {
             provider: 'v8',
-        },
-        // Use forks pool for better isolation and to prevent hanging
-        pool: 'forks',
-        poolOptions: {
-            forks: {
-                singleFork: false,
-            },
         },
     },
 });

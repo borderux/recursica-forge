@@ -158,26 +158,44 @@ run_type_check() {
     fi
 }
 
-# Run tests with timeout
+# Run tests with timeout (matching CI behavior exactly)
 run_tests() {
-    log_step "Running tests"
+    log_step "Running tests (matching CI: npm run test -- --run)"
     
     # Kill any hanging test processes first
     pkill -f "vitest|vite" 2>/dev/null || true
-    sleep 1
+    sleep 2
     
-    if run_with_timeout "npm test" 2>&1; then
-        log_success "Tests passed"
-        return 0
+    # Run tests the same way CI does to catch CI-specific issues
+    # CI uses: npm run test -- --run
+    # Capture output to check for failures
+    local test_output
+    local test_exit_code=0
+    
+    if [ -n "$(get_timeout_cmd)" ]; then
+        test_output=$(timeout $TIMEOUT_SECONDS npm run test -- --run 2>&1) || test_exit_code=$?
     else
-        local exit_code=$?
-        if [ $exit_code -eq 124 ]; then
-            log_error "Tests timed out after ${TIMEOUT_SECONDS}s"
-        else
-            log_error "Tests failed"
-        fi
+        test_output=$(npm run test -- --run 2>&1) || test_exit_code=$?
+    fi
+    
+    echo "$test_output"
+    
+    # Check for test failures in output (more reliable than exit code)
+    if echo "$test_output" | grep -q "FAIL\|Failed Tests"; then
+        log_error "Tests failed (found FAIL in output)"
         return 1
     fi
+    
+    if [ $test_exit_code -eq 124 ]; then
+        log_error "Tests timed out after ${TIMEOUT_SECONDS}s"
+        return 1
+    elif [ $test_exit_code -ne 0 ]; then
+        log_error "Tests failed with exit code $test_exit_code"
+        return 1
+    fi
+    
+    log_success "Tests passed"
+    return 0
 }
 
 # Run build with timeout
@@ -202,6 +220,18 @@ run_build() {
 try_fix_issues() {
     log_step "Attempting to fix common issues"
     
+    # Install dependencies if node_modules is missing or package-lock changed
+    # This ensures we're in the same state as CI (which runs npm ci)
+    if [ ! -d "node_modules" ] || [ "package-lock.json" -nt "node_modules" ]; then
+        log_info "Installing/updating dependencies (npm ci - matching CI)"
+        npm ci
+        log_success "Dependencies installed"
+    fi
+    
+    # Kill any hanging processes that might interfere
+    pkill -f "vitest|vite" 2>/dev/null || true
+    sleep 2
+    
     # Fix linting/formatting if possible
     if command -v npm &> /dev/null; then
         # Try to auto-fix with ESLint if available
@@ -213,13 +243,6 @@ try_fix_issues() {
         if npm run format 2>/dev/null; then
             log_success "Ran format"
         fi
-    fi
-    
-    # Install dependencies if node_modules is missing or package-lock changed
-    if [ ! -d "node_modules" ] || [ "package-lock.json" -nt "node_modules" ]; then
-        log_info "Installing/updating dependencies"
-        npm ci
-        log_success "Dependencies installed"
     fi
 }
 
@@ -244,7 +267,19 @@ main() {
     fetch_main
     merge_main
     
-    # Step 2: Run checks with retry logic
+    # Step 2: Ensure clean state (like CI)
+    log_step "Preparing clean test environment (matching CI)"
+    # Kill any hanging processes
+    pkill -f "vitest|vite" 2>/dev/null || true
+    sleep 1
+    
+    # Ensure dependencies are installed (CI runs npm ci)
+    if [ ! -d "node_modules" ]; then
+        log_info "Installing dependencies (npm ci - matching CI)"
+        npm ci
+    fi
+    
+    # Step 3: Run checks with retry logic
     local iteration=0
     local type_check_passed=false
     local tests_passed=false
@@ -270,7 +305,7 @@ main() {
             fi
         fi
         
-        # Tests
+        # Tests (run same way as CI)
         if ! $tests_passed; then
             if run_tests; then
                 tests_passed=true
@@ -281,6 +316,7 @@ main() {
                     continue
                 else
                     log_error "Tests failed after $MAX_ITERATIONS attempts"
+                    log_error "This matches CI behavior - tests must pass before merging"
                     exit 1
                 fi
             fi

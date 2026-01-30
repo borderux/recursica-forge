@@ -98,16 +98,45 @@ If conflicts occur, the script will pause and show conflicted files. After resol
 3. Complete merge: `git commit`
 4. Press Enter to continue
 
+### Tests Pass Locally But Fail in CI
+If tests pass locally but fail in CI, check:
+
+1. **Config Files**: Ensure `vite.config.js` and `vite.config.ts` are in sync
+   - Both should have `testTimeout: 60000`
+   - Both should have `globalSetup: ['./vitest.global-setup.ts']`
+   - Both should have `singleFork: true` for sequential execution
+
+2. **Test Command**: The script runs `npm run test -- --run` (same as CI)
+   - If tests pass with `npm test` but fail with `npm run test -- --run`, there's a difference
+   - Check for environment-specific issues
+
+3. **Clean State**: CI runs `npm ci` (clean install)
+   - The script also runs `npm ci` to match CI state
+   - Delete `node_modules` and reinstall if issues persist
+
+4. **Global Setup**: Ensure `vitest.global-setup.ts` exists and preloads components
+   - Check console output for "Preloading components..." message
+   - Verify components are being preloaded before tests run
+
 ### Timeout Issues
 If checks timeout:
 - Check for hanging processes: `pkill -f "vitest|vite"`
 - Increase `TIMEOUT_SECONDS` in the script if needed
 - On macOS, install `coreutils` for timeout: `brew install coreutils`
+- Verify `testTimeout` in vite config files is set to 60000
 
 ### Failed Checks
 The script will attempt to auto-fix common issues:
-- Missing dependencies → runs `npm ci`
+- Missing dependencies → runs `npm ci` (matching CI)
 - Linting issues → runs `npm run lint:fix` (if available)
 - Formatting → runs `npm run format` (if available)
 
 If auto-fix doesn't work, fix issues manually and run the script again.
+
+### Why Tests Might Pass Locally But Fail in CI
+- **Cached Components**: Local runs may have components already loaded from previous runs
+- **Parallel Execution**: CI might run tests in parallel if config is wrong
+- **Global Setup**: CI might not run global setup if config is missing
+- **Timeout Differences**: CI might use different timeout if config files are out of sync
+
+The release agent script runs tests the same way CI does to catch these issues before they reach CI.
