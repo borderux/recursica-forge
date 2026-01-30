@@ -56,6 +56,12 @@ export default function Switch({
   ...props
 }: AdapterSwitchProps) {
   const { mode } = useThemeMode()
+  const [updateKey, setUpdateKey] = useState(0)
+  
+  // Force re-render when mode changes to update CSS variable references
+  useEffect(() => {
+    setUpdateKey(prev => prev + 1)
+  }, [mode])
   
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
   const thumbSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-selected`, layer)
@@ -152,6 +158,7 @@ export default function Switch({
   
   return (
     <MaterialSwitch
+      key={`switch-${mode}-${updateKey}`}
       checked={checked}
       onChange={(e) => onChange(e.target.checked)}
       disabled={disabled}

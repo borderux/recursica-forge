@@ -52,8 +52,14 @@ export default function Switch({
   ...props
 }: AdapterSwitchProps) {
   const { mode } = useThemeMode()
+  const [updateKey, setUpdateKey] = useState(0)
   const toggleRef = useRef<HTMLDivElement>(null)
   const toggleId = useId()
+  
+  // Force re-render when mode changes to update CSS variable references
+  useEffect(() => {
+    setUpdateKey(prev => prev + 1)
+  }, [mode])
   
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
   const thumbSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-selected`, layer)
@@ -193,6 +199,7 @@ export default function Switch({
   
   return (
     <div
+      key={`switch-${mode}-${updateKey}`}
       ref={toggleRef}
       className="recursica-carbon-toggle-wrapper"
       style={{

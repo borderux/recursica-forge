@@ -69,6 +69,7 @@ export default function Slider({
   useEffect(() => {
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
+      // Update if this CSS var was updated or if no specific vars were specified
       if (!detail?.cssVars || detail.cssVars.includes(thumbElevationVar)) {
         if (thumbElevationVar) {
           const value = readCssVar(thumbElevationVar)
@@ -245,6 +246,7 @@ export default function Slider({
         style={{
           flex: 1,
           '--slider-track-color': `var(${trackVar})`,
+          '--track-bg': `var(${trackVar})`,
           '--slider-color': `var(${trackActiveVar})`,
           '--slider-thumb-color': `var(${thumbVar})`,
           '--slider-thumb-size': `var(${thumbSizeVar}, 20px)`,
