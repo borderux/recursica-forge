@@ -24,12 +24,6 @@ export default function SegmentedControlPreview({
   
   const fillWidth = fillWidthVariant === 'true'
   
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControlPreview.tsx:25',message:'fillWidth values',data:{fillWidthVariant,fillWidth,selectedVariants:JSON.stringify(selectedVariants)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  }, [fillWidthVariant, fillWidth, selectedVariants]);
-  // #endregion agent log
-  
   // State for selected values (one for each SegmentedControl)
   const [selectedValue1, setSelectedValue1] = useState<string>('option1')
   const [selectedValue2, setSelectedValue2] = useState<string>('option1')
@@ -39,6 +33,7 @@ export default function SegmentedControlPreview({
   const Icon1 = iconNameToReactComponent('house')
   const Icon2 = iconNameToReactComponent('sliders-horizontal')
   const Icon3 = iconNameToReactComponent('user')
+  const Icon4 = iconNameToReactComponent('info')
   
   // Create items with icons and labels (original)
   const itemsWithIconsAndLabels = useMemo(() => [
@@ -60,7 +55,13 @@ export default function SegmentedControlPreview({
       icon: Icon3 ? <Icon3 size={16} /> : undefined,
       tooltip: 'Third',
     },
-  ], [Icon1, Icon2, Icon3])
+    {
+      value: 'option4',
+      label: 'Fourth',
+      icon: Icon4 ? <Icon4 size={16} /> : undefined,
+      tooltip: 'Fourth',
+    },
+  ], [Icon1, Icon2, Icon3, Icon4])
   
   // Create items with labels only (no icons)
   const itemsWithLabelsOnly = useMemo(() => [
@@ -78,6 +79,11 @@ export default function SegmentedControlPreview({
       value: 'option3',
       label: 'Third',
       tooltip: 'Third',
+    },
+    {
+      value: 'option4',
+      label: 'Fourth',
+      tooltip: 'Fourth',
     },
   ], [])
   
@@ -101,7 +107,13 @@ export default function SegmentedControlPreview({
       icon: Icon3 ? <Icon3 size={16} /> : undefined,
       tooltip: 'Third',
     },
-  ], [Icon1, Icon2, Icon3])
+    {
+      value: 'option4',
+      label: 'Fourth',
+      icon: Icon4 ? <Icon4 size={16} /> : undefined,
+      tooltip: 'Fourth',
+    },
+  ], [Icon1, Icon2, Icon3, Icon4])
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%', minWidth: 0, maxWidth: '100%' }}>

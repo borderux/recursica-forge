@@ -1,0 +1,38 @@
+/* Fallback SegmentedControl divider styles using pseudo-elements */
+
+.recursica-segmented-control-fallback {
+  overflow: visible !important;
+}
+
+/* Add divider as pseudo-element between items (not on selected items or items before selected) */
+/* Divider is centered in the gap: item has margin-right: item-gap, next item has margin-left: item-gap */
+.recursica-segmented-control-fallback[data-orientation="horizontal"] button:not(:last-child):not([data-selected]):not(:has(+ button[data-selected]))::after {
+  content: '' !important;
+  position: absolute !important;
+  right: calc(calc(var(--segmented-control-item-gap) * -1) - calc(var(--segmented-control-divider-size, 1px) * 0.5)) !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: var(--segmented-control-divider-size, 1px) !important;
+  background: var(--segmented-control-divider-color) !important;
+}
+
+.recursica-segmented-control-fallback[data-orientation="vertical"] button:not(:last-child):not([data-selected]):not(:has(+ button[data-selected]))::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: calc(calc(var(--segmented-control-item-gap) * -1) - calc(var(--segmented-control-divider-size, 1px) * 0.5)) !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: var(--segmented-control-divider-size, 1px) !important;
+  background: var(--segmented-control-divider-color) !important;
+}
+
+/* Ensure selected items don't have divider pseudo-elements */
+.recursica-segmented-control-fallback[data-orientation="horizontal"] button[data-selected]::after,
+.recursica-segmented-control-fallback[data-orientation="horizontal"] button:has(+ button[data-selected])::after {
+  display: none !important;
+}
+
+.recursica-segmented-control-fallback[data-orientation="vertical"] button[data-selected]::after,
+.recursica-segmented-control-fallback[data-orientation="vertical"] button:has(+ button[data-selected])::after {
+  display: none !important;
+}

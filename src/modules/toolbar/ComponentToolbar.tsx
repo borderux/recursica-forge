@@ -8,7 +8,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { parseComponentStructure, toSentenceCase, ComponentProp } from './utils/componentToolbarUtils'
 import VariantDropdown from './menu/dropdown/VariantDropdown'
-import LayerSegmentedControl from './menu/segmented/LayerSegmentedControl'
+import { SegmentedControl } from '../../components/adapters/SegmentedControl'
+import type { SegmentedControlItem } from '../../components/adapters/SegmentedControl'
 import { Accordion } from '../../components/adapters/Accordion'
 import PropControlContent from './menu/floating-palette/PropControlContent'
 import MenuIcon from './menu/MenuIcon'
@@ -253,19 +254,6 @@ export default function ComponentToolbar({
               const parentPropNameLower = parentPropName.toLowerCase()
               const isContainerOrSelected = parentPropNameLower === 'container' || parentPropNameLower === 'selected'
               
-              // #region agent log
-              const componentNameLower = componentName.toLowerCase()
-              const normalizedComponentName = componentNameLower.replace(/\s+/g, '-')
-              if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol') && isContainerOrSelected) {
-                const allMatchingProps = structure.props.filter(p => {
-                  const nameMatches = p.name.toLowerCase() === groupedPropKey
-                  const pathMatches = p.path.includes(parentPropNameLower)
-                  return nameMatches && pathMatches
-                })
-                const allPropsWithSameName = structure.props.filter(p => p.name.toLowerCase() === groupedPropKey)
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar:grouped-prop-matching',message:'Matching grouped prop for container/selected',data:{componentName,componentNameLower,parentPropName,groupedPropName,groupedPropKey,parentPropNameLower,isContainerOrSelected,allMatchingProps:allMatchingProps.map(p=>({name:p.name,path:p.path,cssVar:p.cssVar})),allPropsWithSameName:allPropsWithSameName.map(p=>({name:p.name,path:p.path,cssVar:p.cssVar}))},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'C'})}).catch(()=>{});
-              }
-              // #endregion agent log
               
               let groupedProp = structure.props.find(p => {
                 const nameMatches = p.name.toLowerCase() === groupedPropKey
@@ -275,23 +263,6 @@ export default function ComponentToolbar({
                 return nameMatches && pathMatches && layerMatches
               })
               
-              // #region agent log
-              const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item' || normalizedComponentName === 'segmentedcontrolitem'
-              if (isSegmentedControlItem && (parentPropNameLower === 'selected' || parentPropNameLower === 'item')) {
-                const allMatchingProps = structure.props.filter(p => {
-                  const nameMatches = p.name.toLowerCase() === groupedPropKey
-                  const pathMatches = p.path.includes(parentPropNameLower)
-                  return nameMatches && pathMatches
-                })
-                const allMatchingPropsWithLayer = structure.props.filter(p => {
-                  const nameMatches = p.name.toLowerCase() === groupedPropKey
-                  const pathMatches = p.path.includes(parentPropNameLower)
-                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
-                  return nameMatches && pathMatches && layerMatches
-                })
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar:grouped-prop-layer-filter',message:'Grouped prop layer filtering',data:{componentName,normalizedComponentName,parentPropName,groupedPropName,groupedPropKey,selectedLayer,foundGroupedProp:!!groupedProp,groupedPropPath:groupedProp?.path,groupedPropCssVar:groupedProp?.cssVar,allMatchingProps:allMatchingProps.map(p=>({name:p.name,path:p.path,cssVar:p.cssVar,category:p.category})),allMatchingPropsWithLayer:allMatchingPropsWithLayer.map(p=>({name:p.name,path:p.path,cssVar:p.cssVar,category:p.category}))},timestamp:Date.now(),sessionId:'debug-session',runId:'layer-filter-debug',hypothesisId:'A'})}).catch(()=>{});
-              }
-              // #endregion agent log
               
               // For container/selected props, NEVER fall back to name-only match - this would cause wrong props to be selected
               // Only fall back to name-only match for other grouped props
@@ -396,11 +367,6 @@ export default function ComponentToolbar({
                 }
               }
               if (groupedProp) {
-                // #region agent log
-                if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol') && isContainerOrSelected) {
-                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar:grouped-prop-found',message:'Grouped prop found and set',data:{componentName,componentNameLower,normalizedComponentName,parentPropName,groupedPropName,groupedPropKey,foundPropName:groupedProp.name,foundPropPath:groupedProp.path,foundPropCssVar:groupedProp.cssVar},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'C'})}).catch(()=>{});
-                }
-                // #endregion agent log
                 
                 groupedProps.set(groupedPropKey, groupedProp)
                 // Also update the groupedPropsMap to ensure consistency
@@ -410,15 +376,6 @@ export default function ComponentToolbar({
                 // This prevents using the wrong layer's prop
                 groupedProps.delete(groupedPropKey)
                 groupedPropsMap.set(parentPropName.toLowerCase(), groupedProps)
-              } else {
-                // Debug: log if prop is not found
-                // #region agent log
-                if ((normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmentedcontrol') && isContainerOrSelected) {
-                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar:grouped-prop-not-found',message:'Grouped prop NOT found',data:{componentName,componentNameLower,normalizedComponentName,parentPropName,groupedPropName,groupedPropKey,isContainerOrSelected,allPropsWithSameName:structure.props.filter(p=>p.name.toLowerCase()===groupedPropKey).map(p=>({name:p.name,path:p.path,cssVar:p.cssVar}))},timestamp:Date.now(),sessionId:'debug-session',runId:'container-selected-debug',hypothesisId:'C'})}).catch(()=>{});
-                }
-                // #endregion agent log
-                
-                console.warn(`ComponentToolbar: Grouped prop "${groupedPropName}" not found in structure.props for ${componentName}. Available props:`, structure.props.map(p => `${p.name} (${p.isVariantSpecific ? 'variant' : 'component-level'})`))
               }
             }
           }
@@ -692,16 +649,51 @@ export default function ComponentToolbar({
   }
 
 
+  // Dynamically get all available layers from theme
+  const layers = useMemo(() => {
+    const t: any = theme
+    const themeRoot: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
+    const themes = themeRoot?.themes || themeRoot
+    const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+    const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
+      const aNum = parseInt(a.replace('layer-', ''), 10)
+      const bNum = parseInt(b.replace('layer-', ''), 10)
+      return aNum - bNum
+    })
+    return layerKeys.length > 0 ? layerKeys : ['layer-0', 'layer-1', 'layer-2', 'layer-3'] // Fallback for initial load
+  }, [theme, mode])
+
+  // Convert layers to SegmentedControlItem format
+  const layerItems: SegmentedControlItem[] = useMemo(() => {
+    return layers.map((layer, index) => ({
+      value: layer,
+      label: index.toString(),
+    }))
+  }, [layers])
+
+  const LayerIcon = iconNameToReactComponent('square-3-stack-3d')
+
   return (
     <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
       <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
-        <LayerSegmentedControl
-          selected={selectedLayer}
-          onSelect={(layer) => {
-            onLayerChange(layer)
-          }}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
+            {LayerIcon && <LayerIcon style={{ width: '16px', height: '16px' }} />}
+            <span style={{ fontSize: 'var(--recursica-brand-typography-body-small-font-size)', fontWeight: 500 }}>Layer</span>
+          </div>
+          <SegmentedControl
+            items={layerItems}
+            value={selectedLayer}
+            onChange={(value) => {
+              onLayerChange(value)
+            }}
+            orientation="horizontal"
+            fullWidth={false}
+            layer="layer-0"
+            componentNameForCssVars="SegmentedControl"
+          />
+        </div>
       </div>
 
       {/* Variants Dropdowns */}

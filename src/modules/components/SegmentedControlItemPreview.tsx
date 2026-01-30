@@ -13,16 +13,6 @@ export default function SegmentedControlItemPreview({
   selectedLayer,
   componentElevation,
 }: SegmentedControlItemPreviewProps) {
-  // Extract fill-width variant from selectedVariants
-  const fillWidthVariant = (selectedVariants['fill-width'] || 'false') as 'true' | 'false'
-  const fillWidth = fillWidthVariant === 'true'
-  
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControlItemPreview.tsx:18',message:'fillWidth values',data:{fillWidthVariant,fillWidth,selectedVariants:JSON.stringify(selectedVariants)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  }, [fillWidthVariant, fillWidth, selectedVariants]);
-  // #endregion agent log
-  
   const [updateKey, setUpdateKey] = useState(0)
   
   // Listen for CSS variable updates to force re-render
@@ -64,6 +54,7 @@ export default function SegmentedControlItemPreview({
   const Icon1 = iconNameToReactComponent('house')
   const Icon2 = iconNameToReactComponent('sliders-horizontal')
   const Icon3 = iconNameToReactComponent('user')
+  const Icon4 = iconNameToReactComponent('info')
   
   // State for selected values
   const [selectedValue1, setSelectedValue1] = useState<string>('option1')
@@ -90,6 +81,12 @@ export default function SegmentedControlItemPreview({
       icon: Icon3 ? <Icon3 size={16} /> : undefined,
       tooltip: 'Third',
     },
+    {
+      value: 'option4',
+      label: 'Fourth',
+      icon: Icon4 ? <Icon4 size={16} /> : undefined,
+      tooltip: 'Fourth',
+    },
   ]
   
   // Create items with labels only
@@ -108,6 +105,11 @@ export default function SegmentedControlItemPreview({
       value: 'option3',
       label: 'Third',
       tooltip: 'Third',
+    },
+    {
+      value: 'option4',
+      label: 'Fourth',
+      tooltip: 'Fourth',
     },
   ]
   
@@ -131,6 +133,12 @@ export default function SegmentedControlItemPreview({
       icon: Icon3 ? <Icon3 size={16} /> : undefined,
       tooltip: 'Third',
     },
+    {
+      value: 'option4',
+      label: 'Fourth',
+      icon: Icon4 ? <Icon4 size={16} /> : undefined,
+      tooltip: 'Fourth',
+    },
   ]
   
   return (
@@ -143,7 +151,7 @@ export default function SegmentedControlItemPreview({
           value={selectedValue1}
           onChange={setSelectedValue1}
           orientation="horizontal"
-          fullWidth={fillWidth}
+          fullWidth={false}
           layer={selectedLayer as any}
           elevation={componentElevation}
           componentNameForCssVars="SegmentedControlItem"
@@ -158,7 +166,7 @@ export default function SegmentedControlItemPreview({
           value={selectedValue2}
           onChange={setSelectedValue2}
           orientation="horizontal"
-          fullWidth={fillWidth}
+          fullWidth={false}
           layer={selectedLayer as any}
           elevation={componentElevation}
           componentNameForCssVars="SegmentedControlItem"
@@ -173,7 +181,7 @@ export default function SegmentedControlItemPreview({
           value={selectedValue3}
           onChange={setSelectedValue3}
           orientation="horizontal"
-          fullWidth={fillWidth}
+          fullWidth={false}
           layer={selectedLayer as any}
           elevation={componentElevation}
           showLabel={false}

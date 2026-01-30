@@ -14,6 +14,7 @@ import { readCssVar } from '../../core/css/readCssVar'
 import { useCssVar } from '../hooks/useCssVar'
 import { Tooltip } from './Tooltip'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import './SegmentedControl.css'
 
 export type SegmentedControlItem = {
   value: string
@@ -72,22 +73,24 @@ export function SegmentedControl({
     
     // Get CSS variables - padding (applied to all items)
     const paddingHorizontalVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'padding-horizontal')
-    const paddingVerticalVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'padding-vertical')
+    const heightVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'height')
     
     // Get CSS variables - selected properties
     const selectedBgVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'background')
     const selectedBorderColorVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'border-color')
     const selectedBorderSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'border-size')
-    const selectedBorderRadiusVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'border-radius')
     const selectedElevationVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'elevation')
     
+    // Get CSS variables - item properties (applied to both regular and selected items)
+    const itemBorderRadiusVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'border-radius')
+    
     // Get CSS variables - text colors
-    // For SegmentedControlItem, text color is under properties.item.colors.layer-X.text-color
-    // For SegmentedControl, colors are directly under colors.layer-X.text (legacy)
+    // For SegmentedControlItem, text color is under properties.container.colors.layer-X.text-color
+    // For SegmentedControl, text color is under properties.container.colors.layer-X.text-color
     // Selected text color is always under properties.selected.colors.layer-X.text-color
     const textVar = componentNameForCssVars === 'SegmentedControlItem'
-      ? buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'colors', layer, 'text-color')
-      : getComponentCssVar(componentNameForCssVars, 'colors', 'text', layer)
+      ? buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'text-color')
+      : buildComponentCssVarPath(componentNameForCssVars, 'properties', 'container', 'colors', layer, 'text-color')
     const selectedTextVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'text-color')
     
     // Get text style properties
@@ -105,21 +108,14 @@ export function SegmentedControl({
     const iconSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'icon-size')
     const iconGapVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'icon-text-gap')
     
-    // #region agent log
     const paddingHorizontalValue = readCssVar(paddingHorizontalVar)
-    const paddingVerticalValue = readCssVar(paddingVerticalVar)
+    const heightValue = readCssVar(heightVar)
     const iconGapValue = iconGapVar ? readCssVar(iconGapVar) : null
     const iconSizeValue = readCssVar(iconSizeVar)
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:css-var-reads',message:'CSS variable values',data:{paddingHorizontalVar,paddingHorizontalValue,paddingVerticalVar,paddingVerticalValue,iconGapVar,iconGapValue,iconSizeVar,iconSizeValue,paddingHorizontalVarPath:paddingHorizontalVar,paddingVerticalVarPath:paddingVerticalVar,iconGapVarPath:iconGapVar,iconSizeVarPath:iconSizeVar},timestamp:Date.now(),sessionId:'debug-session',runId:'padding-gap-debug',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion agent log
     
     // Get divider properties (always from SegmentedControl as these are container-level)
     const dividerColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'divider-color')
     const dividerSizeVar = getComponentLevelCssVar('SegmentedControl', 'divider-size')
-    
-    // Get orientation-specific max-width/max-height (always from SegmentedControl as these are variant properties)
-    const maxWidthVar = buildComponentCssVarPath('SegmentedControl', 'variants', 'orientation', 'horizontal', 'properties', 'max-width')
-    const maxHeightVar = buildComponentCssVarPath('SegmentedControl', 'variants', 'orientation', 'vertical', 'properties', 'max-height')
     
     // Reactively read border-size and divider-size
     const borderSizeValue = useCssVar(containerBorderSizeVar, '1px')
@@ -163,21 +159,22 @@ export function SegmentedControl({
         window.removeEventListener('cssVarsReset', handleCssVarUpdate)
         observer.disconnect()
       }
-    }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, paddingVerticalVar])
+    }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, heightVar])
     
     return (
       <div
-        className={className}
+        className={`recursica-segmented-control-fallback ${className || ''}`}
+        data-orientation={isVertical ? 'vertical' : 'horizontal'}
         style={{
           display: isVertical ? 'flex' : 'inline-flex',
           flexDirection: isVertical ? 'column' : 'row',
           borderRadius: `var(${containerBorderRadiusVar})`,
           border: `${borderSizeValue} solid var(${containerBorderColorVar || textVar})`,
           background: `var(${containerBgVar})`,
-          padding: `var(${paddingVerticalVar}) var(${paddingHorizontalVar})`,
+          paddingLeft: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : undefined,
+          paddingRight: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : undefined,
           width: fullWidth ? '100%' : 'auto',
-          maxWidth: !isVertical && maxWidthVar ? `var(${maxWidthVar})` : undefined,
-          maxHeight: isVertical && maxHeightVar ? `var(${maxHeightVar})` : undefined,
+          overflow: 'visible',
           ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
           ...style,
         }}
@@ -197,32 +194,45 @@ export function SegmentedControl({
           const shouldAddDivider = !isLastItem && !isSelected && !isNextItemSelected
           const spacingStyle: React.CSSProperties = {}
           
-          // Always apply item-gap spacing between items (except after the last one)
+          // Always apply item-gap spacing between items - divider has full gap on both sides
           // Item-gap only affects margin, not padding - padding remains uniform for all items
-          if (!isLastItem) {
+          // Explicitly ensure first item has no left/top margin and last item has no right/bottom margin
+          if (index > 0) {
             if (isVertical) {
               // Horizontal divider for vertical orientation
-              // margin-bottom creates space after the item (before the divider)
-              spacingStyle.marginBottom = `var(${itemGapVar})`
+              // margin-top creates space before the item (equal to item-gap)
+              spacingStyle.marginTop = `var(${itemGapVar})`
             } else {
               // Vertical divider for horizontal orientation
-              // margin-right creates space after the item (before the divider)
+              // margin-left creates space before the item (equal to item-gap)
+              spacingStyle.marginLeft = `var(${itemGapVar})`
+            }
+          } else {
+            // First item: explicitly set margin to 0
+            if (isVertical) {
+              spacingStyle.marginTop = '0'
+            } else {
+              spacingStyle.marginLeft = '0'
+            }
+          }
+          if (!isLastItem) {
+            if (isVertical) {
+              // margin-bottom creates space after the item (equal to item-gap)
+              spacingStyle.marginBottom = `var(${itemGapVar})`
+            } else {
+              // margin-right creates space after the item (equal to item-gap)
               spacingStyle.marginRight = `var(${itemGapVar})`
+            }
+          } else {
+            // Last item: explicitly set margin to 0
+            if (isVertical) {
+              spacingStyle.marginBottom = '0'
+            } else {
+              spacingStyle.marginRight = '0'
             }
           }
           
-          // Only add divider border when divider should be visible
-          if (shouldAddDivider) {
-            // Use CSS variable with fallback chain - this is reactive and handles empty values correctly
-            const dividerColorFallback = dividerColorVar || containerBorderColorVar || textVar
-            const dividerColorValue = `var(${dividerColorFallback})`
-            
-            if (isVertical) {
-              spacingStyle.borderBottom = `${dividerSizeValue} solid ${dividerColorValue}`
-            } else {
-              spacingStyle.borderRight = `${dividerSizeValue} solid ${dividerColorValue}`
-            }
-          }
+          // Dividers are now handled via CSS pseudo-elements, not borders
           
           // Build border styles - use individual properties to avoid overriding divider borders
           const borderStyle: React.CSSProperties = {}
@@ -237,17 +247,9 @@ export function SegmentedControl({
             // Then spacingStyle will override the divider side if needed
           }
           
-          // #region agent log
           const paddingHorizontalValue = readCssVar(paddingHorizontalVar)
-          const paddingVerticalValue = readCssVar(paddingVerticalVar)
+          const heightValue = readCssVar(heightVar)
           const iconGapValue = iconGapVar ? readCssVar(iconGapVar) : null
-          const itemGapValue = readCssVar(itemGapVar)
-          const computedPaddingRight = !isLastItem && !isSelected && !isVertical ? `calc(${paddingHorizontalValue || '0px'} + ${itemGapValue || '0px'})` : paddingHorizontalValue
-          const computedPaddingBottom = !isLastItem && !isSelected && isVertical ? `calc(${paddingVerticalValue || '0px'} + ${itemGapValue || '0px'})` : paddingVerticalValue
-          if (index === 0) {
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:233',message:'Padding values check',data:{paddingHorizontalVar,paddingHorizontalValue,paddingVerticalVar,paddingVerticalValue,itemGapVar,itemGapValue,iconGapVar,iconGapValue,hasIcon,hasLabel,isLastItem,isSelected,isVertical,computedPaddingRight,computedPaddingBottom},timestamp:Date.now(),sessionId:'debug-session',runId:'padding-debug',hypothesisId:'A'})}).catch(()=>{});
-          }
-          // #endregion agent log
           
           const button = (
             <button
@@ -255,15 +257,15 @@ export function SegmentedControl({
               type="button"
               disabled={disabled || item.disabled}
               onClick={() => !disabled && !item.disabled && onChange?.(item.value)}
+              data-selected={isSelected ? 'true' : undefined}
               style={{
                 // Base padding - will be overridden by spacingStyle if item-gap applies
-                paddingTop: paddingVerticalValue ? `var(${paddingVerticalVar})` : '0px',
-                paddingBottom: paddingVerticalValue ? `var(${paddingVerticalVar})` : '0px',
+                height: heightValue ? `var(${heightVar})` : 'auto',
                 paddingLeft: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
                 paddingRight: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
                 background: isSelected ? `var(${selectedBgVar})` : 'transparent',
                 color: isSelected ? `var(${selectedTextVar})` : `var(${textVar})`,
-                borderRadius: isSelected ? `var(${selectedBorderRadiusVar})` : `var(${containerBorderRadiusVar})`,
+                borderRadius: `var(${itemBorderRadiusVar})`,
                 cursor: disabled || item.disabled ? 'not-allowed' : 'pointer',
                 flex: fullWidth && !isVertical ? 1 : 'none',
                 width: fullWidth && isVertical ? '100%' : 'auto',
@@ -272,17 +274,10 @@ export function SegmentedControl({
                 justifyContent: 'center',
                 gap: hasIcon && hasLabel ? (iconGapVar && iconGapValue ? `var(${iconGapVar})` : (iconGapVar && !iconGapValue ? '0px' : undefined)) : undefined,
                 transition: 'background-color 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s',
-                // #region agent log
-                ...(hasIcon && !hasLabel && index === 0 ? {
-                  '--debug-icon-only': 'true',
-                  '--debug-has-icon': String(hasIcon),
-                  '--debug-has-label': String(hasLabel),
-                  '--debug-gap-value': hasIcon && hasLabel ? `var(${iconGapVar})` : 'undefined',
-                } : {}),
-                // #endregion agent log
+                position: 'relative' as const, // For absolute divider positioning
                 ...(isSelected && selectedElevationBoxShadow ? { boxShadow: selectedElevationBoxShadow } : {}),
-                ...spacingStyle, // Divider borders and spacing (applied after base padding to add item-gap)
-                ...borderStyle, // Selected borders (applied last to ensure they override divider borders)
+                ...spacingStyle, // Item-gap spacing (dividers handled via CSS pseudo-elements)
+                ...borderStyle, // Selected borders
               }}
             >
               {hasIcon && (
@@ -294,20 +289,6 @@ export function SegmentedControl({
                     height: iconSizeVar ? `var(${iconSizeVar})` : '16px',
                     flexShrink: 0,
                   }}
-                  // #region agent log
-                  ref={(el) => {
-                    if (el && index === 0) {
-                      setTimeout(() => {
-                        const computedStyle = window.getComputedStyle(el)
-                        const buttonEl = el.parentElement as HTMLElement
-                        const buttonStyle = window.getComputedStyle(buttonEl)
-                        const textEl = hasLabel ? buttonEl.querySelector('span:last-child') as HTMLElement : null
-                        const textStyle = textEl ? window.getComputedStyle(textEl) : null
-                        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:icon-span-ref',message:'Computed styles for icon and button',data:{iconMarginLeft:computedStyle.marginLeft,iconMarginRight:computedStyle.marginRight,iconPaddingLeft:computedStyle.paddingLeft,iconPaddingRight:computedStyle.paddingRight,iconWidth:computedStyle.width,iconHeight:computedStyle.height,buttonPaddingLeft:buttonStyle.paddingLeft,buttonPaddingRight:buttonStyle.paddingRight,buttonPaddingTop:buttonStyle.paddingTop,buttonPaddingBottom:buttonStyle.paddingBottom,buttonGap:buttonStyle.gap,buttonJustifyContent:buttonStyle.justifyContent,buttonDisplay:buttonStyle.display,buttonWidth:buttonStyle.width,textMarginLeft:textStyle?.marginLeft,textMarginRight:textStyle?.marginRight,hasIcon,hasLabel,iconGapVar,iconGapValue:readCssVar(iconGapVar),paddingHorizontalValue,paddingVerticalValue},timestamp:Date.now(),sessionId:'debug-session',runId:'padding-gap-debug',hypothesisId:'B'})}).catch(()=>{});
-                      }, 100)
-                    }
-                  }}
-                  // #endregion agent log
                 >
                   {item.icon}
                 </span>

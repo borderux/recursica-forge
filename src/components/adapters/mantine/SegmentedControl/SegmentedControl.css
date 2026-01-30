@@ -4,8 +4,12 @@
   background: var(--segmented-control-bg) !important;
   border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color) !important;
   border-radius: var(--segmented-control-border-radius) !important;
-  /* Padding should be on control elements, not the root container */
-  padding: 0 !important;
+  overflow: visible !important;
+  /* Container padding - can be overridden by inline styles */
+  padding-top: var(--segmented-control-container-padding-vertical, 0px) !important;
+  padding-bottom: var(--segmented-control-container-padding-vertical, 0px) !important;
+  padding-left: var(--segmented-control-container-padding-horizontal, 0px) !important;
+  padding-right: var(--segmented-control-container-padding-horizontal, 0px) !important;
   font-family: var(--segmented-control-font-family) !important;
   font-size: var(--segmented-control-font-size) !important;
   font-weight: var(--segmented-control-font-weight) !important;
@@ -137,14 +141,18 @@
 }
 
 /* Override any Mantine pseudo-elements or other styling that might create dividers */
-.mantine-SegmentedControl-root .mantine-SegmentedControl-control::before,
-.mantine-SegmentedControl-root .mantine-SegmentedControl-control::after {
+/* Note: We only hide ::before, not ::after, since we use ::after for dividers */
+.mantine-SegmentedControl-root .mantine-SegmentedControl-control::before {
   display: none !important;
   content: none !important;
 }
 
-/* Override Mantine's indicator element (selected item background) - it might have borders */
+/* Override Mantine's indicator element (selected item background) - hide it completely */
+/* We apply the selected background directly to the control element, so the indicator is not needed */
 .mantine-SegmentedControl-indicator {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
   border: none !important;
   border-left: none !important;
   border-right: none !important;
@@ -152,6 +160,7 @@
   border-bottom: none !important;
   box-shadow: none !important;
   outline: none !important;
+  background: transparent !important;
   /* Elevation box-shadow is applied to the control element, not the indicator */
 }
 
@@ -179,24 +188,47 @@
   border-left: none !important;
 }
 
-/* Always add margin for item-gap between items (except after the last one) */
+/* Always add margin for item-gap between items - divider has full gap on both sides */
 /* Item-gap only affects margin, not padding - padding remains uniform for all items */
+/* Apply margins to non-first and non-last items */
+.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not(:first-child) {
+  margin-left: var(--segmented-control-item-gap) !important;
+}
 .mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not(:last-child) {
   margin-right: var(--segmented-control-item-gap) !important;
 }
-
-/* Then add divider border only where needed (not on selected items or items before selected) */
-.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not(:last-child):not([data-active]):not(:has(+ .mantine-SegmentedControl-control[data-active])) {
-  border-right: var(--segmented-control-divider-size, 1px) solid var(--segmented-control-divider-color) !important;
-  /* Ensure no other borders are applied */
-  border-left: none !important;
-  border-top: none !important;
-  border-bottom: none !important;
+/* Explicitly ensure first child has no left margin and last child has no right margin */
+/* These rules must come AFTER the :not() rules to override them */
+.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:first-child {
+  margin-left: 0 !important;
+}
+.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:last-child {
+  margin-right: 0 !important;
 }
 
-/* Remove divider border from item immediately before selected item */
-.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not([data-active]):has(+ .mantine-SegmentedControl-control[data-active]) {
-  border-right: none !important;
+/* Divider elements injected via JavaScript */
+/* Divider is positioned relative to the control element */
+.recursica-segmented-control-divider[data-orientation="horizontal"] {
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: var(--segmented-control-divider-size, 1px) !important;
+  background: var(--segmented-control-divider-color) !important;
+  /* Center in gap: total gap = margin-right (item-gap) + margin-left of next (item-gap) = 2 * item-gap */
+  /* Gap center is at control.right + item-gap (in margin space, outside the control) */
+  /* Divider center should align with gap center, so divider center at: control.right + item-gap */
+  /* Since we're positioning the right edge, and divider center = right edge - divider-width/2 */
+  /* right edge = divider center + divider-width/2 = (control.right + item-gap) + divider-width/2 */
+  /* Since right is negative for elements outside the control: right = -(item-gap + divider-width/2) */
+  /* So right = -item-gap - divider-width/2 */
+  right: calc(calc(var(--segmented-control-item-gap) * -1) - calc(var(--segmented-control-divider-size, 1px) * 0.5)) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+/* Ensure controls are positioned relative for absolute divider positioning */
+.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control {
+  position: relative !important;
 }
 
 /* Add spacing and divider between items (horizontal for vertical orientation) */
@@ -214,37 +246,60 @@
   border-top: none !important;
 }
 
-/* Always add margin for item-gap between items (except after the last one) */
+/* Always add margin for item-gap between items - divider has full gap on both sides */
 /* Item-gap only affects margin, not padding - padding remains uniform for all items */
+/* Apply margins to non-first and non-last items */
+.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not(:first-child) {
+  margin-top: var(--segmented-control-item-gap) !important;
+}
 .mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not(:last-child) {
   margin-bottom: var(--segmented-control-item-gap) !important;
 }
-
-/* Then add divider border only where needed (not on selected items or items before selected) */
-.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not(:last-child):not([data-active]):not(:has(+ .mantine-SegmentedControl-control[data-active])) {
-  border-bottom: var(--segmented-control-divider-size, 1px) solid var(--segmented-control-divider-color) !important;
-  /* Ensure no other borders are applied */
-  border-left: none !important;
-  border-right: none !important;
-  border-top: none !important;
+/* Explicitly ensure first child has no top margin and last child has no bottom margin */
+/* These rules must come AFTER the :not() rules to override them */
+.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:first-child {
+  margin-top: 0 !important;
+}
+.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:last-child {
+  margin-bottom: 0 !important;
 }
 
-/* Remove divider border from item immediately before selected item */
-.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not([data-active]):has(+ .mantine-SegmentedControl-control[data-active]) {
-  border-bottom: none !important;
+/* Divider elements injected via JavaScript */
+/* Divider is positioned relative to the control element */
+.recursica-segmented-control-divider[data-orientation="vertical"] {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: var(--segmented-control-divider-size, 1px) !important;
+  background: var(--segmented-control-divider-color) !important;
+  /* Center in gap: total gap = margin-bottom (item-gap) + margin-top of next (item-gap) = 2 * item-gap */
+  /* Gap center is at control.bottom + item-gap (in margin space, outside the control) */
+  /* Divider center should align with gap center, so divider center at: control.bottom + item-gap */
+  /* Since we're positioning the bottom edge, and divider center = bottom edge - divider-height/2 */
+  /* bottom edge = divider center + divider-height/2 = (control.bottom + item-gap) + divider-height/2 */
+  /* Since bottom is negative for elements outside the control: bottom = -(item-gap + divider-height/2) */
+  /* So bottom = -item-gap - divider-height/2 */
+  bottom: calc(calc(var(--segmented-control-item-gap) * -1) - calc(var(--segmented-control-divider-size, 1px) * 0.5)) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+/* Ensure controls are positioned relative for absolute divider positioning */
+.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control {
+  position: relative !important;
 }
 
 .mantine-SegmentedControl-control {
-  padding-top: var(--segmented-control-padding-vertical, 0px) !important;
-  padding-bottom: var(--segmented-control-padding-vertical, 0px) !important;
+  height: var(--segmented-control-height, auto) !important;
   padding-left: var(--segmented-control-padding-horizontal, 0px) !important;
   padding-right: var(--segmented-control-padding-horizontal, 0px) !important;
+  border-radius: var(--segmented-control-item-border-radius) !important;
 }
 
 .mantine-SegmentedControl-control[data-active] {
   background: var(--segmented-control-selected-bg) !important;
   color: var(--segmented-control-selected-text) !important;
-  border-radius: var(--segmented-control-selected-border-radius, var(--segmented-control-border-radius)) !important;
+  border-radius: var(--segmented-control-item-border-radius) !important;
   /* Selected border - use individual properties - ensure all sides are set */
   border-top: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-left: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
@@ -256,14 +311,7 @@
   z-index: 1 !important;
 }
 
-/* Remove divider from selected item's right/bottom side if not last */
-.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control[data-active]:not(:last-child) {
-  border-right: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
-}
-
-.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control[data-active]:not(:last-child) {
-  border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
-}
+/* Dividers are now injected as separate div elements, so no need to hide pseudo-elements */
 
 .mantine-SegmentedControl-label {
   color: inherit !important;

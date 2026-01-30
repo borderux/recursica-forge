@@ -1,10 +1,5 @@
 {
-  "variants": {
-    "fill-width": {
-      "icon": "arrows-out-line-horizontal",
-      "label": "Fill container width"
-    }
-  },
+  "variants": {},
   "props": {
     "text": {
       "icon": "text-aa",
@@ -53,19 +48,14 @@
       "label": "Item",
       "visible": true,
       "group": {
-        "text-color": {
-          "icon": "text-aa",
-          "label": "Text color",
-          "visible": true
-        },
         "padding-horizontal": {
           "icon": "arrows-left-right",
           "label": "Horizontal",
           "visible": true
         },
-        "padding-vertical": {
+        "height": {
           "icon": "arrows-up-down",
-          "label": "Vertical",
+          "label": "Height",
           "visible": true
         },
         "icon-size": {

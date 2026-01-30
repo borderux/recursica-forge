@@ -18,6 +18,8 @@ import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '
 import { Button } from '../../../components/adapters/Button'
 import { Tooltip } from '../../../components/adapters/Tooltip'
 import { Switch } from '../../../components/adapters/Switch'
+import { SegmentedControl } from '../../../components/adapters/SegmentedControl'
+import type { SegmentedControlItem } from '../../../components/adapters/SegmentedControl'
 import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
@@ -428,77 +430,30 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
             const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
             
+            const SunIcon = iconNameToReactComponent('sun')
+            const MoonIcon = iconNameToReactComponent('moon')
+            const modeItems: SegmentedControlItem[] = [
+              {
+                value: 'light',
+                icon: SunIcon ? <SunIcon style={{ width: `var(${buttonSmallIcon})`, height: `var(${buttonSmallIcon})` }} /> : undefined,
+                tooltip: 'Light theme',
+              },
+              {
+                value: 'dark',
+                icon: MoonIcon ? <MoonIcon style={{ width: `var(${buttonSmallIcon})`, height: `var(${buttonSmallIcon})` }} /> : undefined,
+                tooltip: 'Dark theme',
+              },
+            ]
             return (
-              <Box sx={{ 
-                display: 'inline-flex', 
-                alignItems: 'center',
-                backgroundColor: `var(${layer0Base}-surface)`,
-                border: `1px solid var(${layer0Base}-border-color)`,
-                borderRadius: `var(${buttonBorderRadius})`,
-                padding: `var(${buttonSmallIconPadding})`,
-                gap: 0,
-              }}>
-                <Tooltip label="Light theme">
-                  <button
-                    onClick={() => setMode('light')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: `var(${buttonSmallMinWidth})`,
-                      height: `var(${buttonSmallHeight})`,
-                      minWidth: `var(${buttonSmallMinWidth})`,
-                      border: 'none',
-                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
-                      backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
-                      color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                      opacity: mode === 'light' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {(() => {
-                      const SunIcon = iconNameToReactComponent('sun')
-                      return SunIcon ? <SunIcon 
-                        style={{ 
-                          width: `var(${buttonSmallIcon})`, 
-                          height: `var(${buttonSmallIcon})`,
-                        }} 
-                      /> : null
-                    })()}
-                  </button>
-                </Tooltip>
-                <Tooltip label="Dark theme">
-                  <button
-                    onClick={() => setMode('dark')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: `var(${buttonSmallMinWidth})`,
-                      height: `var(${buttonSmallHeight})`,
-                      minWidth: `var(${buttonSmallMinWidth})`,
-                      border: 'none',
-                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
-                      backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
-                      color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                      opacity: mode === 'dark' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {(() => {
-                      const MoonIcon = iconNameToReactComponent('moon')
-                      return MoonIcon ? <MoonIcon
-                        style={{ 
-                          width: `var(${buttonSmallIcon})`, 
-                          height: `var(${buttonSmallIcon})`,
-                        }} 
-                      /> : null
-                    })()}
-                  </button>
-                </Tooltip>
-              </Box>
+              <SegmentedControl
+                items={modeItems}
+                value={mode}
+                onChange={(value) => setMode(value as 'light' | 'dark')}
+                orientation="horizontal"
+                fullWidth={false}
+                layer="layer-0"
+                componentNameForCssVars="SegmentedControl"
+              />
             )
           })()}
         </Toolbar>
