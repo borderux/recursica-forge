@@ -231,8 +231,7 @@
   border-color: var(--segmented-control-border-color, transparent) !important;
 }
 
-.mantine-SegmentedControl-control[data-active],
-.mantine-SegmentedControl-control[data-active] * {
+.mantine-SegmentedControl-control[data-active] {
   /* Set border-color FIRST with fallback to prevent white flash */
   border-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg, transparent)) !important;
   border-top-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg, transparent)) !important;
@@ -242,6 +241,14 @@
   /* Ensure border-style and border-width are set to prevent white flash */
   border-style: solid !important;
   border-width: var(--segmented-control-selected-border-size, 1px) !important;
+}
+
+/* Ensure child elements inside selected control have no borders */
+.mantine-SegmentedControl-control[data-active] * {
+  border: none !important;
+  border-color: transparent !important;
+  border-width: 0 !important;
+  border-style: none !important;
 }
 
 /* Add spacing and divider between items (vertical for horizontal orientation) */

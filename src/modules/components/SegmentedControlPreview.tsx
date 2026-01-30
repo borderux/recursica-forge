@@ -118,7 +118,7 @@ export default function SegmentedControlPreview({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%', minWidth: 0, maxWidth: '100%' }}>
       {/* Original: Icons and Labels */}
-      <div style={{ display: 'block', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl
           items={itemsWithIconsAndLabels}
           value={selectedValue1}
@@ -131,7 +131,7 @@ export default function SegmentedControlPreview({
       </div>
       
       {/* Labels Only */}
-      <div style={{ display: 'block', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl
           items={itemsWithLabelsOnly}
           value={selectedValue2}
@@ -144,7 +144,7 @@ export default function SegmentedControlPreview({
       </div>
       
       {/* Icons Only (with tooltips) */}
-      <div style={{ display: 'block', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl
           items={itemsWithIconsOnly}
           value={selectedValue3}

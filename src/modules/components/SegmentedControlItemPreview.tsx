@@ -144,7 +144,7 @@ export default function SegmentedControlItemPreview({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
       {/* Icons and Labels - showing selected item styling */}
-      <div style={{ width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl
           key={`icons-labels-${updateKey}`}
           items={itemsWithIconsAndLabels}
@@ -159,7 +159,7 @@ export default function SegmentedControlItemPreview({
       </div>
       
       {/* Labels Only - showing selected item styling */}
-      <div style={{ width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl
           key={`labels-only-${updateKey}`}
           items={itemsWithLabelsOnly}
@@ -174,7 +174,7 @@ export default function SegmentedControlItemPreview({
       </div>
       
       {/* Icons Only - showing selected item styling */}
-      <div style={{ width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl
           key={`icons-only-${updateKey}`}
           items={itemsWithIconsOnly}
