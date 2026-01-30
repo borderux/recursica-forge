@@ -2,7 +2,7 @@
   "name": "recursica-forge",
   "description": "A tool for managing Recursica variables, themes, and token definitions",
   "private": true,
-  "version": "0.1.5",
+  "version": "0.1.6",
   "homepage": "https://forge.recursica.com",
   "repository": {
     "type": "git",
