@@ -9,10 +9,10 @@
   /* Use UIKit CSS variable directly for reactive updates - toolbar updates this on document root */
   /* Fallback to --chip-color CSS custom property, then to Mantine default */
   color: var(--chip-color, var(--mantine-color-gray-9)) !important;
-  /* Border uses global CSS variable directly - this is reactive and updates in real time */
+  /* Border uses CSS custom property set by component - this is reactive and updates in real time */
   /* CRITICAL: CSS variables in stylesheets are reactive - they update when the variable on documentElement changes */
   /* Use border shorthand to ensure all properties are set together */
-  border: var(--recursica-ui-kit-components-chip-properties-border-size, 1px) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
+  border: var(--chip-border-size, var(--recursica-ui-kit-components-chip-properties-border-size, 1px)) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
   padding-left: var(--chip-padding-x) !important;
   padding-right: var(--chip-padding-x) !important;
   padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
@@ -22,15 +22,15 @@
   min-height: auto !important;
   max-height: none !important;
   border-radius: var(--chip-border-radius, 16px) !important;
-  /* Use UIKit text property CSS variables directly for reactive updates */
-  font-family: var(--recursica-ui-kit-components-chip-properties-text-font-family) !important;
-  font-size: var(--recursica-ui-kit-components-chip-properties-text-font-size) !important;
-  font-weight: var(--recursica-ui-kit-components-chip-properties-text-font-weight) !important;
-  letter-spacing: var(--recursica-ui-kit-components-chip-properties-text-letter-spacing) !important;
-  line-height: var(--recursica-ui-kit-components-chip-properties-text-line-height) !important;
-  text-decoration: var(--recursica-ui-kit-components-chip-properties-text-text-decoration) !important;
-  text-transform: var(--recursica-ui-kit-components-chip-properties-text-text-transform) !important;
-  font-style: var(--recursica-ui-kit-components-chip-properties-text-font-style) !important;
+  /* Use CSS custom properties set by component for reactive updates, with fallback to UIKit variables */
+  font-family: var(--chip-font-family, var(--recursica-ui-kit-components-chip-properties-text-font-family)) !important;
+  font-size: var(--chip-font-size, var(--recursica-ui-kit-components-chip-properties-text-font-size)) !important;
+  font-weight: var(--chip-font-weight, var(--recursica-ui-kit-components-chip-properties-text-font-weight)) !important;
+  letter-spacing: var(--chip-letter-spacing, var(--recursica-ui-kit-components-chip-properties-text-letter-spacing)) !important;
+  line-height: var(--chip-line-height, var(--recursica-ui-kit-components-chip-properties-text-line-height)) !important;
+  text-decoration: var(--chip-text-decoration, var(--recursica-ui-kit-components-chip-properties-text-text-decoration)) !important;
+  text-transform: var(--chip-text-transform, var(--recursica-ui-kit-components-chip-properties-text-text-transform)) !important;
+  font-style: var(--chip-font-style, var(--recursica-ui-kit-components-chip-properties-text-font-style)) !important;
   display: inline-flex !important;
   align-items: center !important;
   cursor: pointer !important;
@@ -69,10 +69,10 @@
   min-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
   max-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
   max-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
-  /* Read UIKit variable directly for real-time updates - CSS variables in stylesheets are reactive */
-  /* When toolbar updates --recursica-ui-kit-components-chip-properties-icon-text-gap on documentElement, this updates automatically */
+  /* Use CSS custom property set by component for real-time updates - CSS variables in stylesheets are reactive */
+  /* When toolbar updates UIKit variable on documentElement, component updates --chip-icon-text-gap which updates this automatically */
   /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-properties-icon-text-gap */
-  margin-inline-end: var(--recursica-ui-kit-components-chip-properties-icon-text-gap, 8px) !important;
+  margin-inline-end: var(--chip-icon-text-gap, var(--recursica-ui-kit-components-chip-properties-icon-text-gap, 8px)) !important;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
   flex-basis: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;

@@ -242,12 +242,23 @@ export default function Chip({
       '--chip-close-icon-size': deletable && onDelete ? `var(${closeIconSizeVar})` : '0px',
       '--chip-leading-icon-color': leadingIconColorVar ? `var(${leadingIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       '--chip-close-icon-color': closeIconColorVar ? `var(${closeIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
-      // Don't set --chip-icon-text-gap here - let CSS use UIKit variable directly for real-time updates
+      // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
+      // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
+      '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
       '--chip-padding-x': `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,
       '--chip-padding-y': `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
       '--chip-border-size': `var(${borderSizeVar})`,
       '--chip-border-radius': `var(${borderRadiusVar})`,
-      // Apply text styles using CSS variables from text style toolbar
+      // Set CSS custom properties for text styles (used by CSS file)
+      '--chip-font-family': fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
+      '--chip-font-size': fontSizeVar ? `var(${fontSizeVar})` : undefined,
+      '--chip-font-weight': fontWeightVar ? `var(${fontWeightVar})` : undefined,
+      '--chip-letter-spacing': letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+      '--chip-line-height': lineHeightVar ? `var(${lineHeightVar})` : undefined,
+      '--chip-text-decoration': textDecorationVar ? `var(${textDecorationVar})` : undefined,
+      '--chip-text-transform': textTransformVar ? `var(${textTransformVar})` : undefined,
+      '--chip-font-style': fontStyleVar ? `var(${fontStyleVar})` : undefined,
+      // Apply text styles using CSS variables from text style toolbar (inline fallback)
       fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
       fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
       fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,

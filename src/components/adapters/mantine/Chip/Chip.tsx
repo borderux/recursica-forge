@@ -309,7 +309,16 @@ export default function Chip({
       '--chip-padding-y': `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
       '--chip-border-size': `var(${borderSizeVar})`,
       '--chip-border-radius': `var(${borderRadiusVar})`,
-      // Apply text styles using CSS variables from text style toolbar
+      // Set CSS custom properties for text styles (used by CSS file)
+      '--chip-font-family': fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
+      '--chip-font-size': fontSizeVar ? `var(${fontSizeVar})` : undefined,
+      '--chip-font-weight': fontWeightVar ? `var(${fontWeightVar})` : undefined,
+      '--chip-letter-spacing': letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+      '--chip-line-height': lineHeightVar ? `var(${lineHeightVar})` : undefined,
+      '--chip-text-decoration': textDecorationVar ? `var(${textDecorationVar})` : undefined,
+      '--chip-text-transform': textTransformVar ? `var(${textTransformVar})` : undefined,
+      '--chip-font-style': fontStyleVar ? `var(${fontStyleVar})` : undefined,
+      // Apply text styles using CSS variables from text style toolbar (inline fallback)
       fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
       fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
       fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
