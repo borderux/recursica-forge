@@ -92,3 +92,12 @@
   opacity: 0.5;
 }
 
+/* Ensure track and container don't have overflow hidden */
+.mantine-Switch-root {
+  overflow: visible !important;
+}
+
+.mantine-Switch-track {
+  overflow: visible !important;
+}
+

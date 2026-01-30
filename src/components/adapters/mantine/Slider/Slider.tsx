@@ -11,6 +11,7 @@ import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, 
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
+import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import './Slider.css'
 
 export default function Slider({
@@ -48,6 +49,7 @@ export default function Slider({
   const thumbSizeVar = getComponentLevelCssVar('Slider', 'thumb-size')
   const trackBorderRadiusVar = getComponentLevelCssVar('Slider', 'track-border-radius')
   const thumbBorderRadiusVar = getComponentLevelCssVar('Slider', 'thumb-border-radius')
+  const thumbElevationVar = getComponentLevelCssVar('Slider', 'thumb-elevation')
   
   // Get layout-specific gap
   const labelSliderGapVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'label-slider-gap')
@@ -55,6 +57,48 @@ export default function Slider({
   // Get input width and gap if showing input
   const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
   const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
+  
+  // Reactively read thumb elevation from CSS variable
+  const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
+    if (!thumbElevationVar) return undefined
+    const value = readCssVar(thumbElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+  
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(thumbElevationVar)) {
+        if (thumbElevationVar) {
+          const value = readCssVar(thumbElevationVar)
+          setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+        }
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      if (thumbElevationVar) {
+        const value = readCssVar(thumbElevationVar)
+        setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [thumbElevationVar])
+  
+  // Determine thumb elevation from UIKit.json
+  const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
   
   const isRange = Array.isArray(value)
   const singleValue = isRange ? value[0] : value
@@ -207,6 +251,7 @@ export default function Slider({
           '--slider-size': `var(${trackHeightVar}, 4px)`,
           '--slider-radius': `var(${trackBorderRadiusVar})`,
           '--slider-thumb-radius': `var(${thumbBorderRadiusVar})`,
+          '--slider-thumb-elevation': thumbElevationBoxShadow || '0 1px 2px rgba(0, 0, 0, 0.15)',
           ...style,
         }}
         {...mantine}

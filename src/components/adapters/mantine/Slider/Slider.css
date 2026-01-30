@@ -14,7 +14,7 @@
 .mantine-Slider-thumb {
   background-color: var(--slider-thumb-color) !important;
   border: none !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: var(--slider-thumb-elevation, 0 1px 2px rgba(0, 0, 0, 0.15)) !important;
 }
 
 /* Override track height and border radius - use wrapper variables set by component */

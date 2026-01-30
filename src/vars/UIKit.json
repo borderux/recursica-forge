@@ -1563,6 +1563,10 @@
               "unit": "px"
             }
           },
+          "thumb-elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-0}"
+          },
           "input-width": {
             "$type": "dimension",
             "$value": {

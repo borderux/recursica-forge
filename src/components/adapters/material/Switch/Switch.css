@@ -30,3 +30,12 @@
 .MuiSwitch-root.Mui-disabled .MuiSwitch-switchBase {
   cursor: not-allowed !important;
 }
+
+/* Ensure track and container don't have overflow hidden */
+.MuiSwitch-root {
+  overflow: visible !important;
+}
+
+.MuiSwitch-track {
+  overflow: visible !important;
+}

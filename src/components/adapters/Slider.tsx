@@ -12,6 +12,7 @@ import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Label } from './Label'
 import { getTypographyCssVar, extractTypographyStyleName } from '../utils/typographyUtils'
+import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type SliderProps = {
@@ -148,6 +149,7 @@ export function Slider({
     const thumbSizeVar = getComponentLevelCssVar('Slider', 'thumb-size')
     const trackBorderRadiusVar = getComponentLevelCssVar('Slider', 'track-border-radius')
     const thumbBorderRadiusVar = getComponentLevelCssVar('Slider', 'thumb-border-radius')
+    const thumbElevationVar = getComponentLevelCssVar('Slider', 'thumb-elevation')
     
     // Get layout-specific gap
     const labelSliderGapVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'label-slider-gap')
@@ -155,6 +157,48 @@ export function Slider({
     // Get input width and gap if showing input
     const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
     const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
+    
+    // Reactively read thumb elevation from CSS variable
+    const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
+      if (!thumbElevationVar) return undefined
+      const value = readCssVar(thumbElevationVar)
+      return value ? parseElevationValue(value) : undefined
+    })
+    
+    // Listen for CSS variable updates from the toolbar
+    useEffect(() => {
+      const handleCssVarUpdate = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        if (!detail?.cssVars || detail.cssVars.includes(thumbElevationVar)) {
+          if (thumbElevationVar) {
+            const value = readCssVar(thumbElevationVar)
+            setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+          }
+        }
+      }
+      
+      window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+      
+      // Also watch for direct style changes using MutationObserver
+      const observer = new MutationObserver(() => {
+        if (thumbElevationVar) {
+          const value = readCssVar(thumbElevationVar)
+          setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+        }
+      })
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['style'],
+      })
+      
+      return () => {
+        window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+        observer.disconnect()
+      }
+    }, [thumbElevationVar])
+    
+    // Determine thumb elevation from UIKit.json
+    const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = Number(e.target.value)
@@ -173,6 +217,7 @@ export function Slider({
     const thumbColorValue = readCssVarResolved(thumbVar) || readCssVar(thumbVar) || '#000000'
     const thumbBorderRadiusValue = readCssVarResolved(thumbBorderRadiusVar) || readCssVar(thumbBorderRadiusVar) || '50%'
     const trackHeightValue = readCssVarResolved(trackHeightVar) || readCssVar(trackHeightVar) || '4px'
+    const thumbElevationValue = thumbElevationBoxShadow || '0 1px 2px rgba(0, 0, 0, 0.15)'
     
     // Parse thumb size to calculate padding (account for thumb half-width on each side)
     const thumbSizeNum = parseFloat(thumbSizeValue) || 20
@@ -268,7 +313,7 @@ export function Slider({
               background: ${thumbColorValue};
               border: none;
               cursor: ${disabled ? 'not-allowed' : 'pointer'};
-              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+              box-shadow: ${thumbElevationValue};
               opacity: ${disabled ? 0.3 : 1};
               margin-top: calc(-1 * (${thumbSizeValue} - ${trackHeightValue}) / 2);
             }
@@ -280,7 +325,7 @@ export function Slider({
               background: ${thumbColorValue};
               border: none;
               cursor: ${disabled ? 'not-allowed' : 'pointer'};
-              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+              box-shadow: ${thumbElevationValue};
               opacity: ${disabled ? 0.3 : 1};
             }
             
@@ -291,7 +336,7 @@ export function Slider({
               background: ${thumbColorValue};
               border: none;
               cursor: ${disabled ? 'not-allowed' : 'pointer'};
-              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+              box-shadow: ${thumbElevationValue};
               opacity: ${disabled ? 0.3 : 1};
             }
             

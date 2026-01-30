@@ -2101,13 +2101,15 @@ export default function PropControlContent({
         return <ButtonBorderSizeSlider />
       }
       
-      // Use Slider component for Slider input-width, thumb-size, thumb-border-radius, track-height, and track-border-radius properties
+      // Use Slider component for Slider input-width, thumb-size, thumb-border-radius, track-height, track-border-radius, label-slider-gap, and input-gap properties
       if (isSlider && (
         propNameLower === 'input-width' || 
         propNameLower === 'thumb-size' || 
         propNameLower === 'thumb-border-radius' ||
         propNameLower === 'track-height' ||
-        propNameLower === 'track-border-radius'
+        propNameLower === 'track-border-radius' ||
+        propNameLower === 'label-slider-gap' ||
+        propNameLower === 'input-gap'
       )) {
         const SliderDimensionSlider = () => {
           let minValue = 0
@@ -2127,6 +2129,9 @@ export default function PropControlContent({
           } else if (propNameLower === 'track-border-radius') {
             minValue = 0
             maxValue = 20
+          } else if (propNameLower === 'label-slider-gap' || propNameLower === 'input-gap') {
+            minValue = 0
+            maxValue = 100
           }
           const [value, setValue] = useState(() => {
             const currentValue = readCssVar(primaryVar)
@@ -2186,6 +2191,9 @@ export default function PropControlContent({
             return `${Math.round(val)}px`
           }, [])
           
+          // For label-slider-gap and input-gap, don't show min/max labels or editable values
+          const isGapProperty = propNameLower === 'label-slider-gap' || propNameLower === 'input-gap'
+          
           return (
             <Slider
               value={value}
@@ -2197,10 +2205,10 @@ export default function PropControlContent({
               layer="layer-1"
               layout="stacked"
               showInput={false}
-              showValueLabel={true}
+              showValueLabel={!isGapProperty}
               valueLabel={getValueLabel}
-              minLabel={`${minValue}px`}
-              maxLabel={`${maxValue}px`}
+              minLabel={isGapProperty ? undefined : `${minValue}px`}
+              maxLabel={isGapProperty ? undefined : `${maxValue}px`}
               showMinMaxLabels={false}
               label={<Label layer="layer-1" layout="stacked">{label}</Label>}
             />

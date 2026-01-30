@@ -52,6 +52,11 @@
           "icon": "corners-out",
           "label": "Thumb corner radius",
           "visible": true
+        },
+        "thumb-elevation": {
+          "icon": "copy-simple",
+          "label": "Thumb elevation",
+          "visible": true
         }
       }
     },
