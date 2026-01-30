@@ -679,8 +679,17 @@ export default function ComponentToolbar({
       <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
-            {LayerIcon && <LayerIcon style={{ width: '16px', height: '16px' }} />}
-            <span style={{ fontSize: 'var(--recursica-brand-typography-body-small-font-size)', fontWeight: 500 }}>Layer</span>
+            {LayerIcon && <LayerIcon style={{ 
+              width: '16px', 
+              height: '16px',
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
+              opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)`
+            }} />}
+            <span style={{ 
+              fontSize: '13px',
+              fontWeight: 600,
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`
+            }}>Layer</span>
           </div>
           <SegmentedControl
             items={layerItems}

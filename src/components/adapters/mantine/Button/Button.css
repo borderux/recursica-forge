@@ -190,27 +190,78 @@
   border: none !important;
 }
 
-/* Hover state: apply overlay with hover opacity on top of base background */
-/* CRITICAL: Override Mantine's hover background color to prevent color change */
-.mantine-Button-root:hover:not([data-disabled="true"]) {
+/* Always have relative positioning for hover overlay */
+.mantine-Button-root {
   position: relative;
-  /* Force background color to remain unchanged on hover */
-  background-color: var(--button-bg) !important;
 }
 
-.mantine-Button-root:hover:not([data-disabled="true"])::before {
+
+/* Hover state: apply overlay with hover opacity on top of base background */
+/* CRITICAL: Override all Mantine hover styles to prevent background color changes and shadows */
+.mantine-Button-root:hover:not([data-disabled="true"]),
+.mantine-Button-root[data-variant="filled"]:hover:not([data-disabled="true"]),
+.mantine-Button-root[data-variant="outline"]:hover:not([data-disabled="true"]),
+.mantine-Button-root[data-variant="subtle"]:hover:not([data-disabled="true"]),
+.recursica-layer-0 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled),
+.recursica-layer-0 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled),
+.recursica-layer-0 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled),
+.recursica-layer-1 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled),
+.recursica-layer-1 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled),
+.recursica-layer-1 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled),
+.recursica-layer-2 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled),
+.recursica-layer-2 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled),
+.recursica-layer-2 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled),
+.recursica-layer-3 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled),
+.recursica-layer-3 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled),
+.recursica-layer-3 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled) {
+  /* Prevent background color change on hover - override Mantine's CSS-in-JS */
+  background-color: var(--button-bg) !important;
+  /* Remove all box-shadow and inner shadow effects */
+  box-shadow: none !important;
+  /* Prevent any gradient or filter effects */
+  filter: none !important;
+  backdrop-filter: none !important;
+  /* Ensure overlay is not clipped */
+  overflow: visible !important;
+  /* Ensure no transforms that could affect positioning */
+  transform: none !important;
+  will-change: auto !important;
+  /* Disable transitions that could affect overlay positioning */
+  transition: none !important;
+}
+
+.mantine-Button-root:hover:not([data-disabled="true"])::before,
+.mantine-Button-root[data-variant="filled"]:hover:not([data-disabled="true"])::before,
+.mantine-Button-root[data-variant="outline"]:hover:not([data-disabled="true"])::before,
+.mantine-Button-root[data-variant="subtle"]:hover:not([data-disabled="true"])::before,
+.recursica-layer-0 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
+.recursica-layer-0 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
+.recursica-layer-0 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before,
+.recursica-layer-1 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
+.recursica-layer-1 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
+.recursica-layer-1 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before,
+.recursica-layer-2 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
+.recursica-layer-2 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
+.recursica-layer-2 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before,
+.recursica-layer-3 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
+.recursica-layer-3 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
+.recursica-layer-3 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: var(--button-overlay-color, #000000);
   opacity: var(--button-hover-opacity, 0.08);
-  border-radius: var(--button-border-radius, 4px);
+  border-radius: inherit;
   pointer-events: none;
-  z-index: 0;
-}
-
-/* Ensure button content appears above the overlay */
-.mantine-Button-root > * {
-  position: relative;
-  z-index: 1;
+  /* Prevent blur or filter effects */
+  backdrop-filter: none !important;
+  filter: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  /* Disable all transitions and animations */
+  transition: none !important;
+  animation: none !important;
 }

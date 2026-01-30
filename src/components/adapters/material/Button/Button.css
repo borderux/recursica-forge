@@ -8,6 +8,46 @@
   flex-shrink: 0;
 }
 
+/* Ensure right-side icons (spans containing SVGs) are visible */
+/* Target spans that contain SVGs but aren't Material's startIcon */
+.MuiButton-root > span:has(svg):not(.MuiButton-startIcon),
+.MuiButton-root span span:has(svg),
+.MuiButton-root > span > span:has(svg),
+/* Also target spans that are direct children of button when they contain SVGs */
+.MuiButton-root > span[style*="inline-flex"]:has(svg):not(.MuiButton-startIcon),
+/* Target wrapper spans that contain icon spans */
+.MuiButton-root > span[style*="display"] > span:has(svg),
+.MuiButton-root > span[style*="flex"] > span:has(svg) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  /* Don't override width/height - let inline styles control size */
+  /* But ensure minimum dimensions allow visibility */
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+
+/* Ensure wrapper spans that contain icons are visible */
+.MuiButton-root > span:has(> span:has(svg)) {
+  display: flex !important;
+  align-items: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure nested spans with SVGs are visible */
+.MuiButton-root span span svg,
+.MuiButton-root > span > span svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Size and space Material's startIcon */
 .MuiButton-root .MuiButton-startIcon {
   width: var(--button-icon-size, 0px) !important;
@@ -20,11 +60,34 @@
   justify-content: center !important;
 }
 
+/* Size and space Material's endIcon */
+.MuiButton-root .MuiButton-endIcon {
+  width: var(--button-icon-size, 0px) !important;
+  height: var(--button-icon-size, 0px) !important;
+  margin-left: var(--button-icon-text-gap, 0px) !important;
+  margin-right: 0 !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Debug: Ensure endIcon is visible even if CSS variables are 0 */
+.MuiButton-root[style*="--debug-end-icon"] .MuiButton-endIcon {
+  min-width: 16px !important;
+  min-height: 16px !important;
+  background-color: rgba(255, 0, 0, 0.1) !important; /* Temporary debug background */
+}
+
 /* Material UI buttons render text as direct children or in the button's text content */
 /* Apply truncation to the button's content area */
 .MuiButton-root {
   /* The button itself handles truncation when max-width is set on the root */
   max-width: calc(var(--button-max-width, var(--recursica-ui-kit-components-button-properties-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  /* Always have relative positioning for hover overlay */
+  position: relative;
 }
 
 /* For buttons with icons, ensure text area can truncate */
@@ -55,26 +118,48 @@
 }
 
 /* Hover state: apply overlay with hover opacity on top of base background */
-/* CRITICAL: Override Material UI's hover background color to prevent color change */
-.MuiButton-root:hover:not([disabled]) {
-  position: relative;
-  /* Force background color to remain unchanged on hover */
+/* CRITICAL: Override all Material UI hover styles to prevent background color changes and shadows */
+.MuiButton-root:hover:not([disabled]),
+.MuiButton-contained:hover:not([disabled]),
+.MuiButton-outlined:hover:not([disabled]),
+.MuiButton-text:hover:not([disabled]) {
+  /* Prevent background color change on hover */
   background-color: var(--button-bg) !important;
+  /* Remove all box-shadow and inner shadow effects */
+  box-shadow: none !important;
+  /* Prevent any gradient or filter effects */
+  filter: none !important;
+  backdrop-filter: none !important;
+  /* Ensure overlay is not clipped */
+  overflow: visible !important;
+  /* Ensure no transforms that could affect positioning */
+  transform: none !important;
+  will-change: auto !important;
+  /* Disable transitions that could affect overlay positioning */
+  transition: none !important;
 }
 
-.MuiButton-root:hover:not([disabled])::before {
+.MuiButton-root:hover:not([disabled])::before,
+.MuiButton-contained:hover:not([disabled])::before,
+.MuiButton-outlined:hover:not([disabled])::before,
+.MuiButton-text:hover:not([disabled])::before {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: var(--button-overlay-color, #000000);
   opacity: var(--button-hover-opacity, 0.08);
-  border-radius: var(--button-border-radius, 4px);
+  border-radius: inherit;
   pointer-events: none;
-  z-index: 0;
+  /* Prevent blur or filter effects */
+  backdrop-filter: none !important;
+  filter: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  /* Disable all transitions and animations */
+  transition: none !important;
+  animation: none !important;
 }
 
-/* Ensure button content appears above the overlay */
-.MuiButton-root > * {
-  position: relative;
-  z-index: 1;
-}

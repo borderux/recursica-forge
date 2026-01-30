@@ -5,10 +5,10 @@
   border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color) !important;
   border-radius: var(--segmented-control-border-radius) !important;
   overflow: visible !important;
-  padding-top: var(--segmented-control-padding-vertical) !important;
-  padding-bottom: var(--segmented-control-padding-vertical) !important;
-  padding-left: var(--segmented-control-padding-horizontal) !important;
-  padding-right: var(--segmented-control-padding-horizontal) !important;
+  padding-top: var(--segmented-control-container-padding-vertical, 0px) !important;
+  padding-bottom: var(--segmented-control-container-padding-vertical, 0px) !important;
+  padding-left: var(--segmented-control-container-padding-horizontal, 0px) !important;
+  padding-right: var(--segmented-control-container-padding-horizontal, 0px) !important;
   font-family: var(--segmented-control-font-family) !important;
   font-size: var(--segmented-control-font-size) !important;
   font-weight: var(--segmented-control-font-weight) !important;

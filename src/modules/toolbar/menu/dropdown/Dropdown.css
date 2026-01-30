@@ -127,4 +127,220 @@ html[data-theme-mode="dark"] .dropdown-item.selected::before {
   opacity: 0.25;
 }
 
+/* Variant Dropdown Styles - Icon+Label on left, Dropdown on right */
+.variant-dropdown-container {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.variant-dropdown-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--recursica-brand-dimensions-general-sm);
+}
+
+/* Label section - styled like accordion header */
+.variant-label-section {
+  display: flex;
+  align-items: center;
+  gap: var(--recursica-brand-dimensions-general-sm);
+  flex: 1;
+  min-width: 0;
+}
+
+.variant-label-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-low-emphasis);
+}
+
+html[data-theme-mode="dark"] .variant-label-icon {
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-low-emphasis);
+}
+
+.variant-label-text {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-theme-mode="dark"] .variant-label-text {
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+}
+
+/* Dropdown section - only the value */
+.variant-dropdown-section {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.variant-dropdown-button {
+  display: flex;
+  align-items: center;
+  gap: var(--recursica-brand-dimensions-general-sm);
+  padding: var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--recursica-brand-dimensions-border-radius-default);
+  cursor: pointer;
+  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-high-emphasis);
+  transition: background-color 0.2s;
+  position: relative;
+  min-width: 0;
+}
+
+html[data-theme-mode="dark"] .variant-dropdown-button {
+  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-high-emphasis);
+}
+
+.variant-dropdown-button:hover {
+  background: var(--recursica-brand-themes-light-layer-layer-0-property-surface-hover);
+}
+
+html[data-theme-mode="dark"] .variant-dropdown-button:hover {
+  background: var(--recursica-brand-themes-dark-layer-layer-0-property-surface-hover);
+}
+
+.variant-dropdown-button:active {
+  background: var(--recursica-brand-themes-light-layer-layer-0-property-surface-active);
+}
+
+html[data-theme-mode="dark"] .variant-dropdown-button:active {
+  background: var(--recursica-brand-themes-dark-layer-layer-0-property-surface-active);
+}
+
+.variant-dropdown-button.active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--recursica-brand-themes-light-palettes-core-black);
+  opacity: 0.2;
+  border-radius: var(--recursica-brand-dimensions-border-radius-default);
+  pointer-events: none;
+  z-index: 0;
+}
+
+html[data-theme-mode="dark"] .variant-dropdown-button.active::before {
+  background: var(--recursica-brand-themes-dark-palettes-core-white);
+}
+
+.variant-dropdown-button.active:hover::before {
+  opacity: 0.25;
+}
+
+.variant-dropdown-value {
+  font-weight: 400;
+  font-size: 13px;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+.variant-dropdown-chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.variant-dropdown-chevron.flipped {
+  transform: rotate(180deg);
+}
+
+.variant-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 160px;
+  background: var(--recursica-brand-themes-light-layer-layer-3-property-surface, var(--recursica-brand-themes-light-layer-layer-3-property-surface));
+  border: var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-light-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-light-layer-layer-3-property-border-color, var(--recursica-brand-themes-light-layer-layer-3-property-border-color));
+  border-radius: var(--recursica-brand-themes-light-layer-layer-3-property-border-radius, var(--recursica-brand-themes-light-layer-layer-3-property-border-radius));
+  box-shadow: var(--recursica-brand-themes-light-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-light-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-light-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-light-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-light-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1));
+  z-index: 1000;
+  padding: var(--recursica-brand-themes-light-layer-layer-3-property-padding, var(--recursica-brand-themes-light-layer-layer-3-property-padding));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+html[data-theme-mode="dark"] .variant-dropdown-menu {
+  background: var(--recursica-brand-themes-dark-layer-layer-3-property-surface);
+  border: var(--recursica-brand-themes-dark-layer-layer-3-property-border-thickness) solid var(--recursica-brand-themes-dark-layer-layer-3-property-border-color);
+  border-radius: var(--recursica-brand-themes-dark-layer-layer-3-property-border-radius);
+  box-shadow: var(--recursica-brand-themes-dark-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-dark-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-dark-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-dark-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-dark-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1));
+  padding: var(--recursica-brand-themes-dark-layer-layer-3-property-padding);
+}
+
+.variant-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--recursica-brand-dimensions-general-sm);
+  padding: var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--recursica-brand-themes-light-layer-layer-3-property-border-radius, var(--recursica-brand-themes-light-layer-layer-3-property-border-radius));
+  cursor: pointer;
+  color: var(--recursica-brand-themes-light-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-light-layer-layer-3-property-element-text-color));
+  text-align: left;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+html[data-theme-mode="dark"] .variant-dropdown-item {
+  border-radius: var(--recursica-brand-themes-dark-layer-layer-3-property-border-radius);
+  color: var(--recursica-brand-themes-dark-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-dark-layer-layer-3-property-element-text-color));
+}
+
+.variant-dropdown-item:hover:not(.selected) {
+  background: var(--recursica-brand-themes-light-layer-layer-3-property-surface-hover, var(--recursica-brand-themes-light-layer-layer-3-property-surface-hover, var(--recursica-brand-themes-light-layer-layer-3-property-surface, var(--recursica-brand-themes-light-layer-layer-3-property-surface))));
+}
+
+html[data-theme-mode="dark"] .variant-dropdown-item:hover:not(.selected) {
+  background: var(--recursica-brand-themes-dark-layer-layer-3-property-surface-hover, var(--recursica-brand-themes-dark-layer-layer-3-property-surface-hover, var(--recursica-brand-themes-dark-layer-layer-3-property-surface, var(--recursica-brand-themes-dark-layer-layer-3-property-surface))));
+}
+
+.variant-dropdown-item.selected {
+  position: relative;
+  color: var(--recursica-brand-themes-light-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-light-layer-layer-3-property-element-text-color)) !important;
+  font-weight: 500;
+  z-index: 1;
+}
+
+html[data-theme-mode="dark"] .variant-dropdown-item.selected {
+  color: var(--recursica-brand-themes-dark-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-dark-layer-layer-3-property-element-text-color)) !important;
+}
+
+.variant-dropdown-item.selected::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--recursica-brand-themes-light-palettes-core-black);
+  opacity: 0.2;
+  border-radius: var(--recursica-brand-themes-light-layer-layer-3-property-border-radius, var(--recursica-brand-themes-light-layer-layer-3-property-border-radius));
+  pointer-events: none;
+  z-index: 0;
+}
+
+html[data-theme-mode="dark"] .variant-dropdown-item.selected::before {
+  background: var(--recursica-brand-themes-dark-palettes-core-white);
+  border-radius: var(--recursica-brand-themes-dark-layer-layer-3-property-border-radius);
+}
+
+.variant-dropdown-item.selected:hover::before {
+  opacity: 0.25;
+}
+
 

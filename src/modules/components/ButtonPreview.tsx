@@ -170,11 +170,11 @@ export default function ButtonPreview({
           size={sizeVariant as any}
           layer={actualLayer}
           elevation={componentElevation}
+          material={{
+            endIcon: iconSvg
+          }}
         >
-          <span style={{ display: 'flex', alignItems: 'center' }}>
-            Button
-            {rightIconElement}
-          </span>
+          Button
         </Button>
         
         {/* Disabled button */}
