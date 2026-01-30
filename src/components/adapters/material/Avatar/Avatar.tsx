@@ -44,9 +44,11 @@ export default function Avatar({
   
   // Get size and other CSS variables
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
-  const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
+  
+  // Get level CSS variables (border-size, border-radius, padding)
   const borderSizeVar = getComponentLevelCssVar('Avatar', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
+  const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
   
   // Get text CSS variables - use size variant for variant-specific text properties
   const fontFamilyVar = getComponentTextCssVar('Avatar', 'text', 'font-family', sizeVariant)
@@ -71,24 +73,28 @@ export default function Avatar({
       sx={{
         width: materialSize ? undefined : `var(${sizeVar})`,
         height: materialSize ? undefined : `var(${sizeVar})`,
-        padding: `var(${paddingVar})`,
-        backgroundColor: `var(${bgVar})`,
-        color: `var(${labelVar})`,
-        border: `var(${borderSizeVar}) solid ${borderColorValue || `var(${borderVar})`}`,
-        borderRadius: shape === 'circle' ? '50%' : `var(${borderRadiusVar})`,
-        fontFamily: `var(${fontFamilyVar})`,
-        fontSize: `var(${fontSizeVar})`,
-        fontWeight: `var(${fontWeightVar})`,
-        letterSpacing: `var(${letterSpacingVar})`,
-        lineHeight: `var(${lineHeightVar})`,
-        textDecoration: `var(${textDecorationVar})`,
-        textTransform: `var(${textTransformVar})`,
-        fontStyle: `var(${fontStyleVar})`,
-        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...material?.sx,
       }}
       className={className}
       style={{
+        // Set CSS custom properties that reference the UIKit CSS vars directly
+        '--avatar-bg': `var(${bgVar})`,
+        '--avatar-border': borderColorValue || `var(${borderVar})`,
+        '--avatar-label': `var(${labelVar})`,
+        '--avatar-size': `var(${sizeVar})`,
+        '--avatar-border-size': `var(${borderSizeVar})`,
+        '--avatar-border-radius': shape === 'circle' ? '50%' : `var(${borderRadiusVar})`,
+        '--avatar-padding': `var(${paddingVar})`,
+        '--avatar-font-family': `var(${fontFamilyVar})`,
+        '--avatar-font-size': `var(${fontSizeVar})`,
+        '--avatar-font-weight': `var(${fontWeightVar})`,
+        '--avatar-letter-spacing': `var(${letterSpacingVar})`,
+        '--avatar-line-height': `var(${lineHeightVar})`,
+        '--avatar-text-decoration': `var(${textDecorationVar})`,
+        '--avatar-text-transform': `var(${textTransformVar})`,
+        '--avatar-font-style': `var(${fontStyleVar})`,
+        // Only set non-CSS-variable styles here (like boxShadow for elevation)
+        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...style,
       } as React.CSSProperties}
       {...material}

@@ -45,6 +45,11 @@ export default function Avatar({
   // Get size and other CSS variables
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
   
+  // Get level CSS variables (border-size, border-radius, padding)
+  const borderSizeVar = getComponentLevelCssVar('Avatar', 'border-size')
+  const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
+  const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
+  
   // Get text CSS variables - use size variant for variant-specific text properties
   const fontFamilyVar = getComponentTextCssVar('Avatar', 'text', 'font-family', sizeVariant)
   const fontSizeVar = getComponentTextCssVar('Avatar', 'text', 'font-size', sizeVariant)
@@ -73,6 +78,9 @@ export default function Avatar({
         '--avatar-border': borderColorValue || `var(${borderVar})`,
         '--avatar-label': `var(${labelVar})`,
         '--avatar-size': `var(${sizeVar})`,
+        '--avatar-border-size': `var(${borderSizeVar})`,
+        '--avatar-border-radius': shape === 'circle' ? '50%' : `var(${borderRadiusVar})`,
+        '--avatar-padding': `var(${paddingVar})`,
         '--avatar-font-family': `var(${fontFamilyVar})`,
         '--avatar-font-size': `var(${fontSizeVar})`,
         '--avatar-font-weight': `var(${fontWeightVar})`,
@@ -81,8 +89,7 @@ export default function Avatar({
         '--avatar-text-decoration': `var(${textDecorationVar})`,
         '--avatar-text-transform': `var(${textTransformVar})`,
         '--avatar-font-style': `var(${fontStyleVar})`,
-        // Only set non-CSS-variable styles here (like borderRadius for circle shape)
-        ...(shape === 'circle' ? { borderRadius: '50%' } : {}),
+        // Only set non-CSS-variable styles here (like boxShadow for elevation)
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...style,
       } as React.CSSProperties}
