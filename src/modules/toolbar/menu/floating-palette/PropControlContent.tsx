@@ -756,6 +756,23 @@ export default function PropControlContent({
           }
         }
       }
+      // CRITICAL FIX: Check if prop path contains variant information - if so, MUST match selected variant
+      // This handles cases where multiple variants have the same prop name (e.g., border-size for solid/outline/text)
+      // Check if the prop being searched (p) has variant info in its path
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (!selectedVariant) {
+          // If no variant is selected for this variantProp, don't match variant-specific props
+          return false
+        }
+        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+        if (!variantInPath) {
+          // Prop is variant-specific but doesn't match selected variant - skip it
+          return false
+        }
+      }
+      // Also check propToCheck's variant requirements if it explicitly has them
+      // This ensures we respect explicit variant requirements from the prop being checked
       if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
         const selectedVariant = selectedVariants[propToCheck.variantProp]
         if (!selectedVariant) return false
@@ -770,7 +787,6 @@ export default function PropControlContent({
       }
       return true
     })
-    
     
     return matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]
   }
@@ -2000,6 +2016,91 @@ export default function PropControlContent({
         return <AvatarBorderSizeSlider />
       }
       
+      // Use Slider component for Button border-size property
+      if (isButton && propNameLower === 'border-size') {
+        const ButtonBorderSizeSlider = () => {
+          const minValue = 0
+          const maxValue = 10
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '1px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 1
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '1px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+          
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer={selectedLayer}
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              showMinMaxLabels={false}
+              label={<Label layer={selectedLayer} layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return <ButtonBorderSizeSlider />
+      }
+      
       // Use Slider component for Slider input-width, thumb-size, thumb-border-radius, track-height, and track-border-radius properties
       if (isSlider && (
         propNameLower === 'input-width' || 
@@ -2456,12 +2557,22 @@ export default function PropControlContent({
                              componentName === 'MenuItem' ||
                              componentName === 'Menu item'
           
-          // For grouped props, use the prop's CSS var directly to ensure we're updating the correct one
-          // (e.g., "selected" background vs "container" background)
-          // Only use getCssVarsForProp if the prop doesn't have a cssVar set
-          
-          
-          let cssVars = groupedProp.cssVar ? [groupedProp.cssVar] : getCssVarsForProp(groupedProp)
+          // For grouped props:
+          // - If variant-specific (e.g., border-size for Button variants), always use getCssVarsForProp to get the CSS var matching selected variant
+          // - If grouped prop path contains "container" or "selected", use the prop's CSS var directly to ensure we're updating the correct grouped prop
+          // - Otherwise (component-level props like Avatar border-radius), always use getCssVarsForProp to ensure correct CSS var resolution
+          let cssVars: string[]
+          const isGroupedContainerOrSelected = groupedProp.path && (groupedProp.path.includes('container') || groupedProp.path.includes('selected'))
+          if (groupedProp.isVariantSpecific && groupedProp.variantProp) {
+            // Variant-specific prop: always resolve based on selected variant
+            cssVars = getCssVarsForProp(groupedProp)
+          } else if (isGroupedContainerOrSelected) {
+            // Container/selected grouped props: use the prop's CSS var directly to ensure we're updating the correct grouped prop
+            cssVars = groupedProp.cssVar ? [groupedProp.cssVar] : getCssVarsForProp(groupedProp)
+          } else {
+            // Component-level props (e.g., Avatar border-radius): always use getCssVarsForProp to ensure correct CSS var resolution
+            cssVars = getCssVarsForProp(groupedProp)
+          }
           let primaryVar = cssVars[0] || groupedProp.cssVar
           
           

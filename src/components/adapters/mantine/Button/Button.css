@@ -189,3 +189,28 @@
 .mantine-Button-root[data-variant='subtle'] {
   border: none !important;
 }
+
+/* Hover state: apply overlay with hover opacity on top of base background */
+/* CRITICAL: Override Mantine's hover background color to prevent color change */
+.mantine-Button-root:hover:not([data-disabled="true"]) {
+  position: relative;
+  /* Force background color to remain unchanged on hover */
+  background-color: var(--button-bg) !important;
+}
+
+.mantine-Button-root:hover:not([data-disabled="true"])::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--button-overlay-color, #000000);
+  opacity: var(--button-hover-opacity, 0.08);
+  border-radius: var(--button-border-radius, 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure button content appears above the overlay */
+.mantine-Button-root > * {
+  position: relative;
+  z-index: 1;
+}

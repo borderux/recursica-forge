@@ -193,7 +193,22 @@ export default function PropControl({
         if (!propToCheckHasInteractive && !propToCheckHasReadOnly && (pHasInteractive || pHasReadOnly)) return false
       }
       
-      // If variant-specific, must match selected variant
+      // CRITICAL FIX: Check if prop path contains variant information - if so, MUST match selected variant
+      // This handles cases where multiple variants have the same prop name (e.g., border-size for solid/outline/text)
+      // Check if the prop being searched (p) has variant info in its path
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (!selectedVariant) {
+          // If no variant is selected for this variantProp, don't match variant-specific props
+          return false
+        }
+        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+        if (!variantInPath) {
+          // Prop is variant-specific but doesn't match selected variant - skip it
+          return false
+        }
+      }
+      // Also check propToCheck's variant requirements if it explicitly has them
       if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
         const selectedVariant = selectedVariants[propToCheck.variantProp]
         if (!selectedVariant) return false

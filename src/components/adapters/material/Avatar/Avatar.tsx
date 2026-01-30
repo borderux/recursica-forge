@@ -11,6 +11,8 @@ import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { useCssVar } from '../../../hooks/useCssVar'
+import { readCssVarResolved } from '../../../../core/css/readCssVar'
+import { useState, useEffect } from 'react'
 import './Avatar.css'
 
 export default function Avatar({
@@ -50,6 +52,52 @@ export default function Avatar({
   const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
   const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
   
+  // Reactively read border-radius to trigger re-renders when it changes
+  const borderRadiusValueRaw = useCssVar(borderRadiusVar, '')
+  // Resolve the border-radius value (handles var() references)
+  const [borderRadiusValue, setBorderRadiusValue] = useState(() => {
+    const resolved = readCssVarResolved(borderRadiusVar, 10)
+    return resolved || borderRadiusValueRaw || `var(${borderRadiusVar})`
+  })
+  
+  useEffect(() => {
+    const updateBorderRadius = () => {
+      const resolved = readCssVarResolved(borderRadiusVar, 10)
+      if (resolved) {
+        setBorderRadiusValue(resolved)
+        return
+      }
+      const fallbackValue = borderRadiusValueRaw || `var(${borderRadiusVar})`
+      setBorderRadiusValue(fallbackValue)
+    }
+    
+    updateBorderRadius()
+    
+    // Listen for CSS variable updates
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(borderRadiusVar)) {
+        updateBorderRadius()
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes
+    const observer = new MutationObserver(() => {
+      updateBorderRadius()
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [borderRadiusVar, borderRadiusValueRaw])
+  
   // Get text CSS variables - use size variant for variant-specific text properties
   const fontFamilyVar = getComponentTextCssVar('Avatar', 'text', 'font-family', sizeVariant)
   const fontSizeVar = getComponentTextCssVar('Avatar', 'text', 'font-size', sizeVariant)
@@ -66,6 +114,9 @@ export default function Avatar({
   // Handle elevation
   const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
   
+  // Calculate border radius value
+  const borderRadiusForSx = shape === 'circle' ? '50%' : (borderRadiusValue || `var(${borderRadiusVar})`)
+  
   return (
     <MaterialAvatar
       src={src}
@@ -73,28 +124,24 @@ export default function Avatar({
       sx={{
         width: materialSize ? undefined : `var(${sizeVar})`,
         height: materialSize ? undefined : `var(${sizeVar})`,
+        padding: `var(${paddingVar})`,
+        backgroundColor: `var(${bgVar})`,
+        color: `var(${labelVar})`,
+        border: `var(${borderSizeVar}) solid ${borderColorValue || `var(${borderVar})`}`,
+        borderRadius: borderRadiusForSx,
+        fontFamily: `var(${fontFamilyVar})`,
+        fontSize: `var(${fontSizeVar})`,
+        fontWeight: `var(${fontWeightVar})`,
+        letterSpacing: `var(${letterSpacingVar})`,
+        lineHeight: `var(${lineHeightVar})`,
+        textDecoration: `var(${textDecorationVar})`,
+        textTransform: `var(${textTransformVar})`,
+        fontStyle: `var(${fontStyleVar})`,
+        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...material?.sx,
       }}
       className={className}
       style={{
-        // Set CSS custom properties that reference the UIKit CSS vars directly
-        '--avatar-bg': `var(${bgVar})`,
-        '--avatar-border': borderColorValue || `var(${borderVar})`,
-        '--avatar-label': `var(${labelVar})`,
-        '--avatar-size': `var(${sizeVar})`,
-        '--avatar-border-size': `var(${borderSizeVar})`,
-        '--avatar-border-radius': shape === 'circle' ? '50%' : `var(${borderRadiusVar})`,
-        '--avatar-padding': `var(${paddingVar})`,
-        '--avatar-font-family': `var(${fontFamilyVar})`,
-        '--avatar-font-size': `var(${fontSizeVar})`,
-        '--avatar-font-weight': `var(${fontWeightVar})`,
-        '--avatar-letter-spacing': `var(${letterSpacingVar})`,
-        '--avatar-line-height': `var(${lineHeightVar})`,
-        '--avatar-text-decoration': `var(${textDecorationVar})`,
-        '--avatar-text-transform': `var(${textTransformVar})`,
-        '--avatar-font-style': `var(${fontStyleVar})`,
-        // Only set non-CSS-variable styles here (like boxShadow for elevation)
-        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...style,
       } as React.CSSProperties}
       {...material}

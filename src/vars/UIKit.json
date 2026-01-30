@@ -200,10 +200,6 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     },
-                    "background-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
-                    },
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
@@ -221,10 +217,6 @@
                     "background": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone}"
-                    },
-                    "background-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
                     },
                     "text": {
                       "$type": "color",
@@ -244,10 +236,6 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.tone}"
                     },
-                    "background-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
-                    },
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
@@ -265,10 +253,6 @@
                     "background": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.tone}"
-                    },
-                    "background-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
                     },
                     "text": {
                       "$type": "color",
@@ -301,10 +285,6 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.properties.surface}"
                     },
-                    "background-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface}"
-                    },
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone}"
@@ -316,10 +296,6 @@
                   },
                   "layer-1": {
                     "background": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface}"
-                    },
-                    "background-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.properties.surface}"
                     },
@@ -337,10 +313,6 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.properties.surface}"
                     },
-                    "background-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.surface}"
-                    },
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.tone}"
@@ -354,10 +326,6 @@
                     "background": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.tone}"
-                    },
-                    "background-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
                     },
                     "text": {
                       "$type": "color",
@@ -390,10 +358,6 @@
                       "$type": "color",
                       "$value": null
                     },
-                    "background-hover": {
-                      "$type": "color",
-                      "$value": null
-                    },
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone}"
@@ -409,10 +373,6 @@
                   },
                   "layer-1": {
                     "background": {
-                      "$type": "color",
-                      "$value": null
-                    },
-                    "background-hover": {
                       "$type": "color",
                       "$value": null
                     },
@@ -434,10 +394,6 @@
                       "$type": "color",
                       "$value": null
                     },
-                    "background-hover": {
-                      "$type": "color",
-                      "$value": null
-                    },
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.tone}"
@@ -453,10 +409,6 @@
                   },
                   "layer-3": {
                     "background": {
-                      "$type": "color",
-                      "$value": null
-                    },
-                    "background-hover": {
                       "$type": "color",
                       "$value": null
                     },
@@ -2684,7 +2636,7 @@
           "border-radius": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.border-radii.default}",
+              "value": "{brand.dimensions.border-radii.2xl}",
               "unit": "px"
             }
           },

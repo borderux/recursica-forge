@@ -13,19 +13,7 @@
     "background": {
       "icon": "paint-bucket",
       "label": "Background",
-      "visible": true,
-      "group": {
-        "background": {
-          "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
-        },
-        "background-hover": {
-          "icon": "paint-bucket",
-          "label": "Background hover",
-          "visible": true
-        }
-      }
+      "visible": true
     },
     "text": {
       "icon": "text-aa",

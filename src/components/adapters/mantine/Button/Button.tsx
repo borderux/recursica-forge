@@ -5,12 +5,12 @@
  */
 
 import { Button as MantineButton } from '@mantine/core'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Button.css'
 
@@ -44,8 +44,11 @@ export default function Button({
   
   // Use UIKit.json button colors for standard layers
   const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
-  const buttonHoverVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background-hover`, layer)
   const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
+  
+  // Get hover opacity and overlay color from brand theme (not user-configurable)
+  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
+  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
   // Build border color CSS var path directly to ensure it matches UIKit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border')
   
@@ -81,7 +84,59 @@ export default function Button({
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
   // Reactively read border-size to trigger re-renders when it changes
-  const borderSizeValue = useCssVar(borderSizeVar, '1px')
+  const borderSizeValueRaw = useCssVar(borderSizeVar, '1px')
+  // Resolve the border-size value to get actual pixel value (handles var() references)
+  const [borderSizeValue, setBorderSizeValue] = useState(() => {
+    const resolved = readCssVarResolved(borderSizeVar, 10, '1px')
+    if (resolved) {
+      const match = resolved.match(/^(-?\d+(?:\.\d+)?)px$/i)
+      if (match) return `${match[1]}px`
+      return resolved
+    }
+    return borderSizeValueRaw || '1px'
+  })
+  
+  useEffect(() => {
+    const updateBorderSize = () => {
+      const resolved = readCssVarResolved(borderSizeVar, 10, '1px')
+      if (resolved) {
+        const match = resolved.match(/^(-?\d+(?:\.\d+)?)px$/i)
+        if (match) {
+          setBorderSizeValue(`${match[1]}px`)
+          return
+        }
+        setBorderSizeValue(resolved)
+        return
+      }
+      setBorderSizeValue(borderSizeValueRaw || '1px')
+    }
+    
+    updateBorderSize()
+    
+    // Listen for CSS variable updates
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(borderSizeVar)) {
+        updateBorderSize()
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes
+    const observer = new MutationObserver(() => {
+      updateBorderSize()
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [borderSizeVar, borderSizeValueRaw])
   
   // Reactively read background color to trigger re-renders when CSS variables change
   // This ensures --button-bg gets updated when toolbar changes CSS variables
@@ -177,7 +232,8 @@ export default function Button({
       } : undefined,
       ...mantine?.styles,
     },
-    style: {
+    style: (() => {
+      return {
       // Use CSS variables for theming
       // getComponentCssVar returns CSS variable names, so wrap in var() for standard layers
       // If background is transparent, set it directly to override library defaults
@@ -188,7 +244,8 @@ export default function Button({
       } : {
         '--button-bg': `var(${buttonBgVar})`
       }),
-      '--button-hover': `var(${buttonHoverVar})`,
+      '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
+      '--button-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
       // Set button color without fallback to Mantine colors
       '--button-color': buttonColorRef,
       // Set button border color CSS variable for CSS file override
@@ -255,7 +312,8 @@ export default function Button({
       })(),
       // Don't apply maxWidth to root - it will be applied to label element only
       ...style,
-    },
+      }
+    })(),
     ...mantine,
     ...props,
   }

@@ -47,7 +47,7 @@ export default function AvatarPreview({
         sizeVariant={sizeVariant as 'small' | 'default' | 'large'}
         layer={actualLayer}
         elevation={componentElevation}
-        shape="circle"
+        shape="square"
         fallback={fallback}
       />
     </div>

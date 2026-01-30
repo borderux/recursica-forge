@@ -59,3 +59,28 @@
 .cds--btn--tertiary {
   border: none !important;
 }
+
+/* Hover state: apply overlay with hover opacity on top of base background */
+/* CRITICAL: Override Carbon's hover background color to prevent color change */
+.cds--btn:hover:not([disabled]) {
+  position: relative;
+  /* Force background color to remain unchanged on hover */
+  background-color: var(--button-bg) !important;
+}
+
+.cds--btn:hover:not([disabled])::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--button-overlay-color, #000000);
+  opacity: var(--button-hover-opacity, 0.08);
+  border-radius: var(--button-border-radius, 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure button content appears above the overlay */
+.cds--btn > * {
+  position: relative;
+  z-index: 1;
+}

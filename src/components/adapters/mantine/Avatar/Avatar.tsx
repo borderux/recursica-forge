@@ -11,6 +11,8 @@ import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { useCssVar } from '../../../hooks/useCssVar'
+import { readCssVarResolved, readCssVar } from '../../../../core/css/readCssVar'
+import { useState, useEffect } from 'react'
 import './Avatar.css'
 
 export default function Avatar({
@@ -50,6 +52,51 @@ export default function Avatar({
   const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
   const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
   
+  // Reactively read border-radius to trigger re-renders when it changes
+  const borderRadiusValueRaw = useCssVar(borderRadiusVar, '')
+  // Resolve the border-radius value (handles var() references)
+  const [borderRadiusValue, setBorderRadiusValue] = useState(() => {
+    const resolved = readCssVarResolved(borderRadiusVar, 10)
+    return resolved || borderRadiusValueRaw || `var(${borderRadiusVar})`
+  })
+  
+  useEffect(() => {
+    const updateBorderRadius = () => {
+      const resolved = readCssVarResolved(borderRadiusVar, 10)
+      if (resolved) {
+        setBorderRadiusValue(resolved)
+        return
+      }
+      setBorderRadiusValue(borderRadiusValueRaw || `var(${borderRadiusVar})`)
+    }
+    
+    updateBorderRadius()
+    
+    // Listen for CSS variable updates
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(borderRadiusVar)) {
+        updateBorderRadius()
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes
+    const observer = new MutationObserver(() => {
+      updateBorderRadius()
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [borderRadiusVar, borderRadiusValueRaw])
+  
   // Get text CSS variables - use size variant for variant-specific text properties
   const fontFamilyVar = getComponentTextCssVar('Avatar', 'text', 'font-family', sizeVariant)
   const fontSizeVar = getComponentTextCssVar('Avatar', 'text', 'font-size', sizeVariant)
@@ -66,12 +113,16 @@ export default function Avatar({
   // Handle elevation
   const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
   
+  // Calculate border radius value for Mantine's radius prop and inline style
+  const borderRadiusForMantine = shape === 'circle' ? '50%' : (borderRadiusValue || `var(${borderRadiusVar})`)
+  
   return (
     <MantineAvatar
       src={src}
       alt={alt}
       size={mantineSize}
       className={className}
+      // Don't set radius prop - let our CSS and inline styles handle it
       style={{
         // Set CSS custom properties that reference the UIKit CSS vars directly
         '--avatar-bg': `var(${bgVar})`,
@@ -79,7 +130,10 @@ export default function Avatar({
         '--avatar-label': `var(${labelVar})`,
         '--avatar-size': `var(${sizeVar})`,
         '--avatar-border-size': `var(${borderSizeVar})`,
-        '--avatar-border-radius': shape === 'circle' ? '50%' : `var(${borderRadiusVar})`,
+        // Set the CSS variable - for circle, use 50%, otherwise use the resolved value
+        '--avatar-border-radius': borderRadiusForMantine,
+        // Also set borderRadius directly to ensure it applies (Mantine might override CSS custom properties)
+        borderRadius: borderRadiusForMantine,
         '--avatar-padding': `var(${paddingVar})`,
         '--avatar-font-family': `var(${fontFamilyVar})`,
         '--avatar-font-size': `var(${fontSizeVar})`,

@@ -17,6 +17,7 @@ export type BadgeProps = {
   variant?: 'primary-color' | 'warning' | 'success' | 'alert'
   size?: 'small' | 'large'
   layer?: ComponentLayer
+  elevation?: string
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -26,6 +27,7 @@ export function Badge({
   variant = 'primary-color',
   size,
   layer = 'layer-0',
+  elevation,
   className,
   style,
   mantine,
@@ -93,6 +95,7 @@ export function Badge({
         variant={variant}
         size={size}
         layer={layer}
+        elevation={elevation}
         className={className}
         style={style}
         mantine={mantine}

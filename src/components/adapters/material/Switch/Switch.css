@@ -11,9 +11,7 @@
 
 .MuiSwitch-root.Mui-disabled {
   cursor: not-allowed !important;
-}
-
-/* Add pointer cursor to track and thumb elements */
+}/* Add pointer cursor to track and thumb elements */
 .MuiSwitch-track {
   cursor: pointer !important;
 }

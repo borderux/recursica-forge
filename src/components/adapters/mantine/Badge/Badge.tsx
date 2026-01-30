@@ -4,10 +4,13 @@
  * Mantine-specific Badge component that uses CSS variables for theming.
  */
 
+import { useState, useEffect } from 'react'
 import { Badge as MantineBadge } from '@mantine/core'
 import type { BadgeProps as AdapterBadgeProps } from '../../Badge'
 import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../../../core/css/readCssVar'
 import './Badge.css'
 
 export default function Badge({
@@ -15,6 +18,7 @@ export default function Badge({
   variant = 'primary-color',
   size,
   layer = 'layer-0',
+  elevation,
   className,
   style,
   mantine,
@@ -41,6 +45,43 @@ export default function Badge({
   const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
   const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
   
+  // Reactively read elevation from CSS variable
+  const elevationVar = getComponentLevelCssVar('Badge', 'elevation')
+  const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+    const value = readCssVar(elevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+  
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
+        const value = readCssVar(elevationVar)
+        setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    const observer = new MutationObserver(() => {
+      const value = readCssVar(elevationVar)
+      setElevationFromVar(value ? parseElevationValue(value) : undefined)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [elevationVar])
+  
+  // Determine elevation to apply - prioritize prop, then CSS variable
+  const componentElevation = elevation ?? elevationFromVar
+  const elevationBoxShadow = getElevationBoxShadow(mode, componentElevation)
+  
   return (
     <MantineBadge
       className={`mantine-badge ${className || ''}`}
@@ -62,6 +103,8 @@ export default function Badge({
         '--badge-padding-horizontal': `var(${paddingHorizontalVar})`,
         // Set height to auto to override Mantine Badge's default height
         height: 'auto',
+        // Apply elevation box-shadow if set
+        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...style,
       } as React.CSSProperties}
       {...mantine}

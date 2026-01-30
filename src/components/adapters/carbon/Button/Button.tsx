@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Button.css'
 
@@ -48,6 +48,14 @@ export default function Button({
   // Build border color CSS var path directly to ensure it matches UIKit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border')
   
+  // Get hover opacity and overlay color from brand theme (not user-configurable)
+  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
+  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
+  
+  // Get hover opacity and overlay color from brand theme (not user-configurable)
+  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
+  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
+  
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
@@ -70,8 +78,59 @@ export default function Button({
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
   // Reactively read border-size to trigger re-renders when it changes
-  // We read the value to force React re-renders, but use it directly in the style
-  const borderSizeValue = useCssVar(borderSizeVar, '1px')
+  const borderSizeValueRaw = useCssVar(borderSizeVar, '1px')
+  // Resolve the border-size value to get actual pixel value (handles var() references)
+  const [borderSizeValue, setBorderSizeValue] = useState(() => {
+    const resolved = readCssVarResolved(borderSizeVar, 10, '1px')
+    if (resolved) {
+      const match = resolved.match(/^(-?\d+(?:\.\d+)?)px$/i)
+      if (match) return `${match[1]}px`
+      return resolved
+    }
+    return borderSizeValueRaw || '1px'
+  })
+  
+  useEffect(() => {
+    const updateBorderSize = () => {
+      const resolved = readCssVarResolved(borderSizeVar, 10, '1px')
+      if (resolved) {
+        const match = resolved.match(/^(-?\d+(?:\.\d+)?)px$/i)
+        if (match) {
+          setBorderSizeValue(`${match[1]}px`)
+          return
+        }
+        setBorderSizeValue(resolved)
+        return
+      }
+      setBorderSizeValue(borderSizeValueRaw || '1px')
+    }
+    
+    updateBorderSize()
+    
+    // Listen for CSS variable updates
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(borderSizeVar)) {
+        updateBorderSize()
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes
+    const observer = new MutationObserver(() => {
+      updateBorderSize()
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [borderSizeVar, borderSizeValueRaw])
   
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
@@ -148,6 +207,10 @@ export default function Button({
       ...((variant === 'solid' || variant === 'outline') && buttonBorderColorVar ? {
         '--button-border-color': `var(${buttonBorderColorVar})`,
       } : {}),
+      '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
+      '--button-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
+      '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
+      '--button-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
       // Use actual CSS border instead of box-shadow
       ...(variant === 'solid' || variant === 'outline' ? {
         border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar})`,
