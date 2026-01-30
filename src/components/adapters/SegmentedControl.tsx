@@ -269,12 +269,13 @@ export function SegmentedControl({
                 cursor: disabled || item.disabled ? 'not-allowed' : 'pointer',
                 flex: fullWidth && !isVertical ? 1 : 'none',
                 width: fullWidth && isVertical ? '100%' : 'auto',
+                minWidth: fullWidth ? undefined : 'fit-content', // Ensure button expands to fit content when auto-width
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: hasIcon && hasLabel ? (iconGapVar && iconGapValue ? `var(${iconGapVar})` : (iconGapVar && !iconGapValue ? '0px' : undefined)) : undefined,
                 transition: 'background-color 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s',
-                position: 'relative' as const, // For absolute divider positioning
+                position: 'relative' as const, // For absolute divider positioning and label overlay
                 ...(isSelected && selectedElevationBoxShadow ? { boxShadow: selectedElevationBoxShadow } : {}),
                 ...spacingStyle, // Item-gap spacing (dividers handled via CSS pseudo-elements)
                 ...borderStyle, // Selected borders
@@ -288,6 +289,8 @@ export function SegmentedControl({
                     width: iconSizeVar ? `var(${iconSizeVar})` : '16px',
                     height: iconSizeVar ? `var(${iconSizeVar})` : '16px',
                     flexShrink: 0,
+                    position: 'relative' as const,
+                    zIndex: 1,
                   }}
                 >
                   {item.icon}
@@ -303,6 +306,19 @@ export function SegmentedControl({
                   textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') as any : 'none',
                   textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') as any : 'none',
                   fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal',
+                  flexGrow: 1, // Fill the button area for full clickability
+                  flexShrink: fullWidth ? 1 : 0, // Allow shrinking when fullWidth, prevent when auto-width
+                  flexBasis: 0, // Start from 0 and grow to fill space
+                  minWidth: 0, // Allow label to shrink below content size if needed
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  alignSelf: 'stretch', // Stretch to fill button height
+                  position: 'relative' as const,
+                  zIndex: 1,
+                  // Ensure label fills entire button area for clickability
+                  // When auto-width, button expands to fit content, label fills remaining space
+                  width: hasIcon ? undefined : '100%', // If no icon, fill entire button width
                 }}>
                   {item.label}
                 </span>

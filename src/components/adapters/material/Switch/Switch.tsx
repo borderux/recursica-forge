@@ -16,10 +16,15 @@ import './Switch.css'
 
 // Initialize Switch wrapper CSS variables on :root so they're always available
 // These are used by Switch.css even when no Switch component is rendered
+// Note: These are initialized without mode prefix - they'll be updated by component instances
+// with mode-specific values when components mount
 if (typeof window !== 'undefined') {
   const root = document.documentElement
   // Initialize with default values - will be overridden by component instances
-  // Use UIKit variable references for track colors (default layer-0, default variant)
+  // Use UIKit variable references for track colors (default layer-0)
+  // Note: getComponentCssVar now includes mode automatically, but at module load time
+  // we don't know the mode yet, so we'll use the mode-specific vars that will be set
+  // by the component instances
   const trackSelectedVar = getComponentCssVar('Switch', 'colors', 'default-track-selected', 'layer-0')
   const trackUnselectedVar = getComponentCssVar('Switch', 'colors', 'default-track-unselected', 'layer-0')
   

@@ -9,28 +9,12 @@ import { Button } from '../../components/adapters/Button'
 import uikitJson from '../../vars/UIKit.json'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
-
-/**
- * Converts a UIKit.json path to a CSS variable name
- * Matches the implementation in uikit.ts resolver
- */
-function toCssVarName(path: string): string {
-  const parts = path
-    .replace(/^\.+|\.+$/g, '') // Remove leading/trailing dots
-    .split('.')
-    .filter(Boolean) // Remove empty parts
-    .map(part => part.replace(/\s+/g, '-').toLowerCase())
-  
-  // Remove "ui-kit" from parts if it appears (to avoid double prefix)
-  const filteredParts = parts.filter(part => part !== 'ui-kit')
-  
-  return `--recursica-ui-kit-${filteredParts.join('-')}`
-}
+import { toCssVarName } from '../../components/utils/cssVarNames'
 
 /**
  * Extracts all CSS variables for a component from UIKit.json
  */
-function getComponentCssVars(componentName: string): Array<{ path: string; cssVar: string; value: any; type: string }> {
+function getComponentCssVars(componentName: string, mode: 'light' | 'dark'): Array<{ path: string; cssVar: string; value: any; type: string }> {
   const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   const uikitRoot: any = uikitJson
   const components = uikitRoot?.['ui-kit']?.components || {}
@@ -51,7 +35,7 @@ function getComponentCssVars(componentName: string): Array<{ path: string; cssVa
       if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
         // Build the path: components.button.color.layer-0.background-solid
         const fullPath = ['components', componentKey, ...currentPath].join('.')
-        const cssVar = toCssVarName(fullPath)
+        const cssVar = toCssVarName(fullPath, mode)
         const type = (value as any).$type
         const rawValue = (value as any).$value
         
@@ -95,9 +79,10 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
   const [updateKey, setUpdateKey] = useState(0)
   const [openAccordions, setOpenAccordions] = useState<Set<string>>(new Set())
   
+  const { mode } = useThemeMode()
   const componentVars = useMemo(() => {
-    return getComponentCssVars(componentName)
-  }, [componentName])
+    return getComponentCssVars(componentName, mode)
+  }, [componentName, mode])
   
   // Group vars by category and subcategory, and derive section headers
   const { groupedVars, sectionHeaders, otherVars } = useMemo(() => {

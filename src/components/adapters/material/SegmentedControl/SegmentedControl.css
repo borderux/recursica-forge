@@ -128,8 +128,20 @@
   display: none !important;
 }
 
-/* Override Material UI's default full-width behavior for buttons in vertical orientation */
+/* Override Material UI's default full-width behavior when fullWidth is false */
 /* When fullWidth is false, force auto width for buttons */
+.recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="horizontal"] {
+  display: inline-flex !important;
+  width: auto !important;
+}
+
+.recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="horizontal"] .MuiToggleButton-root {
+  width: auto !important;
+  flex: none !important;
+  min-width: fit-content !important; /* Ensure button expands to fit content */
+  max-width: none !important;
+}
+
 .recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="vertical"] {
   display: inline-flex !important;
   width: auto !important;
@@ -138,6 +150,6 @@
 .recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="vertical"] .MuiToggleButton-root {
   width: auto !important;
   flex: none !important;
-  min-width: auto !important;
+  min-width: fit-content !important; /* Ensure button expands to fit content */
   max-width: none !important;
 }

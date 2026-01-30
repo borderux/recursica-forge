@@ -640,8 +640,8 @@ export default function SegmentedControl({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        flexGrow: fullWidth ? 1 : 0,
-        width: fullWidth ? '100%' : 'auto',
+        flexGrow: 1, // Always fill the button area for full clickability
+        width: '100%', // Always fill the button width for full clickability
         ...mantine?.styles?.label,
       },
       indicator: {

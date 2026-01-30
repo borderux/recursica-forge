@@ -369,7 +369,11 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         
         const type = (value as any).$type
         const fullPath = ['components', componentKey, ...currentPath]
-        const cssVar = toCssVarName(fullPath.join('.'))
+        // Read mode from document to generate mode-specific CSS var names
+        const mode = typeof document !== 'undefined' 
+          ? (document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null) ?? 'light'
+          : 'light'
+        const cssVar = toCssVarName(fullPath.join('.'), mode)
         
         // Determine if this is variant-specific
         // A prop is variant-specific if "variants" appears in its path
@@ -429,7 +433,11 @@ export function parseComponentStructure(componentName: string): ComponentStructu
             // Create a prop for the text property group itself
             // Use a special type 'text-group' to identify it
             const fullPath = ['components', componentKey, ...currentPath]
-            const cssVar = toCssVarName(fullPath.join('.'))
+            // Read mode from document to generate mode-specific CSS var names
+            const mode = typeof document !== 'undefined' 
+              ? (document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null) ?? 'light'
+              : 'light'
+            const cssVar = toCssVarName(fullPath.join('.'), mode)
             
             props.push({
               name: key,
@@ -525,7 +533,11 @@ export function getComponentDefaultValues(componentName: string): Record<string,
 
       if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
         const fullPath = ['components', componentKey, ...currentPath]
-        const cssVar = toCssVarName(fullPath.join('.'))
+        // Read mode from document to generate mode-specific CSS var names
+        const mode = typeof document !== 'undefined' 
+          ? (document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null) ?? 'light'
+          : 'light'
+        const cssVar = toCssVarName(fullPath.join('.'), mode)
         const rawValue = (value as any).$value
 
         // Extract the actual value (could be a token reference)

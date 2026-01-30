@@ -36,6 +36,28 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  /* Make entire control element clickable */
+  cursor: pointer !important;
+  position: relative !important;
+  /* Ensure control element fills its area and is clickable */
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Ensure input element inside control covers entire control area and is clickable */
+.mantine-SegmentedControl-control input {
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 10 !important; /* Ensure input is on top for clickability */
 }
 
 /* Auto-width behavior - when fullWidth is false */
@@ -47,13 +69,13 @@
 .mantine-SegmentedControl-root.recursica-auto-width[data-orientation="horizontal"] .mantine-SegmentedControl-control {
   flex: none !important;
   width: auto !important;
-  min-width: auto !important;
+  min-width: fit-content !important; /* Ensure button expands to fit content */
   max-width: none !important;
 }
 
 .mantine-SegmentedControl-root.recursica-auto-width[data-orientation="horizontal"] .mantine-SegmentedControl-control .mantine-SegmentedControl-label {
-  flex-grow: 0 !important;
-  width: auto !important;
+  flex-grow: 1 !important;
+  width: 100% !important;
 }
 
 /* Override Mantine's default full-width behavior for controls in vertical orientation */
@@ -66,13 +88,13 @@
 .mantine-SegmentedControl-root.recursica-auto-width[data-orientation="vertical"] .mantine-SegmentedControl-control {
   width: auto !important;
   flex: none !important;
-  min-width: auto !important;
+  min-width: fit-content !important; /* Ensure button expands to fit content */
   max-width: none !important;
 }
 
 .mantine-SegmentedControl-root.recursica-auto-width[data-orientation="vertical"] .mantine-SegmentedControl-control .mantine-SegmentedControl-label {
-  flex-grow: 0 !important;
-  width: auto !important;
+  flex-grow: 1 !important;
+  width: 100% !important;
 }
 
 /* Full-width behavior - ensure controls fill available space */
@@ -328,6 +350,8 @@
   justify-content: center !important;
   /* Reset padding - padding should be controlled by the control element, not the label */
   padding: 0 !important;
+  /* Ensure label doesn't block pointer events - clicks should go to control element */
+  pointer-events: none !important;
 }
 
 /* Ensure SVG icons are centered within their containers */

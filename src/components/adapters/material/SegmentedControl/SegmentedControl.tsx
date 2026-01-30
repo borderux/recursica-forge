@@ -304,6 +304,17 @@ export default function SegmentedControl({
                 textDecoration: 'var(--segmented-control-text-decoration)',
                 textTransform: 'var(--segmented-control-text-transform)',
                 fontStyle: 'var(--segmented-control-font-style)',
+                flexGrow: 1, // Fill the button area for full clickability
+                flexShrink: fullWidth ? 1 : 0, // Allow shrinking when fullWidth, prevent when auto-width
+                flexBasis: 0, // Start from 0 and grow to fill space
+                minWidth: 0, // Allow label to shrink below content size if needed
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                alignSelf: 'stretch', // Stretch to fill button height
+                // Ensure label fills entire button area for clickability
+                // When auto-width, button expands to fit content, label fills remaining space
+                width: hasIcon ? undefined : '100%', // If no icon, fill entire button width
               }}>
                 {item.label}
               </span>

@@ -1878,19 +1878,19 @@ class VarsStore {
     } catch (e) {
       console.error('[VarsStore] Error generating dimension variables:', e)
     }
-    // UIKit components
-    // CRITICAL: Only generate UIKit vars if they don't exist in DOM yet (initial bootstrap)
-    // After initial bootstrap, UIKit vars should only be set via updateCssVar from the toolbar
-    // This prevents flickering and ensures toolbar overrides persist
+    // UIKit components - generate for all modes during bootstrap
+    // UIKit vars are generated for both light and dark modes based on what modes/themes are in Brand.json
+    // After initial bootstrap, UIKit vars are also managed via toolbar
     try {
       // Check if any UIKit vars exist in DOM - if they do, skip regenerating (they're managed via toolbar)
       let shouldGenerateUIKitVars = true
       if (typeof document !== 'undefined') {
-        // Sample a few UIKit vars to check if they're already initialized
+        // Sample a few UIKit vars to check if they're already initialized (check both light and dark)
         const sampleVars = [
-          '--recursica-ui-kit-components-segmented-control-item-properties-selected-colors-layer-0-background',
-          '--recursica-ui-kit-components-button-properties-colors-layer-0-background',
-          '--recursica-ui-kit-components-accordion-properties-colors-layer-0-background'
+          '--recursica-ui-kit-themes-light-components-segmented-control-item-properties-selected-colors-layer-0-background',
+          '--recursica-ui-kit-themes-dark-components-segmented-control-item-properties-selected-colors-layer-0-background',
+          '--recursica-ui-kit-themes-light-components-button-properties-colors-layer-0-background',
+          '--recursica-ui-kit-themes-dark-components-button-properties-colors-layer-0-background'
         ]
         const hasAnyUIKitVars = sampleVars.some(v => {
           const value = document.documentElement.style.getPropertyValue(v)
@@ -1903,8 +1903,10 @@ class VarsStore {
       }
       
       if (shouldGenerateUIKitVars) {
-        // Initial bootstrap - generate UIKit vars from JSON
-        uikitVars = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, currentMode)
+        // Initial bootstrap - generate UIKit vars for both light and dark modes
+        const uikitVarsLight = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, 'light')
+        const uikitVarsDark = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, 'dark')
+        uikitVars = { ...uikitVarsLight, ...uikitVarsDark }
         
         // Track which UIKit vars actually changed by comparing generated values with current DOM values
         if (typeof document !== 'undefined') {

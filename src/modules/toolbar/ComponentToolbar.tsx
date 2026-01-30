@@ -602,17 +602,17 @@ export default function ComponentToolbar({
       componentCssVars.add(prop.cssVar)
     })
 
-    // Rebuild UIKit vars from JSON defaults
+    // Rebuild UIKit vars from JSON defaults for current mode
     const allUIKitVars = buildUIKitVars(tokens, theme, uikit, mode)
     
-    // Filter to only this component's CSS variables
+    // Filter to only this component's CSS variables for current mode
     const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
     const componentDefaults: Record<string, string> = {}
     
     Object.entries(allUIKitVars).forEach(([cssVar, value]) => {
-      // Check if this CSS var belongs to this component
-      // Format: --recursica-ui-kit-components-{component}-...
-      if (cssVar.includes(`components-${componentKey}-`)) {
+      // Check if this CSS var belongs to this component and current mode
+      // Format: --recursica-ui-kit-themes-{mode}-components-{component}-...
+      if (cssVar.includes(`themes-${mode}-components-${componentKey}-`)) {
         componentDefaults[cssVar] = value
       }
     })

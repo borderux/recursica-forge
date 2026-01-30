@@ -28,8 +28,12 @@ function pascalToKebabCase(str: string): string {
  * @example
  * toCssVarName('components.button.color.layer-0.background-solid')
  * => '--recursica-ui-kit-components-button-color-layer-0-background-solid'
+ * 
+ * @example
+ * toCssVarName('components.button.color.layer-0.background-solid', 'light')
+ * => '--recursica-ui-kit-themes-light-components-button-color-layer-0-background-solid'
  */
-export function toCssVarName(path: string): string {
+export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // Remove leading/trailing dots and split
   const parts = path.replace(/^\.+|\.+$/g, '').split('.')
   
@@ -37,6 +41,11 @@ export function toCssVarName(path: string): string {
   const varName = parts
     .map(part => part.replace(/-/g, '-')) // Keep hyphens
     .join('-')
+  
+  // Include mode in the name if provided (like palette vars: --recursica-brand-themes-light-...)
+  if (mode) {
+    return `--recursica-ui-kit-themes-${mode}-${varName}`
+  }
   
   return `--recursica-ui-kit-${varName}`
 }
@@ -47,20 +56,40 @@ export function toCssVarName(path: string): string {
  * 
  * @example
  * buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
- * => '--recursica-ui-kit-components-button-variants-styles-solid-properties-colors-layer-0-background'
+ * => '--recursica-ui-kit-themes-light-components-button-variants-styles-solid-properties-colors-layer-0-background'
  * 
  * @example
- * buildComponentCssVarPath('Chip', 'properties', 'horizontal-padding')
- * => '--recursica-ui-kit-components-chip-properties-horizontal-padding'
+ * buildComponentCssVarPath('Chip', 'properties', 'horizontal-padding', 'dark')
+ * => '--recursica-ui-kit-themes-dark-components-chip-properties-horizontal-padding'
  * 
  * @param component - Component name (e.g., 'Button', 'Chip')
  * @param pathSegments - Path segments from UIKit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background'])
+ * @param mode - Optional theme mode ('light' | 'dark'). If not provided, reads from document.documentElement.getAttribute('data-theme-mode')
  * @returns CSS variable name
  */
 export function buildComponentCssVarPath(
   component: ComponentName,
-  ...pathSegments: string[]
+  ...args: [...pathSegments: string[], mode?: 'light' | 'dark']
 ): string {
+  // Extract mode if it's the last argument and is 'light' or 'dark'
+  let mode: 'light' | 'dark' | undefined
+  let pathSegments: string[]
+  
+  const lastArg = args[args.length - 1]
+  if (lastArg === 'light' || lastArg === 'dark') {
+    mode = lastArg
+    pathSegments = args.slice(0, -1)
+  } else {
+    pathSegments = args
+    // Read mode from document if not provided
+    if (typeof document !== 'undefined') {
+      const docMode = document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null
+      mode = docMode ?? 'light'
+    } else {
+      mode = 'light'
+    }
+  }
+  
   // Guard against invalid segments
   const validSegments = pathSegments.filter(segment => 
     segment && 
@@ -71,7 +100,7 @@ export function buildComponentCssVarPath(
   if (validSegments.length === 0) {
     console.warn(`[buildComponentCssVarPath] No valid path segments for ${component}`)
     const componentKebab = pascalToKebabCase(component)
-    return `--recursica-ui-kit-components-${componentKebab}-invalid-path`
+    return `--recursica-ui-kit-themes-${mode}-components-${componentKebab}-invalid-path`
   }
   
   // Normalize segments: replace dots/spaces with hyphens, lowercase
@@ -83,7 +112,7 @@ export function buildComponentCssVarPath(
   // Convert component name from PascalCase to kebab-case (e.g., 'MenuItem' -> 'menu-item')
   const componentKebab = pascalToKebabCase(component)
   const parts = ['components', componentKebab, ...normalizedSegments]
-  return toCssVarName(parts.join('.'))
+  return toCssVarName(parts.join('.'), mode)
 }
 
 /**
@@ -208,15 +237,34 @@ export function getComponentCssVar(
  */
 export function getGlobalCssVar(
   category: 'globals' | 'form',
-  ...path: string[]
+  ...args: [...path: string[], mode?: 'light' | 'dark']
 ): string {
+  // Extract mode if it's the last argument and is 'light' or 'dark'
+  let mode: 'light' | 'dark' | undefined
+  let path: string[]
+  
+  const lastArg = args[args.length - 1]
+  if (lastArg === 'light' || lastArg === 'dark') {
+    mode = lastArg
+    path = args.slice(0, -1)
+  } else {
+    path = args
+    // Read mode from document if not provided
+    if (typeof document !== 'undefined') {
+      const docMode = document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null
+      mode = docMode ?? 'light'
+    } else {
+      mode = 'light'
+    }
+  }
+  
   // UIKit structure: ui-kit.globals.form.field.size.single-line-input-height
   // So for 'form' category, we need: globals.form.field.size.single-line-input-height
   // For 'globals' category, we need: globals.{path}
   const parts = category === 'form' 
     ? ['globals', 'form', ...path]
     : ['globals', ...path]
-  return toCssVarName(parts.join('.'))
+  return toCssVarName(parts.join('.'), mode)
 }
 
 /**

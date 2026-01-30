@@ -324,6 +324,7 @@ export default function SegmentedControl({
               cursor: disabled || item.disabled ? 'not-allowed' : 'pointer',
               flex: fullWidth && !isVertical ? 1 : 'none',
               width: fullWidth && isVertical ? '100%' : 'auto',
+              minWidth: fullWidth ? undefined : 'fit-content', // Ensure button expands to fit content when auto-width
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -364,6 +365,17 @@ export default function SegmentedControl({
                 textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') as any : 'none',
                 textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') as any : 'none',
                 fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal',
+                flexGrow: 1, // Fill the button area for full clickability
+                flexShrink: fullWidth ? 1 : 0, // Allow shrinking when fullWidth, prevent when auto-width
+                flexBasis: 0, // Start from 0 and grow to fill space
+                minWidth: 0, // Allow label to shrink below content size if needed
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                alignSelf: 'stretch', // Stretch to fill button height
+                // Ensure label fills entire button area for clickability
+                // When auto-width, button expands to fit content, label fills remaining space
+                width: hasIcon ? undefined : '100%', // If no icon, fill entire button width
               }}>
                 {item.label}
               </span>
