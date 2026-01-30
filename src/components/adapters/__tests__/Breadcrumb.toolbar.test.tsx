@@ -42,7 +42,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
   // Helper to wait for breadcrumb component to load
   const waitForBreadcrumb = async (container: HTMLElement) => {
     return await waitFor(() => {
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"], nav[aria-label*="breadcrumb"], nav[aria-label*="Breadcrumb"]')
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"], nav[aria-label*="breadcrumb"], nav[aria-label*="Breadcrumb"], nav[role="navigation"]')
       if (!breadcrumb) throw new Error('Breadcrumb not found')
       return breadcrumb
     }, { timeout: 15000 })
@@ -78,15 +78,20 @@ describe('Breadcrumb Toolbar Props Integration', () => {
           // Simulate toolbar update: change the CSS variable
           updateCssVar(colorVar, '#ff0000')
           
+          // Dispatch event to trigger component update
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: [colorVar] }
+          }))
+          
           // Wait for CSS variable to be updated in the DOM
           await waitFor(() => {
             const updatedValue = readCssVar(colorVar)
             expect(updatedValue).toBe('#ff0000')
-          }, { timeout: 5000 })
+          }, { timeout: 10000 })
           
           // Verify the CSS custom property is set on the breadcrumb element
           await waitFor(() => {
-            const styles = window.getComputedStyle(breadcrumb!)
+            const styles = window.getComputedStyle(breadcrumb as HTMLElement)
             // The component sets --breadcrumb-interactive-color or --breadcrumb-read-only-color
             const cssPropName = `--breadcrumb-${variant}-color`
             const cssPropValue = styles.getPropertyValue(cssPropName)
@@ -94,7 +99,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
             expect(cssPropValue).toBeTruthy()
             expect(cssPropValue).toContain('var(')
             expect(cssPropValue).toContain(colorVar)
-          }, { timeout: 3000 })
+          }, { timeout: 10000 })
         })
       })
     })

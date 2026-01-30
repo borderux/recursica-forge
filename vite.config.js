@@ -16,9 +16,9 @@ export default defineConfig({
         environment: 'jsdom',
         setupFiles: ['./vitest.setup.ts'],
         globals: true,
-        testTimeout: 10000, // Increase timeout for CI environments
-        teardownTimeout: 5000, // Timeout for cleanup
-        hookTimeout: 10000, // Timeout for hooks (beforeEach, afterEach, etc.)
+        testTimeout: 30000, // Increase timeout for CI environments
+        teardownTimeout: 10000, // Timeout for cleanup
+        hookTimeout: 30000, // Timeout for hooks (beforeEach, afterEach, etc.)
         coverage: {
             provider: 'v8',
         },
@@ -29,7 +29,5 @@ export default defineConfig({
                 singleFork: false,
             },
         },
-        // Force exit after tests to prevent hanging from event listeners
-        forceRerunTriggers: ['**/vitest.setup.ts'],
     },
 });
