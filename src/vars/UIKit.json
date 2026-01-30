@@ -283,7 +283,7 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -297,7 +297,7 @@
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -311,7 +311,7 @@
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.surface}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -325,7 +325,7 @@
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": null
                     },
                     "text": {
                       "$type": "color",
@@ -783,6 +783,13 @@
             "$type": "dimension",
             "$value": {
               "value": 624,
+              "unit": "px"
+            }
+          },
+          "min-height": {
+            "$type": "dimension",
+            "$value": {
+              "value": 48,
               "unit": "px"
             }
           },

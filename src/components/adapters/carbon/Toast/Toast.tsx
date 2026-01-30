@@ -34,16 +34,19 @@ export default function Toast({
   // Use UIKit.json toast colors for standard layers
   const toastBgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
   const toastTextVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
-  let toastButtonVar: string | undefined
-  if (variant === 'success' || variant === 'error') {
-    toastButtonVar = getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
-  }
+  // Button color uses the core color's interactive property for success/error variants
+  // Map variant to core color: success -> success, error -> alert, default -> no override (use Button default)
+  const coreColorName = variant === 'success' ? 'success' : variant === 'error' ? 'alert' : null
+  const toastButtonVar = coreColorName
+    ? `--recursica-brand-themes-${mode}-palettes-core-${coreColorName}-interactive`
+    : undefined
   
   // Get component-level CSS variables (these are under toast.properties in UIKit.json)
   const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
   const minWidthVar = getComponentLevelCssVar('Toast', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Toast', 'max-width')
+  const minHeightVar = getComponentLevelCssVar('Toast', 'min-height')
   const iconVar = getComponentLevelCssVar('Toast', 'icon')
   const spacingVar = getComponentLevelCssVar('Toast', 'spacing')
   
@@ -103,11 +106,12 @@ export default function Toast({
       // Use CSS variables for theming
       '--toast-bg': `var(${toastBgVar})`,
       '--toast-text': `var(${toastTextVar})`,
-      '--toast-button': toastButtonVar ? `var(${toastButtonVar})` : undefined,
+      ...(toastButtonVar ? { '--toast-button': `var(${toastButtonVar})` } : {}),
       '--toast-vertical-padding': `var(${verticalPaddingVar})`,
       '--toast-horizontal-padding': `var(${horizontalPaddingVar})`,
       '--toast-min-width': `var(${minWidthVar})`,
       '--toast-max-width': `var(${maxWidthVar})`,
+      '--toast-min-height': `var(${minHeightVar})`,
       '--toast-icon-size': icon ? `var(${iconVar})` : '0px',
       '--toast-spacing': icon || action ? `var(${spacingVar})` : '0px',
       backgroundColor: `var(${toastBgVar})`,
@@ -149,17 +153,16 @@ export default function Toast({
             style={{
               backgroundColor: 'transparent',
               '--button-bg': 'transparent',
+              opacity: 1,
               minWidth: 'auto',
               width: 'auto',
               height: 'auto',
               padding: 0,
               flexShrink: 0,
-              ...(toastButtonVar
-                ? {
-                    color: `var(${toastButtonVar})`,
-                    '--button-color': `var(${toastButtonVar})`,
-                  }
-                : {}),
+              ...(toastButtonVar ? {
+                color: `var(${toastButtonVar})`,
+                '--button-color': `var(${toastButtonVar})`,
+              } : {}),
             } as React.CSSProperties}
           >
             {CloseIcon ? <CloseIcon /> : '×'}

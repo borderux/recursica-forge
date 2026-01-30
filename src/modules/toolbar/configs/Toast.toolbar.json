@@ -16,11 +16,6 @@
       "label": "Text style",
       "visible": true
     },
-    "button": {
-      "icon": "cursor-click",
-      "label": "Button",
-      "visible": true
-    },
     "padding": {
       "icon": "square-logo",
       "label": "Padding",
@@ -38,30 +33,39 @@
         }
       }
     },
-    "width": {
+    "size": {
       "icon": "arrows-left-right",
-      "label": "Width",
+      "label": "Size",
       "visible": true,
       "group": {
         "min-width": {
-          "label": "Minimum",
+          "label": "Minimum width",
           "visible": true
         },
         "max-width": {
-          "label": "Maximum",
+          "label": "Maximum width",
+          "visible": true
+        },
+        "min-height": {
+          "label": "Minimum height",
           "visible": true
         }
       }
     },
-    "spacing": {
-      "icon": "split-horizontal",
-      "label": "Spacing",
-      "visible": true
-    },
     "icon": {
       "icon": "diamond",
       "label": "Icon",
-      "visible": true
+      "visible": true,
+      "group": {
+        "icon": {
+          "label": "Icon size",
+          "visible": true
+        },
+        "spacing": {
+          "label": "Icon text gap",
+          "visible": true
+        }
+      }
     },
     "elevation": {
       "icon": "copy-simple",

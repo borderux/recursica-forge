@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Toast } from '../../components/adapters/Toast'
+import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from './iconUtils'
 
 interface ToastPreviewProps {
@@ -52,6 +53,28 @@ export default function ToastPreview({
         {styleVariant === 'default' ? 'Default toast message' : 
          styleVariant === 'success' ? 'Success toast message' : 
          'Error toast message'}
+      </Toast>
+      <Toast
+        variant={styleVariant}
+        layer={actualLayer}
+        elevation={componentElevation}
+        alternativeLayer={selectedAltLayer}
+        icon={styleVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : styleVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
+        onClose={styleVariant === 'success' || styleVariant === 'error' ? () => {} : undefined}
+        action={
+          <Button
+            variant="text"
+            size="small"
+            layer={actualLayer}
+            onClick={() => {}}
+          >
+            Action
+          </Button>
+        }
+      >
+        {styleVariant === 'default' ? 'Toast with action button' : 
+         styleVariant === 'success' ? 'Success toast with action' : 
+         'Error toast with action'}
       </Toast>
     </div>
   )

@@ -90,9 +90,12 @@ export function Toast({
     const CloseIcon = iconNameToReactComponent('x-mark')
     const bgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
     const textVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
-    const buttonVar = (variant === 'success' || variant === 'error')
-      ? getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
-      : null
+    // Button color uses the core color's interactive property for success/error variants
+    // Map variant to core color: success -> success, error -> alert, default -> no override (use Button default)
+    const coreColorName = variant === 'success' ? 'success' : variant === 'error' ? 'alert' : null
+    const buttonVar = coreColorName
+      ? `--recursica-brand-themes-${mode}-palettes-core-${coreColorName}-interactive`
+      : undefined
     // Get component-level CSS variables (these are under toast.properties in UIKit.json)
     const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
     const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
@@ -216,17 +219,16 @@ export function Toast({
             style={{
               backgroundColor: 'transparent',
               '--button-bg': 'transparent',
+              opacity: 1,
               minWidth: 'auto',
               width: 'auto',
               height: 'auto',
               padding: 0,
               flexShrink: 0,
-              ...(buttonVar
-                ? {
-                    color: `var(${buttonVar})`,
-                    '--button-color': `var(${buttonVar})`,
-                  }
-                : {}),
+              ...(buttonVar ? {
+                color: `var(${buttonVar})`,
+                '--button-color': `var(${buttonVar})`,
+              } : {}),
             } as React.CSSProperties}
           >
             {CloseIcon ? <CloseIcon /> : '×'}
