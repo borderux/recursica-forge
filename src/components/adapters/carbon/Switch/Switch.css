@@ -58,6 +58,11 @@
   z-index: 10;
 }
 
+/* Also add cursor to thumb when not inside label */
+.recursica-carbon-toggle-wrapper .cds--toggle__thumb {
+  cursor: pointer !important;
+}
+
 /* Override thumb background - use wrapper class for scoping */
 .recursica-carbon-toggle-wrapper .cds--toggle__thumb {
   background: var(--recursica-ui-kit-components-switch-thumb-bg-unselected) !important;

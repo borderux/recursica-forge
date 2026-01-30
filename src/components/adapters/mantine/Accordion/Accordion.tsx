@@ -7,7 +7,7 @@ import { Accordion as MantineAccordion } from '@mantine/core'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import type { AccordionProps as AdapterAccordionProps } from '../../Accordion'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import './Accordion.css'
 
@@ -86,12 +86,15 @@ export default function Accordion({
 
   // Item properties (AccordionItem)
   const headerBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background')
-  const headerHoverVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background-hover')
   const headerTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'text')
   const iconColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'icon')
   const dividerColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'divider')
   const contentBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-background')
   const contentTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-text')
+  
+  // Get hover opacity and overlay color from brand theme (not user-configurable)
+  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
+  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
 
   const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
   const contentPaddingVar = getComponentLevelCssVar('AccordionItem', 'content-padding')
@@ -249,7 +252,6 @@ export default function Accordion({
         border: `var(--accordion-border-size, 1px) solid var(--accordion-border)`,
         borderRadius: `var(--accordion-border-radius)`,
         background: `var(--accordion-bg)`,
-        overflow: 'hidden',
       },
       item: {
         ...(mantine?.styles?.item || {}),
@@ -303,8 +305,9 @@ export default function Accordion({
         boxShadow: elevationBoxShadow,
         // Item properties
         ['--accordion-item-header-bg' as string]: `var(${headerBgVar})`,
-        ['--accordion-item-header-hover' as string]: `var(${headerHoverVar})`,
         ['--accordion-item-header-text' as string]: `var(${headerTextVar})`,
+        ['--accordion-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
+        ['--accordion-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
         ['--accordion-item-icon-color' as string]: `var(${iconColorVar})`,
         ['--accordion-item-divider-color' as string]: `var(${dividerColorVar})`,
         ['--accordion-item-content-bg' as string]: `var(${contentBgVar})`,

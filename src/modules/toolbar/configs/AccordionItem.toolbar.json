@@ -14,10 +14,6 @@
           "label": "Background",
           "visible": true
         },
-        "background-hover": {
-          "label": "Background hover",
-          "visible": true
-        },
         "icon": {
           "label": "Icon",
           "visible": true
@@ -28,6 +24,10 @@
         },
         "icon-gap": {
           "label": "Icon gap",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Border radius",
           "visible": true
         }
       }
@@ -75,11 +75,6 @@
           "visible": true
         }
       }
-    },
-    "border-radius": {
-      "icon": "corners-out",
-      "label": "Border radius",
-      "visible": true
     },
     "icon-size": {
       "icon": "arrows-up-down",

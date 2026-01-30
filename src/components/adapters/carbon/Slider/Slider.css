@@ -5,6 +5,7 @@
  */
 
 .recursica-carbon-slider-wrapper {
+  /* CSS variables are set via inline styles in component - use those */
   --cds-slider-track-background: var(--recursica-ui-kit-components-slider-track-color) !important;
   --cds-slider-fill-background: var(--recursica-ui-kit-components-slider-track-active-color) !important;
   --cds-slider-thumb-background: var(--recursica-ui-kit-components-slider-thumb-color) !important;

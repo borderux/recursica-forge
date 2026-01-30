@@ -7,22 +7,41 @@
 /* Ensure root container is positioned for absolute thumb positioning */
 .mantine-Switch-root {
   position: relative !important;
+  cursor: pointer !important;
   /* Mantine's internal CSS variables are set directly in the component's style prop */
   /* These reference UIKit variables which are on :root and update automatically */
+}
+
+/* Input element should have pointer cursor */
+.mantine-Switch-input {
+  cursor: pointer !important;
+}
+
+/* Disabled state - use not-allowed cursor */
+.mantine-Switch-input:disabled {
+  cursor: not-allowed !important;
+}
+
+.mantine-Switch-input:disabled ~ .mantine-Switch-track,
+.mantine-Switch-input:disabled ~ .mantine-Switch-thumb,
+.mantine-Switch-root:has(.mantine-Switch-input:disabled) .mantine-Switch-track,
+.mantine-Switch-root:has(.mantine-Switch-input:disabled) .mantine-Switch-thumb {
+  cursor: not-allowed !important;
 }
 
 /* Position thumb relative to track's content area (respecting padding) */
 .mantine-Switch-thumb {
   /* Use wrapper variables that are set in component's style prop - these reference UIKit vars directly */
   background: var(--recursica-ui-kit-components-switch-thumb-bg-unselected) !important;
-  /* Use UIKit variables directly (they're on :root from UIKit.json) */
-  width: var(--recursica-ui-kit-components-switch-properties-thumb-width) !important;
-  height: var(--recursica-ui-kit-components-switch-properties-thumb-height) !important;
-  border-radius: var(--recursica-ui-kit-components-switch-properties-thumb-border-radius) !important;
+  /* Use wrapper variables set by component (these reference mode-aware UIKit vars) */
+  width: var(--recursica-ui-kit-components-switch-thumb-width) !important;
+  height: var(--recursica-ui-kit-components-switch-thumb-height) !important;
+  border-radius: var(--recursica-ui-kit-components-switch-thumb-border-radius) !important;
   box-shadow: var(--recursica-ui-kit-components-switch-thumb-elevation) !important;
   position: absolute !important;
+  cursor: pointer !important;
   /* Always position at left edge, use transform to move when checked */
-  left: var(--recursica-ui-kit-components-switch-properties-track-inner-padding) !important;
+  left: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
   top: 50% !important;
   transform: translateY(-50%) translateX(0) !important;
   transition: transform 0.1s ease, background 0.1s ease !important;
@@ -34,7 +53,7 @@
   /* Use wrapper variable that references UIKit var - will update automatically when UIKit var changes */
   background: var(--recursica-ui-kit-components-switch-thumb-bg-selected) !important;
   /* Checked: move thumb to right edge using transform */
-  transform: translateY(-50%) translateX(calc(var(--switch-width) - var(--recursica-ui-kit-components-switch-properties-thumb-width) - 2 * var(--recursica-ui-kit-components-switch-properties-track-inner-padding))) !important;
+  transform: translateY(-50%) translateX(calc(var(--switch-width) - var(--recursica-ui-kit-components-switch-thumb-width) - 2 * var(--recursica-ui-kit-components-switch-track-inner-padding))) !important;
 }
 
 /* Remove the blue dot in the center of the thumb */
@@ -52,14 +71,15 @@
 .mantine-Switch-track {
   /* Use wrapper variable that references UIKit var - will update automatically when UIKit var changes */
   background-color: var(--recursica-ui-kit-components-switch-track-unchecked) !important;
-  /* Use UIKit variables directly (they're on :root from UIKit.json) */
-  border-radius: var(--recursica-ui-kit-components-switch-properties-track-border-radius) !important;
+  /* Use wrapper variables set by component (these reference mode-aware UIKit vars) */
+  border-radius: var(--recursica-ui-kit-components-switch-track-border-radius) !important;
   box-shadow: var(--recursica-ui-kit-components-switch-track-elevation) !important;
   width: var(--switch-width) !important;
   height: var(--recursica-ui-kit-components-switch-track-height) !important;
-  padding: var(--recursica-ui-kit-components-switch-properties-track-inner-padding) !important;
+  padding: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
   box-sizing: border-box !important;
   position: relative !important;
+  cursor: pointer !important;
 }
 
 .mantine-Switch-input:checked + .mantine-Switch-track {

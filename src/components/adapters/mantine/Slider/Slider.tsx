@@ -202,9 +202,11 @@ export default function Slider({
           flex: 1,
           '--slider-track-color': `var(${trackVar})`,
           '--slider-color': `var(${trackActiveVar})`,
+          '--slider-thumb-color': `var(${thumbVar})`,
           '--slider-thumb-size': `var(${thumbSizeVar}, 20px)`,
           '--slider-size': `var(${trackHeightVar}, 4px)`,
           '--slider-radius': `var(${trackBorderRadiusVar})`,
+          '--slider-thumb-radius': `var(${thumbBorderRadiusVar})`,
           ...style,
         }}
         {...mantine}

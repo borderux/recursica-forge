@@ -12,6 +12,7 @@ import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNam
 import OpacitySelector from './OpacitySelector'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
+import OpacitySlider from '../../utils/OpacitySlider'
 import TextStyleToolbar from '../text-style/TextStyleToolbar'
 import uikitJson from '../../../../vars/UIKit.json'
 import './PropControl.css'
@@ -992,6 +993,25 @@ export default function PropControlContent({
   }
 
   const renderControl = (propToRender: ComponentProp, cssVars: string[], primaryVar: string, label: string) => {
+    // Normalize component name for comparison (same as loadToolbarConfig) - must be defined at top of function
+    const normalizedComponentName = componentName.toLowerCase().replace(/\s+/g, '-')
+    const propNameLower = propToRender.name.toLowerCase()
+    
+    // Component type checks - defined at top so they're available throughout the function
+    const isLabelWidth = propToRender.name.toLowerCase() === 'label-width'
+    const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' || 
+                       componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
+                       componentName === 'MenuItem' ||
+                       componentName === 'Menu item'
+    const isMenu = componentName.toLowerCase() === 'menu'
+    const isAccordion = componentName.toLowerCase() === 'accordion' || normalizedComponentName === 'accordion-item'
+    const isButton = componentName.toLowerCase() === 'button'
+    const isChip = componentName.toLowerCase() === 'chip'
+    const isSlider = componentName.toLowerCase() === 'slider'
+    const isSwitch = componentName.toLowerCase() === 'switch'
+    const isSegmentedControl = normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmented-control-item'
+    const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item'
+    
     if (propToRender.type === 'color') {
       const contrastColorVar = getContrastColorVar(propToRender)
       let validPrimaryVar = (primaryVar && primaryVar.trim()) || (cssVars.length > 0 && cssVars[0]?.trim()) || propToRender.cssVar
@@ -1293,22 +1313,6 @@ export default function PropControlContent({
           />
         )
       }
-      
-      const isLabelWidth = propToRender.name.toLowerCase() === 'label-width'
-      const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' || 
-                         componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
-                         componentName === 'MenuItem' ||
-                         componentName === 'Menu item'
-      const isMenu = componentName.toLowerCase() === 'menu'
-      const isAccordion = componentName.toLowerCase() === 'accordion'
-      const isButton = componentName.toLowerCase() === 'button'
-      const isChip = componentName.toLowerCase() === 'chip'
-      const isSlider = componentName.toLowerCase() === 'slider'
-      const isSwitch = componentName.toLowerCase() === 'switch'
-      // Normalize component name for comparison (same as loadToolbarConfig)
-      const normalizedComponentName = componentName.toLowerCase().replace(/\s+/g, '-')
-      const isSegmentedControl = normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmented-control-item'
-      const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item'
       
       // Use Slider component for Chip border-size, min-width, and max-width properties
       if (isChip && (propNameLower === 'border-size' || propNameLower === 'min-width' || propNameLower === 'max-width')) {
@@ -1734,6 +1738,97 @@ export default function PropControlContent({
         )
       }
       
+      // Use Slider component for Accordion border-size property
+      if (isAccordion && propNameLower === 'border-size') {
+        const AccordionBorderSizeSlider = () => {
+          const minValue = 0
+          const maxValue = 10
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '1px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 1
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '1px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+          
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return (
+          <AccordionBorderSizeSlider
+            key={`${primaryVar}`}
+          />
+        )
+      }
+      
       // Use Slider component for SegmentedControl divider-size property
       if (isSegmentedControl && propNameLower === 'divider-size') {
         const SegmentedControlDividerSizeSlider = () => {
@@ -1985,12 +2080,20 @@ export default function PropControlContent({
       )
     }
 
-    // For number type properties (like opacity), use OpacitySelector
+    // For number type properties (like opacity), use OpacitySlider
     if (propToRender.type === 'number') {
       const isOpacityProp = propToRender.name.toLowerCase().includes('opacity')
       
       if (isOpacityProp) {
-        return <OpacitySelector targetCssVar={primaryVar} label={label} />
+        return (
+          <OpacitySlider
+            key={`${primaryVar}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars}
+            label={label}
+            layer="layer-1"
+          />
+        )
       }
       
       // For other number properties, show resolved value if available

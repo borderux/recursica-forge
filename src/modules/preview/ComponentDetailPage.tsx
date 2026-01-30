@@ -281,7 +281,7 @@ export default function ComponentDetailPage() {
             minHeight: debugMode ? '400px' : 0,
           }}>
             {/* Component Preview */}
-            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start', width: '100%', minWidth: 0 }}>
+            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', width: '100%', minWidth: 0 }}>
               {component.name === 'Button' ? (
                 <ButtonPreview
                   selectedVariants={selectedVariants}

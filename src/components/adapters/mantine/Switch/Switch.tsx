@@ -163,6 +163,12 @@ export default function Switch({
         '--recursica-ui-kit-components-switch-track-height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
         '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
         '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
+        // Set wrapper variables for properties that CSS references directly
+        '--recursica-ui-kit-components-switch-thumb-width': `var(${thumbWidthVar})`,
+        '--recursica-ui-kit-components-switch-thumb-height': `var(${thumbHeightVar})`,
+        '--recursica-ui-kit-components-switch-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
+        '--recursica-ui-kit-components-switch-track-border-radius': `var(${trackBorderRadiusVar})`,
+        '--recursica-ui-kit-components-switch-track-inner-padding': `var(${trackInnerPaddingVar})`,
         width: `var(${trackWidthVar})`,
         ...style,
       }}

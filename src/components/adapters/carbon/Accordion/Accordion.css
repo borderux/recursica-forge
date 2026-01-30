@@ -11,7 +11,6 @@
   padding: var(--accordion-padding, 0) !important;
   min-width: var(--accordion-min-width) !important;
   max-width: var(--accordion-max-width) !important;
-  overflow: hidden !important;
 }
 
 /* Remove borders from all child elements - only container should have border */
@@ -78,7 +77,19 @@
 
 .recursica-accordion.carbon-accordion .cds--accordion__heading:hover,
 .recursica-accordion.carbon-accordion .cds--accordion__button:hover {
-  background: var(--accordion-item-header-hover, var(--accordion-item-header-bg)) !important;
+  /* Hover state: apply overlay with hover opacity on top of base background */
+  position: relative;
+}
+
+.recursica-accordion.carbon-accordion .cds--accordion__heading:hover::before,
+.recursica-accordion.carbon-accordion .cds--accordion__button:hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--accordion-item-overlay-color, #000000);
+  opacity: var(--accordion-item-hover-opacity, 0.08);
+  border-radius: var(--accordion-item-border-radius, 4px);
+  pointer-events: none;
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__title {
