@@ -125,7 +125,7 @@ export default function SegmentedControl({
           </span>
           <span style={{
             textDecoration: 'var(--segmented-control-text-decoration)',
-            textTransform: 'var(--segmented-control-text-transform)',
+            textTransform: 'var(--segmented-control-text-transform)' as React.CSSProperties['textTransform'],
             fontStyle: 'var(--segmented-control-font-style)',
           }}>
             {item.label}
@@ -404,15 +404,15 @@ export default function SegmentedControl({
         tooltipEl.style.opacity = '0'
       }
       
-      control.addEventListener('mouseenter', showTooltip)
-      control.addEventListener('mouseleave', hideTooltip)
+      control.addEventListener('mouseenter', showTooltip as EventListener)
+      control.addEventListener('mouseleave', hideTooltip as EventListener)
       
       tooltipInstances.push({
         control,
         tooltip: tooltipEl,
         cleanup: () => {
-          control.removeEventListener('mouseenter', showTooltip)
-          control.removeEventListener('mouseleave', hideTooltip)
+          control.removeEventListener('mouseenter', showTooltip as EventListener)
+          control.removeEventListener('mouseleave', hideTooltip as EventListener)
           if (timeoutId) clearTimeout(timeoutId)
           document.body.removeChild(tooltipEl)
         }
@@ -466,7 +466,7 @@ export default function SegmentedControl({
       const updatedVars = detail?.cssVars || []
       
       // CRITICAL: Filter out UIKit CSS variables - they're silent and don't need re-renders
-      const nonUIKitVars = updatedVars.filter(v => 
+      const nonUIKitVars = updatedVars.filter((v: string) => 
         !v.startsWith('--recursica-ui-kit-components-') && 
         !v.startsWith('--recursica-ui-kit-globals-')
       )
@@ -476,11 +476,11 @@ export default function SegmentedControl({
       // If all vars are UIKit vars (nonUIKitVars.length === 0), don't update
       const shouldUpdate = updatedVars.length === 0 
         ? false // cssVarsReset with no vars - don't update
-        : nonUIKitVars.length > 0 && nonUIKitVars.some(v => relevantCssVars.has(v))
+        : nonUIKitVars.length > 0 && nonUIKitVars.some((v: string) => relevantCssVars.has(v))
       
       // Mark relevant vars as updated via event (excluding UIKit vars)
       if (shouldUpdate) {
-        nonUIKitVars.forEach(v => {
+        nonUIKitVars.forEach((v: string) => {
           if (relevantCssVars.has(v)) {
             eventUpdatedVars.current.add(v)
           }
@@ -498,8 +498,8 @@ export default function SegmentedControl({
       // The inline styles use var() references which automatically pick up changes from document.documentElement
       // Only re-render if non-color vars changed (like border-size, elevation, padding which are read in JS)
       if (shouldUpdate) {
-        const relevantUpdatedVars = nonUIKitVars.filter(v => relevantCssVars.has(v))
-        const onlyColorVarsChanged = relevantUpdatedVars.length > 0 && relevantUpdatedVars.every(v => colorOnlyVars.has(v))
+        const relevantUpdatedVars = nonUIKitVars.filter((v: string) => relevantCssVars.has(v))
+        const onlyColorVarsChanged = relevantUpdatedVars.length > 0 && relevantUpdatedVars.every((v: string) => colorOnlyVars.has(v))
         if (!onlyColorVarsChanged) {
           // Non-color vars changed (border-size, elevation, padding, etc.) - need re-render to read new values
           forceUpdate(prev => prev + 1)

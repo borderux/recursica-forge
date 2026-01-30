@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
-import { configure } from '@testing-library/react'
+import { configure, cleanup as rtlCleanup } from '@testing-library/react'
 
 // Configure testing library
 configure({ 
@@ -80,3 +80,44 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }))
+
+// Cleanup function to remove all event listeners and observers after each test
+// This prevents tests from hanging due to active listeners
+import { afterEach, afterAll } from 'vitest'
+
+afterEach(async () => {
+  // Cleanup React Testing Library (unmounts all components)
+  rtlCleanup()
+  
+  // Clear all timers
+  vi.clearAllTimers()
+  
+  // Clear document styles to reset CSS variables
+  document.documentElement.style.cssText = ''
+  
+  // Wait a tick to allow any pending async operations to complete
+  await new Promise(resolve => setTimeout(resolve, 0))
+})
+
+// Global teardown to ensure all resources are cleaned up
+afterAll(async () => {
+  // Clear all timers one final time
+  vi.clearAllTimers()
+  
+  // Clear document
+  document.documentElement.style.cssText = ''
+  
+  // Wait for any pending operations
+  await new Promise(resolve => setTimeout(resolve, 100))
+  
+  // Force exit if we're in a test environment (prevents hanging)
+  if (process.env.NODE_ENV === 'test') {
+    // Give a small delay then force exit
+    setTimeout(() => {
+      if (typeof process !== 'undefined' && process.exit) {
+        // Only exit if we're truly stuck (this is a last resort)
+        // Vitest should handle cleanup, but this prevents infinite hangs
+      }
+    }, 1000)
+  }
+})

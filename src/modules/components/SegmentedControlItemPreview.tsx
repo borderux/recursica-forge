@@ -24,7 +24,7 @@ export default function SegmentedControlItemPreview({
         const detail = (e as CustomEvent).detail
         const updatedVars = detail?.cssVars || []
         // If all vars are UIKit vars, skip re-render
-        const nonUIKitVars = updatedVars.filter(v => 
+        const nonUIKitVars = updatedVars.filter((v: string) => 
           !v.startsWith('--recursica-ui-kit-components-') && 
           !v.startsWith('--recursica-ui-kit-globals-')
         )
@@ -53,8 +53,6 @@ export default function SegmentedControlItemPreview({
   // Get icons
   const Icon1 = iconNameToReactComponent('house')
   const Icon2 = iconNameToReactComponent('sliders-horizontal')
-  const Icon3 = iconNameToReactComponent('user')
-  const Icon4 = iconNameToReactComponent('info')
   
   // State for selected values
   const [selectedValue1, setSelectedValue1] = useState<string>('option1')
@@ -75,18 +73,6 @@ export default function SegmentedControlItemPreview({
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
       tooltip: 'Second',
     },
-    {
-      value: 'option3',
-      label: 'Third',
-      icon: Icon3 ? <Icon3 size={16} /> : undefined,
-      tooltip: 'Third',
-    },
-    {
-      value: 'option4',
-      label: 'Fourth',
-      icon: Icon4 ? <Icon4 size={16} /> : undefined,
-      tooltip: 'Fourth',
-    },
   ]
   
   // Create items with labels only
@@ -100,16 +86,6 @@ export default function SegmentedControlItemPreview({
       value: 'option2',
       label: 'Second',
       tooltip: 'Second',
-    },
-    {
-      value: 'option3',
-      label: 'Third',
-      tooltip: 'Third',
-    },
-    {
-      value: 'option4',
-      label: 'Fourth',
-      tooltip: 'Fourth',
     },
   ]
   
@@ -126,18 +102,6 @@ export default function SegmentedControlItemPreview({
       label: 'Second',
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
       tooltip: 'Second',
-    },
-    {
-      value: 'option3',
-      label: 'Third',
-      icon: Icon3 ? <Icon3 size={16} /> : undefined,
-      tooltip: 'Third',
-    },
-    {
-      value: 'option4',
-      label: 'Fourth',
-      icon: Icon4 ? <Icon4 size={16} /> : undefined,
-      tooltip: 'Fourth',
     },
   ]
   

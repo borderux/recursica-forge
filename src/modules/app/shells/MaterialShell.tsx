@@ -365,7 +365,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
                     <Switch
                       checked={cssAuditAutoRun}
-                      onChange={(checked) => {
+                      onChange={(checked: boolean) => {
                         setCssAuditAutoRunState(checked)
                         setCssAuditAutoRun(checked)
                       }}

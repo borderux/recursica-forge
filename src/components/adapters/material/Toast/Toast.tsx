@@ -135,7 +135,7 @@ export default function Toast({
           letterSpacing: textLetterSpacingVar ? `var(${textLetterSpacingVar})` : undefined,
           lineHeight: textLineHeightVar ? `var(${textLineHeightVar})` : undefined,
           textDecoration: textDecorationVar ? `var(${textDecorationVar})` : undefined,
-          textTransform: textTransformVar ? `var(${textTransformVar})` : undefined,
+          textTransform: textTransformVar ? `var(${textTransformVar})` as React.CSSProperties['textTransform'] : undefined,
           fontStyle: textFontStyleVar ? `var(${textFontStyleVar})` : undefined,
         }}>{children}</span>
         {action && (

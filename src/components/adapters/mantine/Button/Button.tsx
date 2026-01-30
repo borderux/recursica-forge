@@ -342,12 +342,14 @@ export default function Button({
         
         // If it's a React element with the trailing icon class, remove it
         if (isValidElement(node)) {
-          if (node.props?.className === 'recursica-button-trailing-icon') {
+          const props = node.props as { className?: string; children?: React.ReactNode }
+          if (props?.className === 'recursica-button-trailing-icon') {
             return null
           }
           // Recursively filter children
-          if (node.props?.children) {
-            const filtered = Children.map(node.props.children, filterTrailingIcon).filter(Boolean)
+          if (props?.children) {
+            const mapped = Children.map(props.children as React.ReactNode, filterTrailingIcon)
+            const filtered = mapped ? mapped.filter((item): item is React.ReactElement => item !== null && item !== undefined) : []
             return cloneElement(node, {}, ...filtered)
           }
         }
@@ -355,8 +357,9 @@ export default function Button({
         return node
       }
       
-      const filtered = Children.map(children, filterTrailingIcon).filter(Boolean)
-      return filtered.length > 0 ? filtered : children
+      const mapped = children ? Children.map(children as React.ReactNode, filterTrailingIcon) : null
+      const filtered = mapped ? mapped.filter((item): item is React.ReactElement => item !== null && item !== undefined) : []
+      return filtered.length > 0 ? filtered : (children ?? null)
     }
     
     return children

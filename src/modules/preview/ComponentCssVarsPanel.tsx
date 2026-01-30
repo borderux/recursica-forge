@@ -171,7 +171,6 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
     setUpdateKey(k => k + 1)
   }
   
-  const { mode } = useThemeMode()
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const CloseIcon = iconNameToReactComponent('x-mark')
   

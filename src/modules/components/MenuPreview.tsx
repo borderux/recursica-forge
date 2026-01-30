@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Menu } from '../../components/adapters/Menu'
 import { MenuItem } from '../../components/adapters/MenuItem'
-import { iconNameToReactComponent } from './iconUtils'
 
 interface MenuPreviewProps {
   selectedVariants: Record<string, string>
@@ -39,9 +38,6 @@ export default function MenuPreview({
     }
   }, [])
   
-  const ChevronRightIcon = iconNameToReactComponent('arrow-right')
-  const FileIcon = iconNameToReactComponent('document-text')
-  
   return (
     <div style={{ 
       display: 'flex', 
@@ -58,35 +54,61 @@ export default function MenuPreview({
           variant="default"
           layer={selectedLayer as any}
           leadingIconType="none"
-          trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
           selected={false}
           disabled={false}
           divider="bottom"
         >
-          Default item
+          Menu item 1
         </MenuItem>
         <MenuItem
-          variant="selected"
-          layer={selectedLayer as any}
-          leadingIcon={FileIcon ? <FileIcon /> : undefined}
-          leadingIconType="icon"
-          supportingText="Supporting text"
-          selected={true}
-          disabled={false}
-          divider="bottom"
-        >
-          Selected item
-        </MenuItem>
-        <MenuItem
-          variant="disabled"
+          variant="default"
           layer={selectedLayer as any}
           leadingIconType="none"
-          trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
           selected={false}
-          disabled={true}
+          disabled={false}
+          divider="bottom"
+        >
+          Menu item 2
+        </MenuItem>
+        <MenuItem
+          variant="default"
+          layer={selectedLayer as any}
+          leadingIconType="none"
+          selected={false}
+          disabled={false}
+          divider="bottom"
+        >
+          Menu item 3
+        </MenuItem>
+        <MenuItem
+          variant="default"
+          layer={selectedLayer as any}
+          leadingIconType="none"
+          selected={false}
+          disabled={false}
+          divider="bottom"
+        >
+          Menu item 4
+        </MenuItem>
+        <MenuItem
+          variant="default"
+          layer={selectedLayer as any}
+          leadingIconType="none"
+          selected={false}
+          disabled={false}
+          divider="bottom"
+        >
+          Menu item 5
+        </MenuItem>
+        <MenuItem
+          variant="default"
+          layer={selectedLayer as any}
+          leadingIconType="none"
+          selected={false}
+          disabled={false}
           divider="none"
         >
-          Disabled item
+          Menu item 6
         </MenuItem>
       </Menu>
     </div>

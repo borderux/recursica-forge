@@ -13,7 +13,7 @@ import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import { useCssVar } from '../hooks/useCssVar'
 import { Tooltip } from './Tooltip'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { ComponentLayer, LibrarySpecificProps, ComponentName } from '../registry/types'
 import './SegmentedControl.css'
 
 export type SegmentedControlItem = {
@@ -35,7 +35,7 @@ export type SegmentedControlProps = {
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
   disabled?: boolean
   showLabel?: boolean // Whether to show labels (default: true)
-  componentNameForCssVars?: string // Component name to use for CSS variables (default: 'SegmentedControl')
+  componentNameForCssVars?: ComponentName // Component name to use for CSS variables (default: 'SegmentedControl')
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -51,7 +51,7 @@ export function SegmentedControl({
   elevation,
   disabled = false,
   showLabel = true,
-  componentNameForCssVars = 'SegmentedControl',
+  componentNameForCssVars = 'SegmentedControl' as ComponentName,
   className,
   style,
   mantine,

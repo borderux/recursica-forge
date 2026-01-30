@@ -46,7 +46,6 @@ export default function ToastPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
         icon={styleVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : styleVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
         onClose={styleVariant === 'success' || styleVariant === 'error' ? () => {} : undefined}
       >
@@ -58,7 +57,6 @@ export default function ToastPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        alternativeLayer={selectedAltLayer}
         icon={styleVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : styleVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
         onClose={styleVariant === 'success' || styleVariant === 'error' ? () => {} : undefined}
         action={

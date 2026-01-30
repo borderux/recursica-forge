@@ -290,10 +290,6 @@ export default function Accordion({
             disabled={item.disabled}
             data-divider={showDivider}
             className="recursica-accordion-item"
-            style={{
-              // Ensure font-weight CSS variable is available for child elements
-              ['--accordion-item-header-font-weight' as string]: `var(${headerFontWeightVar})`,
-            } as React.CSSProperties}
           >
             {item.content}
           </AccordionItem>

@@ -69,7 +69,7 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
  */
 export function buildComponentCssVarPath(
   component: ComponentName,
-  ...args: [...pathSegments: string[], mode?: 'light' | 'dark']
+  ...args: string[]
 ): string {
   // Extract mode if it's the last argument and is 'light' or 'dark'
   let mode: 'light' | 'dark' | undefined
@@ -78,9 +78,9 @@ export function buildComponentCssVarPath(
   const lastArg = args[args.length - 1]
   if (lastArg === 'light' || lastArg === 'dark') {
     mode = lastArg
-    pathSegments = args.slice(0, -1)
+    pathSegments = args.slice(0, -1).filter((s): s is string => typeof s === 'string')
   } else {
-    pathSegments = args
+    pathSegments = args.filter((s): s is string => typeof s === 'string')
     // Read mode from document if not provided
     if (typeof document !== 'undefined') {
       const docMode = document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null
@@ -237,7 +237,7 @@ export function getComponentCssVar(
  */
 export function getGlobalCssVar(
   category: 'globals' | 'form',
-  ...args: [...path: string[], mode?: 'light' | 'dark']
+  ...args: string[]
 ): string {
   // Extract mode if it's the last argument and is 'light' or 'dark'
   let mode: 'light' | 'dark' | undefined
@@ -246,9 +246,9 @@ export function getGlobalCssVar(
   const lastArg = args[args.length - 1]
   if (lastArg === 'light' || lastArg === 'dark') {
     mode = lastArg
-    path = args.slice(0, -1)
+    path = args.slice(0, -1).filter((s): s is string => typeof s === 'string')
   } else {
-    path = args
+    path = args.filter((s): s is string => typeof s === 'string')
     // Read mode from document if not provided
     if (typeof document !== 'undefined') {
       const docMode = document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null

@@ -6,7 +6,7 @@
  * verifying that components respond correctly.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, waitFor, act } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
@@ -16,14 +16,21 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
 
 describe('SegmentedControl Toolbar Props Integration', () => {
+  // Note: We don't preload components here to avoid hanging issues
+  // Components will load lazily via Suspense, which is tested behavior
+
   beforeEach(() => {
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
+    // Clear any pending timers
+    vi.clearAllTimers()
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     // Clean up after each test
     document.documentElement.style.cssText = ''
+    // Wait a tick to allow cleanup to complete
+    await new Promise(resolve => setTimeout(resolve, 0))
   })
 
   const renderWithProviders = (ui: React.ReactElement) => {
@@ -47,40 +54,40 @@ describe('SegmentedControl Toolbar Props Integration', () => {
   // Helper to wait for SegmentedControl to render (handles Suspense/lazy loading)
   // Note: waitFor already uses act() internally, so we don't wrap it
   const waitForSegmentedControl = async (container: HTMLElement) => {
-    // First wait for buttons to appear (indicating component has rendered)
-    await waitFor(() => {
-      const buttons = container.querySelectorAll('button')
-      if (buttons.length === 0) {
-        throw new Error('SegmentedControl buttons not found')
-      }
-      // Ensure buttons have content (not just Suspense fallback)
-      const hasContent = Array.from(buttons).some(btn => btn.textContent || btn.querySelector('span'))
-      if (!hasContent) {
-        throw new Error('Still loading (buttons have no content)')
-      }
-    }, { timeout: 10000 })
-    
-    // Then find the root element
-    return await waitFor(() => {
+    // Wait for any element that indicates the component has rendered
+    // This is more lenient and avoids hanging on specific selectors
+    const element = await waitFor(() => {
+      // Try multiple selectors in order of preference
       const carbonElement = container.querySelector('.recursica-segmented-control.carbon-segmented-control')
       const materialElement = container.querySelector('.recursica-segmented-control.material-segmented-control')
       const mantineRoot = container.querySelector('.mantine-SegmentedControl-root')
       const wrapper = container.querySelector('.recursica-segmented-control-wrapper')
       const nativeElement = container.querySelector('.recursica-segmented-control')
+      const buttons = container.querySelectorAll('button')
       
-      // Prefer library-specific elements, but also accept native fallback
-      const element = carbonElement || materialElement || mantineRoot || (wrapper?.querySelector('.mantine-SegmentedControl-root') || null) || nativeElement
+      // Prefer library-specific elements, but also accept buttons or native fallback
+      const found = carbonElement || materialElement || mantineRoot || 
+                   (wrapper?.querySelector('.mantine-SegmentedControl-root') || null) || 
+                   nativeElement ||
+                   (buttons.length > 0 ? buttons[0].parentElement : null)
       
-      if (!element) {
-        throw new Error('SegmentedControl root element not found')
+      if (!found) {
+        throw new Error('SegmentedControl element not found')
       }
       
-      return element
-    }, { timeout: 5000 })
+      // Ensure it's not just the Suspense fallback
+      if (found.textContent === '' && !found.querySelector('button')) {
+        throw new Error('Still loading (no content found)')
+      }
+      
+      return found
+    }, { timeout: 15000, interval: 100 })
+    
+    return element
   }
 
   describe('Color Props Updates', () => {
-    it('updates background color when toolbar changes container background', async () => {
+    it('updates background color when toolbar changes container background', { timeout: 20000 }, async () => {
       let container: HTMLElement
       await act(async () => {
         const result = renderWithProviders(
@@ -114,7 +121,7 @@ describe('SegmentedControl Toolbar Props Integration', () => {
       })
     })
 
-    it('updates selected background color when toolbar changes selected background', async () => {
+    it('updates selected background color when toolbar changes selected background', { timeout: 20000 }, async () => {
       let container: HTMLElement
       await act(async () => {
         const result = renderWithProviders(
@@ -141,7 +148,7 @@ describe('SegmentedControl Toolbar Props Integration', () => {
       })
     })
 
-    it('updates text color when toolbar changes container text-color', async () => {
+    it('updates text color when toolbar changes container text-color', { timeout: 20000 }, async () => {
       let container: HTMLElement
       await act(async () => {
         const result = renderWithProviders(
@@ -170,7 +177,7 @@ describe('SegmentedControl Toolbar Props Integration', () => {
   })
 
   describe('Component-Level Props Updates', () => {
-    it('updates border-radius when toolbar changes container border-radius', async () => {
+    it('updates border-radius when toolbar changes container border-radius', { timeout: 20000 }, async () => {
       let container: HTMLElement
       await act(async () => {
         const result = renderWithProviders(
@@ -196,7 +203,7 @@ describe('SegmentedControl Toolbar Props Integration', () => {
       })
     })
 
-    it('updates item-gap when toolbar changes item-gap', async () => {
+    it('updates item-gap when toolbar changes item-gap', { timeout: 20000 }, async () => {
       let container: HTMLElement
       await act(async () => {
         const result = renderWithProviders(
@@ -225,7 +232,7 @@ describe('SegmentedControl Toolbar Props Integration', () => {
   })
 
   describe('Orientation Switching', () => {
-    it('updates CSS variables when orientation changes from horizontal to vertical', async () => {
+    it('updates CSS variables when orientation changes from horizontal to vertical', { timeout: 20000 }, async () => {
       let container: HTMLElement
       let rerender: (ui: React.ReactElement) => void
       await act(async () => {

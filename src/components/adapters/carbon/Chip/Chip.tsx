@@ -144,8 +144,8 @@ export default function Chip({
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   
   // Destructure adapter-specific props to avoid passing them to the component
-  // Also filter out children to avoid conflicts (we'll pass it explicitly)
-  const { mantine, material, children: _propsChildren, ...restProps } = props
+  // Note: children is already destructured from function parameters, so it's not in props
+  const { mantine, material, ...restProps } = props
   
   // Get close icon component
   const CloseIcon = iconNameToReactComponent('x')

@@ -1917,13 +1917,13 @@ export default function PropControlContent({
               min={minValue}
               max={maxValue}
               step={1}
-              layer={selectedLayer}
+              layer={selectedLayer as any}
               layout="stacked"
               showInput={false}
               showValueLabel={true}
               valueLabel={getValueLabel}
               showMinMaxLabels={false}
-              label={<Label layer={selectedLayer} layout="stacked">{label}</Label>}
+              label={<Label layer={selectedLayer as any} layout="stacked">{label}</Label>}
             />
           )
         }
@@ -2002,13 +2002,13 @@ export default function PropControlContent({
               min={minValue}
               max={maxValue}
               step={1}
-              layer={selectedLayer}
+              layer={selectedLayer as any}
               layout="stacked"
               showInput={false}
               showValueLabel={true}
               valueLabel={getValueLabel}
               showMinMaxLabels={false}
-              label={<Label layer={selectedLayer} layout="stacked">{label}</Label>}
+              label={<Label layer={selectedLayer as any} layout="stacked">{label}</Label>}
             />
           )
         }
@@ -2087,13 +2087,13 @@ export default function PropControlContent({
               min={minValue}
               max={maxValue}
               step={1}
-              layer={selectedLayer}
+              layer={selectedLayer as any}
               layout="stacked"
               showInput={false}
               showValueLabel={true}
               valueLabel={getValueLabel}
               showMinMaxLabels={false}
-              label={<Label layer={selectedLayer} layout="stacked">{label}</Label>}
+              label={<Label layer={selectedLayer as any} layout="stacked">{label}</Label>}
             />
           )
         }
@@ -2172,13 +2172,13 @@ export default function PropControlContent({
               min={minValue}
               max={maxValue}
               step={1}
-              layer={selectedLayer}
+              layer={selectedLayer as any}
               layout="stacked"
               showInput={false}
               showValueLabel={true}
               valueLabel={getValueLabel}
               showMinMaxLabels={false}
-              label={<Label layer={selectedLayer} layout="stacked">{label}</Label>}
+              label={<Label layer={selectedLayer as any} layout="stacked">{label}</Label>}
             />
           )
         }
@@ -3077,6 +3077,7 @@ export default function PropControlContent({
   
   // Handle track prop
   if (prop.name.toLowerCase() === 'track' && (prop.trackSelectedProp || prop.trackUnselectedProp || prop.thumbProps)) {
+    const isSwitch = componentName.toLowerCase() === 'switch'
     const trackSelectedCssVars = prop.trackSelectedProp ? getCssVarsForProp(prop.trackSelectedProp) : []
     const trackUnselectedCssVars = prop.trackUnselectedProp ? getCssVarsForProp(prop.trackUnselectedProp) : []
     const trackSelectedPrimaryVar = trackSelectedCssVars[0] || prop.trackSelectedProp?.cssVar
@@ -3181,6 +3182,7 @@ export default function PropControlContent({
   
   // Handle thumb prop
   if (prop.name.toLowerCase() === 'thumb' && prop.thumbProps && prop.thumbProps.size > 0) {
+    const isSwitch = componentName.toLowerCase() === 'switch'
     const thumbSelectedProp = prop.thumbProps.get('thumb-selected')
     const thumbUnselectedProp = prop.thumbProps.get('thumb-unselected')
     const thumbHeightProp = prop.thumbProps.get('thumb-height')

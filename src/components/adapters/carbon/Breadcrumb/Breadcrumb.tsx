@@ -108,7 +108,7 @@ export default function Breadcrumb({
                     letterSpacing: `var(${letterSpacingVar})`,
                     lineHeight: `var(${lineHeightVar})`,
                     textDecoration: `var(${textDecorationVar})`,
-                    textTransform: `var(${textTransformVar})`,
+                    textTransform: `var(${textTransformVar})` as React.CSSProperties['textTransform'],
                     fontStyle: `var(${fontStyleVar})`,
                   }}
                 >
@@ -136,7 +136,7 @@ export default function Breadcrumb({
                     letterSpacing: `var(${letterSpacingVar})`,
                     lineHeight: `var(${lineHeightVar})`,
                     textDecoration: `var(${textDecorationVar})`,
-                    textTransform: `var(${textTransformVar})`,
+                    textTransform: `var(${textTransformVar})` as React.CSSProperties['textTransform'],
                     fontStyle: `var(${fontStyleVar})`,
                   }}
                 >

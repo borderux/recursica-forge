@@ -351,7 +351,7 @@ export default function SegmentedControl({
                 letterSpacing: 'var(--segmented-control-letter-spacing)',
                 lineHeight: 'var(--segmented-control-line-height)',
                 textDecoration: 'var(--segmented-control-text-decoration)',
-                textTransform: 'var(--segmented-control-text-transform)',
+                textTransform: 'var(--segmented-control-text-transform)' as React.CSSProperties['textTransform'],
                 fontStyle: 'var(--segmented-control-font-style)',
                 flexGrow: 1, // Fill the button area for full clickability
                 flexShrink: fullWidth ? 1 : 0, // Allow shrinking when fullWidth, prevent when auto-width
