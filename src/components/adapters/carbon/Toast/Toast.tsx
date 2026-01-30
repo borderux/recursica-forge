@@ -34,12 +34,8 @@ export default function Toast({
   // Use UIKit.json toast colors for standard layers
   const toastBgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
   const toastTextVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
-  // Button color uses the core color's interactive property for success/error variants
-  // Map variant to core color: success -> success, error -> alert, default -> no override (use Button default)
-  const coreColorName = variant === 'success' ? 'success' : variant === 'error' ? 'alert' : null
-  const toastButtonVar = coreColorName
-    ? `--recursica-brand-themes-${mode}-palettes-core-${coreColorName}-interactive`
-    : undefined
+  // Button color from UIKit.json
+  const toastButtonVar = getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
   
   // Get component-level CSS variables (these are under toast.properties in UIKit.json)
   const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')

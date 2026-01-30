@@ -33,10 +33,22 @@
         }
       }
     },
-    "border-radius": {
-      "icon": "corners-out",
-      "label": "Corner radius",
-      "visible": true
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "visible": true,
+      "group": {
+        "border-size": {
+          "icon": "arrows-left-right",
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius",
+          "visible": true
+        }
+      }
     },
     "height": {
       "icon": "arrows-up-down",

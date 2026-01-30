@@ -16,6 +16,23 @@
       "label": "Text style",
       "visible": true
     },
+    "text-color": {
+      "icon": "text-aa",
+      "label": "Text color",
+      "visible": true,
+      "group": {
+        "text": {
+          "icon": "text-aa",
+          "label": "Text",
+          "visible": true
+        },
+        "button": {
+          "icon": "paint-bucket",
+          "label": "Button",
+          "visible": true
+        }
+      }
+    },
     "padding": {
       "icon": "square-logo",
       "label": "Padding",

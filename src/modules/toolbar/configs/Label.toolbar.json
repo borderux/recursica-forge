@@ -44,7 +44,18 @@
     "optional-text": {
       "icon": "text-aa",
       "label": "Optional text style",
-      "visible": true
+      "visible": true,
+      "group": {
+        "optional-text": {
+          "label": "Text style",
+          "visible": true
+        },
+        "optional-text-opacity": {
+          "icon": "eye",
+          "label": "Opacity",
+          "visible": true
+        }
+      }
     },
     "spacing": {
       "icon": "square-logo",

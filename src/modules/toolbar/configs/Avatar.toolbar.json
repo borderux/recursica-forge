@@ -50,6 +50,11 @@
           "icon": "frame-corners",
           "label": "Icon color",
           "visible": true
+        },
+        "text-color": {
+          "icon": "text-aa",
+          "label": "Text color",
+          "visible": true
         }
       }
     },

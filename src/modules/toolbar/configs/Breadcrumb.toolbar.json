@@ -10,7 +10,7 @@
       "label": "Color",
       "visible": true,
       "group": {
-        "interactive-color": {
+        "interactive": {
           "label": "Interactive color",
           "visible": true
         },
@@ -18,7 +18,7 @@
           "label": "Separator color",
           "visible": true
         },
-        "read-only-color": {
+        "read-only": {
           "label": "Read only color",
           "visible": true
         }

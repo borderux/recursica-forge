@@ -589,6 +589,10 @@
                     "text": {
                       "$type": "color",
                       "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     }
                   },
                   "layer-1": {
@@ -599,6 +603,10 @@
                     "text": {
                       "$type": "color",
                       "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     }
                   },
                   "layer-2": {
@@ -609,6 +617,10 @@
                     "text": {
                       "$type": "color",
                       "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
                     }
                   },
                   "layer-3": {
@@ -619,6 +631,10 @@
                     "text": {
                       "$type": "color",
                       "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                    },
+                    "button": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
                     }
                   }
                 }
@@ -3722,6 +3738,13 @@
             "$type": "dimension",
             "$value": {
               "value": "{brand.dimensions.icons.default}",
+              "unit": "px"
+            }
+          },
+          "border-radius": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.border-radii.none}",
               "unit": "px"
             }
           },
