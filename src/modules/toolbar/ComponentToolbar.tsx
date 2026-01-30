@@ -8,6 +8,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { parseComponentStructure, toSentenceCase, ComponentProp } from './utils/componentToolbarUtils'
 import VariantDropdown from './menu/dropdown/VariantDropdown'
+import VariantSwitch from './menu/dropdown/VariantSwitch'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
 import type { SegmentedControlItem } from '../../components/adapters/SegmentedControl'
 import { Accordion } from '../../components/adapters/Accordion'
@@ -23,6 +24,7 @@ import { Switch } from '../../components/adapters/Switch'
 import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from '../preview/PreviewPage'
 import uikitJson from '../../vars/UIKit.json'
+import { getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
@@ -673,6 +675,31 @@ export default function ComponentToolbar({
 
   const LayerIcon = iconNameToReactComponent('square-3-stack-3d')
 
+  // Get accordion header font tokens to match accordion headers
+  const accordionHeaderFontFamilyVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-family')
+  const accordionHeaderFontSizeVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-size')
+  const accordionHeaderFontWeightVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-weight')
+
+  // Helper function to detect if variants are boolean-like (true/false, yes/no, etc.)
+  const isBooleanVariant = (variants: string[]): boolean => {
+    if (variants.length !== 2) return false
+    
+    const normalized = variants.map(v => v.toLowerCase())
+    const booleanPairs = [
+      ['true', 'false'],
+      ['yes', 'no'],
+      ['on', 'off'],
+      ['enabled', 'disabled'],
+      ['show', 'hide'],
+      ['visible', 'hidden'],
+      ['active', 'inactive'],
+    ]
+    
+    return booleanPairs.some(([a, b]) => 
+      (normalized.includes(a) && normalized.includes(b))
+    )
+  }
+
   return (
     <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
@@ -686,8 +713,9 @@ export default function ComponentToolbar({
               opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)`
             }} />}
             <span style={{ 
-              fontSize: '13px',
-              fontWeight: 600,
+              fontFamily: `var(${accordionHeaderFontFamilyVar})`,
+              fontSize: `var(${accordionHeaderFontSizeVar})`,
+              fontWeight: `var(${accordionHeaderFontWeightVar})`,
               color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`
             }}>Layer</span>
           </div>
@@ -701,6 +729,11 @@ export default function ComponentToolbar({
             fullWidth={false}
             layer="layer-0"
             componentNameForCssVars="SegmentedControl"
+            style={{
+              '--segmented-control-font-family': `var(${accordionHeaderFontFamilyVar})`,
+              '--segmented-control-font-size': `var(${accordionHeaderFontSizeVar})`,
+              '--segmented-control-font-weight': `var(${accordionHeaderFontWeightVar})`,
+            } as React.CSSProperties}
           />
         </div>
       </div>
@@ -708,35 +741,50 @@ export default function ComponentToolbar({
       {/* Variants Dropdowns */}
       {visibleVariants.length > 0 && (
         <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
-          {visibleVariants.map((variant, index) => (
-            <div 
-              key={variant.propName}
-              style={{ 
-                marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
-                paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
-                borderBottom: index < visibleVariants.length - 1 ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` : 'none'
-              }}
-            >
-              <VariantDropdown
-                componentName={componentName}
-                propName={variant.propName}
-                variants={variant.variants}
-                selected={selectedVariants[variant.propName] || variant.variants[0]}
-                onSelect={(variantName) => {
-                  onVariantChange(variant.propName, variantName)
+          {visibleVariants.map((variant, index) => {
+            const isBoolean = isBooleanVariant(variant.variants)
+            return (
+              <div 
+                key={variant.propName}
+                style={{ 
+                  marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
+                  paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
                 }}
-                open={openDropdown === `variant-${variant.propName}`}
-                onOpenChange={(isOpen) => {
-                  if (isOpen) {
-                    setOpenDropdown(`variant-${variant.propName}`)
-                  } else {
-                    setOpenDropdown(null)
-                  }
-                }}
-                className="full-width"
-              />
-            </div>
-          ))}
+              >
+                {isBoolean ? (
+                  <VariantSwitch
+                    componentName={componentName}
+                    propName={variant.propName}
+                    variants={variant.variants}
+                    selected={selectedVariants[variant.propName] || variant.variants[0]}
+                    onSelect={(variantName) => {
+                      onVariantChange(variant.propName, variantName)
+                    }}
+                    className="full-width"
+                  />
+                ) : (
+                  <VariantDropdown
+                    componentName={componentName}
+                    propName={variant.propName}
+                    variants={variant.variants}
+                    selected={selectedVariants[variant.propName] || variant.variants[0]}
+                    onSelect={(variantName) => {
+                      onVariantChange(variant.propName, variantName)
+                    }}
+                    open={openDropdown === `variant-${variant.propName}`}
+                    onOpenChange={(isOpen) => {
+                      if (isOpen) {
+                        setOpenDropdown(`variant-${variant.propName}`)
+                      } else {
+                        setOpenDropdown(null)
+                      }
+                    }}
+                    className="full-width"
+                  />
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 

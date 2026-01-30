@@ -301,6 +301,11 @@ export default function SegmentedControl({
             )}
             {hasLabel && (
               <span style={{
+                fontFamily: 'var(--segmented-control-font-family)',
+                fontSize: 'var(--segmented-control-font-size)',
+                fontWeight: 'var(--segmented-control-font-weight)',
+                letterSpacing: 'var(--segmented-control-letter-spacing)',
+                lineHeight: 'var(--segmented-control-line-height)',
                 textDecoration: 'var(--segmented-control-text-decoration)',
                 textTransform: 'var(--segmented-control-text-transform)',
                 fontStyle: 'var(--segmented-control-font-style)',

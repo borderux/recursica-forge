@@ -164,8 +164,9 @@ html[data-theme-mode="dark"] .variant-label-icon {
 }
 
 .variant-label-text {
-  font-weight: 600;
-  font-size: 13px;
+  font-family: var(--recursica-ui-kit-themes-light-components-accordion-item-properties-header-text-font-family);
+  font-size: var(--recursica-ui-kit-themes-light-components-accordion-item-properties-header-text-font-size);
+  font-weight: var(--recursica-ui-kit-themes-light-components-accordion-item-properties-header-text-font-weight);
   color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -173,6 +174,9 @@ html[data-theme-mode="dark"] .variant-label-icon {
 }
 
 html[data-theme-mode="dark"] .variant-label-text {
+  font-family: var(--recursica-ui-kit-themes-dark-components-accordion-item-properties-header-text-font-family);
+  font-size: var(--recursica-ui-kit-themes-dark-components-accordion-item-properties-header-text-font-size);
+  font-weight: var(--recursica-ui-kit-themes-dark-components-accordion-item-properties-header-text-font-weight);
   color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
 }
 
