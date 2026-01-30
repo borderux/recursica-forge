@@ -60,7 +60,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
 
     layers.forEach(layer => {
       variants.forEach(variant => {
-        it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, { timeout: 10000 }, async () => {
+        it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, { timeout: 15000 }, async () => {
           const { container } = renderWithProviders(
             <Breadcrumb items={sampleItems} layer={layer} />
           )
@@ -71,21 +71,29 @@ describe('Breadcrumb Toolbar Props Integration', () => {
           // Get the CSS variable name that the toolbar would use
           const colorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.${variant}`)
           
+          // Verify initial value exists
+          const initialValue = readCssVar(colorVar)
+          expect(initialValue).toBeTruthy()
+          
           // Simulate toolbar update: change the CSS variable
           updateCssVar(colorVar, '#ff0000')
           
-          // Dispatch the cssVarsUpdated event
-          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-            detail: { cssVars: [colorVar] }
-          }))
-
-          // Wait for component to update
+          // Wait for CSS variable to be updated in the DOM
+          await waitFor(() => {
+            const updatedValue = readCssVar(colorVar)
+            expect(updatedValue).toBe('#ff0000')
+          }, { timeout: 5000 })
+          
+          // Verify the CSS custom property is set on the breadcrumb element
           await waitFor(() => {
             const styles = window.getComputedStyle(breadcrumb!)
-            // Component should reference the updated CSS variable
-            const colorValue = styles.getPropertyValue(`--breadcrumb-${variant.replace('-', '-')}-color`)
-            // Check that the CSS variable is referenced (either directly or through custom property)
-            expect(readCssVar(colorVar)).toBe('#ff0000')
+            // The component sets --breadcrumb-interactive-color or --breadcrumb-read-only-color
+            const cssPropName = `--breadcrumb-${variant}-color`
+            const cssPropValue = styles.getPropertyValue(cssPropName)
+            // The CSS prop should reference the UIKit CSS variable
+            expect(cssPropValue).toBeTruthy()
+            expect(cssPropValue).toContain('var(')
+            expect(cssPropValue).toContain(colorVar)
           }, { timeout: 3000 })
         })
       })

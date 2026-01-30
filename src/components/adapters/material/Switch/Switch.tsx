@@ -214,8 +214,19 @@ export default function Switch({
         },
         ...style,
       }}
-      {...material}
-      {...props}
+      {...(() => {
+        // Filter out sizeVariant from material prop as it's not a valid Material UI Switch prop
+        if (material && typeof material === 'object') {
+          const { sizeVariant: _materialSizeVariant, ...materialWithoutSizeVariant } = material as any
+          return materialWithoutSizeVariant
+        }
+        return {}
+      })()}
+      {...(() => {
+        // Filter out sizeVariant from props as it's not a valid Material UI Switch prop
+        const { sizeVariant: _propsSizeVariant, ...propsWithoutSizeVariant } = props as any
+        return propsWithoutSizeVariant
+      })()}
     />
   )
 }

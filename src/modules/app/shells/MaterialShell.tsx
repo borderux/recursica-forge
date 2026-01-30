@@ -203,7 +203,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               return (
                 <Tabs
                   value={currentRoute}
-                  variant="pills"
+                  variant="standard"
                   onChange={(e: any, newValue: any) => {
                     if (newValue === 'tokens') navigate('/tokens')
                     else if (newValue === 'theme') navigate('/theme')

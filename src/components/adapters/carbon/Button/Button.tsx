@@ -52,10 +52,6 @@ export default function Button({
   const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
   const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
   
-  // Get hover opacity and overlay color from brand theme (not user-configurable)
-  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
-  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
-  
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
@@ -207,8 +203,6 @@ export default function Button({
       ...((variant === 'solid' || variant === 'outline') && buttonBorderColorVar ? {
         '--button-border-color': `var(${buttonBorderColorVar})`,
       } : {}),
-      '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-      '--button-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
       '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
       '--button-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
       // Use actual CSS border instead of box-shadow

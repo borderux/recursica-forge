@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Tag } from '@carbon/react'
+import { Tag, DismissibleTag } from '@carbon/react'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
 import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
@@ -144,7 +144,8 @@ export default function Chip({
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   
   // Destructure adapter-specific props to avoid passing them to the component
-  const { mantine, material, ...restProps } = props
+  // Also filter out children to avoid conflicts (we'll pass it explicitly)
+  const { mantine, material, children: _propsChildren, ...restProps } = props
   
   // Get close icon component
   const CloseIcon = iconNameToReactComponent('x')
@@ -219,16 +220,20 @@ export default function Chip({
     )
   }
   
+  // Determine if we need a dismissible tag (has close handler)
+  const hasCloseHandler = deletable && onDelete && !disabled
+  
   // Merge library-specific props
   const carbonProps = {
     size: carbonSize,
     disabled,
     onClick: disabled ? undefined : onClick,
-    onClose: deletable && onDelete && !disabled ? onDelete : undefined,
+    // Use onClose only for DismissibleTag (Tag's onClose is deprecated)
+    ...(hasCloseHandler && { onClose: onDelete }),
     // Use native renderIcon prop - CSS will handle sizing and spacing
     renderIcon: renderIcon() ? () => renderIcon() : undefined,
-    // Use icon component for close icon
-    renderCloseIcon: deletable && onDelete && closeIconElement ? () => closeIconElement : undefined,
+    // Note: renderCloseIcon removed to avoid React warning - Carbon's Tag passes it to DOM element incorrectly
+    // CSS will style Carbon's default close icon instead
     className,
     style: {
       // Set CSS custom properties for CSS file
@@ -282,12 +287,34 @@ export default function Chip({
       })(),
       ...style,
     },
-    ...carbon,
-    ...restProps,
+    // Filter out children from carbon and restProps to avoid conflicts
+    ...(carbon && typeof carbon === 'object' ? (() => {
+      const { children: _carbonChildren, ...carbonWithoutChildren } = carbon as any
+      return carbonWithoutChildren
+    })() : {}),
+    // Filter out children from restProps as well
+    ...(restProps && typeof restProps === 'object' ? (() => {
+      const { children: _restPropsChildren, ...restPropsWithoutChildren } = restProps as any
+      return restPropsWithoutChildren
+    })() : {}),
   }
+  
+  // Use DismissibleTag when deletable (Carbon recommends this over Tag with onClose)
+  // Use Tag for non-dismissible chips
+  const TagComponent = hasCloseHandler ? DismissibleTag : Tag
+  
+  // Ensure children is always defined (DismissibleTag requires children prop)
+  const safeChildren = children ?? ''
+  
+  // Filter out children from carbonProps to avoid conflicts
+  // Use Object destructuring with rest to ensure children is completely removed
+  const propsWithoutChildren = Object.fromEntries(
+    Object.entries(carbonProps as any).filter(([key]) => key !== 'children')
+  )
   
   // Use native children prop - CSS will handle icon styling
   // Use variant as key to force Carbon to re-render when variant changes
-  return <Tag key={`chip-${variant}-${layer}`} {...(carbonProps as any)}>{children}</Tag>
+  // Explicitly pass children as a prop to ensure it's always defined
+  return <TagComponent key={`chip-${variant}-${layer}`} {...propsWithoutChildren} children={safeChildren} />
 }
 

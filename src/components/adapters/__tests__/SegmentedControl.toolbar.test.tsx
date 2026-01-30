@@ -6,14 +6,14 @@
  * verifying that components respond correctly.
  */
 
-import { describe, it, expect, beforeEach, afterEach, act } from 'vitest'
-import { render, waitFor } from '@testing-library/react'
-import { UnifiedThemeProvider } from '../providers/UnifiedThemeProvider'
-import { UiKitProvider } from '../../modules/uikit/UiKitContext'
-import { ThemeModeProvider } from '../../modules/theme/ThemeModeContext'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { render, waitFor, act } from '@testing-library/react'
+import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
+import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
+import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { SegmentedControl } from '../SegmentedControl'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
 
 describe('SegmentedControl Toolbar Props Integration', () => {
   beforeEach(() => {
@@ -44,16 +44,57 @@ describe('SegmentedControl Toolbar Props Integration', () => {
     { value: 'option3', label: 'Option 3' },
   ]
 
+  // Helper to wait for SegmentedControl to render (handles Suspense/lazy loading)
+  // Note: waitFor already uses act() internally, so we don't wrap it
+  const waitForSegmentedControl = async (container: HTMLElement) => {
+    // First wait for buttons to appear (indicating component has rendered)
+    await waitFor(() => {
+      const buttons = container.querySelectorAll('button')
+      if (buttons.length === 0) {
+        throw new Error('SegmentedControl buttons not found')
+      }
+      // Ensure buttons have content (not just Suspense fallback)
+      const hasContent = Array.from(buttons).some(btn => btn.textContent || btn.querySelector('span'))
+      if (!hasContent) {
+        throw new Error('Still loading (buttons have no content)')
+      }
+    }, { timeout: 10000 })
+    
+    // Then find the root element
+    return await waitFor(() => {
+      const carbonElement = container.querySelector('.recursica-segmented-control.carbon-segmented-control')
+      const materialElement = container.querySelector('.recursica-segmented-control.material-segmented-control')
+      const mantineRoot = container.querySelector('.mantine-SegmentedControl-root')
+      const wrapper = container.querySelector('.recursica-segmented-control-wrapper')
+      const nativeElement = container.querySelector('.recursica-segmented-control')
+      
+      // Prefer library-specific elements, but also accept native fallback
+      const element = carbonElement || materialElement || mantineRoot || (wrapper?.querySelector('.mantine-SegmentedControl-root') || null) || nativeElement
+      
+      if (!element) {
+        throw new Error('SegmentedControl root element not found')
+      }
+      
+      return element
+    }, { timeout: 5000 })
+  }
+
   describe('Color Props Updates', () => {
-    it('updates background color when toolbar changes default-background', async () => {
-      const { container } = renderWithProviders(
-        <SegmentedControl items={testItems} variant="default" layer="layer-0" value="option1" />
-      )
-      const element = container.querySelector('.recursica-segmented-control, .mantine-SegmentedControl-root, .recursica-segmented-control.material-segmented-control')
+    it('updates background color when toolbar changes container background', async () => {
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <SegmentedControl items={testItems} layer="layer-0" value="option1" />
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const element = await waitForSegmentedControl(container!)
       expect(element).toBeInTheDocument()
 
       // Get the CSS variable name that the toolbar would use
-      const bgVar = getComponentCssVar('SegmentedControl', 'colors', 'default-background', 'layer-0')
+      // SegmentedControl uses container.colors.layer-X.background
+      const bgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', 'layer-0', 'background')
       
       // Simulate toolbar update: change the CSS variable
       updateCssVar(bgVar, '#ff0000')
@@ -73,14 +114,19 @@ describe('SegmentedControl Toolbar Props Integration', () => {
       })
     })
 
-    it('updates selected background color when toolbar changes default-selected-background', async () => {
-      const { container } = renderWithProviders(
-        <SegmentedControl items={testItems} variant="default" layer="layer-0" value="option1" />
-      )
-      const element = container.querySelector('.recursica-segmented-control, .mantine-SegmentedControl-root, .recursica-segmented-control.material-segmented-control')
+    it('updates selected background color when toolbar changes selected background', async () => {
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <SegmentedControl items={testItems} layer="layer-0" value="option1" />
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const element = await waitForSegmentedControl(container!)
       expect(element).toBeInTheDocument()
 
-      const selectedBgVar = getComponentCssVar('SegmentedControl', 'colors', 'default-selected-background', 'layer-0')
+      const selectedBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', 'layer-0', 'background')
       
       updateCssVar(selectedBgVar, '#00ff00')
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
@@ -95,14 +141,19 @@ describe('SegmentedControl Toolbar Props Integration', () => {
       })
     })
 
-    it('updates text color when toolbar changes default-text', async () => {
-      const { container } = renderWithProviders(
-        <SegmentedControl items={testItems} variant="default" layer="layer-0" value="option1" />
-      )
-      const element = container.querySelector('.recursica-segmented-control, .mantine-SegmentedControl-root, .recursica-segmented-control.material-segmented-control')
+    it('updates text color when toolbar changes container text-color', async () => {
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <SegmentedControl items={testItems} layer="layer-0" value="option1" />
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const element = await waitForSegmentedControl(container!)
       expect(element).toBeInTheDocument()
 
-      const textVar = getComponentCssVar('SegmentedControl', 'colors', 'default-text', 'layer-0')
+      const textVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', 'layer-0', 'text-color')
       
       updateCssVar(textVar, '#0000ff')
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
@@ -119,14 +170,19 @@ describe('SegmentedControl Toolbar Props Integration', () => {
   })
 
   describe('Component-Level Props Updates', () => {
-    it('updates border-radius when toolbar changes border-radius', async () => {
-      const { container } = renderWithProviders(
-        <SegmentedControl items={testItems} variant="default" layer="layer-0" value="option1" />
-      )
-      const element = container.querySelector('.recursica-segmented-control, .mantine-SegmentedControl-root, .recursica-segmented-control.material-segmented-control')
+    it('updates border-radius when toolbar changes container border-radius', async () => {
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <SegmentedControl items={testItems} layer="layer-0" value="option1" />
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const element = await waitForSegmentedControl(container!)
       expect(element).toBeInTheDocument()
       
-      const borderRadiusVar = getComponentLevelCssVar('SegmentedControl', 'border-radius')
+      const borderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-radius')
       
       updateCssVar(borderRadiusVar, '12px')
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
@@ -141,10 +197,15 @@ describe('SegmentedControl Toolbar Props Integration', () => {
     })
 
     it('updates item-gap when toolbar changes item-gap', async () => {
-      const { container } = renderWithProviders(
-        <SegmentedControl items={testItems} variant="default" layer="layer-0" value="option1" />
-      )
-      const element = container.querySelector('.recursica-segmented-control, .mantine-SegmentedControl-root, .recursica-segmented-control.material-segmented-control')
+      let container: HTMLElement
+      await act(async () => {
+        const result = renderWithProviders(
+          <SegmentedControl items={testItems} layer="layer-0" value="option1" />
+        )
+        container = result.container
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const element = await waitForSegmentedControl(container!)
       expect(element).toBeInTheDocument()
       
       const itemGapVar = getComponentLevelCssVar('SegmentedControl', 'item-gap')
@@ -163,27 +224,40 @@ describe('SegmentedControl Toolbar Props Integration', () => {
     })
   })
 
-  describe('Variant Switching', () => {
-    it('updates CSS variables when variant changes from default to outline', async () => {
-      const { container, rerender } = renderWithProviders(
-        <SegmentedControl items={testItems} variant="default" layer="layer-0" value="option1" />
-      )
-      const element = container.querySelector('.recursica-segmented-control, .mantine-SegmentedControl-root, .recursica-segmented-control.material-segmented-control')
+  describe('Orientation Switching', () => {
+    it('updates CSS variables when orientation changes from horizontal to vertical', async () => {
+      let container: HTMLElement
+      let rerender: (ui: React.ReactElement) => void
+      await act(async () => {
+        const result = renderWithProviders(
+          <SegmentedControl items={testItems} orientation="horizontal" layer="layer-0" value="option1" />
+        )
+        container = result.container
+        rerender = result.rerender
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      const element = await waitForSegmentedControl(container!)
       expect(element).toBeInTheDocument()
 
-      rerender(
-        <UiKitProvider>
-          <UnifiedThemeProvider>
-            <SegmentedControl items={testItems} variant="outline" layer="layer-0" value="option1" />
-          </UnifiedThemeProvider>
-        </UiKitProvider>
-      )
+      await act(async () => {
+        rerender(
+          <UiKitProvider>
+            <ThemeModeProvider>
+              <UnifiedThemeProvider>
+                <SegmentedControl items={testItems} orientation="vertical" layer="layer-0" value="option1" />
+              </UnifiedThemeProvider>
+            </ThemeModeProvider>
+          </UiKitProvider>
+        )
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
 
       await waitFor(() => {
-        const styles = window.getComputedStyle(element!)
-        // Should reference outline variant CSS variables
-        const bgValue = styles.getPropertyValue('--segmented-control-bg') || styles.backgroundColor
-        expect(bgValue).toContain('outline-background')
+        const newElement = container.querySelector('.recursica-segmented-control, .mantine-SegmentedControl-root, .recursica-segmented-control.material-segmented-control, .recursica-segmented-control-fallback')
+        expect(newElement).toBeInTheDocument()
+        const styles = window.getComputedStyle(newElement!)
+        // Should have vertical orientation styling
+        expect(newElement?.getAttribute('data-orientation') || newElement?.className).toContain('vertical')
       })
     })
   })

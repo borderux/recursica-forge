@@ -274,6 +274,7 @@ export default function Slider({
           max={max}
           step={step}
           disabled={disabled}
+          labelText={typeof label === 'string' ? label : (computedTooltipText || '')}
           aria-label={computedTooltipText}
           className={className}
           style={style}

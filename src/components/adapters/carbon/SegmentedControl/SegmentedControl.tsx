@@ -209,32 +209,6 @@ export default function SegmentedControl({
   const currentValue = value ?? defaultValue ?? items[0]?.value
   const isVertical = orientation === 'vertical'
   
-  // Force re-render when CSS variables change
-  const [, forceUpdate] = useState(0)
-  
-  useEffect(() => {
-    const handleCssVarUpdate = () => {
-      forceUpdate(prev => prev + 1)
-    }
-    
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    window.addEventListener('cssVarsReset', handleCssVarUpdate)
-    
-    const observer = new MutationObserver(() => {
-      forceUpdate(prev => prev + 1)
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-    
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [])
-  
   return (
     <div
       className={`recursica-segmented-control carbon-segmented-control ${className || ''}`}
@@ -280,7 +254,7 @@ export default function SegmentedControl({
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...style,
       } as React.CSSProperties}
-      {...carbon}
+      {...(carbon && typeof carbon === 'object' ? carbon : {})}
       {...props}
     >
       {items.map((item, index) => {
