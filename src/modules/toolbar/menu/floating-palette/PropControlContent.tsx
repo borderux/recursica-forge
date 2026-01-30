@@ -2101,6 +2101,91 @@ export default function PropControlContent({
         return <ButtonBorderSizeSlider />
       }
       
+      // Use Slider component for Menu border-size property
+      if (isMenu && propNameLower === 'border-size') {
+        const MenuBorderSizeSlider = () => {
+          const minValue = 0
+          const maxValue = 10
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '1px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 1
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '1px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+          
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer={selectedLayer}
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              showMinMaxLabels={false}
+              label={<Label layer={selectedLayer} layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return <MenuBorderSizeSlider />
+      }
+      
       // Use Slider component for Slider input-width, thumb-size, thumb-border-radius, track-height, track-border-radius, label-slider-gap, and input-gap properties
       if (isSlider && (
         propNameLower === 'input-width' || 
@@ -2323,6 +2408,204 @@ export default function PropControlContent({
         
         return (
           <ToastSizeSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}`}
+          />
+        )
+      }
+      
+      // Use Slider component for menu-item width properties
+      if (isMenuItem && (propNameLower === 'min-width' || propNameLower === 'max-width')) {
+        const MenuItemWidthSlider = () => {
+          let minValue = 50
+          let maxValue = 500
+          if (propNameLower === 'min-width') {
+            minValue = 50
+            maxValue = 500
+          } else if (propNameLower === 'max-width') {
+            minValue = 200
+            maxValue = 1000
+          }
+          
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+          
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return (
+          <MenuItemWidthSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}`}
+          />
+        )
+      }
+      
+      // Use Slider component for menu width properties
+      if (isMenu && (propNameLower === 'min-width' || propNameLower === 'max-width')) {
+        const MenuWidthSlider = () => {
+          let minValue = 50
+          let maxValue = 500
+          if (propNameLower === 'min-width') {
+            minValue = 50
+            maxValue = 500
+          } else if (propNameLower === 'max-width') {
+            minValue = 200
+            maxValue = 1000
+          }
+          
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
+          })
+          
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+          
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+            
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+          
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+          
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+        
+        return (
+          <MenuWidthSlider
             key={`${primaryVar}-${selectedVariants.layout || ''}`}
           />
         )
