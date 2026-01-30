@@ -1,8 +1,36 @@
 /* Mantine SegmentedControl overrides using Recursica CSS variables */
 
+/* Ensure wrapper never shows white */
+.recursica-segmented-control-wrapper,
+.recursica-segmented-control-wrapper * {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Hide label element's ::before and ::after pseudo-elements to prevent white flash */
+.mantine-SegmentedControl-label::before,
+.mantine-SegmentedControl-label::after {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  content: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-color: transparent !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .mantine-SegmentedControl-root {
   background: var(--segmented-control-bg) !important;
+  background-color: var(--segmented-control-bg) !important;
   border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color) !important;
+  border-color: var(--segmented-control-border-color, transparent) !important;
+  border-top-color: var(--segmented-control-border-color, transparent) !important;
+  border-right-color: var(--segmented-control-border-color, transparent) !important;
+  border-bottom-color: var(--segmented-control-border-color, transparent) !important;
+  border-left-color: var(--segmented-control-border-color, transparent) !important;
   border-radius: var(--segmented-control-border-radius) !important;
   overflow: visible !important;
   /* Container padding - can be overridden by inline styles */
@@ -15,17 +43,25 @@
   font-weight: var(--segmented-control-font-weight) !important;
   letter-spacing: var(--segmented-control-letter-spacing) !important;
   line-height: var(--segmented-control-line-height) !important;
+  /* Prevent white flash during updates */
+  transition: none !important;
+  /* Ensure border never shows white - use transparent fallback */
+  border-style: solid !important;
+  /* Ensure no default gaps or spacing create visual dividers */
+  gap: 0 !important;
 }
 
 .mantine-SegmentedControl-control {
   color: var(--segmented-control-text) !important;
   background: transparent !important;
+  background-color: transparent !important;
   border: none !important;
-  /* Override any default Mantine borders/dividers */
+  /* Override any default Mantine borders/dividers - explicitly set border-color to prevent white flash */
   border-left: none !important;
   border-right: none !important;
   border-top: none !important;
   border-bottom: none !important;
+  border-color: transparent !important;
   box-shadow: none !important;
   outline: none !important;
   /* Remove any default Mantine spacing that might create visual dividers */
@@ -42,6 +78,8 @@
   /* Ensure control element fills its area and is clickable */
   width: 100% !important;
   height: 100% !important;
+  /* Prevent white flash during updates */
+  transition: none !important;
 }
 
 /* Ensure input element inside control covers entire control area and is clickable */
@@ -143,6 +181,7 @@
 /* Ensure no default Mantine dividers are applied */
 .mantine-SegmentedControl-root .mantine-SegmentedControl-control {
   border: none !important;
+  border-color: transparent !important;
 }
 
 /* Override any Mantine default control styles that might add borders */
@@ -153,6 +192,7 @@
   border-left: none !important;
   border-top: none !important;
   border-bottom: none !important;
+  border-color: transparent !important;
 }
 
 .mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not([data-active]) {
@@ -160,6 +200,7 @@
   border-top: none !important;
   border-left: none !important;
   border-right: none !important;
+  border-color: transparent !important;
 }
 
 /* Override any Mantine pseudo-elements or other styling that might create dividers */
@@ -169,30 +210,38 @@
   content: none !important;
 }
 
-/* Override Mantine's indicator element (selected item background) - hide it completely */
-/* We apply the selected background directly to the control element, so the indicator is not needed */
-.mantine-SegmentedControl-indicator {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  border: none !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-top: none !important;
-  border-bottom: none !important;
-  box-shadow: none !important;
+/* Hide any Mantine focus ring or overlay */
+.mantine-SegmentedControl-control:focus,
+.mantine-SegmentedControl-control:focus-visible,
+.mantine-SegmentedControl-control:focus-within {
   outline: none !important;
-  background: transparent !important;
-  /* Elevation box-shadow is applied to the control element, not the indicator */
+  box-shadow: none !important;
 }
 
 /* Ensure no default gaps or spacing create visual dividers */
-.mantine-SegmentedControl-root {
+.mantine-SegmentedControl-root .mantine-SegmentedControl-control {
   gap: 0 !important;
 }
 
-.mantine-SegmentedControl-root .mantine-SegmentedControl-control {
-  gap: 0 !important;
+/* Prevent any white borders from appearing - ensure all borders use CSS variables */
+.mantine-SegmentedControl-root,
+.mantine-SegmentedControl-root *,
+.mantine-SegmentedControl-control,
+.mantine-SegmentedControl-control * {
+  border-color: var(--segmented-control-border-color, transparent) !important;
+}
+
+.mantine-SegmentedControl-control[data-active],
+.mantine-SegmentedControl-control[data-active] * {
+  /* Set border-color FIRST with fallback to prevent white flash */
+  border-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg, transparent)) !important;
+  border-top-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg, transparent)) !important;
+  border-left-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg, transparent)) !important;
+  border-bottom-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg, transparent)) !important;
+  border-right-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg, transparent)) !important;
+  /* Ensure border-style and border-width are set to prevent white flash */
+  border-style: solid !important;
+  border-width: var(--segmented-control-selected-border-size, 1px) !important;
 }
 
 /* Add spacing and divider between items (vertical for horizontal orientation) */
@@ -320,9 +369,16 @@
 
 .mantine-SegmentedControl-control[data-active] {
   background: var(--segmented-control-selected-bg) !important;
+  background-color: var(--segmented-control-selected-bg) !important;
   color: var(--segmented-control-selected-text) !important;
   border-radius: var(--segmented-control-item-border-radius) !important;
   /* Selected border - use individual properties - ensure all sides are set */
+  /* Explicitly set border-color FIRST to prevent white flash */
+  border-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-top-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-left-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-bottom-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-right-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-top: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-left: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
@@ -331,6 +387,10 @@
   box-shadow: var(--segmented-control-selected-elevation-shadow, none) !important;
   position: relative !important;
   z-index: 1 !important;
+  /* Prevent white flash during updates */
+  transition: none !important;
+  /* Ensure border-style is always solid to prevent white flash */
+  border-style: solid !important;
 }
 
 /* Dividers are now injected as separate div elements, so no need to hide pseudo-elements */

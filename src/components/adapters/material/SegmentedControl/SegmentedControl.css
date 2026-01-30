@@ -37,10 +37,24 @@
   text-decoration: inherit !important;
   text-transform: inherit !important;
   font-style: inherit !important;
+  /* Remove Material UI transitions that might cause white flash */
+  transition: none !important;
+  /* Prevent flicker during CSS variable updates */
+  will-change: auto !important;
+  /* Ensure background is always set, never undefined/white */
+  background-color: transparent !important;
+}
+
+/* Hide Material UI ripple effect that causes white flash */
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root .MuiTouchRipple-root {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
 .recursica-segmented-control.material-segmented-control .MuiToggleButton-root.Mui-selected {
   background: var(--segmented-control-selected-bg) !important;
+  background-color: var(--segmented-control-selected-bg) !important;
   color: var(--segmented-control-selected-text) !important;
   border-radius: var(--segmented-control-item-border-radius) !important;
   /* Selected border - use individual properties to avoid overriding divider borders */
@@ -49,6 +63,10 @@
   border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   border-right: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
   /* Elevation box-shadow will be applied via inline styles from the component */
+  /* Remove Material UI transitions that might cause white flash */
+  transition: none !important;
+  /* Prevent flicker during CSS variable updates */
+  will-change: auto !important;
 }
 
 /* Always add margin for item-gap between items - divider has full gap on both sides */

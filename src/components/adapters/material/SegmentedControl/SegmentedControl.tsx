@@ -98,22 +98,50 @@ export default function SegmentedControl({
   const [, forceUpdate] = useState(0)
   
   useEffect(() => {
+    // Define color-only CSS variables that don't need re-renders (CSS handles them automatically)
+    const colorOnlyVars = new Set([
+      selectedBgVar, selectedTextVar, textVar, containerBgVar, containerBorderColorVar, 
+      selectedBorderColorVar, dividerColorVar
+    ].filter(Boolean)) // Filter out undefined vars
+    
     const handleCssVarUpdate = (e?: Event) => {
       const detail = (e as CustomEvent)?.detail
       const updatedVars = detail?.cssVars || []
-      const dividerVarUpdated = updatedVars.length === 0 || updatedVars.some((v: string) => 
-        v === dividerSizeVar || v === dividerColorVar || v.includes('divider')
+      
+      // Check if any non-color vars were updated (these need re-renders)
+      const nonColorVarsUpdated = updatedVars.length === 0 || updatedVars.some((v: string) => 
+        v === dividerSizeVar || v.includes('divider-size') || 
+        v === selectedBorderSizeVar || v === containerBorderSizeVar ||
+        v === selectedElevationVar || v === containerElevationVar ||
+        v === paddingHorizontalVar || v === heightVar ||
+        v === textDecorationVar || v === textTransformVar || v === fontStyleVar
       )
-      if (dividerVarUpdated) {
-        forceUpdate(prev => prev + 1)
+      
+      // Only re-render if non-color vars changed
+      if (nonColorVarsUpdated) {
+        // Use requestAnimationFrame to batch updates and prevent flicker
+        requestAnimationFrame(() => {
+          forceUpdate(prev => prev + 1)
+        })
       }
+      // If only color vars changed, skip re-render - CSS will automatically apply the new colors
     }
     
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     window.addEventListener('cssVarsReset', handleCssVarUpdate)
     
+    // Only observe for specific CSS variables to prevent unnecessary re-renders
+    // Don't trigger re-renders for color-only CSS variable changes - CSS handles those automatically
     const observer = new MutationObserver(() => {
-      forceUpdate(prev => prev + 1)
+      // Only re-render for non-color vars (border-size, elevation, padding, etc.)
+      // Color vars update automatically via CSS, so no re-render needed
+      const hasRelevantChange = dividerSizeVar || textDecorationVar || textTransformVar || fontStyleVar || selectedElevationVar || selectedBorderSizeVar || paddingHorizontalVar || heightVar
+      if (hasRelevantChange) {
+        // Use requestAnimationFrame to batch updates and prevent flicker
+        requestAnimationFrame(() => {
+          forceUpdate(prev => prev + 1)
+        })
+      }
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -125,7 +153,7 @@ export default function SegmentedControl({
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, heightVar])
+  }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, heightVar, selectedBgVar, containerBgVar, containerBorderColorVar, selectedBorderColorVar, containerBorderSizeVar, containerElevationVar])
   
   // Get elevation from CSS vars if not provided as props
   const [containerElevationFromVar, setContainerElevationFromVar] = useState<string | undefined>(() => {
@@ -281,9 +309,25 @@ export default function SegmentedControl({
             key={item.value}
             value={item.value}
             disabled={item.disabled || disabled}
-            sx={isSelected && selectedElevationBoxShadow ? {
-              boxShadow: selectedElevationBoxShadow,
-            } : undefined}
+            sx={{
+              // Prevent Material UI default transitions that cause white flash
+              transition: 'none !important',
+              // Ensure background is set immediately, not animated - use both background and backgroundColor
+              background: isSelected ? `var(--segmented-control-selected-bg)` : 'transparent',
+              backgroundColor: isSelected ? `var(--segmented-control-selected-bg)` : 'transparent',
+              // Prevent Material UI from applying default white background
+              '&:hover': {
+                backgroundColor: isSelected ? `var(--segmented-control-selected-bg)` : 'transparent',
+                background: isSelected ? `var(--segmented-control-selected-bg)` : 'transparent',
+              },
+              '&:focus': {
+                backgroundColor: isSelected ? `var(--segmented-control-selected-bg)` : 'transparent',
+                background: isSelected ? `var(--segmented-control-selected-bg)` : 'transparent',
+              },
+              ...(isSelected && selectedElevationBoxShadow ? {
+                boxShadow: selectedElevationBoxShadow,
+              } : {}),
+            }}
           >
             {hasIcon && (
               <span 

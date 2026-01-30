@@ -258,6 +258,24 @@ export default function SegmentedControl({
     const root = wrapperRef.current.querySelector('.mantine-SegmentedControl-root')
     if (!root) return
     
+    // #region agent log
+    // Check for indicator element and log its styles
+    const indicator = root.querySelector('.mantine-SegmentedControl-indicator')
+    if (indicator) {
+      const styles = window.getComputedStyle(indicator)
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:262',message:'Indicator element found',data:{display:styles.display,visibility:styles.visibility,opacity:styles.opacity,backgroundColor:styles.backgroundColor,background:styles.background,borderColor:styles.borderColor,width:styles.width,height:styles.height,position:styles.position},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    }
+    // Check all elements for white backgrounds
+    const allElements = root.querySelectorAll('*')
+    allElements.forEach((el, idx) => {
+      const styles = window.getComputedStyle(el)
+      const bg = styles.backgroundColor || styles.background
+      if (bg && (bg.includes('255') || bg.includes('white') || bg.includes('#fff'))) {
+        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:270',message:'White background element found',data:{tagName:el.tagName,className:el.className,backgroundColor:styles.backgroundColor,background:styles.background,display:styles.display,visibility:styles.visibility},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      }
+    })
+    // #endregion
+    
     const applyMarginFixes = () => {
       const controls = root.querySelectorAll('.mantine-SegmentedControl-control')
       
@@ -513,6 +531,27 @@ export default function SegmentedControl({
       }
       lastMutationTime = now
       
+      // #region agent log
+      // Check for indicator when mutations occur (like height changes)
+      if (wrapperRef.current) {
+        const root = wrapperRef.current.querySelector('.mantine-SegmentedControl-root')
+        if (root) {
+          const indicator = root.querySelector('.mantine-SegmentedControl-indicator')
+          if (indicator) {
+            const styles = window.getComputedStyle(indicator)
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:526',message:'Indicator found during mutation',data:{display:styles.display,visibility:styles.visibility,opacity:styles.opacity,backgroundColor:styles.backgroundColor,borderColor:styles.borderColor,width:styles.width,height:styles.height},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // Try to hide it immediately
+            ;(indicator as HTMLElement).style.setProperty('display', 'none', 'important')
+            ;(indicator as HTMLElement).style.setProperty('visibility', 'hidden', 'important')
+            ;(indicator as HTMLElement).style.setProperty('opacity', '0', 'important')
+            ;(indicator as HTMLElement).style.setProperty('background', 'transparent', 'important')
+            ;(indicator as HTMLElement).style.setProperty('background-color', 'transparent', 'important')
+            ;(indicator as HTMLElement).style.setProperty('border-color', 'transparent', 'important')
+          }
+        }
+      }
+      // #endregion
+      
       // Check if any relevant CSS variables actually changed
       let hasRelevantChange = false
       const changedVars: string[] = []
@@ -582,7 +621,7 @@ export default function SegmentedControl({
         '--segmented-control-selected-bg': `var(${selectedBgVar})`,
         '--segmented-control-selected-text': `var(${selectedTextVar})`,
         '--segmented-control-border-color': `var(${containerBorderColorVar || textVar})`,
-        '--segmented-control-selected-border-color': `var(${selectedBorderColorVar || selectedBgVar})`,
+        '--segmented-control-selected-border-color': `var(${selectedBorderColorVar || selectedBgVar || containerBgVar})`,
         '--segmented-control-border-radius': `var(${containerBorderRadiusVar})`,
         '--segmented-control-border-size': borderSizeValue,
         '--segmented-control-selected-border-size': selectedBorderSizeValue,
@@ -614,6 +653,10 @@ export default function SegmentedControl({
         display: isVertical ? (fullWidth ? 'flex' : 'inline-flex') : (fullWidth ? 'flex' : 'inline-flex'),
         flexDirection: fullWidth ? (isVertical ? 'column' : 'row') : undefined,
         width: fullWidth ? '100%' : 'auto',
+        // Explicitly set border-color to prevent white flash
+        borderColor: `var(--segmented-control-border-color)`,
+        // Disable transitions to prevent flash
+        transition: 'none',
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...mantine?.styles?.root,
       },
@@ -623,6 +666,7 @@ export default function SegmentedControl({
         borderRight: 'none',
         borderTop: 'none',
         borderBottom: 'none',
+        borderColor: 'transparent',
         boxShadow: 'none',
         display: 'flex',
         alignItems: 'center',
@@ -632,6 +676,10 @@ export default function SegmentedControl({
         flexBasis: fullWidth && !isVertical ? '0%' : undefined,
         minWidth: fullWidth && !isVertical ? 0 : undefined,
         width: fullWidth && isVertical ? '100%' : 'auto',
+        // Disable transitions to prevent flash
+        transition: 'none',
+        // Ensure border-color is always set to prevent white flash
+        borderStyle: 'solid',
         ...mantine?.styles?.control,
       },
       // Apply elevation to the control element when selected, not the indicator
@@ -672,7 +720,17 @@ export default function SegmentedControl({
   
   // Always wrap in a div to inject dividers
   return (
-    <div ref={wrapperRef} style={{ position: 'relative', display: fullWidth ? 'block' : 'inline-block', width: fullWidth ? '100%' : 'auto' }}>
+    <div 
+      ref={wrapperRef} 
+      className="recursica-segmented-control-wrapper"
+      style={{ 
+        position: 'relative', 
+        display: fullWidth ? 'block' : 'inline-block', 
+        width: fullWidth ? '100%' : 'auto',
+        background: 'transparent',
+        backgroundColor: 'transparent',
+      }}
+    >
       {segmentedControl}
       {/* Dividers and tooltips will be added via useEffect */}
     </div>
