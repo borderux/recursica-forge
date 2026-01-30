@@ -26,6 +26,7 @@
     "test": "vitest run --reporter=verbose",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
+    "release-agent": "./scripts/release-agent.sh",
     "watch:icons": "node scripts/watch-icon-mapping.mjs",
     "watch:toolbar-icons": "node scripts/watch-toolbar-icons.mjs",
     "changeset": "changeset",
