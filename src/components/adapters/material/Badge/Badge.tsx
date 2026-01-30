@@ -38,6 +38,11 @@ export default function Badge({
   const textTransformVar = getComponentTextCssVar('Badge', 'text', 'text-transform')
   const fontStyleVar = getComponentTextCssVar('Badge', 'text', 'font-style')
   
+  // Get level CSS variables (border-radius, padding)
+  const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
+  const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
+  const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
+  
   return (
     <Chip
       label={children}
@@ -55,6 +60,9 @@ export default function Badge({
         '--badge-text-decoration': `var(${textDecorationVar})`,
         '--badge-text-transform': `var(${textTransformVar})`,
         '--badge-font-style': `var(${fontStyleVar})`,
+        '--badge-border-radius': `var(${borderRadiusVar})`,
+        '--badge-padding-vertical': `var(${paddingVerticalVar})`,
+        '--badge-padding-horizontal': `var(${paddingHorizontalVar})`,
         // Set height to auto to override Material UI Chip's default height
         height: 'auto',
         ...style,
