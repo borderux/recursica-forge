@@ -392,6 +392,42 @@ export function parseComponentStructure(componentName: string): ComponentStructu
       } else {
         // Continue traversing - this is an object (not a value)
         // In new structure, variant values like "solid" are objects containing "color"
+        
+        // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text)
+        // Text property groups are objects containing text-related properties (font-family, font-size, etc.)
+        // We need to create a prop for the parent group so it shows up in the toolbar
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text']
+        const isTextPropertyGroup = textPropertyGroupNames.includes(key.toLowerCase()) && 
+                                     typeof value === 'object' && 
+                                     value !== null &&
+                                     !('$type' in value) &&
+                                     prefix.includes('properties')
+        
+        if (isTextPropertyGroup) {
+          // Check if this object contains text-related properties
+          const textPropertyNames = ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'text-decoration', 'text-transform', 'font-style']
+          const hasTextProperties = textPropertyNames.some(textPropName => 
+            (value as any)[textPropName] !== undefined
+          )
+          
+          if (hasTextProperties) {
+            // Create a prop for the text property group itself
+            // Use a special type 'text-group' to identify it
+            const fullPath = ['components', componentKey, ...currentPath]
+            const cssVar = toCssVarName(fullPath.join('.'))
+            
+            props.push({
+              name: key,
+              category: 'size', // Text properties are component-level, use 'size' category
+              type: 'text-group', // Special type to identify text property groups
+              cssVar, // This will be the base CSS var path, individual properties will have their own vars
+              path: currentPath,
+              isVariantSpecific: false,
+              variantProp: undefined,
+            })
+          }
+        }
+        
         traverse(value, currentPath, variantProp)
       }
     })

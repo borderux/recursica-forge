@@ -16,6 +16,9 @@ const registries: Record<UiKit, Partial<Record<ComponentName, () => Promise<{ de
 }
 
 // Cache for lazy-loaded components
+// Can contain either:
+// 1. A lazy component (from getComponent)
+// 2. A preloaded component (from preloadComponent - the actual component, not wrapped in lazy)
 const lazyComponentCache: Record<string, ComponentType<any>> = {}
 
 /**
@@ -66,6 +69,7 @@ export function getComponent(
 
 /**
  * Preloads a component for a specific kit
+ * Preloaded components are cached as lazy components that resolve immediately
  */
 export async function preloadComponent(
   kit: UiKit,
@@ -82,9 +86,13 @@ export async function preloadComponent(
   }
   
   try {
+    // Preload the module
     const module = await loader()
-    // Cache the default export directly
-    lazyComponentCache[cacheKey] = module.default
+    // Create a lazy component that resolves immediately with the preloaded module
+    // Use a resolved promise so Suspense recognizes it as ready
+    const resolvedPromise = Promise.resolve(module)
+    const PreloadedLazyComponent = lazy(() => resolvedPromise)
+    lazyComponentCache[cacheKey] = PreloadedLazyComponent
   } catch (error) {
     console.error(`Failed to preload component ${componentName} for ${kit}:`, error)
   }

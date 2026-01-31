@@ -6,8 +6,8 @@ import { useState, useEffect } from 'react'
 import { Accordion as MantineAccordion } from '@mantine/core'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import type { AccordionProps as AdapterAccordionProps } from '../../Accordion'
-import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../../utils/cssVarNames'
-import { getBrandTypographyCssVar, getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './Accordion.css'
 
@@ -142,11 +142,72 @@ export default function Accordion({
     ? getElevationBoxShadow(mode, itemElevationFromVar)
     : undefined
 
-  const fontFamilyVar = getBrandTypographyCssVar('body', 'font-family')
-  const fontSizeVar = getBrandTypographyCssVar('body', 'font-size')
-  const fontWeightVar = getBrandTypographyCssVar('body', 'font-weight')
-  const letterSpacingVar = getBrandTypographyCssVar('body', 'font-letter-spacing')
-  const lineHeightVar = getBrandTypographyCssVar('body', 'line-height')
+  // Get header text properties
+  const headerFontFamilyVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-family')
+  const headerFontSizeVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-size')
+  const headerFontWeightVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-weight')
+  const headerLetterSpacingVar = getComponentTextCssVar('AccordionItem', 'header-text', 'letter-spacing')
+  const headerLineHeightVar = getComponentTextCssVar('AccordionItem', 'header-text', 'line-height')
+  const headerTextDecorationVar = getComponentTextCssVar('AccordionItem', 'header-text', 'text-decoration')
+  const headerTextTransformVar = getComponentTextCssVar('AccordionItem', 'header-text', 'text-transform')
+  const headerFontStyleVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-style')
+  
+  // Get content text properties
+  const contentFontFamilyVar = getComponentTextCssVar('AccordionItem', 'content-text', 'font-family')
+  const contentFontSizeVar = getComponentTextCssVar('AccordionItem', 'content-text', 'font-size')
+  const contentFontWeightVar = getComponentTextCssVar('AccordionItem', 'content-text', 'font-weight')
+  const contentLetterSpacingVar = getComponentTextCssVar('AccordionItem', 'content-text', 'letter-spacing')
+  const contentLineHeightVar = getComponentTextCssVar('AccordionItem', 'content-text', 'line-height')
+  const contentTextDecorationVar = getComponentTextCssVar('AccordionItem', 'content-text', 'text-decoration')
+  const contentTextTransformVar = getComponentTextCssVar('AccordionItem', 'content-text', 'text-transform')
+  const contentFontStyleVar = getComponentTextCssVar('AccordionItem', 'content-text', 'font-style')
+  
+  // State to force re-renders when text CSS variables change
+  const [, setTextVarsUpdate] = useState(0)
+  
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const textCssVars = [
+      headerFontFamilyVar, headerFontSizeVar, headerFontWeightVar, headerLetterSpacingVar,
+      headerLineHeightVar, headerTextDecorationVar, headerTextTransformVar, headerFontStyleVar,
+      contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar,
+      contentLineHeightVar, contentTextDecorationVar, contentTextTransformVar, contentFontStyleVar
+    ]
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
+      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      
+      if (shouldUpdate) {
+        // Force re-render by updating state
+        setTextVarsUpdate(prev => prev + 1)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      // Force re-render for text vars
+      setTextVarsUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [
+    headerFontFamilyVar, headerFontSizeVar, headerFontWeightVar, headerLetterSpacingVar,
+    headerLineHeightVar, headerTextDecorationVar, headerTextTransformVar, headerFontStyleVar,
+    contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar,
+    contentLineHeightVar, contentTextDecorationVar, contentTextTransformVar, contentFontStyleVar
+  ])
 
   const value = allowMultiple ? openItems : openItems[0] || null
 
@@ -188,11 +249,24 @@ export default function Accordion({
         ['--accordion-item-icon-gap' as string]: `var(${iconGapVar})`,
         ['--accordion-item-border-radius' as string]: `var(${borderRadiusVar})`,
         ['--accordion-item-header-content-gap' as string]: `var(${headerContentGapVar})`,
-        ['--accordion-item-font-family' as string]: `var(${fontFamilyVar})`,
-        ['--accordion-item-font-size' as string]: `var(${fontSizeVar})`,
-        ['--accordion-item-font-weight' as string]: `var(${fontWeightVar})`,
-        ['--accordion-item-letter-spacing' as string]: `var(${letterSpacingVar})`,
-        ['--accordion-item-line-height' as string]: `var(${lineHeightVar})`,
+        // Header text properties
+        ['--accordion-item-header-font-family' as string]: `var(${headerFontFamilyVar})`,
+        ['--accordion-item-header-font-size' as string]: `var(${headerFontSizeVar})`,
+        ['--accordion-item-header-font-weight' as string]: `var(${headerFontWeightVar})`,
+        ['--accordion-item-header-letter-spacing' as string]: headerLetterSpacingVar ? `var(${headerLetterSpacingVar})` : 'normal',
+        ['--accordion-item-header-line-height' as string]: `var(${headerLineHeightVar})`,
+        ['--accordion-item-header-text-decoration' as string]: (readCssVar(headerTextDecorationVar) || 'none'),
+        ['--accordion-item-header-text-transform' as string]: (readCssVar(headerTextTransformVar) || 'none'),
+        ['--accordion-item-header-font-style' as string]: (readCssVar(headerFontStyleVar) || 'normal'),
+        // Content text properties
+        ['--accordion-item-content-font-family' as string]: `var(${contentFontFamilyVar})`,
+        ['--accordion-item-content-font-size' as string]: `var(${contentFontSizeVar})`,
+        ['--accordion-item-content-font-weight' as string]: `var(${contentFontWeightVar})`,
+        ['--accordion-item-content-letter-spacing' as string]: contentLetterSpacingVar ? `var(${contentLetterSpacingVar})` : 'normal',
+        ['--accordion-item-content-line-height' as string]: `var(${contentLineHeightVar})`,
+        ['--accordion-item-content-text-decoration' as string]: (readCssVar(contentTextDecorationVar) || 'none'),
+        ['--accordion-item-content-text-transform' as string]: (readCssVar(contentTextTransformVar) || 'none'),
+        ['--accordion-item-content-font-style' as string]: (readCssVar(contentFontStyleVar) || 'normal'),
         ...style,
       } as React.CSSProperties}
       styles={{

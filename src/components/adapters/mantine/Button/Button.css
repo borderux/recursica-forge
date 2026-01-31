@@ -157,6 +157,45 @@
   flex: none !important;
 }
 
+/* Trailing icons - use Mantine's rightSection */
+.mantine-Button-root .mantine-Button-rightSection,
+.mantine-Button-root .recursica-button-right-section {
+  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon)) !important;
+  height: var(--button-icon-size, var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon)) !important;
+  margin-inline-start: var(--button-icon-text-gap, var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon-text-gap)) !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.mantine-Button-root .mantine-Button-rightSection svg,
+.mantine-Button-root .recursica-button-right-section svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Hide trailing icons in children when rightSection is present - prevent duplicate icons */
+/* Target the specific class we add to rightIconElement */
+.mantine-Button-root:has(.mantine-Button-rightSection) .mantine-Button-label .recursica-button-trailing-icon,
+.mantine-Button-root:has(.recursica-button-right-section) .mantine-Button-label .recursica-button-trailing-icon,
+.mantine-Button-root:has(.mantine-Button-rightSection) .recursica-button-trailing-icon,
+.mantine-Button-root:has(.recursica-button-right-section) .recursica-button-trailing-icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
 
 /* For icon-only buttons, set the span (or container) around the SVG to display: flex */
 /* Mantine may wrap the icon in a span or other container for icon-only buttons */
@@ -179,11 +218,89 @@
 
 /* Ensure outline variant has a border with the correct color */
 /* Use --button-bd if set (includes size and color), otherwise use --button-border-color, fallback to text color */
-.mantine-Button-root[data-variant='outline'] {
+.mantine-Button-root[data-variant='outline'],
+.recursica-accordion .mantine-Button-root[data-variant='outline'],
+.recursica-accordion .mantine-Accordion-panel .mantine-Button-root[data-variant='outline'] {
   border: var(--button-bd, 1px solid var(--button-border-color, var(--button-color))) !important;
 }
 
 /* Ensure text variant (subtle) has no border */
 .mantine-Button-root[data-variant='subtle'] {
   border: none !important;
+}
+
+/* Always have relative positioning for hover overlay */
+.mantine-Button-root {
+  position: relative;
+}
+
+
+/* Hover state: apply overlay with hover opacity on top of base background */
+/* CRITICAL: Override all Mantine hover styles to prevent background color changes and shadows */
+.mantine-Button-root:hover:not([data-disabled="true"]),
+.mantine-Button-root[data-variant="filled"]:hover:not([data-disabled="true"]),
+.mantine-Button-root[data-variant="outline"]:hover:not([data-disabled="true"]),
+.mantine-Button-root[data-variant="subtle"]:hover:not([data-disabled="true"]),
+.recursica-layer-0 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled),
+.recursica-layer-0 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled),
+.recursica-layer-0 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled),
+.recursica-layer-1 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled),
+.recursica-layer-1 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled),
+.recursica-layer-1 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled),
+.recursica-layer-2 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled),
+.recursica-layer-2 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled),
+.recursica-layer-2 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled),
+.recursica-layer-3 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled),
+.recursica-layer-3 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled),
+.recursica-layer-3 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled) {
+  /* Prevent background color change on hover - override Mantine's CSS-in-JS */
+  background-color: var(--button-bg) !important;
+  /* Remove all box-shadow and inner shadow effects */
+  box-shadow: none !important;
+  /* Prevent any gradient or filter effects */
+  filter: none !important;
+  backdrop-filter: none !important;
+  /* Ensure overlay is not clipped */
+  overflow: visible !important;
+  /* Ensure no transforms that could affect positioning */
+  transform: none !important;
+  will-change: auto !important;
+  /* Disable transitions that could affect overlay positioning */
+  transition: none !important;
+}
+
+.mantine-Button-root:hover:not([data-disabled="true"])::before,
+.mantine-Button-root[data-variant="filled"]:hover:not([data-disabled="true"])::before,
+.mantine-Button-root[data-variant="outline"]:hover:not([data-disabled="true"])::before,
+.mantine-Button-root[data-variant="subtle"]:hover:not([data-disabled="true"])::before,
+.recursica-layer-0 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
+.recursica-layer-0 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
+.recursica-layer-0 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before,
+.recursica-layer-1 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
+.recursica-layer-1 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
+.recursica-layer-1 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before,
+.recursica-layer-2 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
+.recursica-layer-2 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
+.recursica-layer-2 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before,
+.recursica-layer-3 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
+.recursica-layer-3 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
+.recursica-layer-3 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--button-overlay-color, #000000);
+  opacity: var(--button-hover-opacity, 0.08);
+  border-radius: inherit;
+  pointer-events: none;
+  /* Prevent blur or filter effects */
+  backdrop-filter: none !important;
+  filter: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  /* Disable all transitions and animations */
+  transition: none !important;
+  animation: none !important;
 }

@@ -1,27 +1,32 @@
 {
   "props": {
+    "text": {
+      "icon": "text-aa",
+      "label": "Text",
+      "visible": true
+    },
     "color": {
       "icon": "paint-bucket",
       "label": "Color",
       "visible": true,
       "group": {
-        "interactive-color": {
-          "label": "Interactive Color",
+        "interactive": {
+          "label": "Interactive color",
           "visible": true
         },
         "separator-color": {
-          "label": "Separator Color",
+          "label": "Separator color",
           "visible": true
         },
-        "read-only-color": {
-          "label": "Read Only Color",
+        "read-only": {
+          "label": "Read only color",
           "visible": true
         }
       }
     },
     "border-radius": {
       "icon": "corners-out",
-      "label": "Corner Radius",
+      "label": "Corner radius",
       "visible": true
     },
     "padding": {
@@ -31,17 +36,17 @@
     },
     "icon-label-gap": {
       "icon": "split-horizontal",
-      "label": "Icon Label Gap",
+      "label": "Icon label gap",
       "visible": true
     },
     "item-gap": {
       "icon": "arrows-left-right",
-      "label": "Item Gap",
+      "label": "Item gap",
       "visible": true
     },
     "icon-size": {
       "icon": "diamond",
-      "label": "Icon Size",
+      "label": "Icon size",
       "visible": true
     }
   }

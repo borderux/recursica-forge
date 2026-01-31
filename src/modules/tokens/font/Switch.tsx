@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { toCssVarName } from '../../../components/utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../../components/utils/cssVarNames'
 
 type SwitchProps = {
   checked: boolean
@@ -18,31 +18,31 @@ export function Switch({
   colorVariant = 'default',
   sizeVariant = 'default',
 }: SwitchProps) {
-  // Build UIKit CSS var names
-  const thumbVar = useMemo(() => {
-    const path = ['components', 'switch', 'color', layer, 'variant', colorVariant, 'thumb']
-    return toCssVarName(path.join('.'))
-  }, [layer, colorVariant])
+  // Build UIKit CSS var names using buildComponentCssVarPath (automatically includes mode)
+  // Switch structure: components.switch.properties.colors.layer-0.thumb-selected
+  const thumbSelectedVar = useMemo(() => {
+    return buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-selected')
+  }, [layer])
+
+  const thumbUnselectedVar = useMemo(() => {
+    return buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-unselected')
+  }, [layer])
 
   const trackSelectedVar = useMemo(() => {
-    const path = ['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-selected']
-    return toCssVarName(path.join('.'))
-  }, [layer, colorVariant])
+    return buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-selected')
+  }, [layer])
 
   const trackUnselectedVar = useMemo(() => {
-    const path = ['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-unselected']
-    return toCssVarName(path.join('.'))
-  }, [layer, colorVariant])
+    return buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-unselected')
+  }, [layer])
 
   const borderRadiusVar = useMemo(() => {
-    const path = ['components', 'switch', 'size', 'variant', sizeVariant, 'border-radius']
-    return toCssVarName(path.join('.'))
-  }, [sizeVariant])
+    return getComponentLevelCssVar('Switch', 'track-border-radius')
+  }, [])
 
   const thumbSizeVar = useMemo(() => {
-    const path = ['components', 'switch', 'size', 'variant', sizeVariant, 'thumb-size']
-    return toCssVarName(path.join('.'))
-  }, [sizeVariant])
+    return buildComponentCssVarPath('Switch', 'properties', 'thumb-width')
+  }, [])
 
   // CSS variables already include the layer in the path
   // e.g., --recursica-ui-kit-components-switch-color-layer-0-variant-default-thumb
@@ -85,7 +85,9 @@ export function Switch({
           width: '20px',
           height: '20px',
           borderRadius: `var(${borderRadiusVar})`,
-          background: `var(${thumbVar})`,
+          background: checked 
+            ? `var(${thumbSelectedVar})` 
+            : `var(${thumbUnselectedVar})`,
           zIndex: 1,
           transition: 'left 0.2s',
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',

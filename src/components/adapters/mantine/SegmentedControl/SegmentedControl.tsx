@@ -1,0 +1,738 @@
+/**
+ * Mantine SegmentedControl Implementation
+ * 
+ * Mantine-specific SegmentedControl component that uses CSS variables for theming.
+ */
+
+import { SegmentedControl as MantineSegmentedControl, Tooltip as MantineTooltip } from '@mantine/core'
+import type { SegmentedControlProps as AdapterSegmentedControlProps } from '../../SegmentedControl'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { useState, useEffect, useRef } from 'react'
+import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
+import { useCssVar } from '../../../hooks/useCssVar'
+import './SegmentedControl.css'
+
+export default function SegmentedControl({
+  items,
+  value,
+  defaultValue,
+  onChange,
+  orientation = 'horizontal',
+  fullWidth = false,
+  layer = 'layer-0',
+  elevation,
+  disabled = false,
+  showLabel = true,
+  componentNameForCssVars = 'SegmentedControl',
+  className,
+  style,
+  mantine,
+  ...props
+}: AdapterSegmentedControlProps) {
+  const { mode } = useThemeMode()
+  
+  // Map unified orientation to Mantine orientation
+  const mantineOrientation = orientation === 'vertical' ? 'vertical' : 'horizontal'
+  const mantineSize = 'md' // Default size
+  const isVertical = orientation === 'vertical'
+  
+  // Get CSS variables - container properties (always from SegmentedControl)
+  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'background')
+  const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'border-color')
+  const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-size')
+  const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-radius')
+  const containerElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'elevation')
+  const containerPaddingHorizontalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'padding-horizontal')
+  const containerPaddingVerticalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'padding-vertical')
+  
+  // Get CSS variables - padding (applied to all items) - always use SegmentedControlItem for item properties
+  const paddingHorizontalVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'padding-horizontal')
+  const heightVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'height')
+  
+  // Get CSS variables - selected properties - always use SegmentedControlItem for item selected properties
+  const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background')
+  const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color')
+  const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-size')
+  const selectedElevationVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'elevation')
+  
+  // Get CSS variables - item properties (applied to both regular and selected items)
+  const itemBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'border-radius')
+  
+  // Get CSS variables - text colors - use SegmentedControl container for item text color
+  const textVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'text-color')
+  const selectedTextVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'text-color')
+  
+  // Get other properties - always use SegmentedControlItem for item properties, SegmentedControl for container properties
+  const itemGapVar = getComponentLevelCssVar('SegmentedControl', 'item-gap')
+  const iconSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'icon-size')
+  const iconGapVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'icon-text-gap')
+  
+  // Read padding and icon gap values
+  const paddingHorizontalValue = readCssVar(paddingHorizontalVar)
+  const heightValue = readCssVar(heightVar)
+  const containerPaddingHorizontalValue = readCssVar(containerPaddingHorizontalVar)
+  const containerPaddingVerticalValue = readCssVar(containerPaddingVerticalVar)
+  const iconGapValueForStyles = iconGapVar ? readCssVar(iconGapVar) : null
+  
+  // Get divider properties
+  const dividerColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'divider-color')
+  const dividerSizeVar = getComponentLevelCssVar('SegmentedControl', 'divider-size')
+  
+  // Get text properties - always use SegmentedControlItem for item text properties
+  const fontFamilyVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'font-family')
+  const fontSizeVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'font-size')
+  const fontWeightVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'font-weight')
+  const letterSpacingVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'letter-spacing')
+  const lineHeightVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'text-transform')
+  const fontStyleVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'font-style')
+  
+  // Reactively read border-size and divider-size
+  const borderSizeValue = useCssVar(containerBorderSizeVar, '1px')
+  const selectedBorderSizeValue = useCssVar(selectedBorderSizeVar, '1px')
+  const dividerSizeValue = useCssVar(dividerSizeVar, '1px')
+  
+  // Convert items to Mantine format with icons and labels
+  const mantineData = items.map(item => {
+    const hasIcon = !!item.icon
+    const hasLabel = !!item.label && showLabel
+    let label: React.ReactNode = null
+    
+    // If item has both icon and label, combine them
+    if (hasIcon && hasLabel) {
+      label = (
+        <span style={{ display: 'flex', alignItems: 'center', gap: iconGapVar && iconGapValueForStyles ? `var(${iconGapVar})` : (iconGapVar && !iconGapValueForStyles ? '0px' : '8px') }}>
+          <span style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: iconSizeVar ? `var(${iconSizeVar})` : '16px',
+            height: iconSizeVar ? `var(${iconSizeVar})` : '16px',
+            flexShrink: 0,
+          }}>
+            <span style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+            }}>
+              {item.icon}
+            </span>
+          </span>
+          <span style={{
+            textDecoration: 'var(--segmented-control-text-decoration)',
+            textTransform: 'var(--segmented-control-text-transform)' as React.CSSProperties['textTransform'],
+            fontStyle: 'var(--segmented-control-font-style)',
+          }}>
+            {item.label}
+          </span>
+        </span>
+      )
+    } else if (hasIcon && !hasLabel) {
+      // Icon only
+      label = (
+        <span 
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: iconSizeVar ? `var(${iconSizeVar})` : '16px',
+            height: iconSizeVar ? `var(${iconSizeVar})` : '16px',
+          }}
+        >
+          <span style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%',
+          }}>
+            {item.icon}
+          </span>
+        </span>
+      )
+    } else if (hasLabel && !hasIcon) {
+      // Label only
+      label = item.label
+    }
+    
+    return {
+      value: item.value,
+      label,
+      disabled: item.disabled || disabled,
+    }
+  })
+  
+  // Get elevation from CSS vars if not provided as props
+  const [containerElevationFromVar, setContainerElevationFromVar] = useState<string | undefined>(() => {
+    if (!containerElevationVar) return undefined
+    const value = readCssVar(containerElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+  
+  useEffect(() => {
+    if (!containerElevationVar) return
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(containerElevationVar)) {
+        const value = readCssVar(containerElevationVar)
+        setContainerElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    window.addEventListener('cssVarsReset', handleCssVarUpdate)
+    
+    const observer = new MutationObserver(() => {
+      const value = readCssVar(containerElevationVar)
+      setContainerElevationFromVar(value ? parseElevationValue(value) : undefined)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [containerElevationVar])
+  
+  // Get selected elevation
+  const [selectedElevationFromVar, setSelectedElevationFromVar] = useState<string | undefined>(() => {
+    if (!selectedElevationVar) return undefined
+    const value = readCssVar(selectedElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+  
+  useEffect(() => {
+    if (!selectedElevationVar) return
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(selectedElevationVar)) {
+        const value = readCssVar(selectedElevationVar)
+        setSelectedElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    window.addEventListener('cssVarsReset', handleCssVarUpdate)
+    
+    const observer = new MutationObserver(() => {
+      const value = readCssVar(selectedElevationVar)
+      setSelectedElevationFromVar(value ? parseElevationValue(value) : undefined)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [selectedElevationVar])
+  
+  const componentElevation = elevation ?? containerElevationFromVar ?? undefined
+  const elevationBoxShadow = componentElevation && componentElevation !== 'elevation-0'
+    ? getElevationBoxShadow(mode, componentElevation)
+    : undefined
+  const selectedElevationBoxShadow = selectedElevationFromVar && selectedElevationFromVar !== 'elevation-0'
+    ? getElevationBoxShadow(mode, selectedElevationFromVar)
+    : undefined
+  
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  
+  // Inject divider elements between controls and fix margins
+  useEffect(() => {
+    if (!wrapperRef.current) return
+    
+    const root = wrapperRef.current.querySelector('.mantine-SegmentedControl-root')
+    if (!root) return
+    
+    // #region agent log
+    // Check for indicator element and log its styles
+    const indicator = root.querySelector('.mantine-SegmentedControl-indicator')
+    if (indicator) {
+      const styles = window.getComputedStyle(indicator)
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:262',message:'Indicator element found',data:{display:styles.display,visibility:styles.visibility,opacity:styles.opacity,backgroundColor:styles.backgroundColor,background:styles.background,borderColor:styles.borderColor,width:styles.width,height:styles.height,position:styles.position},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    }
+    // Check all elements for white backgrounds
+    const allElements = root.querySelectorAll('*')
+    allElements.forEach((el, idx) => {
+      const styles = window.getComputedStyle(el)
+      const bg = styles.backgroundColor || styles.background
+      if (bg && (bg.includes('255') || bg.includes('white') || bg.includes('#fff'))) {
+        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:270',message:'White background element found',data:{tagName:el.tagName,className:el.className,backgroundColor:styles.backgroundColor,background:styles.background,display:styles.display,visibility:styles.visibility},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      }
+    })
+    // #endregion
+    
+    const applyMarginFixes = () => {
+      const controls = root.querySelectorAll('.mantine-SegmentedControl-control')
+      
+      controls.forEach((control, index) => {
+        const isLast = index === controls.length - 1
+        const isFirst = index === 0
+        
+        // Explicitly set margins via inline styles with !important to override CSS
+        if (isFirst) {
+          if (isVertical) {
+            ;(control as HTMLElement).style.setProperty('margin-top', '0', 'important')
+          } else {
+            ;(control as HTMLElement).style.setProperty('margin-left', '0', 'important')
+          }
+        }
+        if (isLast) {
+          if (isVertical) {
+            ;(control as HTMLElement).style.setProperty('margin-bottom', '0', 'important')
+          } else {
+            ;(control as HTMLElement).style.setProperty('margin-right', '0', 'important')
+          }
+        }
+      })
+    }
+    
+    // Remove existing dividers
+    const existingDividers = root.querySelectorAll('.recursica-segmented-control-divider')
+    existingDividers.forEach(divider => divider.remove())
+    
+    const controls = root.querySelectorAll('.mantine-SegmentedControl-control')
+    
+    // Apply margin fixes immediately
+    applyMarginFixes()
+    
+    controls.forEach((control, index) => {
+      const isSelected = control.hasAttribute('data-active')
+      const isLast = index === controls.length - 1
+      const nextControl = controls[index + 1]
+      const isNextSelected = nextControl?.hasAttribute('data-active')
+      const shouldAddDivider = !isLast && !isSelected && !isNextSelected
+      
+      if (shouldAddDivider) {
+        const divider = document.createElement('div')
+        divider.className = 'recursica-segmented-control-divider'
+        divider.setAttribute('data-orientation', isVertical ? 'vertical' : 'horizontal')
+        
+        // Append divider as a child of the control so it's positioned relative to it
+        control.appendChild(divider)
+      }
+    })
+    
+    // Watch for changes and re-apply margin fixes
+    const observer = new MutationObserver(() => {
+      applyMarginFixes()
+    })
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class'],
+    })
+    
+    return () => {
+      observer.disconnect()
+    }
+  }, [items, value, defaultValue, orientation, isVertical, itemGapVar, dividerSizeVar, dividerColorVar, containerBorderColorVar, textVar])
+  
+  // Add tooltips to segments when labels are hidden using Mantine Tooltip
+  useEffect(() => {
+    if (showLabel || !wrapperRef.current) return
+    
+    const controls = wrapperRef.current.querySelectorAll('.mantine-SegmentedControl-control')
+    const tooltipInstances: Array<{ control: Element; tooltip: HTMLElement; cleanup: () => void }> = []
+    
+    controls.forEach((control, index) => {
+      const item = items[index]
+      if (!item) return
+      
+      const tooltipText = item.tooltip || (typeof item.label === 'string' ? item.label : '')
+      if (!tooltipText) return
+      
+      // Create tooltip element with proper CSS variables
+      const tooltipLayer = 'layer-1' // Use layer-1 for tooltips (consistent with Tooltip component)
+      const layerBase = `--recursica-brand-themes-${mode}-layer-${tooltipLayer}-property`
+      const bgVar = `${layerBase}-surface`
+      const textVar = `${layerBase}-element-text-color`
+      const borderColorVar = `${layerBase}-border-color`
+      const borderRadiusVar = `${layerBase}-border-radius`
+      const paddingVar = `${layerBase}-padding`
+      
+      const tooltipEl = document.createElement('div')
+      tooltipEl.className = 'mantine-segmented-control-tooltip'
+      tooltipEl.textContent = tooltipText
+      tooltipEl.style.cssText = `
+        position: fixed;
+        background: var(${bgVar});
+        color: var(${textVar});
+        border: 1px solid var(${borderColorVar});
+        border-radius: var(${borderRadiusVar}, 6px);
+        padding: var(${paddingVar}, 6px 10px);
+        font-size: 12px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 9999;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      `
+      document.body.appendChild(tooltipEl)
+      
+      let timeoutId: NodeJS.Timeout | null = null
+      
+      const showTooltip = (e: MouseEvent) => {
+        if (timeoutId) clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => {
+          const rect = control.getBoundingClientRect()
+          tooltipEl.style.left = `${rect.left + rect.width / 2}px`
+          tooltipEl.style.top = `${rect.top - 8}px`
+          tooltipEl.style.transform = 'translate(-50%, -100%)'
+          tooltipEl.style.opacity = '1'
+        }, 300)
+      }
+      
+      const hideTooltip = () => {
+        if (timeoutId) clearTimeout(timeoutId)
+        tooltipEl.style.opacity = '0'
+      }
+      
+      control.addEventListener('mouseenter', showTooltip as EventListener)
+      control.addEventListener('mouseleave', hideTooltip as EventListener)
+      
+      tooltipInstances.push({
+        control,
+        tooltip: tooltipEl,
+        cleanup: () => {
+          control.removeEventListener('mouseenter', showTooltip as EventListener)
+          control.removeEventListener('mouseleave', hideTooltip as EventListener)
+          if (timeoutId) clearTimeout(timeoutId)
+          document.body.removeChild(tooltipEl)
+        }
+      })
+    })
+    
+    return () => {
+      tooltipInstances.forEach(({ cleanup }) => cleanup())
+    }
+  }, [items, showLabel, value, defaultValue, mode])
+  
+  // Force re-render when CSS variables change (including divider vars)
+  const [, forceUpdate] = useState(0)
+  
+  // Track CSS vars updated via events to prevent MutationObserver from double-handling
+  const eventUpdatedVars = useRef<Set<string>>(new Set())
+  const eventUpdateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  
+  useEffect(() => {
+    // Build list of CSS variables this component cares about
+    const relevantCssVars = new Set([
+      dividerSizeVar,
+      dividerColorVar,
+      textDecorationVar,
+      textTransformVar,
+      fontStyleVar,
+      selectedTextVar,
+      selectedElevationVar,
+      selectedBorderSizeVar,
+      paddingHorizontalVar,
+      heightVar,
+      textVar,
+      selectedBgVar,
+      selectedBorderColorVar,
+      itemBorderRadiusVar,
+      iconGapVar,
+      iconSizeVar,
+    ].filter(Boolean))
+    
+    // CSS vars that are pure colors/text - these resolve automatically via CSS, no re-render needed
+    const colorOnlyVars = new Set([
+      selectedBgVar,
+      selectedTextVar,
+      selectedBorderColorVar,
+      textVar,
+      dividerColorVar,
+    ].filter(Boolean))
+    
+    const handleCssVarUpdate = (e?: Event) => {
+      const detail = (e as CustomEvent)?.detail
+      const updatedVars = detail?.cssVars || []
+      
+      // CRITICAL: Filter out UIKit CSS variables - they're silent and don't need re-renders
+      const nonUIKitVars = updatedVars.filter((v: string) => 
+        !v.startsWith('--recursica-ui-kit-components-') && 
+        !v.startsWith('--recursica-ui-kit-globals-')
+      )
+      
+      // Only update if a relevant CSS variable was updated (excluding UIKit vars)
+      // If no specific vars listed (cssVarsReset case), check if there are any non-UIKit vars
+      // If all vars are UIKit vars (nonUIKitVars.length === 0), don't update
+      const shouldUpdate = updatedVars.length === 0 
+        ? false // cssVarsReset with no vars - don't update
+        : nonUIKitVars.length > 0 && nonUIKitVars.some((v: string) => relevantCssVars.has(v))
+      
+      // Mark relevant vars as updated via event (excluding UIKit vars)
+      if (shouldUpdate) {
+        nonUIKitVars.forEach((v: string) => {
+          if (relevantCssVars.has(v)) {
+            eventUpdatedVars.current.add(v)
+          }
+        })
+        // Clear the set after a delay (longer than MutationObserver debounce)
+        if (eventUpdateTimeout.current) {
+          clearTimeout(eventUpdateTimeout.current)
+        }
+        eventUpdateTimeout.current = setTimeout(() => {
+          eventUpdatedVars.current.clear()
+        }, 100) // Clear after 100ms (longer than MutationObserver debounce of 16ms)
+      }
+      
+      // CRITICAL: Don't force re-render for pure color CSS var changes - CSS variables resolve automatically
+      // The inline styles use var() references which automatically pick up changes from document.documentElement
+      // Only re-render if non-color vars changed (like border-size, elevation, padding which are read in JS)
+      if (shouldUpdate) {
+        const relevantUpdatedVars = nonUIKitVars.filter((v: string) => relevantCssVars.has(v))
+        const onlyColorVarsChanged = relevantUpdatedVars.length > 0 && relevantUpdatedVars.every((v: string) => colorOnlyVars.has(v))
+        if (!onlyColorVarsChanged) {
+          // Non-color vars changed (border-size, elevation, padding, etc.) - need re-render to read new values
+          forceUpdate(prev => prev + 1)
+        }
+        // If only color vars changed, skip re-render - CSS will automatically apply the new colors
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    window.addEventListener('cssVarsReset', handleCssVarUpdate)
+    
+    let lastMutationTime = 0
+    const mutationDebounceMs = 16 // ~1 frame at 60fps
+    let lastValues = new Map<string, string>()
+    
+    // Initialize last values
+    for (const cssVar of relevantCssVars) {
+      const value = readCssVar(cssVar)
+      if (value !== undefined && value !== null) {
+        lastValues.set(cssVar, value)
+      }
+    }
+    
+    const observer = new MutationObserver(() => {
+      const now = Date.now()
+      // Debounce mutations to avoid excessive updates
+      if (now - lastMutationTime < mutationDebounceMs) {
+        return
+      }
+      lastMutationTime = now
+      
+      // #region agent log
+      // Check for indicator when mutations occur (like height changes)
+      if (wrapperRef.current) {
+        const root = wrapperRef.current.querySelector('.mantine-SegmentedControl-root')
+        if (root) {
+          const indicator = root.querySelector('.mantine-SegmentedControl-indicator')
+          if (indicator) {
+            const styles = window.getComputedStyle(indicator)
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:526',message:'Indicator found during mutation',data:{display:styles.display,visibility:styles.visibility,opacity:styles.opacity,backgroundColor:styles.backgroundColor,borderColor:styles.borderColor,width:styles.width,height:styles.height},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // Try to hide it immediately
+            ;(indicator as HTMLElement).style.setProperty('display', 'none', 'important')
+            ;(indicator as HTMLElement).style.setProperty('visibility', 'hidden', 'important')
+            ;(indicator as HTMLElement).style.setProperty('opacity', '0', 'important')
+            ;(indicator as HTMLElement).style.setProperty('background', 'transparent', 'important')
+            ;(indicator as HTMLElement).style.setProperty('background-color', 'transparent', 'important')
+            ;(indicator as HTMLElement).style.setProperty('border-color', 'transparent', 'important')
+          }
+        }
+      }
+      // #endregion
+      
+      // Check if any relevant CSS variables actually changed
+      let hasRelevantChange = false
+      const changedVars: string[] = []
+      for (const cssVar of relevantCssVars) {
+        // CRITICAL: Skip UIKit CSS variables entirely - they're managed via toolbar
+        // and don't need component re-renders (CSS var() references resolve automatically)
+        const isUIKitVar = cssVar.startsWith('--recursica-ui-kit-components-') || cssVar.startsWith('--recursica-ui-kit-globals-')
+        if (isUIKitVar) {
+          continue // Skip UIKit vars - they don't need re-renders
+        }
+        
+        // Skip if this var was already updated via cssVarsUpdated event
+        if (eventUpdatedVars.current.has(cssVar)) {
+          continue
+        }
+        const currentValue = readCssVar(cssVar)
+        const lastValue = lastValues.get(cssVar)
+        if (currentValue !== undefined && currentValue !== null && currentValue !== lastValue) {
+          hasRelevantChange = true
+          changedVars.push(cssVar)
+          lastValues.set(cssVar, currentValue)
+        }
+      }
+      
+      // CRITICAL: Don't force re-render for pure color CSS var changes - CSS variables resolve automatically
+      // The inline styles use var() references which automatically pick up changes from document.documentElement
+      // Only re-render if non-color vars changed (like border-size, elevation, padding which are read in JS)
+      if (hasRelevantChange) {
+        const changedColorVars = changedVars.filter(v => colorOnlyVars.has(v))
+        const onlyColorVarsChanged = changedVars.length > 0 && changedVars.every(v => colorOnlyVars.has(v))
+        if (!onlyColorVarsChanged) {
+          // Non-color vars changed (border-size, elevation, padding, etc.) - need re-render to read new values
+          forceUpdate(prev => prev + 1)
+        }
+        // If only color vars changed, skip re-render - CSS will automatically apply the new colors
+      }
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+      observer.disconnect()
+      if (eventUpdateTimeout.current) {
+        clearTimeout(eventUpdateTimeout.current)
+      }
+    }
+  }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, heightVar, textVar, selectedBgVar, selectedBorderColorVar, itemBorderRadiusVar, iconGapVar, iconSizeVar, componentNameForCssVars, layer])
+  
+  const mantineProps = {
+    data: mantineData,
+    value: value ?? defaultValue,
+    onChange: onChange ? (val: string) => onChange(val) : undefined,
+    size: mantineSize,
+    orientation: mantineOrientation as 'horizontal' | 'vertical',
+    disabled,
+    // Don't pass fullWidth to Mantine - we control it entirely via our CSS and inline styles
+    // Mantine's fullWidth prop might conflict with our custom flex behavior
+    className: `${className || ''} ${fullWidth ? 'recursica-full-width' : 'recursica-auto-width'}`.trim(),
+    styles: {
+      root: {
+        '--segmented-control-bg': `var(${containerBgVar})`,
+        '--segmented-control-text': `var(${textVar})`,
+        '--segmented-control-selected-bg': `var(${selectedBgVar})`,
+        '--segmented-control-selected-text': `var(${selectedTextVar})`,
+        '--segmented-control-border-color': `var(${containerBorderColorVar || textVar})`,
+        '--segmented-control-selected-border-color': `var(${selectedBorderColorVar || selectedBgVar || containerBgVar})`,
+        '--segmented-control-border-radius': `var(${containerBorderRadiusVar})`,
+        '--segmented-control-border-size': borderSizeValue,
+        '--segmented-control-selected-border-size': selectedBorderSizeValue,
+        '--segmented-control-item-border-radius': `var(${itemBorderRadiusVar})`,
+        '--segmented-control-selected-elevation': selectedElevationFromVar || 'elevation-0',
+        '--segmented-control-selected-elevation-shadow': selectedElevationBoxShadow || 'none',
+        '--segmented-control-padding-horizontal': paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
+        '--segmented-control-height': heightValue ? `var(${heightVar})` : 'auto',
+        '--segmented-control-container-padding-horizontal': containerPaddingHorizontalValue ? `var(${containerPaddingHorizontalVar})` : '0px',
+        '--segmented-control-container-padding-vertical': containerPaddingVerticalValue ? `var(${containerPaddingVerticalVar})` : '0px',
+        paddingTop: containerPaddingVerticalValue ? `var(${containerPaddingVerticalVar})` : undefined,
+        paddingBottom: containerPaddingVerticalValue ? `var(${containerPaddingVerticalVar})` : undefined,
+        paddingLeft: containerPaddingHorizontalValue ? `var(${containerPaddingHorizontalVar})` : undefined,
+        paddingRight: containerPaddingHorizontalValue ? `var(${containerPaddingHorizontalVar})` : undefined,
+        '--segmented-control-item-gap': `var(${itemGapVar})`,
+        '--segmented-control-icon-text-gap': iconGapVar && iconGapValueForStyles ? `var(${iconGapVar})` : '0px',
+        '--segmented-control-divider-color': `var(${dividerColorVar || containerBorderColorVar || textVar})`,
+        '--segmented-control-divider-size': dividerSizeValue,
+        '--segmented-control-font-family': `var(${fontFamilyVar})`,
+        '--segmented-control-font-size': `var(${fontSizeVar})`,
+        '--segmented-control-font-weight': `var(${fontWeightVar})`,
+        '--segmented-control-letter-spacing': letterSpacingVar ? `var(${letterSpacingVar})` : 'normal',
+        '--segmented-control-line-height': `var(${lineHeightVar})`,
+        '--segmented-control-text-decoration': textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
+        '--segmented-control-text-transform': textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
+        '--segmented-control-font-style': fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
+        '--segmented-control-full-width': fullWidth ? '1' : '0',
+        // Ensure root element doesn't become block-level when fullWidth is false
+        display: isVertical ? (fullWidth ? 'flex' : 'inline-flex') : (fullWidth ? 'flex' : 'inline-flex'),
+        flexDirection: fullWidth ? (isVertical ? 'column' : 'row') : undefined,
+        width: fullWidth ? '100%' : 'auto',
+        // Explicitly set border-color to prevent white flash
+        borderColor: `var(--segmented-control-border-color)`,
+        // Disable transitions to prevent flash
+        transition: 'none',
+        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
+        ...mantine?.styles?.root,
+      },
+      control: {
+        border: 'none',
+        borderLeft: 'none',
+        borderRight: 'none',
+        borderTop: 'none',
+        borderBottom: 'none',
+        borderColor: 'transparent',
+        boxShadow: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        // Control width based on fullWidth prop
+        flex: fullWidth && !isVertical ? '1 1 0%' : 'none',
+        flexBasis: fullWidth && !isVertical ? '0%' : undefined,
+        minWidth: fullWidth && !isVertical ? 0 : undefined,
+        width: fullWidth && isVertical ? '100%' : 'auto',
+        // Disable transitions to prevent flash
+        transition: 'none',
+        // Ensure border-color is always set to prevent white flash
+        borderStyle: 'solid',
+        ...mantine?.styles?.control,
+      },
+      // Apply elevation to the control element when selected, not the indicator
+      // We'll use CSS to apply this since Mantine's structure makes it complex
+      label: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexGrow: 1, // Always fill the button area for full clickability
+        width: '100%', // Always fill the button width for full clickability
+        ...mantine?.styles?.label,
+      },
+      indicator: {
+        // Hide Mantine's indicator completely - we apply selected background directly to control element
+        // Elevation is applied to the control element, not the indicator
+        display: 'none',
+        visibility: 'hidden',
+        opacity: 0,
+        border: 'none',
+        borderLeft: 'none',
+        borderRight: 'none',
+        borderTop: 'none',
+        borderBottom: 'none',
+        boxShadow: 'none',
+        background: 'transparent',
+        ...mantine?.styles?.indicator,
+      },
+      ...mantine?.styles,
+    },
+    style: {
+      ...style,
+    },
+    ...mantine,
+    ...props,
+  }
+  
+  const segmentedControl = <MantineSegmentedControl {...mantineProps} />
+  
+  // Always wrap in a div to inject dividers
+  return (
+    <div 
+      ref={wrapperRef} 
+      className="recursica-segmented-control-wrapper"
+      style={{ 
+        position: 'relative', 
+        display: fullWidth ? 'block' : 'inline-block', 
+        width: fullWidth ? '100%' : 'auto',
+        background: 'transparent',
+        backgroundColor: 'transparent',
+      }}
+    >
+      {segmentedControl}
+      {/* Dividers and tooltips will be added via useEffect */}
+    </div>
+  )
+}

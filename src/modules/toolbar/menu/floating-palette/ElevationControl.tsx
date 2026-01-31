@@ -129,6 +129,7 @@ export default function ElevationControl({
                 valueLabel={getValueLabel}
                 minLabel={minLabel}
                 maxLabel={maxLabel}
+                showMinMaxLabels={false}
                 label={<Label layer="layer-1" layout="stacked">Thumb Elevation</Label>}
               />
             )
@@ -177,6 +178,7 @@ export default function ElevationControl({
                   valueLabel={getValueLabel}
                   minLabel={minLabel}
                   maxLabel={maxLabel}
+                  showMinMaxLabels={false}
                   label={<Label layer="layer-1" layout="stacked">Track Elevation</Label>}
                 />
               )
@@ -227,6 +229,7 @@ export default function ElevationControl({
               valueLabel={getValueLabel}
               minLabel={minLabel}
               maxLabel={maxLabel}
+              showMinMaxLabels={false}
               label={<Label layer="layer-1" layout="stacked">Elevation</Label>}
             />
           )

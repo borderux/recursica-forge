@@ -114,9 +114,11 @@ export default function DimensionTokenSelector({
         })
       }
       
-      // For horizontal-padding, padding, item-gap, and divider-item-gap props, only collect general dimensions
+      // For horizontal-padding, padding, item-gap, divider-item-gap, padding-horizontal, padding-vertical, and icon-text-gap props, only collect general dimensions
       if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' || 
-          propNameLower === 'item-gap' || propNameLower === 'divider-item-gap') {
+          propNameLower === 'item-gap' || propNameLower === 'divider-item-gap' ||
+          propNameLower === 'padding-horizontal' || propNameLower === 'padding-vertical' ||
+          propNameLower === 'icon-text-gap') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
         const general = dimensions?.general || {}
@@ -169,13 +171,14 @@ export default function DimensionTokenSelector({
         })
       }
       
-      // For icon prop, only collect icon dimensions
-      if (propNameLower === 'icon') {
+      // For icon or icon-size prop, collect icon dimensions AND general dimensions
+      if (propNameLower === 'icon' || propNameLower === 'icon-size') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
         const icons = dimensions?.icons || dimensions?.icon || {}
+        const general = dimensions?.general || {}
         
-        // Collect icon dimensions (xs, sm, default, lg)
+        // Collect icon dimensions (xs, sm, default, lg) - ONLY icon tokens for icon-size
         Object.keys(icons).forEach(iconKey => {
           const iconValue = icons[iconKey]
           if (iconValue && typeof iconValue === 'object' && '$value' in iconValue) {
@@ -490,11 +493,11 @@ export default function DimensionTokenSelector({
           }
         }
         
-        // Keep common spacing/sizing categories (general.*, icon.*)
-        const commonCategories = ['general', 'icon']
-        if (commonCategories.includes(firstPart)) {
-          return true
-        }
+      // Keep common spacing/sizing categories (general.*, icon.*)
+      const commonCategories = ['general', 'icon']
+      if (commonCategories.includes(firstPart)) {
+        return true
+      }
         
         // Filter out layout-specific categories like "gutter" that aren't relevant for component props
         const layoutCategories = ['gutter']
@@ -581,8 +584,44 @@ export default function DimensionTokenSelector({
       // If no value found, try to read the resolved value (might be a token reference)
       const resolvedValue = readCssVarResolved(targetCssVar)
       if (resolvedValue) {
-        // We have a resolved value, treat it as the current value
+        // Check if resolved value is a CSS variable reference (not a pixel value)
+        if (isThemeVar(resolvedValue)) {
+          // It's a CSS variable reference, try to match it to a token
+          setIsPixelMode(false)
+          const matchingToken = dimensionTokens.find(token => {
+            if (resolvedValue === `var(${token.name})` || resolvedValue === token.name) return true
+            const tokenResolved = readCssVarResolved(token.name)
+            if (tokenResolved && readCssVarResolved(targetCssVar) === tokenResolved) return true
+            return false
+          })
+          if (matchingToken) {
+            setSelectedToken(matchingToken.name)
+            return
+          }
+        }
+        
+        // We have a resolved pixel value, try to match it to a token by comparing resolved values
         const pxValue = extractPixelValue(resolvedValue)
+        if (pxValue > 0 && dimensionTokens.length > 0) {
+          // Try to find a token that resolves to the same pixel value
+          const matchingToken = dimensionTokens.find(token => {
+            const tokenResolved = readCssVarResolved(token.name)
+            if (tokenResolved) {
+              const tokenPxValue = extractPixelValue(tokenResolved)
+              // Match if pixel values are very close (within 0.1px tolerance)
+              return Math.abs(tokenPxValue - pxValue) < 0.1
+            }
+            return false
+          })
+          
+          if (matchingToken) {
+            setIsPixelMode(false)
+            setSelectedToken(matchingToken.name)
+            return
+          }
+        }
+        
+        // No matching token found, use pixel mode
         if (pxValue > 0) {
           setIsPixelMode(true)
           const maxPixelValue = propNameLower === 'max-width' ? 500 : 200
@@ -592,12 +631,15 @@ export default function DimensionTokenSelector({
         }
       }
       
-      // For divider-item-gap, padding, item-gap, vertical-padding, and horizontal-padding, null means "none"
+      // For divider-item-gap, padding, item-gap, vertical-padding, horizontal-padding, padding-horizontal, padding-vertical, and icon-text-gap, null means "none"
       // Find the "none" token from Brand.json (general-none)
       if (propNameLower === 'divider-item-gap' || 
           propNameLower === 'padding' || 
           propNameLower === 'item-gap' ||
-          propNameLower === 'horizontal-padding') {
+          propNameLower === 'horizontal-padding' ||
+          propNameLower === 'padding-horizontal' ||
+          propNameLower === 'padding-vertical' ||
+          propNameLower === 'icon-text-gap') {
         // These use general tokens
         const noneToken = dimensionTokens.find(t => t.name.includes('general-none'))
         setSelectedToken(noneToken?.name)
@@ -766,11 +808,14 @@ export default function DimensionTokenSelector({
   
   const foundIdx = sortedTokens.length > 0 ? sortedTokens.findIndex(t => t.name === selectedToken) : -1
   const currentIdx = foundIdx >= 0 ? foundIdx : 0
+  
   const getValueLabel = useCallback((value: number) => {
     if (sortedTokens.length === 0) return '—'
-    const token = sortedTokens[Math.round(value)]
+    const roundedValue = Math.round(value)
+    const token = sortedTokens[roundedValue]
+    
     return token?.label || token?.name.split('-').pop() || token?.name || String(value)
-  }, [sortedTokens])
+  }, [sortedTokens, propName])
   const minToken = sortedTokens[0]
   const maxToken = sortedTokens.length > 0 ? sortedTokens[sortedTokens.length - 1] : undefined
 
@@ -920,8 +965,10 @@ export default function DimensionTokenSelector({
       showInput={false}
       showValueLabel={true}
       valueLabel={getValueLabel}
+      tooltipText={getValueLabel}
       minLabel={minToken?.label || 'None'}
       maxLabel={maxToken?.label || 'Xl'}
+      showMinMaxLabels={false}
       label={<Label layer="layer-3" layout="stacked">{label}</Label>}
     />
   )

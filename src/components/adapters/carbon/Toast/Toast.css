@@ -1,9 +1,12 @@
 /* Carbon Toast CSS Overrides */
 
 .recursica-toast {
+  display: flex !important;
+  align-items: center !important;
   padding: var(--toast-vertical-padding, var(--recursica-ui-kit-components-toast-properties-vertical-padding)) var(--toast-horizontal-padding, var(--recursica-ui-kit-components-toast-properties-horizontal-padding)) !important;
   min-width: var(--toast-min-width, var(--recursica-ui-kit-components-toast-properties-min-width)) !important;
   max-width: var(--toast-max-width, var(--recursica-ui-kit-components-toast-properties-max-width)) !important;
+  min-height: var(--toast-min-height, var(--recursica-ui-kit-components-toast-properties-min-height)) !important;
   background-color: var(--toast-bg, var(--recursica-ui-kit-components-toast-variants-styles-default-properties-colors-layer-0-background)) !important;
   color: var(--toast-text, var(--recursica-ui-kit-components-toast-variants-styles-default-properties-colors-layer-0-text)) !important;
   border-radius: 8px !important;
@@ -33,11 +36,23 @@
 .recursica-toast-message {
   flex: 1 !important;
   min-width: 0 !important;
-  font-size: var(--toast-text-size, var(--recursica-ui-kit-components-toast-properties-text-size)) !important;
 }
 
 .recursica-toast-action {
   flex-shrink: 0 !important;
+}
+
+.recursica-toast-action button {
+  background-color: transparent !important;
+  --button-bg: transparent !important;
+  opacity: 1 !important;
+}
+
+/* Apply color override only when --toast-button is set (success/error variants) */
+/* For default variant, --toast-button is not set, so this rule doesn't apply and Button uses its default text variant color */
+.recursica-toast[style*="--toast-button"] .recursica-toast-action button {
+  color: var(--toast-button) !important;
+  --button-color: var(--toast-button) !important;
 }
 
 .recursica-toast-close {

@@ -13,18 +13,13 @@
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text",
-      "visible": true,
-      "group": {
-        "text-color": {
-          "label": "Color",
-          "visible": true
-        },
-        "text-size": {
-          "label": "Size",
-          "visible": true
-        }
-      }
+      "label": "Text style",
+      "visible": true
+    },
+    "text-color": {
+      "icon": "text-aa",
+      "label": "Text color",
+      "visible": true
     },
     "border": {
       "icon": "square",
@@ -38,7 +33,7 @@
         },
         "border-radius": {
           "icon": "corners-out",
-          "label": "Corner Radius",
+          "label": "Corner radius",
           "visible": true
         },
         "border-color": {
@@ -55,25 +50,47 @@
       "group": {
         "horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal Padding",
+          "label": "Horizontal padding",
           "visible": true
         },
         "vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical Padding",
+          "label": "Vertical padding",
           "visible": true
         }
       }
     },
-    "icon-text-gap": {
-      "icon": "split-horizontal",
-      "label": "Icon/Text Gap",
-      "visible": true
-    },
-    "icon-size": {
+    "icon": {
       "icon": "diamond",
-      "label": "Icon Size",
-      "visible": true
+      "label": "Icon",
+      "visible": true,
+      "group": {
+        "icon-size": {
+          "icon": "diamond",
+          "label": "Leading icon size",
+          "visible": true
+        },
+        "close-icon-size": {
+          "icon": "x",
+          "label": "Close icon size",
+          "visible": true
+        },
+        "icon-text-gap": {
+          "icon": "split-horizontal",
+          "label": "Icon/text gap",
+          "visible": true
+        },
+        "leading-icon-color": {
+          "icon": "paint-bucket",
+          "label": "Leading icon color",
+          "visible": true
+        },
+        "close-icon-color": {
+          "icon": "paint-bucket",
+          "label": "Close icon color",
+          "visible": true
+        }
+      }
     },
     "width": {
       "icon": "arrows-left-right",
@@ -82,12 +99,12 @@
       "group": {
         "min-width": {
           "icon": "arrows-in-line-horizontal",
-          "label": "Min Width",
+          "label": "Min width",
           "visible": true
         },
         "max-width": {
           "icon": "arrows-out-line-horizontal",
-          "label": "Max Width",
+          "label": "Max width",
           "visible": true
         }
       }

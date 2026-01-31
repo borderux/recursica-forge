@@ -44,6 +44,17 @@ describe('Accordion Integration', () => {
   }
 
   const waitForAccordion = async (container: HTMLElement) => {
+    // First wait for providers to be ready (they might be loading)
+    await waitFor(() => {
+      const loadingPlaceholders = container.querySelectorAll('[data-testid$="-provider-loading"]')
+      if (loadingPlaceholders.length > 0) {
+        throw new Error('Providers still loading')
+      }
+    }, { timeout: 5000 }).catch(() => {
+      // If providers don't load quickly, continue anyway
+    })
+    
+    // Then wait for accordion component
     return await waitFor(() => {
       const el = container.querySelector('.recursica-accordion')
       if (!el) throw new Error('Accordion not found')

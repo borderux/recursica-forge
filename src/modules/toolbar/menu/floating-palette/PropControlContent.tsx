@@ -12,6 +12,7 @@ import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNam
 import OpacitySelector from './OpacitySelector'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
+import TextStyleToolbar from '../text-style/TextStyleToolbar'
 import './PropControl.css'
 
 // Helper to format dimension label from key
@@ -1307,6 +1308,45 @@ export default function PropControlContent({
     : (componentName.toLowerCase() === 'toast' && prop.name.toLowerCase() === 'icon')
     ? 'Size'
     : toSentenceCase(prop.name)
+  
+  // Check if this is a text property group (text, header-text, content-text, label-text, optional-text)
+  // Text property groups have nested properties like font-family, font-size, etc.
+  // This check MUST happen before grouped props check to ensure text groups are handled correctly
+  const propNameLower = prop.name.toLowerCase()
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text']
+  const isTextPropertyGroup = textPropertyGroupNames.includes(propNameLower) && 
+    (prop.type === 'text-group' || (() => {
+      // Fallback: Check UIKit.json structure
+      try {
+        const uikitRoot: any = (themeJson as any)?.['ui-kit'] || (themeJson as any)
+        const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+        const component = uikitRoot?.components?.[componentKey]
+        const textPropertyGroup = component?.properties?.[propNameLower]
+        
+        if (textPropertyGroup && typeof textPropertyGroup === 'object' && !('$type' in textPropertyGroup)) {
+          // This is an object (not a value), check if it has text properties
+          const textPropertyNames = ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'text-decoration', 'text-transform', 'font-style']
+          return textPropertyNames.some(textPropName => 
+            textPropertyGroup[textPropName] !== undefined
+          )
+        }
+      } catch (error) {
+        console.warn('Error checking text property group:', error)
+      }
+      return false
+    })())
+  
+  // If this is a text property group, render TextStyleToolbar
+  if (isTextPropertyGroup) {
+    return (
+      <TextStyleToolbar
+        componentName={componentName}
+        textElementName={prop.name}
+        selectedVariants={selectedVariants}
+        selectedLayer={selectedLayer}
+      />
+    )
+  }
   
   // Handle grouped props
   const groupedPropsConfig = getGroupedProps(componentName, prop.name)

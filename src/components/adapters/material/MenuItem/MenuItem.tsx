@@ -5,7 +5,7 @@
  */
 
 import type { MenuItemProps as AdapterMenuItemProps } from '../../MenuItem'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -59,6 +59,26 @@ export default function MenuItem({
   const dividerOpacityVar = getComponentLevelCssVar('MenuItem', 'divider-opacity')
   const dividerItemGapVar = getComponentLevelCssVar('MenuItem', 'divider-item-gap')
   
+  // Get text styling CSS variables using getComponentTextCssVar (for text style toolbar)
+  const fontFamilyVar = getComponentTextCssVar('MenuItem', 'text', 'font-family')
+  const fontSizeVar = getComponentTextCssVar('MenuItem', 'text', 'font-size')
+  const fontWeightVar = getComponentTextCssVar('MenuItem', 'text', 'font-weight')
+  const letterSpacingVar = getComponentTextCssVar('MenuItem', 'text', 'letter-spacing')
+  const lineHeightVar = getComponentTextCssVar('MenuItem', 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar('MenuItem', 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar('MenuItem', 'text', 'text-transform')
+  const fontStyleVar = getComponentTextCssVar('MenuItem', 'text', 'font-style')
+  
+  // Get supporting text styling CSS variables
+  const supportingFontFamilyVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-family')
+  const supportingFontSizeVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-size')
+  const supportingFontWeightVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-weight')
+  const supportingLetterSpacingVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'letter-spacing')
+  const supportingLineHeightVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'line-height')
+  const supportingTextDecorationVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'text-decoration')
+  const supportingTextTransformVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'text-transform')
+  const supportingFontStyleVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-style')
+  
   // Get hover opacity and overlay color from brand theme (not user-configurable)
   const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
   const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
@@ -106,6 +126,15 @@ export default function MenuItem({
           ['--menu-item-opacity' as string]: disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : '1',
           ['--menu-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
           ['--menu-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
+          // Apply text styles using CSS variables from text style toolbar
+          fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
+          fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
+          fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
+          letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+          lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
+          textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
+          textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
+          fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
         } as React.CSSProperties}
         {...material}
         {...props}
@@ -124,7 +153,21 @@ export default function MenuItem({
         <div className="mui-menu-item-content">
           <span className="mui-menu-item-text">{children}</span>
           {supportingText && (
-            <span className="mui-menu-item-supporting-text">{supportingText}</span>
+            <span 
+              className="mui-menu-item-supporting-text"
+              style={{
+                fontFamily: supportingFontFamilyVar ? `var(${supportingFontFamilyVar})` : undefined,
+                fontSize: supportingFontSizeVar ? `var(${supportingFontSizeVar})` : undefined,
+                fontWeight: supportingFontWeightVar ? `var(${supportingFontWeightVar})` : undefined,
+                letterSpacing: supportingLetterSpacingVar ? `var(${supportingLetterSpacingVar})` : undefined,
+                lineHeight: supportingLineHeightVar ? `var(${supportingLineHeightVar})` : undefined,
+                textDecoration: supportingTextDecorationVar ? (readCssVar(supportingTextDecorationVar) || 'none') : 'none',
+                textTransform: supportingTextTransformVar ? (readCssVar(supportingTextTransformVar) || 'none') : 'none',
+                fontStyle: supportingFontStyleVar ? (readCssVar(supportingFontStyleVar) || 'normal') : 'normal',
+              } as React.CSSProperties}
+            >
+              {supportingText}
+            </span>
           )}
         </div>
         {trailingIcon && (

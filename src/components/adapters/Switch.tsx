@@ -8,7 +8,7 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
-import { toCssVarName, getComponentCssVar } from '../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -45,12 +45,13 @@ export function Switch({
     // Fallback to our custom Switch implementation
     const { mode } = useThemeMode()
     
-    // Build UIKit CSS var names - these already include the layer in the path
-    // e.g., --recursica-ui-kit-components-switch-color-layer-0-variant-default-thumb
-    const thumbVar = toCssVarName(['components', 'switch', 'color', layer, 'variant', colorVariant, 'thumb'].join('.'))
-    const trackSelectedVar = toCssVarName(['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-selected'].join('.'))
-    const trackUnselectedVar = toCssVarName(['components', 'switch', 'color', layer, 'variant', colorVariant, 'track-unselected'].join('.'))
-    const borderRadiusVar = toCssVarName(['components', 'switch', 'size', 'variant', sizeVariant, 'border-radius'].join('.'))
+    // Build UIKit CSS var names using buildComponentCssVarPath (automatically includes mode)
+    // Switch structure: components.switch.properties.colors.layer-0.thumb-selected
+    const thumbSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-selected')
+    const thumbUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-unselected')
+    const trackSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-selected')
+    const trackUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-unselected')
+    const borderRadiusVar = getComponentLevelCssVar('Switch', 'track-border-radius')
     const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
     
     // Reactively read track elevation from CSS variable
@@ -134,7 +135,9 @@ export function Switch({
             width: '20px',
             height: '20px',
             borderRadius: `var(${borderRadiusVar})`,
-            background: `var(${thumbVar})`,
+            background: checked 
+              ? `var(${thumbSelectedVar})` 
+              : `var(${thumbUnselectedVar})`,
             zIndex: 1,
             transition: 'left 0.2s',
             boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',

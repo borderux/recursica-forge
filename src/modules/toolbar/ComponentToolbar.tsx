@@ -8,8 +8,10 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { parseComponentStructure, toSentenceCase, ComponentProp } from './utils/componentToolbarUtils'
 import VariantDropdown from './menu/dropdown/VariantDropdown'
-import LayerSegmentedControl from './menu/segmented/LayerSegmentedControl'
-import AccordionSection from './menu/accordion/AccordionSection'
+import VariantSwitch from './menu/dropdown/VariantSwitch'
+import { SegmentedControl } from '../../components/adapters/SegmentedControl'
+import type { SegmentedControlItem } from '../../components/adapters/SegmentedControl'
+import { Accordion } from '../../components/adapters/Accordion'
 import PropControlContent from './menu/floating-palette/PropControlContent'
 import MenuIcon from './menu/MenuIcon'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -19,8 +21,10 @@ import { useVars } from '../vars/VarsContext'
 import { buildUIKitVars } from '../../core/resolvers/uikit'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { Switch } from '../../components/adapters/Switch'
+import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from '../preview/PreviewPage'
 import uikitJson from '../../vars/UIKit.json'
+import { getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
@@ -118,8 +122,9 @@ export default function ComponentToolbar({
       const propNameLower = prop.name.toLowerCase()
       
       // Check if this prop is part of a group in the config (but not if it's the parent prop itself)
+      // IMPORTANT: Skip grouping check for text-group props - they are always standalone
       let groupedParent: string | null = null
-      if (toolbarConfig?.props) {
+      if (prop.type !== 'text-group' && toolbarConfig?.props) {
         for (const [key, propConfig] of Object.entries(toolbarConfig.props)) {
           if (propConfig.group && propConfig.group[propNameLower]) {
             groupedParent = key
@@ -142,8 +147,9 @@ export default function ComponentToolbar({
       const propNameLower = prop.name.toLowerCase()
       
       // Skip props that are in a group (they'll be handled in the grouping pass)
+      // IMPORTANT: Skip grouping check for text-group props - they are always standalone
       let isGrouped = false
-      if (toolbarConfig?.props) {
+      if (prop.type !== 'text-group' && toolbarConfig?.props) {
         for (const [, propConfig] of Object.entries(toolbarConfig.props)) {
           if (propConfig.group && propConfig.group[propNameLower]) {
             isGrouped = true
@@ -160,9 +166,20 @@ export default function ComponentToolbar({
 
       // Skip if we've already seen this prop name
       if (seenProps.has(key)) {
-        // If we already have this prop, prefer non-variant over variant-specific
+        // If we already have this prop, prefer text-group props over other types
+        // OR prefer non-variant over variant-specific
         // OR prefer the one that matches the selected variant
         const existing = propsMap.get(key)!
+        
+        // Always prefer text-group props over other types (e.g., color props with same name)
+        if (prop.type === 'text-group' && existing.type !== 'text-group') {
+          propsMap.set(key, prop)
+          return
+        }
+        if (existing.type === 'text-group' && prop.type !== 'text-group') {
+          // Keep existing text-group prop
+          return
+        }
         
         // If new prop is non-variant and existing is variant-specific, use new one
         if (!prop.isVariantSpecific && existing.isVariantSpecific) {
@@ -189,8 +206,25 @@ export default function ComponentToolbar({
       propsMap.set(key, prop)
     })
     
-    // Third pass: create grouped props from config
+    // Third pass: create grouped props from config AND add props from config that aren't in structure yet
     if (toolbarConfig?.props) {
+      // First, add any props from config that aren't in structure yet (like text-group props)
+      for (const [configPropName, propConfig] of Object.entries(toolbarConfig.props)) {
+        const configPropNameLower = configPropName.toLowerCase()
+        // Skip if it's already in propsMap or if it has a group (groups are handled separately)
+        if (!propsMap.has(configPropNameLower) && !propConfig.group) {
+          // Check if this prop exists in structure but wasn't added (shouldn't happen, but check anyway)
+          const structureProp = structure.props.find(p => p.name.toLowerCase() === configPropNameLower)
+          if (structureProp) {
+            // It exists in structure but wasn't added - add it now
+            if (!seenProps.has(configPropNameLower)) {
+              seenProps.add(configPropNameLower)
+              propsMap.set(configPropNameLower, structureProp)
+            }
+          }
+        }
+      }
+      
       for (const [parentPropName, parentPropConfig] of Object.entries(toolbarConfig.props)) {
         if (parentPropConfig.group) {
           // Get or create the grouped props map for this parent prop
@@ -209,11 +243,59 @@ export default function ComponentToolbar({
           // Also add any props from the group config that might not have been found yet
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
             const groupedPropKey = groupedPropName.toLowerCase()
-            if (!groupedProps.has(groupedPropKey)) {
+            // Check if we need to update the cached prop (if layer changed or prop doesn't exist)
+            const cachedProp = groupedProps.get(groupedPropKey)
+            const needsUpdate = !cachedProp || 
+              (cachedProp.category === 'colors' && 
+               cachedProp.path.some(part => part.startsWith('layer-')) && 
+               !cachedProp.path.includes(selectedLayer))
+            
+            if (!groupedProps.has(groupedPropKey) || needsUpdate) {
+              // For nested property groups like "container" and "selected", match props by name AND path
+              // Check if the parent prop name is in the path (e.g., "container" or "selected")
+              const parentPropNameLower = parentPropName.toLowerCase()
+              const isContainerOrSelected = parentPropNameLower === 'container' || parentPropNameLower === 'selected'
+              
+              
+              let groupedProp = structure.props.find(p => {
+                const nameMatches = p.name.toLowerCase() === groupedPropKey
+                const pathMatches = p.path.includes(parentPropNameLower)
+                // For color props, also filter by selectedLayer to ensure we get the correct layer
+                const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                return nameMatches && pathMatches && layerMatches
+              })
+              
+              
+              // For container/selected props, NEVER fall back to name-only match - this would cause wrong props to be selected
+              // Only fall back to name-only match for other grouped props
+              if (!groupedProp && !isContainerOrSelected) {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  // For color props, also filter by selectedLayer
+                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                  return nameMatches && layerMatches
+                })
+              }
+              
               // Special case: border-color is stored as "border" in the color category
-              let groupedProp = structure.props.find(p => p.name.toLowerCase() === groupedPropKey)
               if (!groupedProp && groupedPropKey === 'border-color') {
-                groupedProp = structure.props.find(p => p.name.toLowerCase() === 'border' && p.category === 'colors')
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === 'border-color' || (p.name.toLowerCase() === 'border' && p.category === 'colors')
+                  const pathMatches = p.path.includes(parentPropNameLower)
+                  // For color props, also filter by selectedLayer
+                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                  return nameMatches && pathMatches && layerMatches
+                })
+                // For container/selected props, NEVER fall back to name-only match
+                // Only fall back to name-only match for other grouped props
+                if (!groupedProp && !isContainerOrSelected) {
+                  groupedProp = structure.props.find(p => {
+                    const nameMatches = p.name.toLowerCase() === 'border' && p.category === 'colors'
+                    // For color props, also filter by selectedLayer
+                    const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                    return nameMatches && layerMatches
+                  })
+                }
               }
               // Special case: interactive-color maps to "interactive" prop under colors.layer-X.interactive
               if (!groupedProp && groupedPropKey === 'interactive-color') {
@@ -261,12 +343,13 @@ export default function ComponentToolbar({
                   !p.isVariantSpecific &&
                   p.path.includes('colors') &&
                   p.path.includes('separator-color') &&
-                  p.path.some(part => part.startsWith('layer-'))
+                  p.path.includes(selectedLayer)
                 )
               }
               // If still not found, try to find it by exact name match (case-insensitive)
               // For variant-specific props, find the first matching prop regardless of variant
-              if (!groupedProp) {
+              // BUT: For container/selected props, NEVER fall back to name-only match
+              if (!groupedProp && !isContainerOrSelected) {
                 groupedProp = structure.props.find(p => 
                   p.name.toLowerCase() === groupedPropKey ||
                   p.name === groupedPropName
@@ -286,12 +369,15 @@ export default function ComponentToolbar({
                 }
               }
               if (groupedProp) {
+                
                 groupedProps.set(groupedPropKey, groupedProp)
                 // Also update the groupedPropsMap to ensure consistency
                 groupedPropsMap.set(parentPropName.toLowerCase(), groupedProps)
-              } else {
-                // Debug: log if prop is not found
-                console.warn(`ComponentToolbar: Grouped prop "${groupedPropName}" not found in structure.props for ${componentName}. Available props:`, structure.props.map(p => `${p.name} (${p.isVariantSpecific ? 'variant' : 'component-level'})`))
+              } else if (needsUpdate && cachedProp) {
+                // If we couldn't find a matching prop for the new layer, remove the cached one
+                // This prevents using the wrong layer's prop
+                groupedProps.delete(groupedPropKey)
+                groupedPropsMap.set(parentPropName.toLowerCase(), groupedProps)
               }
             }
           }
@@ -326,6 +412,7 @@ export default function ComponentToolbar({
     
     // Fourth pass: create virtual props for props in toolbar config but not in structure
     // This allows props like "label-width" that are handled specially but don't exist as component-level props
+    // Also handles text-group props that might not have been parsed correctly
     if (toolbarConfig?.props) {
       for (const [propName, propConfig] of Object.entries(toolbarConfig.props)) {
         const propNameLower = propName.toLowerCase()
@@ -333,6 +420,20 @@ export default function ComponentToolbar({
         // Skip if prop already exists or is a grouped prop
         if (propsMap.has(propNameLower) || propConfig.group) {
           continue
+        }
+        
+        // Check if this is a text-group prop that exists in UIKit.json but wasn't parsed
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
+        if (textPropertyGroupNames.includes(propNameLower)) {
+          // Try to find it in structure.props - it should have been parsed
+          const structureProp = structure.props.find(p => p.name.toLowerCase() === propNameLower && p.type === 'text-group')
+          if (structureProp) {
+            // It exists but wasn't added - add it now
+            if (!seenProps.has(propNameLower)) {
+              seenProps.add(propNameLower)
+              propsMap.set(propNameLower, structureProp)
+            }
+          }
         }
         
         // Create virtual prop for label-width
@@ -355,7 +456,8 @@ export default function ComponentToolbar({
     }
 
     // Filter props based on selected variants and layer
-    const filteredProps = Array.from(propsMap.values()).filter(prop => {
+    const propsArray = Array.from(propsMap.values())
+    const filteredProps = propsArray.filter(prop => {
       // Props with groups (borderProps) should never be filtered out - they handle their own variant logic internally
       if (prop.borderProps && prop.borderProps.size > 0) {
         return true
@@ -493,7 +595,7 @@ export default function ComponentToolbar({
       if (!a.isVariantSpecific && b.isVariantSpecific) return -1
       return a.name.localeCompare(b.name)
     })
-  }, [structure.props, componentName, selectedVariants, toolbarConfig])
+  }, [structure.props, componentName, selectedVariants, selectedLayer, toolbarConfig])
 
   const handleReset = () => {
     // Get all CSS variables for this component from structure
@@ -502,17 +604,17 @@ export default function ComponentToolbar({
       componentCssVars.add(prop.cssVar)
     })
 
-    // Rebuild UIKit vars from JSON defaults
+    // Rebuild UIKit vars from JSON defaults for current mode
     const allUIKitVars = buildUIKitVars(tokens, theme, uikit, mode)
     
-    // Filter to only this component's CSS variables
+    // Filter to only this component's CSS variables for current mode
     const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
     const componentDefaults: Record<string, string> = {}
     
     Object.entries(allUIKitVars).forEach(([cssVar, value]) => {
-      // Check if this CSS var belongs to this component
-      // Format: --recursica-ui-kit-components-{component}-...
-      if (cssVar.includes(`components-${componentKey}-`)) {
+      // Check if this CSS var belongs to this component and current mode
+      // Format: --recursica-ui-kit-themes-{mode}-components-{component}-...
+      if (cssVar.includes(`themes-${mode}-components-${componentKey}-`)) {
         componentDefaults[cssVar] = value
       }
     })
@@ -549,131 +651,208 @@ export default function ComponentToolbar({
   }
 
 
+  // Dynamically get all available layers from theme
+  const layers = useMemo(() => {
+    const t: any = theme
+    const themeRoot: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
+    const themes = themeRoot?.themes || themeRoot
+    const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+    const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
+      const aNum = parseInt(a.replace('layer-', ''), 10)
+      const bNum = parseInt(b.replace('layer-', ''), 10)
+      return aNum - bNum
+    })
+    return layerKeys.length > 0 ? layerKeys : ['layer-0', 'layer-1', 'layer-2', 'layer-3'] // Fallback for initial load
+  }, [theme, mode])
+
+  // Convert layers to SegmentedControlItem format
+  const layerItems: SegmentedControlItem[] = useMemo(() => {
+    return layers.map((layer, index) => ({
+      value: layer,
+      label: index.toString(),
+    }))
+  }, [layers])
+
+  const LayerIcon = iconNameToReactComponent('square-3-stack-3d')
+
+  // Get accordion header font tokens to match accordion headers
+  const accordionHeaderFontFamilyVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-family')
+  const accordionHeaderFontSizeVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-size')
+  const accordionHeaderFontWeightVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-weight')
+
+  // Helper function to detect if variants are boolean-like (true/false, yes/no, etc.)
+  const isBooleanVariant = (variants: string[]): boolean => {
+    if (variants.length !== 2) return false
+    
+    const normalized = variants.map(v => v.toLowerCase())
+    const booleanPairs = [
+      ['true', 'false'],
+      ['yes', 'no'],
+      ['on', 'off'],
+      ['enabled', 'disabled'],
+      ['show', 'hide'],
+      ['visible', 'hidden'],
+      ['active', 'inactive'],
+    ]
+    
+    return booleanPairs.some(([a, b]) => 
+      (normalized.includes(a) && normalized.includes(b))
+    )
+  }
+
   return (
     <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
       <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
-        <LayerSegmentedControl
-          selected={selectedLayer}
-          onSelect={(layer) => {
-            onLayerChange(layer)
-          }}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
+            {LayerIcon && <LayerIcon style={{ 
+              width: '16px', 
+              height: '16px',
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
+              opacity: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-low-emphasis)`
+            }} />}
+            <span style={{ 
+              fontFamily: `var(${accordionHeaderFontFamilyVar})`,
+              fontSize: `var(${accordionHeaderFontSizeVar})`,
+              fontWeight: `var(${accordionHeaderFontWeightVar})`,
+              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`
+            }}>Layer</span>
+          </div>
+          <SegmentedControl
+            items={layerItems}
+            value={selectedLayer}
+            onChange={(value) => {
+              onLayerChange(value)
+            }}
+            orientation="horizontal"
+            fullWidth={false}
+            layer="layer-0"
+            componentNameForCssVars="SegmentedControl"
+            style={{
+              '--segmented-control-font-family': `var(${accordionHeaderFontFamilyVar})`,
+              '--segmented-control-font-size': `var(${accordionHeaderFontSizeVar})`,
+              '--segmented-control-font-weight': `var(${accordionHeaderFontWeightVar})`,
+            } as React.CSSProperties}
+          />
+        </div>
       </div>
 
       {/* Variants Dropdowns */}
       {visibleVariants.length > 0 && (
         <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
-          {visibleVariants.map((variant, index) => (
-            <div 
-              key={variant.propName}
-              style={{ 
-                marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
-                paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
-                borderBottom: index < visibleVariants.length - 1 ? `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` : 'none'
-              }}
-            >
-              <VariantDropdown
-                componentName={componentName}
-                propName={variant.propName}
-                variants={variant.variants}
-                selected={selectedVariants[variant.propName] || variant.variants[0]}
-                onSelect={(variantName) => {
-                  onVariantChange(variant.propName, variantName)
+          {visibleVariants.map((variant, index) => {
+            const isBoolean = isBooleanVariant(variant.variants)
+            return (
+              <div 
+                key={variant.propName}
+                style={{ 
+                  marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
+                  paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
                 }}
-                open={openDropdown === `variant-${variant.propName}`}
-                onOpenChange={(isOpen) => {
-                  if (isOpen) {
-                    setOpenDropdown(`variant-${variant.propName}`)
-                  } else {
-                    setOpenDropdown(null)
-                  }
-                }}
-                className="full-width"
-              />
-            </div>
-          ))}
+              >
+                {isBoolean ? (
+                  <VariantSwitch
+                    componentName={componentName}
+                    propName={variant.propName}
+                    variants={variant.variants}
+                    selected={selectedVariants[variant.propName] || variant.variants[0]}
+                    onSelect={(variantName) => {
+                      onVariantChange(variant.propName, variantName)
+                    }}
+                    className="full-width"
+                  />
+                ) : (
+                  <VariantDropdown
+                    componentName={componentName}
+                    propName={variant.propName}
+                    variants={variant.variants}
+                    selected={selectedVariants[variant.propName] || variant.variants[0]}
+                    onSelect={(variantName) => {
+                      onVariantChange(variant.propName, variantName)
+                    }}
+                    open={openDropdown === `variant-${variant.propName}`}
+                    onOpenChange={(isOpen) => {
+                      if (isOpen) {
+                        setOpenDropdown(`variant-${variant.propName}`)
+                      } else {
+                        setOpenDropdown(null)
+                      }
+                    }}
+                    className="full-width"
+                  />
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
       {/* Dynamic Props Section - Accordion Style */}
-      {allProps.filter(prop => {
-        const propNameLower = prop.name.toLowerCase()
-        const propConfig = toolbarConfig?.props?.[propNameLower]
-        if (!propConfig) {
-          return false
-        }
-        return getPropVisible(componentName, prop.name)
-      }).map(prop => {
-        const Icon = getPropIconComponent(prop)
-        const propKey = prop.name
-        const isOpen = openPropControl.has(propKey)
-        
-        if (!Icon) {
-          return null
-        }
-        
-        return (
-          <AccordionSection
-            key={propKey}
-            title={getPropLabel(componentName, prop.name) || toSentenceCase(prop.name)}
-            icon={Icon}
-            open={isOpen}
-            onToggle={(open) => {
-              if (open) {
-                setOpenPropControl(prev => new Set(prev).add(propKey))
-              } else {
-                setOpenPropControl(prev => {
-                  const next = new Set(prev)
-                  next.delete(propKey)
-                  return next
-                })
-              }
-            }}
-          >
-            <PropControlContent
-              prop={prop}
-              componentName={componentName}
-              selectedVariants={selectedVariants}
-              selectedLayer={selectedLayer}
-            />
-          </AccordionSection>
-        )
-      }).filter(Boolean)}
+      <Accordion
+        items={allProps.filter(prop => {
+          const propNameLower = prop.name.toLowerCase()
+          const propConfig = toolbarConfig?.props?.[propNameLower]
+          if (!propConfig) {
+            return false
+          }
+          const isVisible = getPropVisible(componentName, prop.name)
+          return isVisible
+        }).map(prop => {
+          const Icon = getPropIconComponent(prop)
+          const propKey = prop.name
+          const isOpen = openPropControl.has(propKey)
+          
+          return {
+            id: propKey,
+            title: getPropLabel(componentName, prop.name) || toSentenceCase(prop.name),
+            icon: Icon || undefined,
+            content: (
+              <PropControlContent
+                key={`${propKey}-${isOpen ? 'open' : 'closed'}`}
+                prop={prop}
+                componentName={componentName}
+                selectedVariants={selectedVariants}
+                selectedLayer={selectedLayer}
+              />
+            ),
+            open: isOpen,
+          }
+        }).filter(item => item.icon != null).sort((a, b) => {
+          // Sort alphabetically by title
+          return a.title.localeCompare(b.title)
+        })}
+        allowMultiple={true}
+        onToggle={(id, open) => {
+          if (open) {
+            setOpenPropControl(prev => new Set(prev).add(id))
+          } else {
+            setOpenPropControl(prev => {
+              const next = new Set(prev)
+              next.delete(id)
+              return next
+            })
+          }
+        }}
+        layer="layer-0"
+      />
 
       {/* Reset Button */}
       <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderTop: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)` }}>
-        <button
+        <Button
           onClick={handleReset}
+          variant="outline"
+          layer="layer-0"
           style={{
             width: '100%',
-            padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
-            background: 'transparent',
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-            borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-radius)`,
-            color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-interactive-tone)`,
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 'var(--recursica-brand-dimensions-general-default)',
-            transition: 'background-color 0.2s',
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface-hover)`
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent'
-          }}
-        >
-          {(() => {
+          icon={(() => {
             const ResetIcon = iconNameToReactComponent('arrow-path')
-            return ResetIcon ? <ResetIcon style={{ width: 16, height: 16 }} /> : null
+            return ResetIcon ? <ResetIcon style={{ width: 16, height: 16 }} /> : undefined
           })()}
+        >
           Reset to defaults
-        </button>
+        </Button>
       </div>
 
       {/* Switches Section */}

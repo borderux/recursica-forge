@@ -51,11 +51,14 @@
 .recursica-accordion.material-accordion .MuiAccordionSummary-root {
   padding: var(--accordion-item-padding) !important;
   color: var(--accordion-item-header-text) !important;
-  font-family: var(--accordion-item-font-family) !important;
-  font-size: var(--accordion-item-font-size) !important;
-  font-weight: var(--accordion-item-font-weight) !important;
-  letter-spacing: var(--accordion-item-letter-spacing) !important;
-  line-height: var(--accordion-item-line-height) !important;
+  font-family: var(--accordion-item-header-font-family) !important;
+  font-size: var(--accordion-item-header-font-size) !important;
+  font-weight: var(--accordion-item-header-font-weight) !important;
+  font-style: var(--accordion-item-header-font-style) !important;
+  letter-spacing: var(--accordion-item-header-letter-spacing) !important;
+  line-height: var(--accordion-item-header-line-height) !important;
+  text-decoration: var(--accordion-item-header-text-decoration) !important;
+  text-transform: var(--accordion-item-header-text-transform) !important;
   gap: var(--accordion-item-icon-gap) !important;
   min-width: 0 !important;
   border: none !important;
@@ -102,9 +105,12 @@
   padding-top: calc(var(--accordion-item-header-content-gap, 0px) + var(--accordion-item-content-padding, 0px)) !important;
   background: var(--accordion-item-content-bg) !important;
   color: var(--accordion-item-content-text) !important;
-  font-family: var(--accordion-item-font-family) !important;
-  font-size: var(--accordion-item-font-size) !important;
-  font-weight: var(--accordion-item-font-weight) !important;
-  letter-spacing: var(--accordion-item-letter-spacing) !important;
-  line-height: var(--accordion-item-line-height) !important;
+  font-family: var(--accordion-item-content-font-family) !important;
+  font-size: var(--accordion-item-content-font-size) !important;
+  font-weight: var(--accordion-item-content-font-weight) !important;
+  font-style: var(--accordion-item-content-font-style) !important;
+  letter-spacing: var(--accordion-item-content-letter-spacing) !important;
+  line-height: var(--accordion-item-content-line-height) !important;
+  text-decoration: var(--accordion-item-content-text-decoration) !important;
+  text-transform: var(--accordion-item-content-text-transform) !important;
 }

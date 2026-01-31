@@ -4,3 +4,38 @@
  * Additional styles for Material UI Switch if needed
  */
 
+/* Add pointer cursor on hover */
+.MuiSwitch-root {
+  cursor: pointer !important;
+}
+
+.MuiSwitch-root.Mui-disabled {
+  cursor: not-allowed !important;
+}/* Add pointer cursor to track and thumb elements */
+.MuiSwitch-track {
+  cursor: pointer !important;
+}
+
+.MuiSwitch-thumb {
+  cursor: pointer !important;
+}
+
+.MuiSwitch-switchBase {
+  cursor: pointer !important;
+}
+
+/* Disabled state */
+.MuiSwitch-root.Mui-disabled .MuiSwitch-track,
+.MuiSwitch-root.Mui-disabled .MuiSwitch-thumb,
+.MuiSwitch-root.Mui-disabled .MuiSwitch-switchBase {
+  cursor: not-allowed !important;
+}
+
+/* Ensure track and container don't have overflow hidden */
+.MuiSwitch-root {
+  overflow: visible !important;
+}
+
+.MuiSwitch-track {
+  overflow: visible !important;
+}

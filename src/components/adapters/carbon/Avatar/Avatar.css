@@ -8,10 +8,10 @@
   box-sizing: content-box !important;
   width: var(--avatar-size) !important;
   height: var(--avatar-size) !important;
-  padding: var(--recursica-ui-kit-components-avatar-properties-padding) !important;
-  border-radius: var(--recursica-ui-kit-components-avatar-properties-border-radius) !important;
+  padding: var(--avatar-padding, 0px) !important;
+  border-radius: var(--avatar-border-radius, 4px) !important;
   background-color: var(--avatar-bg) !important;
-  border: var(--recursica-ui-kit-components-avatar-properties-border-size) solid var(--avatar-border) !important;
+  border: var(--avatar-border-size, 1px) solid var(--avatar-border) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -28,7 +28,14 @@
 
 .cds--avatar-fallback {
   color: var(--avatar-label) !important;
-  font-size: var(--avatar-text-size) !important;
+  font-family: var(--avatar-font-family) !important;
+  font-size: var(--avatar-font-size) !important;
+  font-weight: var(--avatar-font-weight) !important;
+  letter-spacing: var(--avatar-letter-spacing) !important;
+  line-height: var(--avatar-line-height) !important;
+  text-decoration: var(--avatar-text-decoration) !important;
+  text-transform: var(--avatar-text-transform) !important;
+  font-style: var(--avatar-font-style) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;

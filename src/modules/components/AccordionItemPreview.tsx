@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Accordion } from '../../components/adapters/Accordion'
+import { iconNameToReactComponent } from './iconUtils'
 
 interface AccordionItemPreviewProps {
   selectedVariants: Record<string, string>
@@ -48,6 +49,8 @@ export default function AccordionItemPreview({
     })
   }, [])
 
+  const CircleIcon = iconNameToReactComponent('circle')
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -64,14 +67,16 @@ export default function AccordionItemPreview({
               title: 'Accordion item', 
               content: 'This demonstrates AccordionItem properties. The header uses AccordionItem colors, padding, icon-size, and icon-gap. The content uses AccordionItem content-background, content-text, and content-padding.', 
               open: openItems.has('item-1'), 
-              divider: true 
+              divider: true,
+              icon: CircleIcon, // Add icon to first item (even index)
             },
             { 
               id: 'item-2', 
               title: 'The quick brown fox jumps over the lazy dog, and as the fox gracefully landed on the other side, the lazy dog slowly opened one eye, yawned, and decided that perhaps today was the day to finally get up and chase after that clever fox who had been teasing him for so long', 
               content: 'This demonstrates AccordionItem properties with a long header title that should truncate with an ellipsis.', 
               open: openItems.has('item-2'), 
-              divider: false 
+              divider: false,
+              icon: undefined, // No icon for second item (odd index)
             },
           ]}
           layer={selectedLayer as any}

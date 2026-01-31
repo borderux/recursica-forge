@@ -262,6 +262,7 @@ export default function BrandBorderRadiusSlider({
         tooltipText={displayLabel}
         minLabel={minLabel}
         maxLabel={maxLabel}
+        showMinMaxLabels={false}
         label={label ? <Label layer={layer} layout="side-by-side" size="small">{label}</Label> : undefined}
       />
     </div>

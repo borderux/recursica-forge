@@ -118,6 +118,7 @@ function ElevationPropControl({
       valueLabel={getValueLabel}
       minLabel={minLabel}
       maxLabel={maxLabel}
+      showMinMaxLabels={false}
       label={<Label layer="layer-1" layout="stacked">{label}</Label>}
     />
   )
@@ -192,7 +193,22 @@ export default function PropControl({
         if (!propToCheckHasInteractive && !propToCheckHasReadOnly && (pHasInteractive || pHasReadOnly)) return false
       }
       
-      // If variant-specific, must match selected variant
+      // CRITICAL FIX: Check if prop path contains variant information - if so, MUST match selected variant
+      // This handles cases where multiple variants have the same prop name (e.g., border-size for solid/outline/text)
+      // Check if the prop being searched (p) has variant info in its path
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (!selectedVariant) {
+          // If no variant is selected for this variantProp, don't match variant-specific props
+          return false
+        }
+        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+        if (!variantInPath) {
+          // Prop is variant-specific but doesn't match selected variant - skip it
+          return false
+        }
+      }
+      // Also check propToCheck's variant requirements if it explicitly has them
       if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
         const selectedVariant = selectedVariants[propToCheck.variantProp]
         if (!selectedVariant) return false
@@ -384,11 +400,6 @@ export default function PropControl({
         return null
       }
       
-      // For font-size or text-size prop on Button component, also update the theme typography CSS var
-      // Note: Button now uses text-size dimension tokens, but we keep this for backwards compatibility
-      const additionalCssVars = (propToRender.name === 'font-size' || propToRender.name === 'text-size') && componentName.toLowerCase() === 'button'
-        ? ['--recursica-brand-typography-button-font-size']
-        : []
       
       // For Badge height, get min value from size variant's min-height in UIKit.json
       // Read from JSON structure directly, not from CSS var (which can be modified)
@@ -503,6 +514,7 @@ export default function PropControl({
               valueLabel={getValueLabel}
               minLabel="0px"
               maxLabel="500px"
+              showMinMaxLabels={false}
               label={<Label layer="layer-1" layout="stacked">{label}</Label>}
             />
           )
@@ -520,7 +532,7 @@ export default function PropControl({
         <DimensionTokenSelector
           key={`${validPrimaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           targetCssVar={validPrimaryVar}
-          targetCssVars={[...validCssVars, ...additionalCssVars]}
+          targetCssVars={validCssVars}
           label={label}
           propName={propToRender.name}
           minPixelValue={minPixelValue}
@@ -868,7 +880,6 @@ export default function PropControl({
             }
             
             if (!groupedProp) {
-              console.warn(`PropControl: Grouped prop "${groupedPropName}" (key: "${groupedPropKey}") not found in borderProps map. Available keys:`, Array.from(prop.borderProps!.keys()))
               return null
             }
             

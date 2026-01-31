@@ -10,11 +10,24 @@
 
 /* Size and space Carbon button icons */
 /* Carbon buttons render icons as direct children, so we need to target them */
+/* Leading icons (first child, not last) */
 .cds--btn > svg:first-child:not(:last-child) {
   width: var(--button-icon-size, 0px) !important;
   height: var(--button-icon-size, 0px) !important;
   margin-right: var(--button-icon-text-gap, 0px) !important;
   flex-shrink: 0 !important;
+}
+
+/* Trailing icons (last child, not first) - icons that come after text */
+.cds--btn > svg:last-child:not(:first-child),
+.cds--btn > span:last-child:has(svg):not(:first-child) {
+  width: var(--button-icon-size, 0px) !important;
+  height: var(--button-icon-size, 0px) !important;
+  margin-left: var(--button-icon-text-gap, 0px) !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Carbon buttons render text as direct children */
@@ -49,11 +62,67 @@
 
 /* Ensure outline variant (secondary) has a border with the correct color */
 /* Use --button-border-color if set, fallback to text color */
-.cds--btn--secondary {
+.cds--btn--secondary,
+.recursica-accordion .cds--btn--secondary,
+.recursica-accordion .cds--accordion__content .cds--btn--secondary {
   border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
 }
 
 /* Ensure text variant (tertiary) has no border */
 .cds--btn--tertiary {
   border: none !important;
+}
+
+/* Always have relative positioning for hover overlay */
+.cds--btn {
+  position: relative;
+}
+
+
+/* Hover state: apply overlay with hover opacity on top of base background */
+/* CRITICAL: Override all Carbon hover styles to prevent background color changes and shadows */
+.cds--btn:hover:not([disabled]),
+.cds--btn--primary:hover:not([disabled]),
+.cds--btn--secondary:hover:not([disabled]),
+.cds--btn--tertiary:hover:not([disabled]),
+.cds--btn--ghost:hover:not([disabled]) {
+  /* Prevent background color change on hover */
+  background-color: var(--button-bg) !important;
+  /* Remove all box-shadow and inner shadow effects */
+  box-shadow: none !important;
+  /* Prevent any gradient or filter effects */
+  filter: none !important;
+  backdrop-filter: none !important;
+  /* Ensure overlay is not clipped */
+  overflow: visible !important;
+  /* Ensure no transforms that could affect positioning */
+  transform: none !important;
+  will-change: auto !important;
+  /* Disable transitions that could affect overlay positioning */
+  transition: none !important;
+}
+
+.cds--btn:hover:not([disabled])::before,
+.cds--btn--primary:hover:not([disabled])::before,
+.cds--btn--secondary:hover:not([disabled])::before,
+.cds--btn--tertiary:hover:not([disabled])::before,
+.cds--btn--ghost:hover:not([disabled])::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--button-overlay-color, #000000);
+  opacity: var(--button-hover-opacity, 0.08);
+  border-radius: inherit;
+  pointer-events: none;
+  /* Prevent blur or filter effects */
+  backdrop-filter: none !important;
+  filter: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  /* Disable all transitions and animations */
+  transition: none !important;
+  animation: none !important;
 }

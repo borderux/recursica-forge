@@ -7,7 +7,7 @@
       "visible": true,
       "group": {
         "text": {
-          "label": "Text",
+          "label": "Text Color",
           "visible": true
         },
         "background": {
@@ -32,13 +32,18 @@
         }
       }
     },
+    "header-text": {
+      "icon": "text-aa",
+      "label": "Header Text Style",
+      "visible": true
+    },
     "content": {
       "icon": "paint-bucket",
       "label": "Content",
       "visible": true,
       "group": {
         "content-text": {
-          "label": "Text",
+          "label": "Text Color",
           "visible": true
         },
         "content-background": {
@@ -50,6 +55,11 @@
           "visible": true
         }
       }
+    },
+    "content-text": {
+      "icon": "text-aa",
+      "label": "Content Text Style",
+      "visible": true
     },
     "divider": {
       "icon": "minus",

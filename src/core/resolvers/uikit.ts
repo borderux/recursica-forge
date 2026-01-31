@@ -17,10 +17,14 @@ import { resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../ut
  * => '--recursica-ui-kit-components-button-color-layer-0-background-solid'
  * 
  * @example
+ * toCssVarName('globals.icon.style', 'light')
+ * => '--recursica-ui-kit-themes-light-globals-icon-style'
+ * 
+ * @example
  * toCssVarName('globals.icon.style')
  * => '--recursica-ui-kit-globals-icon-style'
  */
-function toCssVarName(path: string): string {
+function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   const parts = path
     .replace(/^\.+|\.+$/g, '') // Remove leading/trailing dots
     .split('.')
@@ -29,6 +33,11 @@ function toCssVarName(path: string): string {
   
   // Remove "ui-kit" from parts if it appears (to avoid double prefix)
   const filteredParts = parts.filter(part => part !== 'ui-kit')
+  
+  // Include mode in the name if provided (like palette vars: --recursica-brand-themes-light-...)
+  if (mode) {
+    return `--recursica-ui-kit-themes-${mode}-${filteredParts.join('-')}`
+  }
   
   return `--recursica-ui-kit-${filteredParts.join('-')}`
 }
@@ -117,7 +126,7 @@ function traverseUIKit(
       const val = (value as any).$value
       const type = (value as any).$type
       
-      const cssVarName = toCssVarName(currentPath.join('.'))
+      const cssVarName = toCssVarName(currentPath.join('.'), mode)
       
       // Handle dimension type: { value: number | string, unit: string } OR string token reference
       if (type === 'dimension') {

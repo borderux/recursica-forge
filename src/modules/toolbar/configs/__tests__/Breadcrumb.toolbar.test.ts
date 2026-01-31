@@ -51,6 +51,18 @@ describe('Breadcrumb Toolbar Config', () => {
       })
     }
     
+    // Extract color properties from colors.layer-X structure
+    if (component.properties?.colors) {
+      const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+      layers.forEach(layer => {
+        if (component.properties.colors[layer]) {
+          Object.keys(component.properties.colors[layer]).forEach(prop => {
+            uikitProps.add(prop)
+          })
+        }
+      })
+    }
+    
     // Variant properties (check if they're referenced in toolbar)
     if (component.variants?.styles) {
       Object.values(component.variants.styles).forEach((variant: any) => {
@@ -64,19 +76,27 @@ describe('Breadcrumb Toolbar Config', () => {
     
     // Check that config props exist in UIKit.json (or are grouped)
     const configProps = new Set<string>()
+    const containerProps = new Set<string>() // Props that are containers (like "color")
     if (config.props) {
       Object.keys(config.props).forEach(prop => {
-        configProps.add(prop)
-        // Also add grouped props
         const propConfig = config.props[prop]
+        // If it has a group, it's a container prop
         if (propConfig.group) {
+          containerProps.add(prop)
+          // Add grouped props
           Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
+        } else {
+          configProps.add(prop)
         }
       })
     }
     
     // All config props should exist in UIKit.json (or be valid grouped props)
     configProps.forEach(prop => {
+      // Skip container props (they're organizational)
+      if (containerProps.has(prop)) {
+        return
+      }
       // Allow some flexibility for grouped props that combine multiple UIKit props
       if (!uikitProps.has(prop) && !prop.includes('-')) {
         console.warn(`Config prop ${prop} not found in UIKit.json - may be a grouped prop`)
@@ -122,10 +142,10 @@ describe('Breadcrumb Toolbar Config', () => {
       layers.forEach(layer => {
         if (component.properties.colors[layer]) {
           if (component.properties.colors[layer].interactive) {
-            requiredProps.add('interactive-color')
+            requiredProps.add('interactive')
           }
           if (component.properties.colors[layer]['read-only']) {
-            requiredProps.add('read-only-color')
+            requiredProps.add('read-only')
           }
           if (component.properties.colors[layer]['separator-color']) {
             requiredProps.add('separator-color')

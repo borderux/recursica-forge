@@ -42,7 +42,7 @@ function safeGetCachedFontFamilyName(name: string): string {
 export type TypographyChoices = Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>
 
 export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides: Record<string, any> | undefined, choices: TypographyChoices | undefined): { vars: Record<string, string>; familiesToLoad: string[] } {
-  const PREFIXES = ['h1','h2','h3','h4','h5','h6','subtitle-1','subtitle-2','body-1','body-2','button','caption','overline']
+  const PREFIXES = ['h1','h2','h3','h4','h5','h6','subtitle-1','subtitle-2','body-1','body-2','caption','overline']
   const tokenIndex = buildTokenIndex(tokens)
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
   const ttyp: any = troot?.typography || {}
