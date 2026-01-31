@@ -37,9 +37,14 @@ const MantineProvider = ({ children }: { children: ReactNode }) => {
       return
     }
     
-    // Try to import - if module is already loaded (from global setup), this will be instant
+    // Try to import - if module is already loaded (from setup file), this will be instant
     const loadProvider = async () => {
       try {
+        // In test environment, wait for preload to complete if it's still running
+        if (process.env.NODE_ENV === 'test' && (globalThis as any).__PROVIDER_PRELOAD_PROMISE__) {
+          await (globalThis as any).__PROVIDER_PRELOAD_PROMISE__
+        }
+        
         const mantineModule = await import('@mantine/core')
         // Cache for future use
         if (process.env.NODE_ENV === 'test') {
@@ -98,26 +103,37 @@ const MaterialProvider = ({ children }: { children: ReactNode }) => {
       return
     }
     
-    // Try to import - if modules are already loaded (from global setup), this will be instant
-    Promise.all([
-      import('@mui/material/styles'),
-      import('@mui/material'),
-    ]).then(([{ ThemeProvider, createTheme }, { CssBaseline }]) => {
-      // Cache for future use
-      if (process.env.NODE_ENV === 'test') {
-        (globalThis as any).__MATERIAL_MODULE__ = { ThemeProvider, createTheme, CssBaseline }
+    // Try to import - if modules are already loaded (from setup file), this will be instant
+    const loadProvider = async () => {
+      try {
+        // In test environment, wait for preload to complete if it's still running
+        if (process.env.NODE_ENV === 'test' && (globalThis as any).__PROVIDER_PRELOAD_PROMISE__) {
+          await (globalThis as any).__PROVIDER_PRELOAD_PROMISE__
+        }
+        
+        const [{ ThemeProvider, createTheme }, { CssBaseline }] = await Promise.all([
+          import('@mui/material/styles'),
+          import('@mui/material'),
+        ])
+        
+        // Cache for future use
+        if (process.env.NODE_ENV === 'test') {
+          (globalThis as any).__MATERIAL_MODULE__ = { ThemeProvider, createTheme, CssBaseline }
+        }
+        const theme = createTheme()
+        setProvider(() => ({ children: ch }: { children: ReactNode }) => (
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            {ch}
+          </ThemeProvider>
+        ))
+        setIsLoading(false)
+      } catch {
+        setIsLoading(false)
       }
-      const theme = createTheme()
-      setProvider(() => ({ children: ch }: { children: ReactNode }) => (
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          {ch}
-        </ThemeProvider>
-      ))
-      setIsLoading(false)
-    }).catch(() => {
-      setIsLoading(false)
-    })
+    }
+    
+    loadProvider()
   }, [Provider])
   
   // In test environment, wait for provider to load before rendering children
@@ -160,21 +176,31 @@ const CarbonProvider = ({ children }: { children: ReactNode }) => {
       return
     }
     
-    // Try to import - if module is already loaded (from global setup), this will be instant
-    import('@carbon/react').then(({ Theme }) => {
-      // Cache for future use
-      if (process.env.NODE_ENV === 'test') {
-        (globalThis as any).__CARBON_MODULE__ = { Theme }
+    // Try to import - if module is already loaded (from setup file), this will be instant
+    const loadProvider = async () => {
+      try {
+        // In test environment, wait for preload to complete if it's still running
+        if (process.env.NODE_ENV === 'test' && (globalThis as any).__PROVIDER_PRELOAD_PROMISE__) {
+          await (globalThis as any).__PROVIDER_PRELOAD_PROMISE__
+        }
+        
+        const { Theme } = await import('@carbon/react')
+        // Cache for future use
+        if (process.env.NODE_ENV === 'test') {
+          (globalThis as any).__CARBON_MODULE__ = { Theme }
+        }
+        setProvider(() => ({ children: ch }: { children: ReactNode }) => (
+          <Theme theme="g10">
+            {ch}
+          </Theme>
+        ))
+        setIsLoading(false)
+      } catch {
+        setIsLoading(false)
       }
-      setProvider(() => ({ children: ch }: { children: ReactNode }) => (
-        <Theme theme="g10">
-          {ch}
-        </Theme>
-      ))
-      setIsLoading(false)
-    }).catch(() => {
-      setIsLoading(false)
-    })
+    }
+    
+    loadProvider()
   }, [Provider])
   
   // In test environment, wait for provider to load before rendering children

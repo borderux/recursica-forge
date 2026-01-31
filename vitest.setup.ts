@@ -48,18 +48,35 @@ import './src/components/registry/mantine'
 import './src/components/registry/material'
 import './src/components/registry/carbon'
 
-// Preload provider modules for tests to avoid lazy loading issues
-// This ensures providers are available when components try to use them
-Promise.all([
-  import('@mantine/core').catch(() => null),
-  import('@mui/material/styles').catch(() => null),
-  import('@mui/material').catch(() => null),
-  import('@carbon/react').catch(() => null),
-]).catch(() => {
-  // Ignore errors - providers will load when needed
-})
+// Preload provider modules synchronously in each test process
+// This ensures providers are available immediately when components render
+// We do this in setupFiles (runs in each process) rather than globalSetup (runs in main process)
+// because globalThis doesn't persist across fork processes
+if (process.env.NODE_ENV === 'test') {
+  const providerPreloadPromise = Promise.all([
+    import('@mantine/core').then((module) => {
+      ;(globalThis as any).__MANTINE_MODULE__ = module
+    }).catch(() => {}),
+    Promise.all([
+      import('@mui/material/styles'),
+      import('@mui/material'),
+    ]).then(([muiStyles, muiMaterial]) => {
+      ;(globalThis as any).__MATERIAL_MODULE__ = { ...muiStyles, ...muiMaterial }
+    }).catch(() => {}),
+    import('@carbon/react').then((module) => {
+      ;(globalThis as any).__CARBON_MODULE__ = module
+    }).catch(() => {}),
+  ]).then(() => {
+    // Providers are now preloaded
+  }).catch(() => {
+    // Ignore errors - providers will load when needed
+  })
+  
+  // Make preload promise available globally so providers can wait for it
+  ;(globalThis as any).__PROVIDER_PRELOAD_PROMISE__ = providerPreloadPromise
+}
 
-// Component preloading is now handled in vitest.global-setup.ts
+// Component preloading is handled in vitest.global-setup.ts
 // which runs once before all tests, ensuring components are ready
 
 // Mock window.matchMedia for Mantine components
