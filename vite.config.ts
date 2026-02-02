@@ -8,6 +8,10 @@ import { copy404Html } from './vite-plugins/copy-404'
 export default defineConfig({
   base: '/', // Custom domain, so base is root
   plugins: [react(), vanillaExtractPlugin(), watchToolbarIcons(), copy404Html()],
+  resolve: {
+    // Single React instance so provider context is visible (fixes "MantineProvider was not found" in CI)
+    dedupe: ['react', 'react-dom'],
+  },
   optimizeDeps: {
     // Exclude phosphor-react from pre-bundling to avoid timeout issues
     // Individual icon imports will still work fine

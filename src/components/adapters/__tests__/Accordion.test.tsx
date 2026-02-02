@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
@@ -7,6 +7,11 @@ import { Accordion } from '../Accordion'
 import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 
 describe('Accordion Component (Adapter)', () => {
+  beforeAll(async () => {
+    const preload = (globalThis as any).__PROVIDER_PRELOAD_PROMISE__ as Promise<unknown> | undefined
+    if (preload) await preload
+  })
+
   beforeEach(async () => {
     clearUiKitStorage()
     document.documentElement.style.cssText = ''
@@ -27,15 +32,13 @@ describe('Accordion Component (Adapter)', () => {
   }
 
   const waitForAccordion = async (container: HTMLElement) => {
-    // First wait for providers to be ready (they might be loading)
+    // Wait for providers to be ready (CI can be slower; avoid proceeding with loading placeholders)
     await waitFor(() => {
       const loadingPlaceholders = container.querySelectorAll('[data-testid$="-provider-loading"]')
       if (loadingPlaceholders.length > 0) {
         throw new Error('Providers still loading')
       }
-    }, { timeout: 5000 }).catch(() => {
-      // If providers don't load quickly, continue anyway
-    })
+    }, { timeout: 20000 })
     
     // Then wait for accordion component
     return await waitFor(() => {

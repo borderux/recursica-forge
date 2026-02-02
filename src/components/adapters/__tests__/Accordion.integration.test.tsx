@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, beforeAll } from 'vitest'
 import { render, waitFor, act } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
@@ -7,6 +7,11 @@ import { Accordion } from '../Accordion'
 import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 
 describe('Accordion Integration', () => {
+  beforeAll(async () => {
+    const preload = (globalThis as any).__PROVIDER_PRELOAD_PROMISE__ as Promise<unknown> | undefined
+    if (preload) await preload
+  })
+
   beforeEach(() => {
     clearUiKitStorage()
     document.documentElement.style.cssText = ''
