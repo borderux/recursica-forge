@@ -4,12 +4,14 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Button } from '../Button'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 
 // Mock icon component for testing
 const TestIcon = () => <svg data-testid="test-icon"><circle /></svg>
 
 describe('Button Component (Adapter)', () => {
   beforeEach(async () => {
+    clearUiKitStorage()
     // Clear any CSS variables set in previous tests
     document.documentElement.style.cssText = ''
     // Wait for providers to be ready before each test - they're lazy loaded
@@ -21,6 +23,7 @@ describe('Button Component (Adapter)', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit={kit} />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>

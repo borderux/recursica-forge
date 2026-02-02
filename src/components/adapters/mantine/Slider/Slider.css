@@ -4,28 +4,37 @@
  * CSS overrides for Mantine Slider component to use UIKit CSS variables.
  */
 
-/* Override Mantine slider track colors */
-.mantine-Slider-root {
-  --slider-track-color: var(--recursica-ui-kit-components-slider-properties-colors-layer-0-track);
-  --slider-color: var(--recursica-ui-kit-components-slider-properties-colors-layer-0-track-active);
-}
+/* Override Mantine slider track colors - these are set via inline styles in the component */
+/* CSS variables are set on the root element via inline styles */
 
-/* Override thumb color */
+/* Override thumb color - use CSS variable set via inline styles */
 .mantine-Slider-thumb {
-  background-color: var(--recursica-ui-kit-components-slider-properties-colors-layer-0-thumb) !important;
+  background-color: var(--slider-thumb-color) !important;
   border: none !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: var(--slider-thumb-elevation, 0 1px 2px rgba(0, 0, 0, 0.15)) !important;
 }
 
-/* Override track height and border radius */
+/* Override track (container) background color - use wrapper variable for inactive/unfilled track */
+/* Ensure CSS variable from root is available and used */
+.mantine-Slider-root .mantine-Slider-track,
 .mantine-Slider-track {
-  height: var(--recursica-ui-kit-components-slider-properties-track-height, 4px) !important;
-  border-radius: var(--recursica-ui-kit-components-slider-properties-track-border-radius) !important;
+  height: var(--slider-size, 4px) !important;
+  border-radius: var(--slider-radius) !important;
+  background-color: var(--track-bg, var(--slider-track-color, transparent)) !important;
 }
 
-/* Override thumb size and border radius */
+/* Override bar (filled/active portion) color - use wrapper variable set by component */
+.mantine-Slider-root .mantine-Slider-bar,
+.mantine-Slider-bar {
+  background-color: var(--slider-color) !important;
+  background: var(--slider-color) !important;
+  height: var(--slider-size, 4px) !important;
+  border-radius: var(--slider-radius) !important;
+}
+
+/* Override thumb size and border radius - use wrapper variables set by component */
 .mantine-Slider-thumb {
-  width: var(--recursica-ui-kit-components-slider-properties-thumb-size, 20px) !important;
-  height: var(--recursica-ui-kit-components-slider-properties-thumb-size, 20px) !important;
-  border-radius: var(--recursica-ui-kit-components-slider-properties-thumb-border-radius) !important;
+  width: var(--slider-thumb-size, 20px) !important;
+  height: var(--slider-thumb-size, 20px) !important;
+  border-radius: var(--slider-thumb-radius) !important;
 }

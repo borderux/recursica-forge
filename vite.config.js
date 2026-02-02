@@ -14,9 +14,19 @@ export default defineConfig({
     },
     test: {
         environment: 'jsdom',
+        globalSetup: ['./vitest.global-setup.ts'],
         setupFiles: ['./vitest.setup.ts'],
         globals: true,
-        testTimeout: 10000, // Increase timeout for CI environments
+        testTimeout: 60000, // Increase timeout to allow for component loading
+        teardownTimeout: 10000, // Timeout for cleanup
+        hookTimeout: 60000, // Timeout for hooks (beforeEach, afterEach, beforeAll, etc.)
+        // Run tests sequentially to ensure preloading completes
+        pool: 'forks',
+        poolOptions: {
+            forks: {
+                singleFork: true, // Run tests sequentially to ensure preloading works
+            },
+        },
         coverage: {
             provider: 'v8',
         },

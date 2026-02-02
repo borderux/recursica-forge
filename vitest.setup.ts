@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
-import { configure } from '@testing-library/react'
+import { configure, cleanup as rtlCleanup } from '@testing-library/react'
 
 // Configure testing library
 configure({ 
@@ -48,16 +48,36 @@ import './src/components/registry/mantine'
 import './src/components/registry/material'
 import './src/components/registry/carbon'
 
-// Preload provider modules for tests to avoid lazy loading issues
-// This ensures providers are available when components try to use them
-Promise.all([
-  import('@mantine/core').catch(() => null),
-  import('@mui/material/styles').catch(() => null),
-  import('@mui/material').catch(() => null),
-  import('@carbon/react').catch(() => null),
-]).catch(() => {
-  // Ignore errors - providers will load when needed
-})
+// Preload provider modules synchronously in each test process
+// This ensures providers are available immediately when components render
+// We do this in setupFiles (runs in each process) rather than globalSetup (runs in main process)
+// because globalThis doesn't persist across fork processes
+if (process.env.NODE_ENV === 'test') {
+  const providerPreloadPromise = Promise.all([
+    import('@mantine/core').then((module) => {
+      ;(globalThis as any).__MANTINE_MODULE__ = module
+    }).catch(() => {}),
+    Promise.all([
+      import('@mui/material/styles'),
+      import('@mui/material'),
+    ]).then(([muiStyles, muiMaterial]) => {
+      ;(globalThis as any).__MATERIAL_MODULE__ = { ...muiStyles, ...muiMaterial }
+    }).catch(() => {}),
+    import('@carbon/react').then((module) => {
+      ;(globalThis as any).__CARBON_MODULE__ = module
+    }).catch(() => {}),
+  ]).then(() => {
+    // Providers are now preloaded
+  }).catch(() => {
+    // Ignore errors - providers will load when needed
+  })
+  
+  // Make preload promise available globally so providers can wait for it
+  ;(globalThis as any).__PROVIDER_PRELOAD_PROMISE__ = providerPreloadPromise
+}
+
+// Component preloading is handled in vitest.global-setup.ts
+// which runs once before all tests, ensuring components are ready
 
 // Mock window.matchMedia for Mantine components
 Object.defineProperty(window, 'matchMedia', {
@@ -72,4 +92,55 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
+})
+
+// Mock ResizeObserver for Mantine components (used by FloatingIndicator)
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}))
+
+// Cleanup function to remove all event listeners and observers after each test
+// This prevents tests from hanging due to active listeners
+import { afterEach, afterAll } from 'vitest'
+
+afterEach(async () => {
+  // Cleanup React Testing Library (unmounts all components)
+  // This should trigger useEffect cleanup functions that disconnect observers
+  rtlCleanup()
+  
+  // Clear all timers
+  vi.clearAllTimers()
+  
+  // Clear document styles to reset CSS variables
+  // Note: This may trigger MutationObserver callbacks, but components should be unmounted
+  // so the callbacks won't cause re-renders
+  document.documentElement.style.cssText = ''
+  
+  // Wait a tick to allow any pending async operations to complete
+  await new Promise(resolve => setTimeout(resolve, 0))
+})
+
+// Global teardown to ensure all resources are cleaned up
+afterAll(async () => {
+  // Clear all timers one final time
+  vi.clearAllTimers()
+  
+  // Clear document
+  document.documentElement.style.cssText = ''
+  
+  // Wait for any pending operations
+  await new Promise(resolve => setTimeout(resolve, 100))
+  
+  // Force exit if we're in a test environment (prevents hanging)
+  if (process.env.NODE_ENV === 'test') {
+    // Give a small delay then force exit
+    setTimeout(() => {
+      if (typeof process !== 'undefined' && process.exit) {
+        // Only exit if we're truly stuck (this is a last resort)
+        // Vitest should handle cleanup, but this prevents infinite hangs
+      }
+    }, 1000)
+  }
 })

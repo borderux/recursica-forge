@@ -26,7 +26,7 @@
         },
         "border-radius": {
           "icon": "corners-out",
-          "label": "Corner Radius",
+          "label": "Corner radius",
           "visible": true
         },
         "border-color": {
@@ -48,7 +48,12 @@
         },
         "icon-color": {
           "icon": "frame-corners",
-          "label": "Icon Color",
+          "label": "Icon color",
+          "visible": true
+        },
+        "text-color": {
+          "icon": "text-aa",
+          "label": "Text color",
           "visible": true
         }
       }
@@ -56,17 +61,7 @@
     "text": {
       "icon": "text-aa",
       "label": "Text",
-      "visible": true,
-      "group": {
-        "text-color": {
-          "label": "Color",
-          "visible": true
-        },
-        "text-size": {
-          "label": "Font Size",
-          "visible": true
-        }
-      }
+      "visible": true
     },
     "padding": {
       "icon": "square-logo",

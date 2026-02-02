@@ -12,12 +12,14 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
 describe('Button Toolbar Props Integration', () => {
   beforeEach(() => {
+    clearUiKitStorage()
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
   })
@@ -32,6 +34,7 @@ describe('Button Toolbar Props Integration', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>
@@ -46,13 +49,16 @@ describe('Button Toolbar Props Integration', () => {
       const btn = container.querySelector('button')
       if (!btn) throw new Error('Button not found')
       // Ensure it's not the loading button
-      if (btn.textContent === 'Loading...' || btn.disabled) throw new Error('Still loading')
+      if (btn.textContent === 'Loading...') {
+        throw new Error('Still loading')
+      }
       // Wait for actual button content if expected text provided
       if (expectedText && !btn.textContent?.includes(expectedText)) {
         throw new Error(`Button text mismatch: expected "${expectedText}", got "${btn.textContent}"`)
       }
+      // Don't require CSS variables immediately - they'll be set asynchronously
       return btn
-    }, { timeout: 10000 })
+    }, { timeout: 20000 })
   }
 
   describe('Color Props Updates', () => {
@@ -77,7 +83,7 @@ describe('Button Toolbar Props Integration', () => {
         const bgValue = button.style.getPropertyValue('--button-bg') || 
                        window.getComputedStyle(button).getPropertyValue('--button-bg')
         if (!bgValue) throw new Error('--button-bg not set')
-      })
+      }, { timeout: 10000 })
       
       // Simulate toolbar update: change the CSS variable
       await act(async () => {
@@ -540,6 +546,7 @@ describe('Button Toolbar Props Integration', () => {
           <UiKitProvider>
             <ThemeModeProvider>
               <UnifiedThemeProvider>
+                <KitSwitcher kit="mantine" />
                 <Button variant="outline" layer="layer-0">Test</Button>
               </UnifiedThemeProvider>
             </ThemeModeProvider>

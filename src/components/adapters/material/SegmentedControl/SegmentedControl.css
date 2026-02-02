@@ -1,0 +1,173 @@
+/* Material UI SegmentedControl overrides using Recursica CSS variables */
+
+.recursica-segmented-control.material-segmented-control {
+  background: var(--segmented-control-bg) !important;
+  border: var(--segmented-control-border-size, 1px) solid var(--segmented-control-border-color) !important;
+  border-radius: var(--segmented-control-border-radius) !important;
+  overflow: visible !important;
+  padding-top: var(--segmented-control-container-padding-vertical, 0px) !important;
+  padding-bottom: var(--segmented-control-container-padding-vertical, 0px) !important;
+  padding-left: var(--segmented-control-container-padding-horizontal, 0px) !important;
+  padding-right: var(--segmented-control-container-padding-horizontal, 0px) !important;
+  font-family: var(--segmented-control-font-family) !important;
+  font-size: var(--segmented-control-font-size) !important;
+  font-weight: var(--segmented-control-font-weight) !important;
+  letter-spacing: var(--segmented-control-letter-spacing) !important;
+  line-height: var(--segmented-control-line-height) !important;
+  text-decoration: var(--segmented-control-text-decoration, none) !important;
+  text-transform: var(--segmented-control-text-transform, none) !important;
+  font-style: var(--segmented-control-font-style, normal) !important;
+}
+
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root {
+  color: var(--segmented-control-text) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: var(--segmented-control-item-border-radius) !important;
+  /* Explicitly reset all padding first to override Material UI defaults */
+  padding: 0 !important;
+  height: var(--segmented-control-height, auto) !important;
+  padding-left: var(--segmented-control-padding-horizontal) !important;
+  padding-right: var(--segmented-control-padding-horizontal) !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  letter-spacing: inherit !important;
+  line-height: inherit !important;
+  text-decoration: inherit !important;
+  text-transform: inherit !important;
+  font-style: inherit !important;
+  /* Remove Material UI transitions that might cause white flash */
+  transition: none !important;
+  /* Prevent flicker during CSS variable updates */
+  will-change: auto !important;
+  /* Ensure background is always set, never undefined/white */
+  background-color: transparent !important;
+}
+
+/* Hide Material UI ripple effect that causes white flash */
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root .MuiTouchRipple-root {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root.Mui-selected {
+  background: var(--segmented-control-selected-bg) !important;
+  background-color: var(--segmented-control-selected-bg) !important;
+  color: var(--segmented-control-selected-text) !important;
+  border-radius: var(--segmented-control-item-border-radius) !important;
+  /* Selected border - use individual properties to avoid overriding divider borders */
+  border-top: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-left: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-bottom: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  border-right: var(--segmented-control-selected-border-size, 1px) solid var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
+  /* Elevation box-shadow will be applied via inline styles from the component */
+  /* Remove Material UI transitions that might cause white flash */
+  transition: none !important;
+  /* Prevent flicker during CSS variable updates */
+  will-change: auto !important;
+}
+
+/* Always add margin for item-gap between items - divider has full gap on both sides */
+/* Item-gap only affects margin, not padding - padding remains uniform for all items */
+/* Explicitly ensure first child has no left margin and last child has no right margin */
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:first-child {
+  margin-left: 0 !important;
+}
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:last-child {
+  margin-right: 0 !important;
+}
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:not(:first-child) {
+  margin-left: var(--segmented-control-item-gap) !important;
+}
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:not(:last-child) {
+  margin-right: var(--segmented-control-item-gap) !important;
+}
+
+/* Add divider as pseudo-element between items (not on selected items or items before selected) */
+/* Divider is centered in the gap: item has margin-right: item-gap, next item has margin-left: item-gap */
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:not(:last-child):not(.Mui-selected):not(:has(+ .MuiToggleButton-root.Mui-selected))::after {
+  content: '' !important;
+  position: absolute !important;
+  right: calc(calc(var(--segmented-control-divider-size, 1px) * 0.5) - var(--segmented-control-item-gap)) !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: var(--segmented-control-divider-size, 1px) !important;
+  background: var(--segmented-control-divider-color) !important;
+}
+
+/* Ensure buttons are positioned relative for absolute divider positioning */
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root {
+  position: relative !important;
+}
+
+/* Always add margin for item-gap between items - divider has full gap on both sides */
+/* Item-gap only affects margin, not padding - padding remains uniform for all items */
+/* Explicitly ensure first child has no top margin and last child has no bottom margin */
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:first-child {
+  margin-top: 0 !important;
+}
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:last-child {
+  margin-bottom: 0 !important;
+}
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:not(:first-child) {
+  margin-top: var(--segmented-control-item-gap) !important;
+}
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:not(:last-child) {
+  margin-bottom: var(--segmented-control-item-gap) !important;
+}
+
+/* Add divider as pseudo-element between items (not on selected items or items before selected) */
+/* Divider is centered in the gap: item has margin-bottom: item-gap, next item has margin-top: item-gap */
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:not(:last-child):not(.Mui-selected):not(:has(+ .MuiToggleButton-root.Mui-selected))::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: calc(calc(var(--segmented-control-item-gap) * -1) - calc(var(--segmented-control-divider-size, 1px) * 0.5)) !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: var(--segmented-control-divider-size, 1px) !important;
+  background: var(--segmented-control-divider-color) !important;
+}
+
+/* Ensure buttons are positioned relative for absolute divider positioning */
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root {
+  position: relative !important;
+}
+
+/* Ensure selected items don't have divider pseudo-elements */
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root.Mui-selected::after,
+.recursica-segmented-control.material-segmented-control[aria-orientation="horizontal"] .MuiToggleButton-root:has(+ .MuiToggleButton-root.Mui-selected)::after {
+  display: none !important;
+}
+
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root.Mui-selected::after,
+.recursica-segmented-control.material-segmented-control[aria-orientation="vertical"] .MuiToggleButton-root:has(+ .MuiToggleButton-root.Mui-selected)::after {
+  display: none !important;
+}
+
+/* Override Material UI's default full-width behavior when fullWidth is false */
+/* When fullWidth is false, force auto width for buttons */
+.recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="horizontal"] {
+  display: inline-flex !important;
+  width: auto !important;
+}
+
+.recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="horizontal"] .MuiToggleButton-root {
+  width: auto !important;
+  flex: none !important;
+  min-width: fit-content !important; /* Ensure button expands to fit content */
+  max-width: none !important;
+}
+
+.recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="vertical"] {
+  display: inline-flex !important;
+  width: auto !important;
+}
+
+.recursica-segmented-control.material-segmented-control.recursica-auto-width[aria-orientation="vertical"] .MuiToggleButton-root {
+  width: auto !important;
+  flex: none !important;
+  min-width: fit-content !important; /* Ensure button expands to fit content */
+  max-width: none !important;
+}

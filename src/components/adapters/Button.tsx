@@ -7,8 +7,8 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
-import { getBrandTypographyCssVar, getBrandStateCssVar, getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
+import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
+import { getBrandStateCssVar, getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import { useCssVar } from '../hooks/useCssVar'
@@ -59,14 +59,37 @@ export function Button({
     return value ? parseElevationValue(value) : undefined
   })
   
+  // State to force re-renders when text CSS variables change
+  const [, setTextVarsUpdate] = useState(0)
+  
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
+    // Get text CSS variables for reactive updates
+    const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
+    const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
+    const fontWeightVar = getComponentTextCssVar('Button', 'text', 'font-weight')
+    const letterSpacingVar = getComponentTextCssVar('Button', 'text', 'letter-spacing')
+    const lineHeightVar = getComponentTextCssVar('Button', 'text', 'line-height')
+    const textDecorationVar = getComponentTextCssVar('Button', 'text', 'text-decoration')
+    const textTransformVar = getComponentTextCssVar('Button', 'text', 'text-transform')
+    const fontStyleVar = getComponentTextCssVar('Button', 'text', 'font-style')
+    
+    const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
+    
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
-      // Update if this CSS var was updated or if no specific vars were specified
-      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
+      // Update if elevation or any text CSS var was updated
+      const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(elevationVar)
+      const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      
+      if (shouldUpdateElevation) {
         const value = readCssVar(elevationVar)
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+      
+      if (shouldUpdateText) {
+        // Force re-render by updating state
+        setTextVarsUpdate(prev => prev + 1)
       }
     }
     
@@ -74,8 +97,10 @@ export function Button({
     
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
-      const value = readCssVar(elevationVar)
-      setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      const elevationValue = readCssVar(elevationVar)
+      setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
+      // Force re-render for text vars
+      setTextVarsUpdate(prev => prev + 1)
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -175,17 +200,20 @@ function getButtonStyles(
   const paddingVar = getComponentCssVar('Button', 'size', 'horizontal-padding', undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   
-  // Get all typography properties from the typography style
-  const fontFamilyVar = getBrandTypographyCssVar('button', 'font-family')
-  const fontSizeVar = getBrandTypographyCssVar('button', 'font-size')
-  const fontWeightVar = getBrandTypographyCssVar('button', 'font-weight')
-  const letterSpacingVar = getBrandTypographyCssVar('button', 'font-letter-spacing')
-  const lineHeightVar = getBrandTypographyCssVar('button', 'line-height')
-  
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
   // Reactively read border-size to trigger re-renders when it changes
   const borderSizeValue = useCssVar(borderSizeVar, '1px')
+  
+  // Get all text properties from component text property group
+  const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
+  const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
+  const fontWeightVar = getComponentTextCssVar('Button', 'text', 'font-weight')
+  const letterSpacingVar = getComponentTextCssVar('Button', 'text', 'letter-spacing')
+  const lineHeightVar = getComponentTextCssVar('Button', 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar('Button', 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar('Button', 'text', 'text-transform')
+  const fontStyleVar = getComponentTextCssVar('Button', 'text', 'font-style')
   
   // Size-specific vars - UIKit.json structure: size.default.height, size.small.height
   const sizePrefix = size === 'small' ? 'small' : 'default'
@@ -227,8 +255,13 @@ function getButtonStyles(
   styles.fontFamily = `var(${fontFamilyVar})`
   styles.fontSize = `var(${fontSizeVar})`
   styles.fontWeight = `var(${fontWeightVar})`
-  styles.letterSpacing = `var(${letterSpacingVar})`
+  styles.fontStyle = fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal'
+  styles.letterSpacing = letterSpacingVar ? `var(${letterSpacingVar})` : undefined
   styles.lineHeight = `var(${lineHeightVar})`
+  const textDecorationValue = textDecorationVar ? readCssVar(textDecorationVar) : 'none'
+  const textTransformValue = textTransformVar ? readCssVar(textTransformVar) : 'none'
+  styles.textDecoration = (textDecorationValue || 'none') as any
+  styles.textTransform = (textTransformValue || 'none') as any
   
   // Apply disabled styles - use brand disabled opacity, don't change colors
   if (disabled) {

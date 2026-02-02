@@ -2320,18 +2320,6 @@
           "textDecoration": "{tokens.font.decorations.none}"
         }
       },
-      "button": {
-        "$type": "typography",
-        "$value": {
-          "fontFamily": "{tokens.font.typefaces.primary}",
-          "fontSize": "{tokens.font.sizes.sm}",
-          "fontWeight": "{tokens.font.weights.regular}",
-          "letterSpacing": "{tokens.font.letter-spacings.wide}",
-          "lineHeight": "{tokens.font.line-heights.default}",
-          "textCase": "{tokens.font.cases.original}",
-          "textDecoration": "{tokens.font.decorations.none}"
-        }
-      },
       "caption": {
         "$type": "typography",
         "$value": {

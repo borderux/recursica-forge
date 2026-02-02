@@ -40,6 +40,7 @@ export type ComponentName =
   | 'ReadOnlyField'
   | 'Search'
   | 'SegmentedControl'
+  | 'SegmentedControlItem'
   | 'Slider'
   | 'Stepper'
   | 'Tabs'

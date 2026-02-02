@@ -51,8 +51,15 @@ export default function Switch({
   ...props
 }: AdapterSwitchProps) {
   const { mode } = useThemeMode()
+  const [updateKey, setUpdateKey] = useState(0)
+  
+  // Force re-render when mode changes to update CSS variable references
+  useEffect(() => {
+    setUpdateKey(prev => prev + 1)
+  }, [mode])
   
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
+  // These will be mode-aware because buildComponentCssVarPath reads mode from document
   const thumbSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-selected`, layer)
   const thumbUnselectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-unselected`, layer)
   const trackSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-track-selected`, layer)
@@ -143,6 +150,7 @@ export default function Switch({
   
   return (
     <MantineSwitch
+      key={`switch-${mode}-${updateKey}`}
       checked={checked}
       onChange={(e) => onChange(e.currentTarget.checked)}
       disabled={disabled}
@@ -163,6 +171,12 @@ export default function Switch({
         '--recursica-ui-kit-components-switch-track-height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
         '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
         '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
+        // Set wrapper variables for properties that CSS references directly
+        '--recursica-ui-kit-components-switch-thumb-width': `var(${thumbWidthVar})`,
+        '--recursica-ui-kit-components-switch-thumb-height': `var(${thumbHeightVar})`,
+        '--recursica-ui-kit-components-switch-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
+        '--recursica-ui-kit-components-switch-track-border-radius': `var(${trackBorderRadiusVar})`,
+        '--recursica-ui-kit-components-switch-track-inner-padding': `var(${trackInnerPaddingVar})`,
         width: `var(${trackWidthVar})`,
         ...style,
       }}

@@ -398,10 +398,6 @@ export default function PaletteColorControl({
     // Try with current mode first, then fallback to any mode
     const modeLower = mode.toLowerCase()
     
-    // Debug: log the cssValue to see what we're matching against
-    if (cssValue && displayCssVar && (displayCssVar.includes('background') || displayCssVar.includes('Background'))) {
-      console.log('[PaletteColorControl] Matching cssValue:', cssValue, 'for displayCssVar:', displayCssVar)
-    }
     
     let match = cssValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
     

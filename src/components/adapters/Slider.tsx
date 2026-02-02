@@ -5,13 +5,14 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar } from '../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Label } from './Label'
 import { getTypographyCssVar, extractTypographyStyleName } from '../utils/typographyUtils'
+import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type SliderProps = {
@@ -31,6 +32,7 @@ export type SliderProps = {
   tooltipText?: string | ((value: number) => string)
   minLabel?: string
   maxLabel?: string
+  showMinMaxLabels?: boolean
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -52,6 +54,7 @@ export function Slider({
   tooltipText,
   minLabel,
   maxLabel,
+  showMinMaxLabels = true,
   className,
   style,
   mantine,
@@ -79,18 +82,57 @@ export function Slider({
     computedTooltipText = undefined
   }
   
-  // Get label typography styles (not using Label component, just the typography)
-  // Calculate these unconditionally to avoid hook order issues
-  const labelFontVar = getComponentLevelCssVar('Label', 'label-font')
-  const labelFontValue = readCssVar(labelFontVar)
-  const labelFontStyle = extractTypographyStyleName(labelFontValue) || 'body-small'
-  const labelFontSizeVar = getTypographyCssVar(labelFontStyle, 'font-size')
-  const labelFontFamilyVar = getTypographyCssVar(labelFontStyle, 'font-family')
-  const labelFontWeightVar = getTypographyCssVar(labelFontStyle, 'font-weight')
-  const labelLetterSpacingVar = getTypographyCssVar(labelFontStyle, 'font-letter-spacing')
-  const labelLineHeightVar = getTypographyCssVar(labelFontStyle, 'line-height')
-  const labelTextColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
-  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+  // Get read-only value text styling CSS variables using getComponentTextCssVar (for text style toolbar)
+  const readOnlyValueFontFamilyVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-family')
+  const readOnlyValueFontSizeVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-size')
+  const readOnlyValueFontWeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-weight')
+  const readOnlyValueLetterSpacingVar = getComponentTextCssVar('Slider', 'read-only-value', 'letter-spacing')
+  const readOnlyValueLineHeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'line-height')
+  const readOnlyValueTextDecorationVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-decoration')
+  const readOnlyValueTextTransformVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-transform')
+  const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
+  
+  // State to force re-render when text CSS variables change
+  const [textVarsUpdate, setTextVarsUpdate] = useState(0)
+
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const textCssVars = [
+      readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
+      readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
+    ]
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
+      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      if (shouldUpdate) {
+        // Force re-render by updating state
+        setTextVarsUpdate(prev => prev + 1)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      // Force re-render for text vars
+      setTextVarsUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [
+    readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
+    readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
+  ])
   
   if (!Component) {
     // Fallback to native input range
@@ -107,6 +149,7 @@ export function Slider({
     const thumbSizeVar = getComponentLevelCssVar('Slider', 'thumb-size')
     const trackBorderRadiusVar = getComponentLevelCssVar('Slider', 'track-border-radius')
     const thumbBorderRadiusVar = getComponentLevelCssVar('Slider', 'thumb-border-radius')
+    const thumbElevationVar = getComponentLevelCssVar('Slider', 'thumb-elevation')
     
     // Get layout-specific gap
     const labelSliderGapVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'label-slider-gap')
@@ -114,6 +157,48 @@ export function Slider({
     // Get input width and gap if showing input
     const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
     const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
+    
+    // Reactively read thumb elevation from CSS variable
+    const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
+      if (!thumbElevationVar) return undefined
+      const value = readCssVar(thumbElevationVar)
+      return value ? parseElevationValue(value) : undefined
+    })
+    
+    // Listen for CSS variable updates from the toolbar
+    useEffect(() => {
+      const handleCssVarUpdate = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        if (!detail?.cssVars || detail.cssVars.includes(thumbElevationVar)) {
+          if (thumbElevationVar) {
+            const value = readCssVar(thumbElevationVar)
+            setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+          }
+        }
+      }
+      
+      window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+      
+      // Also watch for direct style changes using MutationObserver
+      const observer = new MutationObserver(() => {
+        if (thumbElevationVar) {
+          const value = readCssVar(thumbElevationVar)
+          setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+        }
+      })
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['style'],
+      })
+      
+      return () => {
+        window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+        observer.disconnect()
+      }
+    }, [thumbElevationVar])
+    
+    // Determine thumb elevation from UIKit.json
+    const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = Number(e.target.value)
@@ -132,6 +217,7 @@ export function Slider({
     const thumbColorValue = readCssVarResolved(thumbVar) || readCssVar(thumbVar) || '#000000'
     const thumbBorderRadiusValue = readCssVarResolved(thumbBorderRadiusVar) || readCssVar(thumbBorderRadiusVar) || '50%'
     const trackHeightValue = readCssVarResolved(trackHeightVar) || readCssVar(trackHeightVar) || '4px'
+    const thumbElevationValue = thumbElevationBoxShadow || '0 1px 2px rgba(0, 0, 0, 0.15)'
     
     // Parse thumb size to calculate padding (account for thumb half-width on each side)
     const thumbSizeNum = parseFloat(thumbSizeValue) || 20
@@ -141,15 +227,17 @@ export function Slider({
     const sliderElement = (
       <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: showInput ? `var(${inputGapVar}, 8px)` : 0, overflow: 'visible' }}>
         {/* Min value display */}
-        <span style={{ 
-          fontSize: 12, 
-          color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
-          opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
-          flexShrink: 0,
-          marginRight: '8px',
-        }}>
-          {minLabel ?? min}
-        </span>
+        {showMinMaxLabels && (
+          <span style={{ 
+            fontSize: 12, 
+            color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
+            opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
+            flexShrink: 0,
+            marginRight: '8px',
+          }}>
+            {minLabel ?? min}
+          </span>
+        )}
         <div style={{ 
           position: 'relative', 
           flex: 1, 
@@ -225,7 +313,7 @@ export function Slider({
               background: ${thumbColorValue};
               border: none;
               cursor: ${disabled ? 'not-allowed' : 'pointer'};
-              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+              box-shadow: ${thumbElevationValue};
               opacity: ${disabled ? 0.3 : 1};
               margin-top: calc(-1 * (${thumbSizeValue} - ${trackHeightValue}) / 2);
             }
@@ -237,7 +325,7 @@ export function Slider({
               background: ${thumbColorValue};
               border: none;
               cursor: ${disabled ? 'not-allowed' : 'pointer'};
-              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+              box-shadow: ${thumbElevationValue};
               opacity: ${disabled ? 0.3 : 1};
             }
             
@@ -248,7 +336,7 @@ export function Slider({
               background: ${thumbColorValue};
               border: none;
               cursor: ${disabled ? 'not-allowed' : 'pointer'};
-              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+              box-shadow: ${thumbElevationValue};
               opacity: ${disabled ? 0.3 : 1};
             }
             
@@ -276,15 +364,17 @@ export function Slider({
           `}</style>
         </div>
         {/* Max value display */}
-        <span style={{ 
-          fontSize: 12, 
-          color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
-          opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
-          flexShrink: 0,
-          marginLeft: '8px',
-        }}>
-          {maxLabel ?? max}
-        </span>
+        {showMinMaxLabels && (
+          <span style={{ 
+            fontSize: 12, 
+            color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
+            opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
+            flexShrink: 0,
+            marginLeft: '8px',
+          }}>
+            {maxLabel ?? max}
+          </span>
+        )}
         
         {/* Input field */}
         {showInput && (
@@ -417,6 +507,7 @@ export function Slider({
         tooltipText={computedTooltipText}
         minLabel={minLabel}
         maxLabel={maxLabel}
+        showMinMaxLabels={showMinMaxLabels}
         className={className}
         style={style}
         mantine={mantine}
@@ -448,15 +539,18 @@ export function Slider({
         minWidth: 0,
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        fontSize: `var(${labelFontSizeVar})`,
-        fontFamily: `var(${labelFontFamilyVar})`,
-        fontWeight: `var(${labelFontWeightVar})`,
-        letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
-        lineHeight: `var(${labelLineHeightVar})`,
+        fontFamily: readOnlyValueFontFamilyVar ? `var(${readOnlyValueFontFamilyVar})` : undefined,
+        fontSize: readOnlyValueFontSizeVar ? `var(${readOnlyValueFontSizeVar})` : undefined,
+        fontWeight: readOnlyValueFontWeightVar ? `var(${readOnlyValueFontWeightVar})` : undefined,
+        letterSpacing: readOnlyValueLetterSpacingVar ? `var(${readOnlyValueLetterSpacingVar})` : undefined,
+        lineHeight: readOnlyValueLineHeightVar ? `var(${readOnlyValueLineHeightVar})` : undefined,
+        textDecoration: readOnlyValueTextDecorationVar ? (readCssVar(readOnlyValueTextDecorationVar) || 'none') : 'none',
+        textTransform: readOnlyValueTextTransformVar ? (readCssVar(readOnlyValueTextTransformVar) || 'none') : 'none',
+        fontStyle: readOnlyValueFontStyleVar ? (readCssVar(readOnlyValueFontStyleVar) || 'normal') : 'normal',
         color: `var(${layerTextColorVar})`,
-        opacity: `var(${layerTextEmphasisVar})`,
+        opacity: disabled ? 0.5 : `var(${layerTextEmphasisVar})`,
         textAlign: 'right',
-      }}
+      } as React.CSSProperties}
     >
       {finalDisplayValue}
     </span>
@@ -492,6 +586,7 @@ export function Slider({
           tooltipText={tooltipText}
           minLabel={minLabel}
           maxLabel={maxLabel}
+          showMinMaxLabels={showMinMaxLabels}
           className={className}
           style={style}
           mantine={mantine}

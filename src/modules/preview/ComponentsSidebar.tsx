@@ -7,13 +7,26 @@
 
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import uikitJson from '../../vars/UIKit.json'
 import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import packageJson from '../../../package.json'
+
+type ComponentItem = {
+  name: string
+  url: string
+  isMapped: boolean
+}
+
+type TreeNode = {
+  name: string
+  url: string
+  isMapped: boolean
+  children?: TreeNode[]
+}
 
 export function ComponentsSidebar({ 
   showUnmapped, 
@@ -78,6 +91,7 @@ export function ComponentsSidebar({
       { name: 'Read-only field', url: `${base}/read-only-field` },
       { name: 'Search', url: `${base}/search` },
       { name: 'Segmented control', url: `${base}/segmented-control` },
+      { name: 'Segmented control item', url: `${base}/segmented-control-item` },
       { name: 'Slider', url: `${base}/slider` },
       { name: 'Stepper', url: `${base}/stepper` },
       { name: 'Switch', url: `${base}/switch` },
@@ -104,6 +118,67 @@ export function ComponentsSidebar({
     })
   }, [baseComponents, showUnmapped])
 
+  // Build tree structure: group items ending with " item" under their parent
+  const componentTree = useMemo(() => {
+    const tree: TreeNode[] = []
+    const itemMap = new Map<string, ComponentItem>()
+    const parentMap = new Map<string, TreeNode>()
+    
+    // First pass: separate parents and items
+    allComponents.forEach(comp => {
+      const isItem = comp.name.endsWith(' item')
+      const parentName = isItem ? comp.name.replace(' item', '') : comp.name
+      
+      if (isItem) {
+        // Store item for second pass
+        itemMap.set(parentName, comp)
+      } else {
+        // Create parent node
+        const node: TreeNode = {
+          name: comp.name,
+          url: comp.url,
+          isMapped: comp.isMapped,
+        }
+        tree.push(node)
+        parentMap.set(comp.name, node)
+      }
+    })
+    
+    // Second pass: attach items to their parents
+    // If parent exists in tree, attach item to it
+    // If parent doesn't exist but item should be shown, create parent node from baseComponents
+    itemMap.forEach((item, parentName) => {
+      const parentNode = parentMap.get(parentName)
+      if (parentNode) {
+        // Parent exists, attach item
+        if (!parentNode.children) {
+          parentNode.children = []
+        }
+        parentNode.children.push(item as TreeNode)
+      } else {
+        // Parent doesn't exist in filtered list, but item should be shown
+        // Find parent in baseComponents to get its URL and create parent node
+        const parentBase = baseComponents.find(c => c.name === parentName)
+        if (parentBase) {
+          // Create parent node (will be shown even if unmapped, since it has a child)
+          const newNode: TreeNode = {
+            name: parentName,
+            url: parentBase.url,
+            isMapped: parentBase.isMapped,
+            children: [item as TreeNode],
+          }
+          tree.push(newNode)
+          parentMap.set(parentName, newNode)
+        }
+      }
+    })
+    
+    // Sort tree alphabetically by name
+    tree.sort((a, b) => a.name.localeCompare(b.name))
+    
+    return tree
+  }, [allComponents, baseComponents])
+
   // Get current component from URL (convert slug to component name)
   const getCurrentComponent = (): string | null => {
     const match = location.pathname.match(/^\/components\/(.+)$/)
@@ -115,6 +190,21 @@ export function ComponentsSidebar({
   }
 
   const currentComponent = getCurrentComponent()
+
+  // Track expanded nodes
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
+  
+  // Auto-expand parent if child is active
+  useEffect(() => {
+    if (currentComponent) {
+      const parentNode = componentTree.find(node => 
+        node.children?.some(child => child.name === currentComponent)
+      )
+      if (parentNode) {
+        setExpandedNodes(prev => new Set([...prev, parentNode.name]))
+      }
+    }
+  }, [currentComponent, componentTree])
   const unmappedCount = useMemo(() => {
     return baseComponents.filter(c => !c.isMapped).length
   }, [baseComponents])
@@ -123,12 +213,12 @@ export function ComponentsSidebar({
 
   // Redirect to first component if on /components without a component name
   useEffect(() => {
-    if (location.pathname === '/components' && allComponents.length > 0) {
-      const firstComponent = allComponents[0]
-      const slug = componentNameToSlug(firstComponent.name)
+    if (location.pathname === '/components' && componentTree.length > 0) {
+      const firstNode = componentTree[0]
+      const slug = componentNameToSlug(firstNode.name)
       navigate(`/components/${slug}`, { replace: true })
     }
-  }, [location.pathname, allComponents, navigate])
+  }, [location.pathname, componentTree, navigate])
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
@@ -164,8 +254,11 @@ export function ComponentsSidebar({
         style={{
           margin: 0,
           marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
+          fontFamily: 'var(--recursica-brand-typography-body-font-family)',
           fontSize: 'var(--recursica-brand-typography-body-font-size)',
           fontWeight: 600,
+          letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-body-line-height)',
           color: `var(${layer0Base}-element-text-color)`,
           opacity: `var(${layer0Base}-element-text-high-emphasis)`,
         }}
@@ -174,63 +267,188 @@ export function ComponentsSidebar({
       </h2>
       
       {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', flex: 1 }}>
-        {allComponents.map((component) => {
-          const isActive = currentComponent === component.name
-          const isUnmapped = !component.isMapped
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
+        {componentTree.map((node) => {
+          const hasChildren = node.children && node.children.length > 0
+          const isExpanded = expandedNodes.has(node.name)
+          const isActive = currentComponent === node.name
+          const isUnmapped = !node.isMapped
           const disabledOpacity = getBrandStateCssVar(mode, 'disabled')
           
+          const ChevronRightIcon = iconNameToReactComponent('chevron-right')
+          const ChevronDownIcon = iconNameToReactComponent('chevron-down')
+          
+          const toggleExpand = (e: React.MouseEvent) => {
+            e.stopPropagation()
+            setExpandedNodes(prev => {
+              const next = new Set(prev)
+              if (isExpanded) {
+                next.delete(node.name)
+              } else {
+                next.add(node.name)
+              }
+              return next
+            })
+          }
+          
           return (
-            <button
-              key={component.name}
-              onClick={() => handleNavClick(component.name)}
-              style={{
-                textAlign: 'left',
-                padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
-                borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-                border: 'none',
-                background: 'transparent',
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: isActive 
-                  ? `var(${layer0Base}-element-text-high-emphasis)` 
-                  : isUnmapped
-                    ? `var(${disabledOpacity})`
-                    : `var(${layer0Base}-element-text-low-emphasis)`,
-                cursor: 'pointer',
-                transition: 'opacity 0.2s',
-                position: 'relative',
-                fontSize: 'var(--recursica-brand-typography-button-font-size)',
-                fontWeight: isActive ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive && !isUnmapped) {
-                  e.currentTarget.style.opacity = `var(${layer0Base}-element-text-high-emphasis)`
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.opacity = isUnmapped
-                    ? `var(${disabledOpacity})`
-                    : `var(${layer0Base}-element-text-low-emphasis)`
-                }
-              }}
-            >
-              {/* Active indicator - red vertical bar */}
-              {isActive && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: '3px',
-                    backgroundColor: `var(${interactiveColor})`,
-                    borderRadius: '0 2px 2px 0',
+            <div key={node.name} style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Parent Node */}
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                {hasChildren && (
+                  <button
+                    onClick={toggleExpand}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      padding: 'var(--recursica-brand-dimensions-general-default)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: `var(${layer0Base}-element-text-color)`,
+                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                    }}
+                    aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                  >
+                    {isExpanded && ChevronDownIcon ? (
+                      <ChevronDownIcon style={{ width: '16px', height: '16px' }} />
+                    ) : ChevronRightIcon ? (
+                      <ChevronRightIcon style={{ width: '16px', height: '16px' }} />
+                    ) : null}
+                  </button>
+                )}
+                {!hasChildren && (
+                  <div style={{ width: '32px' }} />
+                )}
+                <button
+                  onClick={() => {
+                    // Auto-expand if node has children
+                    if (hasChildren && !isExpanded) {
+                      setExpandedNodes(prev => new Set([...prev, node.name]))
+                    }
+                    handleNavClick(node.name)
                   }}
-                />
+                  style={{
+                    flex: 1,
+                    textAlign: 'left',
+                    padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
+                    borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
+                    border: 'none',
+                    background: 'transparent',
+                    color: `var(${layer0Base}-element-text-color)`,
+                    opacity: isActive 
+                      ? `var(${layer0Base}-element-text-high-emphasis)` 
+                      : isUnmapped
+                        ? `var(${disabledOpacity})`
+                        : `var(${layer0Base}-element-text-low-emphasis)`,
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s',
+                    position: 'relative',
+                    fontFamily: 'var(--recursica-brand-typography-body-font-family)',
+                    fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                    fontWeight: isActive ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
+                    letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
+                    lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive && !isUnmapped) {
+                      e.currentTarget.style.opacity = `var(${layer0Base}-element-text-high-emphasis)`
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.opacity = isUnmapped
+                        ? `var(${disabledOpacity})`
+                        : `var(${layer0Base}-element-text-low-emphasis)`
+                    }
+                  }}
+                >
+                  {/* Active indicator - red vertical bar */}
+                  {isActive && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: '3px',
+                        backgroundColor: `var(${interactiveColor})`,
+                        borderRadius: '0 2px 2px 0',
+                      }}
+                    />
+                  )}
+                  {node.name}
+                </button>
+              </div>
+              
+              {/* Children Nodes */}
+              {hasChildren && isExpanded && node.children && (
+                <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: '48px' }}>
+                  {node.children.map((child) => {
+                    const isChildActive = currentComponent === child.name
+                    const isChildUnmapped = !child.isMapped
+                    
+                    return (
+                      <button
+                        key={child.name}
+                        onClick={() => handleNavClick(child.name)}
+                        style={{
+                          textAlign: 'left',
+                          padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
+                          paddingLeft: 'var(--recursica-brand-dimensions-general-lg)',
+                          borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
+                          border: 'none',
+                          background: 'transparent',
+                          color: `var(${layer0Base}-element-text-color)`,
+                          opacity: isChildActive 
+                            ? `var(${layer0Base}-element-text-high-emphasis)` 
+                            : isChildUnmapped
+                              ? `var(${disabledOpacity})`
+                              : `var(${layer0Base}-element-text-low-emphasis)`,
+                          cursor: 'pointer',
+                          transition: 'opacity 0.2s',
+                          position: 'relative',
+                          fontFamily: 'var(--recursica-brand-typography-body-font-family)',
+                          fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                          fontWeight: isChildActive ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
+                          letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
+                          lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isChildActive && !isChildUnmapped) {
+                            e.currentTarget.style.opacity = `var(${layer0Base}-element-text-high-emphasis)`
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isChildActive) {
+                            e.currentTarget.style.opacity = isChildUnmapped
+                              ? `var(${disabledOpacity})`
+                              : `var(${layer0Base}-element-text-low-emphasis)`
+                          }
+                        }}
+                      >
+                        {/* Active indicator - red vertical bar */}
+                        {isChildActive && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: '3px',
+                              backgroundColor: `var(${interactiveColor})`,
+                              borderRadius: '0 2px 2px 0',
+                            }}
+                          />
+                        )}
+                        Item
+                      </button>
+                    )
+                  })}
+                </div>
               )}
-              {component.name}
-            </button>
+            </div>
           )
         })}
       </nav>
@@ -291,7 +509,11 @@ export function ComponentsSidebar({
       <div
         style={{
           marginTop: 'var(--recursica-brand-dimensions-general-md)',
+          fontFamily: 'var(--recursica-brand-typography-body-small-font-family)',
           fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
           color: `var(${layer0Base}-element-text-color)`,
           opacity: `var(${layer0Base}-element-text-low-emphasis)`,
         }}

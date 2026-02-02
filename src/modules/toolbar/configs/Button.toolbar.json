@@ -29,7 +29,12 @@
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text",
+      "label": "Text Style",
+      "visible": true
+    },
+    "text-color": {
+      "icon": "text-aa",
+      "label": "Text Color",
       "visible": true,
       "group": {
         "text": {

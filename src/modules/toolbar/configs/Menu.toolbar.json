@@ -15,19 +15,19 @@
       "group": {
         "border": {
           "icon": "paint-bucket",
-          "label": "Border Color",
+          "label": "Border color",
           "visible": true,
           "floatingPaletteLabel": "Border Color"
         },
         "border-size": {
           "icon": "arrows-left-right",
-          "label": "Border Size",
+          "label": "Border size",
           "visible": true,
           "floatingPaletteLabel": "Border Size"
         },
         "border-radius": {
           "icon": "corners-out",
-          "label": "Corner Radius",
+          "label": "Corner radius",
           "visible": true,
           "floatingPaletteLabel": "Corner Radius"
         }
@@ -41,13 +41,13 @@
       "group": {
         "min-width": {
           "icon": "arrows-in-line-horizontal",
-          "label": "Min Width",
+          "label": "Min width",
           "visible": true,
           "floatingPaletteLabel": "Minimum Width"
         },
         "max-width": {
           "icon": "arrows-out-line-horizontal",
-          "label": "Max Width",
+          "label": "Max width",
           "visible": true,
           "floatingPaletteLabel": "Maximum Width"
         }
@@ -67,7 +67,7 @@
         },
         "item-gap": {
           "icon": "split-horizontal",
-          "label": "Item Gap",
+          "label": "Item gap",
           "visible": true,
           "floatingPaletteLabel": "Item Gap"
         }

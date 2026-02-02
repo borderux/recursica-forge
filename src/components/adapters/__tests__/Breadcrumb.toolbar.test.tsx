@@ -12,12 +12,14 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Breadcrumb } from '../Breadcrumb'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
 describe('Breadcrumb Toolbar Props Integration', () => {
   beforeEach(() => {
+    clearUiKitStorage()
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
   })
@@ -32,6 +34,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>
@@ -42,7 +45,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
   // Helper to wait for breadcrumb component to load
   const waitForBreadcrumb = async (container: HTMLElement) => {
     return await waitFor(() => {
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"], nav[aria-label*="breadcrumb"], nav[aria-label*="Breadcrumb"]')
+      const breadcrumb = container.querySelector('[class*="Breadcrumb"], nav[aria-label*="breadcrumb"], nav[aria-label*="Breadcrumb"], nav[role="navigation"]')
       if (!breadcrumb) throw new Error('Breadcrumb not found')
       return breadcrumb
     }, { timeout: 15000 })
@@ -60,7 +63,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
 
     layers.forEach(layer => {
       variants.forEach(variant => {
-        it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, { timeout: 10000 }, async () => {
+        it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, { timeout: 15000 }, async () => {
           const { container } = renderWithProviders(
             <Breadcrumb items={sampleItems} layer={layer} />
           )
@@ -71,22 +74,35 @@ describe('Breadcrumb Toolbar Props Integration', () => {
           // Get the CSS variable name that the toolbar would use
           const colorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.${variant}`)
           
+          // Verify initial value exists
+          const initialValue = readCssVar(colorVar)
+          expect(initialValue).toBeTruthy()
+          
           // Simulate toolbar update: change the CSS variable
           updateCssVar(colorVar, '#ff0000')
           
-          // Dispatch the cssVarsUpdated event
+          // Dispatch event to trigger component update
           window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
             detail: { cssVars: [colorVar] }
           }))
-
-          // Wait for component to update
+          
+          // Wait for CSS variable to be updated in the DOM
           await waitFor(() => {
-            const styles = window.getComputedStyle(breadcrumb!)
-            // Component should reference the updated CSS variable
-            const colorValue = styles.getPropertyValue(`--breadcrumb-${variant.replace('-', '-')}-color`)
-            // Check that the CSS variable is referenced (either directly or through custom property)
-            expect(readCssVar(colorVar)).toBe('#ff0000')
-          }, { timeout: 3000 })
+            const updatedValue = readCssVar(colorVar)
+            expect(updatedValue).toBe('#ff0000')
+          }, { timeout: 10000 })
+          
+          // Verify the CSS custom property is set on the breadcrumb element
+          await waitFor(() => {
+            const styles = window.getComputedStyle(breadcrumb as HTMLElement)
+            // The component sets --breadcrumb-interactive-color or --breadcrumb-read-only-color
+            const cssPropName = `--breadcrumb-${variant}-color`
+            const cssPropValue = styles.getPropertyValue(cssPropName)
+            // The CSS prop should reference the UIKit CSS variable
+            expect(cssPropValue).toBeTruthy()
+            expect(cssPropValue).toContain('var(')
+            expect(cssPropValue).toContain(colorVar)
+          }, { timeout: 10000 })
         })
       })
     })
@@ -252,6 +268,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
         <UiKitProvider>
           <ThemeModeProvider>
             <UnifiedThemeProvider>
+              <KitSwitcher kit="mantine" />
               <Breadcrumb items={sampleItems} layer="layer-1" />
             </UnifiedThemeProvider>
           </ThemeModeProvider>

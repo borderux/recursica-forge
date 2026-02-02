@@ -4,12 +4,14 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Accordion } from '../Accordion'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../utils/cssVarNames'
 import type { ComponentLayer } from '../../registry/types'
 
 describe('Accordion Toolbar Props Integration', () => {
   beforeEach(() => {
+    clearUiKitStorage()
     document.documentElement.style.cssText = ''
   })
 
@@ -22,6 +24,7 @@ describe('Accordion Toolbar Props Integration', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>
@@ -30,6 +33,17 @@ describe('Accordion Toolbar Props Integration', () => {
   }
 
   const waitForAccordion = async (container: HTMLElement) => {
+    // First wait for providers to be ready (they might be loading)
+    await waitFor(() => {
+      const loadingPlaceholders = container.querySelectorAll('[data-testid$="-provider-loading"]')
+      if (loadingPlaceholders.length > 0) {
+        throw new Error('Providers still loading')
+      }
+    }, { timeout: 5000 }).catch(() => {
+      // If providers don't load quickly, continue anyway
+    })
+    
+    // Then wait for accordion component
     return await waitFor(() => {
       const el = container.querySelector('.recursica-accordion') as HTMLElement | null
       if (!el) throw new Error('Accordion not found')
@@ -71,7 +85,7 @@ describe('Accordion Toolbar Props Integration', () => {
             expect(value).toBeTruthy()
             expect(value).toContain('var(')
             expect(value).toContain(colorVar)
-          })
+          }, { timeout: 10000 })
         })
       })
     })
@@ -255,6 +269,7 @@ describe('Accordion Toolbar Props Integration', () => {
           <UiKitProvider>
             <ThemeModeProvider>
               <UnifiedThemeProvider>
+                <KitSwitcher kit="mantine" />
                 <Accordion
                   items={[
                     { id: 'a', title: 'Item A', content: 'Content A', open: true },

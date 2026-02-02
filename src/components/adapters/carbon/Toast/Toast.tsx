@@ -5,9 +5,9 @@
  * Uses a simple div-based approach for maximum flexibility.
  */
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import type { ToastProps as AdapterToastProps } from '../../Toast'
-import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -20,7 +20,6 @@ export default function Toast({
   variant = 'default',
   layer = 'layer-0',
   elevation,
-  alternativeLayer,
   className,
   style,
   icon,
@@ -32,93 +31,87 @@ export default function Toast({
   const { mode } = useThemeMode()
   const CloseIcon = iconNameToReactComponent('x-mark')
   
-  // Check if component has alternative-layer prop set (overrides layer-based alt layer)
-  const hasComponentAlternativeLayer = alternativeLayer && alternativeLayer !== 'none'
-  const isAlternativeLayer = layer.startsWith('layer-alternative-') || hasComponentAlternativeLayer
-  
-  let toastBgVar: string
-  let toastTextVar: string
-  let toastButtonVar: string | undefined
-  
-  if (hasComponentAlternativeLayer) {
-    // Component has alternative-layer prop set - use that alt layer's properties
-    // Use new brand.json structure: --recursica-brand-themes-{mode}-layer-layer-alternative-{n}-property
-    const layerBase = `--recursica-brand-themes-${mode}-layer-layer-alternative-${alternativeLayer}-property`
-    toastBgVar = `var(${layerBase}-surface)`
-    toastTextVar = `var(${layerBase}-element-text-color)`
-    // For success/error variants, use interactive tone for button
-    if (variant === 'success' || variant === 'error') {
-      toastButtonVar = `var(${layerBase}-element-interactive-tone)`
-    }
-  } else if (layer.startsWith('layer-alternative-')) {
-    const altKey = layer.replace('layer-alternative-', '')
-    // Use new brand.json structure: --recursica-brand-themes-{mode}-layer-layer-alternative-{n}-property
-    const layerBase = `--recursica-brand-themes-${mode}-layer-layer-alternative-${altKey}-property`
-    toastBgVar = `var(${layerBase}-surface)`
-    toastTextVar = `var(${layerBase}-element-text-color)`
-    if (variant === 'success' || variant === 'error') {
-      toastButtonVar = `var(${layerBase}-element-interactive-tone)`
-    }
-  } else {
-    // Use UIKit.json toast colors for standard layers
-    toastBgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
-    toastTextVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
-    if (variant === 'success' || variant === 'error') {
-      toastButtonVar = getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
-    }
-  }
+  // Use UIKit.json toast colors for standard layers
+  const toastBgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
+  const toastTextVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
+  // Button color from UIKit.json
+  const toastButtonVar = getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
   
   // Get component-level CSS variables (these are under toast.properties in UIKit.json)
   const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
   const minWidthVar = getComponentLevelCssVar('Toast', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Toast', 'max-width')
+  const minHeightVar = getComponentLevelCssVar('Toast', 'min-height')
   const iconVar = getComponentLevelCssVar('Toast', 'icon')
   const spacingVar = getComponentLevelCssVar('Toast', 'spacing')
-  const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
   
-  // Apply elevation - prioritize alt layer elevation if alt-layer is set, otherwise use component elevation
-  let elevationToApply: string | undefined = elevation
+  // Get text style CSS variables
+  const textFontFamilyVar = getComponentTextCssVar('Toast', 'text', 'font-family')
+  const textFontSizeVar = getComponentTextCssVar('Toast', 'text', 'font-size')
+  const textFontWeightVar = getComponentTextCssVar('Toast', 'text', 'font-weight')
+  const textLetterSpacingVar = getComponentTextCssVar('Toast', 'text', 'letter-spacing')
+  const textLineHeightVar = getComponentTextCssVar('Toast', 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar('Toast', 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar('Toast', 'text', 'text-transform')
+  const textFontStyleVar = getComponentTextCssVar('Toast', 'text', 'font-style')
   
-  if (hasComponentAlternativeLayer) {
-    // Read elevation from alt layer's property
-    // Use new brand.json structure: --recursica-brand-themes-{mode}-layer-layer-alternative-{n}-property-elevation
-    const altLayerElevationVar = `--recursica-brand-themes-${mode}-layer-layer-alternative-${alternativeLayer}-property-elevation`
-    const altLayerElevation = readCssVar(altLayerElevationVar)
-    if (altLayerElevation) {
-      // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-4}"
-      const match = altLayerElevation.match(/elevations\.(elevation-\d+)/)
-      if (match) {
-        elevationToApply = match[1]
-      } else if (/^elevation-\d+$/.test(altLayerElevation)) {
-        elevationToApply = altLayerElevation
+  // Reactivity for text style CSS variables
+  const [textVarsUpdate, setTextVarsUpdate] = useState(0)
+  useEffect(() => {
+    const textCssVars = [
+      textFontFamilyVar,
+      textFontSizeVar,
+      textFontWeightVar,
+      textLetterSpacingVar,
+      textLineHeightVar,
+      textDecorationVar,
+      textTransformVar,
+      textFontStyleVar,
+    ].filter(Boolean) as string[]
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || textCssVars.some(v => detail.cssVars.includes(v))) {
+        setTextVarsUpdate(prev => prev + 1)
       }
     }
-    // If alt layer doesn't have elevation, fall back to component-level elevation
-    if (!elevationToApply) {
-      elevationToApply = elevation
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    const observer = new MutationObserver(() => {
+      setTextVarsUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
     }
-  }
+  }, [textFontFamilyVar, textFontSizeVar, textFontWeightVar, textLetterSpacingVar, textLineHeightVar, textDecorationVar, textTransformVar, textFontStyleVar])
   
   // Build box-shadow from elevation CSS variables if set (and not elevation-0)
-  const boxShadow = getElevationBoxShadow(mode, elevationToApply)
+  const boxShadow = getElevationBoxShadow(mode, elevation)
   
   const carbonProps = {
     className: `recursica-toast ${className || ''}`,
     style: {
       // Use CSS variables for theming
-      '--toast-bg': isAlternativeLayer ? toastBgVar : `var(${toastBgVar})`,
-      '--toast-text': isAlternativeLayer ? toastTextVar : `var(${toastTextVar})`,
-      '--toast-button': toastButtonVar ? (isAlternativeLayer ? toastButtonVar : `var(${toastButtonVar})`) : undefined,
+      '--toast-bg': `var(${toastBgVar})`,
+      '--toast-text': `var(${toastTextVar})`,
+      ...(toastButtonVar ? { '--toast-button': `var(${toastButtonVar})` } : {}),
       '--toast-vertical-padding': `var(${verticalPaddingVar})`,
       '--toast-horizontal-padding': `var(${horizontalPaddingVar})`,
       '--toast-min-width': `var(${minWidthVar})`,
       '--toast-max-width': `var(${maxWidthVar})`,
+      '--toast-min-height': `var(${minHeightVar})`,
       '--toast-icon-size': icon ? `var(${iconVar})` : '0px',
       '--toast-spacing': icon || action ? `var(${spacingVar})` : '0px',
-      '--toast-text-size': `var(${textSizeVar})`,
-      backgroundColor: isAlternativeLayer ? toastBgVar : `var(${toastBgVar})`,
-      color: isAlternativeLayer ? toastTextVar : `var(${toastTextVar})`,
+      backgroundColor: `var(${toastBgVar})`,
+      color: `var(${toastTextVar})`,
       ...(boxShadow && { boxShadow }),
       ...style,
     },
@@ -134,7 +127,16 @@ export default function Toast({
             {icon}
           </span>
         )}
-        <span className="recursica-toast-message">{children}</span>
+        <span className="recursica-toast-message" style={{
+          fontFamily: textFontFamilyVar ? `var(${textFontFamilyVar})` : undefined,
+          fontSize: textFontSizeVar ? `var(${textFontSizeVar})` : undefined,
+          fontWeight: textFontWeightVar ? `var(${textFontWeightVar})` : undefined,
+          letterSpacing: textLetterSpacingVar ? `var(${textLetterSpacingVar})` : undefined,
+          lineHeight: textLineHeightVar ? `var(${textLineHeightVar})` : undefined,
+          textDecoration: textDecorationVar ? `var(${textDecorationVar})` : undefined,
+          textTransform: textTransformVar ? `var(${textTransformVar})` as React.CSSProperties['textTransform'] : undefined,
+          fontStyle: textFontStyleVar ? `var(${textFontStyleVar})` : undefined,
+        }}>{children}</span>
         {action && (
           <span className="recursica-toast-action">{action}</span>
         )}
@@ -147,17 +149,16 @@ export default function Toast({
             style={{
               backgroundColor: 'transparent',
               '--button-bg': 'transparent',
+              opacity: 1,
               minWidth: 'auto',
               width: 'auto',
               height: 'auto',
               padding: 0,
               flexShrink: 0,
-              ...(toastButtonVar
-                ? {
-                    color: isAlternativeLayer ? toastButtonVar : `var(${toastButtonVar})`,
-                    '--button-color': isAlternativeLayer ? toastButtonVar : `var(${toastButtonVar})`,
-                  }
-                : {}),
+              ...(toastButtonVar ? {
+                color: `var(${toastButtonVar})`,
+                '--button-color': `var(${toastButtonVar})`,
+              } : {}),
             } as React.CSSProperties}
           >
             {CloseIcon ? <CloseIcon /> : '×'}

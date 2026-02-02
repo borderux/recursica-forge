@@ -7,10 +7,9 @@
 
 import React, { useState, useEffect } from 'react'
 import type { LabelProps as AdapterLabelProps } from '../../Label'
-import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
-import { extractTypographyStyleName, getTypographyCssVar } from '../../../utils/typographyUtils'
 import './Label.css'
 
 export default function Label({
@@ -26,22 +25,7 @@ export default function Label({
   mantine,
   ...props
 }: AdapterLabelProps) {
-  // Force re-render when CSS vars change (needed for Mantine to pick up CSS var changes)
-  const [, setUpdateKey] = useState(0)
   const { mode } = useThemeMode()
-  
-  useEffect(() => {
-    const handleUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      const updatedVars = detail?.cssVars || []
-      // Only re-render if label CSS vars were updated, or if no specific vars were mentioned (global update)
-      if (updatedVars.length === 0 || updatedVars.some((v: string) => v.includes('label') || v.includes('components-label'))) {
-        setUpdateKey(prev => prev + 1)
-      }
-    }
-    window.addEventListener('cssVarsUpdated', handleUpdate)
-    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-  }, [])
   
   // Get CSS variables for colors
   // Text color is at component level, not variant-specific
@@ -54,30 +38,71 @@ export default function Label({
   const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
   const lowEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
   
-  // Get typography style from component property and use typography CSS variables directly
-  const labelFontVar = getComponentLevelCssVar('Label', 'label-font')
-  const optionalFontVar = getComponentLevelCssVar('Label', 'optional-font')
+  // Get text properties from component text property groups
+  const labelFontSizeVar = getComponentTextCssVar('Label', 'label-text', 'font-size')
+  const labelFontFamilyVar = getComponentTextCssVar('Label', 'label-text', 'font-family')
+  const labelFontWeightVar = getComponentTextCssVar('Label', 'label-text', 'font-weight')
+  const labelLetterSpacingVar = getComponentTextCssVar('Label', 'label-text', 'letter-spacing')
+  const labelLineHeightVar = getComponentTextCssVar('Label', 'label-text', 'line-height')
+  const labelTextDecorationVar = getComponentTextCssVar('Label', 'label-text', 'text-decoration')
+  const labelTextTransformVar = getComponentTextCssVar('Label', 'label-text', 'text-transform')
+  const labelFontStyleVar = getComponentTextCssVar('Label', 'label-text', 'font-style')
   
-  // Read the typography property values to extract style names
-  const labelFontValue = readCssVar(labelFontVar)
-  const optionalFontValue = readCssVar(optionalFontVar)
+  const optionalFontSizeVar = getComponentTextCssVar('Label', 'optional-text', 'font-size')
+  const optionalFontFamilyVar = getComponentTextCssVar('Label', 'optional-text', 'font-family')
+  const optionalFontWeightVar = getComponentTextCssVar('Label', 'optional-text', 'font-weight')
+  const optionalLetterSpacingVar = getComponentTextCssVar('Label', 'optional-text', 'letter-spacing')
+  const optionalLineHeightVar = getComponentTextCssVar('Label', 'optional-text', 'line-height')
+  const optionalTextDecorationVar = getComponentTextCssVar('Label', 'optional-text', 'text-decoration')
+  const optionalTextTransformVar = getComponentTextCssVar('Label', 'optional-text', 'text-transform')
+  const optionalFontStyleVar = getComponentTextCssVar('Label', 'optional-text', 'font-style')
   
-  // Extract typography style names (e.g., 'body-small', 'caption')
-  const labelFontStyle = extractTypographyStyleName(labelFontValue) || 'body-small'
-  const optionalFontStyle = extractTypographyStyleName(optionalFontValue) || 'caption'
+  // State to force re-renders when CSS vars change (needed for Mantine to pick up CSS var changes)
+  const [, setUpdateKey] = useState(0)
   
-  // Get typography CSS variables directly from typography tokens
-  const fontSizeVar = getTypographyCssVar(labelFontStyle, 'font-size')
-  const fontFamilyVar = getTypographyCssVar(labelFontStyle, 'font-family')
-  const fontWeightVar = getTypographyCssVar(labelFontStyle, 'font-weight')
-  const letterSpacingVar = getTypographyCssVar(labelFontStyle, 'font-letter-spacing')
-  const lineHeightVar = getTypographyCssVar(labelFontStyle, 'line-height')
-  
-  const optionalFontSizeVar = getTypographyCssVar(optionalFontStyle, 'font-size')
-  const optionalFontFamilyVar = getTypographyCssVar(optionalFontStyle, 'font-family')
-  const optionalFontWeightVar = getTypographyCssVar(optionalFontStyle, 'font-weight')
-  const optionalLetterSpacingVar = getTypographyCssVar(optionalFontStyle, 'font-letter-spacing')
-  const optionalLineHeightVar = getTypographyCssVar(optionalFontStyle, 'line-height')
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const textCssVars = [
+      labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar, 
+      labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
+      optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
+      optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar
+    ]
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
+      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      
+      if (shouldUpdate) {
+        // Force re-render by updating state
+        setUpdateKey(prev => prev + 1)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      // Force re-render for text vars
+      setUpdateKey(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [
+    labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
+    labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
+    optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
+    optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar
+  ])
   
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
@@ -133,11 +158,14 @@ export default function Label({
       style={{
         color: `var(${textColorVar})`,
         display: 'block',
-        fontSize: `var(${fontSizeVar})`,
-        fontFamily: `var(${fontFamilyVar})`,
-        fontWeight: `var(${fontWeightVar})`,
-        letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
-        lineHeight: `var(${lineHeightVar})`,
+        fontSize: `var(${labelFontSizeVar})`,
+        fontFamily: `var(${labelFontFamilyVar})`,
+        fontWeight: `var(${labelFontWeightVar})`,
+        fontStyle: labelFontStyleVar ? (readCssVar(labelFontStyleVar) || 'normal') as any : 'normal',
+        letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
+        lineHeight: `var(${labelLineHeightVar})`,
+        textDecoration: (readCssVar(labelTextDecorationVar) || 'none') as any,
+        textTransform: (readCssVar(labelTextTransformVar) || 'none') as any,
         textAlign: align,
         opacity: `var(${highEmphasisOpacityVar})`,
         overflow: 'hidden',
@@ -164,8 +192,11 @@ export default function Label({
               fontSize: `var(${optionalFontSizeVar})`,
               fontFamily: `var(${optionalFontFamilyVar})`,
               fontWeight: `var(${optionalFontWeightVar})`,
-              letterSpacing: `var(${optionalLetterSpacingVar})`,
+              fontStyle: optionalFontStyleVar ? (readCssVar(optionalFontStyleVar) || 'normal') as any : 'normal',
+              letterSpacing: optionalLetterSpacingVar ? `var(${optionalLetterSpacingVar})` : undefined,
               lineHeight: `var(${optionalLineHeightVar})`,
+              textDecoration: (readCssVar(optionalTextDecorationVar) || 'none') as any,
+              textTransform: (readCssVar(optionalTextTransformVar) || 'none') as any,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',

@@ -1,22 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useEffect } from 'react'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
-import { UiKitProvider, useUiKit } from '../../../modules/uikit/UiKitContext'
+import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
-
-// Helper component to switch kits
-function KitSwitcher({ kit }: { kit: 'mantine' | 'material' | 'carbon' }) {
-  const { setKit } = useUiKit()
-  useEffect(() => {
-    setKit(kit)
-  }, [kit, setKit])
-  return null
-}
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 
 describe('Button Integration', () => {
   beforeEach(() => {
+    clearUiKitStorage()
     document.documentElement.style.cssText = ''
   })
 
