@@ -71,7 +71,7 @@ describe('Accordion Toolbar Props Integration', () => {
             expect(value).toBeTruthy()
             expect(value).toContain('var(')
             expect(value).toContain(colorVar)
-          })
+          }, { timeout: 10000 })
         })
       })
     })

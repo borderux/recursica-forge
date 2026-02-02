@@ -7,8 +7,9 @@ import { Label } from '../../components/adapters/Label'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
-import { toCssVarName, getComponentCssVar } from '../../components/utils/cssVarNames'
+import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
+import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
@@ -43,6 +44,58 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       return getComponentCssVar('Switch', 'size', 'label-switch-gap', undefined)
     }, [])
     
+    // Get label text styling CSS variables using getComponentTextCssVar (for text style toolbar)
+    const labelTextFontFamilyVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'font-family'), [])
+    const labelTextFontSizeVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'font-size'), [])
+    const labelTextFontWeightVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'font-weight'), [])
+    const labelTextLetterSpacingVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'letter-spacing'), [])
+    const labelTextLineHeightVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'line-height'), [])
+    const labelTextTextDecorationVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'text-decoration'), [])
+    const labelTextTextTransformVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'text-transform'), [])
+    const labelTextFontStyleVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'font-style'), [])
+    
+    // State to force re-render when text CSS variables change
+    const [textVarsUpdate, setTextVarsUpdate] = React.useState(0)
+
+    // Listen for CSS variable updates from the toolbar
+    React.useEffect(() => {
+      const textCssVars = [
+        labelTextFontFamilyVar, labelTextFontSizeVar, labelTextFontWeightVar, labelTextLetterSpacingVar,
+        labelTextLineHeightVar, labelTextTextDecorationVar, labelTextTextTransformVar, labelTextFontStyleVar
+      ]
+      
+      const handleCssVarUpdate = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        const updatedVars = detail?.cssVars || []
+        // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
+        const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
+        if (shouldUpdate) {
+          // Force re-render by updating state
+          setTextVarsUpdate(prev => prev + 1)
+        }
+      }
+      
+      window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+      
+      // Also watch for direct style changes using MutationObserver
+      const observer = new MutationObserver(() => {
+        // Force re-render for text vars
+        setTextVarsUpdate(prev => prev + 1)
+      })
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['style'],
+      })
+      
+      return () => {
+        window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+        observer.disconnect()
+      }
+    }, [
+      labelTextFontFamilyVar, labelTextFontSizeVar, labelTextFontWeightVar, labelTextLetterSpacingVar,
+      labelTextLineHeightVar, labelTextTextDecorationVar, labelTextTextTransformVar, labelTextFontStyleVar
+    ])
+    
     // Build layer text color CSS variables
     const layerTextColorVars = React.useMemo(() => {
       const layerBase = `--recursica-brand-themes-${mode}-layer-${layer}-property`
@@ -59,23 +112,47 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
           <Switch checked={checked1} onChange={setChecked1} layer={layer as ComponentLayer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
           <span style={{
+            fontFamily: labelTextFontFamilyVar ? `var(${labelTextFontFamilyVar})` : undefined,
+            fontSize: labelTextFontSizeVar ? `var(${labelTextFontSizeVar})` : undefined,
+            fontWeight: labelTextFontWeightVar ? `var(${labelTextFontWeightVar})` : undefined,
+            letterSpacing: labelTextLetterSpacingVar ? `var(${labelTextLetterSpacingVar})` : undefined,
+            lineHeight: labelTextLineHeightVar ? `var(${labelTextLineHeightVar})` : undefined,
+            textDecoration: labelTextTextDecorationVar ? (readCssVar(labelTextTextDecorationVar) || 'none') : 'none',
+            textTransform: labelTextTextTransformVar ? (readCssVar(labelTextTextTransformVar) || 'none') : 'none',
+            fontStyle: labelTextFontStyleVar ? (readCssVar(labelTextFontStyleVar) || 'normal') : 'normal',
             color: `var(${layerTextColorVars.textColor})`,
             opacity: `var(${layerTextColorVars.highEmphasis})`,
-          }}>On</span>
+          } as React.CSSProperties}>On</span>
         </label>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
           <Switch checked={checked2} onChange={setChecked2} layer={layer as ComponentLayer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
           <span style={{
+            fontFamily: labelTextFontFamilyVar ? `var(${labelTextFontFamilyVar})` : undefined,
+            fontSize: labelTextFontSizeVar ? `var(${labelTextFontSizeVar})` : undefined,
+            fontWeight: labelTextFontWeightVar ? `var(${labelTextFontWeightVar})` : undefined,
+            letterSpacing: labelTextLetterSpacingVar ? `var(${labelTextLetterSpacingVar})` : undefined,
+            lineHeight: labelTextLineHeightVar ? `var(${labelTextLineHeightVar})` : undefined,
+            textDecoration: labelTextTextDecorationVar ? (readCssVar(labelTextTextDecorationVar) || 'none') : 'none',
+            textTransform: labelTextTextTransformVar ? (readCssVar(labelTextTextTransformVar) || 'none') : 'none',
+            fontStyle: labelTextFontStyleVar ? (readCssVar(labelTextFontStyleVar) || 'normal') : 'normal',
             color: `var(${layerTextColorVars.textColor})`,
             opacity: `var(${layerTextColorVars.highEmphasis})`,
-          }}>Off</span>
+          } as React.CSSProperties}>Off</span>
         </label>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
           <Switch checked={checked3} onChange={setChecked3} disabled layer={layer as ComponentLayer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
           <span style={{
+            fontFamily: labelTextFontFamilyVar ? `var(${labelTextFontFamilyVar})` : undefined,
+            fontSize: labelTextFontSizeVar ? `var(${labelTextFontSizeVar})` : undefined,
+            fontWeight: labelTextFontWeightVar ? `var(${labelTextFontWeightVar})` : undefined,
+            letterSpacing: labelTextLetterSpacingVar ? `var(${labelTextLetterSpacingVar})` : undefined,
+            lineHeight: labelTextLineHeightVar ? `var(${labelTextLineHeightVar})` : undefined,
+            textDecoration: labelTextTextDecorationVar ? (readCssVar(labelTextTextDecorationVar) || 'none') : 'none',
+            textTransform: labelTextTextTransformVar ? (readCssVar(labelTextTextTransformVar) || 'none') : 'none',
+            fontStyle: labelTextFontStyleVar ? (readCssVar(labelTextFontStyleVar) || 'normal') : 'normal',
             color: `var(${layerTextColorVars.textColor})`,
             opacity: `var(${layerTextColorVars.lowEmphasis})`,
-          }}>Disabled</span>
+          } as React.CSSProperties}>Disabled</span>
         </label>
       </div>
     )
@@ -643,6 +720,35 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <button style={{ padding: '6px 10px', border: 0 }}>Third</button>
         </div>
       ),
+    },
+    {
+      name: 'Segmented control item',
+      url: `${base}/segmented-control-item`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const { SegmentedControl } = require('../../components/adapters/SegmentedControl')
+        const { iconNameToReactComponent } = require('../components/iconUtils')
+        const HouseIcon = iconNameToReactComponent('house')
+        const SlidersIcon = iconNameToReactComponent('sliders-horizontal')
+        const UserIcon = iconNameToReactComponent('user')
+        
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', alignItems: 'center' }}>
+            <SegmentedControl
+              items={[
+                { value: 'first', label: 'First', icon: HouseIcon ? <HouseIcon size={16} /> : undefined },
+                { value: 'second', label: 'Second', icon: SlidersIcon ? <SlidersIcon size={16} /> : undefined },
+                { value: 'third', label: 'Third', icon: UserIcon ? <UserIcon size={16} /> : undefined },
+              ]}
+              value="first"
+              onChange={() => {}}
+              orientation="horizontal"
+              fullWidth={false}
+              layer={layer as any}
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Slider',

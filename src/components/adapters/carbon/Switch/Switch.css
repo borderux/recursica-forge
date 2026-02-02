@@ -15,6 +15,15 @@
   pointer-events: none !important;
 }
 
+/* Ensure container and wrapper don't have overflow hidden */
+.recursica-carbon-toggle-wrapper {
+  overflow: visible !important;
+}
+
+.recursica-carbon-toggle-wrapper .cds--toggle__label {
+  overflow: visible !important;
+}
+
 /* Make sure the label wrapper doesn't capture clicks - only the toggle itself should be interactive */
 .recursica-carbon-toggle-wrapper .cds--toggle__label {
   pointer-events: none !important;
@@ -56,6 +65,11 @@
   cursor: pointer !important;
   position: relative;
   z-index: 10;
+}
+
+/* Also add cursor to thumb when not inside label */
+.recursica-carbon-toggle-wrapper .cds--toggle__thumb {
+  cursor: pointer !important;
 }
 
 /* Override thumb background - use wrapper class for scoping */
@@ -121,6 +135,7 @@
   height: var(--recursica-ui-kit-components-switch-track-height) !important;
   padding: var(--recursica-ui-kit-components-switch-properties-track-inner-padding) !important;
   box-sizing: border-box !important;
+  overflow: visible !important;
 }
 
 /* Make the toggle input clickable */

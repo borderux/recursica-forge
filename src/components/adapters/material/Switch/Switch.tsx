@@ -16,10 +16,15 @@ import './Switch.css'
 
 // Initialize Switch wrapper CSS variables on :root so they're always available
 // These are used by Switch.css even when no Switch component is rendered
+// Note: These are initialized without mode prefix - they'll be updated by component instances
+// with mode-specific values when components mount
 if (typeof window !== 'undefined') {
   const root = document.documentElement
   // Initialize with default values - will be overridden by component instances
-  // Use UIKit variable references for track colors (default layer-0, default variant)
+  // Use UIKit variable references for track colors (default layer-0)
+  // Note: getComponentCssVar now includes mode automatically, but at module load time
+  // we don't know the mode yet, so we'll use the mode-specific vars that will be set
+  // by the component instances
   const trackSelectedVar = getComponentCssVar('Switch', 'colors', 'default-track-selected', 'layer-0')
   const trackUnselectedVar = getComponentCssVar('Switch', 'colors', 'default-track-unselected', 'layer-0')
   
@@ -51,6 +56,12 @@ export default function Switch({
   ...props
 }: AdapterSwitchProps) {
   const { mode } = useThemeMode()
+  const [updateKey, setUpdateKey] = useState(0)
+  
+  // Force re-render when mode changes to update CSS variable references
+  useEffect(() => {
+    setUpdateKey(prev => prev + 1)
+  }, [mode])
   
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
   const thumbSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-selected`, layer)
@@ -147,6 +158,7 @@ export default function Switch({
   
   return (
     <MaterialSwitch
+      key={`switch-${mode}-${updateKey}`}
       checked={checked}
       onChange={(e) => onChange(e.target.checked)}
       disabled={disabled}
@@ -202,8 +214,19 @@ export default function Switch({
         },
         ...style,
       }}
-      {...material}
-      {...props}
+      {...(() => {
+        // Filter out sizeVariant from material prop as it's not a valid Material UI Switch prop
+        if (material && typeof material === 'object') {
+          const { sizeVariant: _materialSizeVariant, ...materialWithoutSizeVariant } = material as any
+          return materialWithoutSizeVariant
+        }
+        return {}
+      })()}
+      {...(() => {
+        // Filter out sizeVariant from props as it's not a valid Material UI Switch prop
+        const { sizeVariant: _propsSizeVariant, ...propsWithoutSizeVariant } = props as any
+        return propsWithoutSizeVariant
+      })()}
     />
   )
 }

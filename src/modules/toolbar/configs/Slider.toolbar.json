@@ -18,17 +18,17 @@
         },
         "track-active": {
           "icon": "paint-bucket",
-          "label": "Active Track",
+          "label": "Active track",
           "visible": true
         },
         "track-height": {
           "icon": "arrows-up-down",
-          "label": "Track Height",
+          "label": "Track height",
           "visible": true
         },
         "track-border-radius": {
           "icon": "corners-out",
-          "label": "Track Corner Radius",
+          "label": "Track corner radius",
           "visible": true
         }
       }
@@ -45,12 +45,17 @@
         },
         "thumb-size": {
           "icon": "circle",
-          "label": "Thumb Size",
+          "label": "Thumb size",
           "visible": true
         },
         "thumb-border-radius": {
           "icon": "corners-out",
-          "label": "Thumb Corner Radius",
+          "label": "Thumb corner radius",
+          "visible": true
+        },
+        "thumb-elevation": {
+          "icon": "copy-simple",
+          "label": "Thumb elevation",
           "visible": true
         }
       }
@@ -62,19 +67,29 @@
       "group": {
         "label-slider-gap": {
           "icon": "split-horizontal",
-          "label": "Label Gap",
+          "label": "Label gap",
           "visible": true
         },
         "input-gap": {
           "icon": "split-horizontal",
-          "label": "Input Gap",
+          "label": "Input gap",
           "visible": true
         }
       }
     },
     "input-width": {
       "icon": "arrows-left-right",
-      "label": "Input Width",
+      "label": "Input width",
+      "visible": true
+    },
+    "min-max-label": {
+      "icon": "text-aa",
+      "label": "Min/max label style",
+      "visible": true
+    },
+    "read-only-value": {
+      "icon": "text-aa",
+      "label": "Read-only value style",
       "visible": true
     }
   }

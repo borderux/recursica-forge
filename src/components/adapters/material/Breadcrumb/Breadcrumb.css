@@ -29,10 +29,26 @@
 /* Interactive items (links) */
 .recursica-breadcrumb-item[data-variant="interactive"] {
   color: var(--breadcrumb-interactive-color) !important;
+  font-family: var(--breadcrumb-font-family) !important;
+  font-size: var(--breadcrumb-font-size) !important;
+  font-weight: var(--breadcrumb-font-weight) !important;
+  letter-spacing: var(--breadcrumb-letter-spacing) !important;
+  line-height: var(--breadcrumb-line-height) !important;
+  text-decoration: var(--breadcrumb-text-decoration) !important;
+  text-transform: var(--breadcrumb-text-transform) !important;
+  font-style: var(--breadcrumb-font-style) !important;
 }
 
 /* Read-only items (last item) */
 .recursica-breadcrumb-item[data-variant="read-only"] {
   color: var(--breadcrumb-read-only-color) !important;
+  font-family: var(--breadcrumb-font-family) !important;
+  font-size: var(--breadcrumb-font-size) !important;
+  font-weight: var(--breadcrumb-font-weight) !important;
+  letter-spacing: var(--breadcrumb-letter-spacing) !important;
+  line-height: var(--breadcrumb-line-height) !important;
+  text-decoration: var(--breadcrumb-text-decoration) !important;
+  text-transform: var(--breadcrumb-text-transform) !important;
+  font-style: var(--breadcrumb-font-style) !important;
 }
 

@@ -4,7 +4,7 @@
  * This file provides an abstraction layer for icon libraries, allowing
  * easy switching between different icon libraries without changing code.
  * 
- * Currently using: Phosphor Icons
+ * Currently using: Phosphor Icons and Radix UI Icons
  * To switch libraries, update the imports and iconMap below.
  */
 
@@ -39,6 +39,7 @@ import {
   CaretUp,
   Check,
   CheckCircle,
+  CheckSquare,
   Circle,
   CircleHalf,
   CircleHalfTilt,
@@ -78,10 +79,16 @@ import {
   SplitHorizontal,
   Square,
   SquareLogo,
+  SquaresFour,
   Stack,
   Sun,
   Swap,
+  TextAUnderline,
   TextAa,
+  TextItalic,
+  TextStrikethrough,
+  TextT,
+  TextUnderline,
   Trash,
   Upload,
   User,
@@ -89,9 +96,66 @@ import {
   X,
 } from '@phosphor-icons/react'
 
+// Import Radix UI typography icons
+import {
+  FontItalicIcon,
+  FontRomanIcon,
+  UnderlineIcon,
+  StrikethroughIcon,
+  TextNoneIcon,
+  TextIcon,
+  FontBoldIcon,
+  FontSizeIcon,
+  LetterCaseCapitalizeIcon,
+  LetterCaseLowercaseIcon,
+  LetterCaseUppercaseIcon,
+} from '@radix-ui/react-icons'
+
+// Wrapper to normalize Radix icon props (Radix uses width/height, not size)
+function createRadixIconWrapper(RadixIcon: React.ComponentType<any>): IconComponent {
+  return ({ size, style, ...props }) => {
+    const width = size || props.width || 16
+    const height = size || props.height || 16
+    return React.createElement(RadixIcon, {
+      width,
+      height,
+      style,
+      ...props
+    })
+  }
+}
+
 // Simple slash icon component (Phosphor doesn't have a slash icon)
 const SlashIcon: IconComponent = ({ style, ...props }) => {
   return React.createElement('span', { style: { display: 'inline-block', ...style }, ...props }, '/')
+}
+
+// Text T with slash icon (custom combination)
+const TextTSlashIcon: IconComponent = ({ style, size = 16, ...props }) => {
+  return React.createElement('div', {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      width: size,
+      height: size,
+      ...style
+    },
+    ...props
+  }, [
+    React.createElement(TextT, { key: 'text-t', size, style: { opacity: 0.5 } }),
+    React.createElement('span', {
+      key: 'slash',
+      style: {
+        position: 'absolute',
+        fontSize: `${(size as number) * 0.8}px`,
+        fontWeight: 'bold',
+        transform: 'rotate(-15deg)',
+        color: 'currentColor',
+      }
+    }, '/')
+  ])
 }
 
 // Type for icon component props
@@ -172,6 +236,25 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'arrow-top-right-on-square': Link,
   'trash': Trash,
   'text-aa': TextAa,
+  'text-underline': TextUnderline,
+  'text-strikethrough': TextStrikethrough,
+  'text-t': TextT,
+  'text-a-underline': TextAUnderline,
+  'text-t-slash': TextTSlashIcon,
+  'text-italic': TextItalic,
+  
+  // Radix UI typography icons (wrapped to normalize props)
+  'radix-font-italic': createRadixIconWrapper(FontItalicIcon),
+  'radix-font-roman': createRadixIconWrapper(FontRomanIcon),
+  'radix-underline': createRadixIconWrapper(UnderlineIcon),
+  'radix-strikethrough': createRadixIconWrapper(StrikethroughIcon),
+  'radix-text-none': createRadixIconWrapper(TextNoneIcon),
+  'radix-text': createRadixIconWrapper(TextIcon),
+  'radix-font-bold': createRadixIconWrapper(FontBoldIcon),
+  'radix-font-size': createRadixIconWrapper(FontSizeIcon),
+  'radix-letter-case-uppercase': createRadixIconWrapper(LetterCaseUppercaseIcon),
+  'radix-letter-case-lowercase': createRadixIconWrapper(LetterCaseLowercaseIcon),
+  'radix-letter-case-capitalize': createRadixIconWrapper(LetterCaseCapitalizeIcon),
   'frame-corners': FrameCorners,
   'corners-out': CornersOut,
   'palette': Palette,
@@ -213,6 +296,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'edit': Pencil,
   'warning': Warning,
   'arrows-in': ArrowsIn,
+  'x': X,
+  'check-square': CheckSquare,
+  'squares-four': SquaresFour,
 }
 
 /**

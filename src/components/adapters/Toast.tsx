@@ -7,7 +7,7 @@
 
 import React, { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { parseElevationValue, getElevationBoxShadow } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -20,7 +20,6 @@ export type ToastProps = {
   variant?: 'default' | 'success' | 'error'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  alternativeLayer?: string | null // e.g., "high-contrast", "none", null
   className?: string
   style?: React.CSSProperties
   icon?: React.ReactNode
@@ -33,7 +32,6 @@ export function Toast({
   variant = 'default',
   layer = 'layer-0',
   elevation,
-  alternativeLayer,
   className,
   style,
   icon,
@@ -46,10 +44,9 @@ export function Toast({
   const Component = useComponent('Toast')
   const { mode } = useThemeMode()
   
-  // Get elevation and alternative-layer from CSS vars if not provided as props
+  // Get elevation from CSS vars if not provided as props
   // These are set by the toolbar and initialized from UIKit.json
   const elevationVar = getComponentLevelCssVar('Toast', 'elevation')
-  const alternativeLayerVar = getComponentLevelCssVar('Toast', 'alternative-layer')
   
   // Reactively read elevation from CSS variable
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
@@ -57,23 +54,14 @@ export function Toast({
     return value ? parseElevationValue(value) : undefined
   })
   
-  // Reactively read alternative layer from CSS variable
-  const [alternativeLayerFromVar, setAlternativeLayerFromVar] = useState<string | null>(() => {
-    const value = readCssVar(alternativeLayerVar)
-    return value === 'none' ? null : (value || null)
-  })
-  
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       // Update if these CSS vars were updated or if no specific vars were specified
-      if (!detail?.cssVars || detail.cssVars.includes(elevationVar) || detail.cssVars.includes(alternativeLayerVar)) {
+      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
         const elevationValue = readCssVar(elevationVar)
         setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
-        
-        const altLayerValue = readCssVar(alternativeLayerVar)
-        setAlternativeLayerFromVar(altLayerValue === 'none' ? null : (altLayerValue || null))
       }
     }
     
@@ -83,9 +71,6 @@ export function Toast({
     const observer = new MutationObserver(() => {
       const elevationValue = readCssVar(elevationVar)
       setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
-      
-      const altLayerValue = readCssVar(alternativeLayerVar)
-      setAlternativeLayerFromVar(altLayerValue === 'none' ? null : (altLayerValue || null))
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -96,21 +81,21 @@ export function Toast({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [elevationVar, alternativeLayerVar])
+  }, [elevationVar])
   
   const componentElevation = elevation ?? elevationFromVar ?? undefined
-  const componentAlternativeLayer = alternativeLayer !== undefined 
-    ? alternativeLayer 
-    : alternativeLayerFromVar
   
   if (!Component) {
     // Fallback to native div if component not available
     const CloseIcon = iconNameToReactComponent('x-mark')
     const bgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
     const textVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
-    const buttonVar = (variant === 'success' || variant === 'error')
-      ? getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
-      : null
+    // Button color uses the core color's interactive property for success/error variants
+    // Map variant to core color: success -> success, error -> alert, default -> no override (use Button default)
+    const coreColorName = variant === 'success' ? 'success' : variant === 'error' ? 'alert' : null
+    const buttonVar = coreColorName
+      ? `--recursica-brand-themes-${mode}-palettes-core-${coreColorName}-interactive`
+      : undefined
     // Get component-level CSS variables (these are under toast.properties in UIKit.json)
     const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
     const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
@@ -118,7 +103,56 @@ export function Toast({
     const maxWidthVar = getComponentLevelCssVar('Toast', 'max-width')
     const iconVar = getComponentLevelCssVar('Toast', 'icon')
     const spacingVar = getComponentLevelCssVar('Toast', 'spacing')
-    const textSizeVar = getComponentLevelCssVar('Toast', 'text-size')
+    
+    // Get text style CSS variables
+    const textFontFamilyVar = getComponentTextCssVar('Toast', 'text', 'font-family')
+    const textFontSizeVar = getComponentTextCssVar('Toast', 'text', 'font-size')
+    const textFontWeightVar = getComponentTextCssVar('Toast', 'text', 'font-weight')
+    const textLetterSpacingVar = getComponentTextCssVar('Toast', 'text', 'letter-spacing')
+    const textLineHeightVar = getComponentTextCssVar('Toast', 'text', 'line-height')
+    const textDecorationVar = getComponentTextCssVar('Toast', 'text', 'text-decoration')
+    const textTransformVar = getComponentTextCssVar('Toast', 'text', 'text-transform')
+    const textFontStyleVar = getComponentTextCssVar('Toast', 'text', 'font-style')
+    
+    // Reactivity for text style CSS variables
+    const [textVarsUpdate, setTextVarsUpdate] = useState(0)
+    useEffect(() => {
+      const textCssVars = [
+        textFontFamilyVar,
+        textFontSizeVar,
+        textFontWeightVar,
+        textLetterSpacingVar,
+        textLineHeightVar,
+        textDecorationVar,
+        textTransformVar,
+        textFontStyleVar,
+      ].filter(Boolean) as string[]
+      
+      const handleCssVarUpdate = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        const updatedVars = detail?.cssVars || []
+        const shouldUpdate = updatedVars.length === 0 || updatedVars.some((v: string) => textCssVars.includes(v))
+        
+        if (shouldUpdate) {
+          setTextVarsUpdate(prev => prev + 1)
+        }
+      }
+      
+      window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+      
+      const observer = new MutationObserver(() => {
+        setTextVarsUpdate(prev => prev + 1)
+      })
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['style'],
+      })
+      
+      return () => {
+        window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+        observer.disconnect()
+      }
+    }, [textFontFamilyVar, textFontSizeVar, textFontWeightVar, textLetterSpacingVar, textLineHeightVar, textDecorationVar, textTransformVar, textFontStyleVar])
     
     // Build box-shadow from elevation if set (and not elevation-0)
     const boxShadow = getElevationBoxShadow(mode, componentElevation)
@@ -164,7 +198,17 @@ export function Toast({
             </span>
           </>
         )}
-        <span style={{ flex: 1, fontSize: `var(${textSizeVar})` }}>{children}</span>
+        <span style={{
+          flex: 1,
+          fontFamily: textFontFamilyVar ? `var(${textFontFamilyVar})` : undefined,
+          fontSize: textFontSizeVar ? `var(${textFontSizeVar})` : undefined,
+          fontWeight: textFontWeightVar ? `var(${textFontWeightVar})` : undefined,
+          letterSpacing: textLetterSpacingVar ? `var(${textLetterSpacingVar})` : undefined,
+          lineHeight: textLineHeightVar ? `var(${textLineHeightVar})` : undefined,
+          textDecoration: textDecorationVar ? `var(${textDecorationVar})` : undefined,
+          textTransform: textTransformVar ? `var(${textTransformVar})` as React.CSSProperties['textTransform'] : undefined,
+          fontStyle: textFontStyleVar ? `var(${textFontStyleVar})` : undefined,
+        }}>{children}</span>
         {action && <span style={{ flexShrink: 0 }}>{action}</span>}
         {onClose && (
           <Button
@@ -175,17 +219,16 @@ export function Toast({
             style={{
               backgroundColor: 'transparent',
               '--button-bg': 'transparent',
+              opacity: 1,
               minWidth: 'auto',
               width: 'auto',
               height: 'auto',
               padding: 0,
               flexShrink: 0,
-              ...(buttonVar
-                ? {
-                    color: `var(${buttonVar})`,
-                    '--button-color': `var(${buttonVar})`,
-                  }
-                : {}),
+              ...(buttonVar ? {
+                color: `var(${buttonVar})`,
+                '--button-color': `var(${buttonVar})`,
+              } : {}),
             } as React.CSSProperties}
           >
             {CloseIcon ? <CloseIcon /> : '×'}
@@ -200,7 +243,6 @@ export function Toast({
     variant,
     layer,
     elevation: componentElevation,
-    alternativeLayer: componentAlternativeLayer,
     className,
     style,
     icon,
@@ -218,7 +260,7 @@ export function Toast({
   )
 }
 
-function mapToastProps(props: ToastProps & { elevation?: string; alternativeLayer?: string | null }): any {
+function mapToastProps(props: ToastProps & { elevation?: string }): any {
   const { mantine, material, carbon, ...rest } = props
   
   // Base props that work across libraries

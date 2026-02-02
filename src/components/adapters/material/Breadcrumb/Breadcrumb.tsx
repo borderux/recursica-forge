@@ -6,7 +6,7 @@
 
 import { Breadcrumbs as MuiBreadcrumbs, Link, Typography } from '@mui/material'
 import type { BreadcrumbProps as AdapterBreadcrumbProps, BreadcrumbItem } from '../../Breadcrumb'
-import { buildVariantColorCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Breadcrumb.css'
 
@@ -31,6 +31,16 @@ export default function Breadcrumb({
   const iconLabelGapVar = getComponentLevelCssVar('Breadcrumb', 'icon-label-gap')
   const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
   const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon-size')
+  
+  // Get text CSS variables
+  const fontFamilyVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-family')
+  const fontSizeVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-size')
+  const fontWeightVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-weight')
+  const letterSpacingVar = getComponentTextCssVar('Breadcrumb', 'text', 'letter-spacing')
+  const lineHeightVar = getComponentTextCssVar('Breadcrumb', 'text', 'line-height')
+  const textDecorationVar = getComponentTextCssVar('Breadcrumb', 'text', 'text-decoration')
+  const textTransformVar = getComponentTextCssVar('Breadcrumb', 'text', 'text-transform')
+  const fontStyleVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-style')
   
   // Get separator icon component
   const separatorIconMap: Record<string, string> = {
@@ -134,6 +144,14 @@ export default function Breadcrumb({
       '--breadcrumb-interactive-color': `var(${interactiveColorVar})`,
       '--breadcrumb-read-only-color': `var(${readOnlyColorVar})`,
       '--breadcrumb-separator-color': `var(${separatorColorVar})`,
+      '--breadcrumb-font-family': `var(${fontFamilyVar})`,
+      '--breadcrumb-font-size': `var(${fontSizeVar})`,
+      '--breadcrumb-font-weight': `var(${fontWeightVar})`,
+      '--breadcrumb-letter-spacing': `var(${letterSpacingVar})`,
+      '--breadcrumb-line-height': `var(${lineHeightVar})`,
+      '--breadcrumb-text-decoration': `var(${textDecorationVar})`,
+      '--breadcrumb-text-transform': `var(${textTransformVar})`,
+      '--breadcrumb-font-style': `var(${fontStyleVar})`,
       padding: `var(${paddingVar})`,
       ...style,
       ...material?.style,

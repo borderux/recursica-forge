@@ -77,9 +77,9 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         return
       }
 
-      // Check if this key is a category container (styles, sizes, layouts) when traversing nested variants
+      // Check if this key is a category container (styles, sizes, layouts, orientation, fill-width) when traversing nested variants
       // This handles cases like variants.layouts.stacked.variants.sizes where we traverse directly into the nested variants object
-      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts') && 
+      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width') && 
                                    typeof value === 'object' && 
                                    value !== null &&
                                    !('$value' in value) &&
@@ -92,8 +92,13 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         const variantNames = Object.keys(categoryObj).filter(k => !k.startsWith('$'))
         
         if (variantNames.length > 0) {
-          const finalPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
-          const isNestedSize = finalPropName === 'size' && variantProp === 'layout'
+            const finalPropName = categoryKey === 'styles' ? 'style' 
+              : categoryKey === 'sizes' ? 'size' 
+              : categoryKey === 'layouts' ? 'layout'
+              : categoryKey === 'orientation' ? 'orientation'
+              : categoryKey === 'fill-width' ? 'fill-width'
+              : categoryKey
+            const isNestedSize = finalPropName === 'size' && variantProp === 'layout'
           const shouldAdd = isNestedSize || !seenVariants.has(finalPropName)
           
           if (shouldAdd) {
@@ -115,7 +120,12 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         }
         
         // Continue traversing into the category container
-        const variantPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
+        const variantPropName = categoryKey === 'styles' ? 'style' 
+          : categoryKey === 'sizes' ? 'size' 
+          : categoryKey === 'layouts' ? 'layout'
+          : categoryKey === 'orientation' ? 'orientation'
+          : categoryKey === 'fill-width' ? 'fill-width'
+          : categoryKey
         traverse(categoryObj, currentPath, variantPropName)
         return
       }
@@ -138,7 +148,12 @@ export function parseComponentStructure(componentName: string): ComponentStructu
               
               if (variantNames.length > 0) {
                 // Determine prop name based on category
-                const finalPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
+                const finalPropName = categoryKey === 'styles' ? 'style' 
+                  : categoryKey === 'sizes' ? 'size' 
+                  : categoryKey === 'layouts' ? 'layout'
+                  : categoryKey === 'orientation' ? 'orientation'
+                  : categoryKey === 'fill-width' ? 'fill-width'
+                  : categoryKey
                 
                 // For nested variants (e.g., size inside layout), check if we should add it
                 // If we're already inside a layout variant, and this is a size category, add it
@@ -354,7 +369,11 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         
         const type = (value as any).$type
         const fullPath = ['components', componentKey, ...currentPath]
-        const cssVar = toCssVarName(fullPath.join('.'))
+        // Read mode from document to generate mode-specific CSS var names
+        const mode = typeof document !== 'undefined' 
+          ? (document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null) ?? 'light'
+          : 'light'
+        const cssVar = toCssVarName(fullPath.join('.'), mode)
         
         // Determine if this is variant-specific
         // A prop is variant-specific if "variants" appears in its path
@@ -392,6 +411,46 @@ export function parseComponentStructure(componentName: string): ComponentStructu
       } else {
         // Continue traversing - this is an object (not a value)
         // In new structure, variant values like "solid" are objects containing "color"
+        
+        // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text, min-max-label, read-only-value)
+        // Text property groups are objects containing text-related properties (font-family, font-size, etc.)
+        // We need to create a prop for the parent group so it shows up in the toolbar
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value']
+        const isTextPropertyGroup = textPropertyGroupNames.includes(key.toLowerCase()) && 
+                                     typeof value === 'object' && 
+                                     value !== null &&
+                                     !('$type' in value) &&
+                                     prefix.includes('properties')
+        
+        if (isTextPropertyGroup) {
+          // Check if this object contains text-related properties
+          const textPropertyNames = ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'text-decoration', 'text-transform', 'font-style']
+          const hasTextProperties = textPropertyNames.some(textPropName => 
+            (value as any)[textPropName] !== undefined
+          )
+          
+          if (hasTextProperties) {
+            // Create a prop for the text property group itself
+            // Use a special type 'text-group' to identify it
+            const fullPath = ['components', componentKey, ...currentPath]
+            // Read mode from document to generate mode-specific CSS var names
+            const mode = typeof document !== 'undefined' 
+              ? (document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null) ?? 'light'
+              : 'light'
+            const cssVar = toCssVarName(fullPath.join('.'), mode)
+            
+            props.push({
+              name: key,
+              category: 'size', // Text properties are component-level, use 'size' category
+              type: 'text-group', // Special type to identify text property groups
+              cssVar, // This will be the base CSS var path, individual properties will have their own vars
+              path: currentPath,
+              isVariantSpecific: false,
+              variantProp: undefined,
+            })
+          }
+        }
+        
         traverse(value, currentPath, variantProp)
       }
     })
@@ -474,7 +533,11 @@ export function getComponentDefaultValues(componentName: string): Record<string,
 
       if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
         const fullPath = ['components', componentKey, ...currentPath]
-        const cssVar = toCssVarName(fullPath.join('.'))
+        // Read mode from document to generate mode-specific CSS var names
+        const mode = typeof document !== 'undefined' 
+          ? (document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null) ?? 'light'
+          : 'light'
+        const cssVar = toCssVarName(fullPath.join('.'), mode)
         const rawValue = (value as any).$value
 
         // Extract the actual value (could be a token reference)

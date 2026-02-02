@@ -13,23 +13,16 @@
     "background": {
       "icon": "paint-bucket",
       "label": "Background",
-      "visible": true,
-      "group": {
-        "background": {
-          "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
-        },
-        "background-hover": {
-          "icon": "paint-bucket",
-          "label": "Background Hover",
-          "visible": true
-        }
-      }
+      "visible": true
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text",
+      "label": "Text style",
+      "visible": true
+    },
+    "text-color": {
+      "icon": "text-aa",
+      "label": "Text color",
       "visible": true,
       "group": {
         "text": {
@@ -39,7 +32,7 @@
         },
         "text-hover": {
           "icon": "text-aa",
-          "label": "Text Hover",
+          "label": "Text hover",
           "visible": true
         }
       }
@@ -56,7 +49,7 @@
         },
         "border-radius": {
           "icon": "corners-out",
-          "label": "Corner Radius",
+          "label": "Corner radius",
           "visible": true
         },
         "border-color": {
@@ -78,19 +71,19 @@
       "group": {
         "min-width": {
           "icon": "arrows-in-line-horizontal",
-          "label": "Min Width",
+          "label": "Min width",
           "visible": true
         },
         "max-width": {
           "icon": "arrows-out-line-horizontal",
-          "label": "Max Width",
+          "label": "Max content width",
           "visible": true
         }
       }
     },
     "icon": {
       "icon": "diamond",
-      "label": "Icon Size",
+      "label": "Icon size",
       "visible": true
     },
     "spacing": {
@@ -99,11 +92,11 @@
       "visible": true,
       "group": {
         "icon-text-gap": {
-          "label": "Gap between Icon and Text",
+          "label": "Gap between icon and text",
           "visible": true
         },
         "horizontal-padding": {
-          "label": "Horizontal Padding",
+          "label": "Horizontal padding",
           "visible": true
         }
       }

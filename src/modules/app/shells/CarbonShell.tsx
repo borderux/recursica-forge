@@ -4,7 +4,7 @@
  * App frame using IBM Carbon components; lazy-loads Carbon and wiring for
  * navigation, reset defaults and import/export of CSS variables.
  */
-import { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
+import React, { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import type { UiKit } from '../../uikit/UiKitContext'
@@ -17,6 +17,9 @@ import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, Expo
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
 import { Button } from '../../../components/adapters/Button'
 import { Tooltip } from '../../../components/adapters/Tooltip'
+import { Switch } from '../../../components/adapters/Switch'
+import { SegmentedControl } from '../../../components/adapters/SegmentedControl'
+import type { SegmentedControlItem } from '../../../components/adapters/SegmentedControl'
 import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { Tabs } from '../../../components/adapters/Tabs'
@@ -25,6 +28,10 @@ import { getVarsStore } from '../../../core/store/varsStore'
 import { createBugReport } from '../utils/bugReport'
 import { randomizeAllVariables } from '../../../core/utils/randomizeVariables'
 import { RandomizeOptionsModal } from '../../../core/utils/RandomizeOptionsModal'
+import { getCssAuditAutoRun, setCssAuditAutoRun } from '../../../core/utils/cssAuditPreference'
+// Use static imports for Carbon React components (same pattern as other adapters)
+import { Select, SelectItem, Theme, ComposedModal, ModalHeader, ModalBody, ModalFooter } from '@carbon/react'
+import '@carbon/styles/css/styles.css'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -38,10 +45,10 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
   const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
   const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
   const buttonSolidText = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
-  const [carbon, setCarbon] = useState<any>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
   const [showRandomizeModal, setShowRandomizeModal] = useState(false)
+  const [cssAuditAutoRun, setCssAuditAutoRunState] = useState(() => getCssAuditAutoRun())
   const { handleExport, showSelectionModal, showComplianceModal, showValidationModal, showGitHubModal, githubExportFiles, validationErrors, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleValidationModalClose, handleExportToGithub, handleGitHubExportCancel, handleGitHubExportSuccess } = useJsonExport()
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   
@@ -98,18 +105,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
     })
   }
 
-  useEffect(() => {
-    let mounted = true
-    Promise.all([
-      import('@carbon/react'),
-      import('@carbon/styles/css/styles.css'),
-    ]).then(([c]) => {
-      if (mounted) setCarbon(c)
-    })
-    return () => {
-      mounted = false
-    }
-  }, [])
+  // Carbon React components are now statically imported (removed dynamic import)
 
   const headerRef = useRef<HTMLElement>(null)
 
@@ -130,9 +126,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
     return () => window.removeEventListener('resize', updateHeaderHeight)
   }, [mode])
 
-  if (!carbon) return <div style={{ padding: 'var(--recursica-brand-dimensions-general-lg)' }}>Loading Carbon…</div>
-
-  const { Select, SelectItem, Theme, Grid, Column, ComposedModal, ModalHeader, ModalBody, ModalFooter, Toggle } = carbon
+  // Carbon React components are now statically imported, so they're always available
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
   const showSidebar = location.pathname.startsWith('/tokens')
@@ -215,8 +209,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     background: currentRoute === 'tokens' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: currentRoute === 'tokens' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
                     opacity: currentRoute === 'tokens' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                    fontWeight: currentRoute === 'tokens' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
-                    fontSize: 'var(--recursica-brand-typography-button-font-size)',
+                    fontWeight: currentRoute === 'tokens' ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
+                    fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     borderRadius: `var(${buttonBorderRadius})`,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
@@ -234,8 +228,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     background: currentRoute === 'theme' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: currentRoute === 'theme' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
                     opacity: currentRoute === 'theme' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                    fontWeight: currentRoute === 'theme' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
-                    fontSize: 'var(--recursica-brand-typography-button-font-size)',
+                    fontWeight: currentRoute === 'theme' ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
+                    fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     borderRadius: `var(${buttonBorderRadius})`,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
@@ -253,8 +247,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     background: currentRoute === 'components' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: currentRoute === 'components' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
                     opacity: currentRoute === 'components' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                    fontWeight: currentRoute === 'components' ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
-                    fontSize: 'var(--recursica-brand-typography-button-font-size)',
+                    fontWeight: currentRoute === 'components' ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
+                    fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     borderRadius: `var(${buttonBorderRadius})`,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
@@ -328,17 +322,31 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
               />
             </Tooltip>
             {process.env.NODE_ENV === 'development' && (
-              <Tooltip label="Randomize all variables (dev only)">
-                <Button
-                  variant="outline"
-                  size="small"
-                  icon={(() => {
-                    const ShuffleIcon = iconNameToReactComponent('swap')
-                    return ShuffleIcon ? <ShuffleIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                  })()}
-                  onClick={() => setShowRandomizeModal(true)}
-                />
-              </Tooltip>
+              <>
+                <Tooltip label="Randomize all variables (dev only)">
+                  <Button
+                    variant="outline"
+                    size="small"
+                    icon={(() => {
+                      const ShuffleIcon = iconNameToReactComponent('swap')
+                      return ShuffleIcon ? <ShuffleIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                    })()}
+                    onClick={() => setShowRandomizeModal(true)}
+                  />
+                </Tooltip>
+                <Tooltip label="Auto-run CSS audit (dev only)">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
+                    <Switch
+                      checked={cssAuditAutoRun}
+                      onChange={(checked) => {
+                        setCssAuditAutoRunState(checked)
+                        setCssAuditAutoRun(checked)
+                      }}
+                      sizeVariant="small"
+                    />
+                  </div>
+                </Tooltip>
+              </>
             )}
             <div style={{ minWidth: 180 }}>
               <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
@@ -361,77 +369,31 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
             const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
             
+            const SunIcon = iconNameToReactComponent('sun')
+            const MoonIcon = iconNameToReactComponent('moon')
+            const modeItems: SegmentedControlItem[] = [
+              {
+                value: 'light',
+                icon: SunIcon ? <SunIcon style={{ width: `var(${buttonSmallIcon})`, height: `var(${buttonSmallIcon})` }} /> : undefined,
+                tooltip: 'Light theme',
+              },
+              {
+                value: 'dark',
+                icon: MoonIcon ? <MoonIcon style={{ width: `var(${buttonSmallIcon})`, height: `var(${buttonSmallIcon})` }} /> : undefined,
+                tooltip: 'Dark theme',
+              },
+            ]
+            
             return (
-              <div style={{ 
-                display: 'inline-flex', 
-                alignItems: 'center',
-                backgroundColor: `var(${layer0Base}-surface)`,
-                border: `1px solid var(${layer0Base}-border-color)`,
-                borderRadius: `var(${buttonBorderRadius})`,
-                padding: `var(${buttonSmallIconPadding})`,
-                gap: 0,
-              }}>
-                <Tooltip label="Light theme">
-                  <button
-                    onClick={() => setMode('light')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: `var(${buttonSmallMinWidth})`,
-                      height: `var(${buttonSmallHeight})`,
-                      minWidth: `var(${buttonSmallMinWidth})`,
-                      border: 'none',
-                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
-                      backgroundColor: mode === 'light' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
-                      color: mode === 'light' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                      opacity: mode === 'light' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {(() => {
-                      const SunIcon = iconNameToReactComponent('sun')
-                      return SunIcon ? <SunIcon 
-                        style={{ 
-                          width: `var(${buttonSmallIcon})`, 
-                          height: `var(${buttonSmallIcon})`,
-                        }} 
-                      /> : null
-                    })()}
-                  </button>
-                </Tooltip>
-                <Tooltip label="Dark theme">
-                  <button
-                    onClick={() => setMode('dark')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: `var(${buttonSmallMinWidth})`,
-                      height: `var(${buttonSmallHeight})`,
-                      minWidth: `var(${buttonSmallMinWidth})`,
-                      border: 'none',
-                      borderRadius: `calc(var(${buttonBorderRadius}) - var(${buttonSmallIconPadding}))`,
-                      backgroundColor: mode === 'dark' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
-                      color: mode === 'dark' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                      opacity: mode === 'dark' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {(() => {
-                      const MoonIcon = iconNameToReactComponent('moon')
-                      return MoonIcon ? <MoonIcon
-                        style={{ 
-                          width: `var(${buttonSmallIcon})`, 
-                          height: `var(${buttonSmallIcon})`,
-                        }} 
-                      /> : null
-                    })()}
-                  </button>
-                </Tooltip>
-              </div>
+              <SegmentedControl
+                items={modeItems}
+                value={mode}
+                onChange={(value) => setMode(value as 'light' | 'dark')}
+                orientation="horizontal"
+                fullWidth={false}
+                layer="layer-0"
+                componentNameForCssVars="SegmentedControl"
+              />
             )
           })()}
         </div>
