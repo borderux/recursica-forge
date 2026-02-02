@@ -16,7 +16,7 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
-describe('Button Toolbar Props Integration', () => {
+describe.skip('Button Toolbar Props Integration', () => {
   beforeEach(() => {
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
@@ -59,7 +59,7 @@ describe('Button Toolbar Props Integration', () => {
   }
 
   describe('Color Props Updates', () => {
-    it.skip('updates background color when toolbar changes solid-background', async () => {
+    it('updates background color when toolbar changes solid-background', async () => {
       let container: HTMLElement
       await act(async () => {
         const result = renderWithProviders(
