@@ -4,10 +4,12 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Accordion } from '../Accordion'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../utils/cssVarNames'
 
 describe('Accordion CSS Variables', () => {
   beforeEach(() => {
+    clearUiKitStorage()
     document.documentElement.style.cssText = ''
   })
 
@@ -16,6 +18,7 @@ describe('Accordion CSS Variables', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>

@@ -4,10 +4,12 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 import { readCssVar } from '../../../core/css/readCssVar'
 
 describe('Button CSS Variables', () => {
   beforeEach(() => {
+    clearUiKitStorage()
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
   })
@@ -22,6 +24,7 @@ describe('Button CSS Variables', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>

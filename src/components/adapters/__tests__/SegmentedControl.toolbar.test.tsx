@@ -18,6 +18,7 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { SegmentedControl } from '../SegmentedControl'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
 
@@ -26,6 +27,7 @@ describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, 
   // Components will load lazily via Suspense, which is tested behavior
 
   beforeEach(() => {
+    clearUiKitStorage()
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
     // Clear any pending timers
@@ -57,6 +59,7 @@ describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, 
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>

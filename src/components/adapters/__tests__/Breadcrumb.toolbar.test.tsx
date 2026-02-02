@@ -12,12 +12,14 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Breadcrumb } from '../Breadcrumb'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
 describe('Breadcrumb Toolbar Props Integration', () => {
   beforeEach(() => {
+    clearUiKitStorage()
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
   })
@@ -32,6 +34,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>
@@ -265,6 +268,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
         <UiKitProvider>
           <ThemeModeProvider>
             <UnifiedThemeProvider>
+              <KitSwitcher kit="mantine" />
               <Breadcrumb items={sampleItems} layer="layer-1" />
             </UnifiedThemeProvider>
           </ThemeModeProvider>

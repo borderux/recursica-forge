@@ -4,12 +4,14 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Accordion } from '../Accordion'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../utils/cssVarNames'
 import type { ComponentLayer } from '../../registry/types'
 
 describe('Accordion Toolbar Props Integration', () => {
   beforeEach(() => {
+    clearUiKitStorage()
     document.documentElement.style.cssText = ''
   })
 
@@ -22,6 +24,7 @@ describe('Accordion Toolbar Props Integration', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>
@@ -266,6 +269,7 @@ describe('Accordion Toolbar Props Integration', () => {
           <UiKitProvider>
             <ThemeModeProvider>
               <UnifiedThemeProvider>
+                <KitSwitcher kit="mantine" />
                 <Accordion
                   items={[
                     { id: 'a', title: 'Item A', content: 'Content A', open: true },

@@ -4,9 +4,11 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Accordion } from '../Accordion'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 
 describe('Accordion Component (Adapter)', () => {
   beforeEach(async () => {
+    clearUiKitStorage()
     document.documentElement.style.cssText = ''
     await new Promise(resolve => setTimeout(resolve, 100))
   })
@@ -16,6 +18,7 @@ describe('Accordion Component (Adapter)', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>

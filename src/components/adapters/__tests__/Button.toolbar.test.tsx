@@ -12,12 +12,14 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
+import { KitSwitcher, clearUiKitStorage } from './adapterTestUtils'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentCssVar, getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
 describe('Button Toolbar Props Integration', () => {
   beforeEach(() => {
+    clearUiKitStorage()
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
   })
@@ -32,6 +34,7 @@ describe('Button Toolbar Props Integration', () => {
       <UiKitProvider>
         <ThemeModeProvider>
           <UnifiedThemeProvider>
+            <KitSwitcher kit="mantine" />
             {ui}
           </UnifiedThemeProvider>
         </ThemeModeProvider>
@@ -543,6 +546,7 @@ describe('Button Toolbar Props Integration', () => {
           <UiKitProvider>
             <ThemeModeProvider>
               <UnifiedThemeProvider>
+                <KitSwitcher kit="mantine" />
                 <Button variant="outline" layer="layer-0">Test</Button>
               </UnifiedThemeProvider>
             </ThemeModeProvider>
