@@ -13,6 +13,7 @@ import ElevationsPage from './modules/elevation/ElevationsPage'
 import ThemePage from './modules/theme/ThemePage'
 import DimensionsPage from './modules/dimensions/DimensionsPage'
 import { NotFoundPage } from './modules/app/NotFoundPage'
+import { AuthCallbackPage } from './modules/app/AuthCallbackPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { ThemeModeProvider } from './modules/theme/ThemeModeContext'
 import { VarsProvider } from './modules/vars/VarsContext'
@@ -74,6 +75,7 @@ const router = createBrowserRouter([
       { path: '/type', element: <Navigate to="/theme/type" replace /> },
       { path: '/layers', element: <Navigate to="/theme/layers" replace /> },
       { path: '/elevation', element: <Navigate to="/theme/elevations" replace /> },
+      { path: '/auth/callback', element: <AuthCallbackPage /> },
       {
         path: '/theme',
         element: <ThemePage />,
