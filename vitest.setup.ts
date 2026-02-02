@@ -5,7 +5,7 @@ import { configure, cleanup as rtlCleanup } from '@testing-library/react'
 // Configure testing library
 configure({ 
   testIdAttribute: 'data-testid',
-  asyncUtilTimeout: 10000, // Increase timeout for CI environments
+  asyncUtilTimeout: 30000, // Match testTimeout for waitFor and other async utils
 })
 
 // Suppress act() warnings from component internal useEffect hooks
