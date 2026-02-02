@@ -258,24 +258,6 @@ export default function SegmentedControl({
     const root = wrapperRef.current.querySelector('.mantine-SegmentedControl-root')
     if (!root) return
     
-    // #region agent log
-    // Check for indicator element and log its styles
-    const indicator = root.querySelector('.mantine-SegmentedControl-indicator')
-    if (indicator) {
-      const styles = window.getComputedStyle(indicator)
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:262',message:'Indicator element found',data:{display:styles.display,visibility:styles.visibility,opacity:styles.opacity,backgroundColor:styles.backgroundColor,background:styles.background,borderColor:styles.borderColor,width:styles.width,height:styles.height,position:styles.position},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    }
-    // Check all elements for white backgrounds
-    const allElements = root.querySelectorAll('*')
-    allElements.forEach((el, idx) => {
-      const styles = window.getComputedStyle(el)
-      const bg = styles.backgroundColor || styles.background
-      if (bg && (bg.includes('255') || bg.includes('white') || bg.includes('#fff'))) {
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:270',message:'White background element found',data:{tagName:el.tagName,className:el.className,backgroundColor:styles.backgroundColor,background:styles.background,display:styles.display,visibility:styles.visibility},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      }
-    })
-    // #endregion
-    
     const applyMarginFixes = () => {
       const controls = root.querySelectorAll('.mantine-SegmentedControl-control')
       
@@ -531,16 +513,12 @@ export default function SegmentedControl({
       }
       lastMutationTime = now
       
-      // #region agent log
-      // Check for indicator when mutations occur (like height changes)
       if (wrapperRef.current) {
         const root = wrapperRef.current.querySelector('.mantine-SegmentedControl-root')
         if (root) {
           const indicator = root.querySelector('.mantine-SegmentedControl-indicator')
           if (indicator) {
-            const styles = window.getComputedStyle(indicator)
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SegmentedControl.tsx:526',message:'Indicator found during mutation',data:{display:styles.display,visibility:styles.visibility,opacity:styles.opacity,backgroundColor:styles.backgroundColor,borderColor:styles.borderColor,width:styles.width,height:styles.height},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // Try to hide it immediately
+            // Hide Mantine indicator (we use our own divider)
             ;(indicator as HTMLElement).style.setProperty('display', 'none', 'important')
             ;(indicator as HTMLElement).style.setProperty('visibility', 'hidden', 'important')
             ;(indicator as HTMLElement).style.setProperty('opacity', '0', 'important')
@@ -550,8 +528,7 @@ export default function SegmentedControl({
           }
         }
       }
-      // #endregion
-      
+
       // Check if any relevant CSS variables actually changed
       let hasRelevantChange = false
       const changedVars: string[] = []

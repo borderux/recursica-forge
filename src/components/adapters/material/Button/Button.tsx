@@ -170,12 +170,6 @@ export default function Button({
   // Extract endIcon from material prop before spreading to avoid conflicts
   const { endIcon: materialEndIcon, sx: materialSx, ...restMaterial } = material || {}
   
-  // #region agent log
-  if (materialEndIcon) {
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Button.tsx:184',message:'endIcon extracted from material prop',data:{hasEndIcon:!!materialEndIcon,endIconType:typeof materialEndIcon},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  }
-  // #endregion agent log
-
   const materialProps = {
     variant: materialVariant as 'contained' | 'outlined' | 'text',
     size: materialSize as 'small' | 'medium' | 'large',
@@ -236,11 +230,6 @@ export default function Button({
       // Set icon size even when icon is in endIcon prop (Material UI's endIcon)
       '--button-icon-size': icon || materialEndIcon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': (icon && children) || (materialEndIcon && children) ? `var(${iconGapVar})` : '0px',
-      // #region agent log
-      ...(materialEndIcon ? {
-        '--debug-end-icon': 'present'
-      } : {}),
-      // #endregion agent log
       '--button-max-width': `var(${maxWidthVar})`,
       // Use brand disabled opacity when disabled - don't change colors, just apply opacity
       // Override Material UI's default disabled styles to keep colors unchanged
@@ -271,10 +260,6 @@ export default function Button({
     ...props,
   }
   
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Button.tsx:263',message:'Rendering MaterialButton with props',data:{hasEndIcon:!!materialProps.endIcon,hasStartIcon:!!materialProps.startIcon,hasChildren:!!children},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion agent log
-
   // Use native children prop - CSS will handle truncation
   return <MaterialButton {...materialProps}>{isIconOnly ? icon : children}</MaterialButton>
 }
