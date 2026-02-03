@@ -1,8 +1,8 @@
 /**
  * GitHub Service
- * 
+ *
  * Handles GitHub API interactions for exporting files to GitHub repositories
- * via pull requests. Authentication is handled by the backend auth framework (auth.ts).
+ * via pull requests. Authentication is obtained via GitHub OAuth; see RECURSICA_API_GITHUB_OAUTH.md.
  */
 
 const STORAGE_KEY = 'rf:github:auth'
