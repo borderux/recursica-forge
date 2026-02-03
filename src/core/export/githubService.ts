@@ -28,6 +28,26 @@ export interface GitHubRepository {
   private: boolean
 }
 
+/** Repository list item: real GitHub repo or the synthetic sandbox entry. */
+export type RepositoryOption = GitHubRepository & { isSandbox?: true }
+
+const SANDBOX_ENTRY_ID = -1
+
+/** Synthetic list entry for "Recursica Sandbox (come play around)" — PR is created via api.recursica.com create-pr. */
+export const SANDBOX_ENTRY: RepositoryOption = {
+  id: SANDBOX_ENTRY_ID,
+  name: 'Recursica Sandbox (come play around)',
+  full_name: 'recursica/recursica-sandbox',
+  owner: { login: 'recursica' },
+  default_branch: 'main',
+  private: false,
+  isSandbox: true,
+}
+
+export function isSandboxRepo(repo: RepositoryOption): repo is RepositoryOption & { isSandbox: true } {
+  return (repo as RepositoryOption & { isSandbox?: true }).isSandbox === true
+}
+
 export interface GitHubPullRequest {
   number: number
   html_url: string

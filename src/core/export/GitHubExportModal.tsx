@@ -20,10 +20,13 @@ import {
   createBranch,
   createOrUpdateFile,
   createPullRequest,
+  SANDBOX_ENTRY,
+  isSandboxRepo,
   type GitHubAuth,
   type GitHubUser,
   type GitHubRepository,
   type GitHubPullRequest,
+  type RepositoryOption,
 } from './githubService'
 import { startGitHubOAuth } from './githubOAuth'
 import {
@@ -32,6 +35,7 @@ import {
   exportUIKitJson,
   exportCssStylesheet,
 } from './jsonExport'
+import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 
 interface GitHubExportModalProps {
   show: boolean
@@ -52,8 +56,8 @@ export function GitHubExportModal({
   const [step, setStep] = useState<Step>('auth')
   const [token, setToken] = useState('')
   const [user, setUser] = useState<GitHubUser | null>(null)
-  const [repositories, setRepositories] = useState<GitHubRepository[]>([])
-  const [selectedRepo, setSelectedRepo] = useState<GitHubRepository | null>(null)
+  const [repositories, setRepositories] = useState<RepositoryOption[]>([])
+  const [selectedRepo, setSelectedRepo] = useState<RepositoryOption | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [createdPr, setCreatedPr] = useState<GitHubPullRequest | null>(null)
@@ -100,7 +104,8 @@ export function GitHubExportModal({
     setError(null)
     try {
       const repos = await getUserRepositories(authToken)
-      setRepositories(repos)
+      const sorted = [...repos].sort((a, b) => a.full_name.localeCompare(b.full_name))
+      setRepositories([SANDBOX_ENTRY, ...sorted])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load repositories')
     } finally {
@@ -154,7 +159,7 @@ export function GitHubExportModal({
     return `This PR exports the following Recursica design token files:\n\n${fileList.map(f => `- ${f}`).join('\n')}`
   }
 
-  const handleRepoSelect = (repo: GitHubRepository) => {
+  const handleRepoSelect = (repo: RepositoryOption) => {
     setSelectedRepo(repo)
     setStep('create-pr')
   }
@@ -179,14 +184,7 @@ export function GitHubExportModal({
         throw new Error('No authentication token available')
       }
 
-      const [owner, repo] = selectedRepo.full_name.split('/')
-      const branchName = generateBranchName(user.login)
-      const baseBranch = selectedRepo.default_branch
-
-      // Create branch
-      await createBranch(authToken, owner, repo, branchName, baseBranch)
-
-      // Generate file contents
+      // Generate file contents (shared by GitHub and sandbox flows)
       const files: Array<{ path: string; content: string }> = []
 
       if (selectedFiles.tokens) {
@@ -229,7 +227,33 @@ export function GitHubExportModal({
         }
       }
 
-      // Create/update files
+      if (isSandboxRepo(selectedRepo)) {
+        const filesRecord: Record<string, string> = Object.fromEntries(files.map((f) => [f.path, f.content]))
+        const title = generatePRTitle()
+        const description = generatePRDescription()
+        const response = await fetch(API_ENDPOINTS.sandboxCreatePr, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ files: filesRecord, description, title }),
+        })
+        if (!response.ok) {
+          const body = (await response.json().catch(() => ({}))) as { error?: string }
+          throw new Error(body.error || response.statusText)
+        }
+        const data = (await response.json()) as { prUrl: string; prNumber: number }
+        setCreatedPr({ number: data.prNumber, html_url: data.prUrl, title })
+        return
+      }
+
+      const [owner, repo] = selectedRepo.full_name.split('/')
+      const branchName = generateBranchName(user.login)
+      const baseBranch = selectedRepo.default_branch
+
+      await createBranch(authToken, owner, repo, branchName, baseBranch)
+
       for (const file of files) {
         await createOrUpdateFile(
           authToken,
@@ -242,7 +266,6 @@ export function GitHubExportModal({
         )
       }
 
-      // Create PR
       const pr = await createPullRequest(
         authToken,
         owner,
@@ -254,8 +277,6 @@ export function GitHubExportModal({
       )
 
       setCreatedPr(pr)
-      // Stay on create-pr step to show success message
-      // Don't call onSuccess here - let user see the success message and link first
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create pull request')
     } finally {
@@ -414,36 +435,45 @@ export function GitHubExportModal({
                       No repositories available
                     </div>
                   ) : (
-                    repositories.map((repo) => (
-                      <button
-                        key={repo.id}
-                        onClick={() => handleRepoSelect(repo)}
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          margin: 0,
-                          textAlign: 'left',
-                          border: 'none',
-                          borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
-                          borderRadius: 0,
-                          backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`,
-                          color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`
-                        }}
-                      >
-                        {repo.name}
-                      </button>
-                    ))
+                    repositories.map((repo) => {
+                      const StarIcon = iconNameToReactComponent('star')
+                      const isSandbox = isSandboxRepo(repo)
+                      const label = isSandbox ? repo.name : `${repo.owner.login} / ${repo.name}`
+                      return (
+                        <button
+                          key={repo.id}
+                          onClick={() => handleRepoSelect(repo)}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            margin: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            textAlign: 'left',
+                            border: 'none',
+                            borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
+                            borderRadius: 0,
+                            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`,
+                            color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`
+                          }}
+                        >
+                          {isSandbox && StarIcon ? <StarIcon size={16} style={{ flexShrink: 0 }} /> : null}
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+                        </button>
+                      )
+                    })
                   )}
                 </div>
                 {!showManualUrlInput ? (
