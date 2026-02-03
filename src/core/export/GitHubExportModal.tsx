@@ -7,7 +7,7 @@
  * 3. PR creation
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import {
   getStoredAuth,
@@ -28,7 +28,7 @@ import {
   type GitHubPullRequest,
   type RepositoryOption,
 } from './githubService'
-import { apiService, pluginTokenToCode, API_ENDPOINTS } from './auth'
+import { startGitHubOAuth } from './githubOAuth'
 import {
   exportTokensJson,
   exportBrandJson,
@@ -63,10 +63,6 @@ export function GitHubExportModal({
   const [createdPr, setCreatedPr] = useState<GitHubPullRequest | null>(null)
   const [manualRepoUrl, setManualRepoUrl] = useState('')
   const [showManualUrlInput, setShowManualUrlInput] = useState(false)
-  const [authCode, setAuthCode] = useState<string | null>(null)
-  const [polling, setPolling] = useState(false)
-  const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isPollingRef = useRef(false)
 
   // Check for existing auth on mount
   useEffect(() => {
@@ -82,14 +78,6 @@ export function GitHubExportModal({
         setSelectedRepo(null)
         setError(null)
       }
-    } else {
-      // Clean up polling when modal closes
-      stopPolling()
-    }
-
-    return () => {
-      // Cleanup on unmount
-      stopPolling()
     }
   }, [show])
 
@@ -125,128 +113,14 @@ export function GitHubExportModal({
     }
   }
 
-  // Generate or retrieve userId
-  const getOrCreateUserId = (): string => {
-    const stored = localStorage.getItem('rf:github:userId')
-    if (stored) return stored
-    const newUserId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-    localStorage.setItem('rf:github:userId', newUserId)
-    return newUserId
-  }
-
-  const stopPolling = () => {
-    if (pollingTimeoutRef.current) {
-      clearTimeout(pollingTimeoutRef.current)
-      pollingTimeoutRef.current = null
-    }
-    isPollingRef.current = false
-    setPolling(false)
-    setAuthCode(null)
-  }
-
-  const pollForToken = async (userId: string, readKey: string, code: string) => {
-    if (!isPollingRef.current) {
-      return // Polling was cancelled
-    }
-
-    try {
-      const tokenResponse = await apiService.getToken(userId, readKey, code)
-
-      if (!isPollingRef.current) {
-        return // Polling was cancelled during the request
-      }
-
-      // Handle both camelCase and snake_case response formats
-      const accessToken = tokenResponse.accessToken || tokenResponse.access_token
-      
-      // If we have a token, use it (regardless of status)
-      if (accessToken && typeof accessToken === 'string' && accessToken.length > 0) {
-        const auth: GitHubAuth = {
-          accessToken: accessToken,
-          tokenType: 'Bearer',
-          storedAt: Date.now(),
-        }
-        storeAuth(auth)
-        setToken(accessToken)
-        stopPolling()
-        return validateAndLoadUser(accessToken)
-      } else if (tokenResponse.status === 'pending') {
-        // Continue polling
-        if (isPollingRef.current) {
-          pollingTimeoutRef.current = setTimeout(() => pollForToken(userId, readKey, code), 2000)
-        }
-      } else if (tokenResponse.status === 'authenticated') {
-        // Status says authenticated - if we got here, accessToken wasn't found, which is unexpected
-        // But continue polling in case the token comes in the next response
-        if (isPollingRef.current) {
-          pollingTimeoutRef.current = setTimeout(() => pollForToken(userId, readKey, code), 2000)
-        }
-      } else {
-        throw new Error(tokenResponse.error || 'Authorization failed')
-      }
-    } catch (err) {
-      if (!isPollingRef.current) {
-        return // Polling was cancelled
-      }
-
-      if (err instanceof Error && err.message.includes('Authentication failed')) {
-        // User hasn't authorized yet, continue polling
-        if (isPollingRef.current) {
-          pollingTimeoutRef.current = setTimeout(() => pollForToken(userId, readKey, code), 2000)
-        }
-      } else {
-        setError(err instanceof Error ? err.message : 'Failed to get access token')
-        stopPolling()
-      }
-    }
-  }
-
   const handleAuthLogin = async () => {
     setLoading(true)
     setError(null)
-
-    // Open popup immediately in response to user click (before async operations)
-    // This prevents popup blockers
-    let authWindow: Window | null = null
     try {
-      authWindow = window.open('', 'github-auth', 'width=600,height=700')
-      // Generate or get userId
-      const currentUserId = getOrCreateUserId()
-
-      // Generate keys
-      const { readKey, writeKey, pluginToken } = await apiService.generateKeys(currentUserId)
-
-      // Generate plugin code from pluginToken
-      const code = pluginTokenToCode(pluginToken)
-      setAuthCode(code)
-      setPolling(true)
-      isPollingRef.current = true
-
-      // Get authorization URL
-      const { authUrl } = await apiService.authorize(
-        currentUserId,
-        readKey,
-        writeKey,
-        code
-      )
-
-      // Update the popup URL (popup is already open, so this won't be blocked)
-      if (authWindow) {
-        authWindow.location.href = authUrl
-      } else {
-        // Popup was blocked, fall back to redirect
-        window.location.href = authUrl
-        return
-      }
-
-      // Start polling for token
-      pollingTimeoutRef.current = setTimeout(() => pollForToken(currentUserId, readKey, code), 2000)
+      await startGitHubOAuth()
+      // On success we redirect away; only reach here if authorize call failed
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to initiate authentication')
-      stopPolling()
-      if (authWindow) {
-        authWindow.close()
-      }
     } finally {
       setLoading(false)
     }
@@ -476,7 +350,6 @@ export function GitHubExportModal({
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget && step !== 'success') {
-          stopPolling()
           onCancel()
         }
       }}
@@ -505,33 +378,13 @@ export function GitHubExportModal({
             <h2 style={{ marginTop: 0, marginBottom: '16px' }}>
               Login to GitHub
             </h2>
-            {!authCode ? (
-              <>
-                <p style={{ marginBottom: '20px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)`, fontSize: '14px' }}>
-                  You need to authenticate with your GitHub account first. A popup window will open for you to complete the authorization.
-                </p>
-                {error && (
-                  <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fee', color: '#c00', borderRadius: '4px', fontSize: '14px' }}>
-                    {error}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <p style={{ marginBottom: '20px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)`, fontSize: '14px' }}>
-                  A new window should have opened for GitHub authorization. Please complete the authorization there.
-                </p>
-                {polling && (
-                  <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#d1ecf1', color: '#0c5460', borderRadius: '4px', fontSize: '14px', textAlign: 'center' }}>
-                    Waiting for authorization...
-                  </div>
-                )}
-                {error && (
-                  <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fee', color: '#c00', borderRadius: '4px', fontSize: '14px' }}>
-                    {error}
-                  </div>
-                )}
-              </>
+            <p style={{ marginBottom: '20px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)`, fontSize: '14px' }}>
+              You need to authenticate with your GitHub account. You will be redirected to GitHub and then back here.
+            </p>
+            {error && (
+              <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fee', color: '#c00', borderRadius: '4px', fontSize: '14px' }}>
+                {error}
+              </div>
             )}
           </>
         )}
@@ -776,7 +629,7 @@ export function GitHubExportModal({
         )}
         </div>
         <div style={{ borderTop: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, paddingTop: '12px', marginTop: '12px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-          {step === 'auth' && !authCode && (
+          {step === 'auth' && (
             <>
               <button
                 type="button"
@@ -821,26 +674,6 @@ export function GitHubExportModal({
                 )}
               </button>
             </>
-          )}
-          {step === 'auth' && authCode && (
-            <button
-              type="button"
-              onClick={() => {
-                stopPolling()
-                setError(null)
-                setStep('auth')
-              }}
-              style={{
-                padding: '8px 16px',
-                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
-                borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-                backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
-                color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-                cursor: 'pointer',
-              }}
-            >
-              Cancel
-            </button>
           )}
           {step === 'repositories' && (
             <>

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Layout } from './modules/app/Layout'
 import { NotFoundPage } from './modules/app/NotFoundPage'
+import { AuthCallbackPage } from './modules/app/AuthCallbackPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { ThemeModeProvider } from './modules/theme/ThemeModeContext'
 import { VarsProvider } from './modules/vars/VarsContext'
@@ -76,6 +77,7 @@ const router = createBrowserRouter([
       { path: '/type', element: <Navigate to="/theme/type" replace /> },
       { path: '/layers', element: <Navigate to="/theme/layers" replace /> },
       { path: '/elevation', element: <Navigate to="/theme/elevations" replace /> },
+      { path: '/auth/callback', element: <AuthCallbackPage /> },
       {
         path: '/theme',
         element: <ThemePage />,
