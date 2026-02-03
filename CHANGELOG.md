@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.1.8
+
+### Patch Changes
+
+- 9755717: Updatded segmented control
+
 ## 0.1.7
 
 ### Patch Changes
