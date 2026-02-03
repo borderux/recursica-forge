@@ -107,7 +107,42 @@ function modifyValueAtPath(obj: any, path: string[], newValue: any): void {
 /**
  * Generates a random valid value based on the original value type and context
  */
-function generateRandomValue(originalValue: any, index: number, context: { isColor?: boolean; isSize?: boolean; isOpacity?: boolean; isLetterSpacing?: boolean; maxSize?: number; randomizeTokenRef?: boolean } = {}): any {
+function generateRandomValue(originalValue: any, index: number, context: {
+  isColor?: boolean;
+  isSize?: boolean;
+  isOpacity?: boolean;
+  isLetterSpacing?: boolean;
+  isLineHeight?: boolean;
+  isFontWeight?: boolean;
+  isFontSize?: boolean;
+  isElevation?: boolean;
+  maxSize?: number;
+  randomizeTokenRef?: boolean
+} = {}): any {
+  if (originalValue === null) {
+    if (context.isColor) {
+      const paletteNames = ['palette-1', 'palette-2', 'palette-3', 'neutral', 'core-colors']
+      const levels = ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+      const tones = ['tone', 'on-tone']
+
+      const palette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+      const tone = tones[Math.floor(Math.random() * tones.length)]
+
+      if (palette === 'core-colors') {
+        const coreColors = ['interactive', 'warning', 'success', 'alert']
+        const coreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+        if (coreColor === 'interactive') {
+          return `{brand.palettes.core-colors.interactive.default.${tone}}`
+        }
+        return `{brand.palettes.core-colors.${coreColor}}`
+      }
+
+      const level = levels[Math.floor(Math.random() * levels.length)]
+      return `{brand.palettes.${palette}.${level}.color.${tone}}`
+    }
+    return null
+  }
+
   if (typeof originalValue === 'string') {
     // For color hex values
     if (/^#[0-9a-fA-F]{6}$/.test(originalValue)) {
@@ -119,55 +154,147 @@ function generateRandomValue(originalValue: any, index: number, context: { isCol
     }
     // For token references - randomize if requested (for core properties)
     if (originalValue.startsWith('{') && originalValue.endsWith('}')) {
-      if (context.randomizeTokenRef && context.isColor) {
-        // Randomize token reference for core properties
+      if (context.randomizeTokenRef) {
         // Extract the reference path
         const refContent = originalValue.slice(1, -1) // Remove { and }
         const parts = refContent.split('.')
 
-        // If it's a tokens.colors reference (used by core colors), randomize to a different color token
-        if (parts[0] === 'tokens' && parts[1] === 'colors') {
-          // Randomize to a different scale and level
-          const scales = ['scale-01', 'scale-02', 'scale-03', 'scale-04', 'scale-05']
-          const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
-          const randomScale = scales[Math.floor(Math.random() * scales.length)]
-          const randomLevel = levels[Math.floor(Math.random() * levels.length)]
-          return `{tokens.colors.${randomScale}.${randomLevel}}`
+        // 1. Color Randomization Logic
+        if (context.isColor) {
+          // If it's a tokens.colors reference (used by core colors), randomize to a different color token
+          if (parts[0] === 'tokens' && parts[1] === 'colors') {
+            const scales = ['scale-01', 'scale-02', 'scale-03', 'scale-04', 'scale-05', 'scale-06']
+            const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
+            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            const randomLevel = levels[Math.floor(Math.random() * levels.length)]
+            return `{tokens.colors.${randomScale}.${randomLevel}}`
+          }
+
+          // If it's a brand.palettes reference, randomize the palette and tone
+          if (parts[0] === 'brand' && parts[1] === 'palettes') {
+            const paletteNames = ['core-colors', 'neutral', 'palette-1', 'palette-2', 'palette-3']
+            const tones = ['tone', 'on-tone']
+            const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
+            const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+
+            if (randomPalette === 'core-colors') {
+              const coreColors = ['interactive', 'warning', 'success', 'alert', 'black', 'white']
+              const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+              if (randomCoreColor === 'interactive') {
+                const variants = ['default', 'hover']
+                const randomVariant = variants[Math.floor(Math.random() * variants.length)]
+                const randomTone = tones[Math.floor(Math.random() * tones.length)]
+                return `{brand.palettes.core-colors.interactive.${randomVariant}.${randomTone}}`
+              } else {
+                return `{brand.palettes.core-colors.${randomCoreColor}}`
+              }
+            } else if (randomPalette === 'neutral') {
+              const randomLevel = levels[Math.floor(Math.random() * levels.length)]
+              const randomTone = tones[Math.floor(Math.random() * tones.length)]
+              return `{brand.palettes.neutral.${randomLevel}.color.${randomTone}}`
+            } else {
+              const randomLevel = levels[Math.floor(Math.random() * levels.length)]
+              const randomTone = tones[Math.floor(Math.random() * tones.length)]
+              return `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
+            }
+          }
+
+          // Fallback: If it's any other brand or token reference but we know it should be a color
+          if (parts[0] === 'brand' || parts[0] === 'tokens') {
+            const paletteNames = ['palette-1', 'palette-2', 'palette-3', 'neutral', 'core-colors']
+            const levels = ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+            const tones = ['tone', 'on-tone']
+
+            const palette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+            const tone = tones[Math.floor(Math.random() * tones.length)]
+
+            if (palette === 'core-colors') {
+              const coreColors = ['interactive', 'warning', 'success', 'alert']
+              const coreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+              if (coreColor === 'interactive') {
+                return `{brand.palettes.core-colors.interactive.default.${tone}}`
+              }
+              return `{brand.palettes.core-colors.${coreColor}}`
+            }
+
+            const level = levels[Math.floor(Math.random() * levels.length)]
+            return `{brand.palettes.${palette}.${level}.color.${tone}}`
+          }
         }
 
-        // If it's a brand.palettes reference, randomize the palette and tone
-        if (parts[0] === 'brand' && parts[1] === 'palettes') {
-          // Common palette names and tones to randomize between
-          const paletteNames = ['core-colors', 'neutral', 'palette-1', 'palette-2', 'palette-3']
-          const tones = ['tone', 'on-tone']
-          const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
+        // 2. Dimension/Size Randomization Logic
+        if (context.isSize) {
+          // If it's a brand.dimensions reference, randomize within dimension scales
+          if (parts[0] === 'brand' && parts[1] === 'dimensions') {
+            const types = ['general', 'border-radii', 'icons']
+            let dimType = types.includes(parts[2]) ? parts[2] : types[Math.floor(Math.random() * types.length)]
 
-          // Randomly select a palette
-          const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+            if (originalValue.includes('border-radii')) dimType = 'border-radii'
+            if (originalValue.includes('icons')) dimType = 'icons'
+            if (originalValue.includes('gutters') || originalValue.includes('general')) dimType = 'general'
 
-          // Build a random reference
-          if (randomPalette === 'core-colors') {
-            // Core colors have specific structure
-            const coreColors = ['interactive', 'warning', 'success', 'alert', 'black', 'white']
-            const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
-            if (randomCoreColor === 'interactive') {
-              const variants = ['default', 'hover']
-              const randomVariant = variants[Math.floor(Math.random() * variants.length)]
-              const randomTone = tones[Math.floor(Math.random() * tones.length)]
-              return `{brand.palettes.core-colors.interactive.${randomVariant}.${randomTone}}`
+            if (dimType === 'border-radii') {
+              const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', 'pill', 'circle']
+              const randomScale = scales[Math.floor(Math.random() * scales.length)]
+              return `{brand.dimensions.border-radii.${randomScale}}`
+            } else if (dimType === 'icons') {
+              const scales = ['xs', 'sm', 'default', 'lg', 'xl']
+              const randomScale = scales[Math.floor(Math.random() * scales.length)]
+              return `{brand.dimensions.icons.${randomScale}}`
             } else {
-              return `{brand.palettes.core-colors.${randomCoreColor}}`
+              const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl']
+              const randomScale = scales[Math.floor(Math.random() * scales.length)]
+              return `{brand.dimensions.general.${randomScale}}`
             }
-          } else if (randomPalette === 'neutral') {
-            // Neutral has level.color.tone structure
-            const randomLevel = levels[Math.floor(Math.random() * levels.length)]
-            const randomTone = tones[Math.floor(Math.random() * tones.length)]
-            return `{brand.palettes.neutral.${randomLevel}.color.${randomTone}}`
-          } else {
-            // Other palettes have level.color.tone structure
-            const randomLevel = levels[Math.floor(Math.random() * levels.length)]
-            const randomTone = tones[Math.floor(Math.random() * tones.length)]
-            return `{brand.palettes.${randomPalette}.${randomLevel}.color.${randomTone}}`
+          }
+        }
+
+        // 3. Elevation Randomization Logic
+        if (context.isElevation || (parts[0] === 'brand' && parts[1] === 'elevations')) {
+          const scales = ['elevation-0', 'elevation-1', 'elevation-2', 'elevation-3', 'elevation-4']
+          const randomScale = scales[Math.floor(Math.random() * scales.length)]
+          return `{brand.elevations.${randomScale}}`
+        }
+
+        // 4. Opacity Randomization Logic
+        if (context.isOpacity || parts[0] === 'brand' && (parts[1] === 'text-emphasis' || parts[1] === 'states')) {
+          if (parts[0] === 'tokens' && parts[1] === 'opacities') {
+            const scales = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
+            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            return `{tokens.opacities.${randomScale}}`
+          }
+          if (parts[0] === 'brand' && parts[1] === 'text-emphasis') {
+            const scales = ['low', 'medium', 'high']
+            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            return `{brand.text-emphasis.${randomScale}}`
+          }
+          if (parts[0] === 'brand' && parts[1] === 'states') {
+            const scales = ['disabled']
+            return `{brand.states.disabled}`
+          }
+        }
+
+        // 5. Typography Token Randomization Logic
+        if (context.isFontWeight || context.isFontSize || context.isLetterSpacing || context.isLineHeight || parts[0] === 'tokens' && parts[1] === 'font') {
+          if (parts[2] === 'weights') {
+            const scales = ['thin', 'extra-light', 'light', 'regular', 'medium', 'semi-bold', 'bold', 'extra-bold', 'black']
+            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            return `{tokens.font.weights.${randomScale}}`
+          }
+          if (parts[2] === 'sizes') {
+            const scales = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl']
+            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            return `{tokens.font.sizes.${randomScale}}`
+          }
+          if (parts[2] === 'letter-spacings') {
+            const scales = ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest']
+            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            return `{tokens.font.letter-spacings.${randomScale}}`
+          }
+          if (parts[2] === 'line-heights') {
+            const scales = ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest']
+            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            return `{tokens.font.line-heights.${randomScale}}`
           }
         }
       }
@@ -176,31 +303,41 @@ function generateRandomValue(originalValue: any, index: number, context: { isCol
     }
     // For size strings like "16px", generate random size
     if (context.isSize && /^\d+(\.\d+)?px$/.test(originalValue)) {
-      const num = Math.floor(Math.random() * 100) + 8 // 8-108px
+      const num = Math.floor(Math.random() * (context.maxSize ?? 100)) + 8
       return `${num}px`
     }
-    // For letter spacing strings like "0" or "0.5", generate random letter spacing
+    // For letter spacing strings like "0" or "0.5"
     if (context.isLetterSpacing && /^-?\d+(\.\d+)?$/.test(originalValue)) {
-      // Generate random letter spacing between -0.1 and 0.5
       return Math.round((Math.random() * 0.6 - 0.1) * 100) / 100
     }
-    // For other strings, keep as-is or modify slightly
+    // For line heights
+    if (context.isLineHeight && /^\d+(\.\d+)?$/.test(originalValue)) {
+      return Math.round((Math.random() * 0.5 + 0.9) * 100) / 100
+    }
+    // For font weight strings
+    if (context.isFontWeight && /^\d+$/.test(originalValue)) {
+      const weights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+      return weights[Math.floor(Math.random() * weights.length)]
+    }
     return originalValue
   }
 
   if (typeof originalValue === 'number') {
-    // For opacity (0-1)
-    if (context.isOpacity) {
-      return Math.round(Math.random() * 100) / 100 // 0.00 to 1.00
-    }
-    // For letter spacing (can be negative)
+    // For letter spacing
     if (context.isLetterSpacing) {
-      // Generate random letter spacing between -0.1 and 0.5
       return Math.round((Math.random() * 0.6 - 0.1) * 100) / 100
     }
+    // For line height
+    if (context.isLineHeight) {
+      return Math.round((Math.random() * 0.5 + 0.9) * 100) / 100
+    }
+    // For font weight
+    if (context.isFontWeight) {
+      const weights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+      return weights[Math.floor(Math.random() * weights.length)]
+    }
     // For dimension values (font sizes, sizes) - positive numbers
-    if (context.isSize) {
-      // Generate random size between 4 and maxSize (or 100 if not specified)
+    if (context.isSize || context.isFontSize) {
       const max = context.maxSize ?? 100
       const min = 4
       return Math.floor(Math.random() * (max - min + 1)) + min
@@ -1279,16 +1416,37 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         componentName = path[componentsIndex + 1]
       }
 
-      // If we found a component name, check if it should be randomized using the option record
-      // Note: opts.uikit.components is now a Record<string, boolean>
-      if (componentName && !opts.uikit.components[componentName]) {
+      // Check granular selection using path matching (most specific to least specific)
+      // Path keys in opts.uikit.components are dot-separated relative to 'components'
+      // e.g., 'button.variants.styles.default'
+      const pathAfterComponents = path.slice(componentsIndex + 1)
+      let isSelected = false
+      const segments = [...pathAfterComponents]
+
+      // Look for the most specific matching key in the options
+      while (segments.length > 0) {
+        const key = segments.join('.')
+        if (key in opts.uikit.components) {
+          isSelected = opts.uikit.components[key]
+          break
+        }
+        segments.pop()
+      }
+
+      // If explicitly unselected or strictly not selected (and no parent selected), skip
+      // Note: RandomizeOptionsModal ensures parents usually control children, but partial selection
+      // results in 'false' parents with 'true' children. Longest match handles this correctly.
+      if (!isSelected) {
         return
       }
 
-      // Skip token/brand references
+      // Skip token/brand references IF explicitly requested (but for components we usually want to randomize them)
+      // We will allow randomization of token references for component properties
+      /* 
       if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
         return
       }
+      */
       // Skip typography $value objects
       if (value && typeof value === 'object' && '$type' in value && value.$type === 'typography') {
         return
@@ -1301,9 +1459,40 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
 
       const pathStr = path.join('.')
       const isColor = pathStr.includes('color') || pathStr.includes('background')
-      const isSize = pathStr.includes('size') || pathStr.includes('height') || pathStr.includes('width') || pathStr.includes('padding')
+      const isBorder = pathStr.includes('border-size') || pathStr.includes('border-width') || pathStr.includes('divider-size')
+      const isRadius = pathStr.includes('radius')
+      const isGap = pathStr.includes('gap')
+      const isIconSize = pathStr.includes('icon-size')
+      const isPadding = pathStr.includes('padding')
+      const isElevation = pathStr.includes('elevation')
+      const isOpacity = pathStr.includes('opacity') || pathStr.includes('disabled')
+      const isLetterSpacing = pathStr.includes('letter-spacing')
+      const isLineHeight = pathStr.includes('line-height')
+      const isFontWeight = pathStr.includes('font-weight')
+      const isFontSize = pathStr.includes('font-size')
 
-      const newValue = generateRandomValue(value, index, { isColor, isSize })
+      const isSize = isBorder || isRadius || isGap || isIconSize || isPadding || pathStr.includes('size') || pathStr.includes('height') || pathStr.includes('width')
+
+      let maxSize = 100
+      if (isBorder) maxSize = 8
+      else if (isRadius) maxSize = 32
+      else if (isIconSize) maxSize = 48
+      else if (isGap || isPadding) maxSize = 64
+      else if (pathStr.includes('width') || pathStr.includes('height')) maxSize = 400
+
+      // Pass randomizeTokenRef: true to allow modifying existing token references (common in UIKit)
+      const newValue = generateRandomValue(value, index, {
+        isColor,
+        isSize,
+        isElevation,
+        isOpacity,
+        isLetterSpacing,
+        isLineHeight,
+        isFontWeight,
+        isFontSize,
+        maxSize,
+        randomizeTokenRef: true
+      })
       modifyValueAtPath(modifiedUiKit, path, newValue)
     })
 

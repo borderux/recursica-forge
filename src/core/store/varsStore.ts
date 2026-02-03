@@ -65,7 +65,7 @@ function isLocalStorageAvailable(): boolean {
 }
 
 function readLSJson<T>(key: string, fallback: T): T { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback } catch { return fallback } }
-function writeLSJson<T>(key: string, value: T) { try { localStorage.setItem(key, JSON.stringify(value)) } catch {} }
+function writeLSJson<T>(key: string, value: T) { try { localStorage.setItem(key, JSON.stringify(value)) } catch { } }
 
 function toTitleCase(label: string): string { return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim() }
 
@@ -87,7 +87,7 @@ function migratePaletteLocalKeys(): PaletteStore {
           out[k] = { token: v.token, value: Number.isFinite(num) ? num : def[k].value }
         }
       })
-    } catch {}
+    } catch { }
     return out
   }
   const opacity = normalizeOpacityBindings(opacityRaw)
@@ -110,7 +110,7 @@ function migratePaletteLocalKeys(): PaletteStore {
         }
       }
     }
-  } catch {}
+  } catch { }
   return { opacity, dynamic, primaryLevels }
 }
 
@@ -123,35 +123,35 @@ type Listener = () => void
 function sortFontTokenObjects(tokens: JsonLike): JsonLike {
   const sorted = JSON.parse(JSON.stringify(tokens)) as JsonLike
   const tokensRoot: any = (sorted as any)?.tokens || {}
-  
+
   if (tokensRoot.font) {
     const font = tokensRoot.font
-    
+
     // Define semantic ordering for each font category
     // Note: 2xs is smaller than xs, so it comes first
     const sizeOrder = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl']
     const weightOrder = ['thin', 'extra-light', 'light', 'regular', 'medium', 'semi-bold', 'bold', 'extra-bold', 'black']
     const letterSpacingOrder = ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest']
     const lineHeightOrder = ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest']
-    
+
     const sortCategory = (category: string, order: string[]) => {
       if (font[category] && typeof font[category] === 'object') {
         const categoryObj = font[category] as Record<string, any>
         const keys = Object.keys(categoryObj)
-        
+
         // Create a case-insensitive lookup map for the order array
         const orderMap = new Map<string, number>()
         order.forEach((orderedKey, idx) => {
           orderMap.set(orderedKey.toLowerCase(), idx)
         })
-        
+
         // Sort keys: first by order array, then alphabetically for any not in order
         const sortedKeys = keys.sort((a, b) => {
           const aLower = a.toLowerCase()
           const bLower = b.toLowerCase()
           const aIdx = orderMap.get(aLower)
           const bIdx = orderMap.get(bLower)
-          
+
           // Both in order array - use their positions
           if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx
           // Only a in order - a comes first
@@ -161,7 +161,7 @@ function sortFontTokenObjects(tokens: JsonLike): JsonLike {
           // Neither in order - sort alphabetically (case-insensitive)
           return aLower.localeCompare(bLower)
         })
-        
+
         const sortedObj: Record<string, any> = {}
         sortedKeys.forEach((key) => {
           sortedObj[key] = categoryObj[key]
@@ -169,7 +169,7 @@ function sortFontTokenObjects(tokens: JsonLike): JsonLike {
         font[category] = sortedObj
       }
     }
-    
+
     sortCategory('size', sizeOrder)
     sortCategory('weight', weightOrder)
     sortCategory('letter-spacing', letterSpacingOrder)
@@ -194,7 +194,7 @@ function sortFontTokenObjects(tokens: JsonLike): JsonLike {
       font.typeface = sortedObj
     }
   }
-  
+
   return sorted
 }
 
@@ -222,7 +222,7 @@ class VarsStore {
     // Ensure tokens structure is properly set (initElevationState modifies tokens in place)
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
-    
+
     // Debug: verify elevation tokens are in state
 
     // Versioning and seeding when bundle changes
@@ -238,7 +238,7 @@ class VarsStore {
         try {
           const tokensRoot: any = (tokensImport as any)?.tokens || {}
           const names: Record<string, string> = {}
-          
+
           // Process new colors structure (colors.scale-XX with alias)
           const colorsRoot = tokensRoot?.colors || {}
           if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
@@ -246,14 +246,14 @@ class VarsStore {
               if (!scaleKey.startsWith('scale-')) return
               const scale = colorsRoot[scaleKey]
               if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
-              
+
               const alias = scale.alias
               if (alias && typeof alias === 'string') {
                 names[alias] = toTitleCase(alias)
               }
             })
           }
-          
+
           // Process old color structure for backwards compatibility
           const oldColors = tokensRoot?.color || {}
           Object.keys(oldColors).forEach((fam) => {
@@ -261,9 +261,9 @@ class VarsStore {
               names[fam] = toTitleCase(fam)
             }
           })
-          
+
           writeLSJson('family-friendly-names', names)
-        } catch {}
+        } catch { }
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
         // Sort font token objects when resetting to maintain consistent order
         const sortedTokens = sortFontTokenObjects(tokensImport as any)
@@ -286,14 +286,14 @@ class VarsStore {
         // This duplicates logic from fontUtils but ensures it runs before recomputeAndApplyAll
         const fontRoot = (this.state.tokens as any)?.tokens?.font || (this.state.tokens as any)?.font || {}
         const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
-        
+
         // Store URLs in window object so ensureFontLoaded can access them synchronously
         // This is a workaround until we can make fontUrlMap accessible synchronously
         if (!(window as any).__fontUrlMap) {
           (window as any).__fontUrlMap = new Map<string, string>()
         }
         const urlMap = (window as any).__fontUrlMap as Map<string, string>
-        
+
         Object.entries(typefaces).forEach(([key, rec]: [string, any]) => {
           try {
             let val = ''
@@ -303,7 +303,7 @@ class VarsStore {
             } else if (typeof rawValue === 'string') {
               val = rawValue.trim()
             }
-            
+
             if (val) {
               const cleanVal = val.replace(/^["']|["']$/g, '')
               // Access com.google.fonts as a single key, not nested properties
@@ -324,7 +324,7 @@ class VarsStore {
     } catch (err) {
       // If font URL map population fails, fonts will still load with default URLs
     }
-    
+
     // Initial CSS apply (Light mode palettes + layers + typography)
     this.recomputeAndApplyAll()
 
@@ -360,7 +360,7 @@ class VarsStore {
     const onPaletteVarsChanged = () => {
       // Skip if already recomputing to prevent infinite loops
       if (this.isRecomputing) return
-      
+
       // Debounce to prevent loops - only recompute if no other recompute is pending
       if (paletteVarsChangedTimeout) {
         clearTimeout(paletteVarsChangedTimeout)
@@ -388,12 +388,12 @@ class VarsStore {
     // Recompute layers and dependent CSS whenever palette CSS vars or families change
     window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
     window.addEventListener('paletteFamilyChanged', onPaletteFamilyChanged as any)
-    
+
     // Listen for token changes to update core color on-tones
     const onTokenChanged = ((ev: CustomEvent) => {
       // Skip if already recomputing to prevent infinite loops
       if (this.isRecomputing) return
-      
+
       const detail = ev.detail
       if (!detail) return
       const tokenName = detail.name
@@ -416,17 +416,17 @@ class VarsStore {
       }
     }) as EventListener
     window.addEventListener('tokenOverridesChanged', onTokenChanged)
-    
+
     // Listen for opacity changes that require AA compliance recheck
     // Updates CSS vars only, never JSON
     const onOpacityChanged = () => {
       if (this.aaWatcher && !this.isRecomputing) {
         // Suppress CSS var events during AA compliance check
         suppressCssVarEvents(true)
-        
+
         this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
         this.aaWatcher.checkAllPaletteOnTones()
-        
+
         setTimeout(() => {
           clearPendingCssVars()
           suppressCssVarEvents(false)
@@ -434,23 +434,23 @@ class VarsStore {
       }
     }
     window.addEventListener('recheckAllPaletteOnTones', onOpacityChanged)
-    
+
     // Listen for CSS variable updates to update core color on-tones when base color tones change
     const onCssVarsUpdated = ((ev: CustomEvent) => {
       // Skip if already recomputing to prevent infinite loops
       if (this.isRecomputing) return
-      
+
       const detail = ev.detail
       if (!detail || !detail.cssVars) return
-      
+
       const cssVars = Array.isArray(detail.cssVars) ? detail.cssVars : [detail.cssVars]
       const baseColorTonePattern = /--recursica-brand-themes-(light|dark)-palettes-core-(black|white|alert|warning|success)-tone$/
-      
+
       // Check if any updated CSS var is a base color tone
       const hasBaseColorToneUpdate = cssVars.some((cssVar: string) => {
         return typeof cssVar === 'string' && baseColorTonePattern.test(cssVar)
       })
-      
+
       if (hasBaseColorToneUpdate) {
         // Delay to ensure CSS vars are fully updated first
         setTimeout(() => {
@@ -463,7 +463,7 @@ class VarsStore {
       }
     }) as EventListener
     window.addEventListener('cssVarsUpdated', onCssVarsUpdated)
-    
+
     // Run resetAll once after initialization completes
     // Use setTimeout to ensure all async operations (like initAAWatcher) complete first
     if (!this.hasRunInitialReset) {
@@ -486,39 +486,39 @@ class VarsStore {
   private initAAWatcher() {
     // Initialize AA compliance utility (no watchers - trigger-based only)
     this.aaWatcher = new AAComplianceWatcher(this.state.tokens, this.state.theme)
-    
+
     // After CSS variables are set, check all palette and core color on-tone values for AA compliance
     // This ensures on-tone values are correct on app load, regardless of which route the user starts on
-    
+
     const runAACompliance = (trigger: string = 'initial load') => {
       if (!this.aaWatcher || this.hasRunInitialAA) return
-      
+
       // Wait for recompute to finish if it's in progress
       if (this.isRecomputing) {
         // Retry after a short delay
         setTimeout(() => runAACompliance(trigger), 200)
         return
       }
-      
+
       // Mark as run to prevent multiple executions
       this.hasRunInitialAA = true
-      
+
       // Suppress CSS var events during AA compliance check to prevent triggering recomputation
       suppressCssVarEvents(true)
-      
+
       // Check all palette on-tones - updates CSS vars only, never JSON
       this.aaWatcher.checkAllPaletteOnTones()
-      
+
       // Also check core color on-tones - updates CSS vars only, never JSON
       this.updateCoreColorOnTonesForAA()
-      
+
       // Clear pending CSS vars and re-enable events
       setTimeout(() => {
         clearPendingCssVars()
         suppressCssVarEvents(false)
       }, 100)
     }
-    
+
     // Listen for cssVarsUpdated event to know when initial recompute is done
     const onCssVarsUpdated = () => {
       if (!this.hasRunInitialAA) {
@@ -526,11 +526,11 @@ class VarsStore {
         setTimeout(() => runAACompliance('initial load (after cssVarsUpdated event)'), 100)
       }
     }
-    
+
     // Listen for the event (will fire after recomputeAndApplyAll completes)
     // Keep listener active so it can handle resetAll() calls
     window.addEventListener('cssVarsUpdated', onCssVarsUpdated as any)
-    
+
     // Also set a fallback timeout in case the event doesn't fire (only on initial load)
     setTimeout(() => {
       if (!this.hasRunInitialAA) {
@@ -542,7 +542,7 @@ class VarsStore {
   getState(): VarsState { return this.state }
   subscribe(listener: Listener) { this.listeners.add(listener); return () => { this.listeners.delete(listener) } }
   private emit() { this.listeners.forEach((l) => l()) }
-  
+
 
   private writeState(next: Partial<VarsState>, skipRecompute = false) {
     this.state = { ...this.state, ...next }
@@ -553,12 +553,12 @@ class VarsStore {
       if (next.palettes) writeLSJson(STORAGE_KEYS.palettes, this.state.palettes)
       if (next.elevation) writeLSJson(STORAGE_KEYS.elevation, this.state.elevation)
     }
-    
+
     // Update AA watcher if tokens or theme changed
     if (this.aaWatcher && (next.tokens || next.theme)) {
       this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
     }
-    
+
     this.emit()
     if (!skipRecompute && !this.isRecomputing) {
       // Skip if already recomputing to prevent infinite loops
@@ -626,7 +626,7 @@ class VarsStore {
           }
           return undefined
         }
-        
+
         const formattedValue = formatFontValue(tokenValue, kind)
         if (formattedValue) {
           // Use plural form for CSS var name
@@ -638,7 +638,7 @@ class VarsStore {
         const [key] = rest
         const tokenValue = tokensRoot?.sizes?.[key]?.$value
         if (tokenValue == null) return
-        
+
         const toPxString = (v: any): string | undefined => {
           if (v == null) return undefined
           if (typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) {
@@ -659,7 +659,7 @@ class VarsStore {
         const [key] = rest
         const tokenValue = tokensRoot?.opacities?.[key]?.$value
         if (tokenValue == null) return
-        
+
         const normalize = (v: any): string | undefined => {
           try {
             const n = typeof v === 'number' ? v : Number(v)
@@ -674,13 +674,13 @@ class VarsStore {
         const [scaleOrFamily, level] = rest
         // Preserve 000 and 1000 as-is, pad others to 3 digits
         const normalizedLevel = level === '000' ? '000' : level === '1000' ? '1000' : String(level).padStart(3, '0')
-        
+
         // Handle new format: colors/scale-XX/level or colors/family/level
         if (category === 'colors') {
           let tokenValue: any = null
           let scaleKey: string | null = null
           let alias: string | null = null
-          
+
           if (scaleOrFamily.startsWith('scale-')) {
             // Direct scale reference: colors/scale-01/100
             scaleKey = scaleOrFamily
@@ -699,7 +699,7 @@ class VarsStore {
               alias = scaleOrFamily
             }
           }
-          
+
           if (tokenValue != null && scaleKey) {
             // Generate CSS vars for scale name only (no alias-based vars)
             const scaleCssVarKey = `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`
@@ -738,10 +738,10 @@ class VarsStore {
     // Deep clone tokens to avoid mutation
     const nextTokens = JSON.parse(JSON.stringify(this.state.tokens)) as JsonLike
     const tokensRoot: any = (nextTokens as any)?.tokens || {}
-    
+
     try {
       const [category, ...rest] = parts
-      
+
       if ((category === 'color' || category === 'colors') && rest.length >= 2) {
         const [scaleOrFamily, level] = rest
         // Handle new format: colors/scale-XX/level or colors/family/level
@@ -826,21 +826,21 @@ class VarsStore {
         if (!tokensRoot.effect[key]) tokensRoot.effect[key] = {}
         tokensRoot.effect[key].$value = String(value)
       }
-      
+
       // Ensure tokens structure exists
       if (!(nextTokens as any).tokens) {
         (nextTokens as any).tokens = tokensRoot
       }
-      
+
       // Sort font token objects to maintain consistent order
       const sortedTokens = sortFontTokenObjects(nextTokens)
-      
+
       // Update state without triggering full recompute
       this.writeState({ tokens: sortedTokens }, true)
-      
+
       // Update only the affected CSS variable(s)
       this.updateSingleTokenCssVar(tokenName)
-      
+
       // Trigger AA compliance checks when color tokens change
       if ((category === 'color' || category === 'colors') && rest.length >= 2) {
         const [scaleOrFamily, level] = rest
@@ -864,7 +864,7 @@ class VarsStore {
             scaleKey = foundScaleKey
           }
         }
-        
+
         // Check if this token is used by any core color
         const isCoreColorToken = this.isCoreColorToken(family, level)
         if (isCoreColorToken) {
@@ -876,7 +876,7 @@ class VarsStore {
             }
           }, 100)
         }
-        
+
         // Check if this color token is used by any palette
         const palettesUsingColor = this.findPalettesUsingColor(scaleKey, family)
         if (palettesUsingColor.length > 0) {
@@ -886,7 +886,7 @@ class VarsStore {
               this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
               // Update on-tone for all affected palettes - CSS vars only, never JSON
               for (const { paletteKey, mode } of palettesUsingColor) {
-                const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
+                const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
                 levels.forEach((lvl) => {
                   this.aaWatcher?.updatePaletteOnTone(paletteKey, lvl, mode)
                 })
@@ -922,115 +922,115 @@ class VarsStore {
   resetAll() {
     // Clear all CSS variables first
     clearAllCssVars()
-    
+
     // Reset state from original JSON imports
     const sortedTokens = sortFontTokenObjects(tokensImport as any)
     const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
-    
+
     // Reset localStorage to original values
     if (this.lsAvailable) {
-        // Clear elevation localStorage to ensure clean reset
-        try {
-          localStorage.removeItem(STORAGE_KEYS.elevation)
-          // Also clear legacy elevation localStorage keys
-          localStorage.removeItem('elevation-color-tokens')
-          localStorage.removeItem('elevation-alpha-tokens')
-          localStorage.removeItem('elevation-palette-selections')
-          localStorage.removeItem('elevation-directions')
-        } catch {}
-        
-        // Explicitly clear dynamic-palettes to remove added palettes
-        try {
-          localStorage.removeItem('dynamic-palettes')
-        } catch {}
-        
-        writeLSJson(STORAGE_KEYS.tokens, tokensImport)
-        writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
-        writeLSJson(STORAGE_KEYS.uikit, uikitImport)
-        // Now migratePaletteLocalKeys() will read the default (no dynamic-palettes in localStorage)
-        writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
-        writeLSJson(STORAGE_KEYS.elevation, this.initElevationState(normalizedTheme as any, sortedTokens))
-        
-        // Reset family-friendly-names to use aliases from JSON
-        try {
-          const tokensRoot: any = (tokensImport as any)?.tokens || {}
-          const names: Record<string, string> = {}
-          
-          // Process new colors structure (colors.scale-XX with alias)
-          const colorsRoot = tokensRoot?.colors || {}
-          if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
-            Object.keys(colorsRoot).forEach((scaleKey) => {
-              if (!scaleKey.startsWith('scale-')) return
-              const scale = colorsRoot[scaleKey]
-              if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
-              
-              const alias = scale.alias
-              if (alias && typeof alias === 'string') {
-                names[alias] = toTitleCase(alias)
-              }
-            })
-          }
-          
-          // Process old color structure for backwards compatibility
-          const oldColors = tokensRoot?.color || {}
-          Object.keys(oldColors).forEach((fam) => {
-            if (fam !== 'translucent') {
-              names[fam] = toTitleCase(fam)
+      // Clear elevation localStorage to ensure clean reset
+      try {
+        localStorage.removeItem(STORAGE_KEYS.elevation)
+        // Also clear legacy elevation localStorage keys
+        localStorage.removeItem('elevation-color-tokens')
+        localStorage.removeItem('elevation-alpha-tokens')
+        localStorage.removeItem('elevation-palette-selections')
+        localStorage.removeItem('elevation-directions')
+      } catch { }
+
+      // Explicitly clear dynamic-palettes to remove added palettes
+      try {
+        localStorage.removeItem('dynamic-palettes')
+      } catch { }
+
+      writeLSJson(STORAGE_KEYS.tokens, tokensImport)
+      writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
+      writeLSJson(STORAGE_KEYS.uikit, uikitImport)
+      // Now migratePaletteLocalKeys() will read the default (no dynamic-palettes in localStorage)
+      writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
+      writeLSJson(STORAGE_KEYS.elevation, this.initElevationState(normalizedTheme as any, sortedTokens))
+
+      // Reset family-friendly-names to use aliases from JSON
+      try {
+        const tokensRoot: any = (tokensImport as any)?.tokens || {}
+        const names: Record<string, string> = {}
+
+        // Process new colors structure (colors.scale-XX with alias)
+        const colorsRoot = tokensRoot?.colors || {}
+        if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+          Object.keys(colorsRoot).forEach((scaleKey) => {
+            if (!scaleKey.startsWith('scale-')) return
+            const scale = colorsRoot[scaleKey]
+            if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
+
+            const alias = scale.alias
+            if (alias && typeof alias === 'string') {
+              names[alias] = toTitleCase(alias)
             }
           })
-          
-          writeLSJson('family-friendly-names', names)
-          // Dispatch event to notify components of the reset
-          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names })) } catch {}
-          
-          // Reset primary levels and selected families for all palettes
-          try {
-            const allKeys: string[] = []
-            const clearedPalettes = new Set<string>()
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i)
-              if (key && (
-                key.startsWith('palette-primary-level:') ||
-                key.startsWith('palette-grid-family:')
-              )) {
-                allKeys.push(key)
-                // Track which palettes had primary levels cleared
-                if (key.startsWith('palette-primary-level:')) {
-                  const parts = key.split(':')
-                  if (parts.length >= 2) {
-                    clearedPalettes.add(parts[1]) // paletteKey
-                  }
+        }
+
+        // Process old color structure for backwards compatibility
+        const oldColors = tokensRoot?.color || {}
+        Object.keys(oldColors).forEach((fam) => {
+          if (fam !== 'translucent') {
+            names[fam] = toTitleCase(fam)
+          }
+        })
+
+        writeLSJson('family-friendly-names', names)
+        // Dispatch event to notify components of the reset
+        try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names })) } catch { }
+
+        // Reset primary levels and selected families for all palettes
+        try {
+          const allKeys: string[] = []
+          const clearedPalettes = new Set<string>()
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i)
+            if (key && (
+              key.startsWith('palette-primary-level:') ||
+              key.startsWith('palette-grid-family:')
+            )) {
+              allKeys.push(key)
+              // Track which palettes had primary levels cleared
+              if (key.startsWith('palette-primary-level:')) {
+                const parts = key.split(':')
+                if (parts.length >= 2) {
+                  clearedPalettes.add(parts[1]) // paletteKey
                 }
               }
             }
-            allKeys.forEach(key => {
-              try { localStorage.removeItem(key) } catch {}
-            })
-            
-            // Dispatch events to notify all PaletteGrid components to re-read primary levels from theme JSON
-            // Dispatch for both modes and all affected palettes
-            for (const modeKey of ['light', 'dark']) {
-              for (const paletteKey of clearedPalettes) {
-                try {
-                  window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
-                    detail: { paletteKey, mode: modeKey, level: null, reset: true }
-                  }))
-                } catch {}
-              }
-              // Also dispatch a general "all palettes" event for this mode
+          }
+          allKeys.forEach(key => {
+            try { localStorage.removeItem(key) } catch { }
+          })
+
+          // Dispatch events to notify all PaletteGrid components to re-read primary levels from theme JSON
+          // Dispatch for both modes and all affected palettes
+          for (const modeKey of ['light', 'dark']) {
+            for (const paletteKey of clearedPalettes) {
               try {
                 window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
-                  detail: { allPalettes: true, mode: modeKey, reset: true }
+                  detail: { paletteKey, mode: modeKey, level: null, reset: true }
                 }))
-              } catch {}
+              } catch { }
             }
-          } catch {}
-        } catch {}
+            // Also dispatch a general "all palettes" event for this mode
+            try {
+              window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
+                detail: { allPalettes: true, mode: modeKey, reset: true }
+              }))
+            } catch { }
+          }
+        } catch { }
+      } catch { }
     }
-    
+
     // Initialize elevation state (this will create elevation tokens in sortedTokens)
     const elevation = this.initElevationState(normalizedTheme as any, sortedTokens)
-    
+
     // Reset state (elevation tokens are now in sortedTokens from initElevationState)
     this.state = {
       tokens: sortedTokens,
@@ -1040,12 +1040,12 @@ class VarsStore {
       elevation,
       version: (this.state?.version || 0) + 1
     }
-    
+
     // Recompute and apply all CSS variables from clean state
     // Reset the recomputing flag first since we're doing a full reset
     this.isRecomputing = false
     this.recomputeAndApplyAll()
-    
+
     // Update AA watcher with new state
     // Reset the hasRunInitialAA flag so the cssVarsUpdated event listener can trigger AA compliance
     // This prevents duplicate runs - the event from recomputeAndApplyAll will handle it
@@ -1054,22 +1054,22 @@ class VarsStore {
       // Reset flag so cssVarsUpdated event can trigger AA compliance check
       this.hasRunInitialAA = false
     }
-    
+
     // Notify all listeners that state has been reset
     this.emit()
-    
+
     // Dispatch events to notify components of the reset
     try {
       window.dispatchEvent(new CustomEvent('themeReset', {}))
       window.dispatchEvent(new CustomEvent('paletteVarsChanged', {}))
-      
+
       // Dispatch palettePrimaryLevelChanged events for all palettes in both modes
       // This ensures all PaletteGrid components re-read primary levels from theme JSON
       // Get palette keys from the reset state
       const root: any = normalizedTheme?.brand ? normalizedTheme.brand : normalizedTheme
       const themes = root?.themes || root
       const allPaletteKeys = new Set<string>()
-      
+
       for (const modeKey of ['light', 'dark']) {
         const palettes = themes?.[modeKey]?.palettes || {}
         Object.keys(palettes).forEach(key => {
@@ -1078,7 +1078,7 @@ class VarsStore {
           }
         })
       }
-      
+
       // Dispatch events for all palettes in both modes
       for (const modeKey of ['light', 'dark']) {
         for (const paletteKey of allPaletteKeys) {
@@ -1086,21 +1086,21 @@ class VarsStore {
             window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
               detail: { paletteKey, mode: modeKey, reset: true }
             }))
-          } catch {}
+          } catch { }
         }
         // Also dispatch a general "all palettes" event for this mode
         try {
           window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
             detail: { allPalettes: true, mode: modeKey, reset: true }
           }))
-        } catch {}
+        } catch { }
       }
-    } catch {}
+    } catch { }
   }
 
   private initElevationState(theme: any, tokens?: any, forceRebuildFromTheme = false): ElevationState {
     let elevationState: ElevationState | null = null
-    
+
     // Try consolidated key first (unless we're forcing a rebuild from theme)
     if (this.lsAvailable && !forceRebuildFromTheme) {
       try {
@@ -1114,7 +1114,7 @@ class VarsStore {
             const spreadTokens: Record<string, string> = {}
             const offsetXTokens: Record<string, string> = {}
             const offsetYTokens: Record<string, string> = {}
-            
+
             for (let i = 0; i <= 4; i++) {
               const k = `elevation-${i}`
               blurTokens[k] = `size/elevation-${i}-blur`
@@ -1122,7 +1122,7 @@ class VarsStore {
               offsetXTokens[k] = `size/elevation-${i}-offset-x`
               offsetYTokens[k] = `size/elevation-${i}-offset-y`
             }
-            
+
             parsed.blurTokens = blurTokens
             parsed.spreadTokens = spreadTokens
             parsed.offsetXTokens = offsetXTokens
@@ -1130,7 +1130,7 @@ class VarsStore {
           }
           elevationState = parsed
         }
-      } catch {}
+      } catch { }
     }
     // If we loaded from localStorage, use those controls; otherwise build from theme
     let controls: Record<string, ElevationControl> = {}
@@ -1141,7 +1141,7 @@ class VarsStore {
     let baseYDirection: 'up' | 'down' = 'down'
     let directions: Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }> = {}
     let shadowColorControl: { colorToken: string; alphaToken: string } = { colorToken: 'color/gray/900', alphaToken: 'opacity/veiled' }
-    
+
     if (!elevationState) {
       // Build defaults from theme
       const brand: any = (theme as any)?.brand || (theme as any)
@@ -1251,7 +1251,7 @@ class VarsStore {
                   } else if (typeof defaultRef === 'string') {
                     defaultValue = defaultRef
                   }
-                  
+
                   if (defaultValue && typeof defaultValue === 'string') {
                     const defaultParsed = parseTokenReference(defaultValue, context)
                     if (defaultParsed && defaultParsed.type === 'brand') {
@@ -1304,7 +1304,7 @@ class VarsStore {
       }
       const elev1: any = light?.['elevation-1']?.['$value'] || {}
       shadowColorControl = { colorToken: parseColorToken(elev1?.color?.['$value'] ?? elev1?.color), alphaToken: parseOpacity(elev1?.opacity?.['$value'] ?? elev1?.opacity) }
-      
+
       // Initialize palette selections from brand.json for each elevation
       const initialPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
       for (let i = 0; i <= 4; i++) {
@@ -1323,22 +1323,22 @@ class VarsStore {
       // Migrate legacy keys
       paletteSelections = { ...initialPaletteSelections }
       if (this.lsAvailable) {
-        try { const raw = localStorage.getItem('elevation-color-tokens'); if (raw) colorTokens = JSON.parse(raw) } catch {}
-        try { const raw = localStorage.getItem('elevation-alpha-tokens'); if (raw) alphaTokens = JSON.parse(raw) } catch {}
-        try { 
+        try { const raw = localStorage.getItem('elevation-color-tokens'); if (raw) colorTokens = JSON.parse(raw) } catch { }
+        try { const raw = localStorage.getItem('elevation-alpha-tokens'); if (raw) alphaTokens = JSON.parse(raw) } catch { }
+        try {
           const raw = localStorage.getItem('elevation-palette-selections')
           if (raw) {
             // Merge localStorage selections with initial selections (localStorage takes precedence)
             const savedSelections = JSON.parse(raw)
             paletteSelections = { ...initialPaletteSelections, ...savedSelections }
           }
-        } catch {}
-        try { const raw = localStorage.getItem('elevation-directions'); if (raw) Object.assign(directions, JSON.parse(raw)) } catch {}
-        try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') (baseXDirection as any) = raw } catch {}
-        try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') (baseYDirection as any) = raw } catch {}
+        } catch { }
+        try { const raw = localStorage.getItem('elevation-directions'); if (raw) Object.assign(directions, JSON.parse(raw)) } catch { }
+        try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') (baseXDirection as any) = raw } catch { }
+        try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') (baseYDirection as any) = raw } catch { }
       }
     }
-    
+
     // Initialize token references if not already set
     const blurTokens: Record<string, string> = {}
     const spreadTokens: Record<string, string> = {}
@@ -1351,57 +1351,57 @@ class VarsStore {
       offsetXTokens[k] = `size/elevation-${i}-offset-x`
       offsetYTokens[k] = `size/elevation-${i}-offset-y`
     }
-    
+
     // Use elevationState from localStorage if available, otherwise use the one we built
-    const finalState: ElevationState = elevationState || { 
-      controls, 
-      colorTokens, 
-      alphaTokens, 
+    const finalState: ElevationState = elevationState || {
+      controls,
+      colorTokens,
+      alphaTokens,
       blurTokens,
       spreadTokens,
       offsetXTokens,
       offsetYTokens,
-      paletteSelections, 
-      baseXDirection, 
-      baseYDirection, 
-      directions, 
-      shadowColorControl 
+      paletteSelections,
+      baseXDirection,
+      baseYDirection,
+      directions,
+      shadowColorControl
     }
-    
+
     // Always ensure tokens exist and token references are set (even if loaded from localStorage)
     // Use finalState tokens if available, otherwise use initialized defaults
     if (finalState.blurTokens) Object.assign(blurTokens, finalState.blurTokens)
     if (finalState.spreadTokens) Object.assign(spreadTokens, finalState.spreadTokens)
     if (finalState.offsetXTokens) Object.assign(offsetXTokens, finalState.offsetXTokens)
     if (finalState.offsetYTokens) Object.assign(offsetYTokens, finalState.offsetYTokens)
-    
+
     // Get or create tokens structure
     if (!tokens) tokens = {}
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
-    
+
     // Ensure size tokens structure exists (use plural 'sizes' to match updateToken)
     if (!(tokens as any).tokens.sizes) (tokens as any).tokens.sizes = {}
     const sizeTokens = (tokens as any).tokens.sizes
-    
+
     // Use controls from finalState (either from localStorage or newly built)
     const finalControls = finalState.controls || {}
     const baseCtrl = finalControls['elevation-0']
-    
+
     for (let i = 0; i <= 4; i++) {
       const k = `elevation-${i}`
       const ctrl = finalControls[k] || baseCtrl
-      
+
       // Set token references for elevation state tracking
       const blurTokenName = `size/elevation-${i}-blur`
       const spreadTokenName = `size/elevation-${i}-spread`
       const offsetXTokenName = `size/elevation-${i}-offset-x`
       const offsetYTokenName = `size/elevation-${i}-offset-y`
-      
+
       if (!blurTokens[k]) blurTokens[k] = blurTokenName
       if (!spreadTokens[k]) spreadTokens[k] = spreadTokenName
       if (!offsetXTokens[k]) offsetXTokens[k] = offsetXTokenName
       if (!offsetYTokens[k]) offsetYTokens[k] = offsetYTokenName
-      
+
       // Create elevation tokens in the tokens structure if they don't exist
       // These tokens are needed for CSS variable generation (referenced as --recursica-tokens-size-elevation-X-blur, etc.)
       if (ctrl) {
@@ -1409,7 +1409,7 @@ class VarsStore {
         const spreadKey = `elevation-${i}-spread`
         const offsetXKey = `elevation-${i}-offset-x`
         const offsetYKey = `elevation-${i}-offset-y`
-        
+
         if (!sizeTokens[blurKey]) {
           sizeTokens[blurKey] = { $type: 'number', $value: ctrl.blur || 0 }
         }
@@ -1424,7 +1424,7 @@ class VarsStore {
         }
       }
     }
-    
+
     return { ...finalState, blurTokens, spreadTokens, offsetXTokens, offsetYTokens }
   }
 
@@ -1444,33 +1444,33 @@ class VarsStore {
   public switchMode(mode: 'light' | 'dark') {
     try {
       localStorage.setItem('theme-mode', mode)
-    } catch {}
+    } catch { }
     // Skip if already recomputing to prevent infinite loops
     if (!this.isRecomputing) {
       this.recomputeAndApplyAll()
-      
+
       // After mode switch, check all palette on-tone values for AA compliance
       // This ensures on-tone values are correct after switching modes
       if (this.aaWatcher) {
         // Update AA watcher with current state
         this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
-        
+
         // Use setTimeout to ensure CSS variables are fully applied before checking AA compliance
         setTimeout(() => {
           if (this.aaWatcher && !this.isRecomputing) {
             // Suppress CSS var events during AA compliance check to prevent triggering recomputation
             suppressCssVarEvents(true)
-            
+
             this.aaWatcher.checkAllPaletteOnTones()
-            
+
             // After AA compliance check updates CSS vars, update theme JSON to match
             // Use a delay to ensure CSS vars are updated before reading them
             setTimeout(() => {
               this.updateThemeJsonFromOnToneCssVars()
-              
+
               // Clear pending CSS vars before re-enabling events to prevent batched event from firing
               clearPendingCssVars()
-              
+
               // Re-enable events after theme JSON is updated
               suppressCssVarEvents(false)
             }, 100)
@@ -1486,7 +1486,7 @@ class VarsStore {
       return
     }
     this.isRecomputing = true
-    
+
     // Clear overlay CSS variables from DOM before recomputing to ensure new values from theme JSON are used
     if (typeof document !== 'undefined') {
       const overlayVars = [
@@ -1499,10 +1499,10 @@ class VarsStore {
         document.documentElement.style.removeProperty(cssVar)
       })
     }
-    
+
     // Suppress cssVarsUpdated events during bulk update to prevent infinite loops
     suppressCssVarEvents(true)
-    
+
     // Build complete CSS variable map from current state
     // Note: Tokens are now the single source of truth - no overrides needed
     const currentMode = this.getCurrentMode()
@@ -1511,703 +1511,688 @@ class VarsStore {
     let uikitVars: Record<string, string> = {}
     // Track which UIKit vars actually changed to avoid unnecessary re-renders
     const changedUikitVars = new Set<string>()
-    
-    try {
-    
-    // Tokens: expose size tokens as CSS vars under --recursica-tokens-sizes-<key>
-    try {
-      const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
-      
-      // Elevation tokens should NOT be in tokens - they belong in brand.json
-      // CSS variables for elevations are generated directly from brand.json elevations
-      
-      // Use sizes (plural) - the store now uses plural consistently
-      const sizesRoot: any = tokensRoot?.sizes || {}
-      
-      if (!sizesRoot || typeof sizesRoot !== 'object' || Array.isArray(sizesRoot) || Object.keys(sizesRoot).length === 0) {
-      } else {
-        const vars: Record<string, string> = {}
-      const toPxString = (v: any): string | undefined => {
-        if (v == null) return undefined
-        if (typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) {
-          const val: any = (v as any).value
-          const unit: any = (v as any).unit
-          if (typeof val === 'number') return unit ? `${val}${unit}` : `${val}px`
-          return typeof val === 'string' ? val : undefined
-        }
-        if (typeof v === 'number') return `${v}px`
-        if (typeof v === 'string') {
-          // if numeric string, append px; else assume it already has a unit
-          return /^-?\d+(\.\d+)?$/.test(v.trim()) ? `${v.trim()}px` : v.trim()
-        }
-        return undefined
-      }
-        const elevationTokensFound: string[] = []
-        Object.keys(sizesRoot).forEach((short) => {
-          if (short.startsWith('$')) return
-          const sizeObj = sizesRoot[short]
-          if (!sizeObj || typeof sizeObj !== 'object') return
-          const val = sizeObj.$value
-          const px = toPxString(val)
-          if (typeof px === 'string' && px) {
-            vars[`--recursica-tokens-sizes-${short}`] = px
-            // Backwards compatibility: also create singular form
-            if (!vars[`--recursica-tokens-size-${short}`]) {
-              vars[`--recursica-tokens-size-${short}`] = px
-            }
-            if (short.includes('elevation')) {
-              elevationTokensFound.push(short)
-            }
-          }
-        })
-        Object.assign(allVars, vars)
-      }
-    } catch (e) {
-      console.error('[VarsStore] Error generating size token CSS variables:', e)
-    }
-    // Tokens: expose opacity tokens as CSS vars under --recursica-tokens-opacities-<key> (normalized 0..1)
-    try {
-      const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
-      
-      // Elevation opacity tokens should NOT be in tokens - they belong in brand.json
-      // CSS variables for elevations are generated directly from brand.json elevations
-      
-      // Use opacities (plural) - the store now uses plural consistently
-      const finalOpacityRoot: any = tokensRoot?.opacities || {}
-      
-      if (!finalOpacityRoot || typeof finalOpacityRoot !== 'object' || Array.isArray(finalOpacityRoot) || Object.keys(finalOpacityRoot).length === 0) {
-        // Skip if opacityRoot is not a valid object or is empty
-      } else {
-        const vars: Record<string, string> = {}
-      const normalize = (v: any): string | undefined => {
-        try {
-          const n = typeof v === 'number' ? v : (typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) ? Number((v as any).value) : Number(v)
-          if (!Number.isFinite(n)) return undefined
-          const val = n <= 1 ? n : n / 100
-          return String(Math.max(0, Math.min(1, val)))
-        } catch { return undefined }
-      }
-        Object.keys(finalOpacityRoot).forEach((short) => {
-          if (short.startsWith('$')) return
-          const opacityObj = finalOpacityRoot[short]
-          if (!opacityObj || typeof opacityObj !== 'object') return
-          const v = opacityObj.$value
-          const norm = normalize(v)
-          if (typeof norm === 'string') {
-            vars[`--recursica-tokens-opacities-${short}`] = norm
-            // Backwards compatibility: also create singular form
-            if (!vars[`--recursica-tokens-opacity-${short}`]) {
-              vars[`--recursica-tokens-opacity-${short}`] = norm
-            }
-          }
-        })
-        Object.assign(allVars, vars)
-      }
-    } catch (e) {
-      console.error('[VarsStore] Error generating opacity token CSS variables:', e)
-    }
-    // Tokens: expose color tokens as CSS vars under --recursica-tokens-colors-<scale>-<level>
-    // New structure: tokens.colors.scale-XX.XXX with alias property
-    try {
-      const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
-      const colorsRoot: any = tokensRoot?.colors
-      const vars: Record<string, string> = {}
-      const processedKeys = new Set<string>()
-      
-      // Process new scale structure (scale-01, scale-02, etc.)
-      if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
-        Object.keys(colorsRoot).forEach((scaleKey) => {
-          if (!scaleKey || typeof scaleKey !== 'string' || !scaleKey.startsWith('scale-')) return
-          const scale = colorsRoot[scaleKey]
-          if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
-          
-          const alias = scale.alias // Get the alias (e.g., "cornflower", "gray")
-          
-          Object.keys(scale).forEach((lvl) => {
-            // Skip the alias property
-            if (lvl === 'alias') return
-            // Accept levels that are: 2-4 digits, or exactly '000' or '050'
-            if (!/^(\d{2,4}|000|050)$/.test(lvl)) return
-            
-            const levelObj = scale[lvl]
-            if (!levelObj || typeof levelObj !== 'object') return
-            
-            // Preserve 000 and 1000 as-is, pad others to 3 digits
-            const normalizedLevel = lvl === '000' ? '000' : lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
-            
-            // Generate CSS vars for scale name only (no alias-based vars)
-            const scaleCssVarKey = `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`
-            
-            // Read directly from token value
-            const val = levelObj.$value
-            if (typeof val === 'string' && val) {
-              vars[scaleCssVarKey] = String(val)
-              processedKeys.add(scaleCssVarKey)
-            }
-          })
-        })
-      }
-      
-      // Backwards compatibility: also process old color structure if it exists
-      const oldColorsRoot: any = tokensRoot?.color
-      if (oldColorsRoot && typeof oldColorsRoot === 'object' && !Array.isArray(oldColorsRoot)) {
-        Object.keys(oldColorsRoot).forEach((family) => {
-          if (!family || typeof family !== 'string' || family === 'translucent') return
-          const levels = oldColorsRoot[family]
-          if (!levels || typeof levels !== 'object' || Array.isArray(levels)) return
-          
-          Object.keys(levels).forEach((lvl) => {
-            if (!/^(\d{2,4}|000|050)$/.test(lvl)) return
-            const normalizedLevel = lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
-            const cssVarKey = `--recursica-tokens-color-${family}-${normalizedLevel}`
-            if (!processedKeys.has(cssVarKey)) {
-              const levelObj = levels[lvl]
-              if (levelObj && typeof levelObj === 'object') {
-                const val = levelObj.$value
-                if (typeof val === 'string' && val) {
-                  vars[cssVarKey] = String(val)
-                  processedKeys.add(cssVarKey)
-                }
-              }
-            }
-          })
-        })
-      }
-      
-      Object.assign(allVars, vars)
-    } catch (e) {
-      console.error('[VarsStore] Error generating color token CSS variables:', e)
-    }
-    // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
-    // Generate for both light and dark modes
-    try {
-      const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = root?.themes || root
-      
-      const normalizeLevel = (lvl?: string): string | undefined => {
-        if (!lvl) return undefined
-        const s = String(lvl).padStart(3, '0')
-        // Preserve 000 and 1000 as-is - don't normalize them
-        if (s === '000') return '000'
-        if (s === '1000') return '1000'
-        const allowed = new Set(['900','800','700','600','500','400','300','200','100','050','000','1000'])
-        return allowed.has(s) ? s : undefined
-      }
-      
-      // Process both light and dark modes
-      for (const mode of ['light', 'dark'] as const) {
-        // Get core-colors object - it may have $value wrapper or be direct
-        const coreColorsObj: any = themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core
-        // Extract the actual colors object (handle both $value wrapper and direct structure)
-        const core: any = coreColorsObj?.$value || coreColorsObj || {}
-        
-        // Map core color names to CSS variable names
-        // Use --recursica-brand-themes- format to match palettes.ts resolver
-        const coreColorMap: Record<string, string> = {
-          black: `--recursica-brand-themes-${mode}-palettes-core-black`,
-          white: `--recursica-brand-themes-${mode}-palettes-core-white`,
-          alert: `--recursica-brand-themes-${mode}-palettes-core-alert`,
-          warning: `--recursica-brand-themes-${mode}-palettes-core-warning`,
-          success: `--recursica-brand-themes-${mode}-palettes-core-success`,
-          interactive: `--recursica-brand-themes-${mode}-palettes-core-interactive`,
-        }
-      
-        // Default fallbacks if theme JSON doesn't have the value
-        const defaults: Record<string, string> = {
-          black: mode === 'light' ? 'color/gray/1000' : 'color/gray/000',
-          white: mode === 'light' ? 'color/gray/000' : 'color/gray/1000',
-          alert: mode === 'light' ? 'color/mandy/600' : 'color/mandy/400',
-          warning: mode === 'light' ? 'color/mandarin/600' : 'color/mandarin/400',
-          success: mode === 'light' ? 'color/greensheen/600' : 'color/greensheen/400',
-          interactive: mode === 'light' ? 'color/mandy/500' : 'color/mandy/400',
-        }
-        
-        const colors: Record<string, string> = {}
-        
-        // Helper function to resolve a token reference using centralized parser
-        const resolveTokenRef = (value: any): string | null => {
-          const context: TokenReferenceContext = {
-            currentMode: (currentMode as string) === 'Dark' ? 'dark' : 'light',
-            tokenIndex: buildTokenIndex(this.state.tokens),
-            theme: this.state.theme
-          }
-          return resolveTokenReferenceToCssVar(value, context)
-        }
-      
-        // Process each core color
-        Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
-          // Get the value from theme JSON - core should now be the direct colors object
-          const coreValue: any = core[colorName]
-          let tokenRef: string | null = null
-          
-          // Special handling for interactive (nested structure)
-          if (colorName === 'interactive' && coreValue && typeof coreValue === 'object' && !coreValue.$value) {
-            // Handle nested structure: interactive.default.tone, interactive.default.on-tone, etc.
-            const defaultTone = coreValue.default?.tone?.$value || coreValue.default?.tone
-            const defaultOnTone = coreValue.default?.['on-tone']?.$value || coreValue.default?.['on-tone']
-            const hoverTone = coreValue.hover?.tone?.$value || coreValue.hover?.tone
-            const hoverOnTone = coreValue.hover?.['on-tone']?.$value || coreValue.hover?.['on-tone']
-            
-            // Main interactive var (backward compatibility) maps to default tone
-            if (defaultTone) {
-              tokenRef = resolveTokenRef(defaultTone)
-            }
-            
-            // Generate additional CSS vars for nested structure
-            if (defaultTone) {
-              const defaultToneRef = resolveTokenRef(defaultTone)
-              if (defaultToneRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`] = defaultToneRef
-              }
-            }
-            if (defaultOnTone) {
-              const defaultOnToneRef = resolveTokenRef(defaultOnTone)
-              if (defaultOnToneRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`] = defaultOnToneRef
-              }
-            }
-            if (hoverTone) {
-              const hoverToneRef = resolveTokenRef(hoverTone)
-              if (hoverToneRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`] = hoverToneRef
-              }
-            }
-            if (hoverOnTone) {
-              const hoverOnToneRef = resolveTokenRef(hoverOnTone)
-              if (hoverOnToneRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone`] = hoverOnToneRef
-              }
-            }
-          } else if (coreValue && typeof coreValue === 'object' && !coreValue.$value) {
-            // Handle new structure: each core color has tone, on-tone, and interactive
-            const tone = coreValue.tone?.$value || coreValue.tone
-            const onTone = coreValue['on-tone']?.$value || coreValue['on-tone']
-            const interactive = coreValue.interactive?.$value || coreValue.interactive
-            
-            // Main tone var (backward compatibility)
-            if (tone) {
-              tokenRef = resolveTokenRef(tone)
-            }
-            
-            // Generate additional CSS vars for new structure
-            // Use --recursica-brand-themes- format to match palettes.ts resolver
-            if (tone) {
-              const toneRef = resolveTokenRef(tone)
-              if (toneRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`] = toneRef
-              }
-            }
-            if (onTone) {
-              const onToneRef = resolveTokenRef(onTone)
-              if (onToneRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-on-tone`] = onToneRef
-              }
-            }
-            if (interactive) {
-              const interactiveRef = resolveTokenRef(interactive)
-              if (interactiveRef) {
-                colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`] = interactiveRef
-              }
-            }
-          } else {
-            // Handle simple string values for backward compatibility
-            tokenRef = resolveTokenRef(coreValue)
-          }
-          
-          // Fallback to default if parsing failed
-          if (!tokenRef) {
-            const defaultToken = defaults[colorName]
-            if (defaultToken) {
-              const parts = defaultToken.split('/')
-              if (parts.length === 3 && parts[0] === 'color') {
-                const family = parts[1]
-                const level = normalizeLevel(parts[2])
-                if (family && level) {
-                  tokenRef = `var(--recursica-tokens-color-${family}-${level})`
-                }
-              }
-            }
-          }
-          
-          // Last resort fallback
-          if (!tokenRef) {
-            tokenRef = 'var(--recursica-tokens-color-gray-500)'
-          }
-          
-          colors[cssVar] = tokenRef
-        })
-        
-        // Core color CSS variables are generated from theme JSON - no preservation needed
-        // Theme JSON is the single source of truth
-        
-        Object.assign(allVars, colors)
-      }
-    } catch {}
-    // Palettes - generate for both modes
-    const paletteVarsLight = buildPaletteVars(this.state.tokens, this.state.theme, 'Light')
-    const paletteVarsDark = buildPaletteVars(this.state.tokens, this.state.theme, 'Dark')
-    
-    // Palette CSS variables are generated from theme JSON - no preservation needed
-    // Theme JSON is the single source of truth
-    const allPaletteVars = { ...paletteVarsLight, ...paletteVarsDark }
-    
-    // Note: Overlay CSS variables are now cleared at the start of recomputeAndApplyAll()
-    // so we don't need to preserve them here - they'll be set from the generated values in allPaletteVars
-    // This ensures that theme JSON changes (like randomization) are properly reflected in the DOM
-    
-    
-    Object.assign(allVars, allPaletteVars)
-    // allPaletteVars already defined above with preserved values
-    // Layers (from Brand) - generate for both modes
-    const layerVarsLight = buildLayerVars(this.state.tokens, this.state.theme, 'light', undefined, allPaletteVars)
-    const layerVarsDark = buildLayerVars(this.state.tokens, this.state.theme, 'dark', undefined, allPaletteVars)
-    const layerVars = { ...layerVarsLight, ...layerVarsDark }
-    
-    // Layer CSS variables are generated from theme JSON - no preservation needed
-    // Theme JSON is the single source of truth
-    Object.assign(allVars, layerVars)
-    // Dimensions - generate for both modes (dimensions are mode-agnostic but vars are generated for both)
-    try {
-      const dimensionVarsLight = buildDimensionVars(this.state.tokens, this.state.theme, 'light')
-      const dimensionVarsDark = buildDimensionVars(this.state.tokens, this.state.theme, 'dark')
-      Object.assign(allVars, dimensionVarsLight)
-      Object.assign(allVars, dimensionVarsDark)
-    } catch (e) {
-      console.error('[VarsStore] Error generating dimension variables:', e)
-    }
-    // UIKit components - generate for all modes during bootstrap
-    // UIKit vars are generated for both light and dark modes based on what modes/themes are in Brand.json
-    // After initial bootstrap, UIKit vars are also managed via toolbar
-    try {
-      // Check if any UIKit vars exist in DOM - if they do, skip regenerating (they're managed via toolbar)
-      let shouldGenerateUIKitVars = true
-      if (typeof document !== 'undefined') {
-        // Sample a few UIKit vars to check if they're already initialized (check both light and dark)
-        const sampleVars = [
-          '--recursica-ui-kit-themes-light-components-segmented-control-item-properties-selected-colors-layer-0-background',
-          '--recursica-ui-kit-themes-dark-components-segmented-control-item-properties-selected-colors-layer-0-background',
-          '--recursica-ui-kit-themes-light-components-button-properties-colors-layer-0-background',
-          '--recursica-ui-kit-themes-dark-components-button-properties-colors-layer-0-background'
-        ]
-        const hasAnyUIKitVars = sampleVars.some(v => {
-          const value = document.documentElement.style.getPropertyValue(v)
-          return value && value.trim() !== ''
-        })
-        // If UIKit vars exist, don't regenerate them (they're managed via toolbar)
-        if (hasAnyUIKitVars) {
-          shouldGenerateUIKitVars = false
-        }
-      }
-      
-      if (shouldGenerateUIKitVars) {
-        // Initial bootstrap - generate UIKit vars for both light and dark modes
-        const uikitVarsLight = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, 'light')
-        const uikitVarsDark = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, 'dark')
-        uikitVars = { ...uikitVarsLight, ...uikitVarsDark }
-        
-        // Track which UIKit vars actually changed by comparing generated values with current DOM values
-        if (typeof document !== 'undefined') {
-          for (const [cssVar, generatedValue] of Object.entries(uikitVars)) {
-            const generatedValueTrimmed = generatedValue ? generatedValue.trim() : ''
-            // Read current value from DOM
-            const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
-            const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
-            
-            // Track if this var will actually change from what's currently in the DOM
-            if (generatedValueTrimmed !== inlineValue) {
-              changedUikitVars.add(cssVar)
-            }
-          }
-        }
-        
-        Object.assign(allVars, uikitVars)
-      } else {
-        // UIKit vars already exist - skip regenerating them (they're managed via toolbar)
-        uikitVars = {}
-      }
-    } catch {}
-    // Typography
-    const typeChoices = this.readTypeChoices()
-    const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, typeChoices)
-    
-    // Typography CSS variables are generated from theme JSON and type choices - no preservation needed
-    // Theme JSON and type choices are the single source of truth
-    
-    Object.assign(allVars, typeVars)
-    // Load fonts asynchronously - don't wait, don't trigger recomputes
-    // CSS variables are already set with font names, fonts will apply when loaded
-    // Fonts MUST load (async is fine, but they must load)
-    if (familiesToLoad.length > 0 && typeof window !== 'undefined') {
-      // Load fonts in background without blocking or triggering events
-      Promise.all(familiesToLoad.map(async (family) => {
-        try {
-          const trimmed = String(family).trim()
-          if (!trimmed) return
-          // Load font (async is fine, but it must load)
-          await ensureFontLoaded(trimmed).catch((error) => {
-            console.warn(`Failed to load font "${trimmed}" during recompute:`, error)
-          })
-        } catch (error) {
-          console.warn(`Failed to load font:`, error)
-        }
-      })).catch((error) => {
-        console.warn('Failed to load some fonts during recompute:', error)
-      })
-    }
 
-    // Elevation CSS variables (apply for levels 0..4) - generate for both modes
-    for (const mode of ['light', 'dark'] as const) {
+    try {
+
+      // Tokens: expose size tokens as CSS vars under --recursica-tokens-sizes-<key>
       try {
-        const tokenIndex = {
-          get: (path: string): any => {
-            const parts = path.split('/')
-            const root: any = (this.state.tokens as any)?.tokens || {}
-            // Read directly from tokens - no overrides
-            // Support both plural and singular forms
-            if ((parts[0] === 'size' || parts[0] === 'sizes') && parts[1]) {
-              return root?.sizes?.[parts[1]]?.$value || root?.size?.[parts[1]]?.$value
+        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+
+        // Elevation tokens should NOT be in tokens - they belong in brand.json
+        // CSS variables for elevations are generated directly from brand.json elevations
+
+        // Use sizes (plural) - the store now uses plural consistently
+        const sizesRoot: any = tokensRoot?.sizes || {}
+
+        if (!sizesRoot || typeof sizesRoot !== 'object' || Array.isArray(sizesRoot) || Object.keys(sizesRoot).length === 0) {
+        } else {
+          const vars: Record<string, string> = {}
+          const toPxString = (v: any): string | undefined => {
+            if (v == null) return undefined
+            if (typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) {
+              const val: any = (v as any).value
+              const unit: any = (v as any).unit
+              if (typeof val === 'number') return unit ? `${val}${unit}` : `${val}px`
+              return typeof val === 'string' ? val : undefined
             }
-            if ((parts[0] === 'opacity' || parts[0] === 'opacities') && parts[1]) {
-              return root?.opacities?.[parts[1]]?.$value || root?.opacity?.[parts[1]]?.$value
-            }
-            if ((parts[0] === 'color' || parts[0] === 'colors') && parts[1] && parts[2]) {
-              // Support both old format (color/family/level) and new format (colors/scale-XX/level)
-              if (parts[0] === 'colors' && parts[1]?.startsWith('scale-')) {
-                return root?.colors?.[parts[1]]?.[parts[2]]?.$value
-              }
-              return root?.color?.[parts[1]]?.[parts[2]]?.$value || root?.colors?.[parts[1]]?.[parts[2]]?.$value
+            if (typeof v === 'number') return `${v}px`
+            if (typeof v === 'string') {
+              // if numeric string, append px; else assume it already has a unit
+              return /^-?\d+(\.\d+)?$/.test(v.trim()) ? `${v.trim()}px` : v.trim()
             }
             return undefined
           }
-        }
-        const toNumber = (v: any): number => {
-          if (v && typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) return Number((v as any).value)
-          return Number(v)
-        }
-        // Build ordered list of size tokens by numeric value for stepped progression
-        const sizeTokenOrder: Array<{ name: string; value: number }> = (() => {
-          try {
-            const src: any = (this.state.tokens as any)?.tokens?.sizes || (this.state.tokens as any)?.tokens?.size
-            if (!src || typeof src !== 'object' || Array.isArray(src)) {
-              return []
+          const elevationTokensFound: string[] = []
+          Object.keys(sizesRoot).forEach((short) => {
+            if (short.startsWith('$')) return
+            const sizeObj = sizesRoot[short]
+            if (!sizeObj || typeof sizeObj !== 'object') return
+            const val = sizeObj.$value
+            const px = toPxString(val)
+            if (typeof px === 'string' && px) {
+              vars[`--recursica-tokens-sizes-${short}`] = px
+              // Backwards compatibility: also create singular form
+              if (!vars[`--recursica-tokens-size-${short}`]) {
+                vars[`--recursica-tokens-size-${short}`] = px
+              }
+              if (short.includes('elevation')) {
+                elevationTokensFound.push(short)
+              }
             }
-            const list: Array<{ name: string; value: number }> = []
-            Object.keys(src).forEach((short) => {
-              if (short.startsWith('$')) return
-              const sizeObj = src[short]
-              if (!sizeObj || typeof sizeObj !== 'object') return
-              const raw = sizeObj.$value
-              const val = toNumber(raw)
-              if (Number.isFinite(val)) list.push({ name: `size/${short}`, value: val })
+          })
+          Object.assign(allVars, vars)
+        }
+      } catch (e) {
+        console.error('[VarsStore] Error generating size token CSS variables:', e)
+      }
+      // Tokens: expose opacity tokens as CSS vars under --recursica-tokens-opacities-<key> (normalized 0..1)
+      try {
+        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+
+        // Elevation opacity tokens should NOT be in tokens - they belong in brand.json
+        // CSS variables for elevations are generated directly from brand.json elevations
+
+        // Use opacities (plural) - the store now uses plural consistently
+        const finalOpacityRoot: any = tokensRoot?.opacities || {}
+
+        if (!finalOpacityRoot || typeof finalOpacityRoot !== 'object' || Array.isArray(finalOpacityRoot) || Object.keys(finalOpacityRoot).length === 0) {
+          // Skip if opacityRoot is not a valid object or is empty
+        } else {
+          const vars: Record<string, string> = {}
+          const normalize = (v: any): string | undefined => {
+            try {
+              const n = typeof v === 'number' ? v : (typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) ? Number((v as any).value) : Number(v)
+              if (!Number.isFinite(n)) return undefined
+              const val = n <= 1 ? n : n / 100
+              return String(Math.max(0, Math.min(1, val)))
+            } catch { return undefined }
+          }
+          Object.keys(finalOpacityRoot).forEach((short) => {
+            if (short.startsWith('$')) return
+            const opacityObj = finalOpacityRoot[short]
+            if (!opacityObj || typeof opacityObj !== 'object') return
+            const v = opacityObj.$value
+            const norm = normalize(v)
+            if (typeof norm === 'string') {
+              vars[`--recursica-tokens-opacities-${short}`] = norm
+              // Backwards compatibility: also create singular form
+              if (!vars[`--recursica-tokens-opacity-${short}`]) {
+                vars[`--recursica-tokens-opacity-${short}`] = norm
+              }
+            }
+          })
+          Object.assign(allVars, vars)
+        }
+      } catch (e) {
+        console.error('[VarsStore] Error generating opacity token CSS variables:', e)
+      }
+      // Tokens: expose color tokens as CSS vars under --recursica-tokens-colors-<scale>-<level>
+      // New structure: tokens.colors.scale-XX.XXX with alias property
+      try {
+        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+        const colorsRoot: any = tokensRoot?.colors
+        const vars: Record<string, string> = {}
+        const processedKeys = new Set<string>()
+
+        // Process new scale structure (scale-01, scale-02, etc.)
+        if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
+          Object.keys(colorsRoot).forEach((scaleKey) => {
+            if (!scaleKey || typeof scaleKey !== 'string' || !scaleKey.startsWith('scale-')) return
+            const scale = colorsRoot[scaleKey]
+            if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
+
+            const alias = scale.alias // Get the alias (e.g., "cornflower", "gray")
+
+            Object.keys(scale).forEach((lvl) => {
+              // Skip the alias property
+              if (lvl === 'alias') return
+              // Accept levels that are: 2-4 digits, or exactly '000' or '050'
+              if (!/^(\d{2,4}|000|050)$/.test(lvl)) return
+
+              const levelObj = scale[lvl]
+              if (!levelObj || typeof levelObj !== 'object') return
+
+              // Preserve 000 and 1000 as-is, pad others to 3 digits
+              const normalizedLevel = lvl === '000' ? '000' : lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
+
+              // Generate CSS vars for scale name only (no alias-based vars)
+              const scaleCssVarKey = `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`
+
+              // Read directly from token value
+              const val = levelObj.$value
+              if (typeof val === 'string' && val) {
+                vars[scaleCssVarKey] = String(val)
+                processedKeys.add(scaleCssVarKey)
+              }
             })
-            // sort by numeric ascending
-            list.sort((a, b) => a.value - b.value)
-            return list
-          } catch { return [] }
-        })()
-        const nextSizeTokenName = (baseToken: string, steps: number): string => {
-          const idx = sizeTokenOrder.findIndex((t) => t.name === baseToken)
-          if (idx === -1) return baseToken
-          const nextIdx = Math.min(sizeTokenOrder.length - 1, Math.max(0, idx + Math.max(0, steps)))
-          return sizeTokenOrder[nextIdx]?.name ?? baseToken
+          })
         }
-        // Read scaling preferences (defaults match prior UI)
-        const readBool = (k: string, def: boolean) => {
+
+        // Backwards compatibility: also process old color structure if it exists
+        const oldColorsRoot: any = tokensRoot?.color
+        if (oldColorsRoot && typeof oldColorsRoot === 'object' && !Array.isArray(oldColorsRoot)) {
+          Object.keys(oldColorsRoot).forEach((family) => {
+            if (!family || typeof family !== 'string' || family === 'translucent') return
+            const levels = oldColorsRoot[family]
+            if (!levels || typeof levels !== 'object' || Array.isArray(levels)) return
+
+            Object.keys(levels).forEach((lvl) => {
+              if (!/^(\d{2,4}|000|050)$/.test(lvl)) return
+              const normalizedLevel = lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
+              const cssVarKey = `--recursica-tokens-color-${family}-${normalizedLevel}`
+              if (!processedKeys.has(cssVarKey)) {
+                const levelObj = levels[lvl]
+                if (levelObj && typeof levelObj === 'object') {
+                  const val = levelObj.$value
+                  if (typeof val === 'string' && val) {
+                    vars[cssVarKey] = String(val)
+                    processedKeys.add(cssVarKey)
+                  }
+                }
+              }
+            })
+          })
+        }
+
+        Object.assign(allVars, vars)
+      } catch (e) {
+        console.error('[VarsStore] Error generating color token CSS variables:', e)
+      }
+      // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
+      // Generate for both light and dark modes
+      try {
+        const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
+        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+        const themes = root?.themes || root
+
+        const normalizeLevel = (lvl?: string): string | undefined => {
+          if (!lvl) return undefined
+          const s = String(lvl).padStart(3, '0')
+          // Preserve 000 and 1000 as-is - don't normalize them
+          if (s === '000') return '000'
+          if (s === '1000') return '1000'
+          const allowed = new Set(['900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000', '1000'])
+          return allowed.has(s) ? s : undefined
+        }
+
+        // Process both light and dark modes
+        for (const mode of ['light', 'dark'] as const) {
+          // Get core-colors object - it may have $value wrapper or be direct
+          const coreColorsObj: any = themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core
+          // Extract the actual colors object (handle both $value wrapper and direct structure)
+          const core: any = coreColorsObj?.$value || coreColorsObj || {}
+
+          // Map core color names to CSS variable names
+          // Use --recursica-brand-themes- format to match palettes.ts resolver
+          const coreColorMap: Record<string, string> = {
+            black: `--recursica-brand-themes-${mode}-palettes-core-black`,
+            white: `--recursica-brand-themes-${mode}-palettes-core-white`,
+            alert: `--recursica-brand-themes-${mode}-palettes-core-alert`,
+            warning: `--recursica-brand-themes-${mode}-palettes-core-warning`,
+            success: `--recursica-brand-themes-${mode}-palettes-core-success`,
+            interactive: `--recursica-brand-themes-${mode}-palettes-core-interactive`,
+          }
+
+          // Default fallbacks if theme JSON doesn't have the value
+          const defaults: Record<string, string> = {
+            black: mode === 'light' ? 'color/gray/1000' : 'color/gray/000',
+            white: mode === 'light' ? 'color/gray/000' : 'color/gray/1000',
+            alert: mode === 'light' ? 'color/mandy/600' : 'color/mandy/400',
+            warning: mode === 'light' ? 'color/mandarin/600' : 'color/mandarin/400',
+            success: mode === 'light' ? 'color/greensheen/600' : 'color/greensheen/400',
+            interactive: mode === 'light' ? 'color/mandy/500' : 'color/mandy/400',
+          }
+
+          const colors: Record<string, string> = {}
+
+          // Helper function to resolve a token reference using centralized parser
+          const resolveTokenRef = (value: any): string | null => {
+            const context: TokenReferenceContext = {
+              currentMode: (currentMode as string) === 'Dark' ? 'dark' : 'light',
+              tokenIndex: buildTokenIndex(this.state.tokens),
+              theme: this.state.theme
+            }
+            return resolveTokenReferenceToCssVar(value, context)
+          }
+
+          // Process each core color
+          Object.entries(coreColorMap).forEach(([colorName, cssVar]) => {
+            // Get the value from theme JSON - core should now be the direct colors object
+            const coreValue: any = core[colorName]
+            let tokenRef: string | null = null
+
+            // Special handling for interactive (nested structure)
+            if (colorName === 'interactive' && coreValue && typeof coreValue === 'object' && !coreValue.$value) {
+              // Handle nested structure: interactive.default.tone, interactive.default.on-tone, etc.
+              const defaultTone = coreValue.default?.tone?.$value || coreValue.default?.tone
+              const defaultOnTone = coreValue.default?.['on-tone']?.$value || coreValue.default?.['on-tone']
+              const hoverTone = coreValue.hover?.tone?.$value || coreValue.hover?.tone
+              const hoverOnTone = coreValue.hover?.['on-tone']?.$value || coreValue.hover?.['on-tone']
+
+              // Main interactive var (backward compatibility) maps to default tone
+              if (defaultTone) {
+                tokenRef = resolveTokenRef(defaultTone)
+              }
+
+              // Generate additional CSS vars for nested structure
+              if (defaultTone) {
+                const defaultToneRef = resolveTokenRef(defaultTone)
+                if (defaultToneRef) {
+                  colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`] = defaultToneRef
+                }
+              }
+              if (defaultOnTone) {
+                const defaultOnToneRef = resolveTokenRef(defaultOnTone)
+                if (defaultOnToneRef) {
+                  colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`] = defaultOnToneRef
+                }
+              }
+              if (hoverTone) {
+                const hoverToneRef = resolveTokenRef(hoverTone)
+                if (hoverToneRef) {
+                  colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`] = hoverToneRef
+                }
+              }
+              if (hoverOnTone) {
+                const hoverOnToneRef = resolveTokenRef(hoverOnTone)
+                if (hoverOnToneRef) {
+                  colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone`] = hoverOnToneRef
+                }
+              }
+            } else if (coreValue && typeof coreValue === 'object' && !coreValue.$value) {
+              // Handle new structure: each core color has tone, on-tone, and interactive
+              const tone = coreValue.tone?.$value || coreValue.tone
+              const onTone = coreValue['on-tone']?.$value || coreValue['on-tone']
+              const interactive = coreValue.interactive?.$value || coreValue.interactive
+
+              // Main tone var (backward compatibility)
+              if (tone) {
+                tokenRef = resolveTokenRef(tone)
+              }
+
+              // Generate additional CSS vars for new structure
+              // Use --recursica-brand-themes- format to match palettes.ts resolver
+              if (tone) {
+                const toneRef = resolveTokenRef(tone)
+                if (toneRef) {
+                  colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`] = toneRef
+                }
+              }
+              if (onTone) {
+                const onToneRef = resolveTokenRef(onTone)
+                if (onToneRef) {
+                  colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-on-tone`] = onToneRef
+                }
+              }
+              if (interactive) {
+                const interactiveRef = resolveTokenRef(interactive)
+                if (interactiveRef) {
+                  colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`] = interactiveRef
+                }
+              }
+            } else {
+              // Handle simple string values for backward compatibility
+              tokenRef = resolveTokenRef(coreValue)
+            }
+
+            // Fallback to default if parsing failed
+            if (!tokenRef) {
+              const defaultToken = defaults[colorName]
+              if (defaultToken) {
+                const parts = defaultToken.split('/')
+                if (parts.length === 3 && parts[0] === 'color') {
+                  const family = parts[1]
+                  const level = normalizeLevel(parts[2])
+                  if (family && level) {
+                    tokenRef = `var(--recursica-tokens-color-${family}-${level})`
+                  }
+                }
+              }
+            }
+
+            // Last resort fallback
+            if (!tokenRef) {
+              tokenRef = 'var(--recursica-tokens-color-gray-500)'
+            }
+
+            colors[cssVar] = tokenRef
+          })
+
+          // Core color CSS variables are generated from theme JSON - no preservation needed
+          // Theme JSON is the single source of truth
+
+          Object.assign(allVars, colors)
+        }
+      } catch { }
+      // Palettes - generate for both modes
+      const paletteVarsLight = buildPaletteVars(this.state.tokens, this.state.theme, 'Light')
+      const paletteVarsDark = buildPaletteVars(this.state.tokens, this.state.theme, 'Dark')
+
+      // Palette CSS variables are generated from theme JSON - no preservation needed
+      // Theme JSON is the single source of truth
+      const allPaletteVars = { ...paletteVarsLight, ...paletteVarsDark }
+
+      // Note: Overlay CSS variables are now cleared at the start of recomputeAndApplyAll()
+      // so we don't need to preserve them here - they'll be set from the generated values in allPaletteVars
+      // This ensures that theme JSON changes (like randomization) are properly reflected in the DOM
+
+
+      Object.assign(allVars, allPaletteVars)
+      // allPaletteVars already defined above with preserved values
+      // Layers (from Brand) - generate for both modes
+      const layerVarsLight = buildLayerVars(this.state.tokens, this.state.theme, 'light', undefined, allPaletteVars)
+      const layerVarsDark = buildLayerVars(this.state.tokens, this.state.theme, 'dark', undefined, allPaletteVars)
+      const layerVars = { ...layerVarsLight, ...layerVarsDark }
+
+      // Layer CSS variables are generated from theme JSON - no preservation needed
+      // Theme JSON is the single source of truth
+      Object.assign(allVars, layerVars)
+      // Dimensions - generate for both modes (dimensions are mode-agnostic but vars are generated for both)
+      try {
+        const dimensionVarsLight = buildDimensionVars(this.state.tokens, this.state.theme, 'light')
+        const dimensionVarsDark = buildDimensionVars(this.state.tokens, this.state.theme, 'dark')
+        Object.assign(allVars, dimensionVarsLight)
+        Object.assign(allVars, dimensionVarsDark)
+      } catch (e) {
+        console.error('[VarsStore] Error generating dimension variables:', e)
+      }
+      // UIKit components - generate for all modes during bootstrap
+      // UIKit vars are generated for both light and dark modes based on what modes/themes are in Brand.json
+      // After initial bootstrap, UIKit vars are also managed via toolbar
+      try {
+        // Check if any UIKit vars exist in DOM - if they do, skip regenerating (they're managed via toolbar)
+        let shouldGenerateUIKitVars = true
+        // We always regenerate UIKit vars from state to ensure updates are reflected
+        // The previous optimization preventing this caused updates to be ignored if vars existed
+
+        if (shouldGenerateUIKitVars) {
+          // Initial bootstrap - generate UIKit vars for both light and dark modes
+          const uikitVarsLight = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, 'light')
+          const uikitVarsDark = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, 'dark')
+          uikitVars = { ...uikitVarsLight, ...uikitVarsDark }
+
+          // Track which UIKit vars actually changed by comparing generated values with current DOM values
+          if (typeof document !== 'undefined') {
+            for (const [cssVar, generatedValue] of Object.entries(uikitVars)) {
+              const generatedValueTrimmed = generatedValue ? generatedValue.trim() : ''
+              // Read current value from DOM
+              const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
+              const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
+
+              // Track if this var will actually change from what's currently in the DOM
+              if (generatedValueTrimmed !== inlineValue) {
+                changedUikitVars.add(cssVar)
+              }
+            }
+          }
+
+          Object.assign(allVars, uikitVars)
+        } else {
+          // UIKit vars already exist - skip regenerating them (they're managed via toolbar)
+          uikitVars = {}
+        }
+      } catch { }
+      // Typography
+      const typeChoices = this.readTypeChoices()
+      const { vars: typeVars, familiesToLoad } = buildTypographyVars(this.state.tokens, this.state.theme, undefined, typeChoices)
+
+      // Typography CSS variables are generated from theme JSON and type choices - no preservation needed
+      // Theme JSON and type choices are the single source of truth
+
+      Object.assign(allVars, typeVars)
+      // Load fonts asynchronously - don't wait, don't trigger recomputes
+      // CSS variables are already set with font names, fonts will apply when loaded
+      // Fonts MUST load (async is fine, but they must load)
+      if (familiesToLoad.length > 0 && typeof window !== 'undefined') {
+        // Load fonts in background without blocking or triggering events
+        Promise.all(familiesToLoad.map(async (family) => {
           try {
-            const v = localStorage.getItem(k)
-            if (v === null) return def
-            return v === 'true'
-          } catch { return def }
-        }
-        const scaleBlur = readBool('blur-scale-by-default', true)
-        const scaleSpread = readBool('spread-scale-by-default', false)
-        const scaleX = readBool('offset-x-scale-by-default', false)
-        const scaleY = readBool('offset-y-scale-by-default', false)
-        const parseAlphaValue = (v: any): number => {
-          const n = toNumber(v)
-          if (!Number.isFinite(n)) return 1
-          return n <= 1 ? Math.max(0, Math.min(1, n)) : Math.max(0, Math.min(1, n / 100))
-        }
-        const hexToRgba = (hex: string, a: number): string => {
-          try {
-            let h = String(hex || '').trim()
-            if (!h) return `rgba(0,0,0,${a})`
-            if (!h.startsWith('#')) h = `#${h}`
-            const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
-            if (!m) return h
-            const r = parseInt(m[1], 16)
-            const g = parseInt(m[2], 16)
-            const b = parseInt(m[3], 16)
-            return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, a))})`
-          } catch { return hex }
-        }
-        const colorMixWithOpacityVar = (colorVarRef: string, alphaVarRef: string): string =>
-          // Use modern CSS color-mix so both color and opacity are driven by tokens.
-          // Convert 0..1 opacity token to percentage weight for color-mix.
-          `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
-        const familyForPalette: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
-        const shadowColorForLevel = (level: number, paletteVars?: Record<string, string>): string => {
-          const key = `elevation-${level}`
-          const sel = this.state.elevation.paletteSelections[key]
-          if (sel) {
-            // Use palette CSS variable instead of token CSS variable
-            const paletteVarName = `--recursica-brand-themes-${mode}-palettes-${sel.paletteKey}-${sel.level}-tone`
-            // Check if palette var exists in paletteVars (during initialization) or use var() reference
-            const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
+            const trimmed = String(family).trim()
+            if (!trimmed) return
+            // Load font (async is fine, but it must load)
+            await ensureFontLoaded(trimmed).catch((error) => {
+              console.warn(`Failed to load font "${trimmed}" during recompute:`, error)
+            })
+          } catch (error) {
+            console.warn(`Failed to load font:`, error)
+          }
+        })).catch((error) => {
+          console.warn('Failed to load some fonts during recompute:', error)
+        })
+      }
+
+      // Elevation CSS variables (apply for levels 0..4) - generate for both modes
+      for (const mode of ['light', 'dark'] as const) {
+        try {
+          const tokenIndex = {
+            get: (path: string): any => {
+              const parts = path.split('/')
+              const root: any = (this.state.tokens as any)?.tokens || {}
+              // Read directly from tokens - no overrides
+              // Support both plural and singular forms
+              if ((parts[0] === 'size' || parts[0] === 'sizes') && parts[1]) {
+                return root?.sizes?.[parts[1]]?.$value || root?.size?.[parts[1]]?.$value
+              }
+              if ((parts[0] === 'opacity' || parts[0] === 'opacities') && parts[1]) {
+                return root?.opacities?.[parts[1]]?.$value || root?.opacity?.[parts[1]]?.$value
+              }
+              if ((parts[0] === 'color' || parts[0] === 'colors') && parts[1] && parts[2]) {
+                // Support both old format (color/family/level) and new format (colors/scale-XX/level)
+                if (parts[0] === 'colors' && parts[1]?.startsWith('scale-')) {
+                  return root?.colors?.[parts[1]]?.[parts[2]]?.$value
+                }
+                return root?.color?.[parts[1]]?.[parts[2]]?.$value || root?.colors?.[parts[1]]?.[parts[2]]?.$value
+              }
+              return undefined
+            }
+          }
+          const toNumber = (v: any): number => {
+            if (v && typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) return Number((v as any).value)
+            return Number(v)
+          }
+          // Build ordered list of size tokens by numeric value for stepped progression
+          const sizeTokenOrder: Array<{ name: string; value: number }> = (() => {
+            try {
+              const src: any = (this.state.tokens as any)?.tokens?.sizes || (this.state.tokens as any)?.tokens?.size
+              if (!src || typeof src !== 'object' || Array.isArray(src)) {
+                return []
+              }
+              const list: Array<{ name: string; value: number }> = []
+              Object.keys(src).forEach((short) => {
+                if (short.startsWith('$')) return
+                const sizeObj = src[short]
+                if (!sizeObj || typeof sizeObj !== 'object') return
+                const raw = sizeObj.$value
+                const val = toNumber(raw)
+                if (Number.isFinite(val)) list.push({ name: `size/${short}`, value: val })
+              })
+              // sort by numeric ascending
+              list.sort((a, b) => a.value - b.value)
+              return list
+            } catch { return [] }
+          })()
+          const nextSizeTokenName = (baseToken: string, steps: number): string => {
+            const idx = sizeTokenOrder.findIndex((t) => t.name === baseToken)
+            if (idx === -1) return baseToken
+            const nextIdx = Math.min(sizeTokenOrder.length - 1, Math.max(0, idx + Math.max(0, steps)))
+            return sizeTokenOrder[nextIdx]?.name ?? baseToken
+          }
+          // Read scaling preferences (defaults match prior UI)
+          const readBool = (k: string, def: boolean) => {
+            try {
+              const v = localStorage.getItem(k)
+              if (v === null) return def
+              return v === 'true'
+            } catch { return def }
+          }
+          const scaleBlur = readBool('blur-scale-by-default', true)
+          const scaleSpread = readBool('spread-scale-by-default', false)
+          const scaleX = readBool('offset-x-scale-by-default', false)
+          const scaleY = readBool('offset-y-scale-by-default', false)
+          const parseAlphaValue = (v: any): number => {
+            const n = toNumber(v)
+            if (!Number.isFinite(n)) return 1
+            return n <= 1 ? Math.max(0, Math.min(1, n)) : Math.max(0, Math.min(1, n / 100))
+          }
+          const hexToRgba = (hex: string, a: number): string => {
+            try {
+              let h = String(hex || '').trim()
+              if (!h) return `rgba(0,0,0,${a})`
+              if (!h.startsWith('#')) h = `#${h}`
+              const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h)
+              if (!m) return h
+              const r = parseInt(m[1], 16)
+              const g = parseInt(m[2], 16)
+              const b = parseInt(m[3], 16)
+              return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, a))})`
+            } catch { return hex }
+          }
+          const colorMixWithOpacityVar = (colorVarRef: string, alphaVarRef: string): string =>
+            // Use modern CSS color-mix so both color and opacity are driven by tokens.
+            // Convert 0..1 opacity token to percentage weight for color-mix.
+            `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
+          const familyForPalette: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
+          const shadowColorForLevel = (level: number, paletteVars?: Record<string, string>): string => {
+            const key = `elevation-${level}`
+            const sel = this.state.elevation.paletteSelections[key]
+            if (sel) {
+              // Use palette CSS variable instead of token CSS variable
+              const paletteVarName = `--recursica-brand-themes-${mode}-palettes-${sel.paletteKey}-${sel.level}-tone`
+              // Check if palette var exists in paletteVars (during initialization) or use var() reference
+              const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
+              const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
+              // Use tokenToCssVar to properly convert opacity token names to CSS vars
+              const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+              return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+            }
+            const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
             const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
             // Use tokenToCssVar to properly convert opacity token names to CSS vars
             const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-            return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+            // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
+            // Pass tokens to resolve aliases to scale keys
+            const colorVarRef = tokenToCssVar(tok, this.state.tokens) || `var(--recursica-tokens-${tok.replace(/\//g, '-')})`
+            return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
           }
-          const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
-          const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
-          // Use tokenToCssVar to properly convert opacity token names to CSS vars
-          const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-          // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
-          // Pass tokens to resolve aliases to scale keys
-          const colorVarRef = tokenToCssVar(tok, this.state.tokens) || `var(--recursica-tokens-${tok.replace(/\//g, '-')})`
-          return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
-        }
-        const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
-          const key = `elevation-${level}`
-          return this.state.elevation.directions[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
-        }
-        const vars: Record<string, string> = {}
-        const baseCtrl = this.state.elevation.controls['elevation-0']
-        // Generate elevation variables for levels 0-4
-        // If a control doesn't exist, use elevation-0 as fallback
-        for (let i = 0; i <= 4; i += 1) {
-          const k = `elevation-${i}`
-          const ctrl = this.state.elevation.controls[k] || baseCtrl
-          if (!ctrl) {
-            // If even baseCtrl doesn't exist, skip this elevation level
-            continue
+          const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
+            const key = `elevation-${level}`
+            return this.state.elevation.directions[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
           }
-          const blurValue = (() => {
-            if (i > 0 && scaleBlur && ctrl.blur === baseCtrl?.blur) {
-              // Scale blur proportionally
-              return Math.round(ctrl.blur * (1 + (i * 0.2)))
+          const vars: Record<string, string> = {}
+          const baseCtrl = this.state.elevation.controls['elevation-0']
+          // Generate elevation variables for levels 0-4
+          // If a control doesn't exist, use elevation-0 as fallback
+          for (let i = 0; i <= 4; i += 1) {
+            const k = `elevation-${i}`
+            const ctrl = this.state.elevation.controls[k] || baseCtrl
+            if (!ctrl) {
+              // If even baseCtrl doesn't exist, skip this elevation level
+              continue
             }
-            return ctrl.blur
-          })()
-          const spreadValue = (() => {
-            if (i > 0 && scaleSpread && ctrl.spread === baseCtrl?.spread) {
-              return Math.round(ctrl.spread * (1 + (i * 0.2)))
-            }
-            return ctrl.spread
-          })()
-          const xValue = (() => {
-            if (i > 0 && scaleX && ctrl.offsetX === baseCtrl?.offsetX) {
-              return Math.round(ctrl.offsetX * (1 + (i * 0.2)))
-            }
-            return ctrl.offsetX
-          })()
-          const yValue = (() => {
-            if (i > 0 && scaleY && ctrl.offsetY === baseCtrl?.offsetY) {
-              return Math.round(ctrl.offsetY * (1 + (i * 0.2)))
-            }
-            return ctrl.offsetY
-          })()
-          const dir = dirForLevel(i)
-          const sxValue = dir.x === 'right' ? xValue : -xValue
-          const syValue = dir.y === 'down' ? yValue : -yValue
-          const brandScope = `--brand-themes-${mode}-elevations-elevation-${i}`
-          const prefixedScope = `--recursica-${brandScope.slice(2)}`
-          
-          // Check if there's already a palette CSS variable set (preserve user selections)
-          const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
-          const alphaTok = this.state.elevation.alphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
-          // Use tokenToCssVar to properly convert opacity token names to CSS vars
-          const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-          
-          // Check if existing color contains a palette reference (could be var() or color-mix())
-          const hasPaletteRef = existingColor && (
-            (existingColor.startsWith('var(') && existingColor.includes('palettes')) ||
-            (existingColor.includes('color-mix') && existingColor.includes('palettes'))
-          )
-          
-          if (hasPaletteRef) {
-            // Extract the palette var reference from existingColor
-            let paletteVarRef: string | null = null
-            
-            // If it's a direct var() reference to a palette
-            const varMatch = existingColor.match(/var\((--recursica-brand-themes-(?:light|dark)-palettes-[^)]+)\)/)
-            if (varMatch) {
-              paletteVarRef = `var(${varMatch[1]})`
-            } else {
-              // If it's a color-mix, extract the palette var from it
-              const colorMixMatch = existingColor.match(/color-mix\([^,]+,\s*(var\(--recursica-brand-themes-(?:light|dark)-palettes-[^)]+\))/)
-              if (colorMixMatch) {
-                paletteVarRef = colorMixMatch[1]
+            const blurValue = (() => {
+              if (i > 0 && scaleBlur && ctrl.blur === baseCtrl?.blur) {
+                // Scale blur proportionally
+                return Math.round(ctrl.blur * (1 + (i * 0.2)))
               }
-            }
-            
-            if (paletteVarRef) {
-              // Preserve palette CSS variable and apply current opacity
-              vars[`${prefixedScope}-shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+              return ctrl.blur
+            })()
+            const spreadValue = (() => {
+              if (i > 0 && scaleSpread && ctrl.spread === baseCtrl?.spread) {
+                return Math.round(ctrl.spread * (1 + (i * 0.2)))
+              }
+              return ctrl.spread
+            })()
+            const xValue = (() => {
+              if (i > 0 && scaleX && ctrl.offsetX === baseCtrl?.offsetX) {
+                return Math.round(ctrl.offsetX * (1 + (i * 0.2)))
+              }
+              return ctrl.offsetX
+            })()
+            const yValue = (() => {
+              if (i > 0 && scaleY && ctrl.offsetY === baseCtrl?.offsetY) {
+                return Math.round(ctrl.offsetY * (1 + (i * 0.2)))
+              }
+              return ctrl.offsetY
+            })()
+            const dir = dirForLevel(i)
+            const sxValue = dir.x === 'right' ? xValue : -xValue
+            const syValue = dir.y === 'down' ? yValue : -yValue
+            const brandScope = `--brand-themes-${mode}-elevations-elevation-${i}`
+            const prefixedScope = `--recursica-${brandScope.slice(2)}`
+
+            // Check if there's already a palette CSS variable set (preserve user selections)
+            const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
+            const alphaTok = this.state.elevation.alphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
+            // Use tokenToCssVar to properly convert opacity token names to CSS vars
+            const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+
+            // Check if existing color contains a palette reference (could be var() or color-mix())
+            const hasPaletteRef = existingColor && (
+              (existingColor.startsWith('var(') && existingColor.includes('palettes')) ||
+              (existingColor.includes('color-mix') && existingColor.includes('palettes'))
+            )
+
+            if (hasPaletteRef) {
+              // Extract the palette var reference from existingColor
+              let paletteVarRef: string | null = null
+
+              // If it's a direct var() reference to a palette
+              const varMatch = existingColor.match(/var\((--recursica-brand-themes-(?:light|dark)-palettes-[^)]+)\)/)
+              if (varMatch) {
+                paletteVarRef = `var(${varMatch[1]})`
+              } else {
+                // If it's a color-mix, extract the palette var from it
+                const colorMixMatch = existingColor.match(/color-mix\([^,]+,\s*(var\(--recursica-brand-themes-(?:light|dark)-palettes-[^)]+\))/)
+                if (colorMixMatch) {
+                  paletteVarRef = colorMixMatch[1]
+                }
+              }
+
+              if (paletteVarRef) {
+                // Preserve palette CSS variable and apply current opacity
+                vars[`${prefixedScope}-shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+              } else {
+                // Fallback: use existing color as-is (shouldn't happen, but just in case)
+                vars[`${prefixedScope}-shadow-color`] = existingColor
+              }
             } else {
-              // Fallback: use existing color as-is (shouldn't happen, but just in case)
-              vars[`${prefixedScope}-shadow-color`] = existingColor
+              // Calculate color from state
+              const color = shadowColorForLevel(i, allPaletteVars)
+              vars[`${prefixedScope}-shadow-color`] = String(color)
             }
-          } else {
-            // Calculate color from state
-            const color = shadowColorForLevel(i, allPaletteVars)
-            vars[`${prefixedScope}-shadow-color`] = String(color)
+
+            // Use token references for elevation properties
+            const blurTokenName = this.state.elevation.blurTokens[k] || `size/elevation-${i}-blur`
+            const spreadTokenName = this.state.elevation.spreadTokens[k] || `size/elevation-${i}-spread`
+            const offsetXTokenName = this.state.elevation.offsetXTokens[k] || `size/elevation-${i}-offset-x`
+            const offsetYTokenName = this.state.elevation.offsetYTokens[k] || `size/elevation-${i}-offset-y`
+
+            // Extract the key part from token names (e.g., "size/elevation-0-blur" -> "elevation-0-blur")
+            const getTokenKey = (tokenName: string): string => {
+              const parts = tokenName.split('/')
+              return parts.length > 1 ? parts.slice(1).join('-') : tokenName.replace(/\//g, '-')
+            }
+
+            const blurKey = getTokenKey(blurTokenName)
+            const spreadKey = getTokenKey(spreadTokenName)
+            const offsetXKey = getTokenKey(offsetXTokenName)
+            const offsetYKey = getTokenKey(offsetYTokenName)
+
+            vars[`${prefixedScope}-blur`] = `var(--recursica-tokens-size-${blurKey})`
+            vars[`${prefixedScope}-spread`] = `var(--recursica-tokens-size-${spreadKey})`
+            // For x-axis and y-axis, we need to apply direction (signed values)
+            // The token stores the absolute offset, but we need to apply direction
+            // We'll use calc() to apply the sign based on direction
+            const xTokenVar = `var(--recursica-tokens-size-${offsetXKey})`
+            const yTokenVar = `var(--recursica-tokens-size-${offsetYKey})`
+            vars[`${prefixedScope}-x-axis`] = dir.x === 'right' ? xTokenVar : `calc(-1 * ${xTokenVar})`
+            vars[`${prefixedScope}-y-axis`] = dir.y === 'down' ? yTokenVar : `calc(-1 * ${yTokenVar})`
           }
-          
-          // Use token references for elevation properties
-          const blurTokenName = this.state.elevation.blurTokens[k] || `size/elevation-${i}-blur`
-          const spreadTokenName = this.state.elevation.spreadTokens[k] || `size/elevation-${i}-spread`
-          const offsetXTokenName = this.state.elevation.offsetXTokens[k] || `size/elevation-${i}-offset-x`
-          const offsetYTokenName = this.state.elevation.offsetYTokens[k] || `size/elevation-${i}-offset-y`
-          
-          // Extract the key part from token names (e.g., "size/elevation-0-blur" -> "elevation-0-blur")
-          const getTokenKey = (tokenName: string): string => {
-            const parts = tokenName.split('/')
-            return parts.length > 1 ? parts.slice(1).join('-') : tokenName.replace(/\//g, '-')
-          }
-          
-          const blurKey = getTokenKey(blurTokenName)
-          const spreadKey = getTokenKey(spreadTokenName)
-          const offsetXKey = getTokenKey(offsetXTokenName)
-          const offsetYKey = getTokenKey(offsetYTokenName)
-          
-          vars[`${prefixedScope}-blur`] = `var(--recursica-tokens-size-${blurKey})`
-          vars[`${prefixedScope}-spread`] = `var(--recursica-tokens-size-${spreadKey})`
-          // For x-axis and y-axis, we need to apply direction (signed values)
-          // The token stores the absolute offset, but we need to apply direction
-          // We'll use calc() to apply the sign based on direction
-          const xTokenVar = `var(--recursica-tokens-size-${offsetXKey})`
-          const yTokenVar = `var(--recursica-tokens-size-${offsetYKey})`
-          vars[`${prefixedScope}-x-axis`] = dir.x === 'right' ? xTokenVar : `calc(-1 * ${xTokenVar})`
-          vars[`${prefixedScope}-y-axis`] = dir.y === 'down' ? yTokenVar : `calc(-1 * ${yTokenVar})`
+          Object.assign(allVars, vars)
+        } catch (e) {
+          console.error('[VarsStore] Error generating elevation variables:', e)
         }
-        Object.assign(allVars, vars)
+      }
+
+      // Apply all CSS variables at once (with validation)
+      // Debug: log if critical variables are missing
+      if (process.env.NODE_ENV === 'development') {
+        const criticalVars = [
+          '--recursica-brand-themes-light-layer-layer-0-property-surface',
+          '--recursica-brand-themes-light-elevations-elevation-4-x-axis',
+          '--recursica-brand-typography-caption-font-family',
+          '--recursica-brand-dimensions-general-sm'
+        ]
+      }
+      try {
+        applyCssVars(allVars, this.state.tokens)
       } catch (e) {
-        console.error('[VarsStore] Error generating elevation variables:', e)
+        // Log error but don't let it break the recompute cycle
+        console.error('[VarsStore] Error applying CSS variables:', e)
+        if (e instanceof Error) {
+          console.error('[VarsStore] Error stack:', e.stack)
+        }
       }
-    }
-    
-    // Apply all CSS variables at once (with validation)
-    // Debug: log if critical variables are missing
-    if (process.env.NODE_ENV === 'development') {
-      const criticalVars = [
-        '--recursica-brand-themes-light-layer-layer-0-property-surface',
-        '--recursica-brand-themes-light-elevations-elevation-4-x-axis',
-        '--recursica-brand-typography-caption-font-family',
-        '--recursica-brand-dimensions-general-sm'
-      ]
-    }
-    try {
-      applyCssVars(allVars, this.state.tokens)
-    } catch (e) {
-      // Log error but don't let it break the recompute cycle
-      console.error('[VarsStore] Error applying CSS variables:', e)
-      if (e instanceof Error) {
-        console.error('[VarsStore] Error stack:', e.stack)
-      }
-    }
     } finally {
       // Re-enable events and fire a single batched event after bulk update completes
       suppressCssVarEvents(false)
@@ -2217,8 +2202,8 @@ class VarsStore {
       // Use requestAnimationFrame to ensure DOM updates are complete
       // Only dispatch vars that actually changed (not preserved) to prevent unnecessary re-renders
       // CRITICAL: Filter out UIKit vars - they're silent and don't need component re-renders
-      const nonUIKitChangedVars = Array.from(changedUikitVars).filter(v => 
-        !v.startsWith('--recursica-ui-kit-components-') && 
+      const nonUIKitChangedVars = Array.from(changedUikitVars).filter(v =>
+        !v.startsWith('--recursica-ui-kit-components-') &&
         !v.startsWith('--recursica-ui-kit-globals-')
       )
       if (nonUIKitChangedVars.length > 0) {
@@ -2245,30 +2230,30 @@ class VarsStore {
     try {
       const root: any = this.state.theme?.brand ? this.state.theme.brand : this.state.theme
       const themes = root?.themes || root
-      
+
       // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
         const textEmphasis = themes?.[mode]?.['text-emphasis']
         if (!textEmphasis) continue
-        
+
         // Check high and low emphasis
         const highRef = textEmphasis?.high?.$value || textEmphasis?.high
         const lowRef = textEmphasis?.low?.$value || textEmphasis?.low
         const highEmphasis = textEmphasis?.['high-emphasis']?.$value || textEmphasis?.['high-emphasis']
         const lowEmphasis = textEmphasis?.['low-emphasis']?.$value || textEmphasis?.['low-emphasis']
-        
+
         // Check if any of these references use this opacity token
         const checkRef = (ref: any): boolean => {
           if (typeof ref !== 'string') return false
           // Check for {tokens.opacity.key} or {tokens.opacities.key}
           return ref.includes(`opacity.${opacityKey}`) || ref.includes(`opacities.${opacityKey}`)
         }
-        
+
         if (checkRef(highRef) || checkRef(lowRef) || checkRef(highEmphasis) || checkRef(lowEmphasis)) {
           return true
         }
       }
-    } catch {}
+    } catch { }
     return false
   }
 
@@ -2282,19 +2267,19 @@ class VarsStore {
       const root: any = this.state.theme?.brand ? this.state.theme.brand : this.state.theme
       const themes = root?.themes || root
       const tokenIndex = buildTokenIndex(this.state.tokens)
-      
+
       // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
         const pal: any = themes?.[mode]?.palettes || {}
-        const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
-        
+        const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
+
         Object.keys(pal).forEach((paletteKey) => {
           if (paletteKey === 'core' || paletteKey === 'core-colors') return
-          
+
           // Check a few levels to see if this palette uses the color family
           for (const level of levels.slice(0, 4)) { // Check first 4 levels
-            const toneRef = pal[paletteKey]?.[level]?.color?.tone?.$value || 
-                           pal[paletteKey]?.[level]?.color?.tone
+            const toneRef = pal[paletteKey]?.[level]?.color?.tone?.$value ||
+              pal[paletteKey]?.[level]?.color?.tone
             if (typeof toneRef === 'string') {
               const context: TokenReferenceContext = {
                 currentMode: mode,
@@ -2338,17 +2323,17 @@ class VarsStore {
     try {
       const root: any = this.state.theme?.brand ? this.state.theme.brand : this.state.theme
       const themes = root?.themes || root
-      
+
       // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
         const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']
         if (!coreColors) continue
-        
+
         const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success', 'interactive']
         for (const colorKey of coreColorKeys) {
           const colorDef = coreColors[colorKey]
           if (!colorDef) continue
-          
+
           // Check tone reference using centralized parser
           const toneRef = colorDef.tone?.$value || colorDef.tone
           if (toneRef) {
@@ -2362,7 +2347,7 @@ class VarsStore {
               return true
             }
           }
-          
+
           // Check interactive default/hover tone references
           if (colorKey === 'interactive') {
             const defaultToneRef = colorDef.default?.tone?.$value || colorDef.default?.tone
@@ -2387,7 +2372,7 @@ class VarsStore {
           }
         }
       }
-    } catch {}
+    } catch { }
     return false
   }
 
@@ -2395,19 +2380,19 @@ class VarsStore {
     try {
       const currentMode = this.getCurrentMode()
       const mode = currentMode === 'dark' ? 'dark' : 'light'
-      
+
       // Get all core colors and update their on-tones
       const coreColors = ['black', 'white', 'alert', 'warning', 'success']
-      
+
       for (const colorName of coreColors) {
         // Get the tone hex for this core color
         const toneCssVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`
         const tokenIndex = buildTokenIndex(this.state.tokens)
         const toneValue = readCssVarResolved(toneCssVar) || readCssVar(toneCssVar)
-        const toneHex = toneValue 
+        const toneHex = toneValue
           ? (resolveCssVarToHex(toneValue, tokenIndex) || '#000000')
           : '#000000'
-        
+
         if (toneHex && toneHex !== '#000000') {
           // Update high/low emphasis on-tones with alternating pattern
           // CSS vars only, never JSON - pass no-op callback
@@ -2416,10 +2401,10 @@ class VarsStore {
             toneHex,
             this.state.tokens,
             this.state.theme,
-            () => {}, // No-op - never update JSON during AA compliance
+            () => { }, // No-op - never update JSON during AA compliance
             mode
           )
-          
+
           // Update interactive on-tone with alternating pattern on interactive scale
           // CSS vars only, never JSON - pass no-op callback
           updateCoreColorInteractiveOnToneForCompliance(
@@ -2427,7 +2412,7 @@ class VarsStore {
             toneHex,
             this.state.tokens,
             this.state.theme,
-            () => {}, // No-op - never update JSON during AA compliance
+            () => { }, // No-op - never update JSON during AA compliance
             mode
           )
         }
@@ -2451,7 +2436,7 @@ class VarsStore {
       const themeCopy = JSON.parse(JSON.stringify(this.state.theme))
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const themes = root?.themes || root
-      const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
+      const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
       let hasChanges = false
 
       // Check both light and dark modes
@@ -2459,12 +2444,12 @@ class VarsStore {
         const pal: any = themes?.[mode]?.palettes || {}
         Object.keys(pal).forEach((paletteKey) => {
           if (paletteKey === 'core' || paletteKey === 'core-colors') return
-          
+
           levels.forEach((level) => {
             const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
             // Use readCssVarResolved to get the actual value, not just the var() reference
             let onToneValue = readCssVar(onToneVar)
-            
+
             // If it's a var() reference, try to resolve it
             if (onToneValue && onToneValue.startsWith('var(')) {
               // Extract the inner CSS var name
@@ -2479,15 +2464,15 @@ class VarsStore {
                 }
               }
             }
-            
+
             if (onToneValue) {
               // Extract which core color (black or white) is being used
               const isWhite = onToneValue.includes('core-white') || onToneValue.includes('white')
               const isBlack = onToneValue.includes('core-black') || onToneValue.includes('black')
-              
+
               if (isWhite || isBlack) {
                 const chosen = isWhite ? 'white' : 'black'
-                
+
                 // Ensure the palette structure exists
                 if (!themes[mode]) themes[mode] = {}
                 if (!themes[mode].palettes) themes[mode].palettes = {}
@@ -2496,15 +2481,15 @@ class VarsStore {
                 if (!themes[mode].palettes[paletteKey][level].color) {
                   themes[mode].palettes[paletteKey][level].color = {}
                 }
-                
+
                 // Update the on-tone reference in theme JSON - use short alias format (no theme path)
                 const newOnToneValue = `{brand.palettes.${chosen}}`
-                
+
                 const currentOnTone = themes[mode].palettes[paletteKey][level].color?.['on-tone']
-                const currentValue = typeof currentOnTone === 'object' && currentOnTone?.$value 
-                  ? currentOnTone.$value 
+                const currentValue = typeof currentOnTone === 'object' && currentOnTone?.$value
+                  ? currentOnTone.$value
                   : currentOnTone
-                
+
                 // Only update if the value has changed
                 if (currentValue !== newOnToneValue) {
                   themes[mode].palettes[paletteKey][level].color['on-tone'] = {
