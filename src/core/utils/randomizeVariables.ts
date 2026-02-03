@@ -323,6 +323,10 @@ function generateRandomValue(originalValue: any, index: number, context: {
   }
 
   if (typeof originalValue === 'number') {
+    // For opacity (0-1)
+    if (context.isOpacity) {
+      return Math.round(Math.random() * 100) / 100
+    }
     // For letter spacing
     if (context.isLetterSpacing) {
       return Math.round((Math.random() * 0.6 - 0.1) * 100) / 100
@@ -1458,18 +1462,19 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       }
 
       const pathStr = path.join('.')
-      const isColor = pathStr.includes('color') || pathStr.includes('background')
-      const isBorder = pathStr.includes('border-size') || pathStr.includes('border-width') || pathStr.includes('divider-size')
+      const isColor = pathStr.includes('color') || pathStr.includes('background') || pathStr.includes('fill') || pathStr.includes('surface') || pathStr.includes('stroke') || pathStr.includes('shadow') || pathStr.includes('tint')
+
+      const isBorder = pathStr.includes('border-size') || pathStr.includes('border-width') || pathStr.includes('divider-size') || pathStr.includes('thickness')
       const isRadius = pathStr.includes('radius')
-      const isGap = pathStr.includes('gap')
-      const isIconSize = pathStr.includes('icon-size')
+      const isGap = pathStr.includes('gap') || pathStr.includes('gutter')
+      const isIconSize = pathStr.includes('icon-size') || pathStr.includes('icon.size')
       const isPadding = pathStr.includes('padding')
       const isElevation = pathStr.includes('elevation')
-      const isOpacity = pathStr.includes('opacity') || pathStr.includes('disabled')
+      const isOpacity = pathStr.includes('opacity') || pathStr.includes('disabled') || pathStr.includes('emphasis')
       const isLetterSpacing = pathStr.includes('letter-spacing')
       const isLineHeight = pathStr.includes('line-height')
       const isFontWeight = pathStr.includes('font-weight')
-      const isFontSize = pathStr.includes('font-size')
+      const isFontSize = pathStr.includes('font-size') || (pathStr.includes('font') && pathStr.includes('size'))
 
       const isSize = isBorder || isRadius || isGap || isIconSize || isPadding || pathStr.includes('size') || pathStr.includes('height') || pathStr.includes('width')
 
@@ -1478,9 +1483,9 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       else if (isRadius) maxSize = 32
       else if (isIconSize) maxSize = 48
       else if (isGap || isPadding) maxSize = 64
+      else if (isFontSize) maxSize = 48
       else if (pathStr.includes('width') || pathStr.includes('height')) maxSize = 400
 
-      // Pass randomizeTokenRef: true to allow modifying existing token references (common in UIKit)
       const newValue = generateRandomValue(value, index, {
         isColor,
         isSize,
