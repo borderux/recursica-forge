@@ -6,6 +6,18 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import uikitJson from '../../vars/UIKit.json'
+
+// Extract available components from UIKit.json
+const availableComponents = Object.keys((uikitJson as any)?.['ui-kit']?.components || {}).sort()
+
+// Helper to format component name (kebab-case to Title Case)
+const formatComponentName = (name: string) => {
+  return name
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
 
 export interface RandomizeOptions {
   tokens: {
@@ -26,7 +38,7 @@ export interface RandomizeOptions {
     layers: boolean
   }
   uikit: {
-    components: boolean
+    components: Record<string, boolean>
   }
 }
 
@@ -35,6 +47,12 @@ interface CheckboxItem {
   label: string
   children?: CheckboxItem[]
 }
+
+// Generate component items for the structure
+const componentItems: CheckboxItem[] = availableComponents.map(comp => ({
+  key: comp,
+  label: formatComponentName(comp)
+}))
 
 const OPTIONS_STRUCTURE: CheckboxItem[] = [
   {
@@ -65,9 +83,7 @@ const OPTIONS_STRUCTURE: CheckboxItem[] = [
   {
     key: 'uikit',
     label: 'UIKit',
-    children: [
-      { key: 'components', label: 'Components' },
-    ],
+    children: componentItems,
   },
 ]
 
@@ -78,6 +94,12 @@ interface RandomizeOptionsModalProps {
 }
 
 function getDefaultOptions(): RandomizeOptions {
+  // Default all components to true
+  const defaultComponents: Record<string, boolean> = {}
+  availableComponents.forEach(comp => {
+    defaultComponents[comp] = true
+  })
+
   return {
     tokens: {
       colors: true,
@@ -97,7 +119,7 @@ function getDefaultOptions(): RandomizeOptions {
       layers: true,
     },
     uikit: {
-      components: true,
+      components: defaultComponents,
     },
   }
 }
@@ -110,7 +132,7 @@ function areAllChildrenSelected(options: RandomizeOptions, parentKey: string): b
     return Object.values(options.theme).every(v => v === true)
   }
   if (parentKey === 'uikit') {
-    return Object.values(options.uikit).every(v => v === true)
+    return Object.values(options.uikit.components).every(v => v === true)
   }
   return false
 }
@@ -123,7 +145,7 @@ function areAnyChildrenSelected(options: RandomizeOptions, parentKey: string): b
     return Object.values(options.theme).some(v => v === true)
   }
   if (parentKey === 'uikit') {
-    return Object.values(options.uikit).some(v => v === true)
+    return Object.values(options.uikit.components).some(v => v === true)
   }
   return false
 }
@@ -131,33 +153,39 @@ function areAnyChildrenSelected(options: RandomizeOptions, parentKey: string): b
 export function RandomizeOptionsModal({ show, onRandomize, onCancel }: RandomizeOptionsModalProps) {
   const { mode } = useThemeMode()
   const [options, setOptions] = useState<RandomizeOptions>(getDefaultOptions())
-  
+
   // Reset to all selected when modal opens
   useEffect(() => {
     if (show) {
       setOptions(getDefaultOptions())
     }
   }, [show])
-  
+
   const allSelected = useMemo(() => {
     return areAllChildrenSelected(options, 'tokens') &&
-           areAllChildrenSelected(options, 'theme') &&
-           areAllChildrenSelected(options, 'uikit')
+      areAllChildrenSelected(options, 'theme') &&
+      areAllChildrenSelected(options, 'uikit')
   }, [options])
-  
+
   if (!show) return null
-  
+
   const handleAllChange = (checked: boolean) => {
-    setOptions(getDefaultOptions())
-    if (!checked) {
+    if (checked) {
+      setOptions(getDefaultOptions())
+    } else {
+      const emptyComponents: Record<string, boolean> = {}
+      availableComponents.forEach(comp => {
+        emptyComponents[comp] = false
+      })
+
       setOptions({
         tokens: { colors: false, sizes: false, opacities: false, fontSizes: false, fontWeights: false, letterSpacing: false, lineHeights: false },
         theme: { coreProperties: false, type: false, palettes: false, elevations: false, dimensions: false, layers: false },
-        uikit: { components: false },
+        uikit: { components: emptyComponents },
       })
     }
   }
-  
+
   const handleParentChange = (parentKey: string, checked: boolean) => {
     if (parentKey === 'tokens') {
       setOptions({
@@ -185,15 +213,20 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
         },
       })
     } else if (parentKey === 'uikit') {
+      const newComponents: Record<string, boolean> = {}
+      availableComponents.forEach(comp => {
+        newComponents[comp] = checked
+      })
+
       setOptions({
         ...options,
         uikit: {
-          components: checked,
+          components: newComponents,
         },
       })
     }
   }
-  
+
   const handleChildChange = (parentKey: string, childKey: string, checked: boolean) => {
     if (parentKey === 'tokens') {
       setOptions({
@@ -215,23 +248,25 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
       setOptions({
         ...options,
         uikit: {
-          ...options.uikit,
-          [childKey]: checked,
+          components: {
+            ...options.uikit.components,
+            [childKey]: checked,
+          },
         },
       })
     }
   }
-  
+
   const handleRandomize = () => {
     // Ensure at least one option is selected
-    if (!areAnyChildrenSelected(options, 'tokens') && 
-        !areAnyChildrenSelected(options, 'theme') && 
-        !areAnyChildrenSelected(options, 'uikit')) {
+    if (!areAnyChildrenSelected(options, 'tokens') &&
+      !areAnyChildrenSelected(options, 'theme') &&
+      !areAnyChildrenSelected(options, 'uikit')) {
       return
     }
     onRandomize(options)
   }
-  
+
   const getChildValue = (parentKey: string, childKey: string): boolean => {
     if (parentKey === 'tokens') {
       return (options.tokens as any)[childKey] || false
@@ -240,23 +275,26 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
       return (options.theme as any)[childKey] || false
     }
     if (parentKey === 'uikit') {
-      return (options.uikit as any)[childKey] || false
+      return options.uikit.components[childKey] || false
     }
     return false
   }
-  
+
   const renderCheckbox = (item: CheckboxItem, parentItem?: CheckboxItem, level: number = 0) => {
     const isParent = item.children && item.children.length > 0
     const parentKey = parentItem?.key || ''
-    
-    const isSelected = isParent 
+    const isRoot = !parentItem && isParent
+    const currentKey = isRoot ? item.key : item.key
+
+    const isSelected = isRoot
       ? areAllChildrenSelected(options, item.key)
       : parentKey
-      ? getChildValue(parentKey, item.key)
-      : false
-    
-    const isIndeterminate = isParent && areAnyChildrenSelected(options, item.key) && !areAllChildrenSelected(options, item.key)
-    
+        ? getChildValue(parentKey, item.key)
+        : false
+
+    // For indeterminate, we only care if it's a parent
+    const isIndeterminate = isRoot && areAnyChildrenSelected(options, item.key) && !areAllChildrenSelected(options, item.key)
+
     return (
       <div key={item.key} style={{ marginLeft: level * 24 }}>
         <label style={{
@@ -278,10 +316,9 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
               if (el) (el as HTMLInputElement).indeterminate = isIndeterminate ?? false
             }}
             onChange={(e) => {
-              if (isParent) {
+              if (isRoot) {
                 handleParentChange(item.key, e.target.checked)
-              } else {
-                const parentKey = OPTIONS_STRUCTURE.find(p => p.children?.some(c => c.key === item.key))?.key || ''
+              } else if (parentKey) {
                 handleChildChange(parentKey, item.key, e.target.checked)
               }
             }}
@@ -301,7 +338,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
       </div>
     )
   }
-  
+
   return (
     <div
       style={{
@@ -347,7 +384,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
         }}>
           Randomize Variables
         </h2>
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
           <label style={{
             display: 'flex',
@@ -373,10 +410,10 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
             />
             <span>All</span>
           </label>
-          
+
           {OPTIONS_STRUCTURE.map(item => renderCheckbox(item, undefined, 0))}
         </div>
-        
+
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
           <button
             onClick={onCancel}
