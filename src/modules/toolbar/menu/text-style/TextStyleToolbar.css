@@ -1,0 +1,57 @@
+.text-style-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+}
+
+.text-style-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.text-style-toggle-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.text-style-toggle {
+  transition: background-color 0.2s ease;
+}
+
+.text-style-toggle:hover {
+  opacity: 0.8;
+}
+
+.text-style-toggle.active {
+  font-weight: 600;
+}
+
+.text-style-segmented-control {
+  display: inline-flex;
+  overflow: hidden;
+  width: auto !important;
+  max-width: fit-content;
+  border: 1px solid var(--recursica-brand-themes-light-layer-layer-0-property-border-color);
+  border-radius: var(--recursica-brand-themes-light-layer-layer-0-property-border-radius);
+}
+
+html[data-theme-mode="dark"] .text-style-segmented-control {
+  border-color: var(--recursica-brand-themes-dark-layer-layer-0-property-border-color);
+}
+
+.text-style-segmented-button {
+  position: relative;
+  z-index: 0;
+  transition: background-color 0.2s;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.text-style-segmented-button.selected {
+  z-index: 1;
+  font-weight: 600;
+  border: none !important;
+}

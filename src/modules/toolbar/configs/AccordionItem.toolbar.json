@@ -7,15 +7,11 @@
       "visible": true,
       "group": {
         "text": {
-          "label": "Text",
+          "label": "Text color",
           "visible": true
         },
         "background": {
           "label": "Background",
-          "visible": true
-        },
-        "background-hover": {
-          "label": "Background Hover",
           "visible": true
         },
         "icon": {
@@ -27,10 +23,19 @@
           "visible": true
         },
         "icon-gap": {
-          "label": "Icon Gap",
+          "label": "Icon gap",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Border radius",
           "visible": true
         }
       }
+    },
+    "header-text": {
+      "icon": "text-aa",
+      "label": "Header text style",
+      "visible": true
     },
     "content": {
       "icon": "paint-bucket",
@@ -38,7 +43,7 @@
       "visible": true,
       "group": {
         "content-text": {
-          "label": "Text",
+          "label": "Text color",
           "visible": true
         },
         "content-background": {
@@ -51,6 +56,11 @@
         }
       }
     },
+    "content-text": {
+      "icon": "text-aa",
+      "label": "Content text style",
+      "visible": true
+    },
     "divider": {
       "icon": "minus",
       "label": "Divider",
@@ -61,19 +71,14 @@
           "visible": true
         },
         "header-content-gap": {
-          "label": "Header-Content Gap",
+          "label": "Header-content gap",
           "visible": true
         }
       }
     },
-    "border-radius": {
-      "icon": "corners-out",
-      "label": "Border Radius",
-      "visible": true
-    },
     "icon-size": {
       "icon": "arrows-up-down",
-      "label": "Icon Size",
+      "label": "Icon size",
       "visible": true
     },
     "elevation": {

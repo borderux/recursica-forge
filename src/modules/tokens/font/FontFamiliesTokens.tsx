@@ -1029,7 +1029,7 @@ export default function FontFamiliesTokens() {
         
         // Clear typography font-family CSS variables so they get regenerated with new token assignments
         // This ensures typography updates when token sequence changes
-        const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'button', 'caption', 'overline']
+        const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
         typographyPrefixes.forEach((prefix) => {
           const cssVar = `--recursica-brand-typography-${prefix}-font-family`
           if (typeof document !== 'undefined') {

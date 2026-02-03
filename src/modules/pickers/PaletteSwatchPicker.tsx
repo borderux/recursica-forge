@@ -697,6 +697,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const labelCol = 80 // Reduced from 120 to give more space for swatches
   const swatch = 18
   const gap = 1
+  // Calculate max swatches per row to determine minimum width needed
   const maxLevelCount = Math.max(...Object.values(paletteLevels).map((levels) => levels.length), coreColors.length, 0)
   // Calculate width to fit all swatches without wrapping - hug the content
   const swatchAreaWidth = maxLevelCount * (swatch + gap) - gap // Exact width needed for all swatches
@@ -720,7 +721,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const highestLayerNum = highestLayer.replace('layer-', '')
   
   return createPortal(
-    <div style={{ position: 'absolute', top: pos.top, left: pos.left, width: 'auto', minWidth: overlayWidth, maxWidth: '90vw', background: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-element-text-color))`, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-radius))`, boxShadow: elevationBoxShadow, padding: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-padding))`, zIndex: 20000, cursor: isDragging ? 'grabbing' : 'default' }}>
+    <div style={{ position: 'absolute', top: pos.top, left: pos.left, width: 'auto', minWidth: overlayWidth, maxWidth: 'none', background: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-element-text-color))`, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-radius))`, boxShadow: elevationBoxShadow, padding: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-padding))`, zIndex: 20000, cursor: isDragging ? 'grabbing' : 'default' }}>
       <div 
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
         onMouseDown={handleHeaderMouseDown}
@@ -794,7 +795,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
         {/* None option */}
         <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
           <div style={{ fontSize: 12, opacity: 0.8 }}>None</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap }}>
+          <div style={{ display: 'flex', flexWrap: 'nowrap', gap }}>
             <div
               title="None"
               onClick={(e) => {
@@ -891,10 +892,15 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
             </div>
           </div>
         </div>
-        {paletteKeys.map((pk) => (
+        {paletteKeys.map((pk) => {
+          // Calculate width needed for this specific palette's swatches
+          const paletteLevelCount = (paletteLevels[pk] || []).length
+          const paletteSwatchWidth = paletteLevelCount * (swatch + gap) - gap
+          
+          return (
           <div key={pk} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
             <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize' }}>{toTitle(pk)}</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap }}>
+            <div style={{ display: 'flex', flexWrap: 'nowrap', gap, minWidth: paletteSwatchWidth }}>
               {(paletteLevels[pk] || []).map((level) => {
                 const paletteCssVar = buildPaletteCssVar(pk, level)
                 const onToneCssVar = buildPaletteOnToneCssVar(pk, level)
@@ -917,7 +923,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                             : cssVar.startsWith('--')
                               ? `--recursica-${cssVar.slice(2)}`
                               : `--recursica-${cssVar}`
-
+                          
                           // Set the target CSS variable to reference the selected palette CSS variable
                           updateCssVar(prefixedTarget, `var(${paletteCssVar})`, tokensJson)
                         })
@@ -1023,7 +1029,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               })}
             </div>
           </div>
-        ))}
+          )
+        })}
         {coreColors.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
             <div style={{ fontSize: 12, opacity: 0.8 }}>Core</div>

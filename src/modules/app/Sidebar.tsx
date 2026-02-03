@@ -109,8 +109,8 @@ export function Sidebar() {
                 cursor: 'pointer',
                 transition: 'opacity 0.2s',
                 position: 'relative',
-                fontSize: 'var(--recursica-brand-typography-button-font-size)',
-                fontWeight: isActive ? 600 : 'var(--recursica-brand-typography-button-font-weight)',
+                fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                fontWeight: isActive ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {

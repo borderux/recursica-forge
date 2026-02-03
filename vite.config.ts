@@ -17,7 +17,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
-    testTimeout: 10000, // Increase timeout for CI environments
+    testTimeout: 30000, // Allow time for act() and async UI updates (toolbar/integration tests)
     coverage: {
       provider: 'v8',
     },

@@ -6,11 +6,13 @@
 
 import { Avatar as MaterialAvatar } from '@mui/material'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { useCssVar } from '../../../hooks/useCssVar'
+import { readCssVarResolved } from '../../../../core/css/readCssVar'
+import { useState, useEffect } from 'react'
 import './Avatar.css'
 
 export default function Avatar({
@@ -44,19 +46,76 @@ export default function Avatar({
   
   // Get size and other CSS variables
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
-  // Get text-size from size variant (e.g., variants.sizes.default.properties.text-size)
-  const textSizeVar = getComponentCssVar('Avatar', 'size', `${sizeVariant}-text-size`, undefined)
-  // Reactively read text-size to trigger re-renders when it changes
-  const textSizeValue = useCssVar(textSizeVar, '')
-  const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
+  
+  // Get level CSS variables (border-size, border-radius, padding)
   const borderSizeVar = getComponentLevelCssVar('Avatar', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
+  const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
+  
+  // Reactively read border-radius to trigger re-renders when it changes
+  const borderRadiusValueRaw = useCssVar(borderRadiusVar, '')
+  // Resolve the border-radius value (handles var() references)
+  const [borderRadiusValue, setBorderRadiusValue] = useState(() => {
+    const resolved = readCssVarResolved(borderRadiusVar, 10)
+    return resolved || borderRadiusValueRaw || `var(${borderRadiusVar})`
+  })
+  
+  useEffect(() => {
+    const updateBorderRadius = () => {
+      const resolved = readCssVarResolved(borderRadiusVar, 10)
+      if (resolved) {
+        setBorderRadiusValue(resolved)
+        return
+      }
+      const fallbackValue = borderRadiusValueRaw || `var(${borderRadiusVar})`
+      setBorderRadiusValue(fallbackValue)
+    }
+    
+    updateBorderRadius()
+    
+    // Listen for CSS variable updates
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(borderRadiusVar)) {
+        updateBorderRadius()
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    
+    // Also watch for direct style changes
+    const observer = new MutationObserver(() => {
+      updateBorderRadius()
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [borderRadiusVar, borderRadiusValueRaw])
+  
+  // Get text CSS variables - use size variant for variant-specific text properties
+  const fontFamilyVar = getComponentTextCssVar('Avatar', 'text', 'font-family', sizeVariant)
+  const fontSizeVar = getComponentTextCssVar('Avatar', 'text', 'font-size', sizeVariant)
+  const fontWeightVar = getComponentTextCssVar('Avatar', 'text', 'font-weight', sizeVariant)
+  const letterSpacingVar = getComponentTextCssVar('Avatar', 'text', 'letter-spacing', sizeVariant)
+  const lineHeightVar = getComponentTextCssVar('Avatar', 'text', 'line-height', sizeVariant)
+  const textDecorationVar = getComponentTextCssVar('Avatar', 'text', 'text-decoration', sizeVariant)
+  const textTransformVar = getComponentTextCssVar('Avatar', 'text', 'text-transform', sizeVariant)
+  const fontStyleVar = getComponentTextCssVar('Avatar', 'text', 'font-style', sizeVariant)
   
   // Map unified size to Material UI size
   const materialSize = sizeVariant === 'small' ? 'small' : sizeVariant === 'large' ? 'medium' : undefined
   
   // Handle elevation
   const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
+  
+  // Calculate border radius value
+  const borderRadiusForSx = shape === 'circle' ? '50%' : (borderRadiusValue || `var(${borderRadiusVar})`)
   
   return (
     <MaterialAvatar
@@ -69,8 +128,15 @@ export default function Avatar({
         backgroundColor: `var(${bgVar})`,
         color: `var(${labelVar})`,
         border: `var(${borderSizeVar}) solid ${borderColorValue || `var(${borderVar})`}`,
-        borderRadius: shape === 'circle' ? '50%' : `var(${borderRadiusVar})`,
-        fontSize: textSizeValue || `var(${textSizeVar})`,
+        borderRadius: borderRadiusForSx,
+        fontFamily: `var(${fontFamilyVar})`,
+        fontSize: `var(${fontSizeVar})`,
+        fontWeight: `var(${fontWeightVar})`,
+        letterSpacing: `var(${letterSpacingVar})`,
+        lineHeight: `var(${lineHeightVar})`,
+        textDecoration: `var(${textDecorationVar})`,
+        textTransform: `var(${textTransformVar})`,
+        fontStyle: `var(${fontStyleVar})`,
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...material?.sx,
       }}

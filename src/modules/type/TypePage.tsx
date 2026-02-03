@@ -8,6 +8,7 @@ import { useMemo, useState, useEffect } from 'react'
 import TypeTokensPanel from './TypeTokensPanel'
 import TypeStylePanel from './TypeStylePanel'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { useVars } from '../vars/VarsContext'
 import { Button } from '../../components/adapters/Button'
 
 // local helpers retained for legacy but no longer used directly in this file
@@ -16,32 +17,77 @@ import { Button } from '../../components/adapters/Button'
 
 export function TypePage() {
   const { mode } = useThemeMode()
+  const { theme } = useVars()
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   
   type Sample = { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }
 
-  // removed: family options handled inside TypeSample when needed
-
-  // legacy options removed
-
-  const samples: Sample[] = [
-    { label: 'H1', tag: 'h1', text: 'H1 – The quick brown fox jumps over the lazy dog', prefix: 'h1' },
-    { label: 'H2', tag: 'h2', text: 'H2 – The quick brown fox jumps over the lazy dog', prefix: 'h2' },
-    { label: 'H3', tag: 'h3', text: 'H3 – The quick brown fox jumps over the lazy dog', prefix: 'h3' },
-    { label: 'H4', tag: 'h4', text: 'H4 – The quick brown fox jumps over the lazy dog', prefix: 'h4' },
-    { label: 'H5', tag: 'h5', text: 'H5 – The quick brown fox jumps over the lazy dog', prefix: 'h5' },
-    { label: 'H6', tag: 'h6', text: 'H6 – The quick brown fox jumps over the lazy dog', prefix: 'h6' },
-    { label: 'Subtitle', tag: 'p', text: 'Subtitle – The quick brown fox jumps over the lazy dog', prefix: 'subtitle-1' },
-    { label: 'Subtitle (small)', tag: 'p', text: 'Subtitle (small) – The quick brown fox jumps over the lazy dog', prefix: 'subtitle-2' },
-    { label: 'Body', tag: 'p', text: 'Body – The quick brown fox jumps over the lazy dog', prefix: 'body-1' },
-    { label: 'Body (small)', tag: 'p', text: 'Body (small) – The quick brown fox jumps over the lazy dog', prefix: 'body-2' },
-    { label: 'Button', tag: 'button', text: 'Button', prefix: 'button' },
-    { label: 'Caption', tag: 'p', text: 'Caption – The quick brown fox jumps over the lazy dog', prefix: 'caption' },
-    { label: 'Overline', tag: 'p', text: 'Overline – THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG', prefix: 'overline' },
-  ]
-
-  // stable samples array
-  useMemo(() => undefined, [])
+  // Read samples from Brand.json typography
+  const samples: Sample[] = useMemo(() => {
+    const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+    const typography = root?.typography || {}
+    const result: Sample[] = []
+    
+    // Map of typography keys to display labels and HTML tags
+    const labelMap: Record<string, { label: string; tag: keyof JSX.IntrinsicElements }> = {
+      'h1': { label: 'H1', tag: 'h1' },
+      'h2': { label: 'H2', tag: 'h2' },
+      'h3': { label: 'H3', tag: 'h3' },
+      'h4': { label: 'H4', tag: 'h4' },
+      'h5': { label: 'H5', tag: 'h5' },
+      'h6': { label: 'H6', tag: 'h6' },
+      'subtitle': { label: 'Subtitle', tag: 'p' },
+      'subtitle-small': { label: 'Subtitle (small)', tag: 'p' },
+      'body': { label: 'Body', tag: 'p' },
+      'body-small': { label: 'Body (small)', tag: 'p' },
+      'caption': { label: 'Caption', tag: 'p' },
+      'overline': { label: 'Overline', tag: 'p' },
+    }
+    
+    // Map Brand.json keys to prefix format used by the component
+    const prefixMap: Record<string, string> = {
+      'subtitle': 'subtitle-1',
+      'subtitle-small': 'subtitle-2',
+      'body': 'body-1',
+      'body-small': 'body-2',
+    }
+    
+    // Iterate through typography entries in Brand.json
+    Object.keys(typography).forEach((key) => {
+      if (key.startsWith('$')) return
+      
+      const typographyEntry = typography[key]
+      if (typographyEntry && typeof typographyEntry === 'object' && '$type' in typographyEntry && typographyEntry.$type === 'typography') {
+        const labelInfo = labelMap[key]
+        if (labelInfo) {
+          const prefix = prefixMap[key] || key
+          const defaultText = labelInfo.label === 'Overline' 
+            ? 'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG'
+            : `${labelInfo.label} – The quick brown fox jumps over the lazy dog`
+          
+          result.push({
+            label: labelInfo.label,
+            tag: labelInfo.tag,
+            text: defaultText,
+            prefix: prefix,
+          })
+        }
+      }
+    })
+    
+    // Sort samples to maintain a consistent order (h1-h6, then subtitle, body, caption, overline)
+    const order = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle-1', 'subtitle-2', 'body-1', 'body-2', 'caption', 'overline']
+    result.sort((a, b) => {
+      const aIndex = order.indexOf(a.prefix)
+      const bIndex = order.indexOf(b.prefix)
+      if (aIndex === -1 && bIndex === -1) return 0
+      if (aIndex === -1) return 1
+      if (bIndex === -1) return -1
+      return aIndex - bIndex
+    })
+    
+    return result
+  }, [theme])
 
   // Map prefix to CSS variable name (matches Brand.json naming)
   function prefixToCssVarName(prefix: string): string {

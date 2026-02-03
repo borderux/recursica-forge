@@ -15,7 +15,7 @@
         },
         "selected-background": {
           "icon": "paint-bucket",
-          "label": "Selected Background",
+          "label": "Selected background",
           "visible": true,
           "floatingPaletteLabel": "Selected Background Color"
         }
@@ -23,9 +23,18 @@
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text",
+      "label": "Text style",
+      "visible": true
+    },
+    "supporting-text": {
+      "icon": "text-aa",
+      "label": "Supporting text style",
+      "visible": true
+    },
+    "text-color": {
+      "icon": "text-aa",
+      "label": "Text color",
       "visible": true,
-      "floatingPaletteLabel": "Text Color",
       "group": {
         "text": {
           "icon": "text-aa",
@@ -35,13 +44,13 @@
         },
         "supporting-text-color": {
           "icon": "text-aa",
-          "label": "Supporting Text Color",
+          "label": "Supporting text color",
           "visible": true,
           "floatingPaletteLabel": "Supporting Text Color"
         },
         "supporting-text-opacity": {
           "icon": "eye",
-          "label": "Supporting Text Opacity",
+          "label": "Supporting text opacity",
           "visible": true,
           "floatingPaletteLabel": "Supporting Text Opacity"
         }
@@ -49,7 +58,7 @@
     },
     "border-radius": {
       "icon": "corners-out",
-      "label": "Corner Radius",
+      "label": "Corner radius",
       "visible": true,
       "floatingPaletteLabel": "Corner Radius"
     },
@@ -61,13 +70,13 @@
       "group": {
         "min-width": {
           "icon": "arrows-in-line-horizontal",
-          "label": "Min Width",
+          "label": "Min width",
           "visible": true,
           "floatingPaletteLabel": "Minimum Width"
         },
         "max-width": {
           "icon": "arrows-out-line-horizontal",
-          "label": "Max Width",
+          "label": "Max width",
           "visible": true,
           "floatingPaletteLabel": "Maximum Width"
         }
@@ -81,13 +90,13 @@
       "group": {
         "vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical Padding",
+          "label": "Vertical padding",
           "visible": true,
           "floatingPaletteLabel": "Vertical Padding"
         },
         "horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal Padding",
+          "label": "Horizontal padding",
           "visible": true,
           "floatingPaletteLabel": "Horizontal Padding"
         }
@@ -101,19 +110,19 @@
       "group": {
         "divider-color": {
           "icon": "paint-bucket",
-          "label": "Divider Color",
+          "label": "Divider color",
           "visible": true,
           "floatingPaletteLabel": "Divider Color"
         },
         "divider-opacity": {
           "icon": "eye",
-          "label": "Divider Opacity",
+          "label": "Divider opacity",
           "visible": true,
           "floatingPaletteLabel": "Divider Opacity"
         },
         "divider-item-gap": {
           "icon": "split-horizontal",
-          "label": "Item Gap",
+          "label": "Item gap",
           "visible": true,
           "floatingPaletteLabel": "Item Gap"
         }

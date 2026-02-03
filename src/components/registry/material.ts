@@ -47,5 +47,8 @@ registerComponent('material', 'Menu', () => import('../adapters/material/Menu/Me
 // Slider
 registerComponent('material', 'Slider', () => import('../adapters/material/Slider/Slider'))
 
+// SegmentedControl
+registerComponent('material', 'SegmentedControl', () => import('../adapters/material/SegmentedControl/SegmentedControl'))
+
 // Add more components as they're implemented
 

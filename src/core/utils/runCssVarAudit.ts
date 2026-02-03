@@ -4,6 +4,7 @@
  */
 
 import { auditRecursicaCssVars, deepAuditCssVars, type DeepAuditIssue } from './auditCssVars'
+import { getCssAuditAutoRun } from './cssAuditPreference'
 
 export interface AuditSummary {
   totalVars: number
@@ -20,10 +21,6 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
     return { totalVars: 0, brokenRefs: 0, missingVars: [], allVars: [] }
   }
 
-  if (!silent) {
-    console.log('🔍 Auditing CSS variables with --recursica prefix...\n')
-  }
-  
   const broken = auditRecursicaCssVars()
   
   // Collect all CSS variables found
@@ -93,10 +90,11 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
   
   // Run deep audit for detailed issues with fix instructions
   const deepIssues = deepAuditCssVars()
+  const totalIssues = Math.max(broken.length, deepIssues.length)
   
-  if (!silent && (broken.length > 0 || deepIssues.length > 0)) {
-    const totalIssues = Math.max(broken.length, deepIssues.length)
-    console.log(`❌ Found ${totalIssues} CSS variable issue(s):\n`)
+  if (!silent) {
+    if (totalIssues > 0) {
+      console.log(`❌ Found ${totalIssues} CSS variable issue(s):\n`)
     
     // Use deep audit results if available (more detailed)
     if (deepIssues.length > 0) {
@@ -168,23 +166,25 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
       }
     }
     
-    console.log(`\n${'='.repeat(80)}`)
-    console.log(`\n📋 SUMMARY:`)
-    console.log(`   Total issues: ${totalIssues}`)
-    console.log(`   Files affected: ${deepIssues.length > 0 ? new Set(deepIssues.map(i => i.sourceFile).filter(Boolean)).size : 'unknown'}`)
-    
-    // Only output "Remember" section if there are issues
-    if (totalIssues > 0) {
-      console.log(`\n💡 Remember:`)
-      console.log(`   - NEVER add fallback values`)
-      console.log(`   - NEVER modify Tokens.json, Brand.json, or UIKit.json`)
-      console.log(`   - Always fix the code using the variable, not the normalization process`)
-      console.log(`   - Never create CSS aliases for the same variable`)
-      console.log(`   - Always normalize CSS variables using utility functions`)
-      console.log(`   - ALWAYS use scale-n CSS variable references (e.g., scale-01, scale-02), NEVER use alias references (e.g., cornflower, gray, greensheen)`)
+      console.log(`\n${'='.repeat(80)}`)
+      console.log(`\n📋 SUMMARY:`)
+      console.log(`   Total issues: ${totalIssues}`)
+      console.log(`   Files affected: ${deepIssues.length > 0 ? new Set(deepIssues.map(i => i.sourceFile).filter(Boolean)).size : 'unknown'}`)
+      
+      // Only output "Remember" section if there are issues
+      if (totalIssues > 0) {
+        console.log(`\n💡 Remember:`)
+        console.log(`   - NEVER add fallback values`)
+        console.log(`   - NEVER modify Tokens.json, Brand.json, or UIKit.json`)
+        console.log(`   - Always fix the code using the variable, not the normalization process`)
+        console.log(`   - Never create CSS aliases for the same variable`)
+        console.log(`   - Always normalize CSS variables using utility functions`)
+        console.log(`   - ALWAYS use scale-n CSS variable references (e.g., scale-01, scale-02), NEVER use alias references (e.g., cornflower, gray, greensheen)`)
+      }
+    } else {
+      // No issues found - log success message
+      console.log('✅ No CSS variable issues found!')
     }
-  } else if (!silent) {
-    console.log('✅ No broken CSS variable references found!')
   }
   
   const summary: AuditSummary = {
@@ -471,11 +471,13 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   }
   
   // Auto-run audit only in development mode after app fully initializes
-  if (process.env.NODE_ENV === 'development') {
+  // and only if the user has enabled auto-run via the header switch
+  if (process.env.NODE_ENV === 'development' && getCssAuditAutoRun()) {
     const runAuditWhenReady = () => {
       // Wait for app to be fully loaded, then run audit
       setTimeout(() => {
-        runCssVarAudit()
+        // Run audit with silent=false to show results
+        runCssVarAudit(false)
       }, 2000) // 2 second delay to ensure all CSS vars are applied
     }
     

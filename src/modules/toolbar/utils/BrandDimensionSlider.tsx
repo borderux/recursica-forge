@@ -306,6 +306,7 @@ export default function BrandDimensionSlider({
         tooltipText={tooltipText}
         minLabel={minLabel}
         maxLabel={maxLabel}
+        showMinMaxLabels={false}
         label={label ? <Label layer={layer} layout="side-by-side" size="small">{label}</Label> : undefined}
       />
     </div>

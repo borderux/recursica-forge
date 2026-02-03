@@ -46,13 +46,23 @@ describe('Accordion CSS Variables', () => {
     const containerPaddingVar = getComponentLevelCssVar('Accordion', 'padding')
     const itemGapVar = getComponentLevelCssVar('Accordion', 'item-gap')
 
-    const containerBgValue = root.style.getPropertyValue('--accordion-bg')
-    const containerPaddingValue = root.style.getPropertyValue('--accordion-padding')
-    const itemGapValue = root.style.getPropertyValue('--accordion-item-gap')
-
-    expect(containerBgValue).toContain(`var(${containerBgVar})`)
-    expect(containerPaddingValue).toContain(`var(${containerPaddingVar})`)
-    expect(itemGapValue).toContain(`var(${itemGapVar})`)
+    // Wait for CSS variables to be set (they might be set asynchronously)
+    await waitFor(() => {
+      const containerBgValue = root.style.getPropertyValue('--accordion-bg') || 
+                               window.getComputedStyle(root).getPropertyValue('--accordion-bg')
+      const containerPaddingValue = root.style.getPropertyValue('--accordion-padding') || 
+                                    window.getComputedStyle(root).getPropertyValue('--accordion-padding')
+      const itemGapValue = root.style.getPropertyValue('--accordion-item-gap') || 
+                          window.getComputedStyle(root).getPropertyValue('--accordion-item-gap')
+      
+      if (!containerBgValue || !containerPaddingValue || !itemGapValue) {
+        throw new Error('CSS variables not set yet')
+      }
+      
+      expect(containerBgValue).toContain(`var(${containerBgVar})`)
+      expect(containerPaddingValue).toContain(`var(${containerPaddingVar})`)
+      expect(itemGapValue).toContain(`var(${itemGapVar})`)
+    }, { timeout: 10000 })
   })
 
   it('sets CSS custom properties for AccordionItem using UIKit variables', async () => {
@@ -70,13 +80,23 @@ describe('Accordion CSS Variables', () => {
     const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
     const iconSizeVar = getComponentLevelCssVar('AccordionItem', 'icon-size')
 
-    const itemHeaderBgValue = root.style.getPropertyValue('--accordion-item-header-bg')
-    const itemPaddingValue = root.style.getPropertyValue('--accordion-item-padding')
-    const iconSizeValue = root.style.getPropertyValue('--accordion-item-icon-size')
-
-    expect(itemHeaderBgValue).toContain(`var(${itemHeaderBgVar})`)
-    expect(itemPaddingValue).toContain(`var(${itemPaddingVar})`)
-    expect(iconSizeValue).toContain(`var(${iconSizeVar})`)
+    // Wait for CSS variables to be set (they might be set asynchronously)
+    await waitFor(() => {
+      const itemHeaderBgValue = root.style.getPropertyValue('--accordion-item-header-bg') || 
+                                window.getComputedStyle(root).getPropertyValue('--accordion-item-header-bg')
+      const itemPaddingValue = root.style.getPropertyValue('--accordion-item-padding') || 
+                              window.getComputedStyle(root).getPropertyValue('--accordion-item-padding')
+      const iconSizeValue = root.style.getPropertyValue('--accordion-item-icon-size') || 
+                           window.getComputedStyle(root).getPropertyValue('--accordion-item-icon-size')
+      
+      if (!itemHeaderBgValue || !itemPaddingValue || !iconSizeValue) {
+        throw new Error('CSS variables not set yet')
+      }
+      
+      expect(itemHeaderBgValue).toContain(`var(${itemHeaderBgVar})`)
+      expect(itemPaddingValue).toContain(`var(${itemPaddingVar})`)
+      expect(iconSizeValue).toContain(`var(${iconSizeVar})`)
+    }, { timeout: 10000 })
   })
 })
 

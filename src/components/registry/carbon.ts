@@ -47,5 +47,8 @@ registerComponent('carbon', 'Menu', () => import('../adapters/carbon/Menu/Menu')
 // Slider
 registerComponent('carbon', 'Slider', () => import('../adapters/carbon/Slider/Slider'))
 
+// SegmentedControl
+registerComponent('carbon', 'SegmentedControl', () => import('../adapters/carbon/SegmentedControl/SegmentedControl'))
+
 // Add more components as they're implemented
 

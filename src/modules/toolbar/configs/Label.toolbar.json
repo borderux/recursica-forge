@@ -12,18 +12,19 @@
   "props": {
     "text": {
       "icon": "text-aa",
-      "label": "Label",
+      "label": "Text color",
       "visible": true,
       "group": {
         "text": {
           "label": "Color",
           "visible": true
-        },
-        "label-font": {
-          "label": "Type Style",
-          "visible": true
         }
       }
+    },
+    "label-text": {
+      "icon": "text-aa",
+      "label": "Label text style",
+      "visible": true
     },
     "asterisk": {
       "icon": "asterisk",
@@ -31,15 +32,27 @@
       "visible": true,
       "group": {
         "asterisk": {
-          "label": "Indicator Color",
-          "visible": true
-        },
-        "optional-font": {
-          "label": "Optional Type Style",
+          "label": "Indicator color",
           "visible": true
         },
         "required-indicator-gap": {
-          "label": "Indicator Gap",
+          "label": "Indicator gap",
+          "visible": true
+        }
+      }
+    },
+    "optional-text": {
+      "icon": "text-aa",
+      "label": "Optional text style",
+      "visible": true,
+      "group": {
+        "optional-text": {
+          "label": "Text style",
+          "visible": true
+        },
+        "optional-text-opacity": {
+          "icon": "eye",
+          "label": "Opacity",
           "visible": true
         }
       }
@@ -50,7 +63,7 @@
       "visible": true,
       "group": {
         "bottom-padding": {
-          "label": "Bottom Padding",
+          "label": "Bottom padding",
           "visible": true
         },
         "height": {
@@ -63,14 +76,14 @@
         },
         "vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical Padding",
+          "label": "Vertical padding",
           "visible": true
         }
       }
     },
     "label-width": {
       "icon": "arrows-left-right",
-      "label": "Label Width",
+      "label": "Label width",
       "visible": true
     }
   }
