@@ -31,6 +31,9 @@ export const API_ENDPOINTS = {
   get token() {
     return `${getBaseUrl()}/api/plugin/token`;
   },
+  get sandboxCreatePr() {
+    return `${getBaseUrl()}/api/sandbox/create-pr`;
+  },
 } as const;
 
 // Secure fetch wrapper with built-in security headers
