@@ -49,9 +49,9 @@ describe('bootstrapTheme', () => {
       const message = String(args[0] || '')
       // Suppress expected bootstrap warnings
       if (message.includes('[Bootstrap] Failed to') ||
-          message.includes('[loadFontsFromTokens] Error') ||
-          message.includes('store.getState is not a function') ||
-          message.includes('store.recomputeAndApplyAll is not a function')) {
+        message.includes('[loadFontsFromTokens] Error') ||
+        message.includes('store.getState is not a function') ||
+        message.includes('store.recomputeAndApplyAll is not a function')) {
         return
       }
       originalWarn.call(console, ...args)
@@ -65,14 +65,14 @@ describe('bootstrapTheme', () => {
 
   it('should validate schemas and initialize store', () => {
     bootstrapTheme()
-    
+
     expect(validateSchemasModule.validateAllJsonSchemas).toHaveBeenCalled()
     expect(varsStoreModule.getVarsStore).toHaveBeenCalled()
   })
 
   it('should normalize theme structure before validation', () => {
     bootstrapTheme()
-    
+
     // Should have been called with normalized theme structure
     expect(validateSchemasModule.validateAllJsonSchemas).toHaveBeenCalled()
     const callArgs = vi.mocked(validateSchemasModule.validateAllJsonSchemas).mock.calls[0]
@@ -80,37 +80,41 @@ describe('bootstrapTheme', () => {
   })
 
   it('should throw error in development mode on validation failure', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
     vi.mocked(validateSchemasModule.validateAllJsonSchemas).mockImplementation(() => {
       throw new Error('Validation failed')
     })
-    
+
     expect(() => bootstrapTheme()).toThrow('Validation failed')
+    consoleSpy.mockRestore()
   })
 
   it('should log but not throw in production mode', () => {
     process.env.NODE_ENV = 'production'
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
+
     vi.mocked(validateSchemasModule.validateAllJsonSchemas).mockImplementation(() => {
       throw new Error('Validation failed')
     })
-    
+
     // Should not throw in production
     expect(() => bootstrapTheme()).not.toThrow()
     expect(consoleSpy).toHaveBeenCalledWith(
       expect.stringContaining('[Bootstrap] Schema validation failed'),
       expect.any(Error)
     )
-    
+
     consoleSpy.mockRestore()
   })
 
   it('should handle validation errors gracefully', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
     vi.mocked(validateSchemasModule.validateAllJsonSchemas).mockImplementation(() => {
       throw new Error('Test validation error')
     })
-    
+
     expect(() => bootstrapTheme()).toThrow('Test validation error')
+    consoleSpy.mockRestore()
   })
 })
 
