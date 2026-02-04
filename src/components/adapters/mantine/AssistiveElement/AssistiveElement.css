@@ -1,0 +1,24 @@
+/**
+ * Mantine AssistiveElement CSS
+ * 
+ * CSS overrides for Mantine AssistiveElement component.
+ * Uses native HTML elements, so minimal overrides needed.
+ */
+
+.recursica-assistive-element-icon {
+  flex-shrink: 0;
+}
+
+/* Ensure SVG icons scale to fill their container */
+.recursica-assistive-element-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
+.recursica-assistive-element-text {
+  /* Text styles are applied via inline styles from component */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}

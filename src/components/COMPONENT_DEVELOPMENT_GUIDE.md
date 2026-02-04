@@ -14,6 +14,7 @@ For experienced developers, here's the essential workflow:
 4. **Register Components** - Add to registry files and `ComponentName` type
 5. **Create Tests** - **MANDATORY**: Toolbar integration tests (`{ComponentName}.toolbar.test.tsx`)
 6. **Create Toolbar Config** (`{ComponentName}.toolbar.json`) - Define toolbar controls
+7. **Add to Navigation** - **MANDATORY**: Add component to `ComponentsSidebar.tsx` baseComponents array
 
 **Key Principles:**
 - Use CSS variables directly (no React listeners) for most properties
@@ -710,31 +711,44 @@ case '{component-name-kebab-case}':
 
 The component name should be in kebab-case (e.g., `label`, `button`, `chip`).
 
-### Step 8 (Optional): Add Component to Left Navigation Sidebar
+### Step 8: Add Component to Left Navigation Sidebar
 
 **File**: `src/modules/preview/ComponentsSidebar.tsx`
 
-The sidebar automatically detects mapped components from UIKit.json (components that exist in `ui-kit.components`). However, you need to add the component to the `allComponents` array if it doesn't already exist.
+**MANDATORY**: All new components must be added to the left navigation sidebar so they appear in the Components page navigation.
 
-1. **Check if component exists**: Look for your component name in the `allComponents` array (around line 43-81).
+The sidebar automatically detects mapped components from UIKit.json (components that exist in `ui-kit.components`). However, you **must** add the component to the `baseComponents` array if it doesn't already exist.
 
-2. **If component doesn't exist**, add it to the array in alphabetical order:
+1. **Check if component exists**: Look for your component name in the `baseComponents` array (around line 63-105).
+
+2. **If component doesn't exist**, add it to the array. The array is automatically sorted alphabetically, so you can add it anywhere:
 ```typescript
-const allComponents = useMemo(() => {
+const baseComponents = useMemo(() => {
   const base = 'https://www.recursica.com/docs/components'
-  const components = [
+  return [
     { name: 'Accordion', url: `${base}/accordion` },
+    { name: 'Accordion item', url: `${base}/accordion-item` },
+    { name: 'Assistive element', url: `${base}/assistive-element` },
+    { name: 'Avatar', url: `${base}/avatar` },
     // ... existing components ...
     { name: '{ComponentName}', url: `${base}/{component-slug}` },
     // ... rest of components ...
   ]
-  // ... rest of code ...
-}, [mappedComponents, showUnmapped])
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(comp => ({
+      ...comp,
+      isMapped: mappedComponents.has(comp.name)
+    }))
+}, [mappedComponents])
 ```
 
 3. **If component already exists**, no changes needed - it will automatically be marked as "mapped" once it's added to UIKit.json.
 
-**Note**: The component name in the array should match the Title Case version (e.g., "Label", "Button", "Text field"). The sidebar automatically converts UIKit.json kebab-case names (e.g., "label", "button", "text-field") to Title Case for comparison.
+**Important Notes**:
+- The component name in the array should match the Title Case version (e.g., "Assistive element", "Label", "Button", "Text field")
+- The sidebar automatically converts UIKit.json kebab-case names (e.g., "assistive-element", "label", "button", "text-field") to Title Case for comparison
+- The URL slug should be in kebab-case (e.g., "assistive-element", "text-field")
+- The array is automatically sorted alphabetically, so component order doesn't matter
 
 #### Mandatory Rules
 

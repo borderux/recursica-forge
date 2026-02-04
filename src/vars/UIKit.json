@@ -153,38 +153,6 @@
               }
             }
           }
-        },
-        "assistive-elements": {
-          "help": {
-            "text-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
-            },
-            "icon-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
-            }
-          },
-          "error": {
-            "text-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.alert}"
-            },
-            "icon-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.alert}"
-            }
-          },
-          "size": {
-            "icon": {
-              "$type": "number",
-              "$value": "{brand.dimensions.icons.sm}"
-            },
-            "icon-text-gap": {
-              "$type": "number",
-              "$value": "{brand.dimensions.general.sm}"
-            }
-          }
         }
       }
     },
@@ -3163,6 +3131,164 @@
             }
           },
           "required-indicator-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.default}",
+              "unit": "px"
+            }
+          }
+        }
+      },
+      "assistive-element": {
+        "variants": {
+          "types": {
+            "help": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "text-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
+                    }
+                  },
+                  "layer-1": {
+                    "text-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
+                    }
+                  },
+                  "layer-2": {
+                    "text-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
+                    }
+                  },
+                  "layer-3": {
+                    "text-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
+                    }
+                  }
+                }
+              }
+            },
+            "error": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "text-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.text.alert}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.text.alert}"
+                    }
+                  },
+                  "layer-1": {
+                    "text-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.text.alert}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.text.alert}"
+                    }
+                  },
+                  "layer-2": {
+                    "text-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.text.alert}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.text.alert}"
+                    }
+                  },
+                  "layer-3": {
+                    "text-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.text.alert}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.text.alert}"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "properties": {
+          "text": {
+            "font-family": {
+              "$type": "string",
+              "$value": "{tokens.font.typefaces.primary}"
+            },
+            "font-size": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{tokens.font.sizes.sm}",
+                "unit": "px"
+              }
+            },
+            "font-weight": {
+              "$type": "number",
+              "$value": "{tokens.font.weights.regular}"
+            },
+            "letter-spacing": {
+              "$type": "string",
+              "$value": "{tokens.font.letter-spacings.default}"
+            },
+            "line-height": {
+              "$type": "number",
+              "$value": "{tokens.font.line-heights.default}"
+            },
+            "text-decoration": {
+              "$type": "string",
+              "$value": "none"
+            },
+            "text-transform": {
+              "$type": "string",
+              "$value": "none"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "normal"
+            }
+          },
+          "icon-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.icons.sm}",
+              "unit": "px"
+            }
+          },
+          "icon-text-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.sm}",
+              "unit": "px"
+            }
+          },
+          "top-margin": {
             "$type": "dimension",
             "$value": {
               "value": "{brand.dimensions.general.default}",

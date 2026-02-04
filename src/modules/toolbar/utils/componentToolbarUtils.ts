@@ -77,9 +77,9 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         return
       }
 
-      // Check if this key is a category container (styles, sizes, layouts, orientation, fill-width) when traversing nested variants
+      // Check if this key is a category container (styles, sizes, layouts, orientation, fill-width, types) when traversing nested variants
       // This handles cases like variants.layouts.stacked.variants.sizes where we traverse directly into the nested variants object
-      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width') && 
+      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width' || key === 'types') && 
                                    typeof value === 'object' && 
                                    value !== null &&
                                    !('$value' in value) &&
@@ -97,6 +97,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
               : categoryKey === 'layouts' ? 'layout'
               : categoryKey === 'orientation' ? 'orientation'
               : categoryKey === 'fill-width' ? 'fill-width'
+              : categoryKey === 'types' ? 'types'
               : categoryKey
             const isNestedSize = finalPropName === 'size' && variantProp === 'layout'
           const shouldAdd = isNestedSize || !seenVariants.has(finalPropName)
@@ -125,6 +126,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           : categoryKey === 'layouts' ? 'layout'
           : categoryKey === 'orientation' ? 'orientation'
           : categoryKey === 'fill-width' ? 'fill-width'
+          : categoryKey === 'types' ? 'types'
           : categoryKey
         traverse(categoryObj, currentPath, variantPropName)
         return
@@ -132,10 +134,10 @@ export function parseComponentStructure(componentName: string): ComponentStructu
 
       // Check if this is a "variants" node
       if (key === 'variants' && typeof value === 'object' && value !== null && !('$value' in value)) {
-        // Check if this variants object contains category containers (styles, sizes, layouts)
-        // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left
+        // Check if this variants object contains category containers (styles, sizes, layouts, types)
+        // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left or variants.types.help
         // Also handles nested: variants.layouts.side-by-side.variants.sizes.default
-        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts'))
+        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types'))
         
         if (categoryKeys.length > 0) {
           // NEW STRUCTURE: variants.styles, variants.sizes, and variants.layouts are category containers
@@ -153,6 +155,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                   : categoryKey === 'layouts' ? 'layout'
                   : categoryKey === 'orientation' ? 'orientation'
                   : categoryKey === 'fill-width' ? 'fill-width'
+                  : categoryKey === 'types' ? 'types'
                   : categoryKey
                 
                 // For nested variants (e.g., size inside layout), check if we should add it
@@ -187,7 +190,11 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           // Continue traversing with appropriate variant prop names
           categoryKeys.forEach(categoryKey => {
             const categoryObj = (value as any)[categoryKey]
-            const variantPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
+            const variantPropName = categoryKey === 'styles' ? 'style' 
+              : categoryKey === 'sizes' ? 'size' 
+              : categoryKey === 'layouts' ? 'layout'
+              : categoryKey === 'types' ? 'types'
+              : categoryKey
             if (categoryObj && typeof categoryObj === 'object') {
               // Traverse each variant within the category
               Object.keys(categoryObj).forEach(variantKey => {

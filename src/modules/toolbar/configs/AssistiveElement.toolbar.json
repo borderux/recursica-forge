@@ -1,0 +1,50 @@
+{
+  "variants": {
+    "types": {
+      "icon": "info",
+      "label": "Variant"
+    }
+  },
+  "props": {
+    "text": {
+      "icon": "text-aa",
+      "label": "Text style",
+      "visible": true
+    },
+    "color": {
+      "icon": "paint-bucket",
+      "label": "Color",
+      "visible": true,
+      "group": {
+        "text-color": {
+          "label": "Text color",
+          "visible": true
+        },
+        "icon-color": {
+          "label": "Icon color",
+          "visible": true
+        }
+      }
+    },
+    "icon": {
+      "icon": "resize",
+      "label": "Size",
+      "visible": true,
+      "group": {
+        "icon-size": {
+          "label": "Icon size",
+          "visible": true
+        },
+        "icon-text-gap": {
+          "label": "Icon-text gap",
+          "visible": true
+        }
+      }
+    },
+    "top-margin": {
+      "icon": "arrow-up",
+      "label": "Top margin",
+      "visible": true
+    }
+  }
+}
