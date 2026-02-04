@@ -161,6 +161,191 @@ The UIKit.json file uses a consistent structure for all components:
   - Structure: `avatar.variants.styles.text.variants.solid.properties.colors.layer-0.background`
   - Code: `getComponentCssVar('Avatar', 'colors', 'text-solid-background', 'layer-0')`
 
+### Property Value Guidelines for Randomization & Export
+
+To ensure components export properly and achieve 100% randomization coverage, follow these guidelines when defining property values in UIKit.json:
+
+#### 1. **Use Token References (Not Literal Values)**
+
+**✅ CORRECT - Use token references:**
+```json
+{
+  "background": {
+    "$type": "color",
+    "$value": "{brand.palettes.neutral.500.color.tone}"
+  },
+  "padding": {
+    "$type": "dimension",
+    "$value": "{brand.dimensions.general.md}"
+  },
+  "font-size": {
+    "$type": "typography",
+    "$value": "{brand.typography.body.font-size}"
+  }
+}
+```
+
+**❌ INCORRECT - Avoid literal values (they won't randomize well):**
+```json
+{
+  "background": {
+    "$type": "color",
+    "$value": "#3B82F6"  // ❌ Literal hex color
+  },
+  "padding": {
+    "$type": "dimension",
+    "$value": { "value": 16, "unit": "px" }  // ❌ Literal dimension
+  }
+}
+```
+
+#### 2. **Typography Properties - Use Token References or Randomizable Literals**
+
+**Font Style, Text Transform, Text Decoration:**
+- **Preferred**: Use token references: `{tokens.font.styles.normal}`, `{tokens.font.cases.uppercase}`
+- **Acceptable**: Use literal values that will be randomized: `"normal"`, `"italic"`, `"none"`, `"uppercase"`, etc.
+- The randomization system will automatically change these to different values during export
+
+**Example:**
+```json
+{
+  "text": {
+    "font-style": {
+      "$type": "string",
+      "$value": "normal"  // ✅ Will be randomized to "italic"
+    },
+    "text-transform": {
+      "$type": "string",
+      "$value": "none"  // ✅ Will be randomized to "uppercase", "lowercase", or "capitalize"
+    },
+    "text-decoration": {
+      "$type": "string",
+      "$value": "none"  // ✅ Will be randomized to "underline" or "line-through"
+    }
+  }
+}
+```
+
+#### 3. **Dimension Properties - Avoid Null, Use Token References**
+
+**✅ CORRECT:**
+```json
+{
+  "padding": {
+    "$type": "dimension",
+    "$value": "{brand.dimensions.general.md}"
+  },
+  "item-gap": {
+    "$type": "dimension",
+    "$value": "{brand.dimensions.gutters.horizontal}"
+  }
+}
+```
+
+**⚠️ ACCEPTABLE (but will be randomized):**
+```json
+{
+  "padding": {
+    "$type": "dimension",
+    "$value": null  // Will be randomized to a dimension token reference
+  }
+}
+```
+
+**Note**: Null dimension values are acceptable but will be randomized to actual dimension token references during export. If you want a specific "no padding" behavior, use `{brand.dimensions.general.none}` or a zero-value token instead.
+
+#### 4. **Icon Properties - Use Descriptive Icon Names**
+
+Icon name properties will be randomized to different icons during export:
+
+```json
+{
+  "thumb-icon-selected": {
+    "$type": "string",
+    "$value": "check"  // ✅ Will be randomized to other icons
+  },
+  "thumb-icon-unselected": {
+    "$type": "string",
+    "$value": "x-mark"  // ✅ Will be randomized to other icons
+  }
+}
+```
+
+**Available icons for randomization**: check, x-mark, chevron-down, chevron-up, chevron-left, chevron-right, star, heart, plus, minus, search, settings
+
+#### 5. **Color Properties - Always Use Brand/Token References**
+
+**✅ CORRECT:**
+```json
+{
+  "background": {
+    "$type": "color",
+    "$value": "{brand.palettes.neutral.500.color.tone}"
+  },
+  "text": {
+    "$type": "color",
+    "$value": "{brand.palettes.neutral.500.color.on-tone}"
+  },
+  "border": {
+    "$type": "color",
+    "$value": "{brand.palettes.palette-1.default.color.tone}"
+  }
+}
+```
+
+**❌ INCORRECT:**
+```json
+{
+  "background": {
+    "$type": "color",
+    "$value": "#3B82F6"  // ❌ Won't randomize properly
+  }
+}
+```
+
+#### 6. **Elevation Properties - Use Brand Elevation References**
+
+```json
+{
+  "elevation": {
+    "$type": "elevation",
+    "$value": "{brand.elevations.elevation-0}"
+  }
+}
+```
+
+**Note**: Elevation values like `"elevation-0"`, `"elevation-1"`, etc. are also acceptable and will be randomized.
+
+#### 7. **Randomization Coverage Expectations**
+
+Following these guidelines ensures:
+- **100% modification rate** during randomization exports
+- **0 static properties** (all properties will be randomized)
+- **Proper token reference resolution** in CSS exports
+- **Consistent behavior** across all components
+
+**Property Types and Randomization:**
+- ✅ **Colors**: Randomized to different palette/level/tone combinations
+- ✅ **Dimensions**: Randomized to different size scales
+- ✅ **Typography**: Font styles, transforms, and decorations randomized
+- ✅ **Icons**: Randomized to different icon names
+- ✅ **Elevations**: Randomized to different elevation levels
+- ✅ **Null values**: Converted to random token references
+
+#### 8. **Testing Your Component's Randomization**
+
+After adding a component to UIKit.json:
+
+1. **Run randomization** from the toolbar
+2. **Export the UIKit** (JSON + CSS)
+3. **Check the export analysis report** for:
+   - Modification rate (should be 100%)
+   - Static properties (should be 0)
+   - CSS coverage (should be 100%)
+
+If you see static properties in the report, review your UIKit.json values and ensure you're following these guidelines.
+
+
 ## Development Process
 
 ### Step 1: Create the Adapter Component
