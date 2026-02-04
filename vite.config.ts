@@ -22,4 +22,31 @@ export default defineConfig({
       provider: 'v8',
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core
+          'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
+
+          // UI library chunks - split by library to avoid large bundles
+          'mantine-core': ['@mantine/core'],
+          'mantine-hooks': ['@mantine/hooks'],
+          'mui-material': ['@mui/material'],
+          'mui-system': ['@mui/system'],
+          'carbon-core': ['@carbon/react'],
+
+          // Icon libraries
+          'icons': ['@phosphor-icons/react'],
+
+          // Routing
+          'router': ['react-router-dom'],
+
+          // Floating UI (used by tooltips, popovers, etc.)
+          'floating-ui': ['@floating-ui/react', '@floating-ui/react-dom'],
+        },
+      },
+    },
+  },
+
 })
