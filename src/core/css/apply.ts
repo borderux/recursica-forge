@@ -9,7 +9,7 @@ export type CssVarMap = Record<string, string>
  */
 function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): string | null {
   const trimmed = value.trim()
-  
+
   // If it's a hex color, try to find matching token
   if (/^#?[0-9a-f]{6}$/i.test(trimmed)) {
     if (tokens) {
@@ -19,13 +19,13 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
       }
     }
   }
-  
+
   // If it looks like a token name, try to convert it
   if (trimmed.includes('/')) {
     const tokenRef = tokenToCssVar(trimmed)
     if (tokenRef) return tokenRef
   }
-  
+
   return null
 }
 
@@ -34,7 +34,7 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
   const fixedVars: CssVarMap = { ...vars }
   const errors: Array<{ var: string; value: string; error: string; context?: string }> = []
   const warnings: Array<{ var: string; value: string; fixed: string; context?: string }> = []
-  
+
   for (const [key, value] of Object.entries(vars)) {
     if (!key || typeof key !== 'string') {
       errors.push({
@@ -45,7 +45,7 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
       })
       continue
     }
-    
+
     if (value === undefined || value === null) {
       errors.push({
         var: key,
@@ -55,9 +55,9 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
       })
       continue
     }
-    
+
     const trimmedValue = String(value).trim()
-    
+
     // Validate brand vars must use token references
     if (isBrandVar(key)) {
       const validation = validateCssVarValue(key, trimmedValue)
@@ -99,7 +99,7 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
         }
       }
     }
-    
+
     // Validate token vars have valid format
     if (key.startsWith('--recursica-tokens-')) {
       // Token vars should be simple values (hex colors, numbers, etc.) or var() references
@@ -112,7 +112,7 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
         })
       }
     }
-    
+
     // Validate value format
     if (trimmedValue.length === 0 && key.startsWith('--recursica-')) {
       warnings.push({
@@ -123,9 +123,9 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
       })
     }
   }
-  
+
   // Log errors with context
-  if (errors.length > 0) {
+  if (errors.length > 0 && process.env.NODE_ENV !== 'test') {
     console.error(`[CSS Var Validation] Found ${errors.length} validation error(s):`)
     errors.forEach(({ var: varName, value, error, context }) => {
       console.error(`  ❌ ${varName} = ${value}`)
@@ -134,12 +134,12 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
         console.error(`     Context: ${context}`)
       }
     })
-    
+
     // In development, log errors but don't throw to prevent infinite loops
     // Errors are already logged above, so we just continue
     // Throwing here was causing infinite recompute loops
   }
-  
+
   // Log warnings with context
   if (warnings.length > 0) {
     console.warn(`[CSS Var Validation] Found ${warnings.length} validation warning(s):`)
@@ -150,10 +150,10 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
       }
     })
   }
-  
+
   // Apply validated vars
   applyDirect(fixedVars)
-  
+
   // Return validation summary
   return {
     applied: Object.keys(fixedVars).length,
@@ -167,7 +167,7 @@ export function clearAllCssVars() {
   const root = document.documentElement
   const style = root.style
   const varsToRemove: string[] = []
-  
+
   // Collect all --recursica-* CSS custom properties from inline styles
   for (let i = 0; i < style.length; i++) {
     const prop = style[i]
@@ -175,7 +175,7 @@ export function clearAllCssVars() {
       varsToRemove.push(prop)
     }
   }
-  
+
   // Remove them
   varsToRemove.forEach(prop => root.style.removeProperty(prop))
 }
@@ -183,7 +183,7 @@ export function clearAllCssVars() {
 export function applyCssVarsDelta(prev: CssVarMap | null, next: CssVarMap, tokens?: any): { applied: number; errors: number; warnings: number } {
   // Validate before applying delta
   const validation = applyCssVars(next, tokens)
-  
+
   const root = document.documentElement
   let applied = 0
   const prevMap = prev || {}
@@ -193,7 +193,7 @@ export function applyCssVarsDelta(prev: CssVarMap | null, next: CssVarMap, token
     if (name.startsWith('--recursica-')) return name
     return `--recursica-${name.slice(2)}`
   }
-  
+
   // Apply changed or added vars (already validated by applyCssVars)
   for (const [key, value] of Object.entries(next)) {
     const pref = toPrefixed(key)
@@ -203,7 +203,7 @@ export function applyCssVarsDelta(prev: CssVarMap | null, next: CssVarMap, token
     if (pref !== key) root.style.removeProperty(key)
     applied += 1
   }
-  
+
   // Remove any old variables (both prefixed and unprefixed) that were previously applied but are no longer present
   const nextKeys = new Set(Object.keys(next))
   for (const key of Object.keys(prevMap)) {
@@ -218,11 +218,11 @@ export function applyCssVarsDelta(prev: CssVarMap | null, next: CssVarMap, token
       root.style.removeProperty(pref)
     }
   }
-  
-  return { 
-    applied, 
-    errors: validation.errors, 
-    warnings: validation.warnings 
+
+  return {
+    applied,
+    errors: validation.errors,
+    warnings: validation.warnings
   }
 }
 

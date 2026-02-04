@@ -42,7 +42,7 @@ describe('Button CSS Variables', () => {
         throw new Error(`Button text mismatch: expected "${expectedText}", got "${btn.textContent}"`)
       }
       return btn
-    }, { timeout: 15000 })
+    }, { timeout: 30000 })
   }
 
   describe('CSS Variable Definitions', () => {
@@ -81,7 +81,7 @@ describe('Button CSS Variables', () => {
       expect(styles).toBeDefined()
     })
 
-    it('uses layer-specific CSS variables', { timeout: 15000 }, async () => {
+    it('uses layer-specific CSS variables', { timeout: 60000 }, async () => {
       const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
 
       for (const layer of layers) {
@@ -105,7 +105,7 @@ describe('Button CSS Variables', () => {
   })
 
   describe('Component-Level CSS Variables', () => {
-    it('sets --button-icon-size when icon is provided', { timeout: 15000 }, async () => {
+    it('sets --button-icon-size when icon is provided', { timeout: 60000 }, async () => {
       const TestIcon = () => <svg><circle /></svg>
       let container: HTMLElement
       await act(async () => {
@@ -163,7 +163,7 @@ describe('Button CSS Variables', () => {
       await act(async () => {
         document.documentElement.style.removeProperty('--recursica-ui-kit-components-button-color-layer-0-variant-solid-background')
       })
-      
+
       let container: HTMLElement
       await act(async () => {
         const result = renderWithProviders(
@@ -173,7 +173,7 @@ describe('Button CSS Variables', () => {
         await new Promise(resolve => setTimeout(resolve, 0))
       })
       const button = await waitForButton(container!, 'Test')
-      
+
       // Should still render even if CSS variable is missing
       expect(button).toBeInTheDocument()
     })

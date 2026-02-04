@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import config from '../Accordion.toolbar.json'
 import uikitJson from '../../../../vars/UIKit.json'
 
@@ -29,6 +29,7 @@ describe('Accordion Toolbar Config', () => {
   })
 
   it('should have props that match UIKit.json structure', () => {
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
     const componentKey = 'accordion'
     const itemComponentKey = 'accordion-item'
     const component = uikitJson['ui-kit']?.components?.[componentKey]
@@ -36,6 +37,7 @@ describe('Accordion Toolbar Config', () => {
 
     if (!component) {
       console.warn(`Component ${componentKey} not found in UIKit.json - skipping prop validation`)
+      consoleSpy.mockRestore()
       return
     }
 
@@ -75,7 +77,7 @@ describe('Accordion Toolbar Config', () => {
     if (config.props) {
       Object.keys(config.props).forEach(prop => {
         configProps.add(prop)
-        const propConfig = config.props[prop]
+        const propConfig = (config.props as any)[prop]
         if (propConfig.group) {
           Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
         }
@@ -87,6 +89,7 @@ describe('Accordion Toolbar Config', () => {
         console.warn(`Config prop ${prop} not found in UIKit.json - may be a grouped prop`)
       }
     })
+    consoleSpy.mockRestore()
   })
 
   it('should have all required props from UIKit.json (container only)', () => {
@@ -119,7 +122,7 @@ describe('Accordion Toolbar Config', () => {
     if (config.props) {
       Object.keys(config.props).forEach(prop => {
         configProps.add(prop)
-        const propConfig = config.props[prop]
+        const propConfig = (config.props as any)[prop]
         if (propConfig.group) {
           Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
         }

@@ -25,7 +25,9 @@ export function Layout() {
   return (
     <Suspense fallback={<div style={{ padding: 16 }}>Loading UI…</div>}>
       <Shell kit={kit} onKitChange={setKit}>
-        <Outlet />
+        <Suspense fallback={<div style={{ padding: 20 }}>Loading page…</div>}>
+          <Outlet />
+        </Suspense>
       </Shell>
     </Suspense>
   )

@@ -42,14 +42,14 @@ function safeGetCachedFontFamilyName(name: string): string {
 export type TypographyChoices = Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>
 
 export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides: Record<string, any> | undefined, choices: TypographyChoices | undefined): { vars: Record<string, string>; familiesToLoad: string[] } {
-  const PREFIXES = ['h1','h2','h3','h4','h5','h6','subtitle-1','subtitle-2','body-1','body-2','caption','overline']
+  const PREFIXES = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle-1', 'subtitle-2', 'body-1', 'body-2', 'caption', 'overline']
   const tokenIndex = buildTokenIndex(tokens)
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
   const ttyp: any = troot?.typography || {}
   const usedFamilies = new Set<string>()
   const vars: Record<string, string> = {}
   const readChoices = choices || {}
-  
+
   // Read overrides from localStorage if not provided
   const readOverrides = (): Record<string, any> => {
     if (overrides) return overrides
@@ -64,6 +64,24 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
   }
   const effectiveOverrides = readOverrides()
 
+  // Map of category names to their plural forms
+  const pluralMap: Record<string, string> = {
+    'size': 'sizes',
+    'sizes': 'sizes',
+    'weight': 'weights',
+    'weights': 'weights',
+    'letter-spacing': 'letter-spacings',
+    'letter-spacings': 'letter-spacings',
+    'line-height': 'line-heights',
+    'line-heights': 'line-heights',
+    'typeface': 'typefaces',
+    'typefaces': 'typefaces',
+    'cases': 'cases',
+    'decorations': 'decorations',
+    'styles': 'styles',
+    'family': 'family' // Keep family as-is
+  }
+
   // Emit CSS variables for font tokens so Brand can reference them via var(--recursica-tokens-font-*)
   // Check for deleted font families to skip creating CSS variables for them
   const readDeletedFontFamilies = (): Record<string, true> => {
@@ -73,29 +91,13 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       if (!raw) return {}
       const obj = JSON.parse(raw)
       if (obj && typeof obj === 'object') return obj as Record<string, true>
-    } catch {}
+    } catch { }
     return {}
   }
   const deletedFamilies = readDeletedFontFamilies()
-  
+
   try {
     const src: any = (tokens as any)?.tokens?.font || {}
-    // Map of category names to their plural forms
-    const pluralMap: Record<string, string> = {
-      'size': 'sizes',
-      'sizes': 'sizes',
-      'weight': 'weights',
-      'weights': 'weights',
-      'letter-spacing': 'letter-spacings',
-      'letter-spacings': 'letter-spacings',
-      'line-height': 'line-heights',
-      'line-heights': 'line-heights',
-      'typeface': 'typefaces',
-      'typefaces': 'typefaces',
-      'cases': 'cases',
-      'decorations': 'decorations',
-      'family': 'family' // Keep family as-is
-    }
     const emitCategory = (category: string, unitHint?: string) => {
       const pluralCategory = pluralMap[category] || category
       // Try plural first, then singular for backwards compatibility
@@ -108,11 +110,11 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
           // Skip creating CSS variable for deleted font family
           return
         }
-        
+
         // Check if there's an override value first
         const overrideKey = `font/${category}/${short}`
         const overrideValue = effectiveOverrides[overrideKey]
-        
+
         // Use override value if it exists, otherwise use token value
         let valueStr: string | undefined = undefined
         if (overrideValue !== undefined && overrideValue !== null && String(overrideValue).trim()) {
@@ -137,7 +139,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
             else if (typeof val === 'string') valueStr = unit ? `${val}${unit}` : String(val)
           }
         }
-        
+
         // For font families/typefaces, skip if:
         // 1. Explicitly deleted (in deletedFamilies)
         // 2. Override is explicitly null/empty (user deleted it)
@@ -171,8 +173,9 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     emitCategory('line-heights')      // unitless or string (plural)
     emitCategory('cases')             // text case values
     emitCategory('decorations')       // text decoration values
-  } catch {}
-  
+    emitCategory('styles')            // font style values
+  } catch { }
+
   // Also emit CSS variables from overrides for font families/typefaces
   // This ensures custom-added font families and overridden values get CSS variables
   // Only create CSS variables for font families that exist in overrides
@@ -182,7 +185,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         const key = name.replace('font/typeface/', '').replace('font/family/', '')
         const category = name.startsWith('font/typeface/') ? 'typeface' : 'family'
         const overrideValue = effectiveOverrides[name]
-        
+
         // Handle array values (e.g., ["Lexend", "sans-serif"]) - take first element
         let value = ''
         if (Array.isArray(overrideValue) && overrideValue.length > 0) {
@@ -190,11 +193,11 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         } else {
           value = String(overrideValue || '')
         }
-        
+
         // Skip if deleted
         const tokenName = `font/${category}/${key}`
         if (deletedFamilies[tokenName]) return
-        
+
         // Only create CSS variable if value is not empty
         // Empty values mean the font family was deleted
         if (value && value.trim()) {
@@ -217,7 +220,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         }
       }
     })
-  } catch {}
+  } catch { }
 
   const getFontToken = (path: string): any => {
     // Allow overrides of font tokens using the same flat key naming used elsewhere
@@ -285,7 +288,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         const mv = s.match(varRe)
         if (mv) return { category: singular, suffix: mv[1] }
       }
-    } catch {}
+    } catch { }
     return null
   }
 
@@ -298,8 +301,27 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
           return getFontToken(path)
         }
       }
-    } catch {}
+    } catch { }
     return resolveBraceRef(ref, tokenIndex)
+  }
+
+  const findTokenByCategoryAndValue = (value: any, category: string): string | null => {
+    if (value == null) return null
+    const valStr = String(value).trim()
+    if (!valStr) return null
+    try {
+      const pluralCategory = pluralMap[category] || category
+      const src: any = (tokens as any)?.tokens?.font?.[pluralCategory] || (tokens as any)?.tokens?.font?.[category] || {}
+      for (const [key, token] of Object.entries(src)) {
+        if (key.startsWith('$')) continue
+        const tokenVal = (token as any)?.['$value']
+        if (tokenVal == null) continue
+        if (String(tokenVal).trim() === valStr) {
+          return `var(--recursica-tokens-font-${pluralCategory}-${key})`
+        }
+      }
+    } catch { }
+    return null
   }
 
   PREFIXES.forEach((p) => {
@@ -343,6 +365,16 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const spacing = (spacingChoice != null ? spacingChoice : (resolveTokenRef(spec?.letterSpacing) ?? spec?.letterSpacing ?? defaultSpacing))
     const lineHeightChoice = (ch as any).lineHeight ? getFontToken(`line-height/${(ch as any).lineHeight}`) : undefined
     const lineHeight = (lineHeightChoice != null ? lineHeightChoice : (resolveTokenRef(spec?.lineHeight) ?? spec?.lineHeight ?? defaultLineHeight))
+
+    const styleChoice = (ch as any).style ? getFontToken(`styles/${(ch as any).style}`) : undefined
+    const style = (styleChoice != null ? styleChoice : (resolveTokenRef(spec?.fontStyle) ?? spec?.fontStyle ?? 'normal'))
+
+    const transformChoice = (ch as any).transform ? getFontToken(`cases/${(ch as any).transform}`) : undefined
+    const transform = (transformChoice != null ? transformChoice : (resolveTokenRef(spec?.textTransform) ?? spec?.textTransform ?? 'none'))
+
+    const decorationChoice = (ch as any).decoration ? getFontToken(`decorations/${(ch as any).decoration}`) : undefined
+    const decoration = (decorationChoice != null ? decorationChoice : (resolveTokenRef(spec?.textDecoration) ?? spec?.textDecoration ?? 'none'))
+
     // Prefer token references where possible - always try to extract from spec first
     const familyToken = extractTokenRef(spec?.fontFamily) || (familyFromChoice ? extractTokenRef(familyFromChoice) : null)
     // For choices, construct token reference directly from the choice key
@@ -350,7 +382,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const weightToken = extractTokenRef(spec?.fontWeight ?? spec?.weight) || (weightChoice != null ? { category: 'weight' as const, suffix: ch.weight } : null)
     const spacingToken = extractTokenRef(spec?.letterSpacing) || (spacingChoice != null ? { category: 'letter-spacing' as const, suffix: ch.spacing } : null)
     const lineHeightToken = extractTokenRef(spec?.lineHeight) || (lineHeightChoice != null ? { category: 'line-height' as const, suffix: (ch as any).lineHeight } : null)
-    
+    const styleToken = extractTokenRef(spec?.fontStyle) || (styleChoice != null ? { category: 'styles' as any, suffix: (ch as any).style } : null)
+    const transformToken = extractTokenRef(spec?.textTransform) || (transformChoice != null ? { category: 'cases' as any, suffix: (ch as any).transform } : null)
+    const decorationToken = extractTokenRef(spec?.textDecoration) || (decorationChoice != null ? { category: 'decorations' as any, suffix: (ch as any).decoration } : null)
+
     // Helper to find token by value for fallback
     const findTokenByValue = (value: any, category: 'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'): string | null => {
       if (value == null) return null
@@ -387,10 +422,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
             return `var(--recursica-tokens-font-${pluralCategory}-${key})`
           }
         }
-      } catch {}
+      } catch { }
       return null
     }
-    
+
     const brandPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
     const shortPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
     // Map singular category to plural form for CSS var names
@@ -421,7 +456,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       // If not a var() reference, return as-is
       return tokenRef
     }
-    
+
     let brandVal: string | null = null
     if (familyToken) {
       const pluralCategory = categoryToPlural[familyToken.category] || familyToken.category
@@ -429,7 +464,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     } else if (family != null) {
       brandVal = findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family')
     }
-    
+
     // For brand vars, resolve token reference to actual value (font name with fallbacks)
     if (brandVal) {
       const resolvedValue = resolveTokenRefToValue(brandVal)
@@ -466,10 +501,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
     else if (brandVal && typeof brandVal === 'string' && !brandVal.startsWith('var(')) usedFamilies.add(String(brandVal))
     if (size != null) {
-      const brandVal = sizeToken 
+      const brandVal = sizeToken
         ? `var(--recursica-tokens-font-${categoryToPlural[sizeToken.category] || sizeToken.category}-${sizeToken.suffix})`
         : findTokenByValue(size, 'size')
-      
+
       // For brand vars, always use token reference
       if (brandVal) {
         vars[`${brandPrefix}font-size`] = brandVal
@@ -490,10 +525,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       }
     }
     if (weight != null) {
-      const brandVal = weightToken 
+      const brandVal = weightToken
         ? `var(--recursica-tokens-font-${categoryToPlural[weightToken.category] || weightToken.category}-${weightToken.suffix})`
         : findTokenByValue(weight, 'weight')
-      
+
       // For brand vars, always use token reference
       if (brandVal) {
         vars[`${brandPrefix}font-weight`] = brandVal
@@ -505,10 +540,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       }
     }
     if (spacing != null) {
-      const brandVal = spacingToken 
+      const brandVal = spacingToken
         ? `var(--recursica-tokens-font-${categoryToPlural[spacingToken.category] || spacingToken.category}-${spacingToken.suffix})`
         : findTokenByValue(spacing, 'letter-spacing')
-      
+
       // For brand vars, always use token reference
       if (brandVal) {
         vars[`${brandPrefix}font-letter-spacing`] = brandVal
@@ -520,10 +555,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       }
     }
     if (lineHeight != null) {
-      const brandVal = lineHeightToken 
+      const brandVal = lineHeightToken
         ? `var(--recursica-tokens-font-${categoryToPlural[lineHeightToken.category] || lineHeightToken.category}-${lineHeightToken.suffix})`
         : findTokenByValue(lineHeight, 'line-height')
-      
+
       // For brand vars, always use token reference
       if (brandVal) {
         vars[`${brandPrefix}line-height`] = brandVal
@@ -534,6 +569,41 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${shortPrefix}line-height`] = 'var(--recursica-tokens-font-line-heights-default)'
       }
     }
+
+    // Add font-style, text-transform, text-decoration to brand vars
+    if (style != null) {
+      const brandVal = styleToken
+        ? `var(--recursica-tokens-font-styles-${styleToken.suffix})`
+        : findTokenByCategoryAndValue(style, 'styles')
+      if (brandVal) {
+        vars[`${brandPrefix}font-style`] = brandVal
+      } else {
+        vars[`${brandPrefix}font-style`] = style
+      }
+    }
+
+    if (transform != null) {
+      const brandVal = transformToken
+        ? `var(--recursica-tokens-font-cases-${transformToken.suffix})`
+        : findTokenByCategoryAndValue(transform, 'cases')
+      if (brandVal) {
+        vars[`${brandPrefix}text-transform`] = brandVal
+      } else {
+        vars[`${brandPrefix}text-transform`] = transform
+      }
+    }
+
+    if (decoration != null) {
+      const brandVal = decorationToken
+        ? `var(--recursica-tokens-font-decorations-${decorationToken.suffix})`
+        : findTokenByCategoryAndValue(decoration, 'decorations')
+      if (brandVal) {
+        vars[`${brandPrefix}text-decoration`] = brandVal
+      } else {
+        vars[`${brandPrefix}text-decoration`] = decoration
+      }
+    }
+
     if (typeof family === 'string' && family.trim()) usedFamilies.add(family)
   })
 

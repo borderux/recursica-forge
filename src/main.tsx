@@ -2,16 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Layout } from './modules/app/Layout'
-import PalettesPage from './modules/palettes/PalettesPage'
-import CorePropertiesPage from './modules/core/CorePropertiesPage'
-import TypePage from './modules/type/TypePage'
-import PreviewPage from './modules/preview/PreviewPage'
-import ComponentDetailPage from './modules/preview/ComponentDetailPage'
-import TokensPage from './modules/tokens/TokensPage'
-import LayersPage from './modules/layers/LayersPage'
-import ElevationsPage from './modules/elevation/ElevationsPage'
-import ThemePage from './modules/theme/ThemePage'
-import DimensionsPage from './modules/dimensions/DimensionsPage'
 import { NotFoundPage } from './modules/app/NotFoundPage'
 import { AuthCallbackPage } from './modules/app/AuthCallbackPage'
 import { UiKitProvider } from './modules/uikit/UiKitContext'
@@ -22,29 +12,43 @@ import './styles/index.css'
 import './styles/theme.css.ts'
 import { bootstrapTheme } from './core/bootstrap'
 
+// Lazy load pages to split code chunks
+const PalettesPage = React.lazy(() => import('./modules/palettes/PalettesPage'))
+const CorePropertiesPage = React.lazy(() => import('./modules/core/CorePropertiesPage'))
+const TypePage = React.lazy(() => import('./modules/type/TypePage'))
+const PreviewPage = React.lazy(() => import('./modules/preview/PreviewPage'))
+const ComponentDetailPage = React.lazy(() => import('./modules/preview/ComponentDetailPage'))
+const TokensPage = React.lazy(() => import('./modules/tokens/TokensPage'))
+const LayersPage = React.lazy(() => import('./modules/layers/LayersPage'))
+const ElevationsPage = React.lazy(() => import('./modules/elevation/ElevationsPage'))
+const ThemePage = React.lazy(() => import('./modules/theme/ThemePage'))
+const DimensionsPage = React.lazy(() => import('./modules/dimensions/DimensionsPage'))
+
 // Initialize component registries
 import './components/registry/mantine'
 import './components/registry/material'
 import './components/registry/carbon'
 
 // Initialize CSS variable audit utility (available in console as window.auditCssVars)
-import './core/utils/runCssVarAudit'
+if (import.meta.env.DEV) {
+  import('./core/utils/runCssVarAudit')
+}
 
 // Suppress harmless browser extension errors
 if (typeof window !== 'undefined') {
   window.addEventListener('error', (event) => {
     // Suppress Chrome extension async response errors (harmless)
-    if (event.message?.includes('message channel closed') || 
-        event.message?.includes('asynchronous response')) {
+    if (event.message?.includes('message channel closed') ||
+      event.message?.includes('asynchronous response')) {
       event.preventDefault()
       return false
     }
   })
-  
+
   // Also catch unhandled promise rejections from extensions
   window.addEventListener('unhandledrejection', (event) => {
     if (event.reason?.message?.includes('message channel closed') ||
-        event.reason?.message?.includes('asynchronous response')) {
+      event.reason?.message?.includes('asynchronous response')) {
       event.preventDefault()
     }
   })
