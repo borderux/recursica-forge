@@ -29,6 +29,7 @@ import {
   type RepositoryOption,
 } from './githubService'
 import { startGitHubOAuth } from './githubOAuth'
+import { API_ENDPOINTS } from './auth'
 import {
   exportTokensJson,
   exportBrandJson,
@@ -372,261 +373,261 @@ export function GitHubExportModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {/* Auth Step */}
-        {step === 'auth' && (
-          <>
-            <h2 style={{ marginTop: 0, marginBottom: '16px' }}>
-              Login to GitHub
-            </h2>
-            <p style={{ marginBottom: '20px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)`, fontSize: '14px' }}>
-              You need to authenticate with your GitHub account. You will be redirected to GitHub and then back here.
-            </p>
-            {error && (
-              <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fee', color: '#c00', borderRadius: '4px', fontSize: '14px' }}>
-                {error}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Repositories Step */}
-        {step === 'repositories' && (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ margin: 0 }}>Select Repository</h2>
-              {user && (
-                <a
-                  href={`https://github.com/${user.login}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    fontSize: '14px',
-                    color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-                    textDecoration: 'none',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.textDecoration = 'underline'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.textDecoration = 'none'
-                  }}
-                >
-                  {user.login}
-                </a>
+          {/* Auth Step */}
+          {step === 'auth' && (
+            <>
+              <h2 style={{ marginTop: 0, marginBottom: '16px' }}>
+                Login to GitHub
+              </h2>
+              <p style={{ marginBottom: '20px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)`, fontSize: '14px' }}>
+                You need to authenticate with your GitHub account. You will be redirected to GitHub and then back here.
+              </p>
+              {error && (
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fee', color: '#c00', borderRadius: '4px', fontSize: '14px' }}>
+                  {error}
+                </div>
               )}
-            </div>
-            {error && (
-              <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fee', color: '#c00', borderRadius: '4px', fontSize: '14px' }}>
-                {error}
+            </>
+          )}
+
+          {/* Repositories Step */}
+          {step === 'repositories' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ margin: 0 }}>Select Repository</h2>
+                {user && (
+                  <a
+                    href={`https://github.com/${user.login}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: '14px',
+                      color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+                      textDecoration: 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.textDecoration = 'underline'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.textDecoration = 'none'
+                    }}
+                  >
+                    {user.login}
+                  </a>
+                )}
               </div>
-            )}
-            {loading ? (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)` }}>
-                Loading repositories...
-              </div>
-            ) : (
-              <>
-                <div style={{ marginBottom: '8px', fontSize: '14px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)` }}>
-                  Select your repository from the list below
+              {error && (
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fee', color: '#c00', borderRadius: '4px', fontSize: '14px' }}>
+                  {error}
                 </div>
-                <div style={{ height: '120px', overflowY: 'auto', marginBottom: '12px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)` }}>
-                  {repositories.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)` }}>
-                      No repositories available
-                    </div>
-                  ) : (
-                    repositories.map((repo) => {
-                      const StarIcon = iconNameToReactComponent('star')
-                      const isSandbox = isSandboxRepo(repo)
-                      const label = isSandbox ? repo.name : `${repo.owner.login} / ${repo.name}`
-                      return (
-                        <button
-                          key={repo.id}
-                          onClick={() => handleRepoSelect(repo)}
-                          style={{
-                            width: '100%',
-                            padding: '8px 12px',
-                            margin: 0,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            textAlign: 'left',
-                            border: 'none',
-                            borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
-                            borderRadius: 0,
-                            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`,
-                            color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`
-                          }}
-                        >
-                          {isSandbox && StarIcon ? <StarIcon size={16} style={{ flexShrink: 0 }} /> : null}
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-                        </button>
-                      )
-                    })
-                  )}
+              )}
+              {loading ? (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)` }}>
+                  Loading repositories...
                 </div>
-                {!showManualUrlInput ? (
-                  <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-                    <button
-                      onClick={() => setShowManualUrlInput(true)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        textDecoration: 'underline',
-                        padding: 0,
-                      }}
-                    >
-                      Don't see your repository in the list, press here
-                    </button>
+              ) : (
+                <>
+                  <div style={{ marginBottom: '8px', fontSize: '14px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)` }}>
+                    Select your repository from the list below
                   </div>
-                ) : (
-                  <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
-                      Enter Repository URL
-                    </label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input
-                        type="text"
-                        value={manualRepoUrl}
-                        onChange={(e) => setManualRepoUrl(e.target.value)}
-                        placeholder="https://github.com/owner/repo or owner/repo"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleManualRepoSubmit()
-                          }
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '8px 12px',
-                          border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
-                          borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-                          backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
-                          color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-                          fontSize: '14px',
-                        }}
-                      />
+                  <div style={{ height: '120px', overflowY: 'auto', marginBottom: '12px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)` }}>
+                    {repositories.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '40px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-low-emphasis)` }}>
+                        No repositories available
+                      </div>
+                    ) : (
+                      repositories.map((repo) => {
+                        const StarIcon = iconNameToReactComponent('star')
+                        const isSandbox = isSandboxRepo(repo)
+                        const label = isSandbox ? repo.name : `${repo.owner.login} / ${repo.name}`
+                        return (
+                          <button
+                            key={repo.id}
+                            onClick={() => handleRepoSelect(repo)}
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              margin: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              textAlign: 'left',
+                              border: 'none',
+                              borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
+                              borderRadius: 0,
+                              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`,
+                              color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`
+                            }}
+                          >
+                            {isSandbox && StarIcon ? <StarIcon size={16} style={{ flexShrink: 0 }} /> : null}
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+                          </button>
+                        )
+                      })
+                    )}
+                  </div>
+                  {!showManualUrlInput ? (
+                    <div style={{ marginBottom: '20px', textAlign: 'center' }}>
                       <button
-                        onClick={handleManualRepoSubmit}
-                        disabled={!manualRepoUrl.trim()}
+                        onClick={() => setShowManualUrlInput(true)}
                         style={{
-                          padding: '8px 16px',
+                          background: 'none',
                           border: 'none',
-                          borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-                          backgroundColor: !manualRepoUrl.trim() ? '#ccc' : '#24292e',
-                          color: 'white',
-                          cursor: !manualRepoUrl.trim() ? 'not-allowed' : 'pointer',
+                          color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+                          cursor: 'pointer',
                           fontSize: '14px',
+                          textDecoration: 'underline',
+                          padding: 0,
                         }}
                       >
-                        Use URL
+                        Don't see your repository in the list, press here
                       </button>
                     </div>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
+                  ) : (
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
+                        Enter Repository URL
+                      </label>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          type="text"
+                          value={manualRepoUrl}
+                          onChange={(e) => setManualRepoUrl(e.target.value)}
+                          placeholder="https://github.com/owner/repo or owner/repo"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleManualRepoSubmit()
+                            }
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
+                            borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
+                            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
+                            color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+                            fontSize: '14px',
+                          }}
+                        />
+                        <button
+                          onClick={handleManualRepoSubmit}
+                          disabled={!manualRepoUrl.trim()}
+                          style={{
+                            padding: '8px 16px',
+                            border: 'none',
+                            borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
+                            backgroundColor: !manualRepoUrl.trim() ? '#ccc' : '#24292e',
+                            color: 'white',
+                            cursor: !manualRepoUrl.trim() ? 'not-allowed' : 'pointer',
+                            fontSize: '14px',
+                          }}
+                        >
+                          Use URL
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
 
-        {/* Create PR Step */}
-        {step === 'create-pr' && selectedRepo && user && (
-          <>
-            <h2 style={{ marginTop: 0, marginBottom: '16px' }}>
-              Create Pull Request
-            </h2>
-            {loading ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)` }}>
-                <div style={{ marginBottom: '16px', fontSize: '18px' }}>Creating pull request...</div>
-                <div style={{ width: '40px', height: '40px', border: `4px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, borderTop: `4px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                <style>{`
+          {/* Create PR Step */}
+          {step === 'create-pr' && selectedRepo && user && (
+            <>
+              <h2 style={{ marginTop: 0, marginBottom: '16px' }}>
+                Create Pull Request
+              </h2>
+              {loading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)` }}>
+                  <div style={{ marginBottom: '16px', fontSize: '18px' }}>Creating pull request...</div>
+                  <div style={{ width: '40px', height: '40px', border: `4px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, borderTop: `4px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                  <style>{`
                   @keyframes spin {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                   }
                 `}</style>
-              </div>
-            ) : createdPr ? (
-              <>
-                <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px', fontSize: '14px' }}>
-                  Pull request created successfully!
                 </div>
-                <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-                  <a
-                    href={createdPr.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => {
-                      // Call onSuccess when user clicks the link to view the PR
-                      if (onSuccess) {
-                        onSuccess(createdPr.html_url)
-                      }
-                    }}
-                    style={{
-                      display: 'inline-block',
-                      padding: '12px 24px',
-                      backgroundColor: '#24292e',
-                      color: 'white',
-                      textDecoration: 'none',
-                      borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-                      fontSize: '16px',
-                      fontWeight: '500',
-                    }}
-                  >
-                    View Pull Request →
-                  </a>
+              ) : createdPr ? (
+                <>
+                  <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px', fontSize: '14px' }}>
+                    Pull request created successfully!
+                  </div>
+                  <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+                    <a
+                      href={createdPr.html_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        // Call onSuccess when user clicks the link to view the PR
+                        if (onSuccess) {
+                          onSuccess(createdPr.html_url)
+                        }
+                      }}
+                      style={{
+                        display: 'inline-block',
+                        padding: '12px 24px',
+                        backgroundColor: '#24292e',
+                        color: 'white',
+                        textDecoration: 'none',
+                        borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
+                        fontSize: '16px',
+                        fontWeight: '500',
+                      }}
+                    >
+                      View Pull Request →
+                    </a>
+                  </div>
+                </>
+              ) : error ? (
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fee', color: '#c00', borderRadius: '4px', fontSize: '14px' }}>
+                  {error}
                 </div>
-              </>
-            ) : error ? (
-              <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fee', color: '#c00', borderRadius: '4px', fontSize: '14px' }}>
-                {error}
-              </div>
-            ) : null}
-          </>
-        )}
+              ) : null}
+            </>
+          )}
 
-        {/* Success Step */}
-        {step === 'success' && createdPr && (
-          <>
-            <h2 style={{ marginTop: 0, marginBottom: '16px', color: '#28a745' }}>
-              Pull Request Created!
-            </h2>
-            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px', fontSize: '14px' }}>
-              Your pull request has been successfully created.
-            </div>
-            <div style={{ marginBottom: '20px' }}>
-              <a
-                href={createdPr.html_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-block',
-                  padding: '8px 16px',
-                  backgroundColor: '#24292e',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-                  fontSize: '14px',
-                }}
-              >
-                View Pull Request →
-              </a>
-            </div>
-          </>
-        )}
+          {/* Success Step */}
+          {step === 'success' && createdPr && (
+            <>
+              <h2 style={{ marginTop: 0, marginBottom: '16px', color: '#28a745' }}>
+                Pull Request Created!
+              </h2>
+              <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px', fontSize: '14px' }}>
+                Your pull request has been successfully created.
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <a
+                  href={createdPr.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    padding: '8px 16px',
+                    backgroundColor: '#24292e',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
+                    fontSize: '14px',
+                  }}
+                >
+                  View Pull Request →
+                </a>
+              </div>
+            </>
+          )}
         </div>
         <div style={{ borderTop: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, paddingTop: '12px', marginTop: '12px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
           {step === 'auth' && (
@@ -667,7 +668,7 @@ export function GitHubExportModal({
                 ) : (
                   <>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
                     </svg>
                     Login to Github
                   </>

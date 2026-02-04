@@ -30,7 +30,9 @@ import './components/registry/material'
 import './components/registry/carbon'
 
 // Initialize CSS variable audit utility (available in console as window.auditCssVars)
-import './core/utils/runCssVarAudit'
+if (import.meta.env.DEV) {
+  import('./core/utils/runCssVarAudit')
+}
 
 // Suppress harmless browser extension errors
 if (typeof window !== 'undefined') {
