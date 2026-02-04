@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { 
-  importTokensJson, 
-  importBrandJson, 
-  importUIKitJson, 
+import {
+  importTokensJson,
+  importBrandJson,
+  importUIKitJson,
   importJsonFiles,
   detectJsonFileType,
   detectDirtyData
@@ -69,19 +69,19 @@ describe('detectDirtyData', () => {
     const tokensJson = require('../../vars/Tokens.json')
     const brandJson = require('../../vars/Brand.json')
     const uikitJson = require('../../vars/UIKit.json')
-    
+
     // Normalize to match what detectDirtyData expects
     const originalTokens = tokensJson
     const originalBrand = (brandJson as any)?.brand ? brandJson : { brand: brandJson }
     const originalUiKit = (uikitJson as any)?.['ui-kit'] ? uikitJson : { 'ui-kit': uikitJson }
-    
+
     // Mock getState to return same structure as original
     mockStore.getState.mockReturnValue({
       tokens: originalTokens,
       theme: originalBrand,
       uikit: originalUiKit
     })
-    
+
     const result = detectDirtyData()
     expect(result).toBe(false)
   })
@@ -92,7 +92,7 @@ describe('detectDirtyData', () => {
       theme: { brand: {} },
       uikit: { 'ui-kit': {} }
     })
-    
+
     const result = detectDirtyData()
     expect(result).toBe(true)
   })
@@ -103,18 +103,20 @@ describe('detectDirtyData', () => {
       theme: { brand: { themes: { light: { palettes: {} } } } },
       uikit: { 'ui-kit': {} }
     })
-    
+
     const result = detectDirtyData()
     expect(result).toBe(true)
   })
 
   it('should return false on error (assume clean)', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
     mockStore.getState.mockImplementation(() => {
       throw new Error('Test error')
     })
-    
+
     const result = detectDirtyData()
     expect(result).toBe(false)
+    consoleSpy.mockRestore()
   })
 })
 
@@ -125,29 +127,31 @@ describe('importTokensJson', () => {
 
   it('should validate and import tokens', () => {
     const tokens = { tokens: { color: { gray: { '500': { $value: '#808080' } } } } }
-    
+
     importTokensJson(tokens)
-    
+
     expect(validateSchemasModule.validateTokensJson).toHaveBeenCalledWith(tokens)
     expect(mockStore.setTokens).toHaveBeenCalledWith(tokens)
   })
 
   it('should normalize tokens structure', () => {
     const tokens = { color: { gray: { '500': { $value: '#808080' } } } }
-    
+
     importTokensJson(tokens)
-    
+
     expect(validateSchemasModule.validateTokensJson).toHaveBeenCalledWith({ tokens })
     expect(mockStore.setTokens).toHaveBeenCalledWith({ tokens })
   })
 
   it('should throw on validation failure', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
     const tokens = { tokens: { invalid: 'data' } }
     vi.mocked(validateSchemasModule.validateTokensJson).mockImplementation(() => {
       throw new Error('Validation failed')
     })
-    
+
     expect(() => importTokensJson(tokens)).toThrow('Failed to import tokens.json')
+    consoleSpy.mockRestore()
   })
 })
 
@@ -158,29 +162,31 @@ describe('importBrandJson', () => {
 
   it('should validate and import brand', () => {
     const brand = { brand: { themes: { light: {} } } }
-    
+
     importBrandJson(brand)
-    
+
     expect(validateSchemasModule.validateBrandJson).toHaveBeenCalledWith(brand)
     expect(mockStore.setTheme).toHaveBeenCalledWith(brand)
   })
 
   it('should normalize brand structure', () => {
     const brand = { themes: { light: {} } }
-    
+
     importBrandJson(brand)
-    
+
     expect(validateSchemasModule.validateBrandJson).toHaveBeenCalledWith({ brand })
     expect(mockStore.setTheme).toHaveBeenCalledWith({ brand })
   })
 
   it('should throw on validation failure', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
     const brand = { brand: { invalid: 'data' } }
     vi.mocked(validateSchemasModule.validateBrandJson).mockImplementation(() => {
       throw new Error('Validation failed')
     })
-    
+
     expect(() => importBrandJson(brand)).toThrow('Failed to import brand.json')
+    consoleSpy.mockRestore()
   })
 })
 
@@ -191,29 +197,31 @@ describe('importUIKitJson', () => {
 
   it('should validate and import uikit', () => {
     const uikit = { 'ui-kit': { globals: {}, components: {} } }
-    
+
     importUIKitJson(uikit)
-    
+
     expect(validateSchemasModule.validateUIKitJson).toHaveBeenCalledWith(uikit)
     expect(mockStore.setUiKit).toHaveBeenCalledWith(uikit)
   })
 
   it('should normalize uikit structure', () => {
     const uikit = { globals: {}, components: {} }
-    
+
     importUIKitJson(uikit)
-    
+
     expect(validateSchemasModule.validateUIKitJson).toHaveBeenCalledWith({ 'ui-kit': uikit })
     expect(mockStore.setUiKit).toHaveBeenCalledWith({ 'ui-kit': uikit })
   })
 
   it('should throw on validation failure', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
     const uikit = { 'ui-kit': { invalid: 'data' } }
     vi.mocked(validateSchemasModule.validateUIKitJson).mockImplementation(() => {
       throw new Error('Validation failed')
     })
-    
+
     expect(() => importUIKitJson(uikit)).toThrow('Failed to import uikit.json')
+    consoleSpy.mockRestore()
   })
 })
 
@@ -236,9 +244,9 @@ describe('importJsonFiles', () => {
       brand: { brand: {} },
       uikit: { 'ui-kit': {} }
     }
-    
+
     importJsonFiles(files)
-    
+
     expect(validateSchemasModule.validateTokensJson).toHaveBeenCalled()
     expect(validateSchemasModule.validateBrandJson).toHaveBeenCalled()
     expect(validateSchemasModule.validateUIKitJson).toHaveBeenCalled()
@@ -251,9 +259,9 @@ describe('importJsonFiles', () => {
     const files = {
       tokens: { tokens: {} }
     }
-    
+
     importJsonFiles(files)
-    
+
     expect(validateSchemasModule.validateTokensJson).toHaveBeenCalled()
     expect(validateSchemasModule.validateBrandJson).not.toHaveBeenCalled()
     expect(validateSchemasModule.validateUIKitJson).not.toHaveBeenCalled()
@@ -265,14 +273,14 @@ describe('importJsonFiles', () => {
       brand: { brand: {} },
       uikit: { 'ui-kit': {} }
     }
-    
+
     const callOrder: string[] = []
     vi.mocked(mockStore.setTokens).mockImplementation(() => callOrder.push('tokens'))
     vi.mocked(mockStore.setTheme).mockImplementation(() => callOrder.push('brand'))
     vi.mocked(mockStore.setUiKit).mockImplementation(() => callOrder.push('uikit'))
-    
+
     importJsonFiles(files)
-    
+
     expect(callOrder).toEqual(['tokens', 'brand', 'uikit'])
   })
 })
