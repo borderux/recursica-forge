@@ -35,6 +35,9 @@ registerComponent('carbon', 'Label', () => import('../adapters/carbon/Label/Labe
 // AssistiveElement
 registerComponent('carbon', 'AssistiveElement', () => import('../adapters/carbon/AssistiveElement/AssistiveElement'))
 
+// TextField
+registerComponent('carbon', 'TextField', () => import('../adapters/carbon/TextField/TextField'))
+
 // Breadcrumb
 registerComponent('carbon', 'Breadcrumb', () => import('../adapters/carbon/Breadcrumb/Breadcrumb'))
 

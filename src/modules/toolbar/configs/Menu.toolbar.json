@@ -13,7 +13,7 @@
       "visible": true,
       "floatingPaletteLabel": "Border",
       "group": {
-        "border": {
+        "border-color": {
           "icon": "paint-bucket",
           "label": "Border color",
           "visible": true,

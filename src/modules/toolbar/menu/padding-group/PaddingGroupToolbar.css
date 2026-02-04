@@ -1,0 +1,12 @@
+.padding-group-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.padding-group-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

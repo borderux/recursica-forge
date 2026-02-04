@@ -243,12 +243,15 @@ export default function ComponentToolbar({
           // Also add any props from the group config that might not have been found yet
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
             const groupedPropKey = groupedPropName.toLowerCase()
-            // Check if we need to update the cached prop (if layer changed or prop doesn't exist)
+            // Check if we need to update the cached prop (if layer changed, variant changed, or prop doesn't exist)
             const cachedProp = groupedProps.get(groupedPropKey)
             const needsUpdate = !cachedProp || 
               (cachedProp.category === 'colors' && 
                cachedProp.path.some(part => part.startsWith('layer-')) && 
-               !cachedProp.path.includes(selectedLayer))
+               !cachedProp.path.includes(selectedLayer)) ||
+              (cachedProp.isVariantSpecific && cachedProp.variantProp && 
+               selectedVariants[cachedProp.variantProp] &&
+               !cachedProp.path.includes(selectedVariants[cachedProp.variantProp]))
             
             if (!groupedProps.has(groupedPropKey) || needsUpdate) {
               // For nested property groups like "container" and "selected", match props by name AND path
@@ -262,8 +265,31 @@ export default function ComponentToolbar({
                 const pathMatches = p.path.includes(parentPropNameLower)
                 // For color props, also filter by selectedLayer to ensure we get the correct layer
                 const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
-                return nameMatches && pathMatches && layerMatches
+                // For variant-specific props, filter by selected variant (e.g., state variant for TextField border-size)
+                let variantMatches = true
+                if (p.isVariantSpecific && p.variantProp) {
+                  const selectedVariant = selectedVariants[p.variantProp]
+                  if (selectedVariant) {
+                    const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+                    variantMatches = !!variantInPath
+                  } else {
+                    // If no variant is selected for this variantProp, don't match variant-specific props
+                    variantMatches = false
+                  }
+                }
+                // #region agent log
+                if (groupedPropKey === 'border-size' && componentName.toLowerCase() === 'text-field') {
+                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar.tsx:260',message:'checking prop for grouped prop match',data:{groupedPropKey,parentPropNameLower,pName:p.name,pPath:p.path,pIsVariantSpecific:p.isVariantSpecific,pVariantProp:p.variantProp,nameMatches,pathMatches,layerMatches,variantMatches,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'G'})}).catch(()=>{});
+                }
+                // #endregion
+                return nameMatches && pathMatches && layerMatches && variantMatches
               })
+              
+              // #region agent log
+              if (groupedPropKey === 'border-size' && componentName.toLowerCase() === 'text-field') {
+                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar.tsx:278',message:'grouped prop found result',data:{groupedPropFound:!!groupedProp,groupedPropCssVar:groupedProp?.cssVar,groupedPropPath:groupedProp?.path,groupedPropVariantProp:groupedProp?.variantProp},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'G'})}).catch(()=>{});
+              }
+              // #endregion
               
               
               // For container/selected props, NEVER fall back to name-only match - this would cause wrong props to be selected
@@ -273,8 +299,29 @@ export default function ComponentToolbar({
                   const nameMatches = p.name.toLowerCase() === groupedPropKey
                   // For color props, also filter by selectedLayer
                   const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
-                  return nameMatches && layerMatches
+                  // For variant-specific props, filter by selected variant
+                  let variantMatches = true
+                  if (p.isVariantSpecific && p.variantProp) {
+                    const selectedVariant = selectedVariants[p.variantProp]
+                    if (selectedVariant) {
+                      const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+                      variantMatches = !!variantInPath
+                    } else {
+                      variantMatches = false
+                    }
+                  }
+                  // #region agent log
+                  if (groupedPropKey === 'border-size' && componentName.toLowerCase() === 'text-field') {
+                    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar.tsx:272',message:'fallback prop search',data:{pName:p.name,pPath:p.path,pVariantProp:p.variantProp,nameMatches,layerMatches,variantMatches,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'G'})}).catch(()=>{});
+                  }
+                  // #endregion
+                  return nameMatches && layerMatches && variantMatches
                 })
+                // #region agent log
+                if (groupedPropKey === 'border-size' && componentName.toLowerCase() === 'text-field') {
+                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar.tsx:295',message:'fallback grouped prop found',data:{groupedPropFound:!!groupedProp,groupedPropCssVar:groupedProp?.cssVar,groupedPropPath:groupedProp?.path},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'G'})}).catch(()=>{});
+                }
+                // #endregion
               }
               
               // Special case: border-color is stored as "border" in the color category

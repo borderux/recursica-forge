@@ -1161,6 +1161,13 @@ export default function TextStyleToolbar({
   }, [fontSizeVar, componentName, textElementName])
 
   const handleTextDecorationChange = useCallback((value: string) => {
+    // CRITICAL: Log which CSS variable is being updated to verify it's the correct one
+    console.log('[TextStyleToolbar] Updating text-decoration:', {
+      componentName,
+      textElementName,
+      cssVar: textDecorationVar,
+      value,
+    })
     updateCssVar(textDecorationVar, value)
     // Update state immediately for UI responsiveness
     setCurrentTextDecoration(value)

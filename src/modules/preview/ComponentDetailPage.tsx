@@ -19,6 +19,7 @@ import SliderPreview from '../components/SliderPreview'
 import SegmentedControlPreview from '../components/SegmentedControlPreview'
 import SegmentedControlItemPreview from '../components/SegmentedControlItemPreview'
 import AssistiveElementPreview from '../components/AssistiveElementPreview'
+import TextFieldPreview from '../components/TextFieldPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -334,6 +335,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Assistive element' ? (
                 <AssistiveElementPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Text field' ? (
+                <TextFieldPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}

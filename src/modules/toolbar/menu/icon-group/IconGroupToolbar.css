@@ -1,0 +1,12 @@
+.icon-group-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.icon-group-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

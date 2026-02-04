@@ -752,7 +752,19 @@ const baseComponents = useMemo(() => {
 
 #### Mandatory Rules
 
-1. **Never Modify Component Structure**
+1. **ALL Dimension Properties MUST Use Slider Components**
+   - ✅ **ALWAYS** use the `Slider` component for ALL dimension properties (padding, margin, width, height, border-thickness, border-radius, icon-size, gaps, etc.)
+   - ❌ **NEVER** use `DimensionTokenSelector` or any other non-slider control for dimension properties
+   - ❌ **NEVER** allow dimension properties to fall through to default handlers that might use dropdowns or other non-slider controls
+   - **This rule applies to:**
+     - All padding properties (horizontal-padding, vertical-padding, padding, etc.)
+     - All border properties (border-thickness, border-radius, border-size, etc.)
+     - All size properties (width, height, min-width, max-width, icon-size, etc.)
+     - All gap/spacing properties (icon-text-gap, label-field-gap, item-gap, etc.)
+   - **Implementation**: When adding new components with dimension properties, you MUST add explicit slider handling in `PropControlContent.tsx` BEFORE any generic dimension handlers
+   - **Example**: See TextField component slider handling for the correct pattern
+
+2. **Never Modify Component Structure**
    - ❌ **DO NOT** wrap components in custom elements (spans, divs, etc.)
    - ❌ **DO NOT** create custom wrapper elements for icons, text, or other content
    - ❌ **DO NOT** conditionally render different component structures

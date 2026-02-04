@@ -1,0 +1,134 @@
+{
+  "variants": {
+    "states": {
+      "icon": "diamonds-four",
+      "label": "State"
+    },
+    "layouts": {
+      "icon": "layout",
+      "label": "Layout"
+    }
+  },
+  "props": {
+    "colors": {
+      "icon": "paint-bucket",
+      "label": "Colors",
+      "visible": true,
+      "floatingPaletteLabel": "Colors",
+      "group": {
+        "background": {
+          "icon": "paint-bucket",
+          "label": "Background",
+          "visible": true,
+          "floatingPaletteLabel": "Background Color"
+        },
+        "border": {
+          "icon": "square",
+          "label": "Border color",
+          "visible": true,
+          "floatingPaletteLabel": "Border Color"
+        },
+        "text": {
+          "icon": "text-aa",
+          "label": "Value color",
+          "visible": true,
+          "floatingPaletteLabel": "Value Color"
+        },
+        "placeholder": {
+          "icon": "text-aa",
+          "label": "Placeholder color",
+          "visible": true,
+          "floatingPaletteLabel": "Placeholder Color"
+        },
+        "placeholder-opacity": {
+          "icon": "eye",
+          "label": "Placeholder opacity",
+          "visible": true,
+          "floatingPaletteLabel": "Placeholder Opacity"
+        }
+      }
+    },
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "visible": true,
+      "group": {
+        "border-size": {
+          "icon": "arrows-left-right",
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius",
+          "visible": true
+        }
+      }
+    },
+    "text-color": {
+      "icon": "text-aa",
+      "label": "Text color",
+      "visible": true,
+      "group": {
+        "leading-icon": {
+          "label": "Leading icon",
+          "visible": true
+        },
+        "trailing-icon": {
+          "label": "Trailing icon",
+          "visible": true
+        }
+      }
+    },
+    "value": {
+      "icon": "text-aa",
+      "label": "Value text style",
+      "visible": true
+    },
+    "placeholder": {
+      "icon": "text-aa",
+      "label": "Placeholder text style",
+      "visible": true
+    },
+    "size": {
+      "icon": "resize",
+      "label": "Size",
+      "visible": true,
+      "group": {
+        "min-height": {
+          "label": "Min height",
+          "visible": true
+        },
+        "horizontal-padding": {
+          "label": "Horizontal padding",
+          "visible": true
+        },
+        "vertical-padding": {
+          "label": "Vertical padding",
+          "visible": true
+        },
+        "icon-size": {
+          "label": "Icon size",
+          "visible": true
+        },
+        "icon-text-gap": {
+          "label": "Icon-text gap",
+          "visible": true
+        },
+        "max-width": {
+          "label": "Max width",
+          "visible": true
+        },
+        "min-width": {
+          "label": "Min width",
+          "visible": true
+        }
+      }
+    },
+    "label-field-gap": {
+      "icon": "split-horizontal",
+      "label": "Label gap",
+      "visible": true
+    }
+  }
+}

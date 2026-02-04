@@ -1,7 +1,7 @@
 // Extract the rendering logic from PropControl for use in accordions
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
-import { getPropLabel, getGroupedProps } from '../../utils/loadToolbarConfig'
+import { getPropLabel, getGroupedProps, type ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
@@ -14,6 +14,13 @@ import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
 import OpacitySlider from '../../utils/OpacitySlider'
 import TextStyleToolbar from '../text-style/TextStyleToolbar'
+import BorderGroupToolbar from '../border-group/BorderGroupToolbar'
+import PaddingGroupToolbar from '../padding-group/PaddingGroupToolbar'
+import WidthGroupToolbar from '../width-group/WidthGroupToolbar'
+import ElevationToolbar from '../elevation/ElevationToolbar'
+import BackgroundToolbar from '../background/BackgroundToolbar'
+import IconGroupToolbar from '../icon-group/IconGroupToolbar'
+import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
 import uikitJson from '../../../../vars/UIKit.json'
 import './PropControl.css'
 
@@ -37,8 +44,8 @@ const formatDimensionLabel = (key: string): string => {
   return key.charAt(0).toUpperCase() + key.slice(1)
 }
 
-// Inline brand dimension slider component
-function BrandDimensionSliderInline({
+// Inline brand dimension slider component (deprecated - use BrandDimensionSliderInline from utils)
+function BrandDimensionSliderInline_DEPRECATED({
   targetCssVar,
   targetCssVars = [],
   label,
@@ -725,6 +732,12 @@ export default function PropControlContent({
   }, [themeJson])
 
   const getCssVarsForProp = (propToCheck: ComponentProp): string[] => {
+    // #region agent log
+    if (propToCheck.name === 'border-size' && componentName === 'TextField') {
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:728',message:'getCssVarsForProp entry',data:{propName:propToCheck.name,propCategory:propToCheck.category,propIsVariantSpecific:propToCheck.isVariantSpecific,propVariantProp:propToCheck.variantProp,propPath:propToCheck.path,propCssVar:propToCheck.cssVar,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    }
+    // #endregion
+
     // If the prop already has a CSS var and a path, use it directly to avoid mismatching
     // This is especially important for grouped props like "container" vs "selected"
     if (propToCheck.cssVar && propToCheck.path && propToCheck.path.length > 0) {
@@ -739,9 +752,16 @@ export default function PropControlContent({
 
     const structure = parseComponentStructure(componentName)
 
+    // Special handling for Chip text-color: toolbar config uses "text-color" but UIKit.json uses "text"
+    const isChipTextColor = componentName.toLowerCase() === 'chip' && 
+                            propToCheck.name.toLowerCase() === 'text-color' &&
+                            propToCheck.category === 'colors'
+    const targetPropName = isChipTextColor ? 'text' : propToCheck.name
 
-    const matchingProp = structure.props.find(p => {
-      if (p.name !== propToCheck.name || p.category !== propToCheck.category) {
+    // For state-specific props (like border-size in TextField), prioritize matching the selected state
+    // First, try to find a prop that matches the selected state variant
+    let matchingProp = structure.props.find(p => {
+      if (p.name !== targetPropName || p.category !== propToCheck.category) {
         return false
       }
       // For grouped props, ensure the path matches exactly
@@ -761,11 +781,21 @@ export default function PropControlContent({
       // Check if the prop being searched (p) has variant info in its path
       if (p.isVariantSpecific && p.variantProp) {
         const selectedVariant = selectedVariants[p.variantProp]
+        // #region agent log
+        if (propToCheck.name === 'border-size' && componentName === 'TextField') {
+          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:762',message:'checking variant-specific prop',data:{pName:p.name,pVariantProp:p.variantProp,pPath:p.path,pIsVariantSpecific:p.isVariantSpecific,selectedVariant,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        }
+        // #endregion
         if (!selectedVariant) {
           // If no variant is selected for this variantProp, don't match variant-specific props
           return false
         }
         const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+        // #region agent log
+        if (propToCheck.name === 'border-size' && componentName === 'TextField') {
+          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:768',message:'variant matching check',data:{selectedVariant,variantInPath,pPath:p.path,matchFound:!!variantInPath},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        }
+        // #endregion
         if (!variantInPath) {
           // Prop is variant-specific but doesn't match selected variant - skip it
           return false
@@ -788,12 +818,77 @@ export default function PropControlContent({
       return true
     })
 
+    // If no match found, try to find a prop matching the selected state variant
+    // This handles cases where propToCheck might be from a different state but we need the selected state's prop
+    // CRITICAL FIX: Also handle cases where propToCheck.name is wrong (e.g., "border" instead of "border-size")
+    if (!matchingProp) {
+      // Check if this is a TextField border-size lookup where propToCheck has wrong name
+      const isTextFieldBorderSize = componentName === 'TextField' && 
+        propToCheck.name === 'border' && 
+        propToCheck.category === 'size' &&
+        propToCheck.path && propToCheck.path.includes('border')
+      
+      const targetPropName = isTextFieldBorderSize ? 'border-size' : propToCheck.name
+      const targetVariantProp = propToCheck.isVariantSpecific ? propToCheck.variantProp : 
+        (componentName === 'TextField' && targetPropName === 'border-size' ? 'states' : undefined)
+      
+      if (targetVariantProp) {
+        const selectedVariant = selectedVariants[targetVariantProp]
+        // #region agent log
+        if (targetPropName === 'border-size' && componentName === 'TextField') {
+          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:811',message:'fallback search for variant-specific prop',data:{propToCheckName:propToCheck.name,targetPropName,propToCheckVariantProp:propToCheck.variantProp,targetVariantProp,propToCheckPath:propToCheck.path,selectedVariant,selectedVariants,isTextFieldBorderSize},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'M'})}).catch(()=>{});
+        }
+        // #endregion
+        if (selectedVariant) {
+          matchingProp = structure.props.find(p => {
+            if (p.name !== targetPropName || p.category !== propToCheck.category) {
+              return false
+            }
+            if (!p.isVariantSpecific || p.variantProp !== targetVariantProp) {
+              return false
+            }
+            // Must have the selected variant in the path
+            const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+            // #region agent log
+            if (targetPropName === 'border-size' && componentName === 'TextField' && p.name === 'border-size') {
+              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:822',message:'checking prop in fallback search',data:{pName:p.name,pPath:p.path,pVariantProp:p.variantProp,selectedVariant,variantInPath,match:!!variantInPath},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'M'})}).catch(()=>{});
+            }
+            // #endregion
+            if (!variantInPath) return false
+            
+            if (propToCheck.category === 'colors') {
+              const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
+              if (layerInPath && layerInPath !== selectedLayer) return false
+            }
+            return true
+          })
+          // #region agent log
+          if (targetPropName === 'border-size' && componentName === 'TextField') {
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:830',message:'fallback search result',data:{matchingPropFound:!!matchingProp,matchingPropCssVar:matchingProp?.cssVar,matchingPropPath:matchingProp?.path},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'M'})}).catch(()=>{});
+          }
+          // #endregion
+        }
+      }
+    }
+
+    // #region agent log
+    if (propToCheck.name === 'border-size' && componentName === 'TextField') {
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:820',message:'getCssVarsForProp result',data:{matchingPropFound:!!matchingProp,matchingPropCssVar:matchingProp?.cssVar,matchingPropPath:matchingProp?.path,matchingPropVariantProp:matchingProp?.variantProp,propToCheckPath:propToCheck.path,propToCheckVariantProp:propToCheck.variantProp,selectedVariants,fallbackCssVar:propToCheck.cssVar,resultCssVar:matchingProp ? matchingProp.cssVar : propToCheck.cssVar},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
+    }
+    // #endregion
+
     return matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]
   }
 
   const baseCssVars = getCssVarsForProp(prop)
   let primaryCssVar = baseCssVars[0] || prop.cssVar
   let cssVarsForControl = baseCssVars
+
+  // #region agent log
+  if (prop.name === 'border-size' && componentName === 'TextField') {
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:797',message:'border-size prop analysis',data:{propName:prop.name,propCategory:prop.category,propIsVariantSpecific:prop.isVariantSpecific,propVariantProp:prop.variantProp,propPath:prop.path,propCssVar:prop.cssVar,selectedVariants,selectedLayer,baseCssVars,primaryCssVar},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  }
+  // #endregion
 
   // Special handling for MenuItem background: update all three background CSS variables
   // Component name can be "Menu item" (display name) or "MenuItem" (component name)
@@ -1029,6 +1124,7 @@ export default function PropControlContent({
     const isSegmentedControl = normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmented-control-item'
     const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item'
     const isBadge = componentName.toLowerCase() === 'badge'
+    const isTextField = normalizedComponentName === 'text-field' || normalizedComponentName === 'text field'
 
     if (propToRender.type === 'color') {
       const contrastColorVar = getContrastColorVar(propToRender)
@@ -1098,6 +1194,147 @@ export default function PropControlContent({
     if (propToRender.type === 'dimension') {
       const propNameLower = propToRender.name.toLowerCase()
 
+      // CRITICAL: Component-specific dimension sliders MUST come BEFORE generic handlers
+      // This ensures TextField (and other components) dimension props ALWAYS use sliders
+      
+      // Use brand dimension slider for label-field-gap (uses dimension tokens, initially set as global ref)
+      if (propNameLower === 'label-field-gap') {
+        return (
+          <BrandDimensionSliderInline
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+            dimensionCategory="general"
+            layer="layer-1"
+          />
+        )
+      }
+
+      // Use Slider component for TextField dimension properties (MUST use sliders, never DimensionTokenSelector)
+      if (isTextField && (
+        propNameLower === 'border-size' ||
+        propNameLower === 'horizontal-padding' ||
+        propNameLower === 'vertical-padding' ||
+        propNameLower === 'min-height' ||
+        propNameLower === 'icon-size' ||
+        propNameLower === 'icon-text-gap' ||
+        propNameLower === 'max-width' ||
+        propNameLower === 'min-width'
+      )) {
+        const TextFieldDimensionSlider = () => {
+          // #region agent log
+          if (propNameLower === 'border-size') {
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1158',message:'TextFieldDimensionSlider created',data:{propNameLower,primaryVar,cssVars,selectedVariants,propName:prop.name,propPath:prop.path},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'L'})}).catch(()=>{});
+          }
+          // #endregion
+          let minValue = 0
+          let maxValue = 500
+          
+          // Set appropriate ranges for each property
+          if (propNameLower === 'border-size') {
+            minValue = 0
+            maxValue = 10
+          } else if (propNameLower === 'horizontal-padding' || propNameLower === 'vertical-padding') {
+            minValue = 0
+            maxValue = 32
+          } else if (propNameLower === 'min-height') {
+            minValue = 20
+            maxValue = 80
+          } else if (propNameLower === 'icon-size') {
+            minValue = 8
+            maxValue = 32
+          } else if (propNameLower === 'icon-text-gap') {
+            minValue = 0
+            maxValue = 24
+          } else if (propNameLower === 'max-width') {
+            minValue = 100
+            maxValue = 1000
+          } else if (propNameLower === 'min-width') {
+            minValue = 0
+            maxValue = 500
+          }
+          
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || `${minValue}px`
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
+          })
+
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || `${minValue}px`
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer={selectedLayer as any}
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              showMinMaxLabels={false}
+              label={<Label layer={selectedLayer as any} layout="stacked">{label}</Label>}
+            />
+          )
+        }
+
+        return <TextFieldDimensionSlider />
+      }
+
       // Use text-size brand tokens slider for text-size and font-size properties
       const isTypographySizeProp = propNameLower === 'text-size' || propNameLower === 'font-size'
 
@@ -1114,6 +1351,7 @@ export default function PropControlContent({
       }
 
       // Use brand dimension slider for padding-related properties that use general tokens
+      // NOTE: TextField padding props are handled above, so this won't catch them
       const isPaddingProp = propNameLower === 'padding' ||
         propNameLower === 'vertical-padding' ||
         propNameLower === 'horizontal-padding' ||
@@ -1125,7 +1363,7 @@ export default function PropControlContent({
         propNameLower === 'divider-item-gap' ||
         propNameLower === 'track-inner-padding'
 
-      if (isPaddingProp) {
+      if (isPaddingProp && !isTextField) {
         return (
           <BrandDimensionSliderInline
             key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
@@ -2796,7 +3034,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'value', 'placeholder']
 
   // Always check UIKit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly
@@ -2854,10 +3092,188 @@ export default function PropControlContent({
     )
   }
 
-  // Handle grouped props
+  // Check for reusable toolbar modules
+  // Note: propNameLower is already declared above, reuse it
   const groupedPropsConfig = getGroupedProps(componentName, prop.name)
+  
+  // Border Group Module
+  if (propNameLower === 'border' && groupedPropsConfig) {
+    const hasBorderSize = 'border-size' in groupedPropsConfig
+    const hasBorderRadius = 'border-radius' in groupedPropsConfig
+    const hasBorderColor = 'border-color' in groupedPropsConfig || 'border' in groupedPropsConfig
+    // Determine the actual color prop name from config (could be "border-color" or "border")
+    const borderColorPropName = 'border-color' in groupedPropsConfig ? 'border-color' : 
+                                 'border' in groupedPropsConfig ? 'border' : 'border-color'
+    
+    if (hasBorderSize || hasBorderRadius) {
+      return (
+        <BorderGroupToolbar
+          componentName={componentName}
+          prop={prop}
+          selectedVariants={selectedVariants}
+          selectedLayer={selectedLayer}
+          groupedPropsConfig={groupedPropsConfig}
+          config={{
+            includeColor: !!hasBorderColor,
+            propNameMapping: {
+              color: borderColorPropName,
+            },
+          }}
+        />
+      )
+    }
+  }
 
+  // Padding Group Module
+  // Handle both single padding prop and grouped padding props
+  if (propNameLower === 'padding') {
+    const hasGroupedProps = groupedPropsConfig && Object.keys(groupedPropsConfig).length > 0
+    const hasHorizontal = groupedPropsConfig && ('horizontal-padding' in groupedPropsConfig || 'padding-horizontal' in groupedPropsConfig)
+    const hasVertical = groupedPropsConfig && ('vertical-padding' in groupedPropsConfig || 'padding-vertical' in groupedPropsConfig)
+    
+    // Check component structure for padding-horizontal/padding-vertical props
+    // This handles cases like Avatar where UIKit.json has separate props but toolbar.json doesn't group them
+    const structure = parseComponentStructure(componentName)
+    const hasPaddingHorizontal = structure.props.some(p => 
+      (p.name === 'padding-horizontal' || p.name === 'horizontal-padding') && 
+      p.category === 'size'
+    )
+    const hasPaddingVertical = structure.props.some(p => 
+      (p.name === 'padding-vertical' || p.name === 'vertical-padding') && 
+      p.category === 'size'
+    )
+    
+    // Use PaddingGroupToolbar if:
+    // 1. Has grouped props (horizontal/vertical) in toolbar config, OR
+    // 2. Component structure has padding-horizontal/padding-vertical props (like Avatar), OR
+    // 3. No grouped props and single padding prop (like Accordion)
+    if (hasGroupedProps && (hasHorizontal || hasVertical)) {
+      // Grouped padding props from toolbar config
+      return (
+        <PaddingGroupToolbar
+          componentName={componentName}
+          prop={prop}
+          selectedVariants={selectedVariants}
+          selectedLayer={selectedLayer}
+          groupedPropsConfig={groupedPropsConfig}
+        />
+      )
+    } else if (!hasGroupedProps && (hasPaddingHorizontal || hasPaddingVertical)) {
+      // Component has separate padding props in UIKit.json but toolbar doesn't group them (like Avatar)
+      // Create a grouped config from the component structure
+      const autoGroupedConfig: Record<string, ToolbarPropConfig> = {}
+      if (hasPaddingHorizontal) {
+        autoGroupedConfig['padding-horizontal'] = { visible: true, label: 'Horizontal padding' }
+      }
+      if (hasPaddingVertical) {
+        autoGroupedConfig['padding-vertical'] = { visible: true, label: 'Vertical padding' }
+      }
+      return (
+        <PaddingGroupToolbar
+          componentName={componentName}
+          prop={prop}
+          selectedVariants={selectedVariants}
+          selectedLayer={selectedLayer}
+          groupedPropsConfig={autoGroupedConfig}
+        />
+      )
+    } else if (!hasGroupedProps && prop.category === 'size') {
+      // Single padding prop (no grouped props config)
+      return (
+        <PaddingGroupToolbar
+          componentName={componentName}
+          prop={prop}
+          selectedVariants={selectedVariants}
+          selectedLayer={selectedLayer}
+          groupedPropsConfig={undefined}
+        />
+      )
+    }
+  }
 
+  // Width Group Module
+  if (propNameLower === 'width' && groupedPropsConfig) {
+    const hasMinWidth = 'min-width' in groupedPropsConfig
+    const hasMaxWidth = 'max-width' in groupedPropsConfig
+    const hasMinHeight = 'min-height' in groupedPropsConfig
+    
+    if (hasMinWidth || hasMaxWidth) {
+      return (
+        <WidthGroupToolbar
+          componentName={componentName}
+          prop={prop}
+          selectedVariants={selectedVariants}
+          selectedLayer={selectedLayer}
+          groupedPropsConfig={groupedPropsConfig}
+          config={{
+            includeHeight: !!hasMinHeight,
+          }}
+        />
+      )
+    }
+  }
+
+  // Elevation Module
+  if (propNameLower === 'elevation' && prop.type === 'number') {
+    return (
+      <ElevationToolbar
+        componentName={componentName}
+        prop={prop}
+        selectedVariants={selectedVariants}
+        selectedLayer={selectedLayer}
+      />
+    )
+  }
+
+  // Background Module
+  if (propNameLower === 'background' && prop.category === 'colors') {
+    const hasSelectedBackground = groupedPropsConfig && ('selected-background' in groupedPropsConfig)
+    
+    return (
+      <BackgroundToolbar
+        componentName={componentName}
+        prop={prop}
+        selectedVariants={selectedVariants}
+        selectedLayer={selectedLayer}
+        groupedPropsConfig={groupedPropsConfig}
+        config={{
+          includeSelected: !!hasSelectedBackground,
+        }}
+      />
+    )
+  }
+
+  // Icon Group Module
+  if (propNameLower === 'icon' && groupedPropsConfig) {
+    const hasIconSize = 'icon-size' in groupedPropsConfig || 'icon' in groupedPropsConfig
+    const hasIconGap = 'icon-text-gap' in groupedPropsConfig || 'spacing' in groupedPropsConfig
+    const hasColors = Object.keys(groupedPropsConfig).some(key => 
+      key.includes('color') || key.includes('icon-color')
+    )
+    const colorProps = hasColors 
+      ? Object.keys(groupedPropsConfig).filter(key => 
+          key.includes('color') || key.includes('icon-color')
+        )
+      : []
+    
+    if (hasIconSize || hasIconGap || hasColors) {
+      return (
+        <IconGroupToolbar
+          componentName={componentName}
+          prop={prop}
+          selectedVariants={selectedVariants}
+          selectedLayer={selectedLayer}
+          groupedPropsConfig={groupedPropsConfig}
+          config={{
+            includeColors: hasColors,
+            colorProps: colorProps,
+          }}
+        />
+      )
+    }
+  }
+
+  // Handle grouped props (groupedPropsConfig already declared above)
   if (groupedPropsConfig && prop.borderProps && prop.borderProps.size > 0) {
     const groupedPropEntries = Object.entries(groupedPropsConfig)
 
