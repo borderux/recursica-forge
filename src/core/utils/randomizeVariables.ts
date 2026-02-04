@@ -116,6 +116,16 @@ function generateRandomValue(originalValue: any, index: number, context: {
   isFontWeight?: boolean;
   isFontSize?: boolean;
   isElevation?: boolean;
+  isBorder?: boolean;
+  isRadius?: boolean;
+  isGap?: boolean;
+  isIconSize?: boolean;
+  isPadding?: boolean;
+  isFontFamily?: boolean;
+  isFontStyle?: boolean;
+  isTextTransform?: boolean;
+  isTextDecoration?: boolean;
+  isIconName?: boolean;
   maxSize?: number;
   randomizeTokenRef?: boolean
 } = {}): any {
@@ -140,6 +150,24 @@ function generateRandomValue(originalValue: any, index: number, context: {
       const level = levels[Math.floor(Math.random() * levels.length)]
       return `{brand.palettes.${palette}.${level}.color.${tone}}`
     }
+
+    // For null dimension values (padding, gap, etc.), generate a random dimension reference
+    if (context.isSize || context.isPadding || context.isGap) {
+      // Generate a random dimension token reference
+      const dimensionTypes = ['general', 'gutters']
+      const dimType = context.isGap ? 'gutters' : 'general'
+
+      if (dimType === 'gutters') {
+        const scales = ['horizontal', 'vertical']
+        const randomScale = scales[Math.floor(Math.random() * scales.length)]
+        return `{brand.dimensions.gutters.${randomScale}}`
+      } else {
+        const scales = ['3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl']
+        const randomScale = scales[Math.floor(Math.random() * scales.length)]
+        return `{brand.dimensions.general.${randomScale}}`
+      }
+    }
+
     return null
   }
 
@@ -175,11 +203,17 @@ function generateRandomValue(originalValue: any, index: number, context: {
             const paletteNames = ['core-colors', 'neutral', 'palette-1', 'palette-2', 'palette-3']
             const tones = ['tone', 'on-tone']
             const levels = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
-            const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+
+            // Try to pick a different palette or level/tone than original
+            const filteredPalettes = paletteNames.filter(p => !originalValue.includes(p))
+            const useFiltered = filteredPalettes.length > 0 && Math.random() > 0.2
+            const palettesToUse = useFiltered ? filteredPalettes : paletteNames
+            const randomPalette = palettesToUse[Math.floor(Math.random() * palettesToUse.length)]
 
             if (randomPalette === 'core-colors') {
               const coreColors = ['interactive', 'warning', 'success', 'alert', 'black', 'white']
-              const randomCoreColor = coreColors[Math.floor(Math.random() * coreColors.length)]
+              const filteredCore = coreColors.filter(c => !originalValue.includes(c))
+              const randomCoreColor = (filteredCore.length > 0 ? filteredCore : coreColors)[Math.floor(Math.random() * (filteredCore.length > 0 ? filteredCore.length : coreColors.length))]
               if (randomCoreColor === 'interactive') {
                 const variants = ['default', 'hover']
                 const randomVariant = variants[Math.floor(Math.random() * variants.length)]
@@ -199,8 +233,8 @@ function generateRandomValue(originalValue: any, index: number, context: {
             }
           }
 
-          // Fallback: If it's any other brand or token reference but we know it should be a color
-          if (parts[0] === 'brand' || parts[0] === 'tokens') {
+          // Fallback: If it's any other brand, token, or ui-kit reference but we know it should be a color
+          if (parts[0] === 'brand' || parts[0] === 'tokens' || parts[0] === 'ui-kit') {
             const paletteNames = ['palette-1', 'palette-2', 'palette-3', 'neutral', 'core-colors']
             const levels = ['100', '200', '300', '400', '500', '600', '700', '800', '900']
             const tones = ['tone', 'on-tone']
@@ -224,35 +258,39 @@ function generateRandomValue(originalValue: any, index: number, context: {
 
         // 2. Dimension/Size Randomization Logic
         if (context.isSize) {
-          // If it's a brand.dimensions reference, randomize within dimension scales
-          if (parts[0] === 'brand' && parts[1] === 'dimensions') {
+          // If it's a brand.dimensions or ui-kit. reference, randomize within dimension scales
+          if ((parts[0] === 'brand' && parts[1] === 'dimensions') || parts[0] === 'ui-kit') {
             const types = ['general', 'border-radii', 'icons']
             let dimType = types.includes(parts[2]) ? parts[2] : types[Math.floor(Math.random() * types.length)]
 
-            if (originalValue.includes('border-radii')) dimType = 'border-radii'
-            if (originalValue.includes('icons')) dimType = 'icons'
-            if (originalValue.includes('gutters') || originalValue.includes('general')) dimType = 'general'
+            if (originalValue.includes('border-radii') || context.isRadius) dimType = 'border-radii'
+            if (originalValue.includes('icons') || context.isIconSize) dimType = 'icons'
+            if (originalValue.includes('gutters') || originalValue.includes('general') || context.isGap || context.isPadding) dimType = 'general'
 
             if (dimType === 'border-radii') {
               const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', 'pill', 'circle']
-              const randomScale = scales[Math.floor(Math.random() * scales.length)]
+              const filteredScales = scales.filter(s => !originalValue.includes(s))
+              const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
               return `{brand.dimensions.border-radii.${randomScale}}`
             } else if (dimType === 'icons') {
               const scales = ['xs', 'sm', 'default', 'lg', 'xl']
-              const randomScale = scales[Math.floor(Math.random() * scales.length)]
+              const filteredScales = scales.filter(s => !originalValue.includes(s))
+              const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
               return `{brand.dimensions.icons.${randomScale}}`
             } else {
               const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl']
-              const randomScale = scales[Math.floor(Math.random() * scales.length)]
+              const filteredScales = scales.filter(s => !originalValue.includes(s))
+              const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
               return `{brand.dimensions.general.${randomScale}}`
             }
           }
         }
 
         // 3. Elevation Randomization Logic
-        if (context.isElevation || (parts[0] === 'brand' && parts[1] === 'elevations')) {
+        if (context.isElevation || (parts[0] === 'brand' && parts[1] === 'elevations') || (parts[0] === 'ui-kit' && originalValue.includes('elevation'))) {
           const scales = ['elevation-0', 'elevation-1', 'elevation-2', 'elevation-3', 'elevation-4']
-          const randomScale = scales[Math.floor(Math.random() * scales.length)]
+          const filteredScales = scales.filter(s => !originalValue.includes(s))
+          const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
           return `{brand.elevations.${randomScale}}`
         }
 
@@ -275,26 +313,54 @@ function generateRandomValue(originalValue: any, index: number, context: {
         }
 
         // 5. Typography Token Randomization Logic
-        if (context.isFontWeight || context.isFontSize || context.isLetterSpacing || context.isLineHeight || parts[0] === 'tokens' && parts[1] === 'font') {
+        if (context.isFontWeight || context.isFontSize || context.isLetterSpacing || context.isLineHeight || parts[0] === 'tokens' && parts[1] === 'font' || (parts[0] === 'ui-kit' && originalValue.includes('font'))) {
           if (parts[2] === 'weights') {
             const scales = ['thin', 'extra-light', 'light', 'regular', 'medium', 'semi-bold', 'bold', 'extra-bold', 'black']
-            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            const filteredScales = scales.filter(s => !originalValue.includes(s))
+            const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
             return `{tokens.font.weights.${randomScale}}`
           }
           if (parts[2] === 'sizes') {
             const scales = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl']
-            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            const filteredScales = scales.filter(s => !originalValue.includes(s))
+            const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
             return `{tokens.font.sizes.${randomScale}}`
           }
           if (parts[2] === 'letter-spacings') {
             const scales = ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest']
-            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            const filteredScales = scales.filter(s => !originalValue.includes(s))
+            const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
             return `{tokens.font.letter-spacings.${randomScale}}`
           }
           if (parts[2] === 'line-heights') {
             const scales = ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest']
-            const randomScale = scales[Math.floor(Math.random() * scales.length)]
+            const filteredScales = scales.filter(s => !originalValue.includes(s))
+            const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
             return `{tokens.font.line-heights.${randomScale}}`
+          }
+          if (parts[2] === 'typefaces' || parts[2] === 'typeface' || parts[2] === 'family') {
+            const scales = ['primary', 'secondary', 'tertiary']
+            const filteredScales = scales.filter(s => !originalValue.includes(s))
+            const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
+            return `{tokens.font.typefaces.${randomScale}}`
+          }
+          if (parts[2] === 'styles') {
+            const scales = ['normal', 'italic']
+            const filteredScales = scales.filter(s => !originalValue.includes(s))
+            const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
+            return `{tokens.font.styles.${randomScale}}`
+          }
+          if (parts[2] === 'cases') {
+            const scales = ['original', 'uppercase', 'titlecase']
+            const filteredScales = scales.filter(s => !originalValue.includes(s))
+            const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
+            return `{tokens.font.cases.${randomScale}}`
+          }
+          if (parts[2] === 'decorations') {
+            const scales = ['none', 'underline', 'strikethrough']
+            const filteredScales = scales.filter(s => !originalValue.includes(s))
+            const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
+            return `{tokens.font.decorations.${randomScale}}`
           }
         }
       }
@@ -318,6 +384,30 @@ function generateRandomValue(originalValue: any, index: number, context: {
     if (context.isFontWeight && /^\d+$/.test(originalValue)) {
       const weights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
       return weights[Math.floor(Math.random() * weights.length)]
+    }
+    // For font styles - ensure we pick a different value
+    if (context.isFontStyle) {
+      const styles = ['normal', 'italic']
+      const filtered = styles.filter(s => s !== originalValue)
+      return filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)] : styles[Math.floor(Math.random() * styles.length)]
+    }
+    // For text transforms - ensure we pick a different value
+    if (context.isTextTransform) {
+      const transforms = ['none', 'uppercase', 'lowercase', 'capitalize']
+      const filtered = transforms.filter(t => t !== originalValue)
+      return filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)] : transforms[Math.floor(Math.random() * transforms.length)]
+    }
+    // For text decorations - ensure we pick a different value
+    if (context.isTextDecoration) {
+      const decorations = ['none', 'underline', 'line-through']
+      const filtered = decorations.filter(d => d !== originalValue)
+      return filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)] : decorations[Math.floor(Math.random() * decorations.length)]
+    }
+    // For icon names - randomize to a different icon
+    if (context.isIconName) {
+      const icons = ['check', 'x-mark', 'chevron-down', 'chevron-up', 'chevron-left', 'chevron-right', 'star', 'heart', 'plus', 'minus', 'search', 'settings']
+      const filtered = icons.filter(i => i !== originalValue)
+      return filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)] : icons[Math.floor(Math.random() * icons.length)]
     }
     return originalValue
   }
@@ -1464,19 +1554,24 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       const pathStr = path.join('.')
       const isColor = pathStr.includes('color') || pathStr.includes('background') || pathStr.includes('fill') || pathStr.includes('surface') || pathStr.includes('stroke') || pathStr.includes('shadow') || pathStr.includes('tint')
 
-      const isBorder = pathStr.includes('border-size') || pathStr.includes('border-width') || pathStr.includes('divider-size') || pathStr.includes('thickness')
-      const isRadius = pathStr.includes('radius')
-      const isGap = pathStr.includes('gap') || pathStr.includes('gutter')
-      const isIconSize = pathStr.includes('icon-size') || pathStr.includes('icon.size')
-      const isPadding = pathStr.includes('padding')
-      const isElevation = pathStr.includes('elevation')
+      const isBorder = pathStr.includes('border-size') || pathStr.includes('border-width') || pathStr.includes('divider-size') || pathStr.includes('thickness') || pathStr.includes('border-thickness')
+      const isRadius = pathStr.includes('radius') || pathStr.includes('corner')
+      const isGap = pathStr.includes('gap') || pathStr.includes('gutter') || pathStr.includes('spacing')
+      const isIconSize = pathStr.includes('icon-size') || pathStr.includes('icon.size') || (pathStr.includes('icon') && !pathStr.includes('color'))
+      const isPadding = pathStr.includes('padding') || pathStr.includes('margin')
+      const isElevation = pathStr.includes('elevation') || pathStr.includes('shadow')
       const isOpacity = pathStr.includes('opacity') || pathStr.includes('disabled') || pathStr.includes('emphasis')
       const isLetterSpacing = pathStr.includes('letter-spacing')
       const isLineHeight = pathStr.includes('line-height')
-      const isFontWeight = pathStr.includes('font-weight')
       const isFontSize = pathStr.includes('font-size') || (pathStr.includes('font') && pathStr.includes('size'))
+      const isFontWeight = pathStr.includes('font-weight')
+      const isFontFamily = pathStr.includes('font-family') || (pathStr.includes('font') && pathStr.includes('family')) || pathStr.includes('typeface')
+      const isFontStyle = pathStr.includes('font-style') || (pathStr.includes('font') && pathStr.includes('style'))
+      const isTextTransform = pathStr.includes('text-transform') || pathStr.includes('case')
+      const isTextDecoration = pathStr.includes('text-decoration') || pathStr.includes('decoration')
+      const isIconName = pathStr.includes('icon') && (pathStr.includes('selected') || pathStr.includes('unselected') || pathStr.endsWith('icon'))
 
-      const isSize = isBorder || isRadius || isGap || isIconSize || isPadding || pathStr.includes('size') || pathStr.includes('height') || pathStr.includes('width')
+      const isSize = isBorder || isRadius || isGap || isIconSize || isPadding || pathStr.includes('size') || pathStr.includes('height') || pathStr.includes('width') || pathStr.includes('offset') || pathStr.includes('spacing')
 
       let maxSize = 100
       if (isBorder) maxSize = 8
@@ -1495,6 +1590,16 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         isLineHeight,
         isFontWeight,
         isFontSize,
+        isFontFamily,
+        isFontStyle,
+        isTextTransform,
+        isTextDecoration,
+        isIconName,
+        isBorder,
+        isRadius,
+        isGap,
+        isIconSize,
+        isPadding,
         maxSize,
         randomizeTokenRef: true
       })
