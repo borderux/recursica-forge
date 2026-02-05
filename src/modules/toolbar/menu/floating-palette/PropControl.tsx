@@ -754,9 +754,14 @@ export default function PropControl({
             // For state-specific grouped props, ensure we have the prop for the selected state variant
             // CRITICAL: Also check if groupedProp.name doesn't match groupedPropKey (wrong prop cached)
             const propNameMismatch = groupedProp && groupedProp.name.toLowerCase() !== groupedPropKey
-            const needsRefind = propNameMismatch || (groupedProp && groupedProp.isVariantSpecific && groupedProp.variantProp && 
-              selectedVariants[groupedProp.variantProp] && 
-              !groupedProp.path.find(pathPart => pathPart === selectedVariants[groupedProp.variantProp!]))
+            let variantMismatch = false
+            if (groupedProp && groupedProp.isVariantSpecific && groupedProp.variantProp) {
+              const variantValue = selectedVariants[groupedProp.variantProp]
+              if (variantValue && groupedProp.path) {
+                variantMismatch = !groupedProp.path.find(pathPart => pathPart === variantValue)
+              }
+            }
+            const needsRefind = propNameMismatch || variantMismatch || false
             
             // #region agent log
             if (groupedPropKey === 'border-size' && componentName === 'TextField' && groupedProp) {
@@ -802,7 +807,7 @@ export default function PropControl({
                 }
                 
                 // If no variant prop, just match by name and category
-                return p.category === groupedProp.category
+                return groupedProp ? p.category === groupedProp.category : false
               })
               
               if (correctProp) {

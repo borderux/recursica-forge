@@ -10,7 +10,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { iconNameToReactComponent } from './iconUtils'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
-import { TextField } from '../adapters/TextField'
+import { TextField } from '../../components/adapters/TextField'
 import './IconInput.css'
 
 interface IconInputProps {

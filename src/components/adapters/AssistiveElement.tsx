@@ -20,6 +20,7 @@ export type AssistiveElementProps = {
   layer?: ComponentLayer
   className?: string
   style?: React.CSSProperties
+  id?: string
 } & LibrarySpecificProps
 
 export function AssistiveElement({
@@ -46,6 +47,11 @@ export function AssistiveElement({
   const textTextTransformVar = getComponentTextCssVar('AssistiveElement', 'text', 'text-transform')
   const textFontStyleVar = getComponentTextCssVar('AssistiveElement', 'text', 'font-style')
   
+  // Get CSS variables for size (needed before useEffect)
+  const iconSizeVar = getComponentLevelCssVar('AssistiveElement', 'icon-size')
+  const iconTextGapVar = getComponentLevelCssVar('AssistiveElement', 'icon-text-gap')
+  const topMarginVar = getComponentLevelCssVar('AssistiveElement', 'top-margin')
+  
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
   
@@ -55,13 +61,15 @@ export function AssistiveElement({
       textFontSizeVar, textFontFamilyVar, textFontWeightVar, textLetterSpacingVar,
       textLineHeightVar, textTextDecorationVar, textTextTransformVar, textFontStyleVar
     ]
+    const sizeCssVars = [iconTextGapVar, iconSizeVar, topMarginVar]
+    const allCssVars = [...textCssVars, ...sizeCssVars]
     
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
-      // Update if any text CSS var was updated
-      const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      // Update if any text or size CSS var was updated
+      const shouldUpdate = !detail?.cssVars || detail.cssVars.some((cssVar: string) => allCssVars.includes(cssVar))
       
-      if (shouldUpdateText) {
+      if (shouldUpdate) {
         // Force re-render by updating state
         setTextVarsUpdate(prev => prev + 1)
       }
@@ -71,7 +79,7 @@ export function AssistiveElement({
     
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
-      // Force re-render for text vars
+      // Force re-render for text and size vars
       setTextVarsUpdate(prev => prev + 1)
     })
     observer.observe(document.documentElement, {
@@ -85,17 +93,13 @@ export function AssistiveElement({
     }
   }, [
     textFontSizeVar, textFontFamilyVar, textFontWeightVar, textLetterSpacingVar,
-    textLineHeightVar, textTextDecorationVar, textTextTransformVar, textFontStyleVar
+    textLineHeightVar, textTextDecorationVar, textTextTransformVar, textFontStyleVar,
+    iconTextGapVar, iconSizeVar, topMarginVar
   ])
   
   // Get CSS variables for colors (variant-specific)
   const textColorVar = buildComponentCssVarPath('AssistiveElement', 'variants', 'types', variant, 'properties', 'colors', layer, 'text-color')
   const iconColorVar = buildComponentCssVarPath('AssistiveElement', 'variants', 'types', variant, 'properties', 'colors', layer, 'icon-color')
-  
-  // Get CSS variables for size
-  const iconSizeVar = getComponentLevelCssVar('AssistiveElement', 'icon-size')
-  const iconTextGapVar = getComponentLevelCssVar('AssistiveElement', 'icon-text-gap')
-  const topMarginVar = getComponentLevelCssVar('AssistiveElement', 'top-margin')
   
   if (!Component) {
     // Fallback to native HTML element

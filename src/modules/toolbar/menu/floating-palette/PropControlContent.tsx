@@ -1372,7 +1372,6 @@ export default function PropControlContent({
             label={label}
             dimensionCategory="general"
             layer={selectedLayer as any}
-            layer="layer-1"
           />
         )
       }
@@ -3163,10 +3162,10 @@ export default function PropControlContent({
       // Create a grouped config from the component structure
       const autoGroupedConfig: Record<string, ToolbarPropConfig> = {}
       if (hasPaddingHorizontal) {
-        autoGroupedConfig['padding-horizontal'] = { visible: true, label: 'Horizontal padding' }
+        autoGroupedConfig['padding-horizontal'] = { icon: 'padding', visible: true, label: 'Horizontal padding' }
       }
       if (hasPaddingVertical) {
-        autoGroupedConfig['padding-vertical'] = { visible: true, label: 'Vertical padding' }
+        autoGroupedConfig['padding-vertical'] = { icon: 'padding', visible: true, label: 'Vertical padding' }
       }
       return (
         <PaddingGroupToolbar
@@ -3235,7 +3234,7 @@ export default function PropControlContent({
         prop={prop}
         selectedVariants={selectedVariants}
         selectedLayer={selectedLayer}
-        groupedPropsConfig={groupedPropsConfig}
+        groupedPropsConfig={groupedPropsConfig || undefined}
         config={{
           includeSelected: !!hasSelectedBackground,
         }}

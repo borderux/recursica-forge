@@ -314,7 +314,6 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     if (valStr.startsWith('{') && valStr.endsWith('}')) {
       try {
         const context: TokenReferenceContext = {
-          tokens,
           theme,
           currentMode: 'light'
         }
@@ -612,7 +611,6 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         if (!brandVal && typeof transform === 'string' && transform.trim().startsWith('{') && transform.trim().endsWith('}')) {
           try {
             const context: TokenReferenceContext = {
-              tokens,
               theme,
               currentMode: 'light'
             }
@@ -638,7 +636,6 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         if (!brandVal && typeof decoration === 'string' && decoration.trim().startsWith('{') && decoration.trim().endsWith('}')) {
           try {
             const context: TokenReferenceContext = {
-              tokens,
               theme,
               currentMode: 'light'
             }
