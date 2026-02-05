@@ -579,7 +579,7 @@ export default function LayerStylePanel({
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = root?.themes || root
-      const elev: any = themes?.light?.elevations || root?.light?.elevations || {}
+      const elev: any = themes?.[mode]?.elevations || root?.[mode]?.elevations || {}
       const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a,b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
       return names.map((n) => {
         const idx = Number(n.split('-')[1])
@@ -589,7 +589,7 @@ export default function LayerStylePanel({
     } catch {
       return []
     }
-  }, [themeJson])
+  }, [themeJson, mode])
   const isOnlyLayer0 = selectedLevels.length === 1 && selectedLevels[0] === 0
   
   // Compute CSS vars at top level for useEffect hooks

@@ -116,6 +116,9 @@ export function TextField({
   const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
   
+  // Get top-bottom-margin from layout variant
+  const topBottomMarginVar = buildComponentCssVarPath('TextField', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
+  
   // Use provided minWidth or fall back to CSS variable
   const effectiveMinWidth = minWidth !== undefined ? `${minWidth}px` : `var(${minWidthVar})`
   
@@ -159,7 +162,11 @@ export function TextField({
   // If no library component is available, render fallback
   if (!Component) {
     return (
-      <div className={className} style={style}>
+      <div className={className} style={{ 
+        marginTop: `var(${topBottomMarginVar})`,
+        marginBottom: `var(${topBottomMarginVar})`,
+        ...style 
+      }}>
         {layout === 'stacked' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {labelElement}
@@ -285,42 +292,47 @@ export function TextField({
   
   // Render library-specific component
   return (
-    <Suspense fallback={<div style={{ width: '100%', height: 48 }} />}>
-      <Component
-        value={value}
-        defaultValue={defaultValue}
-        onChange={onChange}
-        onKeyDown={onKeyDown}
-        onBlur={onBlur}
-        onClick={onClick}
-        placeholder={placeholder}
-        label={label}
-        helpText={helpText}
-        errorText={errorText}
-        leadingIcon={leadingIcon}
-        trailingIcon={trailingIcon}
-        state={state}
-        layout={layout}
-        layer={layer}
-        minWidth={minWidth}
-        required={required}
-        id={inputId}
-        labelId={labelId}
-        helpId={helpId}
-        errorId={errorId}
-        name={name}
-        type={type}
-        min={min}
-        max={max}
-        step={step}
-        autoFocus={autoFocus}
-        readOnly={readOnly}
-        className={className}
-        style={style}
-        mantine={mantine}
-        material={material}
-        carbon={carbon}
-      />
-    </Suspense>
+    <div style={{ 
+      marginTop: `var(${topBottomMarginVar})`,
+      marginBottom: `var(${topBottomMarginVar})`,
+    }}>
+      <Suspense fallback={<div style={{ width: '100%', height: 48 }} />}>
+        <Component
+          value={value}
+          defaultValue={defaultValue}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          onBlur={onBlur}
+          onClick={onClick}
+          placeholder={placeholder}
+          label={label}
+          helpText={helpText}
+          errorText={errorText}
+          leadingIcon={leadingIcon}
+          trailingIcon={trailingIcon}
+          state={state}
+          layout={layout}
+          layer={layer}
+          minWidth={minWidth}
+          required={required}
+          id={inputId}
+          labelId={labelId}
+          helpId={helpId}
+          errorId={errorId}
+          name={name}
+          type={type}
+          min={min}
+          max={max}
+          step={step}
+          autoFocus={autoFocus}
+          readOnly={readOnly}
+          className={className}
+          style={style}
+          mantine={mantine}
+          material={material}
+          carbon={carbon}
+        />
+      </Suspense>
+    </div>
   )
 }

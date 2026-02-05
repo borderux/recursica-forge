@@ -112,6 +112,24 @@ export default function PaddingGroupToolbar({
     })
   }, [structure, verticalPropName, selectedVariants, isSinglePadding])
 
+  // Top-bottom margin props for both layouts (for grouped padding)
+  // Find ALL top-bottom-margin props (both stacked and side-by-side)
+  const topBottomMarginProps = useMemo(() => {
+    if (isSinglePadding) return []
+    const allMarginProps = structure.props.filter(p => {
+      const propNameLower = p.name.toLowerCase()
+      if (propNameLower !== 'top-bottom-margin') {
+        return false
+      }
+      // Only include layout-specific props (they should have variantProp === 'layout')
+      if (p.isVariantSpecific && p.variantProp === 'layout') {
+        return true
+      }
+      return false
+    })
+    return allMarginProps
+  }, [structure, isSinglePadding])
+
   // Get CSS variables
   const singlePaddingVar = singlePaddingProp?.cssVar || ''
   const horizontalPaddingVar = horizontalPaddingProp?.cssVar || ''
@@ -123,6 +141,7 @@ export default function PaddingGroupToolbar({
                              groupedPropsConfig?.['padding-horizontal']?.visible !== false
   const verticalVisible = groupedPropsConfig?.['vertical-padding']?.visible !== false ||
                           groupedPropsConfig?.['padding-vertical']?.visible !== false
+  const topBottomMarginVisible = groupedPropsConfig?.['top-bottom-margin']?.visible !== false
 
   // Render single padding control
   if (isSinglePadding && singlePaddingVar) {
@@ -165,6 +184,21 @@ export default function PaddingGroupToolbar({
           />
         </div>
       )}
+      {topBottomMarginProps.length > 0 && topBottomMarginVisible && topBottomMarginProps.map((marginProp) => {
+        // Extract layout variant from path (e.g., "stacked" or "side-by-side")
+        const layoutVariant = marginProp.path.find(p => p === 'stacked' || p === 'side-by-side') || 'stacked'
+        const layoutLabel = layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'
+        return (
+          <div key={marginProp.cssVar} className="padding-group-control">
+            <BrandDimensionSliderInline
+              targetCssVar={marginProp.cssVar}
+              label={`Top and bottom margin (${layoutLabel})`}
+              dimensionCategory="general"
+              layer="layer-1"
+            />
+          </div>
+        )
+      })}
     </div>
   )
 }

@@ -320,142 +320,152 @@ export default function ElevationStylePanel({
           icon={CloseIcon ? <CloseIcon /> : undefined}
         />
       </div>
-      <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
-        <Slider
-          key={`blur-${levelsArr[0]}-${elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0}`}
-          value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0) : 0}
-          onChange={(val) => {
-            const value = typeof val === 'number' ? val : val[0]
-            handleBlurChange(value)
-          }}
-          min={0}
-          max={200}
-          step={1}
-          layer="layer-3"
-          layout="stacked"
-          showInput={false}
-          showValueLabel={true}
-          valueLabel={(val) => `${val}px`}
-          label={<Label layer="layer-3" layout="stacked">Blur</Label>}
-        />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap, 8px)' }}>
+        <div style={{ width: '100%', margin: 0, padding: 0 }}>
+          <Slider
+            key={`blur-${levelsArr[0]}-${elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0}`}
+            value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0) : 0}
+            onChange={(val) => {
+              const value = typeof val === 'number' ? val : val[0]
+              handleBlurChange(value)
+            }}
+            min={0}
+            max={200}
+            step={1}
+            layer="layer-3"
+            layout="stacked"
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${val}px`}
+            label={<Label layer="layer-3" layout="stacked">Blur</Label>}
+          />
+        </div>
 
-        <Slider
-          key={`spread-${levelsArr[0]}-${elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0}`}
-          value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0) : 0}
-          onChange={(val) => {
-            const value = typeof val === 'number' ? val : val[0]
-            handleSpreadChange(value)
-          }}
-          min={0}
-          max={200}
-          step={1}
-          layer="layer-3"
-          layout="stacked"
-          showInput={false}
-          showValueLabel={true}
-          valueLabel={(val) => `${val}px`}
-          label={<Label layer="layer-3" layout="stacked">Spread</Label>}
-        />
+        <div style={{ width: '100%', margin: 0, padding: 0 }}>
+          <Slider
+            key={`spread-${levelsArr[0]}-${elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0}`}
+            value={levelsArr.length ? (elevationControls[`elevation-${levelsArr[0]}`]?.spread ?? 0) : 0}
+            onChange={(val) => {
+              const value = typeof val === 'number' ? val : val[0]
+              handleSpreadChange(value)
+            }}
+            min={0}
+            max={200}
+            step={1}
+            layer="layer-3"
+            layout="stacked"
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${val}px`}
+            label={<Label layer="layer-3" layout="stacked">Spread</Label>}
+          />
+        </div>
 
-        {(() => {
-          const firstKey = levelsArr.length ? `elevation-${levelsArr[0]}` : ''
-          const firstCtrl = firstKey ? elevationControls[firstKey] : undefined
-          const dir = firstKey ? getDirectionForLevel(firstKey).x : 'right'
-          // Convert absolute value with direction to signed value
-          const absValue = Math.abs(firstCtrl?.offsetX ?? 0)
-          const signedValue = dir === 'right' ? absValue : -absValue
-          return (
-            <Slider
-              key={`offsetX-${firstKey}-${signedValue}`}
-              value={signedValue}
-              onChange={(val) => {
-                const value = typeof val === 'number' ? val : val[0]
-                handleOffsetXChange(value)
-              }}
-              min={-50}
-              max={50}
-              step={1}
-              layer="layer-3"
-              layout="stacked"
-              showInput={false}
-              valueLabel={(val) => `${val}px`}
-              label={<Label layer="layer-3" layout="stacked">Offset X</Label>}
-            />
-          )
-        })()}
+        <div style={{ width: '100%', margin: 0, padding: 0 }}>
+          {(() => {
+            const firstKey = levelsArr.length ? `elevation-${levelsArr[0]}` : ''
+            const firstCtrl = firstKey ? elevationControls[firstKey] : undefined
+            const dir = firstKey ? getDirectionForLevel(firstKey).x : 'right'
+            // Convert absolute value with direction to signed value
+            const absValue = Math.abs(firstCtrl?.offsetX ?? 0)
+            const signedValue = dir === 'right' ? absValue : -absValue
+            return (
+              <Slider
+                key={`offsetX-${firstKey}-${signedValue}`}
+                value={signedValue}
+                onChange={(val) => {
+                  const value = typeof val === 'number' ? val : val[0]
+                  handleOffsetXChange(value)
+                }}
+                min={-50}
+                max={50}
+                step={1}
+                layer="layer-3"
+                layout="stacked"
+                showInput={false}
+                valueLabel={(val) => `${val}px`}
+                label={<Label layer="layer-3" layout="stacked">Offset X</Label>}
+              />
+            )
+          })()}
+        </div>
 
-        {(() => {
-          const firstKey = levelsArr.length ? `elevation-${levelsArr[0]}` : ''
-          const firstCtrl = firstKey ? elevationControls[firstKey] : undefined
-          const dir = firstKey ? getDirectionForLevel(firstKey).y : 'down'
-          // Convert absolute value with direction to signed value
-          const absValue = Math.abs(firstCtrl?.offsetY ?? 0)
-          const signedValue = dir === 'down' ? absValue : -absValue
-          return (
-            <Slider
-              key={`offsetY-${firstKey}-${signedValue}`}
-              value={signedValue}
-              onChange={(val) => {
-                const value = typeof val === 'number' ? val : val[0]
-                handleOffsetYChange(value)
-              }}
-              min={-50}
-              max={50}
-              step={1}
-              layer="layer-3"
-              layout="stacked"
-              showInput={false}
-              showValueLabel={true}
-              valueLabel={(val) => `${val}px`}
-              label={<Label layer="layer-3" layout="stacked">Offset Y</Label>}
-            />
-          )
-        })()}
+        <div style={{ width: '100%', margin: 0, padding: 0 }}>
+          {(() => {
+            const firstKey = levelsArr.length ? `elevation-${levelsArr[0]}` : ''
+            const firstCtrl = firstKey ? elevationControls[firstKey] : undefined
+            const dir = firstKey ? getDirectionForLevel(firstKey).y : 'down'
+            // Convert absolute value with direction to signed value
+            const absValue = Math.abs(firstCtrl?.offsetY ?? 0)
+            const signedValue = dir === 'down' ? absValue : -absValue
+            return (
+              <Slider
+                key={`offsetY-${firstKey}-${signedValue}`}
+                value={signedValue}
+                onChange={(val) => {
+                  const value = typeof val === 'number' ? val : val[0]
+                  handleOffsetYChange(value)
+                }}
+                min={-50}
+                max={50}
+                step={1}
+                layer="layer-3"
+                layout="stacked"
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={(val) => `${val}px`}
+                label={<Label layer="layer-3" layout="stacked">Offset Y</Label>}
+              />
+            )
+          })()}
+        </div>
 
-        {(() => {
-          // Use local state if available, otherwise compute from tokens
-          const currentOpacityValue = localOpacityValue !== null 
-            ? localOpacityValue
-            : (levelsArr.length 
-                ? getCurrentOpacityValue(`elevation-${levelsArr[0]}`)
-                : (() => {
-                    // Fallback: read from shadowColorControl.alphaToken
-                    const tokenKey = shadowColorControl.alphaToken.replace('opacity/', '')
-                    try {
-                      const tokensRoot: any = (tokensJson as any)?.tokens || {}
-                      const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
-                      const tokenValue = opacityRoot[tokenKey]?.$value
-                      if (tokenValue != null) {
-                        const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
-                        if (Number.isFinite(num)) {
-                          const normalized = num <= 1 ? num : num / 100
-                          return Math.round(normalized * 100)
+        <div style={{ width: '100%', margin: 0, padding: 0 }}>
+          {(() => {
+            // Use local state if available, otherwise compute from tokens
+            const currentOpacityValue = localOpacityValue !== null 
+              ? localOpacityValue
+              : (levelsArr.length 
+                  ? getCurrentOpacityValue(`elevation-${levelsArr[0]}`)
+                  : (() => {
+                      // Fallback: read from shadowColorControl.alphaToken
+                      const tokenKey = shadowColorControl.alphaToken.replace('opacity/', '')
+                      try {
+                        const tokensRoot: any = (tokensJson as any)?.tokens || {}
+                        const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+                        const tokenValue = opacityRoot[tokenKey]?.$value
+                        if (tokenValue != null) {
+                          const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
+                          if (Number.isFinite(num)) {
+                            const normalized = num <= 1 ? num : num / 100
+                            return Math.round(normalized * 100)
+                          }
                         }
-                      }
-                    } catch {}
-                    return 0
-                  })())
-          
-          return (
-            <Slider
-              value={currentOpacityValue}
-              onChange={(val) => {
-                const value = typeof val === 'number' ? val : val[0]
-                handleOpacityChange(value)
-              }}
-              min={0}
-              max={100}
-              step={1}
-              layer="layer-3"
-              layout="stacked"
-              showInput={false}
-              showValueLabel={true}
-              valueLabel={(val) => `${val}%`}
-              label={<Label layer="layer-3" layout="stacked">Opacity</Label>}
-            />
-          )
-        })()}
-        <div className="control-group">
+                      } catch {}
+                      return 0
+                    })())
+            
+            return (
+              <Slider
+                value={currentOpacityValue}
+                onChange={(val) => {
+                  const value = typeof val === 'number' ? val : val[0]
+                  handleOpacityChange(value)
+                }}
+                min={0}
+                max={100}
+                step={1}
+                layer="layer-3"
+                layout="stacked"
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={(val) => `${val}%`}
+                label={<Label layer="layer-3" layout="stacked">Opacity</Label>}
+              />
+            )
+          })()}
+        </div>
+        <div style={{ width: '100%', margin: 0, padding: 0 }}>
           <PaletteColorControl
             label="Shadow Color"
             targetCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(0)}
@@ -465,7 +475,7 @@ export default function ElevationStylePanel({
             fontSize={13}
           />
         </div>
-        <div className="control-group">
+        <div style={{ width: '100%', margin: 0, padding: 0 }}>
           <Button
             variant="outline"
             size="small"

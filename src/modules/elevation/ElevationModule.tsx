@@ -43,7 +43,7 @@ export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0
     if (typeof level === 'number' && level >= 0) {
       const k = String(level)
       // Use centrally computed CSS variables so preview matches layers exactly
-      return `var(--recursica-brand-themes-light-elevations-elevation-${k}-x-axis) var(--recursica-brand-themes-light-elevations-elevation-${k}-y-axis) var(--recursica-brand-themes-light-elevations-elevation-${k}-blur) var(--recursica-brand-themes-light-elevations-elevation-${k}-spread) var(--recursica-brand-themes-light-elevations-elevation-${k}-shadow-color)`
+      return `var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-shadow-color)`
     }
     const shadowColor = toRgba(colorHex, alpha)
     return `${offsetXPx}px ${offsetYPx}px ${blurPx}px ${spreadPx}px ${shadowColor}`
