@@ -35,7 +35,7 @@ export default function Accordion({
   
   // Container properties (Accordion)
   const containerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background')
-  const containerBorderVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'border')
+  const containerBorderVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'border-color')
   const containerBorderSizeVar = getComponentLevelCssVar('Accordion', 'border-size')
   const containerBorderRadiusVar = getComponentLevelCssVar('Accordion', 'border-radius')
   const containerPaddingVar = getComponentLevelCssVar('Accordion', 'padding')

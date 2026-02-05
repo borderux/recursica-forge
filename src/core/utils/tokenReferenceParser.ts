@@ -174,10 +174,12 @@ export function resolveTokenReferenceToCssVar(
     // Determine if there's a mode number after "ui-kit"
     // If second part is a number (0 or 3), skip it; otherwise keep all parts after "ui-kit"
     let uikitPath: string
+    let hasModeNumber = false
     if (parts.length >= 2 && /^[03]$/.test(parts[1])) {
       // Has mode number: {ui-kit.0.globals.form.*}
       // Skip "ui-kit" and mode number, use the rest
       uikitPath = parts.slice(2).join('.')
+      hasModeNumber = true
     } else {
       // No mode number: {ui-kit.components.chip.*}
       // Skip only "ui-kit", keep the rest (including "components")
@@ -186,9 +188,27 @@ export function resolveTokenReferenceToCssVar(
     
     if (!uikitPath) return null
     
+    // Check if this is a globals reference (needs mode prefix)
+    // Both globals and component references need mode prefix to match toCssVarName behavior
+    // Globals references like {ui-kit.globals.form.*} → --recursica-ui-kit-themes-light-globals-form-...
+    // Component references like {ui-kit.components.chip.*} → --recursica-ui-kit-themes-light-components-chip-...
+    const isGlobalsRef = uikitPath.startsWith('globals.')
+    const isComponentRef = uikitPath.startsWith('components.')
+    
     // Generate CSS var name by joining with hyphens
     const pathParts = uikitPath.split('.').filter(Boolean)
-    const cssVarName = `--recursica-ui-kit-${pathParts.join('-')}`
+    
+    // For both globals and component references, include mode prefix to match toCssVarName behavior
+    // This ensures references like {ui-kit.globals.form.field.colors.disabled}
+    // resolve to --recursica-ui-kit-themes-light-globals-form-field-colors-disabled
+    // And {ui-kit.components.chip.properties.colors.error.text-color}
+    // resolves to --recursica-ui-kit-themes-light-components-chip-properties-colors-error-text-color
+    let cssVarName: string
+    if ((isGlobalsRef || isComponentRef) && mode) {
+      cssVarName = `--recursica-ui-kit-themes-${mode}-${pathParts.join('-')}`
+    } else {
+      cssVarName = `--recursica-ui-kit-${pathParts.join('-')}`
+    }
     
     return `var(${cssVarName})`
   }

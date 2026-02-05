@@ -1678,6 +1678,51 @@ class VarsStore {
       } catch (e) {
         console.error('[VarsStore] Error generating color token CSS variables:', e)
       }
+      // Tokens: expose font cases and decorations as CSS vars under --recursica-tokens-font-cases-<key> and --recursica-tokens-font-decorations-<key>
+      try {
+        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+        const fontRoot: any = tokensRoot?.font || {}
+        
+        // Generate font cases CSS variables
+        const casesRoot: any = fontRoot?.cases || {}
+        if (casesRoot && typeof casesRoot === 'object' && !Array.isArray(casesRoot)) {
+          const vars: Record<string, string> = {}
+          Object.keys(casesRoot).forEach((caseKey) => {
+            if (caseKey.startsWith('$')) return
+            const caseObj = casesRoot[caseKey]
+            if (!caseObj || typeof caseObj !== 'object') return
+            const val = caseObj.$value
+            // Font cases can be null (for "original") or a string value
+            if (val === null || val === undefined) {
+              vars[`--recursica-tokens-font-cases-${caseKey}`] = 'none'
+            } else if (typeof val === 'string') {
+              vars[`--recursica-tokens-font-cases-${caseKey}`] = val
+            }
+          })
+          Object.assign(allVars, vars)
+        }
+        
+        // Generate font decorations CSS variables
+        const decorationsRoot: any = fontRoot?.decorations || {}
+        if (decorationsRoot && typeof decorationsRoot === 'object' && !Array.isArray(decorationsRoot)) {
+          const vars: Record<string, string> = {}
+          Object.keys(decorationsRoot).forEach((decorationKey) => {
+            if (decorationKey.startsWith('$')) return
+            const decorationObj = decorationsRoot[decorationKey]
+            if (!decorationObj || typeof decorationObj !== 'object') return
+            const val = decorationObj.$value
+            // Font decorations can be null (for "none") or a string value
+            if (val === null || val === undefined) {
+              vars[`--recursica-tokens-font-decorations-${decorationKey}`] = 'none'
+            } else if (typeof val === 'string') {
+              vars[`--recursica-tokens-font-decorations-${decorationKey}`] = val
+            }
+          })
+          Object.assign(allVars, vars)
+        }
+      } catch (e) {
+        console.error('[VarsStore] Error generating font cases/decorations CSS variables:', e)
+      }
       // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
       // Generate for both light and dark modes
       try {

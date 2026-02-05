@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react'
 import { ComponentProp, parseComponentStructure } from '../../utils/componentToolbarUtils'
-import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
+import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import type { ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import './IconGroupToolbar.css'
@@ -125,19 +125,21 @@ export default function IconGroupToolbar({
     <div className="icon-group-toolbar">
       {iconSizeVar && iconSizeVisible && (
         <div className="icon-group-control">
-          <DimensionTokenSelector
+          <BrandDimensionSliderInline
             targetCssVar={iconSizeVar}
             label="Icon size"
-            propName={sizePropName}
+            dimensionCategory="icons"
+            layer="layer-1"
           />
         </div>
       )}
       {iconGapVar && iconGapVisible && (
         <div className="icon-group-control">
-          <DimensionTokenSelector
+          <BrandDimensionSliderInline
             targetCssVar={iconGapVar}
             label="Icon-text gap"
-            propName={gapPropName}
+            dimensionCategory="general"
+            layer="layer-1"
           />
         </div>
       )}

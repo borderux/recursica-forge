@@ -624,7 +624,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${brandPrefix}text-transform`] = brandVal
       } else {
         // Last resort: try to use default token reference
-        vars[`${brandPrefix}text-transform`] = 'var(--recursica-tokens-font-cases-none)'
+        vars[`${brandPrefix}text-transform`] = 'var(--recursica-tokens-font-cases-original)'
       }
     }
 
@@ -649,7 +649,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       if (brandVal) {
         vars[`${brandPrefix}text-decoration`] = brandVal
       } else {
-        // Last resort: try to use default token reference
+        // Last resort: try to use default token reference (none exists in decorations)
         vars[`${brandPrefix}text-decoration`] = 'var(--recursica-tokens-font-decorations-none)'
       }
     }

@@ -2580,7 +2580,7 @@
                   "font-size": {
                     "$type": "dimension",
                     "$value": {
-                      "value": "{tokens.font.sizes.default}",
+                      "value": "{tokens.font.sizes.md}",
                       "unit": "px"
                     }
                   },
@@ -4072,7 +4072,7 @@
           "placeholder": {
             "opacity": {
               "$type": "number",
-              "$value": "{tokens.opacity.medium}"
+              "$value": "{tokens.opacities.ghost}"
             },
             "font-family": {
               "$type": "string",

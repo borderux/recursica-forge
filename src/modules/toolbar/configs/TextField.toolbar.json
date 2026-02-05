@@ -22,12 +22,6 @@
           "visible": true,
           "floatingPaletteLabel": "Background Color"
         },
-        "border": {
-          "icon": "square",
-          "label": "Border color",
-          "visible": true,
-          "floatingPaletteLabel": "Border Color"
-        },
         "text": {
           "icon": "text-aa",
           "label": "Value color",
@@ -62,6 +56,11 @@
           "icon": "corners-out",
           "label": "Corner radius",
           "visible": true
+        },
+        "border-color": {
+          "icon": "paint-bucket",
+          "label": "Color",
+          "visible": true
         }
       }
     },
@@ -90,38 +89,69 @@
       "label": "Placeholder text style",
       "visible": true
     },
-    "size": {
-      "icon": "resize",
-      "label": "Size",
+    "padding": {
+      "icon": "square-logo",
+      "label": "Padding",
       "visible": true,
+      "floatingPaletteLabel": "Padding",
       "group": {
-        "min-height": {
-          "label": "Min height",
-          "visible": true
-        },
         "horizontal-padding": {
+          "icon": "arrows-left-right",
           "label": "Horizontal padding",
-          "visible": true
+          "visible": true,
+          "floatingPaletteLabel": "Horizontal Padding"
         },
         "vertical-padding": {
+          "icon": "arrows-up-down",
           "label": "Vertical padding",
-          "visible": true
-        },
-        "icon-size": {
-          "label": "Icon size",
-          "visible": true
-        },
-        "icon-text-gap": {
-          "label": "Icon-text gap",
-          "visible": true
+          "visible": true,
+          "floatingPaletteLabel": "Vertical Padding"
+        }
+      }
+    },
+    "width": {
+      "icon": "arrows-left-right",
+      "label": "Width",
+      "visible": true,
+      "floatingPaletteLabel": "Width",
+      "group": {
+        "min-width": {
+          "icon": "arrows-in-line-horizontal",
+          "label": "Min width",
+          "visible": true,
+          "floatingPaletteLabel": "Minimum Width"
         },
         "max-width": {
+          "icon": "arrows-out-line-horizontal",
           "label": "Max width",
-          "visible": true
+          "visible": true,
+          "floatingPaletteLabel": "Maximum Width"
         },
-        "min-width": {
-          "label": "Min width",
-          "visible": true
+        "min-height": {
+          "icon": "arrows-in-line-vertical",
+          "label": "Min height",
+          "visible": true,
+          "floatingPaletteLabel": "Minimum Height"
+        }
+      }
+    },
+    "icon": {
+      "icon": "diamond",
+      "label": "Icon",
+      "visible": true,
+      "floatingPaletteLabel": "Icon",
+      "group": {
+        "icon-size": {
+          "icon": "diamond",
+          "label": "Icon size",
+          "visible": true,
+          "floatingPaletteLabel": "Icon Size"
+        },
+        "icon-text-gap": {
+          "icon": "split-horizontal",
+          "label": "Icon-text gap",
+          "visible": true,
+          "floatingPaletteLabel": "Icon-Text Gap"
         }
       }
     },

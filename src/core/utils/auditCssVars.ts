@@ -917,6 +917,9 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
 
   // Helper to check if CSS variable is defined (including scoped variables)
   const isCssVarDefined = (varName: string, element?: HTMLElement): boolean => {
+    // First check if we already collected this variable in the first pass
+    if (allDefinedVars.has(varName)) return true
+    
     // Check root first
     const rootValue = getComputedStyle(root).getPropertyValue(varName)
     if (rootValue !== '') return true
@@ -1282,9 +1285,30 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
             }
 
             // Check for format mismatches
+            // Only flag as "wrong-format" if there's a very close match (same structure, only 1 segment differs)
+            // AND the variable name appears to be a typo or invalid token key
             const similar = findSimilarVars(varRef, allDefinedVars)
             if (similar.length > 0) {
-              issueType = 'wrong-format'
+              // Check if this looks like a typo: same prefix/suffix, only middle segment differs
+              const varParts = varRef.split('-')
+              const hasVeryCloseMatch = similar.some(similarVar => {
+                const similarParts = similarVar.split('-')
+                if (varParts.length !== similarParts.length) return false
+                // Count differences - if only 1 segment differs, it's likely a typo
+                let differences = 0
+                for (let i = 0; i < varParts.length; i++) {
+                  if (varParts[i] !== similarParts[i]) {
+                    differences++
+                  }
+                }
+                return differences === 1
+              })
+              
+              // Only flag as wrong-format if there's a very close match
+              // Otherwise, it's just undefined (might be a valid reference that isn't generated yet)
+              if (hasVeryCloseMatch) {
+                issueType = 'wrong-format'
+              }
             }
 
             // Check if it's a scoped variable issue
@@ -1323,7 +1347,22 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
                   if (malformed.isMalformed) {
                     issueType = 'malformed'
                   } else if (similar.length > 0) {
-                    issueType = 'wrong-format'
+                    // Only flag as "wrong-format" if there's a very close match (same structure, only 1 segment differs)
+                    const varParts = failedVar.split('-')
+                    const hasVeryCloseMatch = similar.some(similarVar => {
+                      const similarParts = similarVar.split('-')
+                      if (varParts.length !== similarParts.length) return false
+                      let differences = 0
+                      for (let i = 0; i < varParts.length; i++) {
+                        if (varParts[i] !== similarParts[i]) {
+                          differences++
+                        }
+                      }
+                      return differences === 1
+                    })
+                    if (hasVeryCloseMatch) {
+                      issueType = 'wrong-format'
+                    }
                   }
 
                   issues.push({
@@ -1369,7 +1408,22 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
               }
               const similar = findSimilarVars(varRef, allDefinedVars)
               if (similar.length > 0) {
-                issueType = 'wrong-format'
+                // Only flag as "wrong-format" if there's a very close match (same structure, only 1 segment differs)
+                const varParts = varRef.split('-')
+                const hasVeryCloseMatch = similar.some(similarVar => {
+                  const similarParts = similarVar.split('-')
+                  if (varParts.length !== similarParts.length) return false
+                  let differences = 0
+                  for (let i = 0; i < varParts.length; i++) {
+                    if (varParts[i] !== similarParts[i]) {
+                      differences++
+                    }
+                  }
+                  return differences === 1
+                })
+                if (hasVeryCloseMatch) {
+                  issueType = 'wrong-format'
+                }
               }
 
               issues.push({

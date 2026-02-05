@@ -51,17 +51,35 @@ function getCssVarsForProp(
       // Check variant matching for other components
       if (p.isVariantSpecific && p.variantProp) {
         const selectedVariant = selectedVariants[p.variantProp]
-        if (!selectedVariant) return false
-        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-        if (!variantInPath) return false
+        if (selectedVariant) {
+          const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+          if (!variantInPath) return false
+        } else {
+          // If no variant selected but prop is variant-specific, try to match default state
+          // For TextField, default state is 'default'
+          if (componentName.toLowerCase() === 'text-field' && p.variantProp === 'states') {
+            if (!p.path.includes('default')) return false
+          } else {
+            // For other components, require variant to be selected
+            return false
+          }
+        }
       }
       
       // Also check propToCheck's variant requirements
       if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
         const selectedVariant = selectedVariants[propToCheck.variantProp]
-        if (!selectedVariant) return false
-        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-        if (!variantInPath) return false
+        if (selectedVariant) {
+          const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+          if (!variantInPath) return false
+        } else {
+          // If no variant selected but propToCheck is variant-specific, try to match default state
+          if (componentName.toLowerCase() === 'text-field' && propToCheck.variantProp === 'states') {
+            if (!p.path.includes('default')) return false
+          } else {
+            return false
+          }
+        }
       }
     }
     
@@ -177,13 +195,25 @@ export default function BorderGroupToolbar({
           if (!p.path.includes(styleSecondaryVariant)) return false
         }
       } else {
-        // Handle variant-specific props for other components
+        // Handle variant-specific props for other components (like TextField with states variant)
         if (p.isVariantSpecific && p.variantProp) {
           const selectedVariant = selectedVariants[p.variantProp]
-          if (!selectedVariant) return false
-          
-          // Check if path includes the selected variant
-          if (!p.path.includes(selectedVariant)) return false
+          // If variant is required but not selected, don't match
+          // But if no variant is selected, try to match default/fallback props
+          if (selectedVariant) {
+            // Check if path includes the selected variant
+            if (!p.path.includes(selectedVariant)) return false
+          } else {
+            // If no variant selected but prop is variant-specific, try to match default state
+            // For TextField, default state is 'default'
+            if (componentName.toLowerCase() === 'text-field' && p.variantProp === 'states') {
+              // Try to match default state if no state is selected
+              if (!p.path.includes('default')) return false
+            } else {
+              // For other components, require variant to be selected
+              return false
+            }
+          }
         }
       }
       

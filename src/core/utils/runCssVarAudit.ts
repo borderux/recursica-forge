@@ -21,6 +21,10 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
     return { totalVars: 0, brokenRefs: 0, missingVars: [], allVars: [] }
   }
 
+  if (!silent) {
+    console.log('🔍 Starting CSS variable audit...')
+  }
+
   const broken = auditRecursicaCssVars()
   
   // Collect all CSS variables found
@@ -269,7 +273,7 @@ function getAllCssVars(): string[] {
 }
 
 // Make it available globally for easy console access (dev mode only)
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_ENV === 'development')) {
   const win = window as any
   win.auditCssVars = runCssVarAudit
   win.deepAuditCssVars = deepAuditCssVars
@@ -472,7 +476,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   
   // Auto-run audit only in development mode after app fully initializes
   // and only if the user has enabled auto-run via the header switch
-  if (process.env.NODE_ENV === 'development' && getCssAuditAutoRun()) {
+  if ((import.meta.env.DEV || process.env.NODE_ENV === 'development') && getCssAuditAutoRun()) {
     const runAuditWhenReady = () => {
       // Wait for app to be fully loaded, then run audit
       setTimeout(() => {
