@@ -14,7 +14,7 @@ export default function TextFieldPreview({
   componentElevation,
 }: TextFieldPreviewProps) {
   // Extract variants from selectedVariants
-  const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'read-only' | 'focus'
+  const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
   const layout = (selectedVariants.layouts || 'stacked') as 'stacked' | 'side-by-side'
 
   // Get icon components for examples
@@ -64,15 +64,29 @@ export default function TextFieldPreview({
           
           {/* Error state */}
           {state === 'error' && (
-            <TextField
-              label="Label"
-              placeholder=""
-              errorText="Error message"
-              leadingIcon={HeartIcon ? <HeartIcon /> : <span>❤</span>}
-              state="error"
-              layout={layoutVariant}
-              layer={selectedLayer as any}
-            />
+            <>
+              <TextField
+                label="Label"
+                placeholder="Placeholder text"
+                defaultValue="Sample input value"
+                errorText="Error message"
+                leadingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
+                state="error"
+                layout={layoutVariant}
+                layer={selectedLayer as any}
+              />
+              <div style={{ marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
+                <TextField
+                  label="Label"
+                  placeholder="Placeholder text"
+                  errorText="Error message"
+                  trailingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
+                  state="error"
+                  layout={layoutVariant}
+                  layer={selectedLayer as any}
+                />
+              </div>
+            </>
           )}
           
           {/* Disabled state */}
@@ -82,17 +96,6 @@ export default function TextFieldPreview({
               placeholder="Placeholder text"
               defaultValue=""
               state="disabled"
-              layout={layoutVariant}
-              layer={selectedLayer as any}
-            />
-          )}
-          
-          {/* Read-only state */}
-          {state === 'read-only' && (
-            <TextField
-              label="Label"
-              defaultValue="Value"
-              state="read-only"
               layout={layoutVariant}
               layer={selectedLayer as any}
             />

@@ -265,7 +265,7 @@ export default function TextField({
         max={max}
         step={step}
         disabled={state === 'disabled'}
-        readOnly={restProps.readOnly !== undefined ? restProps.readOnly : state === 'read-only'}
+        readOnly={restProps.readOnly}
         autoFocus={restProps.autoFocus}
         className={`recursica-text-field-input ${className || ''}`}
         style={{

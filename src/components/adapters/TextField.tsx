@@ -29,7 +29,7 @@ export type TextFieldProps = {
   errorText?: string
   leadingIcon?: React.ReactNode
   trailingIcon?: React.ReactNode
-  state?: 'default' | 'error' | 'disabled' | 'read-only' | 'focus'
+  state?: 'default' | 'error' | 'disabled' | 'focus'
   layout?: 'stacked' | 'side-by-side'
   layer?: ComponentLayer
   minWidth?: number
@@ -187,7 +187,7 @@ export function TextField({
                 max={max}
                 step={step}
                 disabled={state === 'disabled'}
-                readOnly={readOnly !== undefined ? readOnly : state === 'read-only'}
+                readOnly={readOnly}
                 autoFocus={autoFocus}
                 style={{
                   flex: 1,
@@ -246,7 +246,7 @@ export function TextField({
                   max={max}
                   step={step}
                   disabled={state === 'disabled'}
-                  readOnly={state === 'read-only'}
+                  readOnly={readOnly}
                   autoFocus={autoFocus}
                   style={{
                     flex: 1,
