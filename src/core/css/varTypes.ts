@@ -40,6 +40,17 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
     }
   }
   
+  // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
+  // This allows mode-specific elevation values without token conflicts
+  if (cssVarName.includes('elevation') && 
+      (cssVarName.includes('-blur') || cssVarName.includes('-spread') || 
+       cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis'))) {
+    // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
+    if (/^-?\d+px$/.test(trimmed)) {
+      return value
+    }
+  }
+  
   // If it's a raw value (px, number, etc), this is also an error for brand vars
   throw new Error(`Brand CSS variable ${cssVarName} must reference a token (var(--recursica-tokens-...)), got: ${value}`)
 }
@@ -70,6 +81,16 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
       // Allow direct elevation names (e.g., "elevation-0", "elevation-1")
       if (/^elevation-\d+$/.test(trimmed)) {
         return { valid: true }
+      }
+      // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
+      // This allows mode-specific elevation values without token conflicts
+      // Tokens are shared between modes, so we bypass them for mode-specific elevation properties
+      if (cssVarName.includes('-blur') || cssVarName.includes('-spread') || 
+          cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis')) {
+        // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
+        if (/^-?\d+px$/.test(trimmed)) {
+          return { valid: true }
+        }
       }
     }
     // Special case: border-thickness can use direct pixel values (0-20px)

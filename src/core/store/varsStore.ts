@@ -28,9 +28,9 @@ type PaletteStore = {
 
 type ElevationControl = { blur: number; spread: number; offsetX: number; offsetY: number }
 export type ElevationState = {
-  controls: Record<string, ElevationControl>
+  controls: Record<'light' | 'dark', Record<string, ElevationControl>>
   colorTokens: Record<string, string>
-  alphaTokens: Record<string, string>
+  alphaTokens: Record<'light' | 'dark', Record<string, string>>
   blurTokens: Record<string, string>
   spreadTokens: Record<string, string>
   offsetXTokens: Record<string, string>
@@ -38,7 +38,7 @@ export type ElevationState = {
   paletteSelections: Record<string, { paletteKey: string; level: string }>
   baseXDirection: 'left' | 'right'
   baseYDirection: 'up' | 'down'
-  directions: Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>
+  directions: Record<'light' | 'dark', Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>>
   shadowColorControl: { colorToken: string; alphaToken: string }
 }
 
@@ -1131,21 +1131,49 @@ class VarsStore {
       } catch { }
     }
     // If we loaded from localStorage, use those controls; otherwise build from theme
-    let controls: Record<string, ElevationControl> = {}
+    let controls: Record<'light' | 'dark', Record<string, ElevationControl>> = { light: {}, dark: {} }
     let colorTokens: Record<string, string> = {}
-    let alphaTokens: Record<string, string> = {}
+    let alphaTokens: Record<'light' | 'dark', Record<string, string>> = { light: {}, dark: {} }
     let paletteSelections: Record<string, { paletteKey: string; level: string }> = {}
     let baseXDirection: 'left' | 'right' = 'right'
     let baseYDirection: 'up' | 'down' = 'down'
-    let directions: Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }> = {}
+    let directions: Record<'light' | 'dark', Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>> = { light: {}, dark: {} }
     let shadowColorControl: { colorToken: string; alphaToken: string } = { colorToken: 'color/gray/900', alphaToken: 'opacity/veiled' }
 
+    // Migrate old elevation state format (controls without mode) to new format (controls per mode)
+    if (elevationState && elevationState.controls && !('light' in elevationState.controls)) {
+      // Old format: controls is Record<string, ElevationControl>
+      // Migrate to new format: controls is Record<'light' | 'dark', Record<string, ElevationControl>>
+      const oldControls = elevationState.controls as any as Record<string, ElevationControl>
+      elevationState.controls = {
+        light: { ...oldControls },
+        dark: { ...oldControls }
+      }
+    }
+    
+    // Migrate old directions format (single object) to new format (per mode)
+    if (elevationState && elevationState.directions && !('light' in elevationState.directions)) {
+      const oldDirections = elevationState.directions as any as Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>
+      elevationState.directions = {
+        light: { ...oldDirections },
+        dark: { ...oldDirections }
+      }
+    }
+    
+    // Migrate old alphaTokens format (single object) to new format (per mode)
+    if (elevationState && elevationState.alphaTokens && !('light' in elevationState.alphaTokens)) {
+      const oldAlphaTokens = elevationState.alphaTokens as any as Record<string, string>
+      elevationState.alphaTokens = {
+        light: { ...oldAlphaTokens },
+        dark: { ...oldAlphaTokens }
+      }
+    }
+
     if (!elevationState) {
-      // Build defaults from theme
+      // Build defaults from theme for both modes
       const brand: any = (theme as any)?.brand || (theme as any)
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = brand?.themes || brand
-      const light: any = themes?.light?.elevations || {}
       const toNumeric = (ref?: any): number => {
         // Handle new structure: { $value: { value: number, unit: "px" }, $type: "number" }
         if (ref && typeof ref === 'object' && '$value' in ref) {
@@ -1168,22 +1196,27 @@ class VarsStore {
         }
         return 0
       }
-      controls = {}
-      for (let i = 0; i <= 4; i++) {
-        const node: any = light[`elevation-${i}`]?.['$value'] || {}
-        const blurRaw = node?.blur
-        const spreadRaw = node?.spread
-        const xRaw = node?.x
-        const yRaw = node?.y
-        const blur = toNumeric(blurRaw)
-        const spread = toNumeric(spreadRaw)
-        const offsetX = toNumeric(xRaw)
-        const offsetY = toNumeric(yRaw)
-        controls[`elevation-${i}`] = {
-          blur,
-          spread,
-          offsetX,
-          offsetY,
+      
+      // Initialize controls for both light and dark modes
+      for (const mode of ['light', 'dark'] as const) {
+        const modeElevations: any = themes?.[mode]?.elevations || {}
+        controls[mode] = {}
+        for (let i = 0; i <= 4; i++) {
+          const node: any = modeElevations[`elevation-${i}`]?.['$value'] || {}
+          const blurRaw = node?.blur
+          const spreadRaw = node?.spread
+          const xRaw = node?.x
+          const yRaw = node?.y
+          const blur = toNumeric(blurRaw)
+          const spread = toNumeric(spreadRaw)
+          const offsetX = toNumeric(xRaw)
+          const offsetY = toNumeric(yRaw)
+          controls[mode][`elevation-${i}`] = {
+            blur,
+            spread,
+            offsetX,
+            offsetY,
+          }
         }
       }
       const parseOpacity = (s?: string) => {
@@ -1300,13 +1333,15 @@ class VarsStore {
         }
         return null
       }
-      const elev1: any = light?.['elevation-1']?.['$value'] || {}
+      // Get light mode elevations for shadow color control and palette selections (these are mode-independent settings)
+      const lightElevations: any = themes?.light?.elevations || {}
+      const elev1: any = lightElevations?.['elevation-1']?.['$value'] || {}
       shadowColorControl = { colorToken: parseColorToken(elev1?.color?.['$value'] ?? elev1?.color), alphaToken: parseOpacity(elev1?.opacity?.['$value'] ?? elev1?.opacity) }
 
-      // Initialize palette selections from brand.json for each elevation
+      // Initialize palette selections from brand.json for each elevation (using light mode as default)
       const initialPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
       for (let i = 0; i <= 4; i++) {
-        const elev: any = light?.[`elevation-${i}`]?.['$value'] || {}
+        const elev: any = lightElevations?.[`elevation-${i}`]?.['$value'] || {}
         const colorRef = elev?.color?.['$value'] ?? elev?.color
         const paletteSel = parsePaletteSelection(colorRef)
         if (paletteSel) {
@@ -1317,12 +1352,36 @@ class VarsStore {
       const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
       baseXDirection = baseX >= 0 ? 'right' : 'left'
       baseYDirection = baseY >= 0 ? 'down' : 'up'
-      for (let i = 1; i <= 4; i += 1) directions[`elevation-${i}`] = { x: baseXDirection, y: baseYDirection }
+      
+      // Initialize directions per mode from theme
+      for (const mode of ['light', 'dark'] as const) {
+        const modeElevations: any = themes?.[mode]?.elevations || {}
+        const modeElev1: any = modeElevations?.['elevation-1']?.['$value'] || {}
+        const modeBaseX = Number((modeElev1?.['x-direction']?.['$value'] ?? baseX))
+        const modeBaseY = Number((modeElev1?.['y-direction']?.['$value'] ?? baseY))
+        const modeXDir = modeBaseX >= 0 ? 'right' : 'left'
+        const modeYDir = modeBaseY >= 0 ? 'down' : 'up'
+        directions[mode] = {}
+        for (let i = 1; i <= 4; i += 1) {
+          directions[mode][`elevation-${i}`] = { x: modeXDir, y: modeYDir }
+        }
+      }
       // Migrate legacy keys
       paletteSelections = { ...initialPaletteSelections }
       if (this.lsAvailable) {
         try { const raw = localStorage.getItem('elevation-color-tokens'); if (raw) colorTokens = JSON.parse(raw) } catch { }
-        try { const raw = localStorage.getItem('elevation-alpha-tokens'); if (raw) alphaTokens = JSON.parse(raw) } catch { }
+        try { 
+          const raw = localStorage.getItem('elevation-alpha-tokens')
+          if (raw) {
+            const parsed = JSON.parse(raw)
+            // Migrate old format (single object) to new format (per mode)
+            if (parsed && !('light' in parsed)) {
+              alphaTokens = { light: { ...parsed }, dark: { ...parsed } }
+            } else {
+              alphaTokens = parsed
+            }
+          }
+        } catch { }
         try {
           const raw = localStorage.getItem('elevation-palette-selections')
           if (raw) {
@@ -1331,7 +1390,18 @@ class VarsStore {
             paletteSelections = { ...initialPaletteSelections, ...savedSelections }
           }
         } catch { }
-        try { const raw = localStorage.getItem('elevation-directions'); if (raw) Object.assign(directions, JSON.parse(raw)) } catch { }
+        try { 
+          const raw = localStorage.getItem('elevation-directions')
+          if (raw) {
+            const parsed = JSON.parse(raw)
+            // Migrate old format (single object) to new format (per mode)
+            if (parsed && !('light' in parsed)) {
+              directions = { light: { ...parsed }, dark: { ...parsed } }
+            } else {
+              directions = parsed
+            }
+          }
+        } catch { }
         try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') (baseXDirection as any) = raw } catch { }
         try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') (baseYDirection as any) = raw } catch { }
       }
@@ -1365,6 +1435,12 @@ class VarsStore {
       directions,
       shadowColorControl
     }
+    
+    // Ensure mode-specific structures exist even if loaded from localStorage
+    if (!finalState.alphaTokens.light) finalState.alphaTokens.light = {}
+    if (!finalState.alphaTokens.dark) finalState.alphaTokens.dark = {}
+    if (!finalState.directions.light) finalState.directions.light = {}
+    if (!finalState.directions.dark) finalState.directions.dark = {}
 
     // Always ensure tokens exist and token references are set (even if loaded from localStorage)
     // Use finalState tokens if available, otherwise use initialized defaults
@@ -1479,6 +1555,10 @@ class VarsStore {
   }
 
   public recomputeAndApplyAll() {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'recomputeAndApplyAll called',data:{isRecomputing:this.isRecomputing,stackTrace:new Error().stack?.split('\n').slice(0,5).join('|')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+    
     // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
     if (this.isRecomputing) {
       return
@@ -2043,6 +2123,17 @@ class VarsStore {
       }
 
       // Elevation CSS variables (apply for levels 0..4) - generate for both modes
+      // Track which elevations have custom controls in any mode (to avoid token conflicts)
+      const elevationsWithControls = new Set<string>()
+      for (const mode of ['light', 'dark'] as const) {
+        for (let i = 0; i <= 4; i++) {
+          const k = `elevation-${i}`
+          if (this.state.elevation.controls[mode]?.[k]) {
+            elevationsWithControls.add(k)
+          }
+        }
+      }
+      
       for (const mode of ['light', 'dark'] as const) {
         try {
           const tokenIndex = {
@@ -2141,13 +2232,15 @@ class VarsStore {
               const paletteVarName = `--recursica-brand-themes-${mode}-palettes-${sel.paletteKey}-${sel.level}-tone`
               // Check if palette var exists in paletteVars (during initialization) or use var() reference
               const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
-              const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
+              const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
+              const alphaTok = modeAlphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
               // Use tokenToCssVar to properly convert opacity token names to CSS vars
               const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
               return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
             }
             const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
-            const alphaTok = this.state.elevation.alphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
+            const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
+            const alphaTok = modeAlphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
             // Use tokenToCssVar to properly convert opacity token names to CSS vars
             const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
             // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
@@ -2157,7 +2250,12 @@ class VarsStore {
           }
           const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
             const key = `elevation-${level}`
-            return this.state.elevation.directions[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
+            const modeDirections = this.state.elevation.directions[mode] || {}
+            const dir = modeDirections[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:dirForLevel',message:'getting direction',data:{elevationKey:key,mode,dir,hasCustomDir:!!modeDirections[key],baseXDirection:this.state.elevation.baseXDirection,baseYDirection:this.state.elevation.baseYDirection},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
+            return dir
           }
           // Helper to read elevation values directly from Brand.json for the current mode
           const toNumeric = (ref?: any): number => {
@@ -2188,6 +2286,10 @@ class VarsStore {
           const modeElevations: any = themes?.[mode]?.elevations || {}
           const baseElevationNode: any = modeElevations?.['elevation-0']?.['$value'] || {}
           
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'processing mode elevations',data:{mode,allElevationControls:JSON.stringify(this.state.elevation.controls)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+          // #endregion
+          
           const vars: Record<string, string> = {}
           // Update tokens with mode-specific elevation values from Brand.json before generating CSS variables
           // This ensures token references resolve to the correct mode-specific values
@@ -2205,18 +2307,29 @@ class VarsStore {
             }
             
             // Check if user has customized this elevation - if so, use control values instead of Brand.json
-            const control = this.state.elevation.controls[k]
+            // Read controls for the current mode being processed
+            const control = this.state.elevation.controls[mode]?.[k]
             let blurValue: number
             let spreadValue: number
             let xValue: number
             let yValue: number
+            let hasCustomControls = false
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'processing elevation',data:{elevationKey:k,mode,hasControl:!!control,controlValue:JSON.stringify(control),lightControl:JSON.stringify(this.state.elevation.controls.light?.[k]),darkControl:JSON.stringify(this.state.elevation.controls.dark?.[k])},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
             
             if (control) {
-              // Use user-customized control values
+              // Use user-customized control values for this mode
               blurValue = control.blur
               spreadValue = control.spread
               xValue = control.offsetX
               yValue = control.offsetY
+              hasCustomControls = true
+              
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'using control values',data:{elevationKey:k,mode,blurValue,spreadValue,xValue,yValue,source:'control'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+              // #endregion
             } else {
               // Read values directly from Brand.json for this mode
               const blurRaw = elevNode?.blur
@@ -2228,6 +2341,10 @@ class VarsStore {
               spreadValue = toNumeric(spreadRaw)
               xValue = toNumeric(xRaw)
               yValue = toNumeric(yRaw)
+              
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'using brand.json values',data:{elevationKey:k,mode,blurValue,spreadValue,xValue,yValue,source:'brand.json'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+              // #endregion
             }
             
             const dir = dirForLevel(i)
@@ -2236,22 +2353,33 @@ class VarsStore {
             const brandScope = `--brand-themes-${mode}-elevations-elevation-${i}`
             const prefixedScope = `--recursica-${brandScope.slice(2)}`
 
-            // Update tokens with mode-specific values from Brand.json
-            // These tokens will be referenced by the CSS variables
+            // Token names for reference (used as fallback only)
             const blurTokenName = `size/elevation-${i}-blur`
             const spreadTokenName = `size/elevation-${i}-spread`
             const offsetXTokenName = `size/elevation-${i}-offset-x`
             const offsetYTokenName = `size/elevation-${i}-offset-y`
             
-            // Update token values with mode-specific values (tokens are shared but updated per mode)
-            sizeTokens[`elevation-${i}-blur`] = { $type: 'number', $value: blurValue }
-            sizeTokens[`elevation-${i}-spread`] = { $type: 'number', $value: spreadValue }
-            sizeTokens[`elevation-${i}-offset-x`] = { $type: 'number', $value: xValue }
-            sizeTokens[`elevation-${i}-offset-y`] = { $type: 'number', $value: yValue }
+            // Always set CSS variables directly to avoid token conflicts between modes
+            // Tokens are shared, so we can't use them for mode-specific values
+            // Only update tokens when no controls exist in ANY mode (for backwards compatibility)
+            const hasControlsInAnyMode = elevationsWithControls.has(k)
+            if (!hasControlsInAnyMode && mode === 'dark') {
+              // Update tokens with dark mode defaults (for backwards compatibility)
+              // These tokens won't be used for CSS variables, but may be referenced elsewhere
+              sizeTokens[`elevation-${i}-blur`] = { $type: 'number', $value: blurValue }
+              sizeTokens[`elevation-${i}-spread`] = { $type: 'number', $value: spreadValue }
+              sizeTokens[`elevation-${i}-offset-x`] = { $type: 'number', $value: xValue }
+              sizeTokens[`elevation-${i}-offset-y`] = { $type: 'number', $value: yValue }
+            }
 
             // Check if there's already a palette CSS variable set (preserve user selections)
             const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
-            const alphaTok = this.state.elevation.alphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
+            const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
+            const alphaTok = modeAlphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'processing shadow color',data:{elevationKey:k,mode,existingColor,alphaToken:alphaTok,elevationAlphaToken:modeAlphaTokens[k],shadowColorControlAlphaToken:this.state.elevation.shadowColorControl.alphaToken,paletteSelections:JSON.stringify(this.state.elevation.paletteSelections)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+            // #endregion
             // Use tokenToCssVar to properly convert opacity token names to CSS vars (use original state tokens for non-elevation tokens)
             const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
 
@@ -2266,12 +2394,13 @@ class VarsStore {
               let paletteVarRef: string | null = null
 
               // If it's a direct var() reference to a palette
-              const varMatch = existingColor.match(/var\((--recursica-brand-themes-(?:light|dark)-palettes-[^)]+)\)/)
+              const varMatch = existingColor.match(/var\s*\(\s*(--recursica-brand-themes-(?:light|dark)-palettes-[^)]+)\s*\)/)
               if (varMatch) {
                 paletteVarRef = `var(${varMatch[1]})`
               } else {
                 // If it's a color-mix, extract the palette var from it
-                const colorMixMatch = existingColor.match(/color-mix\([^,]+,\s*(var\(--recursica-brand-themes-(?:light|dark)-palettes-[^)]+\))/)
+                // Match: color-mix(in srgb, var(--recursica-brand-themes-...-palettes-...) ...)
+                const colorMixMatch = existingColor.match(/color-mix\s*\([^,]+,\s*(var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-[^)]+\s*\))/)
                 if (colorMixMatch) {
                   paletteVarRef = colorMixMatch[1]
                 }
@@ -2290,31 +2419,21 @@ class VarsStore {
               vars[`${prefixedScope}-shadow-color`] = String(color)
             }
 
-            // Reference tokens instead of using literal pixel values
-            // This ensures validation passes and values are mode-specific
-            // Tokens have been updated with mode-specific values above
-            const blurTokenRef = tokenToCssVar(blurTokenName, this.state.tokens) || `var(--recursica-tokens-size-elevation-${i}-blur)`
-            const spreadTokenRef = tokenToCssVar(spreadTokenName, this.state.tokens) || `var(--recursica-tokens-size-elevation-${i}-spread)`
-            const offsetXTokenRef = tokenToCssVar(offsetXTokenName, this.state.tokens) || `var(--recursica-tokens-size-elevation-${i}-offset-x)`
-            const offsetYTokenRef = tokenToCssVar(offsetYTokenName, this.state.tokens) || `var(--recursica-tokens-size-elevation-${i}-offset-y)`
+            // Always set CSS variables directly with pixel values to avoid token conflicts between modes
+            // Tokens are shared, so we can't rely on them for mode-specific values
+            // Set CSS variables directly from controls (if they exist) or Brand.json defaults
+            vars[`${prefixedScope}-blur`] = `${blurValue}px`
+            vars[`${prefixedScope}-spread`] = `${spreadValue}px`
             
-            // For blur and spread, use token references directly
-            vars[`${prefixedScope}-blur`] = blurTokenRef
-            vars[`${prefixedScope}-spread`] = spreadTokenRef
+            // Apply direction for offsets
+            const finalXValue = dir.x === 'right' ? xValue : -xValue
+            const finalYValue = dir.y === 'down' ? yValue : -yValue
+            vars[`${prefixedScope}-x-axis`] = `${finalXValue}px`
+            vars[`${prefixedScope}-y-axis`] = `${finalYValue}px`
             
-            // For x-axis and y-axis, we need to apply direction (signed values)
-            // Since tokens store absolute values, we need to handle the sign in CSS or use calc()
-            // For now, we'll use calc() to apply the sign based on direction
-            if (dir.x === 'right') {
-              vars[`${prefixedScope}-x-axis`] = offsetXTokenRef
-            } else {
-              vars[`${prefixedScope}-x-axis`] = `calc(-1 * ${offsetXTokenRef})`
-            }
-            if (dir.y === 'down') {
-              vars[`${prefixedScope}-y-axis`] = offsetYTokenRef
-            } else {
-              vars[`${prefixedScope}-y-axis`] = `calc(-1 * ${offsetYTokenRef})`
-            }
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'setting CSS vars',data:{elevationKey:k,mode,cssVarBlur:`${prefixedScope}-blur`,cssVarSpread:`${prefixedScope}-spread`,cssVarX:`${prefixedScope}-x-axis`,cssVarY:`${prefixedScope}-y-axis`,blurValue,spreadValue,finalXValue,finalYValue,dirX:dir.x,dirY:dir.y,hasCustomControls},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
           }
           Object.assign(allVars, vars)
         } catch (e) {

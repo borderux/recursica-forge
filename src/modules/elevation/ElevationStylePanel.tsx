@@ -215,10 +215,11 @@ export default function ElevationStylePanel({
 
   // Get current opacity value (0-1) from token and convert to 0-100 for display
   const getCurrentOpacityValue = React.useCallback((elevationKey: string): number => {
+    // Pass elevationKey as string - getAlphaTokenForLevel expects a string and will convert internally
     const alphaTokenName = getAlphaTokenForLevel(elevationKey)
     if (!alphaTokenName) return 0
     
-    // Extract token key from "opacity/veiled" format
+    // Extract token key from "opacity/veiled" or "opacity/elevation-light-1" format
     const tokenKey = alphaTokenName.replace('opacity/', '')
     
     // Read token value from tokens.json
@@ -226,6 +227,10 @@ export default function ElevationStylePanel({
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
       const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
       const tokenValue = opacityRoot[tokenKey]?.$value
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:getCurrentOpacityValue',message:'token value read',data:{elevationKey,mode,alphaTokenName,tokenKey,tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
+      // #endregion
       
       if (tokenValue != null) {
         const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
@@ -238,7 +243,7 @@ export default function ElevationStylePanel({
     } catch {}
     
     return 0
-  }, [tokensJson, getAlphaTokenForLevel])
+  }, [tokensJson, getAlphaTokenForLevel, mode])
 
   // Track local slider value for immediate UI feedback
   const [localOpacityValue, setLocalOpacityValue] = React.useState<number | null>(null)
@@ -272,7 +277,10 @@ export default function ElevationStylePanel({
         // This means elevation state hasn't updated yet to reflect the new token name
         if (lastUpdatedTokenRef.current.startsWith('opacity/elevation-')) {
           // Keep the current local value until elevation state updates
-          return
+          // Check if it's a mode-specific token for the current mode
+          if (lastUpdatedTokenRef.current.includes(`-${mode}-`)) {
+            return
+          }
         }
       }
       
@@ -306,15 +314,16 @@ export default function ElevationStylePanel({
         clearTimeout(dragTimeoutRef.current)
       }
     }
-  }, [])
-
-  // Update opacity token value (convert 0-100 to 0-1)
-  // Ensure each selected elevation has its own unique opacity token
-  // Helper to get opacity token name for elevation
-  const getOpacityTokenName = React.useCallback((level: number): string => {
-    const elevationKey = `elevation-${level}`
-    return elevation?.alphaTokens[elevationKey] || elevation?.shadowColorControl?.alphaToken || 'opacity/veiled'
-  }, [elevation])
+    }, [])
+  
+    // Update opacity token value (convert 0-100 to 0-1)
+    // Ensure each selected elevation has its own unique opacity token
+    // Helper to get opacity token name for elevation
+    const getOpacityTokenName = React.useCallback((level: number): string => {
+      const elevationKey = `elevation-${level}`
+      const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
+      return modeAlphaTokens[elevationKey] || elevation?.shadowColorControl?.alphaToken || 'opacity/veiled'
+    }, [elevation, mode])
   
   const handleOpacityChange = React.useCallback((value: number) => {
     // Update local state immediately for UI feedback
@@ -330,11 +339,13 @@ export default function ElevationStylePanel({
       let alphaTokenName = getOpacityTokenName(lvl)
       
       // Ensure unique token exists (create if needed, but don't update state during drag)
-      const uniqueTokenName = `opacity/elevation-${lvl}`
-      if (!elevation?.alphaTokens?.[elevationKey] || 
+      // Use mode-specific token names to prevent cross-mode contamination
+      const uniqueTokenName = `opacity/elevation-${mode}-${lvl}`
+      const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
+      if (!modeAlphaTokens[elevationKey] || 
           alphaTokenName === elevation?.shadowColorControl?.alphaToken ||
           alphaTokenName === 'opacity/veiled') {
-        // Use unique token name for this elevation
+        // Use unique token name for this elevation and mode
         alphaTokenName = uniqueTokenName
       }
       
@@ -352,20 +363,61 @@ export default function ElevationStylePanel({
       // Also update shadow-color CSS var directly for immediate visual feedback
       const shadowColorCssVar = getShadowColorCssVar(lvl)
       
-      // Get color token for this elevation
-      const colorToken = elevation?.colorTokens?.[elevationKey] || elevation?.shadowColorControl?.colorToken || 'color/gray/900'
-      const colorVarRef = tokenToCssVar(colorToken, tokensJson) || `var(--recursica-tokens-${colorToken.replace(/\//g, '-')})`
+      // Read existing shadow color to preserve palette references
+      const existingShadowColor = readCssVar(shadowColorCssVar)
+      
+      // Check if existing color contains a palette reference
+      const hasPaletteRef = existingShadowColor && (
+        (existingShadowColor.startsWith('var(') && existingShadowColor.includes('palettes')) ||
+        (existingShadowColor.includes('color-mix') && existingShadowColor.includes('palettes'))
+      )
+      
+      let newShadowColor: string
       const alphaVarRef = `var(${opacityCssVar})`
       
-      // Rebuild color-mix with new opacity
-      const newShadowColor = `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
+      if (hasPaletteRef) {
+        // Extract the palette var reference from existingShadowColor
+        let paletteVarRef: string | null = null
+        
+        // If it's a direct var() reference to a palette
+        const varMatch = existingShadowColor.match(/var\s*\(\s*(--recursica-brand-themes-(?:light|dark)-palettes-[^)]+)\s*\)/)
+        if (varMatch) {
+          paletteVarRef = `var(${varMatch[1]})`
+        } else {
+          // If it's a color-mix, extract the palette var from it
+          // Match: color-mix(in srgb, var(--recursica-brand-themes-...-palettes-...) ...)
+          const colorMixMatch = existingShadowColor.match(/color-mix\s*\([^,]+,\s*(var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-[^)]+\s*\))/)
+          if (colorMixMatch) {
+            paletteVarRef = colorMixMatch[1]
+          }
+        }
+        
+        if (paletteVarRef) {
+          // Preserve palette CSS variable and apply current opacity
+          newShadowColor = `color-mix(in srgb, ${paletteVarRef} calc(${alphaVarRef} * 100%), transparent)`
+        } else {
+          // Fallback: use existing color as-is (shouldn't happen, but just in case)
+          newShadowColor = existingShadowColor
+        }
+      } else {
+        // No palette reference - use color token from state
+        const colorToken = elevation?.colorTokens?.[elevationKey] || elevation?.shadowColorControl?.colorToken || 'color/gray/900'
+        const colorVarRef = tokenToCssVar(colorToken, tokensJson) || `var(--recursica-tokens-${colorToken.replace(/\//g, '-')})`
+        
+        // Rebuild color-mix with new opacity
+        newShadowColor = `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
+      }
       
       document.documentElement.style.setProperty(opacityCssVar, normalizedStr)
       document.documentElement.style.setProperty(shadowColorCssVar, newShadowColor)
     })
-  }, [levelsArr, getOpacityTokenName, getShadowColorCssVar, updateToken, elevation, tokensJson])
+  }, [levelsArr, getOpacityTokenName, getShadowColorCssVar, updateToken, elevation, tokensJson, mode])
   
   const handleOpacityChangeCommitted = React.useCallback((value: number) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:handleOpacityChangeCommitted',message:'opacity change committed',data:{value,mode,levelsArr:Array.from(levelsArr),lightAlphaTokens:JSON.stringify(elevation?.alphaTokens?.light),darkAlphaTokens:JSON.stringify(elevation?.alphaTokens?.dark)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
+    
     // Clear any existing timeout
     if (dragTimeoutRef.current) {
       clearTimeout(dragTimeoutRef.current)
@@ -382,14 +434,19 @@ export default function ElevationStylePanel({
       const elevationKey = `elevation-${lvl}`
       let alphaTokenName = getOpacityTokenName(lvl)
       
-      // Check if this elevation shares a token with other elevations
-      const isSharedToken = !elevation?.alphaTokens?.[elevationKey] || 
+      // Check if this elevation shares a token with other elevations (mode-specific check)
+      const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
+      const isSharedToken = !modeAlphaTokens[elevationKey] || 
                            alphaTokenName === elevation?.shadowColorControl?.alphaToken ||
                            alphaTokenName === 'opacity/veiled'
       
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:handleOpacityChangeCommitted',message:'processing elevation opacity',data:{elevationKey,lvl,mode,alphaTokenName,isSharedToken,modeAlphaToken:modeAlphaTokens[elevationKey],lightAlphaToken:elevation?.alphaTokens?.light?.[elevationKey],darkAlphaToken:elevation?.alphaTokens?.dark?.[elevationKey]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+      // #endregion
+      
       if (isSharedToken) {
-        // Create a unique token name for this elevation
-        const uniqueTokenName = `opacity/elevation-${lvl}`
+        // Create a unique token name for this elevation and mode (mode-specific to prevent cross-contamination)
+        const uniqueTokenName = `opacity/elevation-${mode}-${lvl}`
         alphaTokenName = uniqueTokenName
         
         // Get current value from shared token to initialize the new unique token
@@ -413,9 +470,17 @@ export default function ElevationStylePanel({
         
         // Set the unique token for this elevation (persist state)
         setElevationAlphaToken(elevationKey, uniqueTokenName)
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:handleOpacityChangeCommitted',message:'created unique token',data:{elevationKey,mode,uniqueTokenName,normalizedValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
       } else {
         // Update the existing token value
         updateToken(alphaTokenName, normalizedValue)
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:handleOpacityChangeCommitted',message:'updated existing token',data:{elevationKey,mode,alphaTokenName,normalizedValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
       }
       
       // Track the final token name for the first selected elevation
@@ -438,7 +503,7 @@ export default function ElevationStylePanel({
         lastUpdatedValueRef.current = null
       }, 300)
     }, 600)
-  }, [levelsArr, getOpacityTokenName, updateToken, setElevationAlphaToken, elevation, tokensJson])
+    }, [levelsArr, getOpacityTokenName, updateToken, setElevationAlphaToken, elevation, tokensJson, mode])
 
   const CloseIcon = iconNameToReactComponent('x-mark')
   
