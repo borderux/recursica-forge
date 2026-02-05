@@ -31,6 +31,7 @@ export default function Badge({
   // Get CSS variables
   const bgVar = getComponentCssVar('Badge', 'colors', `${variant}-background`, layer)
   const textVar = getComponentCssVar('Badge', 'colors', `${variant}-text`, layer)
+  const borderColorVar = getComponentCssVar('Badge', 'colors', `${variant}-border-color`, layer)
   
   // Get text CSS variables
   const fontFamilyVar = getComponentTextCssVar('Badge', 'text', 'font-family')
@@ -42,8 +43,9 @@ export default function Badge({
   const textTransformVar = getComponentTextCssVar('Badge', 'text', 'text-transform')
   const fontStyleVar = getComponentTextCssVar('Badge', 'text', 'font-style')
   
-  // Get level CSS variables (border-radius, padding)
+  // Get level CSS variables (border-radius, border-size, padding)
   const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
+  const borderSizeVar = getComponentLevelCssVar('Badge', 'border-size')
   const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
   const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
   
@@ -102,6 +104,8 @@ export default function Badge({
         '--badge-text-transform': `var(${textTransformVar})`,
         '--badge-font-style': `var(${fontStyleVar})`,
         '--badge-border-radius': `var(${borderRadiusVar})`,
+        '--badge-border-size': `var(${borderSizeVar})`,
+        '--badge-border-color': `var(${borderColorVar})`,
         '--badge-padding-vertical': `var(${paddingVerticalVar})`,
         '--badge-padding-horizontal': `var(${paddingHorizontalVar})`,
         // Set height to auto to override Material UI Chip's default height

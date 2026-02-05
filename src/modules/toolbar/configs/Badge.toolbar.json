@@ -47,6 +47,11 @@
           "icon": "corners-out",
           "label": "Corner radius",
           "visible": true
+        },
+        "border-color": {
+          "icon": "paint-bucket",
+          "label": "Color",
+          "visible": true
         }
       }
     },

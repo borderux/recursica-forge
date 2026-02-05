@@ -12,6 +12,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { TextField } from '../../TextField'
 import './Slider.css'
 
 export default function Slider({
@@ -32,6 +33,7 @@ export default function Slider({
   minLabel,
   maxLabel,
   showMinMaxLabels = true,
+  readOnly = false,
   className,
   style,
   material,
@@ -51,8 +53,10 @@ export default function Slider({
   const thumbBorderRadiusVar = getComponentLevelCssVar('Slider', 'thumb-border-radius')
   const thumbElevationVar = getComponentLevelCssVar('Slider', 'thumb-elevation')
   
-  // Get layout-specific gap
-  const labelSliderGapVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'label-slider-gap')
+  // Get Label's gutter for side-by-side layout (Label component manages spacing)
+  const labelGutterVar = layout === 'side-by-side'
+    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+    : null
   
   // Get input width and gap if showing input
   const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
@@ -301,39 +305,31 @@ export default function Slider({
         </span>
       )}
       {showInput && (
-        <input
+        <TextField
           type="number"
           min={min}
           max={max}
           step={step}
           value={singleValue}
           onChange={(e) => {
-            const newValue = Number(e.target.value)
-            if (!isNaN(newValue)) {
-              const clampedValue = Math.max(min, Math.min(max, newValue))
-              if (isRange) {
-                onChange([clampedValue, value[1]])
-              } else {
-                onChange(clampedValue)
+            if (!readOnly) {
+              const newValue = Number(e.target.value)
+              if (!isNaN(newValue)) {
+                const clampedValue = Math.max(min, Math.min(max, newValue))
+                if (isRange) {
+                  onChange([clampedValue, value[1]])
+                } else {
+                  onChange(clampedValue)
+                }
               }
             }
           }}
-          disabled={disabled}
+          state={disabled ? 'disabled' : 'default'}
+          readOnly={readOnly}
+          layer="layer-0"
           style={{
             width: `var(${inputWidthVar}, 60px)`,
-            height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
-            paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-            paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-            paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-            paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-            borderWidth: `var(${getFormCssVar('field', 'size', 'border-thickness-default')})`,
-            borderStyle: 'solid',
-            borderColor: `var(${getFormCssVar('field', 'colors', 'border')})`,
-            borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
-            background: `var(${getFormCssVar('field', 'colors', 'background')})`,
-            color: `var(${getFormCssVar('field', 'colors', 'text-valued')})`,
             fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            opacity: disabled ? 0.5 : 1,
           }}
         />
       )}
@@ -362,8 +358,10 @@ export default function Slider({
   )
   
   if (layout === 'side-by-side' && label) {
+    // For side-by-side, use Label's gutter property
+    const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: gapValue, width: '100%', ...style }}>
         <div style={{ flexShrink: 0 }}>
           {label}
         </div>
@@ -379,8 +377,9 @@ export default function Slider({
     )
   }
   
+  // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', ...style }}>
       {label && <div>{label}</div>}
       {sliderElement}
     </div>

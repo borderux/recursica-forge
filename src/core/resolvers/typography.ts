@@ -1,6 +1,6 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex, resolveBraceRef } from './tokens'
-import { extractBraceContent, parseTokenReference, type TokenReferenceContext } from '../utils/tokenReferenceParser'
+import { extractBraceContent, parseTokenReference, resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../utils/tokenReferenceParser'
 
 // Dynamically import fontUtils to avoid circular dependencies
 let getCachedFontFamilyName: ((name: string) => string) | null = null
@@ -309,6 +309,25 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     if (value == null) return null
     const valStr = String(value).trim()
     if (!valStr) return null
+    
+    // If it's a token reference string (e.g., {tokens.font.decorations.none}), resolve it to CSS variable
+    if (valStr.startsWith('{') && valStr.endsWith('}')) {
+      try {
+        const context: TokenReferenceContext = {
+          theme,
+          currentMode: 'light'
+        }
+        const cssVar = resolveTokenReferenceToCssVar(valStr, context)
+        if (cssVar) return cssVar
+      } catch { }
+    }
+    
+    // If it's already a CSS variable, return as-is
+    if (valStr.startsWith('var(')) {
+      return valStr
+    }
+    
+    // Otherwise, try to find token by matching value
     try {
       const pluralCategory = pluralMap[category] || category
       const src: any = (tokens as any)?.tokens?.font?.[pluralCategory] || (tokens as any)?.tokens?.font?.[category] || {}
@@ -583,24 +602,52 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     }
 
     if (transform != null) {
-      const brandVal = transformToken
-        ? `var(--recursica-tokens-font-cases-${transformToken.suffix})`
-        : findTokenByCategoryAndValue(transform, 'cases')
+      let brandVal: string | null = null
+      if (transformToken) {
+        brandVal = `var(--recursica-tokens-font-cases-${transformToken.suffix})`
+      } else {
+        brandVal = findTokenByCategoryAndValue(transform, 'cases')
+        // If still not found and transform is a token reference string, try to resolve it directly
+        if (!brandVal && typeof transform === 'string' && transform.trim().startsWith('{') && transform.trim().endsWith('}')) {
+          try {
+            const context: TokenReferenceContext = {
+              theme,
+              currentMode: 'light'
+            }
+            brandVal = resolveTokenReferenceToCssVar(transform.trim(), context)
+          } catch { }
+        }
+      }
       if (brandVal) {
         vars[`${brandPrefix}text-transform`] = brandVal
       } else {
-        vars[`${brandPrefix}text-transform`] = transform
+        // Last resort: try to use default token reference
+        vars[`${brandPrefix}text-transform`] = 'var(--recursica-tokens-font-cases-original)'
       }
     }
 
     if (decoration != null) {
-      const brandVal = decorationToken
-        ? `var(--recursica-tokens-font-decorations-${decorationToken.suffix})`
-        : findTokenByCategoryAndValue(decoration, 'decorations')
+      let brandVal: string | null = null
+      if (decorationToken) {
+        brandVal = `var(--recursica-tokens-font-decorations-${decorationToken.suffix})`
+      } else {
+        brandVal = findTokenByCategoryAndValue(decoration, 'decorations')
+        // If still not found and decoration is a token reference string, try to resolve it directly
+        if (!brandVal && typeof decoration === 'string' && decoration.trim().startsWith('{') && decoration.trim().endsWith('}')) {
+          try {
+            const context: TokenReferenceContext = {
+              theme,
+              currentMode: 'light'
+            }
+            brandVal = resolveTokenReferenceToCssVar(decoration.trim(), context)
+          } catch { }
+        }
+      }
       if (brandVal) {
         vars[`${brandPrefix}text-decoration`] = brandVal
       } else {
-        vars[`${brandPrefix}text-decoration`] = decoration
+        // Last resort: try to use default token reference (none exists in decorations)
+        vars[`${brandPrefix}text-decoration`] = 'var(--recursica-tokens-font-decorations-none)'
       }
     }
 

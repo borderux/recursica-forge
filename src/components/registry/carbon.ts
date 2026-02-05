@@ -32,6 +32,12 @@ registerComponent('carbon', 'Chip', () => import('../adapters/carbon/Chip/Chip')
 // Label
 registerComponent('carbon', 'Label', () => import('../adapters/carbon/Label/Label'))
 
+// AssistiveElement
+registerComponent('carbon', 'AssistiveElement', () => import('../adapters/carbon/AssistiveElement/AssistiveElement'))
+
+// TextField
+registerComponent('carbon', 'TextField', () => import('../adapters/carbon/TextField/TextField'))
+
 // Breadcrumb
 registerComponent('carbon', 'Breadcrumb', () => import('../adapters/carbon/Breadcrumb/Breadcrumb'))
 

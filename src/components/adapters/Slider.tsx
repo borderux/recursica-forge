@@ -5,14 +5,15 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Label } from './Label'
+import { TextField } from './TextField'
 import { getTypographyCssVar, extractTypographyStyleName } from '../utils/typographyUtils'
-import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
+import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../utils/brandCssVars'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type SliderProps = {
@@ -33,6 +34,7 @@ export type SliderProps = {
   minLabel?: string
   maxLabel?: string
   showMinMaxLabels?: boolean
+  readOnly?: boolean
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -55,6 +57,7 @@ export function Slider({
   minLabel,
   maxLabel,
   showMinMaxLabels = true,
+  readOnly = false,
   className,
   style,
   mantine,
@@ -151,12 +154,17 @@ export function Slider({
     const thumbBorderRadiusVar = getComponentLevelCssVar('Slider', 'thumb-border-radius')
     const thumbElevationVar = getComponentLevelCssVar('Slider', 'thumb-elevation')
     
-    // Get layout-specific gap
-    const labelSliderGapVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'label-slider-gap')
+    // Get Label's gutter for side-by-side layout (Label component manages spacing)
+    const labelGutterVar = layout === 'side-by-side' 
+      ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+      : null
     
     // Get input width and gap if showing input
     const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
     const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
+    
+    // Get disabled opacity CSS variable
+    const disabledOpacityVar = getBrandStateCssVar(mode, 'disabled')
     
     // Reactively read thumb elevation from CSS variable
     const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
@@ -165,19 +173,42 @@ export function Slider({
       return value ? parseElevationValue(value) : undefined
     })
     
+    // Force re-render when CSS variables change (including colors)
+    const [, forceUpdate] = useState(0)
+    
     // Listen for CSS variable updates from the toolbar
     useEffect(() => {
       const handleCssVarUpdate = (e: Event) => {
         const detail = (e as CustomEvent).detail
-        if (!detail?.cssVars || detail.cssVars.includes(thumbElevationVar)) {
-          if (thumbElevationVar) {
+        const updatedVars = detail?.cssVars || []
+        
+        // Check if any slider-related CSS vars were updated
+        const sliderVars = [
+          trackVar, trackActiveVar, thumbVar,
+          trackHeightVar, thumbSizeVar, trackBorderRadiusVar, thumbBorderRadiusVar, thumbElevationVar,
+          disabledOpacityVar
+        ].filter(Boolean)
+        
+        const shouldUpdate = updatedVars.length === 0 || updatedVars.some((v: string) => 
+          sliderVars.some(sliderVar => v === sliderVar || v.includes('slider') || v.includes('track') || v.includes('thumb') || v.includes('state-disabled'))
+        )
+        
+        if (shouldUpdate) {
+          // Update thumb elevation if it changed
+          if (thumbElevationVar && (!updatedVars.length || updatedVars.includes(thumbElevationVar))) {
             const value = readCssVar(thumbElevationVar)
             setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
           }
+          
+          // Force re-render to ensure colors and other CSS vars update
+          requestAnimationFrame(() => {
+            forceUpdate(prev => prev + 1)
+          })
         }
       }
       
       window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.addEventListener('cssVarsReset', handleCssVarUpdate)
       
       // Also watch for direct style changes using MutationObserver
       const observer = new MutationObserver(() => {
@@ -185,6 +216,10 @@ export function Slider({
           const value = readCssVar(thumbElevationVar)
           setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
         }
+        // Force re-render on any style change
+        requestAnimationFrame(() => {
+          forceUpdate(prev => prev + 1)
+        })
       })
       observer.observe(document.documentElement, {
         attributes: true,
@@ -193,9 +228,10 @@ export function Slider({
       
       return () => {
         window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+        window.removeEventListener('cssVarsReset', handleCssVarUpdate)
         observer.disconnect()
       }
-    }, [thumbElevationVar])
+    }, [thumbElevationVar, trackVar, trackActiveVar, thumbVar, trackHeightVar, thumbSizeVar, trackBorderRadiusVar, thumbBorderRadiusVar, disabledOpacityVar])
     
     // Determine thumb elevation from UIKit.json
     const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
@@ -224,42 +260,77 @@ export function Slider({
     const thumbSizeUnit = thumbSizeValue.replace(/[\d.-]/g, '') || 'px'
     const thumbHalfSize = `${thumbSizeNum / 2}${thumbSizeUnit}`
     
+    // Use ref to measure container and calculate active track width
+    const trackContainerRef = useRef<HTMLDivElement>(null)
+    const [activeTrackWidth, setActiveTrackWidth] = useState<string>('0%')
+    
+    useEffect(() => {
+      const updateActiveTrackWidth = () => {
+        if (!trackContainerRef.current) return
+        
+        const containerWidth = trackContainerRef.current.offsetWidth
+        const thumbWidthPx = thumbSizeNum
+        
+        // The thumb center is positioned at percentage% of the usable track width
+        // Usable track width = containerWidth - thumbWidthPx
+        // Thumb center position = thumbHalfSize + (percentage / 100) * (containerWidth - thumbWidthPx)
+        // Active track should extend to thumb right edge = thumb center + thumbHalfSize
+        const usableWidth = containerWidth - thumbWidthPx
+        const thumbCenterPosition = (percentage / 100) * usableWidth
+        const thumbRightEdge = thumbCenterPosition + thumbWidthPx
+        
+        // Convert to percentage of container width
+        const activeTrackWidthPercent = (thumbRightEdge / containerWidth) * 100
+        setActiveTrackWidth(`${activeTrackWidthPercent}%`)
+      }
+      
+      updateActiveTrackWidth()
+      
+      // Update on resize
+      const resizeObserver = new ResizeObserver(updateActiveTrackWidth)
+      if (trackContainerRef.current) {
+        resizeObserver.observe(trackContainerRef.current)
+      }
+      
+      return () => {
+        resizeObserver.disconnect()
+      }
+    }, [percentage, thumbSizeNum, singleValue])
+    
     const sliderElement = (
-      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: showInput ? `var(${inputGapVar}, 8px)` : 0, overflow: 'visible' }}>
+      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: `var(${inputGapVar}, 8px)`, overflow: 'visible' }}>
         {/* Min value display */}
         {showMinMaxLabels && (
           <span style={{ 
             fontSize: 12, 
             color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
-            opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
             flexShrink: 0,
-            marginRight: '8px',
           }}>
             {minLabel ?? min}
           </span>
         )}
-        <div style={{ 
-          position: 'relative', 
-          flex: 1, 
-          display: 'flex', 
-          alignItems: 'center', 
-          overflow: 'visible', 
-          minWidth: 0,
-          paddingLeft: thumbHalfSize,
-          paddingRight: thumbHalfSize,
-        }}>
+        <div 
+          ref={trackContainerRef}
+          style={{ 
+            position: 'relative', 
+            flex: 1, 
+            display: 'flex', 
+            alignItems: 'center', 
+            overflow: 'visible', 
+            minWidth: 0,
+          }}>
           {/* Track background */}
           <div style={{
             position: 'absolute',
             top: '50%',
-            left: 0,
-            right: 0,
+            left: thumbHalfSize,
+            right: thumbHalfSize,
             height: `var(${trackHeightVar}, 4px)`,
             transform: 'translateY(-50%)',
             backgroundColor: `var(${trackVar})`,
             borderRadius: `var(${trackBorderRadiusVar})`,
-            opacity: disabled ? 0.3 : 1,
-            width: '100%',
+            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
           }} />
           
           {/* Active track */}
@@ -267,12 +338,12 @@ export function Slider({
             position: 'absolute',
             top: '50%',
             left: 0,
-            width: `${percentage}%`,
+            width: activeTrackWidth,
             height: `var(${trackHeightVar}, 4px)`,
             transform: 'translateY(-50%)',
             backgroundColor: `var(${trackActiveVar})`,
             borderRadius: `var(${trackBorderRadiusVar})`,
-            opacity: disabled ? 0.3 : 1,
+            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
           }} />
           
           {/* Slider input */}
@@ -314,7 +385,7 @@ export function Slider({
               border: none;
               cursor: ${disabled ? 'not-allowed' : 'pointer'};
               box-shadow: ${thumbElevationValue};
-              opacity: ${disabled ? 0.3 : 1};
+              opacity: ${disabled ? `var(${disabledOpacityVar})` : 1};
               margin-top: calc(-1 * (${thumbSizeValue} - ${trackHeightValue}) / 2);
             }
             
@@ -326,7 +397,7 @@ export function Slider({
               border: none;
               cursor: ${disabled ? 'not-allowed' : 'pointer'};
               box-shadow: ${thumbElevationValue};
-              opacity: ${disabled ? 0.3 : 1};
+              opacity: ${disabled ? `var(${disabledOpacityVar})` : 1};
             }
             
             #${sliderId}::-ms-thumb {
@@ -337,7 +408,7 @@ export function Slider({
               border: none;
               cursor: ${disabled ? 'not-allowed' : 'pointer'};
               box-shadow: ${thumbElevationValue};
-              opacity: ${disabled ? 0.3 : 1};
+              opacity: ${disabled ? `var(${disabledOpacityVar})` : 1};
             }
             
             #${sliderId}::-webkit-slider-runnable-track {
@@ -368,49 +439,53 @@ export function Slider({
           <span style={{ 
             fontSize: 12, 
             color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
-            opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
             flexShrink: 0,
-            marginLeft: '8px',
           }}>
             {maxLabel ?? max}
           </span>
         )}
         
+        {/* Value label (when showValueLabel is true and no input) */}
+        {showValueLabel && !showInput && (
+          <span style={{ 
+            fontSize: 12, 
+            color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+          }}>
+            {valueLabel ? (typeof valueLabel === 'function' ? valueLabel(singleValue) : valueLabel) : singleValue}
+          </span>
+        )}
+        
         {/* Input field */}
         {showInput && (
-          <input
+          <TextField
             type="number"
             min={min}
             max={max}
             step={step}
             value={singleValue}
             onChange={(e) => {
-              const newValue = Number(e.target.value)
-              if (!isNaN(newValue)) {
-                const clampedValue = Math.max(min, Math.min(max, newValue))
-                if (isRange) {
-                  onChange([clampedValue, value[1]])
-                } else {
-                  onChange(clampedValue)
+              if (!readOnly) {
+                const newValue = Number(e.target.value)
+                if (!isNaN(newValue)) {
+                  const clampedValue = Math.max(min, Math.min(max, newValue))
+                  if (isRange) {
+                    onChange([clampedValue, value[1]])
+                  } else {
+                    onChange(clampedValue)
+                  }
                 }
               }
             }}
-            disabled={disabled}
+            state={disabled ? 'disabled' : 'default'}
+            readOnly={readOnly}
+            layer="layer-0"
             style={{
               width: `var(${inputWidthVar}, 60px)`,
-              height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
-              paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-              paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-              paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-              paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-              borderWidth: `var(${getFormCssVar('field', 'size', 'border-thickness-default')})`,
-              borderStyle: 'solid',
-              borderColor: `var(${getFormCssVar('field', 'colors', 'border')})`,
-              borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
-              background: `var(${getFormCssVar('field', 'colors', 'background')})`,
-              color: `var(${getFormCssVar('field', 'colors', 'text-valued')})`,
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              opacity: disabled ? 0.5 : 1,
             }}
           />
         )}
@@ -421,8 +496,10 @@ export function Slider({
     const maxValueWidth = 30 // Approximate width for max value display
     
     if (layout === 'side-by-side' && label) {
+      // For side-by-side, use Label's gutter property
+      const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelSliderGapVar}, 8px)`, width: '100%', ...style }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: gapValue, width: '100%', ...style }}>
           <div style={{ flexShrink: 0, minWidth: 100, width: 100 }}>
             {label}
           </div>
@@ -437,22 +514,12 @@ export function Slider({
       )
     }
     
+    // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVar}, 8px)`, ...style }}>
+      <div style={{ display: 'flex', flexDirection: 'column', ...style }}>
         {label && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {label}
-            {showValueLabel && (
-              <span style={{ 
-                fontSize: 12, 
-                color: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color)`,
-                opacity: `var(--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis, 0.7)`, 
-                width: maxValueWidth,
-                textAlign: 'right',
-              }}>
-                {valueLabel ? (typeof valueLabel === 'function' ? valueLabel(singleValue) : valueLabel) : singleValue}
-              </span>
-            )}
           </div>
         )}
         {sliderElement}
@@ -508,6 +575,7 @@ export function Slider({
         minLabel={minLabel}
         maxLabel={maxLabel}
         showMinMaxLabels={showMinMaxLabels}
+        readOnly={readOnly}
         className={className}
         style={style}
         mantine={mantine}
@@ -517,8 +585,10 @@ export function Slider({
     </Suspense>
   )
   
-  // Get layout-specific gap for label row
-  const labelSliderGapVarForLibrary = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'label-slider-gap')
+  // Get Label's gutter for side-by-side layout (Label component manages spacing)
+  const labelGutterVarForLibrary = layout === 'side-by-side'
+    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+    : null
   
   // Render value label using Label component to match label styling
   // Always show the value label when showValueLabel is true
@@ -597,9 +667,14 @@ export function Slider({
     )
   }
   
-  // For stacked layout, show the label and value label on top
+  // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
+  const gapValueForLibrary = labelGutterVarForLibrary ? `var(${labelGutterVarForLibrary})` : '0px'
+  
+  // When Component is not null, sliderComponent wraps it but has showValueLabel={false}
+  // So we need to render the value label ourselves in the label row
+  // When Component is null, we return early in the fallback block, so sliderElement is used
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelSliderGapVarForLibrary}, 8px)`, width: '100%', minWidth: 0, ...style }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: gapValueForLibrary, width: '100%', minWidth: 0, ...style }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minWidth: 0, gap: '8px' }}>
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>{label}</div>
         {valueLabelElement}

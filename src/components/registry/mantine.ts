@@ -32,6 +32,12 @@ registerComponent('mantine', 'Chip', () => import('../adapters/mantine/Chip/Chip
 // Label
 registerComponent('mantine', 'Label', () => import('../adapters/mantine/Label/Label'))
 
+// AssistiveElement
+registerComponent('mantine', 'AssistiveElement', () => import('../adapters/mantine/AssistiveElement/AssistiveElement'))
+
+// TextField
+registerComponent('mantine', 'TextField', () => import('../adapters/mantine/TextField/TextField'))
+
 // Breadcrumb
 registerComponent('mantine', 'Breadcrumb', () => import('../adapters/mantine/Breadcrumb/Breadcrumb'))
 

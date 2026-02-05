@@ -263,33 +263,16 @@ function traverseUIKit(
         const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
         
         if (resolved) {
-          // Check if this is a UIKit self-reference pointing to a component-level property
-          // If so, skip creating the variant-level CSS variable (it will resolve to the component-level one)
-          // This prevents creating unnecessary variant-level CSS variables for properties like
-          // chip.error.text and chip.error.icon that reference component-level properties
-          if (typeof val === 'string' && val.trim().startsWith('{ui-kit.components.')) {
-            const refPath = val.trim().slice(1, -1).trim()
-            // Check if this is a component-level property reference (not a variant-level one)
-            // Component-level: {ui-kit.components.chip.properties.*}
-            // Variant-level: {ui-kit.components.chip.variants.styles.*}
-            if (refPath.includes('.properties.') && !refPath.includes('.variants.styles.')) {
-              // Skip creating this variant-level CSS variable - it will resolve to the component-level one
-              return
-            }
-          }
+          // Always create the CSS variable, even if it references a component-level property
+          // Components may reference variant-level CSS variables, so we need to create them
+          // The resolved value will point to the component-level variable via var()
           vars[cssVarName] = resolved
         } else if (val != null) {
           // Check if val is a brace reference that couldn't be resolved yet
           // (e.g., UIKit self-reference that doesn't exist yet)
           if (typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')) {
-            const refPath = val.trim().slice(1, -1).trim()
-            // Check if this is a component-level property reference that will be resolved in second pass
-            // If so, skip creating the variant-level CSS variable now
-            if (refPath.startsWith('ui-kit.components.') && refPath.includes('.properties.') && !refPath.includes('.variants.styles.')) {
-              // Skip creating this variant-level CSS variable - it will resolve to the component-level one in second pass
-              return
-            }
             // Preserve the brace reference for second pass resolution
+            // Always create the CSS variable - components may reference variant-level variables
             vars[cssVarName] = val.trim()
           } else {
             // Use raw value if it's not a reference
@@ -369,6 +352,45 @@ export function buildUIKitVars(
   let iterations = 0
   const maxIterations = 10 // Prevent infinite loops
   
+  // Helper to extract component-level property path from UIKit reference
+  const extractComponentPropertyPath = (ref: string): string[] | null => {
+    const trimmed = ref.trim()
+    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return null
+    
+    const inner = trimmed.slice(1, -1).trim()
+    const parts = inner.split('.').filter(Boolean)
+    
+    // Look for pattern: ui-kit.components.{component}.properties.{path}
+    const componentsIdx = parts.indexOf('components')
+    if (componentsIdx === -1 || componentsIdx + 2 >= parts.length) return null
+    
+    const componentName = parts[componentsIdx + 1]
+    const propertiesIdx = parts.indexOf('properties', componentsIdx + 2)
+    if (propertiesIdx === -1) return null
+    
+    return [componentName, ...parts.slice(propertiesIdx + 1)]
+  }
+  
+  // Helper to look up component-level property in UIKit.json
+  const lookupComponentProperty = (path: string[]): any => {
+    if (path.length === 0) return null
+    
+    const uikitRoot: any = uikit
+    const components = uikitRoot?.['ui-kit']?.components || uikitRoot?.['0']?.components || {}
+    const componentName = path[0]
+    const component = components[componentName]
+    if (!component) return null
+    
+    // Navigate to properties.{rest of path}
+    let current: any = component.properties
+    for (let i = 1; i < path.length; i++) {
+      if (!current || typeof current !== 'object') return null
+      current = current[path[i]]
+    }
+    
+    return current
+  }
+  
   while (changed && iterations < maxIterations) {
     changed = false
     iterations++
@@ -385,10 +407,42 @@ export function buildUIKitVars(
           if (resolved && typeof resolved === 'string' && !resolved.startsWith('{')) {
             vars[key] = resolved
             changed = true
-          } else if (!resolved) {
-            // Unresolved references will be caught by the CSS var audit
-            // Silently skip - these are expected for some references that may not be resolvable
-          }
+            } else if (!resolved) {
+              // Check if this is a UIKit self-reference to a component-level property
+              // that doesn't exist yet - try to generate it from UIKit.json
+              const componentPropPath = extractComponentPropertyPath(trimmed)
+              if (componentPropPath) {
+                const propValue = lookupComponentProperty(componentPropPath)
+                if (propValue && typeof propValue === 'object' && '$value' in propValue && '$type' in propValue) {
+                  // Found the component-level property in UIKit.json - generate its CSS variable
+                  const componentName = componentPropPath[0]
+                  const propPath = componentPropPath.slice(1)
+                  const componentPropCssVarName = toCssVarName(`components.${componentName}.properties.${propPath.join('.')}`, mode)
+                  
+                  // Only generate if it doesn't already exist
+                  if (!vars[componentPropCssVarName]) {
+                    // Resolve the property value recursively
+                    const propResolved = resolveTokenRef(propValue.$value, tokenIndex, theme, uikit, 0, vars, mode)
+                    if (propResolved && typeof propResolved === 'string' && !propResolved.startsWith('{')) {
+                      vars[componentPropCssVarName] = propResolved
+                      changed = true
+                      
+                      // Now try to resolve the original reference again
+                      const retryResolved = resolveTokenRef(value, tokenIndex, theme, uikit, 0, vars, mode)
+                      if (retryResolved && typeof retryResolved === 'string' && !retryResolved.startsWith('{')) {
+                        vars[key] = retryResolved
+                        changed = true
+                      }
+                    }
+                  }
+                }
+                // Component-level property doesn't exist in UIKit.json - skip it
+                // Unresolved references will be caught by the CSS var audit
+              }
+              
+              // Unresolved references will be caught by the CSS var audit
+              // Silently skip - these are expected for some references that may not be resolvable
+            }
         }
         
         // Check for var() references to UIKit vars that might not exist

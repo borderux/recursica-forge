@@ -32,6 +32,7 @@ import { createBugReport } from '../utils/bugReport'
 import { randomizeAllVariables } from '../../../core/utils/randomizeVariables'
 import { RandomizeOptionsModal } from '../../../core/utils/RandomizeOptionsModal'
 import { getCssAuditAutoRun, setCssAuditAutoRun } from '../../../core/utils/cssAuditPreference'
+import { runCssVarAudit } from '../../../core/utils/runCssVarAudit'
 
 export default function MantineShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -323,6 +324,12 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                         onChange={(checked) => {
                           setCssAuditAutoRunState(checked)
                           setCssAuditAutoRun(checked)
+                          // Trigger audit immediately when enabled
+                          if (checked) {
+                            setTimeout(() => {
+                              runCssVarAudit(false)
+                            }, 500) // Small delay to ensure CSS vars are ready
+                          }
                         }}
                         sizeVariant="small"
                       />

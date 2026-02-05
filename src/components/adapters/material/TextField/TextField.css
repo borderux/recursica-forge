@@ -1,0 +1,28 @@
+/**
+ * Material UI TextField CSS
+ * 
+ * CSS overrides for Material UI TextField component.
+ */
+
+.recursica-text-field-wrapper {
+  position: relative;
+}
+
+.recursica-text-field-input {
+  /* Input styles are applied via inline styles from component */
+}
+
+.recursica-text-field-leading-icon,
+.recursica-text-field-trailing-icon {
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+/* Ensure SVG icons scale to fill their container */
+.recursica-text-field-leading-icon svg,
+.recursica-text-field-trailing-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+}

@@ -23,6 +23,7 @@ export type LabelProps = {
   className?: string
   style?: React.CSSProperties
   required?: boolean
+  id?: string
 } & LibrarySpecificProps
 
 export function Label({

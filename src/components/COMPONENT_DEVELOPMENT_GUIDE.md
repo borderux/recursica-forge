@@ -14,6 +14,7 @@ For experienced developers, here's the essential workflow:
 4. **Register Components** - Add to registry files and `ComponentName` type
 5. **Create Tests** - **MANDATORY**: Toolbar integration tests (`{ComponentName}.toolbar.test.tsx`)
 6. **Create Toolbar Config** (`{ComponentName}.toolbar.json`) - Define toolbar controls
+7. **Add to Navigation** - **MANDATORY**: Add component to `ComponentsSidebar.tsx` baseComponents array
 
 **Key Principles:**
 - Use CSS variables directly (no React listeners) for most properties
@@ -639,6 +640,87 @@ These abstractions automatically:
 
 **Implementation**: The slider abstractions are automatically used in `PropControlContent.tsx` based on the property name. You don't need to do anything special in the toolbar config - just define the property normally, and the system will automatically use the appropriate slider.
 
+#### Using Toolbar Modules for Common Props
+
+**CRITICAL**: Always use toolbar modules for common property groups when possible. Toolbar modules provide reusable, consistent UI controls for groups of related properties.
+
+**Available Toolbar Modules:**
+
+1. **BorderGroupToolbar** - Use for `border` prop groups containing:
+   - `border-size`, `border-radius`, `border-color` (optional)
+   - Automatically detected when prop name is `border` and group contains these properties
+
+2. **PaddingGroupToolbar** - Use for `padding` prop groups containing:
+   - `horizontal-padding`, `vertical-padding`
+   - Automatically detected when prop name is `padding` and group contains these properties
+
+3. **WidthGroupToolbar** - Use for `width` prop groups containing:
+   - `min-width`, `max-width`, `min-height` (optional)
+   - Automatically detected when prop name is `width` and group contains these properties
+
+4. **ElevationToolbar** - Use for single `elevation` prop
+   - Automatically detected when prop name is `elevation`
+
+5. **BackgroundToolbar** - Use for `background` prop groups containing:
+   - `background`, `selected-background` (optional)
+   - Automatically detected when prop name is `background` and group contains these properties
+
+6. **IconGroupToolbar** - Use for `icon` prop groups containing:
+   - `icon-size`, `icon-text-gap`, icon colors (optional)
+   - Automatically detected when prop name is `icon` and group contains these properties
+
+**How to Use Modules:**
+
+Modules are automatically detected and used when:
+1. The prop name matches a module name (`border`, `padding`, `width`, `elevation`, `background`, `icon`)
+2. The grouped props config exists in toolbar config with the expected property names
+3. The required properties are found in the component structure
+
+**Example - Using Border Module:**
+
+```json
+{
+  "props": {
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "visible": true,
+      "group": {
+        "border-size": {
+          "icon": "arrows-left-right",
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius",
+          "visible": true
+        },
+        "border-color": {
+          "icon": "paint-bucket",
+          "label": "Color",
+          "visible": true
+        }
+      }
+    }
+  }
+}
+```
+
+The `BorderGroupToolbar` module will automatically be used for this prop group - no additional configuration needed!
+
+**Benefits of Using Modules:**
+- ✅ Consistent UI/UX across all components
+- ✅ Single source of truth for control behavior
+- ✅ Automatic updates when modules are improved
+- ✅ Reduced code duplication
+- ✅ Easier maintenance
+
+**When NOT to Use Modules:**
+- Component-specific property groups that don't match module patterns
+- Unique property combinations not covered by existing modules
+- Properties that require custom control behavior
+
 #### Structure:
 
 ```json
@@ -680,12 +762,16 @@ These abstractions automatically:
 
 #### Key Points:
 
-1. **Variants**: Define variant selectors (style, size, layout, etc.) that match your UIKit.json structure
-2. **Props**: Map to UIKit.json property paths (e.g., `required-indicator-gap` maps to `properties.required-indicator-gap`)
-3. **Groups**: Use groups for related properties (e.g., border properties grouped together)
-4. **Icons**: Use Phosphor icon names (see `src/modules/components/iconUtils.ts` for available icons)
-5. **Visible**: Set `visible: true` for properties that should appear in the toolbar
-6. **Label Formatting**: **All labels must use sentence case** (first word capitalized, subsequent words lowercase). Examples:
+1. **Use Toolbar Modules**: **ALWAYS** use toolbar modules for common property groups (`border`, `padding`, `width`, `elevation`, `background`, `icon`) when possible. Modules are automatically detected - just use the correct prop name and group structure.
+
+2. **Use Slider Components**: **ALWAYS** use slider components for all dimension properties. Toolbar modules already use sliders internally, so using modules ensures compliance.
+
+3. **Variants**: Define variant selectors (style, size, layout, etc.) that match your UIKit.json structure
+4. **Props**: Map to UIKit.json property paths (e.g., `required-indicator-gap` maps to `properties.required-indicator-gap`)
+5. **Groups**: Use groups for related properties (e.g., border properties grouped together)
+6. **Icons**: Use Phosphor icon names (see `src/modules/components/iconUtils.ts` for available icons)
+7. **Visible**: Set `visible: true` for properties that should appear in the toolbar
+8. **Label Formatting**: **All labels must use sentence case** (first word capitalized, subsequent words lowercase). Examples:
    - ✅ "Font size" (not "Font Size")
    - ✅ "Icon size" (not "Icon Size")
    - ✅ "Corner radius" (not "Corner Radius")
@@ -710,35 +796,70 @@ case '{component-name-kebab-case}':
 
 The component name should be in kebab-case (e.g., `label`, `button`, `chip`).
 
-### Step 8 (Optional): Add Component to Left Navigation Sidebar
+### Step 8: Add Component to Left Navigation Sidebar
 
 **File**: `src/modules/preview/ComponentsSidebar.tsx`
 
-The sidebar automatically detects mapped components from UIKit.json (components that exist in `ui-kit.components`). However, you need to add the component to the `allComponents` array if it doesn't already exist.
+**MANDATORY**: All new components must be added to the left navigation sidebar so they appear in the Components page navigation.
 
-1. **Check if component exists**: Look for your component name in the `allComponents` array (around line 43-81).
+The sidebar automatically detects mapped components from UIKit.json (components that exist in `ui-kit.components`). However, you **must** add the component to the `baseComponents` array if it doesn't already exist.
 
-2. **If component doesn't exist**, add it to the array in alphabetical order:
+1. **Check if component exists**: Look for your component name in the `baseComponents` array (around line 63-105).
+
+2. **If component doesn't exist**, add it to the array. The array is automatically sorted alphabetically, so you can add it anywhere:
 ```typescript
-const allComponents = useMemo(() => {
+const baseComponents = useMemo(() => {
   const base = 'https://www.recursica.com/docs/components'
-  const components = [
+  return [
     { name: 'Accordion', url: `${base}/accordion` },
+    { name: 'Accordion item', url: `${base}/accordion-item` },
+    { name: 'Assistive element', url: `${base}/assistive-element` },
+    { name: 'Avatar', url: `${base}/avatar` },
     // ... existing components ...
     { name: '{ComponentName}', url: `${base}/{component-slug}` },
     // ... rest of components ...
   ]
-  // ... rest of code ...
-}, [mappedComponents, showUnmapped])
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(comp => ({
+      ...comp,
+      isMapped: mappedComponents.has(comp.name)
+    }))
+}, [mappedComponents])
 ```
 
 3. **If component already exists**, no changes needed - it will automatically be marked as "mapped" once it's added to UIKit.json.
 
-**Note**: The component name in the array should match the Title Case version (e.g., "Label", "Button", "Text field"). The sidebar automatically converts UIKit.json kebab-case names (e.g., "label", "button", "text-field") to Title Case for comparison.
+**Important Notes**:
+- The component name in the array should match the Title Case version (e.g., "Assistive element", "Label", "Button", "Text field")
+- The sidebar automatically converts UIKit.json kebab-case names (e.g., "assistive-element", "label", "button", "text-field") to Title Case for comparison
+- The URL slug should be in kebab-case (e.g., "assistive-element", "text-field")
+- The array is automatically sorted alphabetically, so component order doesn't matter
 
 #### Mandatory Rules
 
-1. **Never Modify Component Structure**
+1. **ALWAYS Use Toolbar Modules for Common Props**
+   - ✅ **ALWAYS** use toolbar modules (`BorderGroupToolbar`, `PaddingGroupToolbar`, `WidthGroupToolbar`, `ElevationToolbar`, `BackgroundToolbar`, `IconGroupToolbar`) when your component has property groups that match module patterns
+   - ✅ **ALWAYS** check if an existing module can handle your property group before creating custom controls
+   - ❌ **NEVER** create custom inline controls for property groups that match existing module patterns
+   - ❌ **NEVER** duplicate module functionality in component-specific code
+   - **Available Modules**: See [Using Toolbar Modules for Common Props](#using-toolbar-modules-for-common-props) section above
+   - **How Modules Work**: Modules are automatically detected based on prop name and grouped props structure - no special configuration needed
+   - **Benefits**: Consistent UI/UX, single source of truth, easier maintenance
+
+2. **ALL Dimension Properties MUST Use Slider Components**
+   - ✅ **ALWAYS** use the `Slider` component for ALL dimension properties (padding, margin, width, height, border-thickness, border-radius, icon-size, gaps, etc.)
+   - ❌ **NEVER** use `DimensionTokenSelector` or any other non-slider control for dimension properties
+   - ❌ **NEVER** allow dimension properties to fall through to default handlers that might use dropdowns or other non-slider controls
+   - **This rule applies to:**
+     - All padding properties (horizontal-padding, vertical-padding, padding, etc.)
+     - All border properties (border-thickness, border-radius, border-size, etc.)
+     - All size properties (width, height, min-width, max-width, icon-size, etc.)
+     - All gap/spacing properties (icon-text-gap, label-field-gap, item-gap, etc.)
+   - **Implementation**: When adding new components with dimension properties, you MUST add explicit slider handling in `PropControlContent.tsx` BEFORE any generic dimension handlers
+   - **Example**: See TextField component slider handling for the correct pattern
+   - **Note**: Toolbar modules (like `BorderGroupToolbar`, `PaddingGroupToolbar`) already use slider components internally - using modules ensures compliance with this rule
+
+2. **Never Modify Component Structure**
    - ❌ **DO NOT** wrap components in custom elements (spans, divs, etc.)
    - ❌ **DO NOT** create custom wrapper elements for icons, text, or other content
    - ❌ **DO NOT** conditionally render different component structures

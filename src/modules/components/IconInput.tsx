@@ -10,6 +10,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { iconNameToReactComponent } from './iconUtils'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
+import { TextField } from '../../components/adapters/TextField'
 import './IconInput.css'
 
 interface IconInputProps {
@@ -85,12 +86,11 @@ export default function IconInput({
       </label>
       
       <div className="icon-input-container">
-        <input
-          type="text"
-          className="icon-input-field"
+        <TextField
           value={inputValue}
           onChange={handleInputChange}
           placeholder="Enter icon name (e.g., check, x-mark)"
+          className="icon-input-field"
         />
         
         {/* Preview current icon */}

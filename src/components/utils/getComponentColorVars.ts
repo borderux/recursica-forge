@@ -45,7 +45,7 @@ export function getComponentColorVars({
   }
   
   const bgVar = getComponentCssVar(componentName, 'colors', `${variantPath}-background`, layer)
-  const borderVar = getComponentCssVar(componentName, 'colors', `${variantPath}-border`, layer)
+  const borderVar = getComponentCssVar(componentName, 'colors', `${variantPath}-border-color`, layer)
   
   // Use text-color for text variants, icon-color for icon variants
   let labelVar: string
@@ -58,10 +58,10 @@ export function getComponentColorVars({
     labelVar = getComponentCssVar(componentName, 'colors', `${variantPath}-background`, layer) // Fallback
   }
   
-  // For images, use the image variant's border instead of the current variant's border
+  // For images, use the image variant's border-color instead of the current variant's border-color
   let finalBorderVar = borderVar
   if ((src && !imageError) || colorVariant === 'image') {
-    finalBorderVar = getComponentCssVar(componentName, 'colors', 'image-border', layer)
+    finalBorderVar = getComponentCssVar(componentName, 'colors', 'image-border-color', layer)
   }
   
   return { bgVar, borderVar: finalBorderVar, labelVar }

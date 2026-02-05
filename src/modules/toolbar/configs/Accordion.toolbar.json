@@ -13,7 +13,7 @@
       "visible": true,
       "floatingPaletteLabel": "Border",
       "group": {
-        "border": {
+        "border-color": {
           "label": "Border color",
           "visible": true,
           "floatingPaletteLabel": "Border Color"

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { hexToHsv, hsvToHex, toKebabCase } from '../tokens/colors/colorUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
+import { TextField } from '../../components/adapters/TextField'
 
 export type ColorPickerOverlayProps = {
   tokenName: string
@@ -202,8 +203,7 @@ export function ColorPickerOverlay({
         style={{ width: '100%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)', cursor: 'ew-resize' }}
       />
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <input
-          type="text"
+        <TextField
           value={hexInput}
           onChange={(e) => {
             const raw = e.currentTarget.value
@@ -215,7 +215,8 @@ export function ColorPickerOverlay({
               onChange(normalized, cascadeDown, cascadeUp)
             }
           }}
-          style={{ flex: 1, fontSize: 13, padding: '6px 8px', border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`, borderRadius: 6 }}
+          style={{ flex: 1, fontSize: 13 }}
+          layer="layer-3"
         />
         <button
           title="Name this color"

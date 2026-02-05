@@ -17,6 +17,9 @@
   font-style: var(--badge-font-style) !important;
   padding: var(--badge-padding-vertical, 4px) var(--badge-padding-horizontal, 8px) !important;
   border-radius: var(--badge-border-radius) !important;
+  border-width: var(--badge-border-size, 0px) !important;
+  border-style: solid !important;
+  border-color: var(--badge-border-color, transparent) !important;
   display: inline-block !important;
   height: auto !important; /* Ensure min-height controls the height */
 }

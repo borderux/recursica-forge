@@ -77,9 +77,9 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         return
       }
 
-      // Check if this key is a category container (styles, sizes, layouts, orientation, fill-width) when traversing nested variants
+      // Check if this key is a category container (styles, sizes, layouts, orientation, fill-width, types, states) when traversing nested variants
       // This handles cases like variants.layouts.stacked.variants.sizes where we traverse directly into the nested variants object
-      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width') && 
+      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width' || key === 'types' || key === 'states') && 
                                    typeof value === 'object' && 
                                    value !== null &&
                                    !('$value' in value) &&
@@ -97,6 +97,8 @@ export function parseComponentStructure(componentName: string): ComponentStructu
               : categoryKey === 'layouts' ? 'layout'
               : categoryKey === 'orientation' ? 'orientation'
               : categoryKey === 'fill-width' ? 'fill-width'
+              : categoryKey === 'types' ? 'types'
+              : categoryKey === 'states' ? 'states'
               : categoryKey
             const isNestedSize = finalPropName === 'size' && variantProp === 'layout'
           const shouldAdd = isNestedSize || !seenVariants.has(finalPropName)
@@ -125,6 +127,8 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           : categoryKey === 'layouts' ? 'layout'
           : categoryKey === 'orientation' ? 'orientation'
           : categoryKey === 'fill-width' ? 'fill-width'
+          : categoryKey === 'types' ? 'types'
+          : categoryKey === 'states' ? 'states'
           : categoryKey
         traverse(categoryObj, currentPath, variantPropName)
         return
@@ -132,10 +136,10 @@ export function parseComponentStructure(componentName: string): ComponentStructu
 
       // Check if this is a "variants" node
       if (key === 'variants' && typeof value === 'object' && value !== null && !('$value' in value)) {
-        // Check if this variants object contains category containers (styles, sizes, layouts)
-        // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left
+        // Check if this variants object contains category containers (styles, sizes, layouts, types, states)
+        // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left or variants.types.help or variants.states.default
         // Also handles nested: variants.layouts.side-by-side.variants.sizes.default
-        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts'))
+        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states'))
         
         if (categoryKeys.length > 0) {
           // NEW STRUCTURE: variants.styles, variants.sizes, and variants.layouts are category containers
@@ -153,6 +157,8 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                   : categoryKey === 'layouts' ? 'layout'
                   : categoryKey === 'orientation' ? 'orientation'
                   : categoryKey === 'fill-width' ? 'fill-width'
+                  : categoryKey === 'types' ? 'types'
+                  : categoryKey === 'states' ? 'states'
                   : categoryKey
                 
                 // For nested variants (e.g., size inside layout), check if we should add it
@@ -187,7 +193,12 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           // Continue traversing with appropriate variant prop names
           categoryKeys.forEach(categoryKey => {
             const categoryObj = (value as any)[categoryKey]
-            const variantPropName = categoryKey === 'styles' ? 'style' : categoryKey === 'sizes' ? 'size' : 'layout'
+            const variantPropName = categoryKey === 'styles' ? 'style' 
+              : categoryKey === 'sizes' ? 'size' 
+              : categoryKey === 'layouts' ? 'layout'
+              : categoryKey === 'types' ? 'types'
+              : categoryKey === 'states' ? 'states'
+              : categoryKey
             if (categoryObj && typeof categoryObj === 'object') {
               // Traverse each variant within the category
               Object.keys(categoryObj).forEach(variantKey => {
@@ -412,10 +423,10 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         // Continue traversing - this is an object (not a value)
         // In new structure, variant values like "solid" are objects containing "color"
         
-        // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text, min-max-label, read-only-value)
+        // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text, min-max-label, read-only-value, value, placeholder)
         // Text property groups are objects containing text-related properties (font-family, font-size, etc.)
         // We need to create a prop for the parent group so it shows up in the toolbar
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value']
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder']
         const isTextPropertyGroup = textPropertyGroupNames.includes(key.toLowerCase()) && 
                                      typeof value === 'object' && 
                                      value !== null &&

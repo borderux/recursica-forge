@@ -32,8 +32,6 @@
 }/* Ensure track and container don't have overflow hidden */
 .MuiSwitch-root {
   overflow: visible !important;
-}
-
-.MuiSwitch-track {
+}.MuiSwitch-track {
   overflow: visible !important;
 }

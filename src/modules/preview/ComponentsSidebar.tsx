@@ -65,6 +65,7 @@ export function ComponentsSidebar({
     return [
       { name: 'Accordion', url: `${base}/accordion` },
       { name: 'Accordion item', url: `${base}/accordion-item` },
+      { name: 'Assistive element', url: `${base}/assistive-element` },
       { name: 'Avatar', url: `${base}/avatar` },
       { name: 'Badge', url: `${base}/badge` },
       { name: 'Breadcrumb', url: `${base}/breadcrumb` },

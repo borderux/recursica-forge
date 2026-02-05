@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { hexToHsv, hsvToHex } from '../tokens/colors/colorUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { TextField } from '../../components/adapters/TextField'
 
 export type ColorPickerModalProps = {
   open: boolean
@@ -181,8 +182,7 @@ export function ColorPickerModal({
               flexShrink: 0,
             }}
           />
-          <input
-            type="text"
+          <TextField
             value={hexInput}
             onChange={(e) => {
               const raw = e.currentTarget.value
@@ -193,14 +193,9 @@ export function ColorPickerModal({
                 setHsvState(hexToHsv(normalized))
               }
             }}
-            style={{
-              flex: 1,
-              fontSize: 14,
-              padding: '8px 12px',
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`,
-              borderRadius: 6,
-            }}
             placeholder="#000000"
+            style={{ flex: 1, fontSize: 14 }}
+            layer="layer-3"
           />
         </div>
 

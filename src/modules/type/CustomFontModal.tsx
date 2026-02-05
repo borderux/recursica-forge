@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { TextField } from '../../components/adapters/TextField'
 
 export type CustomFontModalProps = {
   open: boolean
@@ -168,19 +169,11 @@ export function CustomFontModal({
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ fontSize: 13, fontWeight: 500 }}>Font Name</span>
-            <input
-              type="text"
+            <TextField
               value={fontName}
               onChange={(e) => setFontName(e.target.value)}
               placeholder="e.g., My Custom Font"
-              style={{
-                padding: '8px 12px',
-                borderRadius: 6,
-                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
-                background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-                color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
-                fontSize: 14,
-              }}
+              layer="layer-1"
               autoFocus
             />
           </label>
@@ -213,22 +206,14 @@ export function CustomFontModal({
               <span style={{ fontSize: 13, fontWeight: 500 }}>
                 NPM Package Name
               </span>
-              <input
-                type="text"
+              <TextField
                 value={npmPackage}
                 onChange={(e) => {
                   setNpmPackage(e.target.value)
                   setSourceError('')
                 }}
                 placeholder="e.g., @fontsource/inter or fontsource-inter"
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 6,
-                  border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
-                  background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-                  color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
-                  fontSize: 14,
-                }}
+                layer="layer-1"
               />
               {sourceError && (
                 <div style={{ fontSize: 12, color: '#d32f2f', marginTop: -4 }}>
@@ -247,30 +232,21 @@ export function CustomFontModal({
                 <span style={{ fontSize: 13, fontWeight: 500 }}>
                   Git Repository URL
                 </span>
-                <input
-                  type="text"
+                <TextField
                   value={gitRepo}
                   onChange={(e) => {
                     setGitRepo(e.target.value)
                     setSourceError('')
                   }}
                   placeholder="e.g., https://github.com/user/repo"
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 6,
-                    border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
-                    background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-                    color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
-                    fontSize: 14,
-                  }}
+                  layer="layer-1"
                 />
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span style={{ fontSize: 13, fontWeight: 500 }}>
                   Font Path (Optional)
                 </span>
-                <input
-                  type="text"
+                <TextField
                   value={fontPath}
                   onChange={(e) => setFontPath(e.target.value)}
                   placeholder="e.g., fonts or dist/fonts"

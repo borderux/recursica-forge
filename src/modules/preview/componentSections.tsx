@@ -4,6 +4,8 @@ import { Switch } from '../../components/adapters/Switch'
 import { Avatar } from '../../components/adapters/Avatar'
 import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
+import { AssistiveElement } from '../../components/adapters/AssistiveElement'
+import { TextField } from '../../components/adapters/TextField'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
@@ -196,6 +198,41 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
               ]}
               layer={layer as any}
               allowMultiple={false}
+            />
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Assistive element',
+      url: `${base}/assistive-element`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+            <AssistiveElement
+              variant="help"
+              text="Help message"
+              layer={layer as any}
+            />
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Text field',
+      url: `${base}/text-field`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+            <TextField
+              label="Label"
+              placeholder="Placeholder text"
+              helpText="Help message"
+              state="default"
+              layout="stacked"
+              layer={layer as any}
             />
           </div>
         )

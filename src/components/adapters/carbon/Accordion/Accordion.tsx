@@ -35,7 +35,7 @@ export default function Accordion({
   
   // Container properties (Accordion)
   const containerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background')
-  const containerBorderVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'border')
+  const containerBorderVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'border-color')
   const containerBorderSizeVar = getComponentLevelCssVar('Accordion', 'border-size')
   const containerBorderRadiusVar = getComponentLevelCssVar('Accordion', 'border-radius')
   const containerPaddingVar = getComponentLevelCssVar('Accordion', 'padding')
@@ -50,6 +50,9 @@ export default function Accordion({
     const value = readCssVar(elevationVar)
     return value ? parseElevationValue(value) : undefined
   })
+  
+  // State to force re-render when container CSS variables change
+  const [, setContainerVarsUpdate] = useState(0)
   
   useEffect(() => {
     if (!elevationVar) return
@@ -80,6 +83,42 @@ export default function Accordion({
       observer.disconnect()
     }
   }, [elevationVar])
+  
+  // Listen for container CSS variable updates
+  useEffect(() => {
+    const containerCssVars = [
+      containerBgVar, containerBorderVar, containerBorderSizeVar, containerBorderRadiusVar,
+      containerPaddingVar, containerMinWidthVar, containerMaxWidthVar, itemGapVar
+    ]
+    
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => 
+        containerCssVars.includes(cssVar)
+      )
+      if (shouldUpdate) {
+        setContainerVarsUpdate(prev => prev + 1)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    window.addEventListener('cssVarsReset', handleCssVarUpdate)
+    
+    const observer = new MutationObserver(() => {
+      setContainerVarsUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [containerBgVar, containerBorderVar, containerBorderSizeVar, containerBorderRadiusVar, containerPaddingVar, containerMinWidthVar, containerMaxWidthVar, itemGapVar])
   
   const componentElevation = elevation ?? elevationFromVar ?? undefined
   const elevationBoxShadow = componentElevation && componentElevation !== 'elevation-0'

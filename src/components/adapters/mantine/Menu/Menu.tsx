@@ -22,7 +22,7 @@ export default function Menu({
   
   // Get CSS variables for colors
   const bgVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'background')
-  const borderVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'border')
+  const borderVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'border-color')
   
   // Get component-level properties
   const borderSizeVar = getComponentLevelCssVar('Menu', 'border-size')

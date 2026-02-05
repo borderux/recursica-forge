@@ -97,7 +97,7 @@ export default function Chip({
   // Use UIKit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
   const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
-  const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border', layer)
+  const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
   
   // For error variant (including error-selected), use component-level error color CSS variables
   let chipColorVar: string

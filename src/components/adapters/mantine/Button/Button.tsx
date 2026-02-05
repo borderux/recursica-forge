@@ -50,7 +50,7 @@ export default function Button({
   const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
   const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
   // Build border color CSS var path directly to ensure it matches UIKit.json structure
-  const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border')
+  const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   
   // Get the correct CSS variable reference for button color (used for text and border)
   const buttonColorRef = `var(${buttonColorVar})`

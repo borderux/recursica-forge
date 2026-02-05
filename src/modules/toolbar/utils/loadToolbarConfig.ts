@@ -17,6 +17,8 @@ import MenuConfig from '../configs/Menu.toolbar.json'
 import SliderConfig from '../configs/Slider.toolbar.json'
 import SegmentedControlConfig from '../configs/SegmentedControl.toolbar.json'
 import SegmentedControlItemConfig from '../configs/SegmentedControlItem.toolbar.json'
+import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
+import TextFieldConfig from '../configs/TextField.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -80,6 +82,12 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'segmented-control-item':
       case 'segmented control item':
         return SegmentedControlItemConfig as unknown as ToolbarConfig
+      case 'assistive-element':
+      case 'assistive element':
+        return AssistiveElementConfig as unknown as ToolbarConfig
+      case 'text-field':
+      case 'text field':
+        return TextFieldConfig as unknown as ToolbarConfig
       default:
         return null
     }
