@@ -596,13 +596,9 @@ export default function ComponentToolbar({
         }
       }
       
-      // For color props, check if layer matches (if prop has a layer in path)
-      if (prop.category === 'colors' && prop.path.some(p => p.startsWith('layer-'))) {
-        const layerInPath = prop.path.find(p => p.startsWith('layer-'))
-        if (layerInPath && layerInPath !== selectedLayer) {
-          return false
-        }
-      }
+      // NOTE: We do NOT filter by layer here. Props like "background" exist on all layers
+      // and should always be available in allProps. Layer-specific resolution happens
+      // inside individual toolbars (e.g., BackgroundToolbar) which receive selectedLayer.
       
       return true
     })
@@ -867,7 +863,7 @@ export default function ComponentToolbar({
             icon: Icon || undefined,
             content: (
               <PropControlContent
-                key={`${propKey}-${isOpen ? 'open' : 'closed'}`}
+                key={`${propKey}-${selectedLayer}`}
                 prop={prop}
                 componentName={componentName}
                 selectedVariants={selectedVariants}
