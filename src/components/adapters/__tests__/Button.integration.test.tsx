@@ -20,97 +20,53 @@ describe('Button Integration', () => {
     document.documentElement.style.cssText = ''
   })
 
-  const renderWithKit = async (kit: 'mantine' | 'material' | 'carbon') => {
-    let result: ReturnType<typeof render>
-    await act(async () => {
-      result = render(
-        <UiKitProvider>
-          <ThemeModeProvider>
-            <UnifiedThemeProvider>
-              <KitSwitcher kit={kit} />
-              <Button>Test Button</Button>
-            </UnifiedThemeProvider>
-          </ThemeModeProvider>
-        </UiKitProvider>
-      )
-      // Give time for kit switching and component initialization
-      // Material UI especially needs more time when running full test suite
-      await new Promise(resolve => setTimeout(resolve, kit === 'material' ? 100 : 50))
-    })
-    return result!
+  const renderWithKit = (kit: 'mantine' | 'material' | 'carbon') => {
+    return render(
+      <UiKitProvider>
+        <ThemeModeProvider>
+          <UnifiedThemeProvider>
+            <KitSwitcher kit={kit} />
+            <Button>Test Button</Button>
+          </UnifiedThemeProvider>
+        </ThemeModeProvider>
+      </UiKitProvider>
+    )
   }
 
   // Helper to wait for button component to load (not Suspense fallback)
-  // Note: waitFor already uses act() internally, so we don't wrap it
   const waitForButton = async (container: HTMLElement, expectedText?: string) => {
     return await waitFor(() => {
       const btn = container.querySelector('button')
       if (!btn) throw new Error('Button not found')
-      // Ensure it's not the loading button - check both text content and disabled state
       if (btn.textContent === 'Loading...' && btn.hasAttribute('disabled')) {
         throw new Error('Still loading')
       }
-      // Wait for actual button content if expected text provided
       if (expectedText && !btn.textContent?.includes(expectedText)) {
         throw new Error(`Button text mismatch: expected "${expectedText}", got "${btn.textContent}"`)
       }
-      // Ensure button is actually rendered (not just the loading fallback)
       if (btn.textContent === 'Loading...') {
         throw new Error('Still showing loading state')
       }
       return btn
-    }, { timeout: 20000 }) // Increased timeout for full test suite runs
+    }, { timeout: 5000 })
   }
 
   it('renders Mantine button when Mantine is selected', async () => {
-    const { container } = await renderWithKit('mantine')
-    
-    const button = await waitForButton(container, 'Test Button')
-    expect(button).toBeInTheDocument()
-    expect(screen.getByText('Test Button')).toBeInTheDocument()
+    const { container } = renderWithKit('mantine')
+    await waitForButton(container, 'Test Button')
+    expect(screen.getByRole('button', { name: /Test Button/ })).toBeInTheDocument()
   })
 
-  it('renders Material button when Material is selected', { timeout: 30000 }, async () => {
-    const { container } = await renderWithKit('material')
-    
-    // Material UI can take longer to initialize, especially in full test suite
-    // Wait for the button to appear with proper text (not loading state)
-    // Use screen.getByText which queries the document directly (more reliable)
-    const button = await waitFor(() => {
-      const btn = screen.getByText('Test Button')
-      // Ensure it's actually a button element and not still loading
-      if (btn.textContent === 'Loading...' && btn.hasAttribute('disabled')) {
-        throw new Error('Still loading')
-      }
-      if (btn.tagName.toLowerCase() !== 'button') {
-        throw new Error('Element is not a button')
-      }
-      return btn
-    }, { timeout: 20000 })
-    
-    expect(button).toBeInTheDocument()
-    expect(screen.getByText('Test Button')).toBeInTheDocument()
+  it('renders Material button when Material is selected', async () => {
+    const { container } = renderWithKit('material')
+    await waitForButton(container, 'Test Button')
+    expect(screen.getByRole('button', { name: /Test Button/ })).toBeInTheDocument()
   })
 
   it('renders Carbon button when Carbon is selected', async () => {
-    const { container } = await renderWithKit('carbon')
-    
-    // Carbon can take longer to initialize in CI environments
-    // Use screen.getByText which queries the document directly (more reliable)
-    const button = await waitFor(() => {
-      const btn = screen.getByText('Test Button')
-      // Ensure it's actually a button element and not still loading
-      if (btn.textContent === 'Loading...' && btn.hasAttribute('disabled')) {
-        throw new Error('Still loading')
-      }
-      if (btn.tagName.toLowerCase() !== 'button') {
-        throw new Error('Element is not a button')
-      }
-      return btn
-    }, { timeout: 20000 })
-    
-    expect(button).toBeInTheDocument()
-    expect(screen.getByText('Test Button')).toBeInTheDocument()
+    const { container } = renderWithKit('carbon')
+    await waitForButton(container, 'Test Button')
+    expect(screen.getByRole('button', { name: /Test Button/ })).toBeInTheDocument()
   })
 
   it.skip('maintains consistent props across libraries', { timeout: 60000 }, async () => {

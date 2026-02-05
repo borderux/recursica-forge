@@ -81,9 +81,20 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }))
 
+// Preload Button adapters used by Button integration tests so first render doesn't wait on dynamic import
+import { preloadComponent } from './src/components/registry'
+
 // Cleanup function to remove all event listeners and observers after each test
 // This prevents tests from hanging due to active listeners
-import { afterEach, afterAll } from 'vitest'
+import { afterEach, afterAll, beforeAll } from 'vitest'
+
+beforeAll(async () => {
+  await Promise.all([
+    preloadComponent('mantine', 'Button'),
+    preloadComponent('material', 'Button'),
+    preloadComponent('carbon', 'Button'),
+  ])
+})
 
 afterEach(async () => {
   // Cleanup React Testing Library (unmounts all components)

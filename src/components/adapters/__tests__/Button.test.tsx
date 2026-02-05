@@ -9,11 +9,8 @@ import { Button } from '../Button'
 const TestIcon = () => <svg data-testid="test-icon"><circle /></svg>
 
 describe('Button Component (Adapter)', () => {
-  beforeEach(async () => {
-    // Clear any CSS variables set in previous tests
+  beforeEach(() => {
     document.documentElement.style.cssText = ''
-    // Wait for providers to be ready before each test - they're lazy loaded
-    await new Promise(resolve => setTimeout(resolve, 200))
   })
 
   const renderWithProviders = (ui: React.ReactElement, kit: 'mantine' | 'material' | 'carbon' = 'mantine') => {
@@ -28,22 +25,18 @@ describe('Button Component (Adapter)', () => {
     )
   }
 
-  // Helper to wait for button component to load (not Suspense fallback)
   const waitForButton = async (container: HTMLElement, expectedText?: string) => {
     return await waitFor(() => {
       const btn = container.querySelector('button')
       if (!btn) throw new Error('Button not found')
-      // Ensure it's not the loading button - check if text is "Loading..." and button is disabled
-      // A disabled button that's loaded might still be disabled, so we only check if it's loading
       if (btn.textContent === 'Loading...' && btn.disabled) {
         throw new Error('Still loading')
       }
-      // Wait for actual button content if expected text provided
       if (expectedText && !btn.textContent?.includes(expectedText)) {
         throw new Error(`Button text mismatch: expected "${expectedText}", got "${btn.textContent}"`)
       }
       return btn
-    }, { timeout: 15000 })
+    }, { timeout: 5000 })
   }
 
 
@@ -57,8 +50,7 @@ describe('Button Component (Adapter)', () => {
     it('renders as button element', async () => {
       const { container } = renderWithProviders(<Button>Test</Button>)
       await waitForButton(container, 'Test')
-      const button = container.querySelector('button')
-      expect(button).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Test/ })).toBeInTheDocument()
     })
 
     it('renders with icon', async () => {
