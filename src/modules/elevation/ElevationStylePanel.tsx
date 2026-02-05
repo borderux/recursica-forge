@@ -8,6 +8,7 @@ import { useVars } from '../vars/VarsContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { readCssVar } from '../../core/css/readCssVar'
 import { tokenToCssVar } from '../../core/css/tokenRefs'
+import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
 type SizeToken = { name: string; value: number; label: string }
 type OpacityToken = { name: string; value: number; label: string }
@@ -444,13 +445,13 @@ export default function ElevationStylePanel({
   return (
     <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h2 style={{ 
+        <h3 style={{ 
           margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+          fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h3-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
           color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
         }}>
           {(() => {
@@ -459,7 +460,7 @@ export default function ElevationStylePanel({
             const list = levelsArr.slice().sort((a,b) => a-b).join(', ')
             return `Elevations ${list}`
           })()}
-        </h2>
+        </h3>
         <Button 
           onClick={onClose} 
           variant="text" 
@@ -468,7 +469,7 @@ export default function ElevationStylePanel({
           icon={CloseIcon ? <CloseIcon /> : undefined}
         />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap, 8px)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` }}>
         <div style={{ width: '100%', margin: 0, padding: 0 }}>
           <Slider
             key={`blur-${levelsArr[0]}-${elevationControls[`elevation-${levelsArr[0]}`]?.blur ?? 0}`}

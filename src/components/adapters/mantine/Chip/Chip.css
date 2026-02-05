@@ -12,32 +12,32 @@
   /* Border uses CSS custom property set by component - this is reactive and updates in real time */
   /* CRITICAL: CSS variables in stylesheets are reactive - they update when the variable on documentElement changes */
   /* Use border shorthand to ensure all properties are set together */
-  border: var(--chip-border-size, var(--recursica-ui-kit-components-chip-properties-border-size, 1px)) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
+  border: var(--chip-border-size, 1px) solid var(--chip-border, var(--mantine-color-gray-3)) !important;
   padding-left: var(--chip-padding-x) !important;
   padding-right: var(--chip-padding-x) !important;
-  padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
-  padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 8px))) !important;
+  padding-top: var(--chip-padding-y) !important;
+  padding-bottom: var(--chip-padding-y) !important;
   /* Override any fixed height from Mantine - let padding and content determine height */
   height: auto !important;
   min-height: auto !important;
   max-height: none !important;
   border-radius: var(--chip-border-radius, 16px) !important;
-  /* Use CSS custom properties set by component for reactive updates, with fallback to UIKit variables */
-  font-family: var(--chip-font-family, var(--recursica-ui-kit-components-chip-properties-text-font-family)) !important;
-  font-size: var(--chip-font-size, var(--recursica-ui-kit-components-chip-properties-text-font-size)) !important;
-  font-weight: var(--chip-font-weight, var(--recursica-ui-kit-components-chip-properties-text-font-weight)) !important;
-  letter-spacing: var(--chip-letter-spacing, var(--recursica-ui-kit-components-chip-properties-text-letter-spacing)) !important;
-  line-height: var(--chip-line-height, var(--recursica-ui-kit-components-chip-properties-text-line-height)) !important;
-  text-decoration: var(--chip-text-decoration, var(--recursica-ui-kit-components-chip-properties-text-text-decoration)) !important;
-  text-transform: var(--chip-text-transform, var(--recursica-ui-kit-components-chip-properties-text-text-transform)) !important;
-  font-style: var(--chip-font-style, var(--recursica-ui-kit-components-chip-properties-text-font-style)) !important;
+  /* Use CSS custom properties set by component for reactive updates */
+  font-family: var(--chip-font-family) !important;
+  font-size: var(--chip-font-size) !important;
+  font-weight: var(--chip-font-weight) !important;
+  letter-spacing: var(--chip-letter-spacing) !important;
+  line-height: var(--chip-line-height) !important;
+  text-decoration: var(--chip-text-decoration) !important;
+  text-transform: var(--chip-text-transform) !important;
+  font-style: var(--chip-font-style) !important;
   display: inline-flex !important;
   align-items: center !important;
   cursor: pointer !important;
   /* Use Chip's min-width and max-width CSS variables */
   /* This is reactive and updates in real time when the toolbar changes Chip's width */
-  min-width: var(--chip-min-width, var(--recursica-ui-kit-components-chip-properties-min-width)) !important;
-  max-width: var(--chip-max-width, var(--recursica-ui-kit-components-chip-properties-max-width)) !important;
+  min-width: var(--chip-min-width) !important;
+  max-width: var(--chip-max-width) !important;
 }
 
 /* Disabled state */
@@ -63,19 +63,18 @@
   color: var(--chip-leading-icon-color, var(--chip-icon-color, var(--chip-color))) !important;
   /* Icon size - use CSS variable with fallback to UIKit variable */
   /* Force exact size - no growth allowed - use fixed pixel fallback */
-  width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
-  height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
-  min-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
-  min-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
-  max-width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
-  max-height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  width: var(--chip-icon-size) !important;
+  height: var(--chip-icon-size) !important;
+  min-width: var(--chip-icon-size) !important;
+  min-height: var(--chip-icon-size) !important;
+  max-width: var(--chip-icon-size) !important;
+  max-height: var(--chip-icon-size) !important;
   /* Use CSS custom property set by component for real-time updates - CSS variables in stylesheets are reactive */
   /* When toolbar updates UIKit variable on documentElement, component updates --chip-icon-text-gap which updates this automatically */
-  /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-properties-icon-text-gap */
-  margin-inline-end: var(--chip-icon-text-gap, var(--recursica-ui-kit-components-chip-properties-icon-text-gap, 8px)) !important;
+  margin-inline-end: var(--chip-icon-text-gap) !important;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
-  flex-basis: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  flex-basis: var(--chip-icon-size) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -116,13 +115,13 @@
 
 .recursica-chip-delete {
   color: var(--chip-close-icon-color, var(--chip-icon-color, inherit)) !important;
-  width: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
-  height: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
-  min-width: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
-  min-height: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
-  max-width: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
-  max-height: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
-  font-size: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
+  width: var(--chip-close-icon-size) !important;
+  height: var(--chip-close-icon-size) !important;
+  min-width: var(--chip-close-icon-size) !important;
+  min-height: var(--chip-close-icon-size) !important;
+  max-width: var(--chip-close-icon-size) !important;
+  max-height: var(--chip-close-icon-size) !important;
+  font-size: var(--chip-close-icon-size) !important;
   line-height: 1 !important;
   opacity: 0.7 !important;
   display: inline-flex !important;

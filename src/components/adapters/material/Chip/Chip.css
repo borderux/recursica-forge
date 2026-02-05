@@ -10,22 +10,22 @@
   max-height: none !important;
   /* Use Chip's min-width and max-width CSS variables */
   /* This is reactive and updates in real time when the toolbar changes Chip's width */
-  min-width: var(--chip-min-width, var(--recursica-ui-kit-components-chip-properties-min-width)) !important;
-  max-width: var(--chip-max-width, var(--recursica-ui-kit-components-chip-properties-max-width)) !important;
+  min-width: var(--chip-min-width) !important;
+  max-width: var(--chip-max-width) !important;
   /* Padding is set inline in the component, but ensure it's not overridden */
-  padding-top: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px))) !important;
-  padding-bottom: var(--chip-padding-y, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px))) !important;
-  padding-left: var(--chip-padding-x, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px))) !important;
-  padding-right: var(--chip-padding-x, var(--recursica-ui-kit-components-chip-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px))) !important;
-  /* Use CSS custom properties set by component for reactive updates, with fallback to UIKit variables */
-  font-family: var(--chip-font-family, var(--recursica-ui-kit-components-chip-properties-text-font-family)) !important;
-  font-size: var(--chip-font-size, var(--recursica-ui-kit-components-chip-properties-text-font-size)) !important;
-  font-weight: var(--chip-font-weight, var(--recursica-ui-kit-components-chip-properties-text-font-weight)) !important;
-  letter-spacing: var(--chip-letter-spacing, var(--recursica-ui-kit-components-chip-properties-text-letter-spacing)) !important;
-  line-height: var(--chip-line-height, var(--recursica-ui-kit-components-chip-properties-text-line-height)) !important;
-  text-decoration: var(--chip-text-decoration, var(--recursica-ui-kit-components-chip-properties-text-text-decoration)) !important;
-  text-transform: var(--chip-text-transform, var(--recursica-ui-kit-components-chip-properties-text-text-transform)) !important;
-  font-style: var(--chip-font-style, var(--recursica-ui-kit-components-chip-properties-text-font-style)) !important;
+  padding-top: var(--chip-padding-y) !important;
+  padding-bottom: var(--chip-padding-y) !important;
+  padding-left: var(--chip-padding-x) !important;
+  padding-right: var(--chip-padding-x) !important;
+  /* Use CSS custom properties set by component for reactive updates */
+  font-family: var(--chip-font-family) !important;
+  font-size: var(--chip-font-size) !important;
+  font-weight: var(--chip-font-weight) !important;
+  letter-spacing: var(--chip-letter-spacing) !important;
+  line-height: var(--chip-line-height) !important;
+  text-decoration: var(--chip-text-decoration) !important;
+  text-transform: var(--chip-text-transform) !important;
+  font-style: var(--chip-font-style) !important;
 }
 
 .MuiChip-root.Mui-disabled {
@@ -34,13 +34,12 @@
 
 /* Icon styling - use native icon prop */
 .MuiChip-root .MuiChip-icon {
-  width: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
-  height: var(--chip-icon-size, var(--recursica-ui-kit-components-chip-properties-icon-size, 16px)) !important;
+  width: var(--chip-icon-size) !important;
+  height: var(--chip-icon-size) !important;
   color: var(--chip-leading-icon-color, var(--chip-icon-color, var(--chip-color))) !important;
   /* Use CSS custom property set by component for real-time updates - toolbar updates this on document root */
   /* When toolbar updates UIKit variable on documentElement, component updates --chip-icon-text-gap which updates this automatically */
-  /* icon-text-gap is at component level (not under size), so variable is --recursica-ui-kit-components-chip-properties-icon-text-gap */
-  margin-right: var(--chip-icon-text-gap, var(--recursica-ui-kit-components-chip-properties-icon-text-gap, 8px)) !important;
+  margin-right: var(--chip-icon-text-gap) !important;
   flex-shrink: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -54,9 +53,9 @@
 
 /* Delete icon styling */
 .MuiChip-root .MuiChip-deleteIcon {
-  width: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
-  height: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
-  font-size: var(--chip-close-icon-size, var(--recursica-ui-kit-components-chip-properties-close-icon-size, 16px)) !important;
+  width: var(--chip-close-icon-size) !important;
+  height: var(--chip-close-icon-size) !important;
+  font-size: var(--chip-close-icon-size) !important;
   color: var(--chip-close-icon-color, var(--chip-icon-color, inherit)) !important;
   opacity: 0.7 !important;
 }

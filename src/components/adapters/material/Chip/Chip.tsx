@@ -236,10 +236,10 @@ export default function Chip({
       // CSS will use --chip-color which is set in style prop and references the UIKit variable
       borderColor: `var(${chipBorderVar})`,
       borderWidth: `var(${borderSizeVar})`,
-      paddingLeft: `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,
-      paddingRight: `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,
-      paddingTop: `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
-      paddingBottom: `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
+      paddingLeft: `var(${horizontalPaddingVar})`,
+      paddingRight: `var(${horizontalPaddingVar})`,
+      paddingTop: `var(${verticalPaddingVar})`,
+      paddingBottom: `var(${verticalPaddingVar})`,
       borderRadius: `var(${borderRadiusVar})`,
       // Apply text styles using CSS variables from text style toolbar (inline fallback)
       fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,

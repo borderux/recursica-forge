@@ -250,8 +250,8 @@ export default function Chip({
       // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
       // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
       '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
-      '--chip-padding-x': `var(${horizontalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-horizontal-padding, var(--recursica-brand-dimensions-general-default, 8px)))`,
-      '--chip-padding-y': `var(${verticalPaddingVar}, var(--recursica-ui-kit-components-chip-properties-vertical-padding, var(--recursica-brand-dimensions-general-sm, 4px)))`,
+      '--chip-padding-x': `var(${horizontalPaddingVar})`,
+      '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,
       '--chip-border-radius': `var(${borderRadiusVar})`,
       // Set CSS custom properties for text styles (used by CSS file)

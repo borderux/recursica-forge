@@ -12,6 +12,7 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
+import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
 // Helper to format dimension label from key
 const formatDimensionLabel = (key: string): string => {
@@ -881,15 +882,15 @@ export default function LayerStylePanel({
   return (
     <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-text-color)`, borderLeft: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, borderRadius: `0 var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) 0`, boxShadow: panelBoxShadow, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-padding)`, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h2 style={{ 
+        <h3 style={{ 
           margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+          fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h3-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
           color: `var(${layer0Base}-element-text-color)`,
-        }}>{title}</h2>
+        }}>{title}</h3>
         <Button 
           onClick={onClose} 
           variant="text" 
@@ -898,7 +899,7 @@ export default function LayerStylePanel({
           icon={CloseIcon ? <CloseIcon /> : undefined}
         />
       </div>
-      <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` }}>
         {/* Palette color pickers: Surface (all layers, including 0) and Border Color (non-0 layers) */}
         {renderPaletteButton('surface', 'Surface Color')}
         {!isOnlyLayer0 && renderPaletteButton('border-color', 'Border Color')}
