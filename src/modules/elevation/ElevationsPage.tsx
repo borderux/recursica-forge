@@ -59,62 +59,150 @@ export default function ElevationsPage() {
     return out.sort((a, b) => a.value - b.value)
   }, [tokensJson])
 
-  // Helper functions that update elevation state directly
-  const updateElevationControl = (elevationKey: string, property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
-    updateElevation((prev) => {
-      const next = { ...prev }
-      
-      // Get token name for this elevation and property
+  // Batched version that updates multiple elevations in a single updateElevation call
+  const updateElevationControlsBatch = (elevationKeys: string[], property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
+    // Determine token names and final values BEFORE updating state
+    const updates: Array<{ elevationKey: string; tokenName: string; finalValue: number; level: string }> = []
+    
+    elevationKeys.forEach((elevationKey) => {
       const level = elevationKey.replace('elevation-', '')
       let tokenName: string | null = null
       let finalValue = value
+      
+      if (property === 'offsetX') {
+        finalValue = Math.abs(value)
+        tokenName = elevation?.offsetXTokens[elevationKey] || `size/elevation-${level}-offset-x`
+      } else if (property === 'offsetY') {
+        finalValue = Math.abs(value)
+        tokenName = elevation?.offsetYTokens[elevationKey] || `size/elevation-${level}-offset-y`
+      } else if (property === 'blur') {
+        tokenName = elevation?.blurTokens[elevationKey] || `size/elevation-${level}-blur`
+      } else if (property === 'spread') {
+        tokenName = elevation?.spreadTokens[elevationKey] || `size/elevation-${level}-spread`
+      }
+      
+      if (tokenName) {
+        updates.push({ elevationKey, tokenName, finalValue, level })
+      }
+    })
+    
+    // Update ALL elevations in a single updateElevation call (triggers only ONE recomputeAndApplyAll)
+    updateElevation((prev) => {
+      const next = { ...prev }
+      
+      updates.forEach(({ elevationKey, finalValue: finalVal, level: lvl }) => {
+        if (property === 'offsetX') {
+          const absValue = Math.abs(value)
+          const direction = value >= 0 ? 'right' : 'left'
+          const existing = next.controls[elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+          next.controls = {
+            ...next.controls,
+            [elevationKey]: { ...existing, offsetX: absValue }
+          }
+          const currentY = next.directions[elevationKey]?.y ?? getYDirForLevel(elevationKey)
+          next.directions = { ...next.directions, [elevationKey]: { x: direction, y: currentY } }
+        } else if (property === 'offsetY') {
+          const absValue = Math.abs(value)
+          const direction = value >= 0 ? 'down' : 'up'
+          const existing = next.controls[elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+          next.controls = {
+            ...next.controls,
+            [elevationKey]: { ...existing, offsetY: absValue }
+          }
+          const currentX = next.directions[elevationKey]?.x ?? getXDirForLevel(elevationKey)
+          next.directions = { ...next.directions, [elevationKey]: { x: currentX, y: direction } }
+        } else if (property === 'blur') {
+          const existing = next.controls[elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+          next.controls = {
+            ...next.controls,
+            [elevationKey]: { ...existing, blur: value }
+          }
+        } else if (property === 'spread') {
+          const existing = next.controls[elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+          next.controls = {
+            ...next.controls,
+            [elevationKey]: { ...existing, spread: value }
+          }
+        }
+      })
+      
+      return next
+    })
+    
+    // Update all tokens AFTER state is updated (triggers another recompute, but with correct state)
+    updates.forEach(({ tokenName: tokName, finalValue: finalVal }) => {
+      updateToken(tokName, finalVal)
+    })
+  }
+
+  // Helper functions that update elevation state directly
+  const updateElevationControl = (elevationKey: string, property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
+    // Determine token name and final value BEFORE updating state
+    const level = elevationKey.replace('elevation-', '')
+    let tokenName: string | null = null
+    let finalValue = value
+    
+    // For offsetX and offsetY, convert signed values to absolute + direction
+    if (property === 'offsetX') {
+      finalValue = Math.abs(value)
+      tokenName = elevation?.offsetXTokens[elevationKey] || `size/elevation-${level}-offset-x`
+    } else if (property === 'offsetY') {
+      finalValue = Math.abs(value)
+      tokenName = elevation?.offsetYTokens[elevationKey] || `size/elevation-${level}-offset-y`
+    } else if (property === 'blur') {
+      tokenName = elevation?.blurTokens[elevationKey] || `size/elevation-${level}-blur`
+    } else if (property === 'spread') {
+      tokenName = elevation?.spreadTokens[elevationKey] || `size/elevation-${level}-spread`
+    }
+    
+    // Update elevation state FIRST (synchronously)
+    updateElevation((prev) => {
+      const next = { ...prev }
       
       // For offsetX and offsetY, convert signed values to absolute + direction
       if (property === 'offsetX') {
         const absValue = Math.abs(value)
         const direction = value >= 0 ? 'right' : 'left'
-        finalValue = absValue
+        const existing = next.controls[elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
         next.controls = {
           ...next.controls,
-          [elevationKey]: { ...next.controls[elevationKey], offsetX: absValue }
+          [elevationKey]: { ...existing, offsetX: absValue }
         }
         // Update direction
         const currentY = next.directions[elevationKey]?.y ?? getYDirForLevel(elevationKey)
         next.directions = { ...next.directions, [elevationKey]: { x: direction, y: currentY } }
-        tokenName = next.offsetXTokens[elevationKey] || `size/elevation-${level}-offset-x`
       } else if (property === 'offsetY') {
         const absValue = Math.abs(value)
         const direction = value >= 0 ? 'down' : 'up'
-        finalValue = absValue
+        const existing = next.controls[elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
         next.controls = {
           ...next.controls,
-          [elevationKey]: { ...next.controls[elevationKey], offsetY: absValue }
+          [elevationKey]: { ...existing, offsetY: absValue }
         }
         // Update direction
         const currentX = next.directions[elevationKey]?.x ?? getXDirForLevel(elevationKey)
         next.directions = { ...next.directions, [elevationKey]: { x: currentX, y: direction } }
-        tokenName = next.offsetYTokens[elevationKey] || `size/elevation-${level}-offset-y`
       } else if (property === 'blur') {
+        const existing = next.controls[elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
         next.controls = {
           ...next.controls,
-          [elevationKey]: { ...next.controls[elevationKey], blur: value }
+          [elevationKey]: { ...existing, blur: value }
         }
-        tokenName = next.blurTokens[elevationKey] || `size/elevation-${level}-blur`
       } else if (property === 'spread') {
+        const existing = next.controls[elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
         next.controls = {
           ...next.controls,
-          [elevationKey]: { ...next.controls[elevationKey], spread: value }
+          [elevationKey]: { ...existing, spread: value }
         }
-        tokenName = next.spreadTokens[elevationKey] || `size/elevation-${level}-spread`
-      }
-      
-      // Update the token if we have a token name
-      if (tokenName) {
-        updateToken(tokenName, finalValue)
       }
       
       return next
     })
+    
+    // Update the token AFTER state is updated (so recomputeAndApplyAll reads correct state)
+    if (tokenName) {
+      updateToken(tokenName, finalValue)
+    }
   }
 
   const setElevationAlphaToken = (elevationKey: string, token: string) => {
@@ -344,6 +432,7 @@ export default function ElevationsPage() {
             }}
             setElevationAlphaToken={setElevationAlphaToken}
             updateElevationControl={updateElevationControl}
+            updateElevationControlsBatch={updateElevationControlsBatch}
             getDirectionForLevel={(key: string) => ({ x: getXDirForLevel(key), y: getYDirForLevel(key) })}
             setXDirectionForSelected={(dir: 'left' | 'right') => {
               updateElevation((prev) => {

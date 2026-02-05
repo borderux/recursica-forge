@@ -2204,16 +2204,31 @@ class VarsStore {
               continue
             }
             
-            // Read values directly from Brand.json for this mode
-            const blurRaw = elevNode?.blur
-            const spreadRaw = elevNode?.spread
-            const xRaw = elevNode?.x
-            const yRaw = elevNode?.y
+            // Check if user has customized this elevation - if so, use control values instead of Brand.json
+            const control = this.state.elevation.controls[k]
+            let blurValue: number
+            let spreadValue: number
+            let xValue: number
+            let yValue: number
             
-            const blurValue = toNumeric(blurRaw)
-            const spreadValue = toNumeric(spreadRaw)
-            const xValue = toNumeric(xRaw)
-            const yValue = toNumeric(yRaw)
+            if (control) {
+              // Use user-customized control values
+              blurValue = control.blur
+              spreadValue = control.spread
+              xValue = control.offsetX
+              yValue = control.offsetY
+            } else {
+              // Read values directly from Brand.json for this mode
+              const blurRaw = elevNode?.blur
+              const spreadRaw = elevNode?.spread
+              const xRaw = elevNode?.x
+              const yRaw = elevNode?.y
+              
+              blurValue = toNumeric(blurRaw)
+              spreadValue = toNumeric(spreadRaw)
+              xValue = toNumeric(xRaw)
+              yValue = toNumeric(yRaw)
+            }
             
             const dir = dirForLevel(i)
             const sxValue = dir.x === 'right' ? xValue : -xValue
