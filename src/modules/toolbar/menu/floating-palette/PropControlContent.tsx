@@ -3034,7 +3034,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'value', 'placeholder']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder']
 
   // Always check UIKit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly
@@ -3344,6 +3344,21 @@ export default function PropControlContent({
             }
           }
 
+          // Special case: placeholder-opacity is a component-level property, not a variant-level color
+          // It's in the "colors" group but needs to be found as a component-level property
+          if (!groupedProp && groupedPropKey === 'placeholder-opacity') {
+            const structure = parseComponentStructure(componentName)
+            groupedProp = structure.props.find(p => {
+              const nameMatches = p.name.toLowerCase() === 'placeholder-opacity'
+              // Must be component-level (not variant-specific)
+              const isComponentLevel = !p.isVariantSpecific
+              return nameMatches && isComponentLevel
+            })
+            if (groupedProp) {
+              prop.borderProps!.set(groupedPropKey, groupedProp)
+            }
+          }
+          
           if (!groupedProp && groupedPropKey === 'border-color') {
             groupedProp = prop.borderProps!.get('border')
           }

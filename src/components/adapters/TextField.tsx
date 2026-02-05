@@ -78,7 +78,7 @@ export function TextField({
   const backgroundVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
   const borderVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
   const textVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
-  const placeholderVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'placeholder')
+  // Placeholder uses the same color as text (value color)
   const leadingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
   const trailingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'trailing-icon')
   
@@ -100,9 +100,6 @@ export function TextField({
   const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
   
-  // Get layout variant gap
-  const labelFieldGapVar = buildComponentCssVarPath('TextField', 'variants', 'layouts', layout, 'properties', 'label-field-gap')
-  
   // Use provided minWidth or fall back to CSS variable
   const effectiveMinWidth = minWidth !== undefined ? `${minWidth}px` : `var(${minWidthVar})`
   
@@ -114,6 +111,7 @@ export function TextField({
       layout={layout}
       layer={layer}
       id={labelId}
+      style={layout === 'side-by-side' ? { minHeight: `var(${minHeightVar})` } : undefined}
     >
       {label}
     </Label>
@@ -147,7 +145,7 @@ export function TextField({
     return (
       <div className={className} style={style}>
         {layout === 'stacked' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelFieldGapVar}, 8px)` }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {labelElement}
             <div style={{ display: 'flex', alignItems: 'center', gap: `var(${iconTextGapVar}, 8px)` }}>
               {leadingIcon && (
@@ -194,9 +192,9 @@ export function TextField({
             {assistiveElement}
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: `var(${labelFieldGapVar}, 8px)` }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0 }}>
             {labelElement}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: `var(${labelFieldGapVar}, 8px)` }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: `var(${iconTextGapVar}, 8px)` }}>
                 {leadingIcon && (
                   <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, flexShrink: 0, color: `var(${leadingIconVar})` }}>

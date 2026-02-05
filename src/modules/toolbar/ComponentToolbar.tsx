@@ -292,6 +292,17 @@ export default function ComponentToolbar({
               // #endregion
               
               
+              // Special case: placeholder-opacity is a component-level property, not a variant-level color
+              // It's in the "colors" group but doesn't have "colors" in its path
+              if (!groupedProp && groupedPropKey === 'placeholder-opacity') {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === 'placeholder-opacity'
+                  // Must be component-level (not variant-specific)
+                  const isComponentLevel = !p.isVariantSpecific
+                  return nameMatches && isComponentLevel
+                })
+              }
+              
               // For container/selected props, NEVER fall back to name-only match - this would cause wrong props to be selected
               // Only fall back to name-only match for other grouped props
               if (!groupedProp && !isContainerOrSelected) {

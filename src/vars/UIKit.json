@@ -19,7 +19,7 @@
           "label-field-gap-vertical": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.gutters.vertical}",
+              "value": "{brand.dimensions.general.default}",
               "unit": "px"
             }
           },
@@ -3376,10 +3376,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3399,10 +3395,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3428,10 +3420,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3451,10 +3439,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3493,10 +3477,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3516,10 +3496,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3545,10 +3521,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3568,10 +3540,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3610,10 +3578,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3633,10 +3597,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3662,10 +3622,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3685,10 +3641,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3727,10 +3679,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3750,10 +3698,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.disabled}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3779,10 +3723,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3802,10 +3742,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.disabled}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3844,10 +3780,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3867,10 +3799,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.background-read-only}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3896,10 +3824,6 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "placeholder": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
                     "leading-icon": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.icon}"
@@ -3919,10 +3843,6 @@
                       "$value": "{ui-kit.globals.form.field.colors.background-read-only}"
                     },
                     "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "placeholder": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
@@ -3952,26 +3872,10 @@
           },
           "layouts": {
             "stacked": {
-              "properties": {
-                "label-field-gap": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{ui-kit.globals.form.properties.label-field-gap-vertical}",
-                    "unit": "px"
-                  }
-                }
-              }
+              "properties": {}
             },
             "side-by-side": {
-              "properties": {
-                "label-field-gap": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{ui-kit.globals.form.properties.label-field-gap-horizontal}",
-                    "unit": "px"
-                  }
-                }
-              }
+              "properties": {}
             }
           }
         },
@@ -4032,7 +3936,7 @@
               "unit": "px"
             }
           },
-          "value": {
+          "text": {
             "font-family": {
               "$type": "string",
               "$value": "{tokens.font.typefaces.primary}"
@@ -4069,46 +3973,9 @@
               "$value": "normal"
             }
           },
-          "placeholder": {
-            "opacity": {
-              "$type": "number",
-              "$value": "{tokens.opacities.ghost}"
-            },
-            "font-family": {
-              "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
-            },
-            "font-size": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{tokens.font.sizes.md}",
-                "unit": "px"
-              }
-            },
-            "font-weight": {
-              "$type": "number",
-              "$value": "{tokens.font.weights.regular}"
-            },
-            "letter-spacing": {
-              "$type": "string",
-              "$value": "{tokens.font.letter-spacings.default}"
-            },
-            "line-height": {
-              "$type": "number",
-              "$value": "{tokens.font.line-heights.default}"
-            },
-            "text-decoration": {
-              "$type": "string",
-              "$value": "none"
-            },
-            "text-transform": {
-              "$type": "string",
-              "$value": "none"
-            },
-            "font-style": {
-              "$type": "string",
-              "$value": "normal"
-            }
+          "placeholder-opacity": {
+            "$type": "number",
+            "$value": "{tokens.opacities.ghost}"
           }
         }
       },

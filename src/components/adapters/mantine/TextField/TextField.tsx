@@ -53,7 +53,7 @@ export default function TextField({
   const backgroundVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
   const borderVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
   const textVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
-  const placeholderVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'placeholder')
+  // Placeholder uses the same color as text (value color)
   const leadingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
   const trailingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'trailing-icon')
   
@@ -75,25 +75,17 @@ export default function TextField({
   const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
   
-  // Get text style CSS variables for value text
-  const valueFontSizeVar = getComponentTextCssVar('TextField', 'value', 'font-size')
-  const valueFontFamilyVar = getComponentTextCssVar('TextField', 'value', 'font-family')
-  const valueFontWeightVar = getComponentTextCssVar('TextField', 'value', 'font-weight')
-  const valueLetterSpacingVar = getComponentTextCssVar('TextField', 'value', 'letter-spacing')
-  const valueLineHeightVar = getComponentTextCssVar('TextField', 'value', 'line-height')
-  const valueTextDecorationVar = getComponentTextCssVar('TextField', 'value', 'text-decoration')
-  const valueTextTransformVar = getComponentTextCssVar('TextField', 'value', 'text-transform')
-  const valueFontStyleVar = getComponentTextCssVar('TextField', 'value', 'font-style')
+  // Get text style CSS variables
+  const valueFontSizeVar = getComponentTextCssVar('TextField', 'text', 'font-size')
+  const valueFontFamilyVar = getComponentTextCssVar('TextField', 'text', 'font-family')
+  const valueFontWeightVar = getComponentTextCssVar('TextField', 'text', 'font-weight')
+  const valueLetterSpacingVar = getComponentTextCssVar('TextField', 'text', 'letter-spacing')
+  const valueLineHeightVar = getComponentTextCssVar('TextField', 'text', 'line-height')
+  const valueTextDecorationVar = getComponentTextCssVar('TextField', 'text', 'text-decoration')
+  const valueTextTransformVar = getComponentTextCssVar('TextField', 'text', 'text-transform')
+  const valueFontStyleVar = getComponentTextCssVar('TextField', 'text', 'font-style')
   
-  // Get text style CSS variables for placeholder text
-  const placeholderFontSizeVar = getComponentTextCssVar('TextField', 'placeholder', 'font-size')
-  const placeholderFontFamilyVar = getComponentTextCssVar('TextField', 'placeholder', 'font-family')
-  const placeholderFontWeightVar = getComponentTextCssVar('TextField', 'placeholder', 'font-weight')
-  const placeholderLetterSpacingVar = getComponentTextCssVar('TextField', 'placeholder', 'letter-spacing')
-  const placeholderLineHeightVar = getComponentTextCssVar('TextField', 'placeholder', 'line-height')
-  const placeholderTextDecorationVar = getComponentTextCssVar('TextField', 'placeholder', 'text-decoration')
-  const placeholderTextTransformVar = getComponentTextCssVar('TextField', 'placeholder', 'text-transform')
-  const placeholderFontStyleVar = getComponentTextCssVar('TextField', 'placeholder', 'font-style')
+  // Placeholder uses the same text styles as value (no separate placeholder text props)
   
   // CRITICAL: Verify CSS variables are different - these MUST be separate
   // Debug: Log all CSS variable names to verify they're distinct
@@ -105,44 +97,6 @@ export default function TextField({
   //     fontWeight: valueFontWeightVar,
   //     letterSpacing: valueLetterSpacingVar,
   //     lineHeight: valueLineHeightVar,
-  //     textDecoration: valueTextDecorationVar,
-  //     textTransform: valueTextTransformVar,
-  //     fontStyle: valueFontStyleVar,
-  //   },
-  //   placeholder: {
-  //     fontFamily: placeholderFontFamilyVar,
-  //     fontSize: placeholderFontSizeVar,
-  //     fontWeight: placeholderFontWeightVar,
-  //     letterSpacing: placeholderLetterSpacingVar,
-  //     lineHeight: placeholderLineHeightVar,
-  //     textDecoration: placeholderTextDecorationVar,
-  //     textTransform: placeholderTextTransformVar,
-  //     fontStyle: placeholderFontStyleVar,
-  //   },
-  //   areDifferent: {
-  //     fontFamily: valueFontFamilyVar !== placeholderFontFamilyVar,
-  //     fontSize: valueFontSizeVar !== placeholderFontSizeVar,
-  //     fontWeight: valueFontWeightVar !== placeholderFontWeightVar,
-  //     letterSpacing: valueLetterSpacingVar !== placeholderLetterSpacingVar,
-  //     lineHeight: valueLineHeightVar !== placeholderLineHeightVar,
-  //     textDecoration: valueTextDecorationVar !== placeholderTextDecorationVar,
-  //     textTransform: valueTextTransformVar !== placeholderTextTransformVar,
-  //     fontStyle: valueFontStyleVar !== placeholderFontStyleVar,
-  //   }
-  // })
-  
-  if (valueTextDecorationVar === placeholderTextDecorationVar) {
-    console.error('[TextField] CRITICAL ERROR: Value and placeholder text-decoration CSS variables are the same!', {
-      valueTextDecorationVar,
-      placeholderTextDecorationVar,
-      valueTextTransformVar,
-      placeholderTextTransformVar,
-      valueFontStyleVar,
-      placeholderFontStyleVar
-    })
-    throw new Error('TextField CSS variables for value and placeholder must be different!')
-  }
-  
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
   
@@ -159,14 +113,12 @@ export default function TextField({
   useEffect(() => {
     const textCssVars = [
       valueFontSizeVar, valueFontFamilyVar, valueFontWeightVar, valueLetterSpacingVar,
-      valueLineHeightVar, valueTextDecorationVar, valueTextTransformVar, valueFontStyleVar,
-      placeholderFontSizeVar, placeholderFontFamilyVar, placeholderFontWeightVar, placeholderLetterSpacingVar,
-      placeholderLineHeightVar, placeholderTextDecorationVar, placeholderTextTransformVar, placeholderFontStyleVar
+      valueLineHeightVar, valueTextDecorationVar, valueTextTransformVar, valueFontStyleVar
     ]
     
     const dimensionCssVars = [
       borderSizeVar, borderRadiusVar, minHeightVar, horizontalPaddingVar, verticalPaddingVar,
-      iconSizeVar, iconTextGapVar, maxWidthVar, minWidthVar
+      iconSizeVar, iconTextGapVar, maxWidthVar, minWidthVar, placeholderOpacityVar
     ]
     
     const handleUpdate = (e: Event) => {
@@ -200,10 +152,7 @@ export default function TextField({
       window.removeEventListener('cssVarsUpdated', handleUpdate)
       observer.disconnect()
     }
-  }, [valueFontSizeVar, valueFontFamilyVar, valueFontWeightVar, valueLetterSpacingVar, valueLineHeightVar, valueTextDecorationVar, valueTextTransformVar, valueFontStyleVar, placeholderFontSizeVar, placeholderFontFamilyVar, placeholderFontWeightVar, placeholderLetterSpacingVar, placeholderLineHeightVar, placeholderTextDecorationVar, placeholderTextTransformVar, placeholderFontStyleVar, borderSizeVar, borderRadiusVar, minHeightVar, horizontalPaddingVar, verticalPaddingVar, iconSizeVar, iconTextGapVar, maxWidthVar, minWidthVar])
-  
-  // Get layout variant gap
-  const labelFieldGapVar = buildComponentCssVarPath('TextField', 'variants', 'layouts', layout, 'properties', 'label-field-gap')
+  }, [valueFontSizeVar, valueFontFamilyVar, valueFontWeightVar, valueLetterSpacingVar, valueLineHeightVar, valueTextDecorationVar, valueTextTransformVar, valueFontStyleVar, borderSizeVar, borderRadiusVar, minHeightVar, horizontalPaddingVar, verticalPaddingVar, iconSizeVar, iconTextGapVar, maxWidthVar, minWidthVar, placeholderOpacityVar, textVar])
   
   // Use provided minWidth or fall back to CSS variable
   const effectiveMinWidth = minWidth !== undefined ? `${minWidth}px` : `var(${minWidthVar})`
@@ -218,7 +167,7 @@ export default function TextField({
       layout={layout}
       layer={layer}
       id={labelId}
-      style={layout === 'side-by-side' ? { paddingTop: 0, alignItems: 'flex-start' } : undefined}
+      style={layout === 'side-by-side' ? { paddingTop: 0, minHeight: `var(${minHeightVar})` } : undefined}
     >
       {label}
     </Label>
@@ -256,14 +205,16 @@ export default function TextField({
         alignItems: 'center',
         gap: `var(${iconTextGapVar}, 8px)`,
         width: '100%',
+        minWidth: effectiveMinWidth,
+        maxWidth: `var(${maxWidthVar})`,
+        flexShrink: 0,
         paddingLeft: `var(${horizontalPaddingVar}, 12px)`,
         paddingRight: `var(${horizontalPaddingVar}, 12px)`,
-        borderWidth: `var(${borderSizeVar})`,
-        borderStyle: 'solid',
-        borderColor: `var(${borderVar})`,
+        border: 'none',
         borderRadius: `var(${borderRadiusVar})`,
         backgroundColor: `var(${backgroundVar})`,
-        transition: 'border-color 0.2s, border-width 0.2s',
+        boxShadow: `inset 0 0 0 var(${borderSizeVar}) var(${borderVar})`,
+        transition: 'box-shadow 0.2s',
       }}
     >
       {leadingIcon && (
@@ -296,9 +247,8 @@ export default function TextField({
         className={`recursica-text-field-input ${className || ''}`}
         style={{
           flex: 1,
-          minWidth: effectiveMinWidth,
-          maxWidth: `var(${maxWidthVar})`,
-          width: '100%',
+          minWidth: 0,
+          maxWidth: '100%',
           minHeight: `var(${minHeightVar})`,
           paddingTop: `var(${verticalPaddingVar})`,
           paddingBottom: `var(${verticalPaddingVar})`,
@@ -345,42 +295,19 @@ export default function TextField({
         /* CRITICAL: These styles MUST override any inherited styles from the input element */
         /* Use multiple selectors to ensure maximum specificity and prevent inheritance */
         /* CRITICAL: Use CSS variable references directly - these are SEPARATE variables from value */
+        /* Placeholder styles - uses same text styles as value, but with opacity */
         #${uniqueId}.recursica-text-field-input::placeholder,
         #${uniqueId}.recursica-text-field-input::-webkit-input-placeholder,
         #${uniqueId}.recursica-text-field-input::-moz-placeholder,
         #${uniqueId}.recursica-text-field-input:-ms-input-placeholder {
-          color: var(${placeholderVar}) !important;
+          color: var(${textVar}) !important;
           opacity: var(${placeholderOpacityVar}) !important;
-          font-family: var(${placeholderFontFamilyVar}) !important;
-          font-size: var(${placeholderFontSizeVar}) !important;
-          font-weight: var(${placeholderFontWeightVar}) !important;
-          letter-spacing: var(${placeholderLetterSpacingVar}) !important;
-          line-height: var(${placeholderLineHeightVar}) !important;
-          text-decoration: var(${placeholderTextDecorationVar}) !important;
-          text-transform: var(${placeholderTextTransformVar}) !important;
-          font-style: var(${placeholderFontStyleVar}) !important;
-        }
-        /* Additional rule to ensure placeholder never inherits value text styles */
-        /* This uses even higher specificity to override any potential inheritance */
-        input#${uniqueId}.recursica-text-field-input::placeholder,
-        input#${uniqueId}.recursica-text-field-input::-webkit-input-placeholder,
-        input#${uniqueId}.recursica-text-field-input::-moz-placeholder,
-        input#${uniqueId}.recursica-text-field-input:-ms-input-placeholder {
-          font-family: var(${placeholderFontFamilyVar}) !important;
-          font-size: var(${placeholderFontSizeVar}) !important;
-          font-weight: var(${placeholderFontWeightVar}) !important;
-          letter-spacing: var(${placeholderLetterSpacingVar}) !important;
-          line-height: var(${placeholderLineHeightVar}) !important;
-          text-decoration: var(${placeholderTextDecorationVar}) !important;
-          text-transform: var(${placeholderTextTransformVar}) !important;
-          font-style: var(${placeholderFontStyleVar}) !important;
         }
         #${uniqueId}.recursica-text-field-input:focus {
           /* Focus styles are handled by wrapper */
         }
         .recursica-text-field-wrapper:has(#${uniqueId}:focus) {
-          border-color: var(${focusBorderVar}) !important;
-          border-width: var(${focusBorderSizeVar}) !important;
+          box-shadow: inset 0 0 0 var(${focusBorderSizeVar}) var(${focusBorderVar}) !important;
         }
       `}</style>
     </div>
@@ -390,11 +317,11 @@ export default function TextField({
   if (layout === 'side-by-side' && labelElement) {
     return (
       <div className={`recursica-text-field recursica-text-field-side-by-side ${className || ''}`} style={style}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: `var(${labelFieldGapVar}, 8px)`, width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, width: '100%' }}>
           <div style={{ flexShrink: 0 }}>
             {labelElement}
           </div>
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: `var(${labelFieldGapVar}, 8px)` }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
             {inputWrapper}
             {assistiveElement}
           </div>
@@ -406,7 +333,7 @@ export default function TextField({
   // Stacked layout (default)
   return (
     <div className={`recursica-text-field recursica-text-field-stacked ${className || ''}`} style={style}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelFieldGapVar}, 8px)`, width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%' }}>
         {labelElement}
         {inputWrapper}
         {assistiveElement}

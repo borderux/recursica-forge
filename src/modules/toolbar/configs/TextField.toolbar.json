@@ -28,11 +28,17 @@
           "visible": true,
           "floatingPaletteLabel": "Value Color"
         },
-        "placeholder": {
-          "icon": "text-aa",
-          "label": "Placeholder color",
+        "leading-icon": {
+          "icon": "diamond",
+          "label": "Leading icon",
           "visible": true,
-          "floatingPaletteLabel": "Placeholder Color"
+          "floatingPaletteLabel": "Leading Icon Color"
+        },
+        "trailing-icon": {
+          "icon": "diamond",
+          "label": "Trailing icon",
+          "visible": true,
+          "floatingPaletteLabel": "Trailing Icon Color"
         },
         "placeholder-opacity": {
           "icon": "eye",
@@ -64,29 +70,9 @@
         }
       }
     },
-    "text-color": {
+    "text": {
       "icon": "text-aa",
-      "label": "Text color",
-      "visible": true,
-      "group": {
-        "leading-icon": {
-          "label": "Leading icon",
-          "visible": true
-        },
-        "trailing-icon": {
-          "label": "Trailing icon",
-          "visible": true
-        }
-      }
-    },
-    "value": {
-      "icon": "text-aa",
-      "label": "Value text style",
-      "visible": true
-    },
-    "placeholder": {
-      "icon": "text-aa",
-      "label": "Placeholder text style",
+      "label": "Text style",
       "visible": true
     },
     "padding": {
@@ -154,11 +140,6 @@
           "floatingPaletteLabel": "Icon-Text Gap"
         }
       }
-    },
-    "label-field-gap": {
-      "icon": "split-horizontal",
-      "label": "Label gap",
-      "visible": true
     }
   }
 }
