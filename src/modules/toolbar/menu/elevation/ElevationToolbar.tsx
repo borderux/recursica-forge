@@ -40,11 +40,12 @@ export default function ElevationToolbar({
     // The path will be ['properties', 'elevation'] for layer-specific elevations
     if (prop.path.includes('properties') && prop.path.includes('elevation') && prop.path.length === 2) {
       // This is a layer-specific elevation, build the CSS var for the selected layer
-      return buildComponentCssVarPath(componentName, 'properties', 'elevation', selectedLayer)
+      // Pass mode explicitly to ensure it uses the current mode
+      return buildComponentCssVarPath(componentName, 'properties', 'elevation', selectedLayer, mode)
     }
     // Fallback to prop's CSS var (for non-layer-specific elevations)
     return prop.cssVar
-  }, [componentName, prop.path, prop.cssVar, selectedLayer])
+  }, [componentName, prop.path, prop.cssVar, selectedLayer, mode])
 
   const elevationOptions = useMemo(() => {
     try {
@@ -84,15 +85,24 @@ export default function ElevationToolbar({
     return 0
   })
 
+  // Re-read elevation value when elevationVar changes (including when mode changes)
+  // This allows each mode to have its own independent elevation value
+  // IMPORTANT: Only read, never write when mode changes - each mode maintains its own value
   useEffect(() => {
-    const currentValue = readCssVar(elevationVar)
-    const match = currentValue?.match(/elevation-(\d+)/)
-    if (match) {
-      setCurrentElevationValue(Number(match[1]))
-    } else {
-      setCurrentElevationValue(0)
+    // Check inline style first - this is what we set via updateCssVar
+    const inlineValue = typeof document !== 'undefined' ? document.documentElement.style.getPropertyValue(elevationVar) : null
+    const currentValue = inlineValue || readCssVar(elevationVar)
+    
+    // Only parse if we have an inline value (what we set) or a token reference format
+    // Ignore computed values that are just "elevation-X" as they might be from CSS cascade
+    if (inlineValue || (currentValue && (currentValue.includes('{brand') || currentValue.includes('elevation-')))) {
+      const match = currentValue?.match(/elevation-(\d+)/)
+      if (match) {
+        const elevationNum = Number(match[1])
+        setCurrentElevationValue(elevationNum)
+      }
     }
-  }, [elevationVar])
+  }, [elevationVar, mode])
 
   useEffect(() => {
     const handleUpdate = () => {

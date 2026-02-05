@@ -1937,12 +1937,21 @@ class VarsStore {
           uikitVars = { ...uikitVarsLight, ...uikitVarsDark }
 
           // Track which UIKit vars actually changed by comparing generated values with current DOM values
+          // IMPORTANT: Don't overwrite UIKit vars that have been manually set via toolbar (token reference format)
           if (typeof document !== 'undefined') {
             for (const [cssVar, generatedValue] of Object.entries(uikitVars)) {
               const generatedValueTrimmed = generatedValue ? generatedValue.trim() : ''
               // Read current value from DOM
               const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
               const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
+
+              // If the current value is a token reference (set by toolbar), don't overwrite it
+              // Token references look like: {brand.themes.light.elevations.elevation-X}
+              if (inlineValue && inlineValue.startsWith('{') && inlineValue.includes('brand.themes')) {
+                // Keep the toolbar-set value, don't overwrite with generated value
+                delete uikitVars[cssVar]
+                continue
+              }
 
               // Track if this var will actually change from what's currently in the DOM
               if (generatedValueTrimmed !== inlineValue) {

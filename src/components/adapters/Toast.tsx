@@ -5,7 +5,7 @@
  * based on the current UI kit selection.
  */
 
-import React, { Suspense, useState, useEffect } from 'react'
+import React, { Suspense, useState, useEffect, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
 import { parseElevationValue, getElevationBoxShadow } from '../utils/brandCssVars'
@@ -46,13 +46,23 @@ export function Toast({
   
   // Get elevation from CSS vars if not provided as props
   // Elevation is layer-specific but common across all variants: toast.properties.elevation.layer-{layer}
-  const elevationVar = buildComponentCssVarPath('Toast', 'properties', 'elevation', layer)
+  // Pass mode explicitly to ensure it uses the current mode's CSS variable
+  // Memoize with mode and layer dependencies so it updates when mode changes
+  const elevationVar = useMemo(() => {
+    return buildComponentCssVarPath('Toast', 'properties', 'elevation', layer, mode)
+  }, [layer, mode])
   
   // Reactively read elevation from CSS variable
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
     const value = readCssVar(elevationVar)
     return value ? parseElevationValue(value) : undefined
   })
+  
+  // Re-read elevation when elevationVar changes (including when mode changes)
+  useEffect(() => {
+    const value = readCssVar(elevationVar)
+    setElevationFromVar(value ? parseElevationValue(value) : undefined)
+  }, [elevationVar, mode])
   
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
@@ -81,7 +91,7 @@ export function Toast({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [elevationVar, layer])
+  }, [elevationVar, mode])
   
   const componentElevation = elevation ?? elevationFromVar ?? undefined
   
