@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Label } from '../../components/adapters/Label'
+import { TextField } from '../../components/adapters/TextField'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 
@@ -56,16 +57,12 @@ export default function LabelPreview({
                   >
                     Label
                   </Label>
-                  <input
-                    id={`input-${size}-${align}-${styleVariant}`}
-                    type="text"
+                  <TextField
                     placeholder="Input field"
-                    style={{
-                      flex: 1,
-                      padding: '8px 12px',
-                      border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-primary-tone)',
-                      borderRadius: '4px',
-                    }}
+                    layout={layoutVariant}
+                    layer={selectedLayer as any}
+                    id={`input-${size}-${align}-${styleVariant}`}
+                    style={{ flex: 1 }}
                   />
                 </div>
               ))}
@@ -92,16 +89,11 @@ export default function LabelPreview({
           >
             Label
           </Label>
-          <input
-            id="label-1-left"
-            type="text"
+          <TextField
             placeholder="Input field"
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-              borderRadius: '4px',
-            }}
+            layout={layoutVariant}
+            layer={selectedLayer as any}
+            id="label-1-left"
           />
         </div>
         
@@ -116,16 +108,12 @@ export default function LabelPreview({
           >
             Label
           </Label>
-          <input
-            id="label-2-left"
-            type="text"
+          <TextField
             placeholder="Input field"
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-              borderRadius: '4px',
-            }}
+            required
+            layout={layoutVariant}
+            layer={selectedLayer as any}
+            id="label-2-left"
           />
         </div>
         
@@ -140,16 +128,11 @@ export default function LabelPreview({
           >
             Label
           </Label>
-          <input
-            id="label-3-left"
-            type="text"
+          <TextField
             placeholder="Input field"
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-              borderRadius: '4px',
-            }}
+            layout={layoutVariant}
+            layer={selectedLayer as any}
+            id="label-3-left"
           />
         </div>
       </div>
@@ -167,16 +150,11 @@ export default function LabelPreview({
           >
             Label
           </Label>
-          <input
-            id="label-1-right"
-            type="text"
+          <TextField
             placeholder="Input field"
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-              borderRadius: '4px',
-            }}
+            layout={layoutVariant}
+            layer={selectedLayer as any}
+            id="label-1-right"
           />
         </div>
         
@@ -191,16 +169,12 @@ export default function LabelPreview({
           >
             Label
           </Label>
-          <input
-            id="label-2-right"
-            type="text"
+          <TextField
             placeholder="Input field"
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-              borderRadius: '4px',
-            }}
+            required
+            layout={layoutVariant}
+            layer={selectedLayer as any}
+            id="label-2-right"
           />
         </div>
         
@@ -215,16 +189,11 @@ export default function LabelPreview({
           >
             Label
           </Label>
-          <input
-            id="label-3-right"
-            type="text"
+          <TextField
             placeholder="Input field"
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              border: '1px solid var(--recursica-brand-themes-light-palettes-neutral-default-color-tone)',
-              borderRadius: '4px',
-            }}
+            layout={layoutVariant}
+            layer={selectedLayer as any}
+            id="label-3-right"
           />
         </div>
       </div>

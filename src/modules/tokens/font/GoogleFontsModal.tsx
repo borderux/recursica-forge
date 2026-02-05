@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { Checkbox } from '../../../components/adapters/Checkbox'
+import { TextField } from '../../../components/adapters/TextField'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { ensureFontLoaded, getActualFontFamilyName, getCachedFontFamilyName } from '../../type/fontUtils'
 
@@ -621,7 +622,7 @@ export function GoogleFontsModal({
                 }}>
                   Google Fonts URL
                 </label>
-                <input
+                <TextField
                   type="url"
                   placeholder="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700"
                   value={googleFontsUrl}
@@ -643,15 +644,10 @@ export function GoogleFontsModal({
                       setSelectedCombos(new Set())
                     }
                   }}
-                  style={{
-                    padding: 'var(--recursica-brand-dimensions-general-default)',
-                    border: `1px solid ${error ? `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)` : `var(${layer1Base}-border-color)`}`,
-                    borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                    background: `var(${layer1Base}-surface)`,
-                    color: `var(${layer1Base}-element-text-color)`,
-                    fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                    width: '100%',
-                  }}
+                  state={error ? 'error' : 'default'}
+                  errorText={error}
+                  layer="layer-1"
+                  style={{ width: '100%' }}
                 />
                 <div style={{
                   marginTop: 'var(--recursica-brand-dimensions-general-default)',
@@ -913,23 +909,17 @@ export function GoogleFontsModal({
                   }}>
                     Font Family Name
                   </label>
-                  <input
-                    type="text"
+                  <TextField
                     placeholder="My Custom Font"
                     value={customFontName}
                     onChange={(e) => {
                       setCustomFontName(e.target.value)
                       setError('')
                     }}
-                    style={{
-                      padding: 'var(--recursica-brand-dimensions-general-default)',
-                      border: `1px solid ${error ? `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)` : `var(${layer1Base}-border-color)`}`,
-                      borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                      background: `var(${layer1Base}-surface)`,
-                      color: `var(${layer1Base}-element-text-color)`,
-                      fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                      width: '100%',
-                    }}
+                    state={error ? 'error' : 'default'}
+                    errorText={error}
+                    layer="layer-1"
+                    style={{ width: '100%' }}
                   />
                 </div>
 

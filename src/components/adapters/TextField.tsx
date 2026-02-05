@@ -17,9 +17,12 @@ import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type TextFieldProps = {
-  value?: string
-  defaultValue?: string
+  value?: string | number
+  defaultValue?: string | number
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
+  onClick?: (event: React.MouseEvent<HTMLDivElement | HTMLInputElement>) => void
   placeholder?: string
   label?: string
   helpText?: string
@@ -34,14 +37,22 @@ export type TextFieldProps = {
   id?: string
   name?: string
   type?: string
+  min?: number | string
+  max?: number | string
+  step?: number | string
   className?: string
   style?: React.CSSProperties
+  autoFocus?: boolean
+  readOnly?: boolean
 } & LibrarySpecificProps
 
 export function TextField({
   value,
   defaultValue,
   onChange,
+  onKeyDown,
+  onBlur,
+  onClick,
   placeholder,
   label,
   helpText,
@@ -56,8 +67,13 @@ export function TextField({
   id,
   name,
   type = 'text',
+  min,
+  max,
+  step,
   className,
   style,
+  autoFocus,
+  readOnly,
   mantine,
   material,
   carbon,
@@ -147,7 +163,10 @@ export function TextField({
         {layout === 'stacked' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {labelElement}
-            <div style={{ display: 'flex', alignItems: 'center', gap: `var(${iconTextGapVar}, 8px)` }}>
+            <div 
+              style={{ display: 'flex', alignItems: 'center', gap: `var(${iconTextGapVar}, 8px)`, cursor: onClick ? 'pointer' : undefined }}
+              onClick={onClick}
+            >
               {leadingIcon && (
                 <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, flexShrink: 0, color: `var(${leadingIconVar})` }}>
                   {leadingIcon}
@@ -160,9 +179,16 @@ export function TextField({
                 value={value}
                 defaultValue={defaultValue}
                 onChange={onChange}
+                onKeyDown={onKeyDown}
+                onBlur={onBlur}
+                onClick={onClick}
                 placeholder={placeholder}
+                min={min}
+                max={max}
+                step={step}
                 disabled={state === 'disabled'}
-                readOnly={state === 'read-only'}
+                readOnly={readOnly !== undefined ? readOnly : state === 'read-only'}
+                autoFocus={autoFocus}
                 style={{
                   flex: 1,
                   minWidth: effectiveMinWidth,
@@ -181,6 +207,7 @@ export function TextField({
                   fontFamily: 'inherit',
                   fontSize: 'inherit',
                   outline: 'none',
+                  cursor: onClick ? 'pointer' : undefined,
                 }}
               />
               {trailingIcon && (
@@ -195,7 +222,10 @@ export function TextField({
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0 }}>
             {labelElement}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: `var(${iconTextGapVar}, 8px)` }}>
+              <div 
+                style={{ display: 'flex', alignItems: 'center', gap: `var(${iconTextGapVar}, 8px)`, cursor: onClick ? 'pointer' : undefined }}
+                onClick={onClick}
+              >
                 {leadingIcon && (
                   <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, flexShrink: 0, color: `var(${leadingIconVar})` }}>
                     {leadingIcon}
@@ -208,9 +238,16 @@ export function TextField({
                   value={value}
                   defaultValue={defaultValue}
                   onChange={onChange}
+                  onKeyDown={onKeyDown}
+                  onBlur={onBlur}
+                  onClick={onClick}
                   placeholder={placeholder}
+                  min={min}
+                  max={max}
+                  step={step}
                   disabled={state === 'disabled'}
                   readOnly={state === 'read-only'}
+                  autoFocus={autoFocus}
                   style={{
                     flex: 1,
                     minWidth: effectiveMinWidth,
@@ -229,6 +266,7 @@ export function TextField({
                     fontFamily: 'inherit',
                     fontSize: 'inherit',
                     outline: 'none',
+                    cursor: onClick ? 'pointer' : undefined,
                   }}
                 />
                 {trailingIcon && (
@@ -252,6 +290,9 @@ export function TextField({
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
+        onKeyDown={onKeyDown}
+        onBlur={onBlur}
+        onClick={onClick}
         placeholder={placeholder}
         label={label}
         helpText={helpText}
@@ -269,6 +310,11 @@ export function TextField({
         errorId={errorId}
         name={name}
         type={type}
+        min={min}
+        max={max}
+        step={step}
+        autoFocus={autoFocus}
+        readOnly={readOnly}
         className={className}
         style={style}
         mantine={mantine}

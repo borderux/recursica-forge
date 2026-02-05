@@ -12,6 +12,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { TextField } from '../../TextField'
 import './Slider.css'
 
 export default function Slider({
@@ -302,7 +303,7 @@ export default function Slider({
         </span>
       )}
       {showInput && (
-        <input
+        <TextField
           type="number"
           min={min}
           max={max}
@@ -319,22 +320,11 @@ export default function Slider({
               }
             }
           }}
-          disabled={disabled}
+          state={disabled ? 'disabled' : 'default'}
+          layer="layer-0"
           style={{
             width: `var(${inputWidthVar}, 60px)`,
-            height: `var(${getFormCssVar('field', 'size', 'single-line-input-height')})`,
-            paddingLeft: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-            paddingRight: `var(${getFormCssVar('field', 'size', 'horizontal-padding')})`,
-            paddingTop: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-            paddingBottom: `var(${getFormCssVar('field', 'size', 'vertical-padding')})`,
-            borderWidth: `var(${getFormCssVar('field', 'size', 'border-thickness-default')})`,
-            borderStyle: 'solid',
-            borderColor: `var(${getFormCssVar('field', 'colors', 'border')})`,
-            borderRadius: `var(${getFormCssVar('field', 'size', 'border-radius')})`,
-            background: `var(${getFormCssVar('field', 'colors', 'background')})`,
-            color: `var(${getFormCssVar('field', 'colors', 'text-valued')})`,
             fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            opacity: disabled ? 0.5 : 1,
           }}
         />
       )}

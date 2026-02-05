@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from 'react'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import { TextField } from '../../components/adapters/TextField'
 import {
   getStoredAuth,
   storeAuth,
@@ -500,8 +501,7 @@ export function GitHubExportModal({
                         Enter Repository URL
                       </label>
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <input
-                          type="text"
+                        <TextField
                           value={manualRepoUrl}
                           onChange={(e) => setManualRepoUrl(e.target.value)}
                           placeholder="https://github.com/owner/repo or owner/repo"
@@ -510,15 +510,8 @@ export function GitHubExportModal({
                               handleManualRepoSubmit()
                             }
                           }}
-                          style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
-                            borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-                            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
-                            color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-                            fontSize: '14px',
-                          }}
+                          style={{ flex: 1, fontSize: '14px' }}
+                          layer="layer-3"
                         />
                         <button
                           onClick={handleManualRepoSubmit}

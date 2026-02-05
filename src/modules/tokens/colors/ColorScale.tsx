@@ -4,6 +4,7 @@ import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import type { JsonLike } from '../../../core/resolvers/tokens'
+import { TextField } from '../../../components/adapters/TextField'
 
 export type ColorScaleProps = {
   family: string
@@ -110,8 +111,7 @@ export function ColorScale({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       <div style={{ marginBottom: 'var(--recursica-brand-dimensions-general-sm)' }}>
-        <input
-          required
+        <TextField
           value={localName}
           onChange={(e) => {
             // Filter input to only allow alphanumeric and spaces
@@ -125,15 +125,10 @@ export function ColorScale({
               e.currentTarget.blur()
             }
           }}
+          layer="layer-1"
           style={{ 
             fontSize: 'var(--recursica-brand-typography-body-small-font-size)', 
-            padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-default)', 
-            border: `1px solid var(${layer1Base}-border-color)`, 
-            borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)', 
             width: '100%',
-            backgroundColor: `var(${layer1Base}-surface)`,
-            color: `var(${layer1Base}-element-text-color)`,
-            opacity: `var(${layer1Base}-element-text-high-emphasis)`,
           }}
         />
       </div>

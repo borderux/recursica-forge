@@ -6,6 +6,8 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { contrastRatio } from '../theme/contrastUtil'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
+import { TextField } from '../../components/adapters/TextField'
+import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../components/utils/cssVarNames'
 import './PaletteColorControl.css'
 
 type PaletteColorControlProps = {
@@ -36,14 +38,14 @@ export default function PaletteColorControl({
   targetCssVars,
   label,
   currentValueCssVar,
-  fallbackLabel = 'Not set',
+  fallbackLabel = 'None',
   swatchSize = 16,
   fontSize = 13,
   contrastColorCssVar,
 }: PaletteColorControlProps) {
   const { palettes, theme: themeJson, tokens } = useVars()
   const { mode } = useThemeMode()
-  const buttonRef = useRef<HTMLButtonElement>(null)
+  const textFieldRef = useRef<HTMLDivElement>(null)
   const displayCssVar = currentValueCssVar || targetCssVar
   
   // Get available palette keys and levels for token-to-palette mapping
@@ -903,8 +905,8 @@ export default function PaletteColorControl({
     return null
   }, [contrastColorCssVar, displayCssVar, tokens, refreshKey, mode]) // Include mode and refreshKey to re-check when colors change
 
-  const handleClick = () => {
-    const el = buttonRef.current
+  const handleClick = (e: React.MouseEvent<HTMLDivElement | HTMLInputElement>) => {
+    const el = textFieldRef.current
     if (!el) return
     try {
       // If multiple CSS vars are provided, pass them all to the picker
@@ -915,50 +917,150 @@ export default function PaletteColorControl({
     }
   }
 
-  return (
-    <>
-      {label && (
-        <label className="palette-color-control-label">
-          {label}
-        </label>
-      )}
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={handleClick}
-        className="palette-color-control"
+  // Check if color is null/not set
+  const isColorNull = displayLabel === 'None' || !readCssVar(displayCssVar)
+  const modeLower = mode.toLowerCase()
+  
+  // Use the same border style as the overlay swatches
+  // Match PaletteSwatchPicker's border style exactly
+  // Use CSS variable reference directly (same as overlay) - template literal interpolation
+  const swatchBorderColorVar = `--recursica-brand-themes-${modeLower}-palettes-neutral-500-tone`
+  const swatchBorderColor = `var(${swatchBorderColorVar})`
+  
+  // Get highest layer number for background (same as PaletteSwatchPicker)
+  const highestLayerNum = useMemo(() => {
+    try {
+      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+      const themes = root?.themes || root
+      const layersData: any = themes?.[modeLower]?.layers || themes?.[modeLower]?.layer || {}
+      const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
+        const aNum = parseInt(a.replace('layer-', ''), 10)
+        const bNum = parseInt(b.replace('layer-', ''), 10)
+        return bNum - aNum // Sort descending to get highest first
+      })
+      return layerKeys.length > 0 ? layerKeys[0].replace('layer-', '') : '3'
+    } catch {
+      return '3'
+    }
+  }, [themeJson, modeLower])
+  
+  // Create swatch icon component
+  const swatchIcon = isColorNull ? (
+    <span
+      aria-hidden
+      className="palette-color-control-swatch"
+      style={{
+        width: swatchSize,
+        height: swatchSize,
+        display: 'block',
+        flex: '0 0 auto',
+        boxSizing: 'border-box',
+        position: 'relative',
+        borderRadius: 0,
+        padding: 0,
+        overflow: 'visible',
+        minWidth: swatchSize,
+        minHeight: swatchSize,
+        flexShrink: 0,
+      }}
+    >
+      <span
+        className="palette-color-control-swatch-inner"
         style={{
-          fontSize,
+          width: '100%',
+          height: '100%',
+          display: 'block',
+          background: `var(--recursica-brand-themes-${modeLower}-layer-layer-${highestLayerNum}-property-surface)`,
+          position: 'relative',
         }}
       >
-        <span
-          aria-hidden
-          className="palette-color-control-swatch"
+        {/* Diagonal line through box */}
+        <svg
+          width={swatchSize}
+          height={swatchSize}
+          viewBox={`0 0 ${swatchSize} ${swatchSize}`}
           style={{
-            width: swatchSize,
-            height: swatchSize,
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
           }}
         >
-          <span
-            className="palette-color-control-swatch-inner"
-            style={{
-              background: `var(${displayCssVar}, transparent)`,
-            }}
+          <line
+            x1="2"
+            y1="2"
+            x2={swatchSize - 2}
+            y2={swatchSize - 2}
+            stroke={`var(--recursica-brand-themes-${modeLower}-palettes-neutral-500-tone)`}
+            strokeWidth="1.5"
+            strokeLinecap="round"
           />
-        </span>
-        <span className="palette-color-control-text" style={{ fontSize }}>
-          {displayLabel}
-        </span>
-        {contrastWarning && (
-          <span
-            className="palette-color-control-warning"
-            title={`Poor contrast: ${contrastWarning.ratio}:1 (WCAG AA requires 4.5:1)`}
-            aria-label={`Poor contrast warning: ${contrastWarning.ratio}:1 ratio`}
-          >
-            ⚠
-          </span>
-        )}
-      </button>
+        </svg>
+      </span>
+    </span>
+  ) : (
+    <span
+      aria-hidden
+      className="palette-color-control-swatch"
+      style={{
+        width: swatchSize,
+        height: swatchSize,
+        display: 'block',
+        flex: '0 0 auto',
+        boxSizing: 'border-box',
+        borderRadius: 0,
+        padding: 0,
+        overflow: 'visible',
+        minWidth: swatchSize,
+        minHeight: swatchSize,
+        flexShrink: 0,
+        position: 'relative',
+      }}
+    >
+      <span
+        className="palette-color-control-swatch-inner"
+        style={{
+          background: `var(${displayCssVar}, transparent)`,
+          width: '100%',
+          height: '100%',
+          display: 'block',
+        }}
+      />
+    </span>
+  )
+
+  // Create trailing icon with contrast warning if needed
+  const trailingIcon = contrastWarning ? (
+    <span
+      className="palette-color-control-warning"
+      title={`Poor contrast: ${contrastWarning.ratio}:1 (WCAG AA requires 4.5:1)`}
+      aria-label={`Poor contrast warning: ${contrastWarning.ratio}:1 ratio`}
+      style={{ fontSize: fontSize }}
+    >
+      ⚠
+    </span>
+  ) : undefined
+
+  return (
+    <>
+      <div ref={textFieldRef}>
+        <TextField
+          label={label}
+          value={displayLabel}
+          leadingIcon={swatchIcon}
+          trailingIcon={trailingIcon}
+          state="default"
+          readOnly={true}
+          onClick={handleClick}
+          layer="layer-0"
+          style={{
+            fontSize,
+            cursor: 'pointer',
+          }}
+          className="palette-color-control-textfield"
+        />
+      </div>
       <PaletteSwatchPicker 
         onSelect={() => {
           // Force re-read of CSS variable when a selection is made

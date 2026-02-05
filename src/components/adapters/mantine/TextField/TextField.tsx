@@ -36,10 +36,13 @@ export default function TextField({
   errorId,
   name,
   type = 'text',
+  min,
+  max,
+  step,
   className,
   style,
   mantine,
-  ...props
+  ...restProps
 }: AdapterTextFieldProps & { labelId?: string; helpId?: string; errorId?: string }) {
   const { mode } = useThemeMode()
   
@@ -200,6 +203,7 @@ export default function TextField({
   const inputWrapper = (
     <div
       className="recursica-text-field-wrapper"
+      onClick={restProps.onClick}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -215,6 +219,7 @@ export default function TextField({
         backgroundColor: `var(${backgroundVar})`,
         boxShadow: `inset 0 0 0 var(${borderSizeVar}) var(${borderVar})`,
         transition: 'box-shadow 0.2s',
+        cursor: restProps.onClick ? 'pointer' : undefined,
       }}
     >
       {leadingIcon && (
@@ -229,6 +234,7 @@ export default function TextField({
             alignItems: 'center',
             justifyContent: 'center',
             pointerEvents: 'none',
+            overflow: 'visible',
           }}
         >
           {leadingIcon}
@@ -241,9 +247,15 @@ export default function TextField({
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
+        onKeyDown={restProps.onKeyDown}
+        onBlur={restProps.onBlur}
         placeholder={placeholder}
+        min={min}
+        max={max}
+        step={step}
         disabled={state === 'disabled'}
-        readOnly={state === 'read-only'}
+        readOnly={restProps.readOnly !== undefined ? restProps.readOnly : state === 'read-only'}
+        autoFocus={restProps.autoFocus}
         className={`recursica-text-field-input ${className || ''}`}
         style={{
           flex: 1,
@@ -258,7 +270,7 @@ export default function TextField({
           outline: 'none',
         } as React.CSSProperties}
         {...mantine}
-        {...props}
+        {...restProps}
       />
       {trailingIcon && (
         <div
