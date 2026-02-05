@@ -7,7 +7,7 @@
 
 import React, { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
 import { parseElevationValue, getElevationBoxShadow } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -45,8 +45,8 @@ export function Toast({
   const { mode } = useThemeMode()
   
   // Get elevation from CSS vars if not provided as props
-  // These are set by the toolbar and initialized from UIKit.json
-  const elevationVar = getComponentLevelCssVar('Toast', 'elevation')
+  // Elevation is layer-specific but common across all variants: toast.properties.elevation.layer-{layer}
+  const elevationVar = buildComponentCssVarPath('Toast', 'properties', 'elevation', layer)
   
   // Reactively read elevation from CSS variable
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
@@ -81,7 +81,7 @@ export function Toast({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [elevationVar])
+  }, [elevationVar, layer])
   
   const componentElevation = elevation ?? elevationFromVar ?? undefined
   
