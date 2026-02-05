@@ -66,9 +66,6 @@ export default function TextField({
   
   // Get variant-specific border size
   const borderSizeVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'border-size')
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextField.tsx:65',message:'borderSizeVar computed',data:{state,effectiveState,borderSizeVar},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-  // #endregion
   
   // Get component-level properties
   const borderRadiusVar = getComponentLevelCssVar('TextField', 'border-radius')
@@ -120,13 +117,6 @@ export default function TextField({
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const updatedVars = detail?.cssVars || []
-      // #region agent log
-      const borderSizeMatch = updatedVars.some((v: string) => {
-        return borderSizeVar === v || v.includes(borderSizeVar.replace('--', '')) || borderSizeVar.replace('--', '').includes(v.replace('--', ''))
-      })
-      const borderSizeVarValue = typeof document !== 'undefined' ? document.documentElement.style.getPropertyValue(borderSizeVar) : 'N/A'
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextField.tsx:127',message:'cssVarsUpdated event received',data:{updatedVars,borderSizeVar,borderSizeVarValue,borderSizeMatch,effectiveState,state,allUpdatedVars:updatedVars},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'K'})}).catch(()=>{});
-      // #endregion
       // Re-render if text CSS vars or dimension vars were updated, or if no specific vars were mentioned (global update)
       // Check for exact matches or if the updated var contains the var name (without -- prefix)
       const shouldUpdate = updatedVars.length === 0 || updatedVars.some((v: string) => {
@@ -135,11 +125,6 @@ export default function TextField({
           return v === tv || v.includes(tvWithoutPrefix) || tvWithoutPrefix.includes(v.replace('--', ''))
         })
       })
-      // #region agent log
-      if (borderSizeMatch || updatedVars.length === 0) {
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TextField.tsx:140',message:'should update check',data:{shouldUpdate,borderSizeMatch,dimensionCssVars},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'K'})}).catch(()=>{});
-      }
-      // #endregion
       if (shouldUpdate) {
         setTextVarsUpdate(prev => prev + 1)
       }
@@ -227,11 +212,6 @@ export default function TextField({
         transition: 'box-shadow 0.2s',
         cursor: restProps.onClick ? 'pointer' : undefined,
       }}
-      // #region agent log
-      data-debug-border-size-var={borderSizeVar}
-      data-debug-state={state}
-      data-debug-effective-state={effectiveState}
-      // #endregion
     >
       {leadingIcon && (
         <div

@@ -26,6 +26,7 @@ import { useDebugMode } from './PreviewPage'
 import ComponentDebugTable from './ComponentDebugTable'
 import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
 import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
+import type { ComponentName } from '../../components/registry/types'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
@@ -410,7 +411,7 @@ export default function ComponentDetailPage() {
           height: debugMode ? undefined : '100%',
         }}>
           <ComponentToolbar
-            componentName={component.name}
+            componentName={componentName as ComponentName}
             selectedVariants={selectedVariants}
             selectedLayer={selectedLayer}
             onVariantChange={(prop, variant) => {

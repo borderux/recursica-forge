@@ -74,13 +74,6 @@
   opacity: 1 !important;
 }
 
-/* Debug: Ensure endIcon is visible even if CSS variables are 0 */
-.MuiButton-root[style*="--debug-end-icon"] .MuiButton-endIcon {
-  min-width: 16px !important;
-  min-height: 16px !important;
-  background-color: rgba(255, 0, 0, 0.1) !important; /* Temporary debug background */
-}
-
 /* Material UI buttons render text as direct children or in the button's text content */
 /* Apply truncation to the button's content area */
 .MuiButton-root {

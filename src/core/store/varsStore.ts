@@ -223,8 +223,6 @@ class VarsStore {
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
 
-    // Debug: verify elevation tokens are in state
-
     // Versioning and seeding when bundle changes
     if (this.lsAvailable) {
       const bundleVersion = computeBundleVersion(tokensImport, themeImport, uikitImport)
@@ -2112,52 +2110,85 @@ class VarsStore {
             const key = `elevation-${level}`
             return this.state.elevation.directions[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
           }
+          // Helper to read elevation values directly from Brand.json for the current mode
+          const toNumeric = (ref?: any): number => {
+            // Handle new structure: { $value: { value: number, unit: "px" }, $type: "number" }
+            if (ref && typeof ref === 'object' && '$value' in ref) {
+              const val = ref.$value
+              if (val && typeof val === 'object' && 'value' in val) {
+                return typeof val.value === 'number' ? val.value : Number(val.value) || 0
+              }
+              // Fallback: try to parse as number directly
+              if (typeof val === 'number') return val
+              if (typeof val === 'string') {
+                const num = Number(val)
+                return Number.isFinite(num) ? num : 0
+              }
+            }
+            // Handle old structure: direct number or string
+            if (typeof ref === 'number') return ref
+            if (typeof ref === 'string') {
+              const num = Number(ref)
+              return Number.isFinite(num) ? num : 0
+            }
+            return 0
+          }
+          // Read elevation values from Brand.json for the current mode
+          const brand: any = (this.state.theme as any)?.brand || (this.state.theme as any)
+          const themes = brand?.themes || brand
+          const modeElevations: any = themes?.[mode]?.elevations || {}
+          const baseElevationNode: any = modeElevations?.['elevation-0']?.['$value'] || {}
+          
           const vars: Record<string, string> = {}
-          const baseCtrl = this.state.elevation.controls['elevation-0']
+          // Update tokens with mode-specific elevation values from Brand.json before generating CSS variables
+          // This ensures token references resolve to the correct mode-specific values
+          const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+          if (!tokensRoot.sizes) tokensRoot.sizes = {}
+          const sizeTokens = tokensRoot.sizes
+          
           // Generate elevation variables for levels 0-4
-          // If a control doesn't exist, use elevation-0 as fallback
+          // Read values directly from Brand.json for the current mode, update tokens, then reference them
           for (let i = 0; i <= 4; i += 1) {
             const k = `elevation-${i}`
-            const ctrl = this.state.elevation.controls[k] || baseCtrl
-            if (!ctrl) {
-              // If even baseCtrl doesn't exist, skip this elevation level
+            const elevNode: any = modeElevations?.[k]?.['$value'] || baseElevationNode
+            if (!elevNode || Object.keys(elevNode).length === 0) {
               continue
             }
-            const blurValue = (() => {
-              if (i > 0 && scaleBlur && ctrl.blur === baseCtrl?.blur) {
-                // Scale blur proportionally
-                return Math.round(ctrl.blur * (1 + (i * 0.2)))
-              }
-              return ctrl.blur
-            })()
-            const spreadValue = (() => {
-              if (i > 0 && scaleSpread && ctrl.spread === baseCtrl?.spread) {
-                return Math.round(ctrl.spread * (1 + (i * 0.2)))
-              }
-              return ctrl.spread
-            })()
-            const xValue = (() => {
-              if (i > 0 && scaleX && ctrl.offsetX === baseCtrl?.offsetX) {
-                return Math.round(ctrl.offsetX * (1 + (i * 0.2)))
-              }
-              return ctrl.offsetX
-            })()
-            const yValue = (() => {
-              if (i > 0 && scaleY && ctrl.offsetY === baseCtrl?.offsetY) {
-                return Math.round(ctrl.offsetY * (1 + (i * 0.2)))
-              }
-              return ctrl.offsetY
-            })()
+            
+            // Read values directly from Brand.json for this mode
+            const blurRaw = elevNode?.blur
+            const spreadRaw = elevNode?.spread
+            const xRaw = elevNode?.x
+            const yRaw = elevNode?.y
+            
+            const blurValue = toNumeric(blurRaw)
+            const spreadValue = toNumeric(spreadRaw)
+            const xValue = toNumeric(xRaw)
+            const yValue = toNumeric(yRaw)
+            
             const dir = dirForLevel(i)
             const sxValue = dir.x === 'right' ? xValue : -xValue
             const syValue = dir.y === 'down' ? yValue : -yValue
             const brandScope = `--brand-themes-${mode}-elevations-elevation-${i}`
             const prefixedScope = `--recursica-${brandScope.slice(2)}`
 
+            // Update tokens with mode-specific values from Brand.json
+            // These tokens will be referenced by the CSS variables
+            const blurTokenName = `size/elevation-${i}-blur`
+            const spreadTokenName = `size/elevation-${i}-spread`
+            const offsetXTokenName = `size/elevation-${i}-offset-x`
+            const offsetYTokenName = `size/elevation-${i}-offset-y`
+            
+            // Update token values with mode-specific values (tokens are shared but updated per mode)
+            sizeTokens[`elevation-${i}-blur`] = { $type: 'number', $value: blurValue }
+            sizeTokens[`elevation-${i}-spread`] = { $type: 'number', $value: spreadValue }
+            sizeTokens[`elevation-${i}-offset-x`] = { $type: 'number', $value: xValue }
+            sizeTokens[`elevation-${i}-offset-y`] = { $type: 'number', $value: yValue }
+
             // Check if there's already a palette CSS variable set (preserve user selections)
             const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
             const alphaTok = this.state.elevation.alphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
-            // Use tokenToCssVar to properly convert opacity token names to CSS vars
+            // Use tokenToCssVar to properly convert opacity token names to CSS vars (use original state tokens for non-elevation tokens)
             const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
 
             // Check if existing color contains a palette reference (could be var() or color-mix())
@@ -2195,32 +2226,31 @@ class VarsStore {
               vars[`${prefixedScope}-shadow-color`] = String(color)
             }
 
-            // Use token references for elevation properties
-            const blurTokenName = this.state.elevation.blurTokens[k] || `size/elevation-${i}-blur`
-            const spreadTokenName = this.state.elevation.spreadTokens[k] || `size/elevation-${i}-spread`
-            const offsetXTokenName = this.state.elevation.offsetXTokens[k] || `size/elevation-${i}-offset-x`
-            const offsetYTokenName = this.state.elevation.offsetYTokens[k] || `size/elevation-${i}-offset-y`
-
-            // Extract the key part from token names (e.g., "size/elevation-0-blur" -> "elevation-0-blur")
-            const getTokenKey = (tokenName: string): string => {
-              const parts = tokenName.split('/')
-              return parts.length > 1 ? parts.slice(1).join('-') : tokenName.replace(/\//g, '-')
-            }
-
-            const blurKey = getTokenKey(blurTokenName)
-            const spreadKey = getTokenKey(spreadTokenName)
-            const offsetXKey = getTokenKey(offsetXTokenName)
-            const offsetYKey = getTokenKey(offsetYTokenName)
-
-            vars[`${prefixedScope}-blur`] = `var(--recursica-tokens-size-${blurKey})`
-            vars[`${prefixedScope}-spread`] = `var(--recursica-tokens-size-${spreadKey})`
+            // Reference tokens instead of using literal pixel values
+            // This ensures validation passes and values are mode-specific
+            // Tokens have been updated with mode-specific values above
+            const blurTokenRef = tokenToCssVar(blurTokenName, this.state.tokens) || `var(--recursica-tokens-size-elevation-${i}-blur)`
+            const spreadTokenRef = tokenToCssVar(spreadTokenName, this.state.tokens) || `var(--recursica-tokens-size-elevation-${i}-spread)`
+            const offsetXTokenRef = tokenToCssVar(offsetXTokenName, this.state.tokens) || `var(--recursica-tokens-size-elevation-${i}-offset-x)`
+            const offsetYTokenRef = tokenToCssVar(offsetYTokenName, this.state.tokens) || `var(--recursica-tokens-size-elevation-${i}-offset-y)`
+            
+            // For blur and spread, use token references directly
+            vars[`${prefixedScope}-blur`] = blurTokenRef
+            vars[`${prefixedScope}-spread`] = spreadTokenRef
+            
             // For x-axis and y-axis, we need to apply direction (signed values)
-            // The token stores the absolute offset, but we need to apply direction
-            // We'll use calc() to apply the sign based on direction
-            const xTokenVar = `var(--recursica-tokens-size-${offsetXKey})`
-            const yTokenVar = `var(--recursica-tokens-size-${offsetYKey})`
-            vars[`${prefixedScope}-x-axis`] = dir.x === 'right' ? xTokenVar : `calc(-1 * ${xTokenVar})`
-            vars[`${prefixedScope}-y-axis`] = dir.y === 'down' ? yTokenVar : `calc(-1 * ${yTokenVar})`
+            // Since tokens store absolute values, we need to handle the sign in CSS or use calc()
+            // For now, we'll use calc() to apply the sign based on direction
+            if (dir.x === 'right') {
+              vars[`${prefixedScope}-x-axis`] = offsetXTokenRef
+            } else {
+              vars[`${prefixedScope}-x-axis`] = `calc(-1 * ${offsetXTokenRef})`
+            }
+            if (dir.y === 'down') {
+              vars[`${prefixedScope}-y-axis`] = offsetYTokenRef
+            } else {
+              vars[`${prefixedScope}-y-axis`] = `calc(-1 * ${offsetYTokenRef})`
+            }
           }
           Object.assign(allVars, vars)
         } catch (e) {

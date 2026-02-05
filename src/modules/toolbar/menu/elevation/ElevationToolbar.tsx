@@ -13,10 +13,11 @@ import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNam
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
+import type { ComponentName } from '../../../../components/registry/types'
 import './ElevationToolbar.css'
 
 interface ElevationToolbarProps {
-  componentName: string
+  componentName: ComponentName
   prop: ComponentProp // The "elevation" prop
   selectedVariants: Record<string, string>
   selectedLayer: string

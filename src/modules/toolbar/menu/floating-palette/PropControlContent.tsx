@@ -9,6 +9,7 @@ import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
+import type { ComponentName } from '../../../../components/registry/types'
 import OpacitySelector from './OpacitySelector'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
@@ -285,7 +286,7 @@ function BrandDimensionSliderInline_DEPRECATED({
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
-      label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
+      label={<Label layer={layer} layout="stacked">{label}</Label>}
     />
   )
 }
@@ -534,7 +535,7 @@ function TypographySliderInline({
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
-      label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
+      label={<Label layer={layer} layout="stacked">{label}</Label>}
     />
   )
 }
@@ -694,14 +695,14 @@ function ElevationSliderInline({
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
-      label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
+      label={<Label layer={layer} layout="stacked">{label}</Label>}
     />
   )
 }
 
 interface PropControlContentProps {
   prop: ComponentProp
-  componentName: string
+  componentName: ComponentName
   selectedVariants: Record<string, string>
   selectedLayer: string
 }
@@ -732,11 +733,6 @@ export default function PropControlContent({
   }, [themeJson])
 
   const getCssVarsForProp = (propToCheck: ComponentProp): string[] => {
-    // #region agent log
-    if (propToCheck.name === 'border-size' && componentName === 'TextField') {
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:728',message:'getCssVarsForProp entry',data:{propName:propToCheck.name,propCategory:propToCheck.category,propIsVariantSpecific:propToCheck.isVariantSpecific,propVariantProp:propToCheck.variantProp,propPath:propToCheck.path,propCssVar:propToCheck.cssVar,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    }
-    // #endregion
 
     // If the prop already has a CSS var and a path, use it directly to avoid mismatching
     // This is especially important for grouped props like "container" vs "selected"
@@ -781,21 +777,11 @@ export default function PropControlContent({
       // Check if the prop being searched (p) has variant info in its path
       if (p.isVariantSpecific && p.variantProp) {
         const selectedVariant = selectedVariants[p.variantProp]
-        // #region agent log
-        if (propToCheck.name === 'border-size' && componentName === 'TextField') {
-          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:762',message:'checking variant-specific prop',data:{pName:p.name,pVariantProp:p.variantProp,pPath:p.path,pIsVariantSpecific:p.isVariantSpecific,selectedVariant,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        }
-        // #endregion
         if (!selectedVariant) {
           // If no variant is selected for this variantProp, don't match variant-specific props
           return false
         }
         const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-        // #region agent log
-        if (propToCheck.name === 'border-size' && componentName === 'TextField') {
-          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:768',message:'variant matching check',data:{selectedVariant,variantInPath,pPath:p.path,matchFound:!!variantInPath},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        }
-        // #endregion
         if (!variantInPath) {
           // Prop is variant-specific but doesn't match selected variant - skip it
           return false
@@ -834,11 +820,6 @@ export default function PropControlContent({
       
       if (targetVariantProp) {
         const selectedVariant = selectedVariants[targetVariantProp]
-        // #region agent log
-        if (targetPropName === 'border-size' && componentName === 'TextField') {
-          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:811',message:'fallback search for variant-specific prop',data:{propToCheckName:propToCheck.name,targetPropName,propToCheckVariantProp:propToCheck.variantProp,targetVariantProp,propToCheckPath:propToCheck.path,selectedVariant,selectedVariants,isTextFieldBorderSize},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'M'})}).catch(()=>{});
-        }
-        // #endregion
         if (selectedVariant) {
           matchingProp = structure.props.find(p => {
             if (p.name !== targetPropName || p.category !== propToCheck.category) {
@@ -849,11 +830,6 @@ export default function PropControlContent({
             }
             // Must have the selected variant in the path
             const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-            // #region agent log
-            if (targetPropName === 'border-size' && componentName === 'TextField' && p.name === 'border-size') {
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:822',message:'checking prop in fallback search',data:{pName:p.name,pPath:p.path,pVariantProp:p.variantProp,selectedVariant,variantInPath,match:!!variantInPath},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'M'})}).catch(()=>{});
-            }
-            // #endregion
             if (!variantInPath) return false
             
             if (propToCheck.category === 'colors') {
@@ -862,20 +838,9 @@ export default function PropControlContent({
             }
             return true
           })
-          // #region agent log
-          if (targetPropName === 'border-size' && componentName === 'TextField') {
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:830',message:'fallback search result',data:{matchingPropFound:!!matchingProp,matchingPropCssVar:matchingProp?.cssVar,matchingPropPath:matchingProp?.path},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'M'})}).catch(()=>{});
-          }
-          // #endregion
         }
       }
     }
-
-    // #region agent log
-    if (propToCheck.name === 'border-size' && componentName === 'TextField') {
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:820',message:'getCssVarsForProp result',data:{matchingPropFound:!!matchingProp,matchingPropCssVar:matchingProp?.cssVar,matchingPropPath:matchingProp?.path,matchingPropVariantProp:matchingProp?.variantProp,propToCheckPath:propToCheck.path,propToCheckVariantProp:propToCheck.variantProp,selectedVariants,fallbackCssVar:propToCheck.cssVar,resultCssVar:matchingProp ? matchingProp.cssVar : propToCheck.cssVar},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
-    }
-    // #endregion
 
     return matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]
   }
@@ -884,18 +849,11 @@ export default function PropControlContent({
   let primaryCssVar = baseCssVars[0] || prop.cssVar
   let cssVarsForControl = baseCssVars
 
-  // #region agent log
-  if (prop.name === 'border-size' && componentName === 'TextField') {
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:797',message:'border-size prop analysis',data:{propName:prop.name,propCategory:prop.category,propIsVariantSpecific:prop.isVariantSpecific,propVariantProp:prop.variantProp,propPath:prop.path,propCssVar:prop.cssVar,selectedVariants,selectedLayer,baseCssVars,primaryCssVar},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  }
-  // #endregion
-
   // Special handling for MenuItem background: update all three background CSS variables
   // Component name can be "Menu item" (display name) or "MenuItem" (component name)
   const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' ||
     componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
-    componentName === 'MenuItem' ||
-    componentName === 'Menu item'
+    componentName === 'MenuItem'
 
   if (prop.name.toLowerCase() === 'background' && isMenuItem) {
     const defaultBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'background')
@@ -1112,8 +1070,7 @@ export default function PropControlContent({
     const isLabelWidth = propToRender.name.toLowerCase() === 'label-width'
     const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' ||
       componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
-      componentName === 'MenuItem' ||
-      componentName === 'Menu item'
+      componentName === 'MenuItem'
     const isMenu = componentName.toLowerCase() === 'menu'
     const isAccordion = componentName.toLowerCase() === 'accordion' || normalizedComponentName === 'accordion-item'
     const isAvatar = componentName.toLowerCase() === 'avatar'
@@ -1223,11 +1180,6 @@ export default function PropControlContent({
         propNameLower === 'min-width'
       )) {
         const TextFieldDimensionSlider = () => {
-          // #region agent log
-          if (propNameLower === 'border-size') {
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1158',message:'TextFieldDimensionSlider created',data:{propNameLower,primaryVar,cssVars,selectedVariants,propName:prop.name,propPath:prop.path},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'L'})}).catch(()=>{});
-          }
-          // #endregion
           let minValue = 0
           let maxValue = 500
           
@@ -3469,8 +3421,7 @@ export default function PropControlContent({
           // Special handling for MenuItem background grouped prop: update all three background CSS variables
           const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' ||
             componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
-            componentName === 'MenuItem' ||
-            componentName === 'Menu item'
+            componentName === 'MenuItem'
 
           // For grouped props:
           // - If variant-specific (e.g., border-size for Button variants), always use getCssVarsForProp to get the CSS var matching selected variant

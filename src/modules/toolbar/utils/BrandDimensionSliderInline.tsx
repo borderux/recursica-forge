@@ -278,7 +278,7 @@ export default function BrandDimensionSliderInline({
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
-      label={<Label layer={layer} layout="side-by-side" size="small">{label}</Label>}
+      label={<Label layer={layer} layout="stacked">{label}</Label>}
     />
   )
 }
