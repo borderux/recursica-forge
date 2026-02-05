@@ -590,6 +590,11 @@ export function Slider({
     ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
     : null
   
+  // Get Label's bottom-padding for stacked layout to match spacing
+  const labelBottomPaddingVar = layout === 'stacked'
+    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'bottom-padding')
+    : null
+  
   // Render value label using Label component to match label styling
   // Always show the value label when showValueLabel is true
   // Ensure we always have a non-empty value to display
@@ -620,6 +625,7 @@ export function Slider({
         color: `var(${layerTextColorVar})`,
         opacity: disabled ? 0.5 : `var(${layerTextEmphasisVar})`,
         textAlign: 'right',
+        paddingBottom: labelBottomPaddingVar ? `var(${labelBottomPaddingVar})` : undefined,
       } as React.CSSProperties}
     >
       {finalDisplayValue}

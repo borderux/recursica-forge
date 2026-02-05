@@ -462,6 +462,46 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           }
         }
         
+        // Special case: Check if this is an elevation property with layer-specific values
+        // Elevation can be structured as: elevation: { layer-0: { $type: "elevation", $value: "..." }, ... }
+        // We need to create a prop for "elevation" itself so it shows up in the toolbar
+        const isElevationProperty = key.toLowerCase() === 'elevation' && 
+                                     typeof value === 'object' && 
+                                     value !== null &&
+                                     !('$type' in value) &&
+                                     prefix.includes('properties')
+        
+        if (isElevationProperty) {
+          // Check if this object contains layer-specific elevation values (layer-0, layer-1, etc.)
+          const layerKeys = Object.keys(value).filter(k => k.startsWith('layer-'))
+          const hasLayerElevations = layerKeys.length > 0 && layerKeys.every(layerKey => {
+            const layerValue = (value as any)[layerKey]
+            return layerValue && typeof layerValue === 'object' && '$type' in layerValue && layerValue.$type === 'elevation'
+          })
+          
+          if (hasLayerElevations) {
+            // Create a prop for elevation itself
+            // Use the first layer's elevation as the base CSS var (will be resolved per layer at runtime)
+            const firstLayerKey = layerKeys[0]
+            const fullPath = ['components', componentKey, ...currentPath, firstLayerKey]
+            // Read mode from document to generate mode-specific CSS var names
+            const mode = typeof document !== 'undefined' 
+              ? (document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null) ?? 'light'
+              : 'light'
+            const cssVar = toCssVarName(fullPath.join('.'), mode)
+            
+            props.push({
+              name: key,
+              category: 'size', // Elevation is a component-level property
+              type: 'number', // Use 'number' type to match PropControlContent's check for elevation
+              cssVar, // This will be resolved per layer at runtime
+              path: currentPath,
+              isVariantSpecific: false,
+              variantProp: undefined,
+            })
+          }
+        }
+        
         traverse(value, currentPath, variantProp)
       }
     })

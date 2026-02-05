@@ -5,10 +5,10 @@
  * based on the current UI kit selection.
  */
 
-import React, { Suspense, useState, useEffect } from 'react'
+import React, { Suspense, useState, useEffect, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
-import { parseElevationValue, getElevationBoxShadow } from '../utils/brandCssVars'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
+import { parseElevationValue, getElevationBoxShadow, extractElevationMode } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
@@ -45,14 +45,33 @@ export function Toast({
   const { mode } = useThemeMode()
   
   // Get elevation from CSS vars if not provided as props
-  // These are set by the toolbar and initialized from UIKit.json
-  const elevationVar = getComponentLevelCssVar('Toast', 'elevation')
+  // Elevation is layer-specific but common across all variants: toast.properties.elevation.layer-{layer}
+  // Pass mode explicitly to ensure it uses the current mode's CSS variable
+  // Memoize with mode and layer dependencies so it updates when mode changes
+  const elevationVar = useMemo(() => {
+    return buildComponentCssVarPath('Toast', 'properties', 'elevation', layer, mode)
+  }, [layer, mode])
   
   // Reactively read elevation from CSS variable
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
     const value = readCssVar(elevationVar)
     return value ? parseElevationValue(value) : undefined
   })
+  
+  // Store the mode from token reference or CSS variable name separately (if available)
+  const [elevationModeFromVar, setElevationModeFromVar] = useState<'light' | 'dark' | undefined>(() => {
+    const value = readCssVar(elevationVar)
+    return extractElevationMode(value, elevationVar)
+  })
+  
+  // Re-read elevation when elevationVar changes (including when mode changes)
+  useEffect(() => {
+    const value = readCssVar(elevationVar)
+    const parsed = value ? parseElevationValue(value) : undefined
+    const extractedMode = extractElevationMode(value, elevationVar)
+    setElevationFromVar(parsed)
+    setElevationModeFromVar(extractedMode)
+  }, [elevationVar, mode])
   
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
@@ -61,7 +80,10 @@ export function Toast({
       // Update if these CSS vars were updated or if no specific vars were specified
       if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
         const elevationValue = readCssVar(elevationVar)
-        setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
+        const parsed = elevationValue ? parseElevationValue(elevationValue) : undefined
+        const extractedMode = extractElevationMode(elevationValue, elevationVar)
+        setElevationFromVar(parsed)
+        setElevationModeFromVar(extractedMode)
       }
     }
     
@@ -70,7 +92,10 @@ export function Toast({
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       const elevationValue = readCssVar(elevationVar)
-      setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
+      const parsed = elevationValue ? parseElevationValue(elevationValue) : undefined
+      const extractedMode = extractElevationMode(elevationValue, elevationVar)
+      setElevationFromVar(parsed)
+      setElevationModeFromVar(extractedMode)
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -81,7 +106,7 @@ export function Toast({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [elevationVar])
+  }, [elevationVar, mode])
   
   const componentElevation = elevation ?? elevationFromVar ?? undefined
   
@@ -155,7 +180,10 @@ export function Toast({
     }, [textFontFamilyVar, textFontSizeVar, textFontWeightVar, textLetterSpacingVar, textLineHeightVar, textDecorationVar, textTransformVar, textFontStyleVar])
     
     // Build box-shadow from elevation if set (and not elevation-0)
-    const boxShadow = getElevationBoxShadow(mode, componentElevation)
+    // Use the mode from token reference if available, otherwise use current mode
+    // This ensures that elevations set for a specific mode use that mode's elevation values
+    const elevationModeToUse = elevationModeFromVar ?? mode
+    const boxShadow = getElevationBoxShadow(elevationModeToUse, componentElevation)
     
     return (
       <div

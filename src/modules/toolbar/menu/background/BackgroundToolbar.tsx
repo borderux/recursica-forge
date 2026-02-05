@@ -40,23 +40,57 @@ export default function BackgroundToolbar({
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
   
   const backgroundProp = useMemo(() => {
-    // Use the prop passed in if it's already the background prop
-    if (prop.name.toLowerCase() === 'background' && prop.category === 'colors') {
-      return prop
-    }
-    // Otherwise find it
-    return structure.props.find(p => {
+    // Always search for the correct background prop based on selectedVariants and selectedLayer
+    // This ensures we get the right prop when layer or variant changes
+    
+    // Find all background props that match the layer first
+    const layerMatchingProps = structure.props.filter(p => {
       if (p.name.toLowerCase() !== 'background') return false
       if (p.category !== 'colors') return false
-      if (p.isVariantSpecific && p.variantProp) {
-        const selectedVariant = selectedVariants[p.variantProp]
-        if (!selectedVariant) return false
-        if (!p.path.includes(selectedVariant)) return false
-      }
+      
+      // Check layer matching - must match selectedLayer
       const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
-      if (layerInPath && layerInPath !== selectedLayer) return false
+      if (layerInPath) {
+        // If there's a layer in the path, it must match selectedLayer
+        if (layerInPath !== selectedLayer) return false
+      } else {
+        // If there's no layer in path but we have a selectedLayer other than layer-0,
+        // this prop doesn't match (for color props, we expect them to have a layer)
+        if (selectedLayer && selectedLayer !== 'layer-0') return false
+      }
+      
       return true
     })
+    
+    // If no props match the layer, return undefined
+    if (layerMatchingProps.length === 0) {
+      return undefined
+    }
+    
+    // Among layer-matching props, prefer variant-specific props that match the selected variant
+    const hasVariantSpecificProps = layerMatchingProps.some(p => p.isVariantSpecific && p.variantProp)
+    
+    if (hasVariantSpecificProps) {
+      // There are variant-specific props, so we must match the variant
+      const variantMatchingProp = layerMatchingProps.find(p => {
+        if (!p.isVariantSpecific || !p.variantProp) return false
+        const selectedVariant = selectedVariants[p.variantProp]
+        // If no variant is selected for this variantProp, skip this prop
+        if (!selectedVariant) return false
+        // Prop path must include the selected variant name
+        return p.path.includes(selectedVariant)
+      })
+      
+      // If we found a variant-matching prop, return it
+      if (variantMatchingProp) return variantMatchingProp
+      
+      // If no variant matches but we have variant-specific props, return undefined
+      // (we don't want to show a random variant's prop)
+      return undefined
+    }
+    
+    // No variant-specific props, return the first layer-matching prop
+    return layerMatchingProps[0]
   }, [structure, prop, selectedVariants, selectedLayer])
 
   const selectedBackgroundProp = useMemo(() => {

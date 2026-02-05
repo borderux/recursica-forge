@@ -71,7 +71,24 @@ export function getElevationBoxShadow(
   }
   
   const elevationLevel = elevationMatch[1]
-  return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+  const xAxisVar = `--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis`
+  const yAxisVar = `--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis`
+  const blurVar = `--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur`
+  
+  // Read actual CSS variable values to verify they exist and have correct values
+  let xAxisValue = 'N/A'
+  let yAxisValue = 'N/A'
+  let blurValue = 'N/A'
+  if (typeof document !== 'undefined') {
+    const computed = getComputedStyle(document.documentElement)
+    xAxisValue = computed.getPropertyValue(xAxisVar) || 'not found'
+    yAxisValue = computed.getPropertyValue(yAxisVar) || 'not found'
+    blurValue = computed.getPropertyValue(blurVar) || 'not found'
+  }
+  
+  const boxShadow = `var(${xAxisVar}, 0px) var(${yAxisVar}, 0px) var(${blurVar}, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+  
+  return boxShadow
 }
 
 /**
@@ -97,6 +114,38 @@ export function parseElevationValue(elevationValue: string | undefined): string 
   // Check if it's already a direct elevation value
   if (/^elevation-\d+$/.test(elevationValue)) {
     return elevationValue
+  }
+  
+  return undefined
+}
+
+/**
+ * Extracts mode information from elevation token reference or CSS variable name
+ * 
+ * @param elevationValue - Elevation value that may contain a token reference
+ * @param cssVarName - Optional CSS variable name (e.g., "--recursica-ui-kit-themes-dark-components-toast-properties-elevation-layer-1")
+ * @returns Mode ('light' | 'dark') if found in token reference or CSS variable name, undefined otherwise
+ */
+export function extractElevationMode(elevationValue: string | undefined, cssVarName?: string): 'light' | 'dark' | undefined {
+  if (!elevationValue && !cssVarName) {
+    return undefined
+  }
+  
+  // First, try to extract mode from token reference in elevation value
+  if (elevationValue) {
+    const modeMatch = elevationValue.match(/themes\.(light|dark)\.elevations/)
+    if (modeMatch) {
+      return modeMatch[1] as 'light' | 'dark'
+    }
+  }
+  
+  // If not found in value, try to extract mode from CSS variable name
+  // CSS var names like: --recursica-ui-kit-themes-dark-components-toast-properties-elevation-layer-1
+  if (cssVarName) {
+    const varModeMatch = cssVarName.match(/themes-(light|dark)-components/)
+    if (varModeMatch) {
+      return varModeMatch[1] as 'light' | 'dark'
+    }
   }
   
   return undefined

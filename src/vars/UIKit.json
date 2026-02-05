@@ -570,11 +570,11 @@
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.050.color.tone}"
+                      "$value": "{brand.palettes.neutral.100.color.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                      "$value": "{brand.palettes.neutral.100.color.on-tone}"
                     },
                     "button": {
                       "$type": "color",
@@ -584,11 +584,11 @@
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.050.color.tone}"
+                      "$value": "{brand.palettes.neutral.100.color.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                      "$value": "{brand.palettes.neutral.100.color.on-tone}"
                     },
                     "button": {
                       "$type": "color",
@@ -598,11 +598,11 @@
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.050.color.tone}"
+                      "$value": "{brand.palettes.neutral.100.color.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.050.color.on-tone}"
+                      "$value": "{brand.palettes.neutral.100.color.on-tone}"
                     },
                     "button": {
                       "$type": "color",
@@ -739,6 +739,24 @@
           }
         },
         "properties": {
+          "elevation": {
+            "layer-0": {
+              "$type": "elevation",
+              "$value": "{brand.elevations.elevation-4}"
+            },
+            "layer-1": {
+              "$type": "elevation",
+              "$value": "{brand.elevations.elevation-4}"
+            },
+            "layer-2": {
+              "$type": "elevation",
+              "$value": "{brand.elevations.elevation-4}"
+            },
+            "layer-3": {
+              "$type": "elevation",
+              "$value": "{brand.elevations.elevation-4}"
+            }
+          },
           "vertical-padding": {
             "$type": "dimension",
             "$value": {
@@ -787,10 +805,6 @@
               "value": "{brand.dimensions.icons.default}",
               "unit": "px"
             }
-          },
-          "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-1}"
           },
           "text": {
             "font-family": {

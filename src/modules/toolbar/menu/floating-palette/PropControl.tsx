@@ -745,12 +745,6 @@ export default function PropControl({
             const groupedPropKey = groupedPropName.toLowerCase()
             let groupedProp = prop.borderProps!.get(groupedPropKey)
             
-            // #region agent log
-            if (groupedPropKey === 'border-size' && componentName === 'TextField') {
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:746',message:'grouped prop lookup from cache',data:{groupedPropKey,groupedPropFound:!!groupedProp,groupedPropPath:groupedProp?.path,groupedPropCssVar:groupedProp?.cssVar,groupedPropVariantProp:groupedProp?.variantProp,groupedPropIsVariantSpecific:groupedProp?.isVariantSpecific,selectedVariants,allBorderPropsKeys:Array.from(prop.borderProps!.keys())},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'H'})}).catch(()=>{});
-            }
-            // #endregion
-            
             // For state-specific grouped props, ensure we have the prop for the selected state variant
             // CRITICAL: Also check if groupedProp.name doesn't match groupedPropKey (wrong prop cached)
             const propNameMismatch = groupedProp && groupedProp.name.toLowerCase() !== groupedPropKey
@@ -763,26 +757,9 @@ export default function PropControl({
             }
             const needsRefind = propNameMismatch || variantMismatch || false
             
-            // #region agent log
-            if (groupedPropKey === 'border-size' && componentName === 'TextField' && groupedProp) {
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:755',message:'checking if grouped prop needs re-finding',data:{groupedPropName:groupedProp.name,groupedPropKey,propNameMismatch,groupedPropIsVariantSpecific:groupedProp.isVariantSpecific,groupedPropVariantProp:groupedProp.variantProp,groupedPropPath:groupedProp.path,selectedVariants,needsRefind},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'N'})}).catch(()=>{});
-            }
-            // #endregion
-            
             if (needsRefind && groupedProp) {
               // Cached prop doesn't match - re-find it
-              // #region agent log
-              if (groupedPropKey === 'border-size' && componentName === 'TextField') {
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:762',message:'re-finding grouped prop',data:{groupedPropKey,groupedPropName:groupedProp.name,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'N'})}).catch(()=>{});
-              }
-              // #endregion
               const structure = parseComponentStructure(componentName)
-              // #region agent log
-              if (groupedPropKey === 'border-size' && componentName === 'TextField') {
-                const allBorderSizeProps = structure.props.filter(p => p.name.toLowerCase() === groupedPropKey)
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:767',message:'all border-size props in structure',data:{allBorderSizeProps:allBorderSizeProps.map(p=>({name:p.name,path:p.path,cssVar:p.cssVar,variantProp:p.variantProp,isVariantSpecific:p.isVariantSpecific})),selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'N'})}).catch(()=>{});
-              }
-              // #endregion
               
               // Determine the variant prop to search for
               const targetVariantProp = groupedProp.variantProp || (componentName === 'TextField' && groupedPropKey === 'border-size' ? 'states' : undefined)
@@ -798,11 +775,6 @@ export default function PropControl({
                     return false
                   }
                   const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-                  // #region agent log
-                  if (groupedPropKey === 'border-size' && componentName === 'TextField') {
-                    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:785',message:'checking prop for variant match',data:{pName:p.name,pPath:p.path,pVariantProp:p.variantProp,pIsVariantSpecific:p.isVariantSpecific,selectedVariant,targetVariantProp,variantInPath,match:!!variantInPath},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'N'})}).catch(()=>{});
-                  }
-                  // #endregion
                   return !!variantInPath
                 }
                 
@@ -814,17 +786,6 @@ export default function PropControl({
                 groupedProp = correctProp
                 // Update the cache
                 prop.borderProps!.set(groupedPropKey, correctProp)
-                // #region agent log
-                if (groupedPropKey === 'border-size' && componentName === 'TextField') {
-                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:800',message:'re-found and cached correct prop',data:{correctPropName:correctProp.name,correctPropPath:correctProp.path,correctPropCssVar:correctProp.cssVar,correctPropVariantProp:correctProp.variantProp},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'N'})}).catch(()=>{});
-                }
-                // #endregion
-              } else {
-                // #region agent log
-                if (groupedPropKey === 'border-size' && componentName === 'TextField') {
-                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:805',message:'failed to find correct prop',data:{groupedPropKey,selectedVariant,targetVariantProp},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'N'})}).catch(()=>{});
-                }
-                // #endregion
               }
             }
             
@@ -1031,26 +992,10 @@ export default function PropControl({
               }
             } else {
               // For other props, use getCssVarsForProp to find the correct CSS var based on variants/layer
-              // #region agent log
-              if (groupedPropKey === 'border-size' && componentName === 'TextField') {
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:1011',message:'calling getCssVarsForProp',data:{groupedPropName:groupedProp.name,groupedPropPath:groupedProp.path,groupedPropCssVar:groupedProp.cssVar,groupedPropVariantProp:groupedProp.variantProp,groupedPropIsVariantSpecific:groupedProp.isVariantSpecific,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'I'})}).catch(()=>{});
-              }
-              // #endregion
               cssVars = getCssVarsForProp(groupedProp)
               primaryVar = cssVars[0] || groupedProp.cssVar
-              // #region agent log
-              if (groupedPropKey === 'border-size' && componentName === 'TextField') {
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:1014',message:'getCssVarsForProp result',data:{cssVars,primaryVar,groupedPropCssVar:groupedProp.cssVar},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'I'})}).catch(()=>{});
-              }
-              // #endregion
             }
             const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
-            
-            // #region agent log
-            if (groupedPropKey === 'border-size' && componentName === 'TextField') {
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControl.tsx:1022',message:'rendering control with prop',data:{groupedPropName,groupedPropCssVar:groupedProp.cssVar,primaryVar,cssVars,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'I'})}).catch(()=>{});
-            }
-            // #endregion
             
             return (
               <div 

@@ -25,10 +25,11 @@ import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from '../preview/PreviewPage'
 import uikitJson from '../../vars/UIKit.json'
 import { getComponentTextCssVar } from '../../components/utils/cssVarNames'
+import type { ComponentName } from '../../components/registry/types'
 import './ComponentToolbar.css'
 
 export interface ComponentToolbarProps {
-  componentName: string
+  componentName: ComponentName
   selectedVariants: Record<string, string> // e.g., { color: "solid", size: "default" }
   selectedLayer: string // e.g., "layer-0"
   onVariantChange: (prop: string, variant: string) => void
@@ -277,19 +278,8 @@ export default function ComponentToolbar({
                     variantMatches = false
                   }
                 }
-                // #region agent log
-                if (groupedPropKey === 'border-size' && componentName.toLowerCase() === 'text-field') {
-                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar.tsx:260',message:'checking prop for grouped prop match',data:{groupedPropKey,parentPropNameLower,pName:p.name,pPath:p.path,pIsVariantSpecific:p.isVariantSpecific,pVariantProp:p.variantProp,nameMatches,pathMatches,layerMatches,variantMatches,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'G'})}).catch(()=>{});
-                }
-                // #endregion
                 return nameMatches && pathMatches && layerMatches && variantMatches
               })
-              
-              // #region agent log
-              if (groupedPropKey === 'border-size' && componentName.toLowerCase() === 'text-field') {
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar.tsx:278',message:'grouped prop found result',data:{groupedPropFound:!!groupedProp,groupedPropCssVar:groupedProp?.cssVar,groupedPropPath:groupedProp?.path,groupedPropVariantProp:groupedProp?.variantProp},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'G'})}).catch(()=>{});
-              }
-              // #endregion
               
               
               // Special case: placeholder-opacity is a component-level property, not a variant-level color
@@ -321,18 +311,8 @@ export default function ComponentToolbar({
                       variantMatches = false
                     }
                   }
-                  // #region agent log
-                  if (groupedPropKey === 'border-size' && componentName.toLowerCase() === 'text-field') {
-                    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar.tsx:272',message:'fallback prop search',data:{pName:p.name,pPath:p.path,pVariantProp:p.variantProp,nameMatches,layerMatches,variantMatches,selectedVariants},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'G'})}).catch(()=>{});
-                  }
-                  // #endregion
                   return nameMatches && layerMatches && variantMatches
                 })
-                // #region agent log
-                if (groupedPropKey === 'border-size' && componentName.toLowerCase() === 'text-field') {
-                  fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ComponentToolbar.tsx:295',message:'fallback grouped prop found',data:{groupedPropFound:!!groupedProp,groupedPropCssVar:groupedProp?.cssVar,groupedPropPath:groupedProp?.path},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'G'})}).catch(()=>{});
-                }
-                // #endregion
               }
               
               // Special case: border-color is stored as "border" in the color category
@@ -596,13 +576,9 @@ export default function ComponentToolbar({
         }
       }
       
-      // For color props, check if layer matches (if prop has a layer in path)
-      if (prop.category === 'colors' && prop.path.some(p => p.startsWith('layer-'))) {
-        const layerInPath = prop.path.find(p => p.startsWith('layer-'))
-        if (layerInPath && layerInPath !== selectedLayer) {
-          return false
-        }
-      }
+      // NOTE: We do NOT filter by layer here. Props like "background" exist on all layers
+      // and should always be available in allProps. Layer-specific resolution happens
+      // inside individual toolbars (e.g., BackgroundToolbar) which receive selectedLayer.
       
       return true
     })
@@ -867,7 +843,7 @@ export default function ComponentToolbar({
             icon: Icon || undefined,
             content: (
               <PropControlContent
-                key={`${propKey}-${isOpen ? 'open' : 'closed'}`}
+                key={`${propKey}-${selectedLayer}`}
                 prop={prop}
                 componentName={componentName}
                 selectedVariants={selectedVariants}
