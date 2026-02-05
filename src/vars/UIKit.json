@@ -26,7 +26,7 @@
           "vertical-item-gap": {
             "$type": "dimension",
             "$value": {
-              "value": 8,
+              "value": "{brand.dimensions.general.default}",
               "unit": "px"
             }
           }
@@ -474,7 +474,7 @@
                 "horizontal-padding": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 12,
+                    "value": "{brand.dimensions.general.md}",
                     "unit": "px"
                   }
                 },
@@ -1500,7 +1500,7 @@
           "track-height": {
             "$type": "dimension",
             "$value": {
-              "value": 4,
+              "value": "{brand.dimensions.general.sm}",
               "unit": "px"
             }
           },
@@ -2913,14 +2913,14 @@
           "padding-horizontal": {
             "$type": "dimension",
             "$value": {
-              "value": 8,
+              "value": "{brand.dimensions.general.default}",
               "unit": "px"
             }
           },
           "padding-vertical": {
             "$type": "dimension",
             "$value": {
-              "value": 4,
+              "value": "{brand.dimensions.general.sm}",
               "unit": "px"
             }
           },

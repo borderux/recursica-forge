@@ -1,6 +1,6 @@
 // Extract the rendering logic from PropControl for use in accordions
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
-import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
+import { ComponentProp, toSentenceCase, parseComponentStructure, getDimensionPropertyType } from '../../utils/componentToolbarUtils'
 import { getPropLabel, getGroupedProps, type ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
@@ -1193,6 +1193,37 @@ export default function PropControlContent({
 
     if (propToRender.type === 'dimension') {
       const propNameLower = propToRender.name.toLowerCase()
+
+      // FIRST: Check UIKit.json to determine if this property uses tokens or px
+      // This ensures we use the correct slider type based on what's actually in UIKit.json
+      const dimensionType = getDimensionPropertyType(componentName, propToRender.path, selectedVariants)
+      
+      // If UIKit.json indicates this uses tokens, use BrandDimensionSliderInline (unless overridden below)
+      if (dimensionType === 'token') {
+        // Determine dimension category based on property name
+        let dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size' = 'general'
+        
+        if (propNameLower.includes('border-radius') || propNameLower.includes('corner-radius')) {
+          dimensionCategory = 'border-radii'
+        } else if (propNameLower.includes('icon-size') || propNameLower === 'icon') {
+          dimensionCategory = 'icons'
+        } else if (propNameLower === 'text-size' || propNameLower === 'font-size') {
+          dimensionCategory = 'text-size'
+        }
+        // Default to 'general' for padding, gap, spacing, etc.
+        
+        // Use token slider for properties that UIKit.json says use tokens
+        return (
+          <BrandDimensionSliderInline
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+            dimensionCategory={dimensionCategory}
+            layer={selectedLayer as any}
+          />
+        )
+      }
 
       // CRITICAL: Component-specific dimension sliders MUST come BEFORE generic handlers
       // This ensures TextField (and other components) dimension props ALWAYS use sliders
@@ -2936,6 +2967,7 @@ export default function PropControlContent({
         )
       }
 
+      // If property uses px (or dimensionType is null/px), use DimensionTokenSelector (which handles both tokens and px)
       let minPixelValue: number | undefined = undefined
       let maxPixelValue: number | undefined = undefined
 
