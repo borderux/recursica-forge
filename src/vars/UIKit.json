@@ -1438,32 +1438,6 @@
         }
       },
       "slider": {
-        "variants": {
-          "layouts": {
-            "stacked": {
-              "properties": {
-                "label-slider-gap": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.general.default}",
-                    "unit": "px"
-                  }
-                }
-              }
-            },
-            "side-by-side": {
-              "properties": {
-                "label-slider-gap": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{ui-kit.globals.form.properties.label-field-gap-horizontal}",
-                    "unit": "px"
-                  }
-                }
-              }
-            }
-          }
-        },
         "properties": {
           "colors": {
             "layer-0": {

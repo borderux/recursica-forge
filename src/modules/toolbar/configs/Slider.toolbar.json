@@ -1,10 +1,5 @@
 {
-  "variants": {
-    "layout": {
-      "icon": "layout",
-      "label": "Layout"
-    }
-  },
+  "variants": {},
   "props": {
     "track": {
       "icon": "faders-horizontal",
@@ -65,11 +60,6 @@
       "label": "Gaps",
       "visible": true,
       "group": {
-        "label-slider-gap": {
-          "icon": "split-horizontal",
-          "label": "Label gap",
-          "visible": true
-        },
         "input-gap": {
           "icon": "split-horizontal",
           "label": "Input gap",

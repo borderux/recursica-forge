@@ -1206,7 +1206,7 @@ export default function PropControlContent({
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
             dimensionCategory="general"
-            layer="layer-1"
+            layer={selectedLayer as any}
           />
         )
       }
@@ -1371,6 +1371,7 @@ export default function PropControlContent({
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
             dimensionCategory="general"
+            layer={selectedLayer as any}
             layer="layer-1"
           />
         )
@@ -1390,7 +1391,7 @@ export default function PropControlContent({
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
             dimensionCategory="border-radii"
-            layer="layer-1"
+            layer={selectedLayer as any}
           />
         )
       }
@@ -2512,14 +2513,13 @@ export default function PropControlContent({
         return <BadgeBorderSizeSlider />
       }
 
-      // Use Slider component for Slider input-width, thumb-size, thumb-border-radius, track-height, track-border-radius, label-slider-gap, and input-gap properties
+      // Use Slider component for Slider input-width, thumb-size, thumb-border-radius, track-height, track-border-radius, and input-gap properties
       if (isSlider && (
         propNameLower === 'input-width' ||
         propNameLower === 'thumb-size' ||
         propNameLower === 'thumb-border-radius' ||
         propNameLower === 'track-height' ||
         propNameLower === 'track-border-radius' ||
-        propNameLower === 'label-slider-gap' ||
         propNameLower === 'input-gap'
       )) {
         const SliderDimensionSlider = () => {
@@ -2540,7 +2540,7 @@ export default function PropControlContent({
           } else if (propNameLower === 'track-border-radius') {
             minValue = 0
             maxValue = 20
-          } else if (propNameLower === 'label-slider-gap' || propNameLower === 'input-gap') {
+          } else if (propNameLower === 'input-gap') {
             minValue = 0
             maxValue = 100
           }
@@ -2602,8 +2602,8 @@ export default function PropControlContent({
             return `${Math.round(val)}px`
           }, [])
 
-          // For label-slider-gap and input-gap, don't show min/max labels or editable values
-          const isGapProperty = propNameLower === 'label-slider-gap' || propNameLower === 'input-gap'
+          // For input-gap, don't show min/max labels or editable values
+          const isGapProperty = propNameLower === 'input-gap'
 
           return (
             <Slider
@@ -2613,7 +2613,7 @@ export default function PropControlContent({
               min={minValue}
               max={maxValue}
               step={1}
-              layer="layer-1"
+              layer={selectedLayer as any}
               layout="stacked"
               showInput={false}
               showValueLabel={!isGapProperty}
@@ -2621,7 +2621,7 @@ export default function PropControlContent({
               minLabel={isGapProperty ? undefined : `${minValue}px`}
               maxLabel={isGapProperty ? undefined : `${maxValue}px`}
               showMinMaxLabels={false}
-              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+              label={<Label layer={selectedLayer as any} layout="stacked">{label}</Label>}
             />
           )
         }
@@ -2978,7 +2978,7 @@ export default function PropControlContent({
           label={label}
           elevationOptions={elevationOptions}
           mode={mode}
-          layer="layer-1"
+          layer={selectedLayer as any}
         />
       )
     }
