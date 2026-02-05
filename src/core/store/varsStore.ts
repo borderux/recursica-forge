@@ -1936,6 +1936,55 @@ class VarsStore {
           const uikitVarsDark = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, 'dark')
           uikitVars = { ...uikitVarsLight, ...uikitVarsDark }
 
+          // Preserve manually set mode-independent UIKit variables when switching modes
+          // Mode-independent properties (like padding, border-size, border-radius, elevation) should
+          // maintain the same value across both light and dark modes
+          if (typeof document !== 'undefined') {
+            const preservedVars: Record<string, string> = {}
+            
+            // Helper to check if a CSS variable is mode-independent (not a color property)
+            const isModeIndependent = (cssVar: string): boolean => {
+              // Mode-independent properties are those NOT under colors
+              // Format: --recursica-ui-kit-themes-{mode}-components-{component}-properties-{prop}
+              // Colors are under: ...properties-colors-layer-X-{color-prop}
+              return !cssVar.includes('-properties-colors-')
+            }
+            
+            // Helper to get the opposite mode's CSS variable name
+            const getOppositeModeVar = (cssVar: string): string => {
+              if (cssVar.includes('-themes-light-')) {
+                return cssVar.replace('-themes-light-', '-themes-dark-')
+              } else if (cssVar.includes('-themes-dark-')) {
+                return cssVar.replace('-themes-dark-', '-themes-light-')
+              }
+              return cssVar
+            }
+            
+            // Check all generated UIKit variables for manually set values
+            for (const [cssVar, generatedValue] of Object.entries(uikitVars)) {
+              // Only preserve mode-independent properties
+              if (!isModeIndependent(cssVar)) {
+                continue
+              }
+              
+              // Check if this variable has a manually set value (inline style)
+              const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
+              const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
+              
+              // If there's a manually set value that differs from generated, preserve it
+              if (inlineValue && inlineValue !== generatedValue?.trim()) {
+                preservedVars[cssVar] = inlineValue
+                
+                // Also preserve for the opposite mode to maintain consistency
+                const oppositeModeVar = getOppositeModeVar(cssVar)
+                preservedVars[oppositeModeVar] = inlineValue
+              }
+            }
+            
+            // Override generated values with preserved values
+            Object.assign(uikitVars, preservedVars)
+          }
+
           // Track which UIKit vars actually changed by comparing generated values with current DOM values
           if (typeof document !== 'undefined') {
             for (const [cssVar, generatedValue] of Object.entries(uikitVars)) {
