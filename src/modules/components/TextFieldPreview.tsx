@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 import { TextField } from '../../components/adapters/TextField'
 import { iconNameToReactComponent } from './iconUtils'
+import { useThemeMode } from '../theme/ThemeModeContext'
+import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
 interface TextFieldPreviewProps {
   selectedVariants: Record<string, string> // e.g., { states: "default", layouts: "stacked" }
@@ -13,9 +15,14 @@ export default function TextFieldPreview({
   selectedLayer,
   componentElevation,
 }: TextFieldPreviewProps) {
+  const { mode } = useThemeMode()
+  
   // Extract variants from selectedVariants
   const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
   const layout = (selectedVariants.layouts || 'stacked') as 'stacked' | 'side-by-side'
+
+  // Get form vertical gutter CSS variable
+  const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
   // Get icon components for examples
   const SmileyIcon = iconNameToReactComponent('star')
@@ -32,14 +39,17 @@ export default function TextFieldPreview({
       flexDirection: 'column', 
       gap: 'var(--recursica-brand-dimensions-gutters-vertical)', 
       width: '100%',
-      alignItems: 'flex-start'
+      alignItems: 'center'
     }}>
       {layoutsToShow.map((layoutVariant) => (
-        <div key={layoutVariant} style={{ width: '100%', maxWidth: '400px' }}>
-          {/* Default state - show two examples: one with value, one with placeholder only */}
-          {state === 'default' && (
-            <>
-              <div style={{ marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
+        <div key={layoutVariant} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <h2 style={{ margin: 0, marginBottom: 16, textTransform: 'capitalize' }}>
+            {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
+            {/* Default state - show two examples: one with value, one with placeholder only */}
+            {state === 'default' && (
+              <>
                 <TextField
                   label="Label"
                   placeholder="Placeholder text"
@@ -49,33 +59,31 @@ export default function TextFieldPreview({
                   layout={layoutVariant}
                   layer={selectedLayer as any}
                 />
-              </div>
-              <TextField
-                label="Label"
-                placeholder="Placeholder text"
-                helpText="Help message"
-                trailingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
-                state="default"
-                layout={layoutVariant}
-                layer={selectedLayer as any}
-              />
-            </>
-          )}
-          
-          {/* Error state */}
-          {state === 'error' && (
-            <>
-              <TextField
-                label="Label"
-                placeholder="Placeholder text"
-                defaultValue="Sample input value"
-                errorText="Error message"
-                leadingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
-                state="error"
-                layout={layoutVariant}
-                layer={selectedLayer as any}
-              />
-              <div style={{ marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
+                <TextField
+                  label="Label"
+                  placeholder="Placeholder text"
+                  helpText="Help message"
+                  trailingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
+                  state="default"
+                  layout={layoutVariant}
+                  layer={selectedLayer as any}
+                />
+              </>
+            )}
+            
+            {/* Error state */}
+            {state === 'error' && (
+              <>
+                <TextField
+                  label="Label"
+                  placeholder="Placeholder text"
+                  defaultValue="Sample input value"
+                  errorText="Error message"
+                  leadingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
+                  state="error"
+                  layout={layoutVariant}
+                  layer={selectedLayer as any}
+                />
                 <TextField
                   label="Label"
                   placeholder="Placeholder text"
@@ -85,33 +93,33 @@ export default function TextFieldPreview({
                   layout={layoutVariant}
                   layer={selectedLayer as any}
                 />
-              </div>
-            </>
-          )}
+              </>
+            )}
           
-          {/* Disabled state */}
-          {state === 'disabled' && (
-            <TextField
-              label="Label"
-              placeholder="Placeholder text"
-              defaultValue=""
-              state="disabled"
-              layout={layoutVariant}
-              layer={selectedLayer as any}
-            />
-          )}
-          
-          {/* Focus state (shows default with focus styling via CSS) */}
-          {state === 'focus' && (
-            <TextField
-              label="Label"
-              placeholder="Placeholder text"
-              helpText="Help message"
-              state="default"
-              layout={layoutVariant}
-              layer={selectedLayer as any}
-            />
-          )}
+            {/* Disabled state */}
+            {state === 'disabled' && (
+              <TextField
+                label="Label"
+                placeholder="Placeholder text"
+                defaultValue=""
+                state="disabled"
+                layout={layoutVariant}
+                layer={selectedLayer as any}
+              />
+            )}
+            
+            {/* Focus state (shows default with focus styling via CSS) */}
+            {state === 'focus' && (
+              <TextField
+                label="Label"
+                placeholder="Placeholder text"
+                helpText="Help message"
+                state="default"
+                layout={layoutVariant}
+                layer={selectedLayer as any}
+              />
+            )}
+          </div>
         </div>
       ))}
     </div>
