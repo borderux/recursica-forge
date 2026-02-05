@@ -571,3 +571,73 @@ export function getComponentDefaultValues(componentName: string): Record<string,
 
   return defaults
 }
+
+/**
+ * Checks if a dimension property in UIKit.json uses a token reference or hardcoded px value
+ * @param componentName - The component name (e.g., "Button", "TextField")
+ * @param propPath - The path to the property in UIKit.json (e.g., ["variants", "sizes", "default", "properties", "horizontal-padding"])
+ * @param selectedVariants - Currently selected variants to resolve variant-specific paths
+ * @returns 'token' if the property uses a token reference, 'px' if it uses hardcoded px, or null if not found
+ */
+export function getDimensionPropertyType(
+  componentName: string,
+  propPath: string[],
+  selectedVariants: Record<string, string> = {}
+): 'token' | 'px' | null {
+  try {
+    const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+    const uikitRoot: any = uikitJson
+    const components = uikitRoot?.['ui-kit']?.components || {}
+    const component = components[componentKey]
+
+    if (!component) {
+      return null
+    }
+
+    // Navigate to the property using the path
+    let current: any = component
+    for (const pathPart of propPath) {
+      if (current == null || typeof current !== 'object') {
+        return null
+      }
+      
+      // Handle variant paths - if we encounter a variant category, use selected variant
+      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types') {
+        const variantKey = pathPart === 'styles' ? 'style' : 
+                          pathPart === 'sizes' ? 'size' :
+                          pathPart === 'layouts' ? 'layout' :
+                          pathPart === 'states' ? 'state' :
+                          pathPart === 'types' ? 'type' : pathPart
+        const selectedVariant = selectedVariants[variantKey] || 'default'
+        current = current[pathPart]?.[selectedVariant]
+      } else {
+        current = current[pathPart]
+      }
+    }
+
+    // Check if we found a dimension property
+    if (current && typeof current === 'object' && '$type' in current && current.$type === 'dimension') {
+      const value = current.$value
+      
+      // Check if it's an object with value and unit
+      if (value && typeof value === 'object' && 'value' in value && 'unit' in value) {
+        const dimValue = value.value
+        
+        // If value is a string starting with '{', it's a token reference
+        if (typeof dimValue === 'string' && dimValue.trim().startsWith('{')) {
+          return 'token'
+        }
+        
+        // If value is a number, it's hardcoded px
+        if (typeof dimValue === 'number') {
+          return 'px'
+        }
+      }
+    }
+
+    return null
+  } catch (error) {
+    console.warn('Error checking dimension property type:', error)
+    return null
+  }
+}
