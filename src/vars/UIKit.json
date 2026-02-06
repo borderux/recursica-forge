@@ -358,7 +358,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.border-color}"
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     }
                   },
                   "layer-2": {
@@ -376,7 +376,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.border-color}"
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     }
                   },
                   "layer-3": {
@@ -394,7 +394,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.properties.border-color}"
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     }
                   }
                 },
@@ -1452,6 +1452,32 @@
         }
       },
       "slider": {
+        "variants": {
+          "layouts": {
+            "stacked": {
+              "properties": {
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.default}",
+                    "unit": "px"
+                  }
+                }
+              }
+            },
+            "side-by-side": {
+              "properties": {
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 0,
+                    "unit": "px"
+                  }
+                }
+              }
+            }
+          }
+        },
         "properties": {
           "colors": {
             "layer-0": {
@@ -2096,9 +2122,13 @@
           },
           "colors": {
             "layer-0": {
-              "background": {
+              "background-collapsed": {
                 "$type": "color",
                 "$value": null
+              },
+              "background-expanded": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",
@@ -2122,9 +2152,13 @@
               }
             },
             "layer-1": {
-              "background": {
+              "background-collapsed": {
                 "$type": "color",
                 "$value": null
+              },
+              "background-expanded": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",
@@ -2148,9 +2182,13 @@
               }
             },
             "layer-2": {
-              "background": {
+              "background-collapsed": {
                 "$type": "color",
                 "$value": null
+              },
+              "background-expanded": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",
@@ -2174,9 +2212,13 @@
               }
             },
             "layer-3": {
-              "background": {
+              "background-collapsed": {
                 "$type": "color",
                 "$value": null
+              },
+              "background-expanded": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",
@@ -2966,6 +3008,13 @@
                 "bottom-padding": {
                   "$type": "dimension",
                   "$value": "{ui-kit.components.label.properties.stacked.bottom-padding}"
+                },
+                "min-height": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 20,
+                    "unit": "px"
+                  }
                 }
               },
               "variants": {
@@ -2997,7 +3046,7 @@
             },
             "side-by-side": {
               "properties": {
-                "height": {
+                "min-height": {
                   "$type": "dimension",
                   "$value": {
                     "value": 48,
@@ -3190,6 +3239,13 @@
             "$type": "dimension",
             "$value": {
               "value": "{brand.dimensions.general.default}",
+              "unit": "px"
+            }
+          },
+          "label-optional-text-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.sm}",
               "unit": "px"
             }
           }
@@ -3763,10 +3819,26 @@
           },
           "layouts": {
             "stacked": {
-              "properties": {}
+              "properties": {
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.default}",
+                    "unit": "px"
+                  }
+                }
+              }
             },
             "side-by-side": {
-              "properties": {}
+              "properties": {
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 0,
+                    "unit": "px"
+                  }
+                }
+              }
             }
           }
         },

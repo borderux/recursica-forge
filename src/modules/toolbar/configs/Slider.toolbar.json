@@ -67,6 +67,11 @@
         }
       }
     },
+    "top-bottom-margin": {
+      "icon": "arrows-up-down",
+      "label": "Top and bottom margin",
+      "visible": true
+    },
     "input-width": {
       "icon": "arrows-left-right",
       "label": "Input width",

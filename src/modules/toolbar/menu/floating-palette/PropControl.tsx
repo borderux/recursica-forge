@@ -11,6 +11,7 @@ import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
+import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import BrandDimensionSlider from '../../utils/BrandDimensionSlider'
 import FloatingPalette from './FloatingPalette'
 import './PropControl.css' // Keep prop-control specific styles
@@ -27,17 +28,57 @@ function ElevationPropControl({
   elevationOptions: Array<{ name: string; label: string }>
   mode: 'light' | 'dark'
 }) {
-  const [currentElevation, setCurrentElevation] = useState(() => {
-    const value = readCssVar(primaryVar)
-    if (value) {
-      // Parse elevation value - could be a brand reference like "{brand.themes.light.elevations.elevation-1}"
-      const match = value.match(/elevations\.(elevation-\d+)/)
-      if (match) return match[1]
-      // Or could be direct value like "elevation-1"
-      if (/^elevation-\d+$/.test(value)) return value
+  // Get current elevation value from CSS var
+  // IMPORTANT: Only read from the mode-specific CSS variable - never fall back to other modes
+  const getCurrentElevationName = useCallback((): string => {
+    // Only check inline style for the current mode-specific CSS variable
+    // Don't fall back to computed styles as they might cascade from other modes
+    const inlineValue = typeof document !== 'undefined'
+      ? document.documentElement.style.getPropertyValue(primaryVar).trim()
+      : ''
+
+    // If no inline value exists for this mode, return default (don't read computed as it might be from another mode)
+    if (!inlineValue) {
+      return 'elevation-0'
     }
-    return 'elevation-0' // Default
-  })
+
+    // Parse token reference format: {brand.themes.light.elevations.elevation-0}
+    // Check if the token reference is for the correct mode
+    const tokenMatch = inlineValue.match(/themes\.(light|dark)\.elevations?\.(elevation-\d+)/i)
+    if (tokenMatch) {
+      const refMode = tokenMatch[1].toLowerCase() as 'light' | 'dark'
+      const elevationName = tokenMatch[2]
+      
+      // If the token reference is for a different mode, ignore it and return default
+      // This prevents reading light mode values when in dark mode
+      if (refMode !== mode) {
+        return 'elevation-0'
+      }
+      
+      return elevationName
+    }
+    
+    // Fallback: try to match without mode check (for backwards compatibility)
+    const fallbackMatch = inlineValue.match(/elevations?\.(elevation-\d+)/i)
+    if (fallbackMatch) {
+      return fallbackMatch[1]
+    }
+    
+    // Parse direct elevation name format: elevation-0
+    if (/^elevation-\d+$/.test(inlineValue)) {
+      return inlineValue
+    }
+
+    return 'elevation-0'
+  }, [primaryVar, mode])
+
+  const [currentElevation, setCurrentElevation] = useState(() => getCurrentElevationName())
+
+  // Re-read elevation value when primaryVar or mode changes
+  useEffect(() => {
+    const newElevationName = getCurrentElevationName()
+    setCurrentElevation(newElevationName)
+  }, [primaryVar, mode, getCurrentElevationName])
 
   // Listen for CSS variable updates to refresh the current elevation
   useEffect(() => {
@@ -45,69 +86,70 @@ function ElevationPropControl({
       const detail = (e as CustomEvent).detail
       // Only update if this CSS var was updated
       if (!detail?.cssVars || detail.cssVars.includes(primaryVar)) {
-        const value = readCssVar(primaryVar)
-        if (value) {
-          const match = value.match(/elevations\.(elevation-\d+)/)
-          if (match) {
-            setCurrentElevation(match[1])
-            return
-          }
-          if (/^elevation-\d+$/.test(value)) {
-            setCurrentElevation(value)
-            return
-          }
-        }
-        setCurrentElevation('elevation-0')
+        const newElevationName = getCurrentElevationName()
+        setCurrentElevation(newElevationName)
       }
     }
 
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-  }, [primaryVar])
+  }, [primaryVar, getCurrentElevationName])
 
-  const handleElevationChange = (elevationName: string) => {
-    updateCssVar(primaryVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
-    // Update local state immediately for responsive UI
-    setCurrentElevation(elevationName)
-    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars: [primaryVar] }
+  // Convert elevation options to tokens array
+  const tokens = useMemo(() => {
+    return elevationOptions.map((opt, index) => ({
+      name: opt.name,
+      label: opt.label,
+      index,
     }))
-  }
+  }, [elevationOptions])
 
-  const tokens = elevationOptions.map((opt, index) => ({ name: opt.name, label: opt.label, index }))
-  const currentIdx = tokens.findIndex(t => t.name === currentElevation) || 0
-  
-  // Extract elevation number from token name (e.g., "elevation-0" -> 0, "elevation-4" -> 4)
-  const getElevationNumber = (token: typeof tokens[0] | undefined): number => {
+  // Find current index
+  const currentIdx = tokens.findIndex(t => t.name === currentElevation)
+  const safeCurrentIdx = currentIdx >= 0 ? currentIdx : 0
+
+  // Extract elevation number from token name
+  const getElevationNumber = useCallback((token: typeof tokens[0] | undefined): number => {
     if (!token) return 0
     const match = token.name.match(/elevation-(\d+)/)
     return match ? parseInt(match[1], 10) : 0
-  }
-  
-  const getValueLabel = React.useCallback((value: number) => {
-    const token = tokens[Math.round(value)]
+  }, [])
+
+  const getValueLabel = useCallback((value: number) => {
+    const index = Math.max(0, Math.min(Math.round(value), tokens.length - 1))
+    const token = tokens[index]
     if (!token) return 'None'
     const elevationNum = getElevationNumber(token)
     return elevationNum === 0 ? 'None' : String(elevationNum)
-  }, [tokens])
-  
+  }, [tokens, getElevationNumber])
+
   const minToken = tokens[0]
   const maxToken = tokens[tokens.length - 1]
   const minElevationNum = getElevationNumber(minToken)
   const minLabel = minElevationNum === 0 ? 'None' : String(minElevationNum)
   const maxElevationNum = getElevationNumber(maxToken)
   const maxLabel = String(maxElevationNum)
+
+  const handleElevationChange = useCallback((value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(Math.round(numValue), tokens.length - 1))
+    const selectedToken = tokens[clampedIndex]
+    
+    if (selectedToken) {
+      const elevationName = selectedToken.name
+      updateCssVar(primaryVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
+      // Update local state immediately for responsive UI
+      setCurrentElevation(elevationName)
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+        detail: { cssVars: [primaryVar] }
+      }))
+    }
+  }, [primaryVar, mode, tokens])
   
   return (
     <Slider
-      value={currentIdx}
-      onChange={(val) => {
-        const idx = typeof val === 'number' ? val : val[0]
-        const token = tokens[Math.round(idx)]
-        if (token) {
-          handleElevationChange(token.name)
-        }
-      }}
+      value={safeCurrentIdx}
+      onChange={handleElevationChange}
       min={0}
       max={tokens.length - 1}
       step={1}
@@ -149,7 +191,7 @@ export default function PropControl({
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       const themes = root?.themes || root
-      const elev: any = themes?.light?.elevations || root?.light?.elevations || {}
+      const elev: any = themes?.[mode]?.elevations || root?.[mode]?.elevations || {}
       const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a,b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
       return names.map((n) => {
         const idx = Number(n.split('-')[1])
@@ -159,7 +201,7 @@ export default function PropControl({
     } catch {
       return []
     }
-  }, [themeJson])
+  }, [themeJson, mode])
   // Helper function to get CSS vars for a given prop
   // Simply finds the CSS var that matches the current selected variants and layer
   const getCssVarsForProp = (propToCheck: ComponentProp): string[] => {
@@ -249,8 +291,8 @@ export default function PropControl({
   if (prop.name.toLowerCase() === 'label-width' && componentName.toLowerCase() === 'label') {
     const layoutVariant = selectedVariants.layout || 'stacked'
     const sizeVariant = selectedVariants.size || 'default'
-    // Build CSS var path: variants.layouts.{layout}.variants.sizes.{size}.properties.width
-    const widthVar = `--recursica-ui-kit-components-label-variants-layouts-${layoutVariant}-variants-sizes-${sizeVariant}-properties-width`
+    // Build CSS var path using buildComponentCssVarPath to include theme prefix
+    const widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layoutVariant, 'variants', 'sizes', sizeVariant, 'properties', 'width')
     primaryCssVar = widthVar
     cssVarsForControl = [widthVar]
   }
@@ -332,13 +374,6 @@ export default function PropControl({
       if (componentName.toLowerCase() === 'breadcrumb' && label.toLowerCase().includes('read only')) {
         // Ensure we're using the read-only CSS variable, not the interactive one
         if (validPrimaryVar.includes('interactive') && !validPrimaryVar.includes('read-only')) {
-          console.error('PropControl: ERROR - Read-only color is using interactive CSS var!', {
-            validPrimaryVar,
-            propCssVar: propToRender.cssVar,
-            primaryVar,
-            cssVars,
-            path: propToRender.path
-          })
           // Try to find the correct CSS variable from the structure
           const structure = parseComponentStructure(componentName)
           const correctProp = structure.props.find(p => 
@@ -355,14 +390,12 @@ export default function PropControl({
           if (correctProp) {
             validPrimaryVar = correctProp.cssVar
             validCssVars = [correctProp.cssVar]
-            console.log('PropControl: Corrected read-only color CSS var to:', validPrimaryVar)
           }
         }
       }
       
       // Only render if we have a valid CSS var
       if (!validPrimaryVar || !validPrimaryVar.trim()) {
-        console.warn('PropControl: No valid CSS var for prop', propToRender.name, { primaryVar, cssVars, propCssVar: propToRender.cssVar })
         return null
       }
       
@@ -396,7 +429,6 @@ export default function PropControl({
       
       // Only render if we have a valid CSS var
       if (!validPrimaryVar || !validPrimaryVar.trim()) {
-        console.warn('PropControl: No valid CSS var for dimension prop', propToRender.name, { primaryVar, cssVars, propCssVar: propToRender.cssVar })
         return null
       }
       
@@ -423,7 +455,7 @@ export default function PropControl({
             }
           }
         } catch (error) {
-          console.warn('Failed to read min-height from UIKit.json:', error)
+          // Failed to read min-height from UIKit.json
         }
         // Fallback: use default values based on size variant if JSON read fails
         if (minPixelValue === undefined) {
@@ -442,7 +474,6 @@ export default function PropControl({
         const LabelWidthSlider = () => {
           const minValue = 0
           const maxValue = 500
-          const isLabelSideBySide = selectedVariants.layout === 'side-by-side'
           const [value, setValue] = useState(() => {
             const currentValue = readCssVar(validPrimaryVar)
             const resolvedValue = readCssVarResolved(validPrimaryVar)
@@ -481,17 +512,15 @@ export default function PropControl({
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             setValue(clampedValue)
             
-            // Only update CSS vars immediately if Label is in stacked mode
-            if (!isLabelSideBySide) {
-              updateCssVars(clampedValue)
-            }
+            // Always update CSS vars immediately during dragging
+            updateCssVars(clampedValue)
           }
           
           const handleChangeCommitted = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             
-            // Always update CSS vars on drag end, especially for side-by-side mode
+            // Update CSS vars on drag end (already updated during drag, but ensure final value is set)
             updateCssVars(clampedValue)
           }
           
@@ -543,9 +572,12 @@ export default function PropControl({
 
     if (propToRender.type === 'elevation') {
       // For elevation props, use a separate component that can use hooks
+      // Ensure primaryVar is mode-specific - it might have been built with the wrong mode
+      const modeSpecificPrimaryVar = primaryVar.replace(/themes-(light|dark)-/, `themes-${mode}-`)
+      
       return (
         <ElevationPropControl
-          primaryVar={primaryVar}
+          primaryVar={modeSpecificPrimaryVar}
           label={label}
           elevationOptions={elevationOptions}
           mode={mode}
@@ -607,7 +639,7 @@ export default function PropControl({
             </>
           )}
           {thumbUnselectedProp && (
-            <div style={{ marginTop: thumbSelectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+            <div style={{ marginTop: thumbSelectedProp ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(thumbUnselectedProp)
                 const primaryVar = cssVars[0] || thumbUnselectedProp.cssVar
@@ -657,7 +689,7 @@ export default function PropControl({
           
           {/* Thumb Dimensions */}
           {thumbHeightProp && (
-            <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+            <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(thumbHeightProp)
                 const primaryVar = cssVars[0] || thumbHeightProp.cssVar
@@ -673,7 +705,7 @@ export default function PropControl({
             </div>
           )}
           {thumbWidthProp && (
-            <div style={{ marginTop: thumbHeightProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+            <div style={{ marginTop: thumbHeightProp ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(thumbWidthProp)
                 const primaryVar = cssVars[0] || thumbWidthProp.cssVar
@@ -689,7 +721,7 @@ export default function PropControl({
             </div>
           )}
           {thumbBorderRadiusProp && (
-            <div style={{ marginTop: thumbWidthProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+            <div style={{ marginTop: thumbWidthProp ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(thumbBorderRadiusProp)
                 const primaryVar = cssVars[0] || thumbBorderRadiusProp.cssVar
@@ -731,7 +763,6 @@ export default function PropControl({
     // If this is a grouped prop (border, width, etc.), render all grouped properties
     if (groupedPropsConfig && prop.borderProps && prop.borderProps.size > 0) {
       const groupedPropEntries = Object.entries(groupedPropsConfig)
-      
       
       return (
         <>
@@ -1000,7 +1031,7 @@ export default function PropControl({
             return (
               <div 
                 key={groupedPropName}
-                style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}
+                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
               >
                 {renderControl(groupedProp, cssVars, primaryVar, label)}
               </div>
@@ -1045,7 +1076,7 @@ export default function PropControl({
             />
           )}
           {prop.trackUnselectedProp && trackUnselectedPrimaryVar && (
-            <div style={{ marginTop: prop.trackSelectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+            <div style={{ marginTop: prop.trackSelectedProp ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}>
               <PaletteColorControl
                 targetCssVar={trackUnselectedPrimaryVar}
                 targetCssVars={trackUnselectedCssVars.length > 1 ? trackUnselectedCssVars : undefined}
@@ -1056,7 +1087,7 @@ export default function PropControl({
             </div>
           )}
           {trackWidthProp && (
-            <div style={{ marginTop: prop.trackUnselectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+            <div style={{ marginTop: prop.trackUnselectedProp ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(trackWidthProp)
                 const primaryVar = cssVars[0] || trackWidthProp.cssVar
@@ -1072,7 +1103,7 @@ export default function PropControl({
             </div>
           )}
           {trackInnerPaddingProp && (
-            <div style={{ marginTop: trackWidthProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+            <div style={{ marginTop: trackWidthProp ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(trackInnerPaddingProp)
                 const primaryVar = cssVars[0] || trackInnerPaddingProp.cssVar
@@ -1088,7 +1119,7 @@ export default function PropControl({
             </div>
           )}
           {trackBorderRadiusProp && (
-            <div style={{ marginTop: trackInnerPaddingProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+            <div style={{ marginTop: trackInnerPaddingProp ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}>
               {(() => {
                 const cssVars = getCssVarsForProp(trackBorderRadiusProp)
                 const primaryVar = cssVars[0] || trackBorderRadiusProp.cssVar

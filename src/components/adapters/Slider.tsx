@@ -159,6 +159,9 @@ export function Slider({
       ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
       : null
     
+    // Get top-bottom-margin from layout variant (needed early for use in return statements)
+    const topBottomMarginVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
+    
     // Get input width and gap if showing input
     const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
     const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
@@ -176,6 +179,11 @@ export function Slider({
     // Force re-render when CSS variables change (including colors)
     const [, forceUpdate] = useState(0)
     
+    // Get top-bottom-margin CSS variables for BOTH layout variants (needed for update listener)
+    // We need to listen for updates to both variants regardless of current layout
+    const topBottomMarginVarStacked = buildComponentCssVarPath('Slider', 'variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin')
+    const topBottomMarginVarSideBySide = buildComponentCssVarPath('Slider', 'variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin')
+    
     // Listen for CSS variable updates from the toolbar
     useEffect(() => {
       const handleCssVarUpdate = (e: Event) => {
@@ -186,11 +194,16 @@ export function Slider({
         const sliderVars = [
           trackVar, trackActiveVar, thumbVar,
           trackHeightVar, thumbSizeVar, trackBorderRadiusVar, thumbBorderRadiusVar, thumbElevationVar,
-          disabledOpacityVar
+          disabledOpacityVar, topBottomMarginVarStacked, topBottomMarginVarSideBySide
         ].filter(Boolean)
         
+        // Check if top-bottom-margin was updated (for any layout variant)
+        const topBottomMarginUpdated = updatedVars.length === 0 || updatedVars.some((v: string) => 
+          v.includes('top-bottom-margin') || v === topBottomMarginVarStacked || v === topBottomMarginVarSideBySide
+        )
+        
         const shouldUpdate = updatedVars.length === 0 || updatedVars.some((v: string) => 
-          sliderVars.some(sliderVar => v === sliderVar || v.includes('slider') || v.includes('track') || v.includes('thumb') || v.includes('state-disabled'))
+          sliderVars.some(sliderVar => v === sliderVar || v.includes('slider') || v.includes('track') || v.includes('thumb') || v.includes('state-disabled')) || topBottomMarginUpdated
         )
         
         if (shouldUpdate) {
@@ -231,7 +244,7 @@ export function Slider({
         window.removeEventListener('cssVarsReset', handleCssVarUpdate)
         observer.disconnect()
       }
-    }, [thumbElevationVar, trackVar, trackActiveVar, thumbVar, trackHeightVar, thumbSizeVar, trackBorderRadiusVar, thumbBorderRadiusVar, disabledOpacityVar])
+    }, [thumbElevationVar, trackVar, trackActiveVar, thumbVar, trackHeightVar, thumbSizeVar, trackBorderRadiusVar, thumbBorderRadiusVar, disabledOpacityVar, topBottomMarginVarStacked, topBottomMarginVarSideBySide, layout])
     
     // Determine thumb elevation from UIKit.json
     const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
@@ -298,7 +311,8 @@ export function Slider({
     }, [percentage, thumbSizeNum, singleValue])
     
     const sliderElement = (
-      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: `var(${inputGapVar}, 8px)`, overflow: 'visible' }}>
+      <div
+        style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: `var(${inputGapVar}, 8px)`, overflow: 'visible' }}>
         {/* Min value display */}
         {showMinMaxLabels && (
           <span style={{ 
@@ -498,8 +512,17 @@ export function Slider({
     if (layout === 'side-by-side' && label) {
       // For side-by-side, use Label's gutter property
       const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
+      // topBottomMarginVar is already declared at the top level
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: gapValue, width: '100%', ...style }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: gapValue, 
+          width: '100%', 
+          marginTop: `var(${topBottomMarginVar})`,
+          marginBottom: `var(${topBottomMarginVar})`,
+          ...style 
+        }}>
           <div style={{ flexShrink: 0, minWidth: 100, width: 100 }}>
             {label}
           </div>
@@ -515,8 +538,26 @@ export function Slider({
     }
     
     // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
+    // topBottomMarginVar is already declared at the top level
+    // Extract flex and flexGrow from style prop if present, but always ensure flexGrow is 1
+    const { flex, flexGrow: styleFlexGrow, flexDirection: _, ...restStyle } = style || {}
+    const wrapperStyle: React.CSSProperties = {
+      display: 'flex', 
+      flexDirection: 'column', 
+      marginTop: `var(${topBottomMarginVar})`,
+      marginBottom: `var(${topBottomMarginVar})`,
+      minWidth: 0,
+      ...restStyle,
+      // Always set flexGrow to 1, overriding any value from style prop
+      flexGrow: 1,
+    }
+    
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', ...style }}>
+      <div
+        style={{
+          ...wrapperStyle,
+          flexGrow: 1,
+        }}>
         {label && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {label}
@@ -569,7 +610,7 @@ export function Slider({
         layer={layer}
         label={shouldHandleLabelRow ? undefined : label}
         showInput={showInput}
-        showValueLabel={false}
+        showValueLabel={showValueLabel}
         valueLabel={valueLabel}
         tooltipText={computedTooltipText}
         minLabel={minLabel}
@@ -584,6 +625,35 @@ export function Slider({
       />
     </Suspense>
   )
+  
+  // Force re-render when top-bottom-margin CSS variable changes
+  // Note: topBottomMarginVar is declared earlier in the fallback function scope
+  const topBottomMarginVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
+  const [, forceMarginUpdate] = useState(0)
+  
+  useEffect(() => {
+    const handleMarginUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      if (updatedVars.length === 0 || updatedVars.some((v: string) => v === topBottomMarginVar || v.includes('top-bottom-margin'))) {
+        forceMarginUpdate(prev => prev + 1)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleMarginUpdate)
+    const observer = new MutationObserver(() => {
+      forceMarginUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleMarginUpdate)
+      observer.disconnect()
+    }
+  }, [topBottomMarginVar, layout])
   
   // Get Label's gutter for side-by-side layout (Label component manages spacing)
   const labelGutterVarForLibrary = layout === 'side-by-side'
@@ -637,39 +707,58 @@ export function Slider({
   // So we should NOT wrap with additional label rendering when shouldHandleLabelRow is false
   if (!shouldHandleLabelRow) {
     // Let the library component handle label rendering
-    return sliderComponent
+    // Apply top-bottom-margin wrapper (forceMarginUpdate hook above ensures re-render on CSS var change)
+    return (
+      <div style={{ 
+        marginTop: `var(${topBottomMarginVar})`,
+        marginBottom: `var(${topBottomMarginVar})`,
+        flexGrow: 1,
+        minWidth: 0,
+        ...style,
+      }}>
+        {sliderComponent}
+      </div>
+    )
   }
   
   // When layout is side-by-side, always let the Component handle it
   // This ensures proper side-by-side rendering regardless of showValueLabel
   if (layout === 'side-by-side' && label && Component) {
     return (
-      <Suspense fallback={<div style={{ width: '100%', height: 20 }} />}>
-        <Component
-          value={value}
-          onChange={onChange}
-          onChangeCommitted={onChangeCommitted}
-          min={min}
-          max={max}
-          step={step}
-          disabled={disabled}
-          layout={layout}
-          layer={layer}
-          label={label}
-          showInput={showInput}
-          showValueLabel={showValueLabel}
-          valueLabel={valueLabel}
-          tooltipText={tooltipText}
-          minLabel={minLabel}
-          maxLabel={maxLabel}
-          showMinMaxLabels={showMinMaxLabels}
-          className={className}
-          style={style}
-          mantine={mantine}
-          material={material}
-          carbon={carbon}
-        />
-      </Suspense>
+      <div style={{ 
+        marginTop: `var(${topBottomMarginVar})`,
+        marginBottom: `var(${topBottomMarginVar})`,
+        flexGrow: 1,
+        minWidth: 0,
+        ...style,
+      }}>
+        <Suspense fallback={<div style={{ width: '100%', height: 20 }} />}>
+          <Component
+            value={value}
+            onChange={onChange}
+            onChangeCommitted={onChangeCommitted}
+            min={min}
+            max={max}
+            step={step}
+            disabled={disabled}
+            layout={layout}
+            layer={layer}
+            label={label}
+            showInput={showInput}
+            showValueLabel={showValueLabel}
+            valueLabel={valueLabel}
+            tooltipText={tooltipText}
+            minLabel={minLabel}
+            maxLabel={maxLabel}
+            showMinMaxLabels={showMinMaxLabels}
+            className={className}
+            style={style}
+            mantine={mantine}
+            material={material}
+            carbon={carbon}
+          />
+        </Suspense>
+      </div>
     )
   }
   
@@ -679,8 +768,25 @@ export function Slider({
   // When Component is not null, sliderComponent wraps it but has showValueLabel={false}
   // So we need to render the value label ourselves in the label row
   // When Component is null, we return early in the fallback block, so sliderElement is used
+  // Extract marginTop/marginBottom from style prop to prevent them from overriding component margins
+  const { marginTop: styleMarginTop, marginBottom: styleMarginBottom, ...restStyle } = style || {};
+  const marginTopValue = `var(${topBottomMarginVar})`;
+  const marginBottomValue = `var(${topBottomMarginVar})`;
+  const finalMarginTop = styleMarginTop ?? marginTopValue;
+  const finalMarginBottom = styleMarginBottom ?? marginBottomValue;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: gapValueForLibrary, width: '100%', minWidth: 0, ...style }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: gapValueForLibrary, 
+      width: '100%', 
+      minWidth: 0,
+      marginTop: finalMarginTop,
+      marginBottom: finalMarginBottom,
+      ...restStyle,
+      flexGrow: 1, // Always override any flexGrow from style prop
+    }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minWidth: 0, gap: '8px' }}>
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>{label}</div>
         {valueLabelElement}

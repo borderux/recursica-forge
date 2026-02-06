@@ -141,7 +141,6 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
               paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               width: '350px',
-              minWidth: 0,
               overflow: 'hidden',
             }}>
               <Slider
@@ -163,10 +162,6 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
                 showInput={true}
                 showValueLabel={true}
                 valueLabel={(val) => val.toFixed(2)}
-                style={{ 
-                  width: '100%',
-                  minWidth: 0,
-                }}
               />
             </div>
           </div>

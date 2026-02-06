@@ -61,6 +61,21 @@ export default function SliderPreview({
           valueLabel={(val) => `${val}`}
         />
         
+        {/* With label, value (read-only), min and max - DISABLED */}
+        <Slider
+          value={value1}
+          onChange={(val) => setValue1(typeof val === 'number' ? val : val[0])}
+          min={0}
+          max={100}
+          layout="stacked"
+          layer={actualLayer}
+          label={stackedLabel}
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${val}`}
+          disabled
+        />
+        
         {/* No label, read-only input, with min and max */}
         <Slider
           value={value2}

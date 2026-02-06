@@ -126,7 +126,8 @@ export default function Accordion({
     : undefined
 
   // Item properties (AccordionItem)
-  const headerBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background')
+  const headerBgCollapsedVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background-collapsed')
+  const headerBgExpandedVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background-expanded')
   const headerTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'text')
   const iconColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'icon')
   const dividerColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'divider')
@@ -267,7 +268,8 @@ export default function Accordion({
         ['--accordion-item-gap' as string]: `var(${itemGapVar})`,
         boxShadow: elevationBoxShadow,
         // Item properties
-        ['--accordion-item-header-bg' as string]: `var(${headerBgVar})`,
+        ['--accordion-item-header-bg-collapsed' as string]: `var(${headerBgCollapsedVar})`,
+        ['--accordion-item-header-bg-expanded' as string]: `var(${headerBgExpandedVar})`,
         ['--accordion-item-header-text' as string]: `var(${headerTextVar})`,
         ['--accordion-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
         ['--accordion-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color

@@ -60,12 +60,20 @@
   flex: none !important;
 }
 
-/* Ensure outline variant (secondary) has a border with the correct color */
+/* Ensure solid variant (primary) has a border with the correct color */
 /* Use --button-border-color if set, fallback to text color */
+.cds--btn--primary,
+.recursica-accordion .cds--btn--primary,
+.recursica-accordion .cds--accordion__content .cds--btn--primary {
+  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
+}
+
+/* Ensure outline variant (secondary) has a border with the correct color */
+/* Use --button-border-color - NEVER fallback to text color */
 .cds--btn--secondary,
 .recursica-accordion .cds--btn--secondary,
 .recursica-accordion .cds--accordion__content .cds--btn--secondary {
-  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
+  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color) !important;
 }
 
 /* Ensure text variant (tertiary) has no border */

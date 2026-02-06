@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Accordion as MantineAccordion } from '@mantine/core'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import type { AccordionProps as AdapterAccordionProps } from '../../Accordion'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar, getGlobalCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import './Accordion.css'
@@ -124,7 +124,8 @@ export default function Accordion({
     : undefined
 
   // Item properties (AccordionItem)
-  const headerBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background')
+  const headerBgCollapsedVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background-collapsed')
+  const headerBgExpandedVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background-expanded')
   const headerTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'text')
   const iconColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'icon')
   const dividerColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'divider')
@@ -141,6 +142,7 @@ export default function Accordion({
   const iconGapVar = getComponentLevelCssVar('AccordionItem', 'icon-gap')
   const borderRadiusVar = getComponentLevelCssVar('AccordionItem', 'border-radius')
   const headerContentGapVar = getComponentLevelCssVar('AccordionItem', 'header-content-gap')
+  const formVerticalItemGapVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
   
   // Item elevation - reactive pattern for toolbar control
   const itemElevationVar = getComponentLevelCssVar('AccordionItem', 'elevation')
@@ -343,7 +345,8 @@ export default function Accordion({
         ['--accordion-item-gap' as string]: `var(${itemGapVar})`,
         boxShadow: elevationBoxShadow,
         // Item properties
-        ['--accordion-item-header-bg' as string]: `var(${headerBgVar})`,
+        ['--accordion-item-header-bg-collapsed' as string]: `var(${headerBgCollapsedVar})`,
+        ['--accordion-item-header-bg-expanded' as string]: `var(${headerBgExpandedVar})`,
         ['--accordion-item-header-text' as string]: `var(${headerTextVar})`,
         ['--accordion-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
         ['--accordion-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
@@ -375,6 +378,8 @@ export default function Accordion({
         ['--accordion-item-content-text-decoration' as string]: `var(${contentTextDecorationVar}, none)`,
         ['--accordion-item-content-text-transform' as string]: `var(${contentTextTransformVar}, none)`,
         ['--accordion-item-content-font-style' as string]: `var(${contentFontStyleVar}, normal)`,
+        // Form vertical item gap for accordion content spacing
+        ['--accordion-item-content-gap' as string]: `var(${formVerticalItemGapVar})`,
         ...style,
       } as React.CSSProperties}
       styles={mantineStyles}

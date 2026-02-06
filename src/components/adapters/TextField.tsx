@@ -34,6 +34,9 @@ export type TextFieldProps = {
   layer?: ComponentLayer
   minWidth?: number
   required?: boolean
+  optional?: boolean
+  labelAlign?: 'left' | 'right'
+  labelSize?: 'default' | 'small'
   id?: string
   name?: string
   type?: string
@@ -44,6 +47,7 @@ export type TextFieldProps = {
   style?: React.CSSProperties
   autoFocus?: boolean
   readOnly?: boolean
+  disableTopBottomMargin?: boolean
 } & LibrarySpecificProps
 
 export function TextField({
@@ -64,6 +68,9 @@ export function TextField({
   layer = 'layer-0',
   minWidth,
   required = false,
+  optional = false,
+  labelAlign = 'left',
+  labelSize,
   id,
   name,
   type = 'text',
@@ -74,6 +81,7 @@ export function TextField({
   style,
   autoFocus,
   readOnly,
+  disableTopBottomMargin = false,
   mantine,
   material,
   carbon,
@@ -116,6 +124,14 @@ export function TextField({
   const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
   
+  // Get top-bottom-margin from layout variant
+  const topBottomMarginVar = buildComponentCssVarPath('TextField', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
+  
+  // Get Label's gutter for side-by-side layout (Label component manages spacing)
+  const labelGutterVar = layout === 'side-by-side'
+    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+    : undefined
+  
   // Use provided minWidth or fall back to CSS variable
   const effectiveMinWidth = minWidth !== undefined ? `${minWidth}px` : `var(${minWidthVar})`
   
@@ -123,8 +139,10 @@ export function TextField({
   const labelElement = label ? (
     <Label
       htmlFor={inputId}
-      variant={required ? 'required' : 'default'}
+      variant={required ? 'required' : (optional ? 'optional' : 'default')}
+      size={labelSize}
       layout={layout}
+      align={labelAlign}
       layer={layer}
       id={labelId}
       style={layout === 'side-by-side' ? { minHeight: `var(${minHeightVar})` } : undefined}
@@ -159,12 +177,23 @@ export function TextField({
   // If no library component is available, render fallback
   if (!Component) {
     return (
-      <div className={className} style={style}>
+      <div className={className} style={{ 
+        marginTop: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
+        marginBottom: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
+        ...style 
+      }}>
         {layout === 'stacked' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
             {labelElement}
             <div 
-              style={{ display: 'flex', alignItems: 'center', gap: `var(${iconTextGapVar}, 8px)`, cursor: onClick ? 'pointer' : undefined }}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: `var(${iconTextGapVar}, 8px)`, 
+                cursor: onClick ? 'pointer' : undefined,
+                justifyContent: labelAlign === 'right' ? 'flex-end' : 'flex-start',
+                width: '100%'
+              }}
               onClick={onClick}
             >
               {leadingIcon && (
@@ -192,7 +221,8 @@ export function TextField({
                 style={{
                   flex: 1,
                   minWidth: effectiveMinWidth,
-                  maxWidth: `var(${maxWidthVar})`,
+                  maxWidth: layout === 'stacked' ? '100%' : `var(${maxWidthVar})`,
+                  width: layout === 'stacked' ? '100%' : undefined,
                   minHeight: `var(${minHeightVar})`,
                   paddingLeft: leadingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,
                   paddingRight: trailingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,
@@ -208,6 +238,7 @@ export function TextField({
                   fontSize: 'inherit',
                   outline: 'none',
                   cursor: onClick ? 'pointer' : undefined,
+                  textAlign: labelAlign === 'right' && layout === 'stacked' ? 'right' : 'left',
                 }}
               />
               {trailingIcon && (
@@ -219,7 +250,7 @@ export function TextField({
             {assistiveElement}
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: labelGutterVar ? `var(${labelGutterVar})` : '8px' }}>
             {labelElement}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
               <div 
@@ -251,7 +282,8 @@ export function TextField({
                   style={{
                     flex: 1,
                     minWidth: effectiveMinWidth,
-                    maxWidth: `var(${maxWidthVar})`,
+                    maxWidth: layout !== 'side-by-side' ? '100%' : `var(${maxWidthVar})`,
+                    width: layout !== 'side-by-side' ? '100%' : undefined,
                     minHeight: `var(${minHeightVar})`,
                     paddingLeft: leadingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,
                     paddingRight: trailingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,
@@ -285,42 +317,50 @@ export function TextField({
   
   // Render library-specific component
   return (
-    <Suspense fallback={<div style={{ width: '100%', height: 48 }} />}>
-      <Component
-        value={value}
-        defaultValue={defaultValue}
-        onChange={onChange}
-        onKeyDown={onKeyDown}
-        onBlur={onBlur}
-        onClick={onClick}
-        placeholder={placeholder}
-        label={label}
-        helpText={helpText}
-        errorText={errorText}
-        leadingIcon={leadingIcon}
-        trailingIcon={trailingIcon}
-        state={state}
-        layout={layout}
-        layer={layer}
-        minWidth={minWidth}
-        required={required}
-        id={inputId}
-        labelId={labelId}
-        helpId={helpId}
-        errorId={errorId}
-        name={name}
-        type={type}
-        min={min}
-        max={max}
-        step={step}
-        autoFocus={autoFocus}
-        readOnly={readOnly}
-        className={className}
-        style={style}
-        mantine={mantine}
-        material={material}
-        carbon={carbon}
-      />
-    </Suspense>
+    <div style={{ 
+      marginTop: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
+      marginBottom: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
+    }}>
+      <Suspense fallback={<div style={{ width: '100%', height: 48 }} />}>
+        <Component
+          value={value}
+          defaultValue={defaultValue}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          onBlur={onBlur}
+          onClick={onClick}
+          placeholder={placeholder}
+          label={label}
+          helpText={helpText}
+          errorText={errorText}
+          leadingIcon={leadingIcon}
+          trailingIcon={trailingIcon}
+          state={state}
+          layout={layout}
+          layer={layer}
+          minWidth={minWidth}
+          required={required}
+          optional={optional}
+          labelAlign={labelAlign}
+          labelSize={labelSize}
+          id={inputId}
+          labelId={labelId}
+          helpId={helpId}
+          errorId={errorId}
+          name={name}
+          type={type}
+          min={min}
+          max={max}
+          step={step}
+          autoFocus={autoFocus}
+          readOnly={readOnly}
+          className={className}
+          style={style}
+          mantine={mantine}
+          material={material}
+          carbon={carbon}
+        />
+      </Suspense>
+    </div>
   )
 }

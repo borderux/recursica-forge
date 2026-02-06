@@ -2,9 +2,9 @@
  * UiKitContext
  *
  * Keeps track of which UI library shell to render ('mantine' | 'material' | 'carbon').
- * Persists selection to localStorage under 'uikit'.
+ * Defaults to 'mantine'. The UI selector is disabled, but programmatic changes are allowed for tests.
  */
-import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
+import { createContext, useContext, useMemo, useState, ReactNode } from 'react'
 
 export type UiKit = 'mantine' | 'material' | 'carbon'
 
@@ -16,16 +16,15 @@ type UiKitContextValue = {
 const UiKitContext = createContext<UiKitContextValue | undefined>(undefined)
 
 export function UiKitProvider({ children }: { children: ReactNode }) {
+  // Default to mantine (selector is disabled in UI, but allow programmatic changes for tests)
   const [kit, setKitState] = useState<UiKit>(() => {
-    const saved = typeof window !== 'undefined' ? (localStorage.getItem('uikit') as UiKit | null) : null
-    return saved ?? 'mantine'
+    // Default to mantine instead of reading from localStorage
+    return 'mantine'
   })
-
+  
   const setKit = (next: UiKit) => {
     setKitState(next)
-    try {
-      localStorage.setItem('uikit', next)
-    } catch {}
+    // Note: We don't persist to localStorage since the selector is disabled
   }
 
   const value = useMemo(() => ({ kit, setKit }), [kit])

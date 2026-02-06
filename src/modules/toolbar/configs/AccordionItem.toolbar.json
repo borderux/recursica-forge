@@ -10,10 +10,6 @@
           "label": "Text color",
           "visible": true
         },
-        "background": {
-          "label": "Background",
-          "visible": true
-        },
         "icon": {
           "label": "Icon",
           "visible": true
@@ -29,6 +25,23 @@
         "border-radius": {
           "label": "Border radius",
           "visible": true
+        }
+      }
+    },
+    "item-background": {
+      "icon": "paint-bucket",
+      "label": "Item background",
+      "visible": true,
+      "group": {
+        "background-collapsed": {
+          "label": "Collapsed",
+          "visible": true,
+          "floatingPaletteLabel": "Background Color (Collapsed)"
+        },
+        "background-expanded": {
+          "label": "Expanded",
+          "visible": true,
+          "floatingPaletteLabel": "Background Color (Expanded)"
         }
       }
     },

@@ -53,7 +53,7 @@ globalStyle('.recursica-layer-0 .mantine-Button-root[data-variant="filled"]:hove
 globalStyle('.recursica-layer-0 .mantine-Button-root[data-variant="outline"]', {
   backgroundColor: 'var(--button-bg) !important',
   color: 'var(--button-color) !important',
-  borderColor: 'var(--button-color) !important',
+  // Border is handled by general rule in Button.css with !important
 } as any)
 
 globalStyle('.recursica-layer-0 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)', {
@@ -85,7 +85,7 @@ globalStyle('.recursica-layer-1 .mantine-Button-root[data-variant="filled"]:hove
 globalStyle('.recursica-layer-1 .mantine-Button-root[data-variant="outline"]', {
   backgroundColor: 'var(--button-bg) !important',
   color: 'var(--button-color) !important',
-  borderColor: 'var(--button-color) !important',
+  // Border is handled by general rule in Button.css with !important
 } as any)
 
 globalStyle('.recursica-layer-1 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)', {
@@ -117,7 +117,7 @@ globalStyle('.recursica-layer-2 .mantine-Button-root[data-variant="filled"]:hove
 globalStyle('.recursica-layer-2 .mantine-Button-root[data-variant="outline"]', {
   backgroundColor: 'var(--button-bg) !important',
   color: 'var(--button-color) !important',
-  borderColor: 'var(--button-color) !important',
+  // Border is handled by general rule in Button.css with !important
 } as any)
 
 globalStyle('.recursica-layer-2 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)', {
@@ -149,7 +149,7 @@ globalStyle('.recursica-layer-3 .mantine-Button-root[data-variant="filled"]:hove
 globalStyle('.recursica-layer-3 .mantine-Button-root[data-variant="outline"]', {
   backgroundColor: 'var(--button-bg) !important',
   color: 'var(--button-color) !important',
-  borderColor: 'var(--button-color) !important',
+  // Border is handled by general rule in Button.css with !important
 } as any)
 
 globalStyle('.recursica-layer-3 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)', {
@@ -251,18 +251,8 @@ globalStyle(
   }
 )
 
-/* Ensure outline variant has a border with the correct color */
-/* Note: --button-bd is set in TSX with border-size CSS var, this is just a fallback */
-globalStyle('.mantine-Button-root[data-variant="outline"]', {
-  '--button-bd': 'var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-text)',
-  border: 'var(--button-bd)',
-} as any)
-
-/* Ensure text variant (subtle) has no border */
-globalStyle('.mantine-Button-root[data-variant="subtle"]', {
-  '--button-bd': 'none',
-  border: 'none',
-} as any)
+/* Border styles are handled by Button.css with !important to override Mantine's CSS-in-JS */
+/* This ensures consistent border application across all layers */
 
 /* Handle disabled state - use opacity from brand state */
 globalStyle('.mantine-Button-root[data-disabled="true"], .mantine-Button-root:disabled', {

@@ -15,6 +15,7 @@ import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useJsonExport, ExportComplianceModal, ExportSelectionModalWrapper, ExportValidationErrorModal, GitHubExportModalWrapper } from '../../../core/export/exportWithCompliance'
 import { useJsonImport, ImportDirtyDataModal, processUploadedFilesAsync } from '../../../core/import/importWithDirtyData'
+import { createBugReport } from '../utils/bugReport'
 import { Button } from '../../../components/adapters/Button'
 import { Tooltip } from '../../../components/adapters/Tooltip'
 import { Switch } from '../../../components/adapters/Switch'
@@ -25,7 +26,6 @@ import { ThemeSidebar } from '../ThemeSidebar'
 import { Tabs } from '../../../components/adapters/Tabs'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getVarsStore } from '../../../core/store/varsStore'
-import { createBugReport } from '../utils/bugReport'
 import { randomizeAllVariables } from '../../../core/utils/randomizeVariables'
 import { RandomizeOptionsModal } from '../../../core/utils/RandomizeOptionsModal'
 import { getCssAuditAutoRun, setCssAuditAutoRun } from '../../../core/utils/cssAuditPreference'
@@ -356,7 +356,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
               </>
             )}
             <div style={{ minWidth: 180 }}>
-              <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
+              <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')} disabled={true}>
                 <SelectItem text="Mantine" value="mantine" />
                 <SelectItem text="Material UI" value="material" />
                 <SelectItem text="Carbon" value="carbon" />

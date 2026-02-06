@@ -6,10 +6,10 @@
  */
 
 import { Suspense, useState, useEffect } from 'react'
+import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type LabelProps = {
@@ -66,6 +66,14 @@ export function Label({
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
   
+  // Get CSS variable for size-based width based on layout and size variants (moved up to use in listener)
+  // Width is nested: variants.layouts.{layout}.variants.sizes.{size}.properties.width
+  let widthVar: string | undefined
+  const effectiveSize = size || 'default'
+  widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layout, 'variants', 'sizes', effectiveSize, 'properties', 'width')
+  const labelWidthVar = getComponentLevelCssVar('Label', 'label-width')
+  const effectiveWidthVar = widthVar || labelWidthVar
+  
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     const textCssVars = [
@@ -75,12 +83,18 @@ export function Label({
       optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar
     ]
     
+    // Include width CSS vars in the update check
+    const widthCssVars = effectiveWidthVar ? [effectiveWidthVar, widthVar, labelWidthVar].filter(Boolean) : []
+    const allCssVars = [...textCssVars, ...widthCssVars]
+    
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
-      // Update if any text CSS var was updated
-      const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      // Update if any text or width CSS var was updated
+      const shouldUpdate = !detail?.cssVars || detail.cssVars.some((cssVar: string) => 
+        allCssVars.includes(cssVar) || cssVar.includes('label') || cssVar.includes('components-label')
+      )
       
-      if (shouldUpdateText) {
+      if (shouldUpdate) {
         // Force re-render by updating state
         setTextVarsUpdate(prev => prev + 1)
       }
@@ -90,7 +104,7 @@ export function Label({
     
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
-      // Force re-render for text vars
+      // Force re-render for text and width vars
       setTextVarsUpdate(prev => prev + 1)
     })
     observer.observe(document.documentElement, {
@@ -106,7 +120,8 @@ export function Label({
     labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
     labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
     optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
-    optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar
+    optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar,
+    effectiveWidthVar, widthVar, labelWidthVar, effectiveSize, layout
   ])
   
   // Determine variant based on required prop if not explicitly set
@@ -125,20 +140,18 @@ export function Label({
   
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
+  const optionalTextGapVar = getComponentLevelCssVar('Label', 'label-optional-text-gap')
   
-  // Get CSS variable for size-based width based on layout and size variants
-  // Width is nested: variants.layouts.{layout}.variants.sizes.{size}.properties.width
-  let widthVar: string | undefined
-  
-  // Use provided size or default to 'default' if not provided
-  const effectiveSize = size || 'default'
-  
-  // Get width from nested variant structure
-  widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layout, 'variants', 'sizes', effectiveSize, 'properties', 'width')
-  
-  // Also check for general label-width property at component level as fallback
-  const labelWidthVar = getComponentLevelCssVar('Label', 'label-width')
-  const effectiveWidthVar = widthVar || labelWidthVar
+  // #region agent log
+  useEffect(() => {
+    if (effectiveWidthVar) {
+      const currentValue = readCssVar(effectiveWidthVar)
+      const resolvedValue = readCssVarResolved(effectiveWidthVar)
+      const rootValue = window.getComputedStyle(document.documentElement).getPropertyValue(effectiveWidthVar.replace('--', ''))
+      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Label.tsx:141',message:'Label width read',data:{effectiveWidthVar,widthVar,labelWidthVar,effectiveSize,layout,currentValue,resolvedValue,rootValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    }
+  }, [effectiveWidthVar, widthVar, labelWidthVar, effectiveSize, layout]);
+  // #endregion
   
   // Get CSS variables for layout-specific spacing
   let layoutStyles: Record<string, string> = {}
@@ -147,15 +160,19 @@ export function Label({
     const bottomPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'bottom-padding')
     layoutStyles.paddingBottom = `var(${bottomPaddingVar})`
   } else if (layout === 'side-by-side') {
-    const heightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'height')
+    const minHeightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'min-height')
     const verticalPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding')
-    // Use min-height instead of height so the label can grow with content
-    layoutStyles.minHeight = `var(${heightVar})`
+    // Use min-height so the label can grow with content
+    layoutStyles.minHeight = `var(${minHeightVar})`
     layoutStyles.paddingTop = `var(${verticalPaddingVar})`
     layoutStyles.paddingBottom = `var(${verticalPaddingVar})`
     // Use flexbox to center content vertically
     layoutStyles.display = 'flex'
     layoutStyles.alignItems = 'center'
+    // For right alignment in side-by-side, use justifyContent instead of textAlign
+    if (align === 'right') {
+      layoutStyles.justifyContent = 'flex-end'
+    }
     // Note: gutter is used by parent container's gap property, not applied to label itself
   }
   
@@ -199,13 +216,15 @@ export function Label({
             display: 'flex', 
             flexDirection: 'column', 
             justifyContent: 'center',
-            alignItems: layout === 'side-by-side' ? 'flex-start' : 'stretch',
+            alignItems: layout === 'side-by-side' 
+              ? (align === 'right' ? 'flex-end' : 'flex-start')
+              : (align === 'right' ? 'flex-end' : 'stretch'),
+            gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
           }}>
-            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
+            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align }}>{children}</span>
             <span
               style={{
                 display: 'block',
-                marginTop: `var(${requiredIndicatorGapVar})`,
                 opacity: `var(${lowEmphasisOpacityVar})`,
                 fontSize: `var(${optionalFontSizeVar})`,
                 fontFamily: `var(${optionalFontFamilyVar})`,
@@ -218,13 +237,14 @@ export function Label({
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                textAlign: align,
               }}
             >
               (optional)
             </span>
           </div>
         ) : (
-          <span style={{ display: 'inline', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ display: 'inline', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align }}>
             {children}
             {styleVariant === 'required' && (
               <span

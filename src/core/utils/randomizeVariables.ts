@@ -1450,9 +1450,12 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
 
             // CRITICAL: Update the token values that CSS variables reference
             // The elevation controls have the correct values, but the tokens themselves need to be updated
+            // Note: Tokens are shared between modes, so we update them based on light mode controls
+            // (or use the first available mode if light doesn't exist)
+            const controlsToUse = updatedElevation.controls?.light || updatedElevation.controls?.dark || {}
             for (let i = 0; i <= 4; i++) {
               const k = `elevation-${i}`
-              const ctrl = updatedElevation.controls[k]
+              const ctrl = controlsToUse[k]
               if (ctrl) {
                 const blurTokenName = updatedElevation.blurTokens[k] || `size/elevation-${i}-blur`
                 const spreadTokenName = updatedElevation.spreadTokens[k] || `size/elevation-${i}-spread`

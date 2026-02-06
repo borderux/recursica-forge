@@ -334,7 +334,7 @@ export default function Slider({
           }}
         />
       )}
-      {showValueLabel && !showInput && (
+      {showValueLabel && !showInput && label && (
         <span
           style={{
             minWidth: `var(${inputWidthVar}, 60px)`,

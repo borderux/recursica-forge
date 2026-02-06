@@ -224,6 +224,23 @@ export default function ComponentToolbar({
             }
           }
         }
+        
+        // If a prop has a group but doesn't exist in structure, create a synthetic prop for it
+        // This allows grouping-only props (like "spacing") to appear in the toolbar
+        if (propConfig.group && !propsMap.has(configPropNameLower)) {
+          const syntheticProp: ComponentProp = {
+            name: configPropName,
+            category: 'size', // Default category for grouping props
+            type: 'dimension',
+            cssVar: '', // Empty CSS var since this is just a grouping prop
+            path: ['properties', configPropNameLower],
+            isVariantSpecific: false,
+          }
+          if (!seenProps.has(configPropNameLower)) {
+            seenProps.add(configPropNameLower)
+            propsMap.set(configPropNameLower, syntheticProp)
+          }
+        }
       }
       
       for (const [parentPropName, parentPropConfig] of Object.entries(toolbarConfig.props)) {
@@ -287,6 +304,17 @@ export default function ComponentToolbar({
               if (!groupedProp && groupedPropKey === 'placeholder-opacity') {
                 groupedProp = structure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'placeholder-opacity'
+                  // Must be component-level (not variant-specific)
+                  const isComponentLevel = !p.isVariantSpecific
+                  return nameMatches && isComponentLevel
+                })
+              }
+              
+              // Special case: label-optional-text-gap is a component-level property
+              // It's in the "spacing" group but doesn't have "spacing" in its path
+              if (!groupedProp && groupedPropKey === 'label-optional-text-gap') {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === 'label-optional-text-gap'
                   // Must be component-level (not variant-specific)
                   const isComponentLevel = !p.isVariantSpecific
                   return nameMatches && isComponentLevel
@@ -407,7 +435,6 @@ export default function ComponentToolbar({
                 }
               }
               if (groupedProp) {
-                
                 groupedProps.set(groupedPropKey, groupedProp)
                 // Also update the groupedPropsMap to ensure consistency
                 groupedPropsMap.set(parentPropName.toLowerCase(), groupedProps)

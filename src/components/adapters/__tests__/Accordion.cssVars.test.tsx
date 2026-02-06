@@ -76,24 +76,28 @@ describe('Accordion CSS Variables', () => {
 
     const root = await waitForAccordion(container)
 
-    const itemHeaderBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', 'layer-0', 'background')
+    const itemHeaderBgCollapsedVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', 'layer-0', 'background-collapsed')
+    const itemHeaderBgExpandedVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', 'layer-0', 'background-expanded')
     const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
     const iconSizeVar = getComponentLevelCssVar('AccordionItem', 'icon-size')
 
     // Wait for CSS variables to be set (they might be set asynchronously)
     await waitFor(() => {
-      const itemHeaderBgValue = root.style.getPropertyValue('--accordion-item-header-bg') || 
-                                window.getComputedStyle(root).getPropertyValue('--accordion-item-header-bg')
+      const itemHeaderBgCollapsedValue = root.style.getPropertyValue('--accordion-item-header-bg-collapsed') || 
+                                window.getComputedStyle(root).getPropertyValue('--accordion-item-header-bg-collapsed')
+      const itemHeaderBgExpandedValue = root.style.getPropertyValue('--accordion-item-header-bg-expanded') || 
+                                window.getComputedStyle(root).getPropertyValue('--accordion-item-header-bg-expanded')
       const itemPaddingValue = root.style.getPropertyValue('--accordion-item-padding') || 
                               window.getComputedStyle(root).getPropertyValue('--accordion-item-padding')
       const iconSizeValue = root.style.getPropertyValue('--accordion-item-icon-size') || 
                            window.getComputedStyle(root).getPropertyValue('--accordion-item-icon-size')
       
-      if (!itemHeaderBgValue || !itemPaddingValue || !iconSizeValue) {
+      if (!itemHeaderBgCollapsedValue || !itemHeaderBgExpandedValue || !itemPaddingValue || !iconSizeValue) {
         throw new Error('CSS variables not set yet')
       }
       
-      expect(itemHeaderBgValue).toContain(`var(${itemHeaderBgVar})`)
+      expect(itemHeaderBgCollapsedValue).toContain(`var(${itemHeaderBgCollapsedVar})`)
+      expect(itemHeaderBgExpandedValue).toContain(`var(${itemHeaderBgExpandedVar})`)
       expect(itemPaddingValue).toContain(`var(${itemPaddingVar})`)
       expect(iconSizeValue).toContain(`var(${iconSizeVar})`)
     }, { timeout: 10000 })

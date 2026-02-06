@@ -11,7 +11,7 @@ import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, 
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
-import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { TextField } from '../../TextField'
 import './Slider.css'
 
@@ -61,6 +61,9 @@ export default function Slider({
   // Get input width and gap if showing input
   const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
   const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
+  
+  // Get disabled opacity CSS variable
+  const disabledOpacityVar = getBrandStateCssVar(mode, 'disabled')
   
   // Reactively read thumb elevation from CSS variable
   const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
@@ -230,7 +233,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
+          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar}, 0.7)`, 
           flexShrink: 0,
           marginRight: '8px',
         } as React.CSSProperties}>
@@ -258,6 +261,11 @@ export default function Slider({
           '--slider-radius': `var(${trackBorderRadiusVar})`,
           '--slider-thumb-radius': `var(${thumbBorderRadiusVar})`,
           '--slider-thumb-elevation': thumbElevationBoxShadow || '0 1px 2px rgba(0, 0, 0, 0.15)',
+          ...(disabled ? {
+            '--slider-opacity': `var(${disabledOpacityVar})`,
+            '--slider-track-opacity': `var(${disabledOpacityVar})`,
+            '--slider-thumb-opacity': `var(${disabledOpacityVar})`,
+          } : {}),
           ...style,
         }}
         {...mantine}
@@ -275,7 +283,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
+          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar}, 0.7)`, 
           flexShrink: 0,
           marginLeft: '8px',
         } as React.CSSProperties}>
@@ -311,7 +319,7 @@ export default function Slider({
           }}
         />
       )}
-      {showValueLabel && !showInput && (
+      {showValueLabel && !showInput && label && (
         <span
           style={{
             minWidth: `var(${inputWidthVar}, 60px)`,
@@ -324,7 +332,7 @@ export default function Slider({
             textTransform: readOnlyValueTextTransformVar ? (readCssVar(readOnlyValueTextTransformVar) || 'none') : 'none',
             fontStyle: readOnlyValueFontStyleVar ? (readCssVar(readOnlyValueFontStyleVar) || 'normal') : 'normal',
             color: `var(${layerTextColorVar})`,
-            opacity: disabled ? 0.5 : `var(${layerTextEmphasisVar})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar})`,
             whiteSpace: 'nowrap',
             textAlign: 'right',
           } as React.CSSProperties}

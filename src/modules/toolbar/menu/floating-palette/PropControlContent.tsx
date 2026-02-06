@@ -21,6 +21,7 @@ import WidthGroupToolbar from '../width-group/WidthGroupToolbar'
 import ElevationToolbar from '../elevation/ElevationToolbar'
 import BackgroundToolbar from '../background/BackgroundToolbar'
 import IconGroupToolbar from '../icon-group/IconGroupToolbar'
+import TopBottomMarginToolbar from '../top-bottom-margin-group/TopBottomMarginToolbar'
 import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
 import uikitJson from '../../../../vars/UIKit.json'
 import './PropControl.css'
@@ -554,10 +555,69 @@ function ElevationSliderInline({
   mode: 'light' | 'dark'
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 }) {
-  const [selectedIndex, setSelectedIndex] = useState<number>(0)
-  const justSetValueRef = useRef<string | null>(null)
+  // Get current elevation value from CSS var
+  // IMPORTANT: Only read from the mode-specific CSS variable - never fall back to other modes
+  const getCurrentElevationName = useCallback((): string => {
+    // Only check inline style for the current mode-specific CSS variable
+    // Don't fall back to computed styles as they might cascade from other modes
+    const inlineValue = typeof document !== 'undefined'
+      ? document.documentElement.style.getPropertyValue(primaryVar).trim()
+      : ''
 
-  // Build tokens list from elevation options
+    // If no inline value exists for this mode, return default (don't read computed as it might be from another mode)
+    if (!inlineValue) {
+      return 'elevation-0'
+    }
+
+    // Parse token reference format: {brand.themes.light.elevations.elevation-0}
+    // Check if the token reference is for the correct mode
+    const tokenMatch = inlineValue.match(/themes\.(light|dark)\.elevations?\.(elevation-\d+)/i)
+    if (tokenMatch) {
+      const refMode = tokenMatch[1].toLowerCase() as 'light' | 'dark'
+      const elevationName = tokenMatch[2]
+      
+      // If the token reference is for a different mode, ignore it and return default
+      // This prevents reading light mode values when in dark mode
+      if (refMode !== mode) {
+        return 'elevation-0'
+      }
+      
+      return elevationName
+    }
+    
+    // Fallback: try to match without mode check (for backwards compatibility)
+    const fallbackMatch = inlineValue.match(/elevations?\.(elevation-\d+)/i)
+    if (fallbackMatch) {
+      return fallbackMatch[1]
+    }
+    // Parse direct elevation name format: elevation-0
+    if (/^elevation-\d+$/.test(inlineValue)) {
+      return inlineValue
+    }
+
+    return 'elevation-0'
+  }, [primaryVar, mode])
+
+  const [currentElevationName, setCurrentElevationName] = useState(() => getCurrentElevationName())
+
+  useEffect(() => {
+    const newElevationName = getCurrentElevationName()
+    setCurrentElevationName(newElevationName)
+  }, [primaryVar, mode, getCurrentElevationName])
+
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(primaryVar)) {
+        const newElevationName = getCurrentElevationName()
+        setCurrentElevationName(newElevationName)
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+  }, [primaryVar, getCurrentElevationName])
+
+  // Convert elevation options to tokens array
   const tokens = useMemo(() => {
     return elevationOptions.map((opt, index) => ({
       name: opt.name,
@@ -566,75 +626,49 @@ function ElevationSliderInline({
     }))
   }, [elevationOptions])
 
-  const readInitialValue = useCallback(() => {
-    const inlineValue = typeof document !== 'undefined'
-      ? document.documentElement.style.getPropertyValue(primaryVar).trim()
-      : ''
+  // Find current index
+  const currentIdx = tokens.findIndex(t => t.name === currentElevationName)
+  const safeCurrentIdx = currentIdx >= 0 ? currentIdx : 0
 
-    if (justSetValueRef.current === inlineValue) {
-      return
-    }
+  // Extract elevation number from token name
+  const getElevationNumber = useCallback((token: typeof tokens[0] | undefined): number => {
+    if (!token) return 0
+    const match = token.name.match(/elevation-(\d+)/)
+    return match ? parseInt(match[1], 10) : 0
+  }, [])
 
-    const currentValue = inlineValue || readCssVar(primaryVar)
+  const getValueLabel = useCallback((value: number) => {
+    const index = Math.max(0, Math.min(Math.round(value), tokens.length - 1))
+    const token = tokens[index]
+    if (!token) return 'None'
+    const elevationNum = getElevationNumber(token)
+    return elevationNum === 0 ? 'None' : String(elevationNum)
+  }, [tokens, getElevationNumber])
 
-    if (!currentValue) {
-      setSelectedIndex(0)
-      return
-    }
+  const minToken = tokens[0]
+  const maxToken = tokens[tokens.length - 1]
+  const minElevationNum = getElevationNumber(minToken)
+  const minLabel = minElevationNum === 0 ? 'None' : String(minElevationNum)
+  const maxElevationNum = getElevationNumber(maxToken)
+  const maxLabel = String(maxElevationNum)
 
-    // Extract elevation name from value
-    let elevationName = 'elevation-0'
-    if (currentValue) {
-      const match = currentValue.match(/elevations\.(elevation-\d+)/)
-      if (match) {
-        elevationName = match[1]
-      } else if (/^elevation-\d+$/.test(currentValue)) {
-        elevationName = currentValue
-      }
-    }
-
-    const matchingIndex = tokens.findIndex(t => t.name === elevationName)
-    setSelectedIndex(matchingIndex >= 0 ? matchingIndex : 0)
-  }, [primaryVar, tokens])
-
-  useEffect(() => {
-    readInitialValue()
-  }, [readInitialValue])
-
-  useEffect(() => {
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      if (!detail?.cssVars || detail.cssVars.includes(primaryVar)) {
-        setTimeout(() => {
-          readInitialValue()
-        }, 0)
-      }
-    }
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-  }, [readInitialValue, primaryVar])
-
-  const handleSliderChange = (value: number | [number, number]) => {
+  const handleSliderChange = useCallback((value: number | [number, number]) => {
     const numValue = typeof value === 'number' ? value : value[0]
-    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
-    setSelectedIndex(clampedIndex)
-
+    const clampedIndex = Math.max(0, Math.min(Math.round(numValue), tokens.length - 1))
     const selectedToken = tokens[clampedIndex]
+    
     if (selectedToken) {
       const elevationValue = `{brand.themes.${mode}.elevations.${selectedToken.name}}`
       updateCssVar(primaryVar, elevationValue)
-      justSetValueRef.current = elevationValue
-      setTimeout(() => {
-        justSetValueRef.current = null
-      }, 100)
-
+      setCurrentElevationName(selectedToken.name)
+      
       requestAnimationFrame(() => {
         window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
           detail: { cssVars: [primaryVar] }
         }))
       })
     }
-  }
+  }, [primaryVar, mode, tokens])
 
   if (tokens.length === 0) {
     return (
@@ -644,39 +678,9 @@ function ElevationSliderInline({
     )
   }
 
-  const safeSelectedIndex = Math.max(0, Math.min(selectedIndex, tokens.length - 1))
-  const currentToken = tokens[safeSelectedIndex]
-
-  const minToken = tokens[0]
-  const maxToken = tokens[tokens.length - 1]
-
-  // Extract elevation number from token name (e.g., "elevation-0" -> 0, "elevation-4" -> 4)
-  const getElevationNumber = (token: typeof tokens[0] | undefined): number => {
-    if (!token) return 0
-    const match = token.name.match(/elevation-(\d+)/)
-    return match ? parseInt(match[1], 10) : 0
-  }
-
-  // Min label: "None" for elevation-0, otherwise the number
-  const minElevationNum = getElevationNumber(minToken)
-  const minLabel = minElevationNum === 0 ? 'None' : String(minElevationNum)
-
-  // Max label: just the number
-  const maxElevationNum = getElevationNumber(maxToken)
-  const maxLabel = String(maxElevationNum)
-
-  // Create a function that calculates the value label from the current slider value
-  const getValueLabel = useCallback((value: number) => {
-    const index = Math.max(0, Math.min(Math.round(value), tokens.length - 1))
-    const token = tokens[index]
-    if (!token) return 'None'
-    const elevationNum = getElevationNumber(token)
-    return elevationNum === 0 ? 'None' : String(elevationNum)
-  }, [tokens])
-
   return (
     <Slider
-      value={safeSelectedIndex}
+      value={safeCurrentIdx}
       onChange={handleSliderChange}
       min={0}
       max={tokens.length - 1}
@@ -686,12 +690,6 @@ function ElevationSliderInline({
       showInput={false}
       showValueLabel={true}
       valueLabel={getValueLabel}
-      tooltipText={(() => {
-        if (!currentToken) return 'None'
-        const match = currentToken.name.match(/elevation-(\d+)/)
-        const elevationNum = match ? parseInt(match[1], 10) : 0
-        return elevationNum === 0 ? 'None' : String(elevationNum)
-      })()}
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
@@ -720,7 +718,7 @@ export default function PropControlContent({
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       const themes = root?.themes || root
-      const elev: any = themes?.light?.elevations || root?.light?.elevations || {}
+      const elev: any = themes?.[mode]?.elevations || root?.[mode]?.elevations || {}
       const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a, b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
       return names.map((n) => {
         const idx = Number(n.split('-')[1])
@@ -730,7 +728,7 @@ export default function PropControlContent({
     } catch {
       return []
     }
-  }, [themeJson])
+  }, [themeJson, mode])
 
   const getCssVarsForProp = (propToCheck: ComponentProp): string[] => {
 
@@ -886,7 +884,8 @@ export default function PropControlContent({
   if (prop.name.toLowerCase() === 'label-width' && componentName.toLowerCase() === 'label') {
     const layoutVariant = selectedVariants.layout || 'stacked'
     const sizeVariant = selectedVariants.size || 'default'
-    const widthVar = `--recursica-ui-kit-components-label-variants-layouts-${layoutVariant}-variants-sizes-${sizeVariant}-properties-width`
+    // Build CSS var path using buildComponentCssVarPath to include theme prefix
+    const widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layoutVariant, 'variants', 'sizes', sizeVariant, 'properties', 'width')
     primaryCssVar = widthVar
     cssVarsForControl = [widthVar]
   }
@@ -1093,13 +1092,6 @@ export default function PropControlContent({
       if (componentName.toLowerCase() === 'breadcrumb' && label.toLowerCase().includes('read only')) {
         // Ensure we're using the read-only CSS variable, not the interactive one
         if (validPrimaryVar.includes('interactive') && !validPrimaryVar.includes('read-only')) {
-          console.error('PropControlContent: ERROR - Read-only color is using interactive CSS var!', {
-            validPrimaryVar,
-            propCssVar: propToRender.cssVar,
-            primaryVar,
-            cssVars,
-            path: propToRender.path
-          })
           // Try to find the correct CSS variable from the structure
           const structure = parseComponentStructure(componentName)
           const correctProp = structure.props.find(p =>
@@ -1121,7 +1113,6 @@ export default function PropControlContent({
       }
 
       if (!validPrimaryVar || !validPrimaryVar.trim()) {
-        console.warn('PropControlContent: No valid CSS var for prop', propToRender.name)
         return null
       }
 
@@ -1200,6 +1191,109 @@ export default function PropControlContent({
       }
 
       // Use Slider component for TextField dimension properties (MUST use sliders, never DimensionTokenSelector)
+      // Special handling for top-bottom-margin: show ALL layout variants (stacked and side-by-side)
+      if (propNameLower === 'top-bottom-margin' && prop.isVariantSpecific && prop.variantProp === 'layout') {
+        const structure = parseComponentStructure(componentName)
+        const allMarginProps = structure.props.filter(p => 
+          p.name.toLowerCase() === 'top-bottom-margin' &&
+          p.isVariantSpecific &&
+          p.variantProp === 'layout'
+        )
+        
+        return (
+          <>
+            {allMarginProps.map((marginProp) => {
+              const layoutVariant = marginProp.path.find(p => p === 'stacked' || p === 'side-by-side') || 'stacked'
+              const layoutLabel = layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'
+              const marginCssVars = getCssVarsForProp(marginProp)
+              const marginPrimaryVar = marginCssVars[0] || marginProp.cssVar
+              const marginLabel = `${label} (${layoutLabel})`
+              
+              if (isTextField) {
+                // Use TextField-specific slider
+                const TextFieldDimensionSlider = () => {
+                  const minValue = 0
+                  const maxValue = 32
+                  
+                  const [value, setValue] = useState(() => {
+                    const currentValue = readCssVar(marginPrimaryVar)
+                    const resolvedValue = readCssVarResolved(marginPrimaryVar)
+                    const valueStr = resolvedValue || currentValue || `${minValue}px`
+                    const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+                    return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
+                  })
+
+                  useEffect(() => {
+                    const handleUpdate = () => {
+                      const currentValue = readCssVar(marginPrimaryVar)
+                      const resolvedValue = readCssVarResolved(marginPrimaryVar)
+                      const valueStr = resolvedValue || currentValue || `${minValue}px`
+                      const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+                      if (match) {
+                        setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+                      }
+                    }
+                    window.addEventListener('cssVarsUpdated', handleUpdate)
+                    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+                  }, [marginPrimaryVar, minValue, maxValue])
+
+                  const handleChange = useCallback((val: number | [number, number]) => {
+                    const numValue = typeof val === 'number' ? val : val[0]
+                    const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+                    setValue(clampedValue)
+
+                    const cssVarsToUpdate = marginCssVars.length > 0 ? marginCssVars : [marginPrimaryVar]
+                    cssVarsToUpdate.forEach(cssVar => {
+                      updateCssVar(cssVar, `${clampedValue}px`)
+                    })
+                    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+                      detail: { cssVars: cssVarsToUpdate }
+                    }))
+                  }, [marginPrimaryVar, marginCssVars, minValue, maxValue])
+
+                  const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+                    handleChange(val)
+                  }, [handleChange])
+
+                  return (
+                    <Slider
+                      value={value}
+                      onChange={handleChange}
+                      onChangeCommitted={handleChangeCommitted}
+                      min={minValue}
+                      max={maxValue}
+                      step={1}
+                      layer={selectedLayer as any}
+                      layout="stacked"
+                      showInput={false}
+                      showValueLabel={true}
+                      valueLabel={(val) => `${Math.round(val)}px`}
+                      minLabel={`${minValue}px`}
+                      maxLabel={`${maxValue}px`}
+                      showMinMaxLabels={false}
+                      label={<Label layer={selectedLayer as any} layout="stacked">{marginLabel}</Label>}
+                    />
+                  )
+                }
+                return <TextFieldDimensionSlider key={marginProp.cssVar} />
+              } else {
+                // Use BrandDimensionSliderInline for other components
+                return (
+                  <BrandDimensionSliderInline
+                    key={marginProp.cssVar}
+                    targetCssVar={marginPrimaryVar}
+                    targetCssVars={marginCssVars.length > 0 ? marginCssVars : undefined}
+                    label={marginLabel}
+                    dimensionCategory="general"
+                    layer={selectedLayer as any}
+                  />
+                )
+              }
+            })}
+          </>
+        )
+      }
+
       if (isTextField && (
         propNameLower === 'border-size' ||
         propNameLower === 'horizontal-padding' ||
@@ -1208,7 +1302,8 @@ export default function PropControlContent({
         propNameLower === 'icon-size' ||
         propNameLower === 'icon-text-gap' ||
         propNameLower === 'max-width' ||
-        propNameLower === 'min-width'
+        propNameLower === 'min-width' ||
+        propNameLower === 'top-bottom-margin'
       )) {
         const TextFieldDimensionSlider = () => {
           let minValue = 0
@@ -1219,6 +1314,9 @@ export default function PropControlContent({
             minValue = 0
             maxValue = 10
           } else if (propNameLower === 'horizontal-padding' || propNameLower === 'vertical-padding') {
+            minValue = 0
+            maxValue = 32
+          } else if (propNameLower === 'top-bottom-margin') {
             minValue = 0
             maxValue = 32
           } else if (propNameLower === 'min-height') {
@@ -1335,6 +1433,7 @@ export default function PropControlContent({
 
       // Use brand dimension slider for padding-related properties that use general tokens
       // NOTE: TextField padding props are handled above, so this won't catch them
+      // NOTE: top-bottom-margin is handled separately above when it's layout-specific
       const isPaddingProp = propNameLower === 'padding' ||
         propNameLower === 'vertical-padding' ||
         propNameLower === 'horizontal-padding' ||
@@ -1344,7 +1443,8 @@ export default function PropControlContent({
         propNameLower === 'item-gap' ||
         propNameLower === 'icon-label-gap' ||
         propNameLower === 'divider-item-gap' ||
-        propNameLower === 'track-inner-padding'
+        propNameLower === 'track-inner-padding' ||
+        (propNameLower === 'top-bottom-margin' && !(prop.isVariantSpecific && prop.variantProp === 'layout'))
 
       if (isPaddingProp && !isTextField) {
         return (
@@ -1385,14 +1485,42 @@ export default function PropControlContent({
         const LabelWidthSlider = () => {
           const minValue = 0
           const maxValue = 500
-          const isLabelSideBySide = selectedVariants.layout === 'side-by-side'
+          // #region agent log
+          const layoutVariant = selectedVariants.layout || 'stacked'
+          const sizeVariant = selectedVariants.size || 'default'
+          useEffect(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const rootValue = window.getComputedStyle(document.documentElement).getPropertyValue(primaryVar.replace('--', ''))
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1490',message:'Label width debug',data:{primaryVar,layoutVariant,sizeVariant,selectedVariantsSize:selectedVariants.size,currentValue,resolvedValue,rootValue,cssVars},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+          }, [primaryVar, layoutVariant, sizeVariant, selectedVariants.size, cssVars]);
+          // #endregion
           const [value, setValue] = useState(() => {
             const currentValue = readCssVar(primaryVar)
             const resolvedValue = readCssVarResolved(primaryVar)
             const valueStr = resolvedValue || currentValue || '0px'
             const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+            const initialValue = match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1506',message:'Label width initial state',data:{primaryVar,currentValue,resolvedValue,valueStr,initialValue,sizeVariant},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+            return initialValue
           })
+
+          // Reset value when primaryVar changes (e.g., when size variant changes)
+          useEffect(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            if (match) {
+              const newValue = Math.max(minValue, Math.min(maxValue, parseFloat(match[1])))
+              setValue(newValue)
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1520',message:'Label width reset on primaryVar change',data:{primaryVar,currentValue,resolvedValue,newValue,sizeVariant},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+              // #endregion
+            }
+          }, [primaryVar, sizeVariant])
 
           useEffect(() => {
             const handleUpdate = () => {
@@ -1410,6 +1538,9 @@ export default function PropControlContent({
 
           const updateCssVars = useCallback((clampedValue: number) => {
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1520',message:'Label width update',data:{clampedValue,cssVarsToUpdate,primaryVar,layoutVariant,sizeVariant,selectedVariantsSize:selectedVariants.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+            // #endregion
             cssVarsToUpdate.forEach(cssVar => {
               updateCssVar(cssVar, `${clampedValue}px`)
             })
@@ -1417,24 +1548,22 @@ export default function PropControlContent({
             window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
               detail: { cssVars: cssVarsToUpdate }
             }))
-          }, [cssVars, primaryVar])
+          }, [cssVars, primaryVar, layoutVariant, sizeVariant, selectedVariants.size])
 
           const handleChange = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             setValue(clampedValue)
 
-            // Only update CSS vars immediately if Label is in stacked mode
-            if (!isLabelSideBySide) {
-              updateCssVars(clampedValue)
-            }
+            // Always update CSS vars immediately during dragging
+            updateCssVars(clampedValue)
           }
 
           const handleChangeCommitted = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
 
-            // Always update CSS vars on drag end, especially for side-by-side mode
+            // Update CSS vars on drag end (already updated during drag, but ensure final value is set)
             updateCssVars(clampedValue)
           }
 
@@ -1650,6 +1779,93 @@ export default function PropControlContent({
         return (
           <ChipDimensionSlider
             key={`${primaryVar}-${selectedVariants.size || ''}`}
+          />
+        )
+      }
+
+      // Use Slider component for Label min-height property (must be before Button check)
+      if (componentName.toLowerCase() === 'label' && propNameLower === 'min-height') {
+        const LabelMinHeightSlider = () => {
+          const minValue = 0
+          const maxValue = 200
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+          })
+
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+
+        return (
+          <LabelMinHeightSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           />
         )
       }
@@ -2955,9 +3171,12 @@ export default function PropControlContent({
     }
 
     if (propToRender.type === 'elevation') {
+      // Ensure primaryVar is mode-specific - it might have been built with the wrong mode
+      const modeSpecificPrimaryVar = primaryVar.replace(/themes-(light|dark)-/, `themes-${mode}-`)
+      
       return (
         <ElevationSliderInline
-          primaryVar={primaryVar}
+          primaryVar={modeSpecificPrimaryVar}
           label={label}
           elevationOptions={elevationOptions}
           mode={mode}
@@ -3058,7 +3277,7 @@ export default function PropControlContent({
           return hasTextProps
         }
       } catch (error) {
-        console.warn('Error checking text property group:', error)
+        // Error checking text property group
       }
       return false
     })())
@@ -3256,6 +3475,19 @@ export default function PropControlContent({
     }
   }
 
+  // Top-Bottom-Margin Module - Standalone prop for form elements
+  if (propNameLower === 'top-bottom-margin') {
+    return (
+      <TopBottomMarginToolbar
+        componentName={componentName}
+        prop={prop}
+        selectedVariants={selectedVariants}
+        selectedLayer={selectedLayer}
+        groupedPropsConfig={undefined}
+      />
+    )
+  }
+
   // Handle grouped props (groupedPropsConfig already declared above)
   if (groupedPropsConfig && prop.borderProps && prop.borderProps.size > 0) {
     const groupedPropEntries = Object.entries(groupedPropsConfig)
@@ -3342,6 +3574,21 @@ export default function PropControlContent({
             }
           }
           
+          // Special case: label-optional-text-gap is a component-level property
+          // It's in the "spacing" group but needs to be found as a component-level property
+          if (!groupedProp && groupedPropKey === 'label-optional-text-gap') {
+            const structure = parseComponentStructure(componentName)
+            groupedProp = structure.props.find(p => {
+              const nameMatches = p.name.toLowerCase() === 'label-optional-text-gap'
+              // Must be component-level (not variant-specific)
+              const isComponentLevel = !p.isVariantSpecific
+              return nameMatches && isComponentLevel
+            })
+            if (groupedProp) {
+              prop.borderProps!.set(groupedPropKey, groupedProp)
+            }
+          }
+          
           if (!groupedProp && groupedPropKey === 'border-color') {
             groupedProp = prop.borderProps!.get('border')
           }
@@ -3372,9 +3619,21 @@ export default function PropControlContent({
             const layoutVariant = selectedVariants['layout']
             if (layoutVariant) {
               const propBelongsToLayout = groupedProp.path.includes(layoutVariant)
-              if (!propBelongsToLayout) {
+              // Component-level props (like label-optional-text-gap) don't have layout in their path, so skip this filter for them
+              if (!groupedProp.isVariantSpecific && !propBelongsToLayout) {
+                // Don't filter out component-level props - they don't belong to any specific layout
+              } else if (groupedProp.isVariantSpecific && !propBelongsToLayout) {
                 return null
               }
+              // Special case: bottom-padding only belongs to stacked layout, hide it for side-by-side
+              if (groupedPropKey === 'bottom-padding' && layoutVariant === 'side-by-side') {
+                return null
+              }
+              // Special case: vertical-padding only belongs to side-by-side layout, hide it for stacked
+              if (groupedPropKey === 'vertical-padding' && layoutVariant === 'stacked') {
+                return null
+              }
+              // Note: min-height is now available for both stacked and side-by-side layouts
             }
           }
 
@@ -3442,7 +3701,6 @@ export default function PropControlContent({
               return (
                 <div
                   key={groupedPropName}
-                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}
                 >
                   {renderControl(correctProp, correctCssVars, correctPrimaryVar, label)}
                 </div>
@@ -3553,7 +3811,6 @@ export default function PropControlContent({
               return (
                 <div
                   key={groupedPropName}
-                  style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}
                 >
                   {renderControl(correctProp, correctCssVars, correctPrimaryVar, label)}
                 </div>
@@ -3566,7 +3823,6 @@ export default function PropControlContent({
           return (
             <div
               key={groupedPropName}
-              style={{ marginTop: index > 0 ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}
             >
               {renderControl(groupedProp, cssVars, primaryVar, label)}
             </div>
@@ -3610,7 +3866,7 @@ export default function PropControlContent({
           />
         )}
         {prop.trackUnselectedProp && trackUnselectedPrimaryVar && (
-          <div style={{ marginTop: prop.trackSelectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+          <div>
             <PaletteColorControl
               targetCssVar={trackUnselectedPrimaryVar}
               targetCssVars={trackUnselectedCssVars.length > 1 ? trackUnselectedCssVars : undefined}
@@ -3621,7 +3877,7 @@ export default function PropControlContent({
           </div>
         )}
         {trackWidthProp && (
-          <div style={{ marginTop: prop.trackUnselectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+          <div>
             {(() => {
               const cssVars = getCssVarsForProp(trackWidthProp)
               const primaryVar = cssVars[0] || trackWidthProp.cssVar
@@ -3640,7 +3896,7 @@ export default function PropControlContent({
           </div>
         )}
         {trackInnerPaddingProp && (
-          <div style={{ marginTop: trackWidthProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+          <div>
             {(() => {
               const cssVars = getCssVarsForProp(trackInnerPaddingProp)
               const primaryVar = cssVars[0] || trackInnerPaddingProp.cssVar
@@ -3659,7 +3915,7 @@ export default function PropControlContent({
           </div>
         )}
         {trackBorderRadiusProp && (
-          <div style={{ marginTop: trackInnerPaddingProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+          <div>
             {(() => {
               const cssVars = getCssVarsForProp(trackBorderRadiusProp)
               const primaryVar = cssVars[0] || trackBorderRadiusProp.cssVar
@@ -3709,7 +3965,7 @@ export default function PropControlContent({
           </>
         )}
         {thumbUnselectedProp && (
-          <div style={{ marginTop: thumbSelectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+          <div>
             {(() => {
               const cssVars = getCssVarsForProp(thumbUnselectedProp)
               const primaryVar = cssVars[0] || thumbUnselectedProp.cssVar
@@ -3725,7 +3981,7 @@ export default function PropControlContent({
           </div>
         )}
         {thumbHeightProp && (
-          <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+          <div>
             {(() => {
               const cssVars = getCssVarsForProp(thumbHeightProp)
               const primaryVar = cssVars[0] || thumbHeightProp.cssVar
@@ -3744,7 +4000,7 @@ export default function PropControlContent({
           </div>
         )}
         {thumbWidthProp && (
-          <div style={{ marginTop: thumbHeightProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+          <div>
             {(() => {
               const cssVars = getCssVarsForProp(thumbWidthProp)
               const primaryVar = cssVars[0] || thumbWidthProp.cssVar
@@ -3763,7 +4019,7 @@ export default function PropControlContent({
           </div>
         )}
         {thumbBorderRadiusProp && (
-          <div style={{ marginTop: thumbWidthProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
+          <div>
             {(() => {
               const cssVars = getCssVarsForProp(thumbBorderRadiusProp)
               const primaryVar = cssVars[0] || thumbBorderRadiusProp.cssVar

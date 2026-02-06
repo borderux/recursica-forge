@@ -5,3 +5,14 @@
  * These styles are applied via CSS custom properties set on the component's style prop.
  */
 
+/* Ensure min-height is applied to the actual label element */
+.MuiInputLabel-root[data-layout="side-by-side"] {
+  min-height: var(--label-min-height) !important;
+}
+
+/* Also target the label element directly if Material UI wraps it */
+.MuiInputLabel-root[data-layout="side-by-side"] label,
+.MuiInputLabel-root[data-layout="side-by-side"] > label {
+  min-height: var(--label-min-height) !important;
+}
+

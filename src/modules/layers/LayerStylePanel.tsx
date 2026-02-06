@@ -11,6 +11,8 @@ import brandDefault from '../../vars/Brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
+import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
 // Helper to format dimension label from key
 const formatDimensionLabel = (key: string): string => {
@@ -579,7 +581,7 @@ export default function LayerStylePanel({
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = root?.themes || root
-      const elev: any = themes?.light?.elevations || root?.light?.elevations || {}
+      const elev: any = themes?.[mode]?.elevations || root?.[mode]?.elevations || {}
       const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a,b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
       return names.map((n) => {
         const idx = Number(n.split('-')[1])
@@ -589,7 +591,7 @@ export default function LayerStylePanel({
     } catch {
       return []
     }
-  }, [themeJson])
+  }, [themeJson, mode])
   const isOnlyLayer0 = selectedLevels.length === 1 && selectedLevels[0] === 0
   
   // Compute CSS vars at top level for useEffect hooks
@@ -842,18 +844,53 @@ export default function LayerStylePanel({
   const title = selectedLevels.length === 1 ? `Layer ${selectedLevels[0]}` : `Layers ${selectedLevels.join(', ')}`
   const CloseIcon = iconNameToReactComponent('x-mark')
   
+  // Compute panel box-shadow dynamically based on layer-2 elevation property
+  // Use state to make it reactive to CSS variable changes
+  const [panelBoxShadow, setPanelBoxShadow] = useState<string>(() => {
+    const elevationBoxShadow = getLayerElevationBoxShadow(mode, 'layer-2')
+    return elevationBoxShadow || `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color, rgba(0, 0, 0, 0.1))`
+  })
+  
+  // Update box-shadow when mode changes or CSS variables update
+  useEffect(() => {
+    const updateBoxShadow = () => {
+      const elevationBoxShadow = getLayerElevationBoxShadow(mode, 'layer-2')
+      const newBoxShadow = elevationBoxShadow || `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color, rgba(0, 0, 0, 0.1))`
+      setPanelBoxShadow(newBoxShadow)
+    }
+    
+    // Initial update
+    updateBoxShadow()
+    
+    // Listen for CSS variable updates
+    const layer2ElevationVar = `--recursica-brand-themes-${mode}-layer-layer-2-property-elevation`
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars
+      if (Array.isArray(updatedVars) && updatedVars.includes(layer2ElevationVar)) {
+        // Small delay to ensure CSS variable is fully updated
+        setTimeout(updateBoxShadow, 10)
+      }
+    }
+    
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+    }
+  }, [mode])
+  
   return (
-    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-text-color)`, borderLeft: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, borderRadius: `0 var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) 0`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color, rgba(0, 0, 0, 0.1))`, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-padding)`, overflowY: 'auto' }}>
+    <div aria-hidden={!open} style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-text-color)`, borderLeft: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, borderRadius: `0 var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-radius) 0`, boxShadow: panelBoxShadow, transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 200ms ease', zIndex: 10000, padding: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-padding)`, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h2 style={{ 
+        <h3 style={{ 
           margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+          fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h3-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
           color: `var(${layer0Base}-element-text-color)`,
-        }}>{title}</h2>
+        }}>{title}</h3>
         <Button 
           onClick={onClose} 
           variant="text" 
@@ -862,7 +899,7 @@ export default function LayerStylePanel({
           icon={CloseIcon ? <CloseIcon /> : undefined}
         />
       </div>
-      <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` }}>
         {/* Palette color pickers: Surface (all layers, including 0) and Border Color (non-0 layers) */}
         {renderPaletteButton('surface', 'Surface Color')}
         {!isOnlyLayer0 && renderPaletteButton('border-color', 'Border Color')}

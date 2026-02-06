@@ -66,8 +66,8 @@
           "label": "Bottom padding",
           "visible": true
         },
-        "height": {
-          "label": "Height",
+        "min-height": {
+          "label": "Min height",
           "visible": true
         },
         "gutter": {
@@ -77,6 +77,11 @@
         "vertical-padding": {
           "icon": "arrows-up-down",
           "label": "Vertical padding",
+          "visible": true
+        },
+        "label-optional-text-gap": {
+          "icon": "arrows-up-down",
+          "label": "Optional text gap",
           "visible": true
         }
       }

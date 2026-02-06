@@ -8,6 +8,7 @@ import { Button } from '../../components/adapters/Button'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { buildTypographyVars } from '../../core/resolvers/typography'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
@@ -588,15 +589,15 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   return (
     <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: elevationBoxShadow, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h2 style={{ 
+        <h3 style={{ 
           margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+          fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
+          fontSize: 'var(--recursica-brand-typography-h3-font-size)',
+          fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
+          letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
+          lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
           color: `var(${layer0Base}-element-text-color)`,
-        }}>{title}</h2>
+        }}>{title}</h3>
         <Button 
           onClick={onClose} 
           variant="text" 
@@ -605,7 +606,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           icon={CloseIcon ? <CloseIcon /> : undefined}
         />
       </div>
-      <div style={{ display: 'grid', gap: 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` }}>
         {prefix ? (
           <>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
