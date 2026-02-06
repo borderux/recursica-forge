@@ -35,6 +35,14 @@ function interceptConsole() {
 
   const captureLog = (level: ConsoleLog['level'], originalFn: typeof console.log) => {
     return (...args: any[]) => {
+      // Filter out known noisy logs
+      const message = args.map(arg => String(arg)).join(' ')
+      if (message.includes('Download the React DevTools') ||
+        message.includes('React Router Future Flag Warning') ||
+        message.includes('A listener indicated an asynchronous response')) {
+        return
+      }
+
       consoleLogs.push({
         level,
         message: args.map(arg => {
@@ -71,7 +79,7 @@ function formatConsoleLogs(): string {
 
   const recentLogs = consoleLogs.slice(-50) // Last 50 logs
   const lines = ['### Console Logs', '']
-  
+
   for (const log of recentLogs) {
     const level = log.level.toUpperCase()
     lines.push(`**${level}**`)

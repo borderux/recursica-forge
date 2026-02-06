@@ -55,10 +55,20 @@ export default function ModalPreview({
     const headerFontFamilyVar = getComponentTextCssVar('Modal', 'header-text', 'font-family')
     const headerFontSizeVar = getComponentTextCssVar('Modal', 'header-text', 'font-size')
     const headerFontWeightVar = getComponentTextCssVar('Modal', 'header-text', 'font-weight')
+    const headerLetterSpacingVar = getComponentTextCssVar('Modal', 'header-text', 'letter-spacing')
+    const headerLineHeightVar = getComponentTextCssVar('Modal', 'header-text', 'line-height')
+    const headerFontStyleVar = getComponentTextCssVar('Modal', 'header-text', 'font-style')
+    const headerTextDecorationVar = getComponentTextCssVar('Modal', 'header-text', 'text-decoration')
+    const headerTextTransformVar = getComponentTextCssVar('Modal', 'header-text', 'text-transform')
 
     const contentFontFamilyVar = getComponentTextCssVar('Modal', 'content-text', 'font-family')
     const contentFontSizeVar = getComponentTextCssVar('Modal', 'content-text', 'font-size')
     const contentFontWeightVar = getComponentTextCssVar('Modal', 'content-text', 'font-weight')
+    const contentLetterSpacingVar = getComponentTextCssVar('Modal', 'content-text', 'letter-spacing')
+    const contentLineHeightVar = getComponentTextCssVar('Modal', 'content-text', 'line-height')
+    const contentFontStyleVar = getComponentTextCssVar('Modal', 'content-text', 'font-style')
+    const contentTextDecorationVar = getComponentTextCssVar('Modal', 'content-text', 'text-decoration')
+    const contentTextTransformVar = getComponentTextCssVar('Modal', 'content-text', 'text-transform')
 
     const elevationVar = getComponentLevelCssVar('Modal', 'elevation')
 
@@ -101,6 +111,11 @@ export default function ModalPreview({
                                 fontFamily: `var(${headerFontFamilyVar})`,
                                 fontSize: `var(${headerFontSizeVar})`,
                                 fontWeight: `var(${headerFontWeightVar})`,
+                                letterSpacing: `var(${headerLetterSpacingVar})`,
+                                lineHeight: `var(${headerLineHeightVar})`,
+                                fontStyle: `var(${headerFontStyleVar})`,
+                                textDecoration: `var(${headerTextDecorationVar})`,
+                                textTransform: `var(${headerTextTransformVar})`,
                             }}>
                                 The Legend of Zog
                             </span>
@@ -122,9 +137,14 @@ export default function ModalPreview({
                         fontFamily: `var(${contentFontFamilyVar})`,
                         fontSize: `var(${contentFontSizeVar})`,
                         fontWeight: `var(${contentFontWeightVar})`,
+                        letterSpacing: `var(${contentLetterSpacingVar})`,
+                        lineHeight: `var(${contentLineHeightVar})`,
+                        fontStyle: `var(${contentFontStyleVar})`,
+                        textDecoration: `var(${contentTextDecorationVar})`,
+                        textTransform: `var(${contentTextTransformVar})`,
                     }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <p style={{ margin: 0, lineHeight: 1.6 }}>
+                            <p style={{ margin: 0 }}>
                                 {goblinStory}
                             </p>
                         </div>
@@ -175,6 +195,11 @@ export default function ModalPreview({
                             fontFamily: `var(${headerFontFamilyVar})`,
                             fontSize: `var(${headerFontSizeVar})`,
                             fontWeight: `var(${headerFontWeightVar})`,
+                            letterSpacing: `var(${headerLetterSpacingVar})`,
+                            lineHeight: `var(${headerLineHeightVar})`,
+                            fontStyle: `var(${headerFontStyleVar})`,
+                            textDecoration: `var(${headerTextDecorationVar})`,
+                            textTransform: `var(${headerTextTransformVar})`,
                         }}>
                             The Legend of Zog
                         </span>
@@ -195,9 +220,14 @@ export default function ModalPreview({
                         fontFamily: `var(${contentFontFamilyVar})`,
                         fontSize: `var(${contentFontSizeVar})`,
                         fontWeight: `var(${contentFontWeightVar})`,
+                        letterSpacing: `var(${contentLetterSpacingVar})`,
+                        lineHeight: `var(${contentLineHeightVar})`,
+                        fontStyle: `var(${contentFontStyleVar})`,
+                        textDecoration: `var(${contentTextDecorationVar})`,
+                        textTransform: `var(${contentTextTransformVar})`,
                     }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <p style={{ margin: 0, lineHeight: 1.6 }}>
+                            <p style={{ margin: 0 }}>
                                 {goblinStory} {goblinStory}
                             </p>
                         </div>
@@ -256,10 +286,10 @@ export default function ModalPreview({
                 onSecondaryAction={() => setIsOpen(false)}
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <p style={{ margin: 0, lineHeight: 1.6 }}>
+                    <p style={{ margin: 0 }}>
                         {goblinStory}
                     </p>
-                    <p style={{ margin: 0, lineHeight: 1.6 }}>
+                    <p style={{ margin: 0 }}>
                         Observers noted that the dwarf, while lazy, seemed impressed by the sheer audacity of the maneuver. The onyx scales of the goblin glistened in the emerald glow of the cavern, creating a spectacle that would be immortalized in the tapestries of the Northern Keep.
                     </p>
                 </div>
