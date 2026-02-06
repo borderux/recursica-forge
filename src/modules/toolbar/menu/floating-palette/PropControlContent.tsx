@@ -884,7 +884,8 @@ export default function PropControlContent({
   if (prop.name.toLowerCase() === 'label-width' && componentName.toLowerCase() === 'label') {
     const layoutVariant = selectedVariants.layout || 'stacked'
     const sizeVariant = selectedVariants.size || 'default'
-    const widthVar = `--recursica-ui-kit-components-label-variants-layouts-${layoutVariant}-variants-sizes-${sizeVariant}-properties-width`
+    // Build CSS var path using buildComponentCssVarPath to include theme prefix
+    const widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layoutVariant, 'variants', 'sizes', sizeVariant, 'properties', 'width')
     primaryCssVar = widthVar
     cssVarsForControl = [widthVar]
   }
@@ -1491,14 +1492,42 @@ export default function PropControlContent({
         const LabelWidthSlider = () => {
           const minValue = 0
           const maxValue = 500
-          const isLabelSideBySide = selectedVariants.layout === 'side-by-side'
+          // #region agent log
+          const layoutVariant = selectedVariants.layout || 'stacked'
+          const sizeVariant = selectedVariants.size || 'default'
+          useEffect(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const rootValue = window.getComputedStyle(document.documentElement).getPropertyValue(primaryVar.replace('--', ''))
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1490',message:'Label width debug',data:{primaryVar,layoutVariant,sizeVariant,selectedVariantsSize:selectedVariants.size,currentValue,resolvedValue,rootValue,cssVars},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+          }, [primaryVar, layoutVariant, sizeVariant, selectedVariants.size, cssVars]);
+          // #endregion
           const [value, setValue] = useState(() => {
             const currentValue = readCssVar(primaryVar)
             const resolvedValue = readCssVarResolved(primaryVar)
             const valueStr = resolvedValue || currentValue || '0px'
             const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+            const initialValue = match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1506',message:'Label width initial state',data:{primaryVar,currentValue,resolvedValue,valueStr,initialValue,sizeVariant},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+            return initialValue
           })
+
+          // Reset value when primaryVar changes (e.g., when size variant changes)
+          useEffect(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            if (match) {
+              const newValue = Math.max(minValue, Math.min(maxValue, parseFloat(match[1])))
+              setValue(newValue)
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1520',message:'Label width reset on primaryVar change',data:{primaryVar,currentValue,resolvedValue,newValue,sizeVariant},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+              // #endregion
+            }
+          }, [primaryVar, sizeVariant])
 
           useEffect(() => {
             const handleUpdate = () => {
@@ -1516,6 +1545,9 @@ export default function PropControlContent({
 
           const updateCssVars = useCallback((clampedValue: number) => {
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PropControlContent.tsx:1520',message:'Label width update',data:{clampedValue,cssVarsToUpdate,primaryVar,layoutVariant,sizeVariant,selectedVariantsSize:selectedVariants.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+            // #endregion
             cssVarsToUpdate.forEach(cssVar => {
               updateCssVar(cssVar, `${clampedValue}px`)
             })
@@ -1523,24 +1555,22 @@ export default function PropControlContent({
             window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
               detail: { cssVars: cssVarsToUpdate }
             }))
-          }, [cssVars, primaryVar])
+          }, [cssVars, primaryVar, layoutVariant, sizeVariant, selectedVariants.size])
 
           const handleChange = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             setValue(clampedValue)
 
-            // Only update CSS vars immediately if Label is in stacked mode
-            if (!isLabelSideBySide) {
-              updateCssVars(clampedValue)
-            }
+            // Always update CSS vars immediately during dragging
+            updateCssVars(clampedValue)
           }
 
           const handleChangeCommitted = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
 
-            // Always update CSS vars on drag end, especially for side-by-side mode
+            // Update CSS vars on drag end (already updated during drag, but ensure final value is set)
             updateCssVars(clampedValue)
           }
 
@@ -1756,6 +1786,93 @@ export default function PropControlContent({
         return (
           <ChipDimensionSlider
             key={`${primaryVar}-${selectedVariants.size || ''}`}
+          />
+        )
+      }
+
+      // Use Slider component for Label min-height property (must be before Button check)
+      if (componentName.toLowerCase() === 'label' && propNameLower === 'min-height') {
+        const LabelMinHeightSlider = () => {
+          const minValue = 0
+          const maxValue = 200
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
+          })
+
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+
+        return (
+          <LabelMinHeightSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           />
         )
       }

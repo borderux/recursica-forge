@@ -11,6 +11,7 @@ import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
+import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import BrandDimensionSlider from '../../utils/BrandDimensionSlider'
 import FloatingPalette from './FloatingPalette'
 import './PropControl.css' // Keep prop-control specific styles
@@ -290,8 +291,8 @@ export default function PropControl({
   if (prop.name.toLowerCase() === 'label-width' && componentName.toLowerCase() === 'label') {
     const layoutVariant = selectedVariants.layout || 'stacked'
     const sizeVariant = selectedVariants.size || 'default'
-    // Build CSS var path: variants.layouts.{layout}.variants.sizes.{size}.properties.width
-    const widthVar = `--recursica-ui-kit-components-label-variants-layouts-${layoutVariant}-variants-sizes-${sizeVariant}-properties-width`
+    // Build CSS var path using buildComponentCssVarPath to include theme prefix
+    const widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layoutVariant, 'variants', 'sizes', sizeVariant, 'properties', 'width')
     primaryCssVar = widthVar
     cssVarsForControl = [widthVar]
   }
@@ -483,7 +484,6 @@ export default function PropControl({
         const LabelWidthSlider = () => {
           const minValue = 0
           const maxValue = 500
-          const isLabelSideBySide = selectedVariants.layout === 'side-by-side'
           const [value, setValue] = useState(() => {
             const currentValue = readCssVar(validPrimaryVar)
             const resolvedValue = readCssVarResolved(validPrimaryVar)
@@ -522,17 +522,15 @@ export default function PropControl({
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             setValue(clampedValue)
             
-            // Only update CSS vars immediately if Label is in stacked mode
-            if (!isLabelSideBySide) {
-              updateCssVars(clampedValue)
-            }
+            // Always update CSS vars immediately during dragging
+            updateCssVars(clampedValue)
           }
           
           const handleChangeCommitted = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             
-            // Always update CSS vars on drag end, especially for side-by-side mode
+            // Update CSS vars on drag end (already updated during drag, but ensure final value is set)
             updateCssVars(clampedValue)
           }
           

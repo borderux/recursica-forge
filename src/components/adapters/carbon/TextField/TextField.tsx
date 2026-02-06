@@ -46,6 +46,9 @@ export default function TextField({
 }: AdapterTextFieldProps & { labelId?: string; helpId?: string; errorId?: string }) {
   const { mode } = useThemeMode()
   
+  // Extract props that shouldn't be passed to DOM elements
+  const { optional, labelAlign, labelSize, ...domProps } = restProps
+  
   // Generate unique ID if not provided (needed for scoped styles)
   const uniqueId = id || `text-field-${Math.random().toString(36).substr(2, 9)}`
   
@@ -77,6 +80,11 @@ export default function TextField({
   const maxWidthVar = getComponentLevelCssVar('TextField', 'max-width')
   const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
+  
+  // Get Label's gutter for side-by-side layout (Label component manages spacing)
+  const labelGutterVar = layout === 'side-by-side'
+    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+    : undefined
   
   // Get text style CSS variables
   const valueFontSizeVar = getComponentTextCssVar('TextField', 'text', 'font-size')
@@ -156,8 +164,10 @@ export default function TextField({
   const labelElement = label ? (
     <Label
       htmlFor={uniqueId}
-      variant={required ? 'required' : 'default'}
+      variant={required ? 'required' : (optional ? 'optional' : 'default')}
+      size={labelSize}
       layout={layout}
+      align={labelAlign || 'left'}
       layer={layer}
       id={labelId}
       style={layout === 'side-by-side' ? { paddingTop: 0, minHeight: `var(${minHeightVar})` } : undefined}
@@ -193,14 +203,14 @@ export default function TextField({
   const inputWrapper = (
     <div
       className="recursica-text-field-wrapper"
-      onClick={restProps.onClick}
+      onClick={domProps.onClick}
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: `var(${iconTextGapVar}, 8px)`,
         width: '100%',
         minWidth: effectiveMinWidth,
-        maxWidth: `var(${maxWidthVar})`,
+        maxWidth: layout === 'stacked' ? '100%' : `var(${maxWidthVar})`,
         flexShrink: 0,
         paddingLeft: `var(${horizontalPaddingVar}, 12px)`,
         paddingRight: `var(${horizontalPaddingVar}, 12px)`,
@@ -209,7 +219,8 @@ export default function TextField({
         backgroundColor: `var(${backgroundVar})`,
         boxShadow: `inset 0 0 0 var(${borderSizeVar}) var(${borderVar})`,
         transition: 'box-shadow 0.2s',
-        cursor: restProps.onClick ? 'pointer' : undefined,
+        cursor: domProps.onClick ? 'pointer' : undefined,
+        justifyContent: labelAlign === 'right' && layout === 'stacked' ? 'flex-end' : 'flex-start',
       }}
     >
       {leadingIcon && (
@@ -237,15 +248,15 @@ export default function TextField({
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
-        onKeyDown={restProps.onKeyDown}
-        onBlur={restProps.onBlur}
+        onKeyDown={domProps.onKeyDown}
+        onBlur={domProps.onBlur}
         placeholder={placeholder}
         min={min}
         max={max}
         step={step}
         disabled={state === 'disabled'}
-        readOnly={restProps.readOnly}
-        autoFocus={restProps.autoFocus}
+        readOnly={domProps.readOnly}
+        autoFocus={domProps.autoFocus}
         className={`recursica-text-field-input ${className || ''}`}
         style={{
           flex: 1,
@@ -258,9 +269,10 @@ export default function TextField({
           backgroundColor: 'transparent',
           color: `var(${textVar})`,
           outline: 'none',
+          textAlign: labelAlign === 'right' && layout === 'stacked' ? 'right' : 'left',
         } as React.CSSProperties}
         {...carbon}
-        {...restProps}
+        {...domProps}
       />
       {trailingIcon && (
         <div
@@ -317,9 +329,11 @@ export default function TextField({
   
   // Render based on layout
   if (layout === 'side-by-side' && labelElement) {
+    // For side-by-side, use Label's gutter property
+    const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
     return (
       <div className={`recursica-text-field recursica-text-field-side-by-side ${className || ''}`} style={style}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: gapValue, width: '100%' }}>
           <div style={{ flexShrink: 0 }}>
             {labelElement}
           </div>
@@ -335,7 +349,7 @@ export default function TextField({
   // Stacked layout (default)
   return (
     <div className={`recursica-text-field recursica-text-field-stacked ${className || ''}`} style={style}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', alignItems: labelAlign === 'right' && layout === 'stacked' ? 'flex-end' : 'stretch' }}>
         {labelElement}
         {inputWrapper}
         {assistiveElement}
