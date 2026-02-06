@@ -31,10 +31,17 @@ export default function DropdownPreview({
         : ['stacked', 'side-by-side']
 
     const items = [
-        { value: 'option-1', label: 'Option 1', icon: StarIcon ? <StarIcon /> : undefined },
-        { value: 'option-2', label: 'Option 2' },
+        { value: 'option-1', label: 'Option 1', leadingIcon: StarIcon ? <StarIcon /> : undefined },
+        { value: 'option-2', label: 'Option 2', leadingIcon: StarIcon ? <StarIcon /> : undefined },
+        { value: 'option-3', label: 'Option 3', leadingIcon: StarIcon ? <StarIcon /> : undefined },
         { value: 'divider-1', divider: true },
-        { value: 'option-3', label: 'Option 3', disabled: true },
+        { value: 'option-4', label: 'Option 4', trailingIcon: StarIcon ? <StarIcon /> : undefined },
+        { value: 'option-5', label: 'Option 5', trailingIcon: StarIcon ? <StarIcon /> : undefined },
+        { value: 'option-6', label: 'Option 6', trailingIcon: StarIcon ? <StarIcon /> : undefined },
+        { value: 'divider-2', divider: true },
+        { value: 'option-7', label: 'Option 7' },
+        { value: 'option-8', label: 'Option 8' },
+        { value: 'option-9', label: 'Option 9' },
     ]
 
     return (

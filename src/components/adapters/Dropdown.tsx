@@ -8,10 +8,11 @@
 
 import { Suspense, useState, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { buildComponentCssVarPath, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getComponentLevelCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
 import { Label } from './Label'
 import { AssistiveElement } from './AssistiveElement'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
+import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type DropdownItem = {
@@ -20,6 +21,8 @@ export type DropdownItem = {
     disabled?: boolean
     divider?: boolean
     icon?: React.ReactNode
+    leadingIcon?: React.ReactNode
+    trailingIcon?: React.ReactNode
 }
 
 export type DropdownProps = {
@@ -112,6 +115,7 @@ export function Dropdown({
     const iconTextGapVar = getComponentLevelCssVar('Dropdown', 'icon-text-gap')
     const maxWidthVar = getComponentLevelCssVar('Dropdown', 'max-width')
     const minWidthVar = getComponentLevelCssVar('Dropdown', 'min-width')
+
 
     const topBottomMarginVar = buildComponentCssVarPath('Dropdown', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
     const labelGutterVar = layout === 'side-by-side'
