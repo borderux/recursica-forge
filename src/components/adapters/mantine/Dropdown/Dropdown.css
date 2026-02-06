@@ -1,0 +1,22 @@
+/**
+ * Mantine Dropdown CSS Overrides
+ */
+
+.recursica-dropdown-container {
+  width: 100%;
+}
+
+.recursica-dropdown-trigger {
+  box-sizing: border-box;
+}
+
+.recursica-dropdown-trigger:focus-visible {
+  outline: none;
+}
+
+.recursica-dropdown-trigger.disabled {
+  pointer-events: none;
+}
+
+/* Ensure selected item in menu has a slightly different background or indicator if desired */
+/* Mantine Menu.Item already has hover styles, we can override if needed */

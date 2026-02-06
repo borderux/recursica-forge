@@ -20,6 +20,7 @@ import SegmentedControlPreview from '../components/SegmentedControlPreview'
 import SegmentedControlItemPreview from '../components/SegmentedControlItemPreview'
 import AssistiveElementPreview from '../components/AssistiveElementPreview'
 import TextFieldPreview from '../components/TextFieldPreview'
+import DropdownPreview from '../components/DropdownPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -43,7 +44,7 @@ export default function ComponentDetailPage() {
 
   // Get component sections
   const sections = useMemo(() => getComponentSections(mode), [mode])
-  
+
   // Find the component by name
   const component = useMemo(() => {
     if (!componentName) return null
@@ -96,13 +97,13 @@ export default function ComponentDetailPage() {
   // Only show variants that are actually selectable (have more than one option)
   const captionText = useMemo(() => {
     const parts: string[] = []
-    
+
     if (componentStructure) {
       // Only show variants that have more than one option (are selectable)
       componentStructure.variants.forEach(variant => {
         if (variant.variants.length > 1) {
           const variantValue = selectedVariants[variant.propName] || variant.variants[0]
-          
+
           // Format variant label based on prop name and value
           let variantLabel: string
           if (variant.propName === 'layout' && variantValue === 'side-by-side') {
@@ -111,16 +112,16 @@ export default function ComponentDetailPage() {
             // Capitalize first letter
             variantLabel = variantValue.charAt(0).toUpperCase() + variantValue.slice(1)
           }
-          
+
           parts.push(variantLabel)
         }
       })
     }
-    
+
     // Add layer (e.g., "Layer 0")
     const layerNum = selectedLayer.replace('layer-', '')
     parts.push(`Layer ${layerNum}`)
-    
+
     return parts.join(' / ')
   }, [selectedVariants, selectedLayer, componentStructure])
 
@@ -137,17 +138,17 @@ export default function ComponentDetailPage() {
   const elevationBoxShadow = useMemo(() => {
     if (!component) return undefined
     let elevationLevel: string | null = null
-    
+
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const themes = root?.themes || root
-      
+
       // Check base layer elevation
       // Layer 0 typically doesn't have elevation, layers 1-3 do
       if (layerNum === '0') {
         return undefined
       }
-      
+
       elevationLevel = layerNum
       const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
       const v: any = layerSpec?.properties?.elevation?.$value
@@ -163,13 +164,13 @@ export default function ComponentDetailPage() {
           }
         }
       }
-    } catch {}
-    
+    } catch { }
+
     // If no elevation found, return undefined
     if (elevationLevel === null) {
       return undefined
     }
-    
+
     // Build elevation box-shadow from elevation CSS variables
     // Format: x-axis y-axis blur spread shadow-color
     return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
@@ -177,9 +178,9 @@ export default function ComponentDetailPage() {
 
   if (!component) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
         height: debugMode ? 'auto' : '100%',
         minHeight: debugMode ? undefined : 0,
       }} />
@@ -187,22 +188,22 @@ export default function ComponentDetailPage() {
   }
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
       height: debugMode ? 'auto' : '100%',
       minHeight: debugMode ? undefined : 0,
       padding: 'var(--recursica-brand-dimensions-general-xl)',
     }}>
       {/* Header Section */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
         flexShrink: 0,
       }}>
-        <h1 style={{ 
+        <h1 style={{
           margin: 0,
           fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
           fontSize: 'var(--recursica-brand-typography-h1-font-size)',
@@ -246,9 +247,9 @@ export default function ComponentDetailPage() {
 
       {/* Main Content Container - Wrapped in styled container like tokens sections */}
       <div style={{
-        background: `var(${layer0Base}-surface)`, 
+        background: `var(${layer0Base}-surface)`,
         border: `1px solid var(${layer1Base}-border-color)`,
-        borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)', 
+        borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
         display: 'flex',
         flex: debugMode ? undefined : 1,
         minHeight: debugMode ? undefined : 0,
@@ -264,7 +265,7 @@ export default function ComponentDetailPage() {
           padding: 'var(--recursica-brand-dimensions-general-xl)',
         }}>
           {/* Preview Section */}
-          <div style={{ 
+          <div style={{
             flex: debugMode ? undefined : 1,
             display: 'flex',
             flexDirection: 'column',
@@ -273,7 +274,7 @@ export default function ComponentDetailPage() {
             gap: 'var(--recursica-brand-dimensions-general-md)',
             background: `var(${baseLayerBase}-surface)`,
             padding: `var(${baseLayerBase}-padding)`,
-            border: layerNum !== '0' 
+            border: layerNum !== '0'
               ? `var(${baseLayerBase}-border-thickness, 1px) solid var(${baseLayerBase}-border-color)`
               : 'none',
             borderRadius: layerNum !== '0'
@@ -342,6 +343,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Text field' ? (
                 <TextFieldPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Dropdown' ? (
+                <DropdownPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}
@@ -427,7 +434,7 @@ export default function ComponentDetailPage() {
         <div style={{
           padding: 'var(--recursica-brand-dimensions-general-xl)',
         }}>
-          <ComponentDebugTable 
+          <ComponentDebugTable
             componentName={component.name}
             openPropControl={openPropControl.size > 0 ? Array.from(openPropControl)[0] : null}
             selectedVariants={selectedVariants}

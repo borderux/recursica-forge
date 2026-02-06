@@ -19,6 +19,7 @@ import SegmentedControlConfig from '../configs/SegmentedControl.toolbar.json'
 import SegmentedControlItemConfig from '../configs/SegmentedControlItem.toolbar.json'
 import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
 import TextFieldConfig from '../configs/TextField.toolbar.json'
+import DropdownConfig from '../configs/Dropdown.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -45,7 +46,7 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
   try {
     // Convert component name to kebab-case for file name
     const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
-    
+
     // Load component-specific config
     switch (componentKey) {
       case 'button':
@@ -88,6 +89,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'text-field':
       case 'text field':
         return TextFieldConfig as unknown as ToolbarConfig
+      case 'dropdown':
+        return DropdownConfig as unknown as ToolbarConfig
       default:
         return null
     }
@@ -106,7 +109,7 @@ export function getPropConfig(
 ): ToolbarPropConfig | null {
   const config = loadToolbarConfig(componentName)
   if (!config) return null
-  
+
   const propKey = propName.toLowerCase()
   return config.props[propKey] || null
 }
@@ -144,16 +147,16 @@ export function getGroupedPropParent(
 ): string | null {
   const config = loadToolbarConfig(componentName)
   if (!config) return null
-  
+
   const propKey = propName.toLowerCase()
-  
+
   // Check if any prop has this prop in its group
   for (const [key, propConfig] of Object.entries(config.props)) {
     if (propConfig.group && propConfig.group[propKey]) {
       return key
     }
   }
-  
+
   return null
 }
 
@@ -167,7 +170,7 @@ export function getGroupedPropConfig(
 ): ToolbarPropConfig | null {
   const config = getPropConfig(componentName, parentPropName)
   if (!config || !config.group) return null
-  
+
   const groupedPropKey = groupedPropName.toLowerCase()
   return config.group[groupedPropKey] || null
 }
@@ -192,7 +195,7 @@ export function getVariantConfig(
 ): ToolbarVariantConfig | null {
   const config = loadToolbarConfig(componentName)
   if (!config || !config.variants) return null
-  
+
   const variantKey = variantPropName.toLowerCase()
   return config.variants[variantKey] || null
 }
