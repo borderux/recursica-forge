@@ -5,6 +5,7 @@
  */
 
 import { Modal as MantineModal, Box, Group } from '@mantine/core'
+import { X } from '@phosphor-icons/react'
 import { useState, useEffect } from 'react'
 import type { ModalProps as AdapterModalProps } from '../../Modal'
 import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
@@ -253,8 +254,16 @@ export default function Modal({
                         variant="text"
                         onClick={onClose}
                         layer={layer}
-                        style={{ padding: 4, minWidth: 0, width: 32, height: 32 }}
-                        icon="x"
+                        style={{
+                            padding: 0,
+                            minWidth: 0,
+                            width: 32,
+                            height: 32,
+                            '--button-icon-size': '16px',
+                            '--button-padding': '0px',
+                            '--button-padding-x': '0px'
+                        } as any}
+                        icon={<X size={16} />}
                     />
                 </div>
             )}

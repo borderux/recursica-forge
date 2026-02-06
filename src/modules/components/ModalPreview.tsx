@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Modal } from '../../components/adapters/Modal'
 import { Button } from '../../components/adapters/Button'
+import { X } from '@phosphor-icons/react'
 import { Box, Group, Text } from '@mantine/core'
 import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
@@ -126,8 +127,16 @@ export default function ModalPreview({
                             <Button
                                 variant="text"
                                 layer={selectedLayer as any}
-                                style={{ padding: 4, minWidth: 0, width: 24, height: 24 }}
-                                icon="x"
+                                style={{
+                                    padding: 0,
+                                    minWidth: 0,
+                                    width: 24,
+                                    height: 24,
+                                    '--button-icon-size': '16px',
+                                    '--button-padding': '0px',
+                                    '--button-padding-x': '0px'
+                                } as any}
+                                icon={<X size={16} />}
                             />
                         </div>
                     )}
@@ -210,8 +219,16 @@ export default function ModalPreview({
                         <Button
                             variant="text"
                             layer={selectedLayer as any}
-                            style={{ padding: 4, minWidth: 0, width: 24, height: 24 }}
-                            icon="x"
+                            style={{
+                                padding: 0,
+                                minWidth: 0,
+                                width: 24,
+                                height: 24,
+                                '--button-icon-size': '16px',
+                                '--button-padding': '0px',
+                                '--button-padding-x': '0px'
+                            } as any}
+                            icon={<X size={16} />}
                         />
                     </div>
 
