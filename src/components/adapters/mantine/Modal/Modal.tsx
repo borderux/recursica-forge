@@ -41,6 +41,7 @@ export default function Modal({
     // Build CSS variable names
     const bgVar = getComponentCssVar('Modal', 'colors', 'background', layer)
     const titleColorVar = getComponentCssVar('Modal', 'colors', 'title', layer)
+    const contentColorVar = getComponentCssVar('Modal', 'colors', 'content', layer)
     const borderColorVar = getComponentCssVar('Modal', 'colors', 'border-color', layer)
     const dividerColorVar = getComponentCssVar('Modal', 'colors', 'scroll-divider', layer)
 
@@ -142,6 +143,7 @@ export default function Modal({
         '--modal-header-font-style': `var(${headerFontStyleVar})`,
         '--modal-header-text-decoration': `var(${headerTextDecorationVar})`,
         '--modal-header-text-transform': `var(${headerTextTransformVar})`,
+        '--modal-content-color': `var(${contentColorVar})`,
         '--modal-content-font-family': `var(${contentFontFamilyVar})`,
         '--modal-content-font-size': `var(${contentFontSizeVar})`,
         '--modal-content-font-weight': `var(${contentFontWeightVar})`,
@@ -262,6 +264,7 @@ export default function Modal({
                     padding: padding ? 'var(--modal-padding-y) var(--modal-padding-x)' : 0,
                     overflowY: scrollable ? 'auto' : 'visible',
                     flex: 1,
+                    color: 'var(--modal-content-color)',
                     fontFamily: 'var(--modal-content-font-family)',
                     fontSize: 'var(--modal-content-font-size)',
                     fontWeight: 'var(--modal-content-font-weight)',
@@ -273,6 +276,13 @@ export default function Modal({
                 } as any}
             >
                 {children}
+                {!children && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <p style={{ margin: 0 }}>
+                            The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. This legendary encounter has been told for generations in the deep mines of the Obsidian Mountains. Every word of this story carries the weight of a thousand hammers striking the anvil of truth. The goblin, known as Zog, was not merely swift; he was a master of the dance between light and shadow, and his leap was more than just a movement—it was a statement of freedom in a world carved from unyielding stone.
+                        </p>
+                    </div>
+                )}
             </Box>
 
             {showFooter && (

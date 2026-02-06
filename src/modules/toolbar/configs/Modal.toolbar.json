@@ -36,6 +36,11 @@
                     "icon": "text-aa",
                     "label": "Title color",
                     "visible": true
+                },
+                "content": {
+                    "icon": "text-aa",
+                    "label": "Content color",
+                    "visible": true
                 }
             }
         },

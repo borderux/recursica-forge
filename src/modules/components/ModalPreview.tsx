@@ -291,13 +291,10 @@ export default function ModalPreview({
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <p style={{ margin: 0 }}>
-                        {goblinStory}
+                        The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. This legendary encounter has been told for generations in the deep mines of the Obsidian Mountains. Every word of this story carries the weight of a thousand hammers striking the anvil of truth. The goblin, known as Zog, was not merely swift; he was a master of the dance between light and shadow, and his leap was more than just a movement—it was a statement of freedom in a world carved from unyielding stone.
                     </p>
                     <p style={{ margin: 0 }}>
                         Observers noted that the dwarf, while lazy, seemed impressed by the sheer audacity of the maneuver. The onyx scales of the goblin glistened in the emerald glow of the cavern, creating a spectacle that would be immortalized in the tapestries of the Northern Keep.
-                    </p>
-                    <p style={{ margin: 0 }}>
-                        {goblinStory}
                     </p>
                     <p style={{ margin: 0 }}>
                         Generations later, the story is still told in the taverns of the deep earth, often accompanied by the rhythmic clinking of tankards and the hearty laughter of those who honor the legend of the swift goblin and the lazy dwarf.
