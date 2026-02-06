@@ -768,6 +768,13 @@ export function Slider({
   // When Component is not null, sliderComponent wraps it but has showValueLabel={false}
   // So we need to render the value label ourselves in the label row
   // When Component is null, we return early in the fallback block, so sliderElement is used
+  // Extract marginTop/marginBottom from style prop to prevent them from overriding component margins
+  const { marginTop: styleMarginTop, marginBottom: styleMarginBottom, ...restStyle } = style || {};
+  const marginTopValue = `var(${topBottomMarginVar})`;
+  const marginBottomValue = `var(${topBottomMarginVar})`;
+  const finalMarginTop = styleMarginTop ?? marginTopValue;
+  const finalMarginBottom = styleMarginBottom ?? marginBottomValue;
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -775,9 +782,9 @@ export function Slider({
       gap: gapValueForLibrary, 
       width: '100%', 
       minWidth: 0,
-      marginTop: `var(${topBottomMarginVar})`,
-      marginBottom: `var(${topBottomMarginVar})`,
-      ...style,
+      marginTop: finalMarginTop,
+      marginBottom: finalMarginBottom,
+      ...restStyle,
       flexGrow: 1, // Always override any flexGrow from style prop
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minWidth: 0, gap: '8px' }}>
