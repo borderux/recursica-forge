@@ -18,5 +18,8 @@
   pointer-events: none;
 }
 
-/* Ensure selected item in menu has a slightly different background or indicator if desired */
-/* Mantine Menu.Item already has hover styles, we can override if needed */
+.recursica-dropdown-trigger svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

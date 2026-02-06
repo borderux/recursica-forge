@@ -25,23 +25,22 @@ export default function DropdownPreview({
     const ChevronDownIcon = iconNameToReactComponent('chevron-down')
     const WarningIcon = iconNameToReactComponent('warning')
     const StarIcon = iconNameToReactComponent('star')
+    const ChevronRightIcon = iconNameToReactComponent('chevron-right')
 
     const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts
         ? [layout]
         : ['stacked', 'side-by-side']
 
     const items = [
-        { value: 'option-1', label: 'Option 1', leadingIcon: StarIcon ? <StarIcon /> : undefined },
-        { value: 'option-2', label: 'Option 2', leadingIcon: StarIcon ? <StarIcon /> : undefined },
-        { value: 'option-3', label: 'Option 3', leadingIcon: StarIcon ? <StarIcon /> : undefined },
-        { value: 'divider-1', divider: true },
-        { value: 'option-4', label: 'Option 4', trailingIcon: StarIcon ? <StarIcon /> : undefined },
-        { value: 'option-5', label: 'Option 5', trailingIcon: StarIcon ? <StarIcon /> : undefined },
-        { value: 'option-6', label: 'Option 6', trailingIcon: StarIcon ? <StarIcon /> : undefined },
-        { value: 'divider-2', divider: true },
-        { value: 'option-7', label: 'Option 7' },
-        { value: 'option-8', label: 'Option 8' },
-        { value: 'option-9', label: 'Option 9' },
+        { value: 'option-1', label: 'Option 1', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
+        { value: 'option-2', label: 'Option 2', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
+        { value: 'option-3', label: 'Option 3', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
+        { value: 'option-4', label: 'Option 4', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
+        { value: 'option-5', label: 'Option 5', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
+        { value: 'option-6', label: 'Option 6', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
+        { value: 'option-7', label: 'Option 7', leadingIconType: 'none' as const },
+        { value: 'option-8', label: 'Option 8', leadingIconType: 'none' as const },
+        { value: 'option-9', label: 'Option 9', leadingIconType: 'none' as const },
     ]
 
     return (
@@ -65,6 +64,7 @@ export default function DropdownPreview({
                                     label="Dropdown Label"
                                     placeholder="Select an option"
                                     items={items}
+                                    leadingIcon={StarIcon ? <StarIcon /> : undefined}
                                     state="default"
                                     layout={layoutVariant}
                                     layer={selectedLayer as any}
@@ -87,6 +87,7 @@ export default function DropdownPreview({
                                 label="Dropdown Label"
                                 placeholder="Select an option"
                                 items={items}
+                                leadingIcon={StarIcon ? <StarIcon /> : undefined}
                                 errorText="This field is required"
                                 state="error"
                                 layout={layoutVariant}

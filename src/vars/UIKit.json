@@ -4750,9 +4750,19 @@
             "$type": "number",
             "$value": 1
           },
+          "divider-height": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
           "divider-item-gap": {
             "$type": "dimension",
-            "$value": null
+            "$value": {
+              "value": 4,
+              "unit": "px"
+            }
           },
           "colors": {
             "layer-0": {

@@ -19,10 +19,12 @@ export type DropdownItem = {
     value: string
     label?: React.ReactNode
     disabled?: boolean
-    divider?: boolean
     icon?: React.ReactNode
     leadingIcon?: React.ReactNode
+    leadingIconType?: 'none' | 'icon' | 'radio' | 'checkbox'
     trailingIcon?: React.ReactNode
+    supportingText?: string
+    divider?: 'none' | 'bottom'
 }
 
 export type DropdownProps = {

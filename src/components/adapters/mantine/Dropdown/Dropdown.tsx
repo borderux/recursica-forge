@@ -11,6 +11,7 @@ import type { DropdownProps as AdapterDropdownProps } from '../../Dropdown'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
+import { getComponentLevelCssVar as getMenuItemLevelCssVar, buildComponentCssVarPath as buildMenuItemCssVarPath } from '../../../utils/cssVarNames'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'
 import { Menu as MenuAdapter } from '../../Menu'
@@ -158,7 +159,10 @@ export default function Dropdown({
                 maxWidth: layout === 'stacked' ? '100%' : `var(${maxWidthVar})`,
                 paddingLeft: `var(${horizontalPaddingVar}, 12px)`,
                 paddingRight: `var(${horizontalPaddingVar}, 12px)`,
+                paddingTop: `var(${verticalPaddingVar}, 8px)`,
+                paddingBottom: `var(${verticalPaddingVar}, 8px)`,
                 minHeight: `var(${minHeightVar})`,
+                height: 'auto',
                 borderRadius: `var(${borderRadiusVar})`,
                 backgroundColor: `var(${backgroundVar})`,
                 boxShadow: `inset 0 0 0 var(${opened ? focusBorderSizeVar : borderSizeVar}) var(${opened ? focusBorderVar : borderVar})`,
@@ -213,45 +217,37 @@ export default function Dropdown({
                             {dropdownTrigger}
                         </Menu.Target>
 
-                        <Menu.Dropdown style={{
-                            padding: 0,
-                            border: 'none',
-                            backgroundColor: 'transparent',
-                            boxShadow: 'none',
-                            minWidth: 'auto',
-                        }}>
+                        <Menu.Dropdown
+                            p={0}
+                            style={{
+                                border: 'none',
+                                backgroundColor: 'transparent',
+                                boxShadow: 'none',
+                                minWidth: 'auto',
+                            }}
+                        >
                             <MenuAdapter layer={layer}>
-                                {items.map((item, index) => (
-                                    item.divider ? (
-                                        <div
-                                            key={item.value || `divider-${index}`}
-                                            style={{
-                                                height: '1px',
-                                                backgroundColor: `var(${borderVar})`,
-                                                margin: '4px 0',
-                                                opacity: 0.5
-                                            }}
-                                        />
-                                    ) : (
-                                        <MenuItemAdapter
-                                            key={item.value}
-                                            onClick={() => {
-                                                onChange?.(item.value)
-                                                setOpened(false)
-                                            }}
-                                            disabled={item.disabled}
-                                            leadingIcon={item.leadingIcon || item.icon}
-                                            leadingIconType={(item.leadingIcon || item.icon) ? 'icon' : 'none'}
-                                            trailingIcon={item.trailingIcon}
-                                            layer={layer}
-                                            selected={value === item.value}
-                                            style={{
-                                                borderRadius: `calc(var(${borderRadiusVar}) - 2px)`,
-                                            }}
-                                        >
-                                            {item.label}
-                                        </MenuItemAdapter>
-                                    )
+                                {items.map((item) => (
+                                    <MenuItemAdapter
+                                        key={item.value}
+                                        onClick={() => {
+                                            onChange?.(item.value)
+                                            setOpened(false)
+                                        }}
+                                        disabled={item.disabled}
+                                        leadingIcon={item.leadingIcon || item.icon}
+                                        leadingIconType={(item.leadingIconType || ((item.leadingIcon || item.icon) ? 'icon' : 'none')) as any}
+                                        trailingIcon={item.trailingIcon}
+                                        supportingText={item.supportingText as string}
+                                        divider={item.divider}
+                                        layer={layer}
+                                        selected={value === item.value}
+                                        style={{
+                                            borderRadius: `calc(var(${borderRadiusVar}) - 2px)`,
+                                        }}
+                                    >
+                                        {item.label}
+                                    </MenuItemAdapter>
                                 ))}
                             </MenuAdapter>
                         </Menu.Dropdown>
