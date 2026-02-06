@@ -113,7 +113,6 @@ export default function TextFieldPreview({
               <TextField
                 label="Label"
                 placeholder="Placeholder text"
-                helpText="Help message"
                 state="focus"
                 layout={layoutVariant}
                 layer={selectedLayer as any}

@@ -113,7 +113,6 @@ export default function DropdownPreview({
                                 label="Dropdown Label"
                                 placeholder="Select an option"
                                 items={items}
-                                helpText="Choose wisely"
                                 state="focus"
                                 layout={layoutVariant}
                                 layer={selectedLayer as any}
