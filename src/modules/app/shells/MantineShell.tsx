@@ -346,6 +346,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   { label: 'Carbon', value: 'carbon' },
                 ]}
                 allowDeselect={false}
+                disabled={true}
                 w={180}
                   styles={{
                     input: {

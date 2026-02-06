@@ -16,19 +16,14 @@ type UiKitContextValue = {
 const UiKitContext = createContext<UiKitContextValue | undefined>(undefined)
 
 export function UiKitProvider({ children }: { children: ReactNode }) {
-  const [kit, setKitState] = useState<UiKit>(() => {
-    const saved = typeof window !== 'undefined' ? (localStorage.getItem('uikit') as UiKit | null) : null
-    return saved ?? 'mantine'
-  })
-
-  const setKit = (next: UiKit) => {
-    setKitState(next)
-    try {
-      localStorage.setItem('uikit', next)
-    } catch {}
+  // Always use mantine, disable selector
+  const kit: UiKit = 'mantine'
+  
+  const setKit = (_next: UiKit) => {
+    // No-op: selector is disabled, always use mantine
   }
 
-  const value = useMemo(() => ({ kit, setKit }), [kit])
+  const value = useMemo(() => ({ kit, setKit }), [])
   return <UiKitContext.Provider value={value}>{children}</UiKitContext.Provider>
 }
 

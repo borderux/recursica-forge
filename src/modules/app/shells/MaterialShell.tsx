@@ -386,6 +386,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
               size="small"
               value={kit}
               onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}
+              disabled={true}
               sx={{ 
                 ml: 1, 
                 minWidth: 150,

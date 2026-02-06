@@ -356,7 +356,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
               </>
             )}
             <div style={{ minWidth: 180 }}>
-              <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')}>
+              <Select id="kit-select" labelText=" " hideLabel value={kit} onChange={(e: any) => onKitChange((e.target.value as UiKit) ?? 'mantine')} disabled={true}>
                 <SelectItem text="Mantine" value="mantine" />
                 <SelectItem text="Material UI" value="material" />
                 <SelectItem text="Carbon" value="carbon" />
