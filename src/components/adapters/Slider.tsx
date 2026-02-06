@@ -308,18 +308,7 @@ export function Slider({
     }, [percentage, thumbSizeNum, singleValue])
     
     const sliderElement = (
-      <div 
-        ref={(el) => {
-          // #region agent log
-          if (el) {
-            requestAnimationFrame(() => {
-              const rect = el.getBoundingClientRect()
-              const computedStyle = window.getComputedStyle(el)
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Slider.tsx:sliderElement',message:'sliderElement dimensions after layout',data:{width:rect.width,height:rect.height,computedWidth:computedStyle.width,computedFlex:computedStyle.flex,computedFlexGrow:computedStyle.flexGrow,parentWidth:el.parentElement?.getBoundingClientRect().width},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
-            })
-          }
-          // #endregion
-        }}
+      <div
         style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: `var(${inputGapVar}, 8px)`, overflow: 'visible' }}>
         {/* Min value display */}
         {showMinMaxLabels && (
@@ -335,15 +324,6 @@ export function Slider({
         <div 
           ref={(el) => {
             trackContainerRef.current = el
-            // #region agent log
-            if (el) {
-              requestAnimationFrame(() => {
-                const rect = el.getBoundingClientRect()
-                const computedStyle = window.getComputedStyle(el)
-                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Slider.tsx:trackContainer',message:'Track container dimensions after layout',data:{width:rect.width,height:rect.height,computedWidth:computedStyle.width,computedFlex:computedStyle.flex,parentWidth:el.parentElement?.getBoundingClientRect().width},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-              })
-            }
-            // #endregion
           }}
           style={{ 
             position: 'relative', 
@@ -571,23 +551,8 @@ export function Slider({
       flexGrow: 1,
     }
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Slider.tsx:wrapper',message:'Wrapper style object',data:{wrapperStyle,hasFlexGrow:wrapperStyle.flexGrow!==undefined,flexGrowValue:wrapperStyle.flexGrow,styleProp:style},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
-    
     return (
-      <div 
-        ref={(el) => {
-          // #region agent log
-          if (el) {
-            requestAnimationFrame(() => {
-              const rect = el.getBoundingClientRect()
-              const computedStyle = window.getComputedStyle(el)
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Slider.tsx:wrapper',message:'Slider wrapper dimensions after layout',data:{width:rect.width,height:rect.height,computedWidth:computedStyle.width,computedFlex:computedStyle.flex,computedFlexGrow:computedStyle.flexGrow,inlineFlexGrow:el.style.flexGrow},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
-            })
-          }
-          // #endregion
-        }}
+      <div
         style={{
           ...wrapperStyle,
           flexGrow: 1,
@@ -644,7 +609,7 @@ export function Slider({
         layer={layer}
         label={shouldHandleLabelRow ? undefined : label}
         showInput={showInput}
-        showValueLabel={false}
+        showValueLabel={showValueLabel}
         valueLabel={valueLabel}
         tooltipText={computedTooltipText}
         minLabel={minLabel}

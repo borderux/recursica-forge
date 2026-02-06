@@ -11,7 +11,7 @@ import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, 
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
-import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { TextField } from '../../TextField'
 import './Slider.css'
 
@@ -61,6 +61,9 @@ export default function Slider({
   // Get input width and gap if showing input
   const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
   const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
+  
+  // Get disabled opacity CSS variable
+  const disabledOpacityVar = getBrandStateCssVar(mode, 'disabled')
   
   // Reactively read thumb elevation from CSS variable
   const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
@@ -233,7 +236,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
+          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar}, 0.7)`, 
           flexShrink: 0,
           marginRight: '8px',
         } as React.CSSProperties}>
@@ -258,12 +261,19 @@ export default function Slider({
             backgroundColor: trackActiveColor,
             height: `var(${trackHeightVar}, 4px)`,
             borderRadius: `var(${trackBorderRadiusVar})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
+          },
+          '&.Mui-disabled .MuiSlider-track': {
+            opacity: `var(${disabledOpacityVar})`,
           },
           '& .MuiSlider-rail': {
             backgroundColor: trackColor,
             height: `var(${trackHeightVar}, 4px)`,
             borderRadius: `var(${trackBorderRadiusVar})`,
-            opacity: disabled ? 0.3 : 1,
+            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
+          },
+          '&.Mui-disabled .MuiSlider-rail': {
+            opacity: `var(${disabledOpacityVar})`,
           },
           '& .MuiSlider-thumb': {
             backgroundColor: thumbColor,
@@ -272,7 +282,11 @@ export default function Slider({
             border: 'none',
             borderRadius: `var(${thumbBorderRadiusVar})`,
             ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.15)' }),
-            opacity: disabled ? 0.3 : 1,
+            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
+          },
+          '&.Mui-disabled .MuiSlider-thumb': {
+            opacity: `var(${disabledOpacityVar})`,
+          },
             '&:hover': {
               ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' }),
             },
@@ -297,7 +311,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: `var(${layerTextEmphasisVar}, 0.7)`, 
+          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar}, 0.7)`, 
           flexShrink: 0,
           marginLeft: '8px',
         } as React.CSSProperties}>
@@ -333,7 +347,7 @@ export default function Slider({
           }}
         />
       )}
-      {showValueLabel && !showInput && (
+      {showValueLabel && !showInput && label && (
         <span
           style={{
             minWidth: `var(${inputWidthVar}, 60px)`,
