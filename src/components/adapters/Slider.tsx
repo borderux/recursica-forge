@@ -159,6 +159,9 @@ export function Slider({
       ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
       : null
     
+    // Get top-bottom-margin from layout variant (needed early for use in return statements)
+    const topBottomMarginVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
+    
     // Get input width and gap if showing input
     const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
     const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
@@ -322,9 +325,7 @@ export function Slider({
           </span>
         )}
         <div 
-          ref={(el) => {
-            trackContainerRef.current = el
-          }}
+          ref={trackContainerRef}
           style={{ 
             position: 'relative', 
             flex: 1, 
@@ -539,8 +540,8 @@ export function Slider({
     // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
     // topBottomMarginVar is already declared at the top level
     // Extract flex and flexGrow from style prop if present, but always ensure flexGrow is 1
-    const { flex, flexGrow: styleFlexGrow, ...restStyle } = style || {}
-    const wrapperStyle = {
+    const { flex, flexGrow: styleFlexGrow, flexDirection: _, ...restStyle } = style || {}
+    const wrapperStyle: React.CSSProperties = {
       display: 'flex', 
       flexDirection: 'column', 
       marginTop: `var(${topBottomMarginVar})`,
@@ -625,10 +626,9 @@ export function Slider({
     </Suspense>
   )
   
-  // Get top-bottom-margin from layout variant (defined early so it can be used in all return paths)
-  const topBottomMarginVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
-  
   // Force re-render when top-bottom-margin CSS variable changes
+  // Note: topBottomMarginVar is declared earlier in the fallback function scope
+  const topBottomMarginVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
   const [, forceMarginUpdate] = useState(0)
   
   useEffect(() => {

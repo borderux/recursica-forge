@@ -283,16 +283,15 @@ export default function Slider({
             borderRadius: `var(${thumbBorderRadiusVar})`,
             ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.15)' }),
             opacity: disabled ? `var(${disabledOpacityVar})` : 1,
-          },
-          '&.Mui-disabled .MuiSlider-thumb': {
-            opacity: `var(${disabledOpacityVar})`,
-          },
             '&:hover': {
               ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' }),
             },
             '&.Mui-focusVisible': {
               ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' }),
             },
+          },
+          '&.Mui-disabled .MuiSlider-thumb': {
+            opacity: `var(${disabledOpacityVar})`,
           },
           ...style,
         }}

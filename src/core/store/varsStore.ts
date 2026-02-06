@@ -1459,11 +1459,11 @@ class VarsStore {
 
     // Use controls from finalState (either from localStorage or newly built)
     const finalControls = finalState.controls || {}
-    const baseCtrl = finalControls['elevation-0']
+    const baseCtrl = (finalControls as Record<string, any>)['elevation-0']
 
     for (let i = 0; i <= 4; i++) {
       const k = `elevation-${i}`
-      const ctrl = finalControls[k] || baseCtrl
+      const ctrl = (finalControls as Record<string, any>)[k] || baseCtrl
 
       // Set token references for elevation state tracking
       const blurTokenName = `size/elevation-${i}-blur`

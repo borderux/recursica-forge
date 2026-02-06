@@ -81,6 +81,11 @@ export default function TextField({
   const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
   
+  // Get Label's gutter for side-by-side layout (Label component manages spacing)
+  const labelGutterVar = layout === 'side-by-side'
+    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+    : null
+  
   // Get text style CSS variables
   const valueFontSizeVar = getComponentTextCssVar('TextField', 'text', 'font-size')
   const valueFontFamilyVar = getComponentTextCssVar('TextField', 'text', 'font-family')

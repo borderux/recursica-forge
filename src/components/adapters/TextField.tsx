@@ -282,8 +282,8 @@ export function TextField({
                   style={{
                     flex: 1,
                     minWidth: effectiveMinWidth,
-                    maxWidth: layout === 'stacked' ? '100%' : `var(${maxWidthVar})`,
-                    width: layout === 'stacked' ? '100%' : undefined,
+                    maxWidth: layout !== 'side-by-side' ? '100%' : `var(${maxWidthVar})`,
+                    width: layout !== 'side-by-side' ? '100%' : undefined,
                     minHeight: `var(${minHeightVar})`,
                     paddingLeft: leadingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,
                     paddingRight: trailingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,

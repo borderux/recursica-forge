@@ -1302,7 +1302,8 @@ export default function PropControlContent({
         propNameLower === 'icon-size' ||
         propNameLower === 'icon-text-gap' ||
         propNameLower === 'max-width' ||
-        propNameLower === 'min-width'
+        propNameLower === 'min-width' ||
+        propNameLower === 'top-bottom-margin'
       )) {
         const TextFieldDimensionSlider = () => {
           let minValue = 0
