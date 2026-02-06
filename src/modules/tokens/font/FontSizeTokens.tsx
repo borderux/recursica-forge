@@ -170,7 +170,6 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
               paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               width: '350px',
-              minWidth: 0,
             }}>
               <Slider
                 min={8}
@@ -191,10 +190,6 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
                 showInput={true}
                 showValueLabel={true}
                 valueLabel={(val) => `${val}px`}
-                style={{ 
-                  width: '100%',
-                  minWidth: 0,
-                }}
               />
             </div>
           </div>

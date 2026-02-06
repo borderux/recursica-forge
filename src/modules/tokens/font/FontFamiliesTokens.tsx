@@ -3,7 +3,7 @@
  *
  * Editor for font family and typeface tokens. Shows cards with font previews and weight selectors.
  */
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { useVars } from '../../vars/VarsContext'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
@@ -409,6 +409,18 @@ export default function FontFamiliesTokens() {
   const [customModalOpen, setCustomModalOpen] = useState(false)
   const [customModalRowName, setCustomModalRowName] = useState<string | null>(null)
   const [showInspiration, setShowInspiration] = useState(true)
+  
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FontFamiliesTokens.tsx',message:'showInspiration state initialized',data:{showInspiration,initialValue:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  }, []);
+  // #endregion
+  
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FontFamiliesTokens.tsx',message:'showInspiration state changed',data:{showInspiration},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+  }, [showInspiration]);
+  // #endregion
   const [selectedWeights, setSelectedWeights] = useState<Record<string, string>>({})
   const [availableWeights, setAvailableWeights] = useState<Record<string, string[]>>({})
   const [availableVariants, setAvailableVariants] = useState<Record<string, Array<{ weight: string; style: string }>>>({})
@@ -1316,19 +1328,23 @@ export default function FontFamiliesTokens() {
             </div>
           )
         })}
-        {showInspiration && (
-          <div
-            style={{
-              background: `var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-tone)`,
-              borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
-              padding: `var(${layer1Base}-padding)`,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              position: 'relative',
-              minHeight: '326px',
-            }}
-          >
+        {(() => {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FontFamiliesTokens.tsx',message:'checking showInspiration condition',data:{showInspiration,willRender:!!showInspiration},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+          // #endregion
+          return showInspiration && (
+            <div
+              style={{
+                background: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-tone)`,
+                borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
+                padding: `var(${layer1Base}-padding)`,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                position: 'relative',
+                minHeight: '326px',
+              }}
+            >
             {(() => {
               const XIcon = iconNameToReactComponent('x-mark')
               return XIcon ? (
@@ -1354,7 +1370,7 @@ export default function FontFamiliesTokens() {
                 fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
                 letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
                 lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
-                color: `var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-on-tone)`,
+                color: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-on-tone)`,
               }}>
                 Need inspiration?
               </h3>
@@ -1366,14 +1382,14 @@ export default function FontFamiliesTokens() {
                 fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
                 letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
                 lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-                color: `var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-on-tone)`,
+                color: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-on-tone)`,
                 opacity: `var(--recursica-brand-themes-${mode}-text-emphasis-high)`,
               }}>
                 Browse the Google Fonts library to find the perfect typeface.
               </p>
             </div>
             <Button
-              variant="text"
+              variant="outline"
               size="default"
               layer="layer-1"
               onClick={() => window.open('https://fonts.google.com', '_blank')}
@@ -1381,11 +1397,16 @@ export default function FontFamiliesTokens() {
                 const LinkIcon = iconNameToReactComponent('arrow-top-right-on-square')
                 return LinkIcon ? <LinkIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
               })()}
+              style={{
+                marginTop: 'var(--recursica-brand-dimensions-general-md)',
+                alignSelf: 'flex-start',
+              }}
             >
               Explore Google Fonts
             </Button>
           </div>
-        )}
+          )
+        })()}
       </div>
       
       <EditFontVariantsModal

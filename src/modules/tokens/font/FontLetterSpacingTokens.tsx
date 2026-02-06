@@ -155,7 +155,6 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
               width: '350px',
-              minWidth: 0,
               overflow: 'hidden',
             }}>
               <Slider
@@ -177,10 +176,6 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
                 showInput={true}
                 showValueLabel={true}
                 valueLabel={(val) => `${val >= 0 ? '+' : ''}${val.toFixed(2)}px`}
-                style={{ 
-                  width: '100%',
-                  minWidth: 0,
-                }}
               />
             </div>
           </div>

@@ -308,7 +308,19 @@ export function Slider({
     }, [percentage, thumbSizeNum, singleValue])
     
     const sliderElement = (
-      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: `var(${inputGapVar}, 8px)`, overflow: 'visible' }}>
+      <div 
+        ref={(el) => {
+          // #region agent log
+          if (el) {
+            requestAnimationFrame(() => {
+              const rect = el.getBoundingClientRect()
+              const computedStyle = window.getComputedStyle(el)
+              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Slider.tsx:sliderElement',message:'sliderElement dimensions after layout',data:{width:rect.width,height:rect.height,computedWidth:computedStyle.width,computedFlex:computedStyle.flex,computedFlexGrow:computedStyle.flexGrow,parentWidth:el.parentElement?.getBoundingClientRect().width},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
+            })
+          }
+          // #endregion
+        }}
+        style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: `var(${inputGapVar}, 8px)`, overflow: 'visible' }}>
         {/* Min value display */}
         {showMinMaxLabels && (
           <span style={{ 
@@ -321,7 +333,18 @@ export function Slider({
           </span>
         )}
         <div 
-          ref={trackContainerRef}
+          ref={(el) => {
+            trackContainerRef.current = el
+            // #region agent log
+            if (el) {
+              requestAnimationFrame(() => {
+                const rect = el.getBoundingClientRect()
+                const computedStyle = window.getComputedStyle(el)
+                fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Slider.tsx:trackContainer',message:'Track container dimensions after layout',data:{width:rect.width,height:rect.height,computedWidth:computedStyle.width,computedFlex:computedStyle.flex,parentWidth:el.parentElement?.getBoundingClientRect().width},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
+              })
+            }
+            // #endregion
+          }}
           style={{ 
             position: 'relative', 
             flex: 1, 
@@ -535,14 +558,40 @@ export function Slider({
     
     // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
     // topBottomMarginVar is already declared at the top level
+    // Extract flex and flexGrow from style prop if present, but always ensure flexGrow is 1
+    const { flex, flexGrow: styleFlexGrow, ...restStyle } = style || {}
+    const wrapperStyle = {
+      display: 'flex', 
+      flexDirection: 'column', 
+      marginTop: `var(${topBottomMarginVar})`,
+      marginBottom: `var(${topBottomMarginVar})`,
+      minWidth: 0,
+      ...restStyle,
+      // Always set flexGrow to 1, overriding any value from style prop
+      flexGrow: 1,
+    }
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Slider.tsx:wrapper',message:'Wrapper style object',data:{wrapperStyle,hasFlexGrow:wrapperStyle.flexGrow!==undefined,flexGrowValue:wrapperStyle.flexGrow,styleProp:style},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
+    
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        marginTop: `var(${topBottomMarginVar})`,
-        marginBottom: `var(${topBottomMarginVar})`,
-        ...style 
-      }}>
+      <div 
+        ref={(el) => {
+          // #region agent log
+          if (el) {
+            requestAnimationFrame(() => {
+              const rect = el.getBoundingClientRect()
+              const computedStyle = window.getComputedStyle(el)
+              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Slider.tsx:wrapper',message:'Slider wrapper dimensions after layout',data:{width:rect.width,height:rect.height,computedWidth:computedStyle.width,computedFlex:computedStyle.flex,computedFlexGrow:computedStyle.flexGrow,inlineFlexGrow:el.style.flexGrow},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
+            })
+          }
+          // #endregion
+        }}
+        style={{
+          ...wrapperStyle,
+          flexGrow: 1,
+        }}>
         {label && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {label}
@@ -698,6 +747,9 @@ export function Slider({
       <div style={{ 
         marginTop: `var(${topBottomMarginVar})`,
         marginBottom: `var(${topBottomMarginVar})`,
+        flexGrow: 1,
+        minWidth: 0,
+        ...style,
       }}>
         {sliderComponent}
       </div>
@@ -711,6 +763,9 @@ export function Slider({
       <div style={{ 
         marginTop: `var(${topBottomMarginVar})`,
         marginBottom: `var(${topBottomMarginVar})`,
+        flexGrow: 1,
+        minWidth: 0,
+        ...style,
       }}>
         <Suspense fallback={<div style={{ width: '100%', height: 20 }} />}>
           <Component
@@ -757,7 +812,9 @@ export function Slider({
       minWidth: 0,
       marginTop: `var(${topBottomMarginVar})`,
       marginBottom: `var(${topBottomMarginVar})`,
-      ...style 
+      flexGrow: 1,
+      ...style,
+      flexGrow: 1,
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minWidth: 0, gap: '8px' }}>
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>{label}</div>
