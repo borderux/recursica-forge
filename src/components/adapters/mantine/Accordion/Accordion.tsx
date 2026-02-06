@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Accordion as MantineAccordion } from '@mantine/core'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import type { AccordionProps as AdapterAccordionProps } from '../../Accordion'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar, getGlobalCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import './Accordion.css'
@@ -141,6 +141,7 @@ export default function Accordion({
   const iconGapVar = getComponentLevelCssVar('AccordionItem', 'icon-gap')
   const borderRadiusVar = getComponentLevelCssVar('AccordionItem', 'border-radius')
   const headerContentGapVar = getComponentLevelCssVar('AccordionItem', 'header-content-gap')
+  const formVerticalItemGapVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
   
   // Item elevation - reactive pattern for toolbar control
   const itemElevationVar = getComponentLevelCssVar('AccordionItem', 'elevation')
@@ -375,6 +376,8 @@ export default function Accordion({
         ['--accordion-item-content-text-decoration' as string]: `var(${contentTextDecorationVar}, none)`,
         ['--accordion-item-content-text-transform' as string]: `var(${contentTextTransformVar}, none)`,
         ['--accordion-item-content-font-style' as string]: `var(${contentFontStyleVar}, normal)`,
+        // Form vertical item gap for accordion content spacing
+        ['--accordion-item-content-gap' as string]: `var(${formVerticalItemGapVar})`,
         ...style,
       } as React.CSSProperties}
       styles={mantineStyles}

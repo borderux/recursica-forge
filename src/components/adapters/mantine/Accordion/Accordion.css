@@ -111,8 +111,7 @@
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-panel {
-  padding: var(--accordion-item-content-padding) !important;
-  padding-top: calc(var(--accordion-item-header-content-gap, 0px) + var(--accordion-item-content-padding, 0px)) !important;
+  padding: 0 !important;
   background: var(--accordion-item-content-bg) !important;
   color: var(--accordion-item-content-text) !important;
   font-family: var(--accordion-item-content-font-family) !important;
@@ -123,6 +122,13 @@
   line-height: var(--accordion-item-content-line-height) !important;
   text-decoration: var(--accordion-item-content-text-decoration) !important;
   text-transform: var(--accordion-item-content-text-transform) !important;
+}
+
+.recursica-accordion.mantine-accordion .mantine-Accordion-content {
+  padding: var(--accordion-item-content-padding, 0) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--accordion-item-content-gap) !important;
 }
 
 /* Restore borders for buttons inside accordion content - use Button component CSS variables */

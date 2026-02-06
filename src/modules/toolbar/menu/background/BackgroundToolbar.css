@@ -1,8 +1,8 @@
 .background-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  gap: var(--accordion-item-content-gap);
+  padding: 0;
 }
 
 .background-control {

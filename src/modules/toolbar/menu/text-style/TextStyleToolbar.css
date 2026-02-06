@@ -1,8 +1,8 @@
 .text-style-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 12px;
+  gap: var(--accordion-item-content-gap);
+  padding: 0;
 }
 
 .text-style-control {
