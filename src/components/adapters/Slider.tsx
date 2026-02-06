@@ -812,9 +812,8 @@ export function Slider({
       minWidth: 0,
       marginTop: `var(${topBottomMarginVar})`,
       marginBottom: `var(${topBottomMarginVar})`,
-      flexGrow: 1,
       ...style,
-      flexGrow: 1,
+      flexGrow: 1, // Always override any flexGrow from style prop
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minWidth: 0, gap: '8px' }}>
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>{label}</div>

@@ -95,14 +95,14 @@
 }
 
 /* Ensure solid and outline variants have borders with the correct color */
-/* Use --button-border-color if set, fallback to text color */
+/* Use --button-border-color - NEVER fallback to text color for outline buttons */
 .MuiButton-contained,
 .MuiButton-outlined,
 .recursica-accordion .MuiButton-contained,
 .recursica-accordion .MuiButton-outlined,
 .recursica-accordion .MuiAccordionDetails-root .MuiButton-contained,
 .recursica-accordion .MuiAccordionDetails-root .MuiButton-outlined {
-  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
+  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color) !important;
 }
 
 /* Ensure text variant has no border */

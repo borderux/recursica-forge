@@ -54,12 +54,21 @@ export default function Button({
   
   // Get the correct CSS variable reference for button color (used for text and border)
   const buttonColorRef = `var(${buttonColorVar})`
-  const buttonBorderColorRef = buttonBorderColorVar ? `var(${buttonBorderColorVar})` : buttonColorRef
+  // For outline buttons, NEVER use text color as fallback - always use border-color property
+  // For solid buttons, fallback to text color is acceptable
+  const buttonBorderColorRef = buttonBorderColorVar 
+    ? `var(${buttonBorderColorVar})` 
+    : (variant === 'outline' ? undefined : buttonColorRef)
   
   // For solid and outline buttons, set the border color using the border CSS var
   // Mantine uses --button-bd for border, which has format: calc(0.0625rem * var(--mantine-scale)) solid <color>
-  const buttonBorderColor = (variant === 'solid' || variant === 'outline')
-    ? buttonBorderColorRef 
+  // For outline buttons, ALWAYS use border-color property (never text color fallback)
+  // For solid buttons, use border-color if available, otherwise fallback to text color
+  // Resolve the border color value for outline buttons to ensure it's always valid
+  const buttonBorderColor = variant === 'outline' && buttonBorderColorVar
+    ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`)
+    : variant === 'solid'
+    ? buttonBorderColorRef
     : undefined
   
   // Get icon size and gap CSS variables
@@ -213,15 +222,34 @@ export default function Button({
           alignItems: 'center',
           justifyContent: 'space-around',
         } : {}),
+        // CRITICAL: Set border color for solid and outline variants to override Mantine's CSS-in-JS
+        // Note: CSS file will also set border with !important, but this helps ensure it's applied
+        // For outline buttons, ALWAYS set border using border-color property (never text color)
+        // Resolve the border color value to ensure it's always valid
+        ...(variant === 'outline' && buttonBorderColorVar ? {
+          borderColor: readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`,
+          border: `${borderSizeValue || '1px'} solid ${readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`}`,
+        } : {}),
+        // For solid buttons, set border if buttonBorderColor is available
+        ...(variant === 'solid' && buttonBorderColor ? {
+          borderColor: buttonBorderColor,
+          border: `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
+        } : {}),
+        // For text variant, explicitly remove border
+        ...(variant === 'text' && {
+          border: 'none !important',
+        }),
         // Override disabled state to keep colors unchanged, only apply opacity
+        // Note: CSS file handles disabled state with !important
         ...(disabled && {
-          backgroundColor: `var(${buttonBgVar}) !important`,
-          color: `${buttonColorRef} !important`,
+          backgroundColor: `var(${buttonBgVar})`,
+          color: buttonColorRef,
           ...((variant === 'solid' || variant === 'outline') && buttonBorderColor && {
-            borderColor: `${buttonBorderColor} !important`,
+            borderColor: buttonBorderColor,
+            border: `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
           }),
           ...(variant === 'text' && {
-            border: 'none !important',
+            border: 'none',
           }),
         }),
       },
@@ -252,21 +280,34 @@ export default function Button({
       // Set button color without fallback to Mantine colors
       '--button-color': buttonColorRef,
       // Set button border color CSS variable for CSS file override
-      ...((variant === 'solid' || variant === 'outline') && buttonBorderColorRef ? {
+      // For outline buttons, ALWAYS set --button-border-color (never fallback to text color)
+      // Resolve the value to ensure it's always valid, but prefer var() reference for reactivity
+      ...(variant === 'outline' && buttonBorderColorVar ? {
+        '--button-border-color': readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`,
+      } : {}),
+      ...(variant === 'solid' && buttonBorderColorRef ? {
         '--button-border-color': buttonBorderColorRef,
       } : {}),
       // Set icon-text-gap CSS variable for CSS file override
       // Set gap when there's a leading icon or trailing icon (rightSection)
-      '--button-icon-text-gap': (icon && children) || (mantine?.rightSection && children) ? `var(${iconGapVar})` : '0px',
+      // Always use var() reference for reactivity - CSS will handle fallback if variable doesn't exist
+      '--button-icon-text-gap': (icon && children) || (mantine?.rightSection && children) 
+        ? `var(${iconGapVar})` 
+        : '0px',
       // Set icon size CSS variable for CSS file override
       // Always set it when there's a leading icon, trailing icon (rightSection), or icon-only button
-      '--button-icon-size': icon || mantine?.rightSection ? `var(${iconSizeVar})` : '0px',
+      // Always use var() reference for reactivity - CSS will handle fallback if variable doesn't exist
+      '--button-icon-size': icon || mantine?.rightSection 
+        ? `var(${iconSizeVar})` 
+        : '0px',
       // Set content max width CSS variable for CSS file override
       '--button-max-width': `var(${maxWidthVar})`,
       // Use actual CSS border instead of box-shadow
       // Mantine uses --button-bd CSS variable for border
+      // Note: Border color is set via styles.root to override Mantine's CSS-in-JS
+      // For outline buttons, resolve the border color to ensure it's always valid
       ...((variant === 'solid' || variant === 'outline') && buttonBorderColor ? {
-        '--button-bd': `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
+        '--button-bd': `${borderSizeValue || '1px'} solid ${variant === 'outline' && buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : buttonBorderColor}`,
       } : {}),
       // For text variant, explicitly remove border
       ...(variant === 'text' ? {
@@ -364,7 +405,7 @@ export default function Button({
     
     return children
   }, [children, mantine?.rightSection, isIconOnly, icon])
-  
+
   // For icon-only buttons, render icon as children - CSS will handle centering
   return <MantineButton {...mantineProps}>{filteredChildren}</MantineButton>
 }

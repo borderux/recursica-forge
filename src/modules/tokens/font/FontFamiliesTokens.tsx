@@ -409,18 +409,6 @@ export default function FontFamiliesTokens() {
   const [customModalOpen, setCustomModalOpen] = useState(false)
   const [customModalRowName, setCustomModalRowName] = useState<string | null>(null)
   const [showInspiration, setShowInspiration] = useState(true)
-  
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FontFamiliesTokens.tsx',message:'showInspiration state initialized',data:{showInspiration,initialValue:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  }, []);
-  // #endregion
-  
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FontFamiliesTokens.tsx',message:'showInspiration state changed',data:{showInspiration},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  }, [showInspiration]);
-  // #endregion
   const [selectedWeights, setSelectedWeights] = useState<Record<string, string>>({})
   const [availableWeights, setAvailableWeights] = useState<Record<string, string[]>>({})
   const [availableVariants, setAvailableVariants] = useState<Record<string, Array<{ weight: string; style: string }>>>({})
@@ -1329,9 +1317,6 @@ export default function FontFamiliesTokens() {
           )
         })}
         {(() => {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FontFamiliesTokens.tsx',message:'checking showInspiration condition',data:{showInspiration,willRender:!!showInspiration},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-          // #endregion
           return showInspiration && (
             <div
               style={{

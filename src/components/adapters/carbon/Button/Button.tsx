@@ -200,15 +200,13 @@ export default function Button({
       paddingRight: `var(${horizontalPaddingVar})`,
       borderRadius: `var(${borderRadiusVar})`,
       // Set button border color CSS variable for CSS file override
+      // The CSS file will handle the actual border styling using this variable
       ...((variant === 'solid' || variant === 'outline') && buttonBorderColorVar ? {
         '--button-border-color': `var(${buttonBorderColorVar})`,
       } : {}),
       '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
       '--button-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
-      // Use actual CSS border instead of box-shadow
-      ...(variant === 'solid' || variant === 'outline' ? {
-        border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar})`,
-      } : {}),
+      // Don't set border inline - let CSS file handle it via --button-border-color
       // For text variant, explicitly remove border
       ...(variant === 'text' ? {
         border: 'none',
