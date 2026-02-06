@@ -45,16 +45,16 @@ export default function TextField({
   ...restProps
 }: AdapterTextFieldProps & { labelId?: string; helpId?: string; errorId?: string }) {
   const { mode } = useThemeMode()
-  
+
   // Extract props that shouldn't be passed to DOM elements
   const { optional, labelAlign, labelSize, ...domProps } = restProps
-  
+
   // Generate unique ID if not provided (needed for scoped styles)
   const uniqueId = id || `text-field-${Math.random().toString(36).substr(2, 9)}`
-  
-  // Determine effective state (focus is handled via CSS :focus)
-  const effectiveState = state === 'focus' ? 'default' : state
-  
+
+  // Determine effective state
+  const effectiveState = state
+
   // Get CSS variables for colors based on state variant
   const backgroundVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
   const borderVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
@@ -62,14 +62,14 @@ export default function TextField({
   // Placeholder uses the same color as text (value color)
   const leadingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
   const trailingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'trailing-icon')
-  
+
   // Get CSS variables for focus state border (when focused)
   const focusBorderVar = buildComponentCssVarPath('TextField', 'variants', 'states', 'focus', 'properties', 'colors', layer, 'border-color')
   const focusBorderSizeVar = buildComponentCssVarPath('TextField', 'variants', 'states', 'focus', 'properties', 'border-size')
-  
+
   // Get variant-specific border size
   const borderSizeVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'border-size')
-  
+
   // Get component-level properties
   const borderRadiusVar = getComponentLevelCssVar('TextField', 'border-radius')
   const minHeightVar = getComponentLevelCssVar('TextField', 'min-height')
@@ -80,12 +80,12 @@ export default function TextField({
   const maxWidthVar = getComponentLevelCssVar('TextField', 'max-width')
   const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
-  
+
   // Get Label's gutter for side-by-side layout (Label component manages spacing)
   const labelGutterVar = layout === 'side-by-side'
     ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
     : null
-  
+
   // Get text style CSS variables
   const valueFontSizeVar = getComponentTextCssVar('TextField', 'text', 'font-size')
   const valueFontFamilyVar = getComponentTextCssVar('TextField', 'text', 'font-family')
@@ -95,12 +95,12 @@ export default function TextField({
   const valueTextDecorationVar = getComponentTextCssVar('TextField', 'text', 'text-decoration')
   const valueTextTransformVar = getComponentTextCssVar('TextField', 'text', 'text-transform')
   const valueFontStyleVar = getComponentTextCssVar('TextField', 'text', 'font-style')
-  
+
   // Placeholder uses the same text styles as value (no separate placeholder text props)
-  
+
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
-  
+
   // CRITICAL: Do NOT read CSS variable values here - use var() references directly in CSS.
   // The problem: When CSS variables aren't explicitly set, readCssVar() falls back to
   // computed styles which resolve through UIKit.json defaults. Since both 'value' and
@@ -109,19 +109,19 @@ export default function TextField({
   // 1. Each CSS variable is independent
   // 2. When one is updated via toolbar, it doesn't affect the other
   // 3. CSS inheritance is prevented by using !important and high specificity selectors
-  
+
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     const textCssVars = [
       valueFontSizeVar, valueFontFamilyVar, valueFontWeightVar, valueLetterSpacingVar,
       valueLineHeightVar, valueTextDecorationVar, valueTextTransformVar, valueFontStyleVar
     ]
-    
+
     const dimensionCssVars = [
       borderSizeVar, borderRadiusVar, minHeightVar, horizontalPaddingVar, verticalPaddingVar,
       iconSizeVar, iconTextGapVar, maxWidthVar, minWidthVar, placeholderOpacityVar
     ]
-    
+
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const updatedVars = detail?.cssVars || []
@@ -138,7 +138,7 @@ export default function TextField({
       }
     }
     window.addEventListener('cssVarsUpdated', handleUpdate)
-    
+
     // Also watch for direct CSS variable changes using MutationObserver
     // This is needed because UIKit variables (like placeholder vars) are filtered out from cssVarsUpdated events
     const observer = new MutationObserver(() => {
@@ -149,18 +149,18 @@ export default function TextField({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleUpdate)
       observer.disconnect()
     }
   }, [valueFontSizeVar, valueFontFamilyVar, valueFontWeightVar, valueLetterSpacingVar, valueLineHeightVar, valueTextDecorationVar, valueTextTransformVar, valueFontStyleVar, borderSizeVar, borderRadiusVar, minHeightVar, horizontalPaddingVar, verticalPaddingVar, iconSizeVar, iconTextGapVar, maxWidthVar, minWidthVar, placeholderOpacityVar, textVar, minWidth])
-  
+
   // Use provided minWidth or fall back to CSS variable
   const effectiveMinWidth = minWidth !== undefined ? `${minWidth}px` : `var(${minWidthVar})`
-  
+
   // Get placeholder opacity - use CSS variable directly, no fallback
-  
+
   // Render Label component if provided
   const labelElement = label ? (
     <Label
@@ -176,11 +176,11 @@ export default function TextField({
       {label}
     </Label>
   ) : null
-  
+
   // Get icon components for AssistiveElement
   const HelpIcon = useMemo(() => iconNameToReactComponent('info'), [])
   const ErrorIcon = useMemo(() => iconNameToReactComponent('warning'), [])
-  
+
   // Render AssistiveElement for help or error with icons
   const assistiveElement = errorText ? (
     <AssistiveElement
@@ -199,7 +199,7 @@ export default function TextField({
       icon={HelpIcon ? <HelpIcon /> : <span>ℹ</span>}
     />
   ) : null
-  
+
   // Input wrapper with icons
   const inputWrapper = (
     <div
@@ -327,7 +327,7 @@ export default function TextField({
       `}</style>
     </div>
   )
-  
+
   // Render based on layout
   if (layout === 'side-by-side' && labelElement) {
     // For side-by-side, use Label's gutter property
@@ -346,7 +346,7 @@ export default function TextField({
       </div>
     )
   }
-  
+
   // Stacked layout (default)
   return (
     <div className={`recursica-text-field recursica-text-field-stacked ${className || ''}`} style={style}>

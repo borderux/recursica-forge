@@ -99,7 +99,7 @@ export function Dropdown({
     }
 
     // Determine effective state
-    const effectiveState = state === 'focus' ? 'default' : state
+    const effectiveState = state
 
     // Get CSS variables (using TextField as template for now until Dropdown tokens are stable)
     // We use Dropdown as the component name for CSS vars

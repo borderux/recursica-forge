@@ -114,7 +114,7 @@ export default function DropdownPreview({
                                 placeholder="Select an option"
                                 items={items}
                                 helpText="Choose wisely"
-                                state="default"
+                                state="focus"
                                 layout={layoutVariant}
                                 layer={selectedLayer as any}
                             />

@@ -56,7 +56,7 @@ export default function Dropdown({
     const uniqueId = id || `dropdown-${Math.random().toString(36).substr(2, 9)}`
 
     // Determine effective state
-    const effectiveState = state === 'focus' ? 'default' : state
+    const effectiveState = state
     const isOpenedState = opened ? 'focus' : effectiveState
 
     // Get CSS variables for colors
@@ -149,7 +149,7 @@ export default function Dropdown({
         <UnstyledButton
             id={uniqueId}
             onClick={() => state !== 'disabled' && setOpened(!opened)}
-            className={`recursica-dropdown-trigger ${opened ? 'opened' : ''} ${state === 'disabled' ? 'disabled' : ''}`}
+            className={`recursica-dropdown-trigger ${opened || state === 'focus' ? 'opened focus' : ''} ${state === 'disabled' ? 'disabled' : ''}`}
             style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -165,7 +165,7 @@ export default function Dropdown({
                 height: 'auto',
                 borderRadius: `var(${borderRadiusVar})`,
                 backgroundColor: `var(${backgroundVar})`,
-                boxShadow: `inset 0 0 0 var(${opened ? focusBorderSizeVar : borderSizeVar}) var(${opened ? focusBorderVar : borderVar})`,
+                boxShadow: `inset 0 0 0 var(${opened || state === 'focus' ? focusBorderSizeVar : borderSizeVar}) var(${opened || state === 'focus' ? focusBorderVar : borderVar})`,
                 color: `var(${textVar})`,
                 cursor: state === 'disabled' ? 'not-allowed' : 'pointer',
                 transition: 'box-shadow 0.2s, background-color 0.2s',
