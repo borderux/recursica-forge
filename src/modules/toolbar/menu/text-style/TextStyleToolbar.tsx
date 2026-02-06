@@ -552,10 +552,17 @@ export default function TextStyleToolbar({
     return allOptions
   }, [currentFontFamily, getAvailableStyleKeysForFont])
 
+  // Helper to resolve value and ensure it's clean
+  const getResolvedValue = useCallback((cssVar: string, fallback: string) => {
+    const value = readCssVarResolved(cssVar) || readCssVar(cssVar) || fallback
+    // Remove quotes if present (shouldn't be for these properties, but safety first)
+    return value.replace(/^["']|["']$/g, '').trim()
+  }, [])
+
   // Get current values - make font family reactive
-  const [currentTextDecoration, setCurrentTextDecoration] = useState<string>(() => readCssVar(textDecorationVar) || 'none')
-  const [currentTextTransform, setCurrentTextTransform] = useState<string>(() => readCssVar(textTransformVar) || 'none')
-  const [currentFontStyle, setCurrentFontStyle] = useState<string>(() => readCssVar(fontStyleVar) || 'normal')
+  const [currentTextDecoration, setCurrentTextDecoration] = useState<string>(() => getResolvedValue(textDecorationVar, 'none'))
+  const [currentTextTransform, setCurrentTextTransform] = useState<string>(() => getResolvedValue(textTransformVar, 'none'))
+  const [currentFontStyle, setCurrentFontStyle] = useState<string>(() => getResolvedValue(fontStyleVar, 'normal'))
 
   // Update current font family when CSS variable changes
   useEffect(() => {
@@ -639,9 +646,9 @@ export default function TextStyleToolbar({
   // Update current text decoration, transform, and font style when CSS variables change
   useEffect(() => {
     const updateValues = () => {
-      const decorationValue = readCssVar(textDecorationVar) || 'none'
-      const transformValue = readCssVar(textTransformVar) || 'none'
-      const styleValue = readCssVar(fontStyleVar) || 'normal'
+      const decorationValue = getResolvedValue(textDecorationVar, 'none')
+      const transformValue = getResolvedValue(textTransformVar, 'none')
+      const styleValue = getResolvedValue(fontStyleVar, 'normal')
       setCurrentTextDecoration(decorationValue)
       setCurrentTextTransform(transformValue)
       setCurrentFontStyle(styleValue)

@@ -104,17 +104,17 @@
         },
         "divider": {
             "icon": "minus",
-            "label": "Divider",
+            "label": "Scrolling divider",
             "visible": true,
             "group": {
                 "scroll-divider": {
                     "icon": "paint-brush-broad",
-                    "label": "Divider color",
+                    "label": "Color",
                     "visible": true
                 },
                 "scroll-divider-thickness": {
                     "icon": "rows",
-                    "label": "Border size",
+                    "label": "Height",
                     "visible": true,
                     "propertyType": "slider",
                     "range": [
