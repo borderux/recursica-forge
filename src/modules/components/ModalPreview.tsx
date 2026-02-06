@@ -51,6 +51,8 @@ export default function ModalPreview({
     const buttonGapVar = getComponentLevelCssVar('Modal', 'button-gap')
     const minWidthVar = getComponentLevelCssVar('Modal', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Modal', 'max-width')
+    const minHeightVar = getComponentLevelCssVar('Modal', 'min-height')
+    const maxHeightVar = getComponentLevelCssVar('Modal', 'max-height')
 
     const headerFontFamilyVar = getComponentTextCssVar('Modal', 'header-text', 'font-family')
     const headerFontSizeVar = getComponentTextCssVar('Modal', 'header-text', 'font-size')
@@ -86,6 +88,8 @@ export default function ModalPreview({
         width: '100%',
         maxWidth: `var(${maxWidthVar})`,
         minWidth: `var(${minWidthVar})`,
+        minHeight: `var(${minHeightVar})`,
+        maxHeight: `var(${maxHeightVar})`,
         margin: '0 auto',
         position: 'relative',
     } as React.CSSProperties
@@ -116,7 +120,7 @@ export default function ModalPreview({
                                 fontStyle: `var(${headerFontStyleVar})`,
                                 textDecoration: `var(${headerTextDecorationVar})`,
                                 textTransform: `var(${headerTextTransformVar})`,
-                            }}>
+                            } as any}>
                                 The Legend of Zog
                             </span>
                             <Button
@@ -142,7 +146,7 @@ export default function ModalPreview({
                         fontStyle: `var(${contentFontStyleVar})`,
                         textDecoration: `var(${contentTextDecorationVar})`,
                         textTransform: `var(${contentTextTransformVar})`,
-                    }}>
+                    } as any}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <p style={{ margin: 0 }}>
                                 {goblinStory}
@@ -200,7 +204,7 @@ export default function ModalPreview({
                             fontStyle: `var(${headerFontStyleVar})`,
                             textDecoration: `var(${headerTextDecorationVar})`,
                             textTransform: `var(${headerTextTransformVar})`,
-                        }}>
+                        } as any}>
                             The Legend of Zog
                         </span>
                         <Button
@@ -225,7 +229,7 @@ export default function ModalPreview({
                         fontStyle: `var(${contentFontStyleVar})`,
                         textDecoration: `var(${contentTextDecorationVar})`,
                         textTransform: `var(${contentTextTransformVar})`,
-                    }}>
+                    } as any}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <p style={{ margin: 0 }}>
                                 {goblinStory} {goblinStory}
@@ -291,6 +295,12 @@ export default function ModalPreview({
                     </p>
                     <p style={{ margin: 0 }}>
                         Observers noted that the dwarf, while lazy, seemed impressed by the sheer audacity of the maneuver. The onyx scales of the goblin glistened in the emerald glow of the cavern, creating a spectacle that would be immortalized in the tapestries of the Northern Keep.
+                    </p>
+                    <p style={{ margin: 0 }}>
+                        {goblinStory}
+                    </p>
+                    <p style={{ margin: 0 }}>
+                        Generations later, the story is still told in the taverns of the deep earth, often accompanied by the rhythmic clinking of tankards and the hearty laughter of those who honor the legend of the swift goblin and the lazy dwarf.
                     </p>
                 </div>
             </Modal>

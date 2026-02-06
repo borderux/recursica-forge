@@ -41,7 +41,7 @@
         },
         "widths": {
             "icon": "arrows-in-line-horizontal",
-            "label": "Widths",
+            "label": "Sizes",
             "visible": true,
             "group": {
                 "min-width": {
@@ -63,6 +63,28 @@
                     "range": [
                         200,
                         2000
+                    ],
+                    "step": 8
+                },
+                "min-height": {
+                    "icon": "arrows-in-line-vertical",
+                    "label": "Min height",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        60,
+                        500
+                    ],
+                    "step": 8
+                },
+                "max-height": {
+                    "icon": "arrows-out-line-vertical",
+                    "label": "Max height",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        200,
+                        1000
                     ],
                     "step": 8
                 }

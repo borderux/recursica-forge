@@ -52,6 +52,8 @@ export default function Modal({
     const buttonGapVar = getComponentLevelCssVar('Modal', 'button-gap')
     const minWidthVar = getComponentLevelCssVar('Modal', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Modal', 'max-width')
+    const minHeightVar = getComponentLevelCssVar('Modal', 'min-height')
+    const maxHeightVar = getComponentLevelCssVar('Modal', 'max-height')
 
     // Text properties
     const headerFontFamilyVar = getComponentTextCssVar('Modal', 'header-text', 'font-family')
@@ -130,6 +132,8 @@ export default function Modal({
         '--modal-button-gap': `var(${buttonGapVar}, 0px)`,
         '--modal-min-width': `var(${minWidthVar})`,
         '--modal-max-width': `var(${maxWidthVar})`,
+        '--modal-min-height': `var(${minHeightVar})`,
+        '--modal-max-height': `var(${maxHeightVar})`,
         '--modal-header-font-family': `var(${headerFontFamilyVar})`,
         '--modal-header-font-size': `var(${headerFontSizeVar})`,
         '--modal-header-font-weight': `var(${headerFontWeightVar})`,
@@ -160,7 +164,21 @@ export default function Modal({
         <MantineModal
             opened={isOpen}
             onClose={onClose}
-            title={showHeader ? title : null}
+            title={showHeader ? (
+                <span style={{
+                    color: 'var(--modal-title-color)',
+                    fontFamily: 'var(--modal-header-font-family)',
+                    fontSize: 'var(--modal-header-font-size)',
+                    fontWeight: 'var(--modal-header-font-weight)',
+                    letterSpacing: 'var(--modal-header-letter-spacing)',
+                    lineHeight: 'var(--modal-header-line-height)',
+                    fontStyle: 'var(--modal-header-font-style)',
+                    textDecoration: 'var(--modal-header-text-decoration)',
+                    textTransform: 'var(--modal-header-text-transform)',
+                } as any}>
+                    {title}
+                </span>
+            ) : null}
             withCloseButton={false} // We implement our own close button
             size={size}
             padding={0}
@@ -172,6 +190,8 @@ export default function Modal({
                     borderRadius: 'var(--modal-border-radius)',
                     minWidth: 'var(--modal-min-width)',
                     maxWidth: 'var(--modal-max-width)',
+                    minHeight: 'var(--modal-min-height)',
+                    maxHeight: 'var(--modal-max-height)',
                     border: 'var(--modal-border-thickness) solid var(--modal-border-color)',
                     overflow: 'hidden',
                     display: 'flex',
