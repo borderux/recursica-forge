@@ -38,6 +38,9 @@ registerComponent('mantine', 'AssistiveElement', () => import('../adapters/manti
 // TextField
 registerComponent('mantine', 'TextField', () => import('../adapters/mantine/TextField/TextField'))
 
+// Dropdown
+registerComponent('mantine', 'Dropdown', () => import('../adapters/mantine/Dropdown/Dropdown'))
+
 // Breadcrumb
 registerComponent('mantine', 'Breadcrumb', () => import('../adapters/mantine/Breadcrumb/Breadcrumb'))
 

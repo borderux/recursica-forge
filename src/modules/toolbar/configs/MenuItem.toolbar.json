@@ -114,6 +114,11 @@
           "visible": true,
           "floatingPaletteLabel": "Divider Color"
         },
+        "divider-height": {
+          "icon": "minus",
+          "label": "Size",
+          "visible": true
+        },
         "divider-opacity": {
           "icon": "eye",
           "label": "Divider opacity",
@@ -130,4 +135,3 @@
     }
   }
 }
-

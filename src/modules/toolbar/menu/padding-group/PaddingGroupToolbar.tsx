@@ -52,7 +52,7 @@ export default function PaddingGroupToolbar({
 
   // Find padding-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
-  
+
   // Single padding prop (e.g., Accordion)
   const singlePaddingProp = useMemo(() => {
     if (!isSinglePadding) return undefined
@@ -78,9 +78,9 @@ export default function PaddingGroupToolbar({
     return structure.props.find(p => {
       const propNameLower = p.name.toLowerCase()
       // Handle variations: "horizontal-padding", "padding-horizontal"
-      if (propNameLower !== horizontalPropName.toLowerCase() && 
-          propNameLower !== 'padding-horizontal' && 
-          propNameLower !== 'horizontal-padding') {
+      if (propNameLower !== horizontalPropName.toLowerCase() &&
+        propNameLower !== 'padding-horizontal' &&
+        propNameLower !== 'horizontal-padding') {
         return false
       }
       if (p.isVariantSpecific && p.variantProp) {
@@ -98,9 +98,9 @@ export default function PaddingGroupToolbar({
     return structure.props.find(p => {
       const propNameLower = p.name.toLowerCase()
       // Handle variations: "vertical-padding", "padding-vertical"
-      if (propNameLower !== verticalPropName.toLowerCase() && 
-          propNameLower !== 'padding-vertical' && 
-          propNameLower !== 'vertical-padding') {
+      if (propNameLower !== verticalPropName.toLowerCase() &&
+        propNameLower !== 'padding-vertical' &&
+        propNameLower !== 'vertical-padding') {
         return false
       }
       if (p.isVariantSpecific && p.variantProp) {
@@ -138,10 +138,10 @@ export default function PaddingGroupToolbar({
   // Check visibility from toolbar config
   const paddingVisible = !groupedPropsConfig || groupedPropsConfig['padding']?.visible !== false
   const horizontalVisible = groupedPropsConfig?.['horizontal-padding']?.visible !== false ||
-                             groupedPropsConfig?.['padding-horizontal']?.visible !== false
+    groupedPropsConfig?.['padding-horizontal']?.visible !== false
   const verticalVisible = groupedPropsConfig?.['vertical-padding']?.visible !== false ||
-                          groupedPropsConfig?.['padding-vertical']?.visible !== false
-  const topBottomMarginVisible = groupedPropsConfig?.['top-bottom-margin']?.visible !== false
+    groupedPropsConfig?.['padding-vertical']?.visible !== false
+  const topBottomMarginVisible = !!groupedPropsConfig?.['top-bottom-margin'] && groupedPropsConfig['top-bottom-margin']?.visible !== false
 
   // Render single padding control
   if (isSinglePadding && singlePaddingVar) {

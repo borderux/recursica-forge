@@ -10,7 +10,7 @@ import type { UiKit } from '../../modules/uikit/UiKitContext'
 
 export type { UiKit }
 
-export type ComponentName = 
+export type ComponentName =
   | 'Button'
   | 'Card'
   | 'TextField'
@@ -24,6 +24,7 @@ export type ComponentName =
   | 'Avatar'
   | 'Accordion'
   | 'AccordionItem'
+  | 'Dropdown'
   | 'Breadcrumb'
   | 'DatePicker'
   | 'FileInput'
