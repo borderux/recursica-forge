@@ -54,11 +54,6 @@
           "icon": "eye",
           "label": "Opacity",
           "visible": true
-        },
-        "label-optional-text-gap": {
-          "icon": "arrows-up-down",
-          "label": "Optional text gap",
-          "visible": true
         }
       }
     },
@@ -82,6 +77,11 @@
         "vertical-padding": {
           "icon": "arrows-up-down",
           "label": "Vertical padding",
+          "visible": true
+        },
+        "label-optional-text-gap": {
+          "icon": "arrows-up-down",
+          "label": "Optional text gap",
           "visible": true
         }
       }

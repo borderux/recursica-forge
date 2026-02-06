@@ -3581,6 +3581,21 @@ export default function PropControlContent({
             }
           }
           
+          // Special case: label-optional-text-gap is a component-level property
+          // It's in the "spacing" group but needs to be found as a component-level property
+          if (!groupedProp && groupedPropKey === 'label-optional-text-gap') {
+            const structure = parseComponentStructure(componentName)
+            groupedProp = structure.props.find(p => {
+              const nameMatches = p.name.toLowerCase() === 'label-optional-text-gap'
+              // Must be component-level (not variant-specific)
+              const isComponentLevel = !p.isVariantSpecific
+              return nameMatches && isComponentLevel
+            })
+            if (groupedProp) {
+              prop.borderProps!.set(groupedPropKey, groupedProp)
+            }
+          }
+          
           if (!groupedProp && groupedPropKey === 'border-color') {
             groupedProp = prop.borderProps!.get('border')
           }
@@ -3611,9 +3626,21 @@ export default function PropControlContent({
             const layoutVariant = selectedVariants['layout']
             if (layoutVariant) {
               const propBelongsToLayout = groupedProp.path.includes(layoutVariant)
-              if (!propBelongsToLayout) {
+              // Component-level props (like label-optional-text-gap) don't have layout in their path, so skip this filter for them
+              if (!groupedProp.isVariantSpecific && !propBelongsToLayout) {
+                // Don't filter out component-level props - they don't belong to any specific layout
+              } else if (groupedProp.isVariantSpecific && !propBelongsToLayout) {
                 return null
               }
+              // Special case: bottom-padding only belongs to stacked layout, hide it for side-by-side
+              if (groupedPropKey === 'bottom-padding' && layoutVariant === 'side-by-side') {
+                return null
+              }
+              // Special case: vertical-padding only belongs to side-by-side layout, hide it for stacked
+              if (groupedPropKey === 'vertical-padding' && layoutVariant === 'stacked') {
+                return null
+              }
+              // Note: min-height is now available for both stacked and side-by-side layouts
             }
           }
 

@@ -27,8 +27,14 @@
 
 /* Item styles - ensure no borders on items */
 .recursica-accordion.mantine-accordion .mantine-Accordion-item {
+  background: var(--accordion-item-header-bg-collapsed) !important;
   border-radius: var(--accordion-item-border-radius) !important;
   /* box-shadow is applied via inline style from component */
+}
+
+/* Apply expanded background when accordion item is open */
+.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] {
+  background: var(--accordion-item-header-bg-expanded) !important;
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-item[data-divider='true'] {
@@ -44,7 +50,7 @@
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-control {
   padding: var(--accordion-item-padding) !important;
-  background: var(--accordion-item-header-bg) !important;
+  background: transparent !important;
   color: var(--accordion-item-header-text) !important;
   font-family: var(--accordion-item-header-font-family) !important;
   font-size: var(--accordion-item-header-font-size) !important;
@@ -81,6 +87,7 @@
   border-radius: var(--accordion-item-border-radius, 4px);
   pointer-events: none;
 }
+
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-label {
   color: var(--accordion-item-header-text) !important;

@@ -25,11 +25,16 @@
 
 /* Item styles - remove all borders from items */
 .recursica-accordion.material-accordion .MuiAccordion-root {
-  background: var(--accordion-item-header-bg) !important;
+  background: var(--accordion-item-header-bg-collapsed) !important;
   border-radius: var(--accordion-item-border-radius) !important;
   box-shadow: var(--accordion-item-elevation-box-shadow, none) !important;
   border: none !important;
   outline: none !important;
+}
+
+/* Apply expanded background when accordion is expanded */
+.recursica-accordion.material-accordion .MuiAccordion-root.Mui-expanded {
+  background: var(--accordion-item-header-bg-expanded) !important;
 }
 
 .recursica-accordion.material-accordion .MuiAccordion-root::before {

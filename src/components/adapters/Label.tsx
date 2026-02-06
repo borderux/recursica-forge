@@ -140,6 +140,7 @@ export function Label({
   
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
+  const optionalTextGapVar = getComponentLevelCssVar('Label', 'label-optional-text-gap')
   
   // #region agent log
   useEffect(() => {
@@ -218,6 +219,7 @@ export function Label({
             alignItems: layout === 'side-by-side' 
               ? (align === 'right' ? 'flex-end' : 'flex-start')
               : (align === 'right' ? 'flex-end' : 'stretch'),
+            gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
           }}>
             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align }}>{children}</span>
             <span

@@ -25,10 +25,16 @@
 
 /* Item styles - remove all borders from items */
 .recursica-accordion.carbon-accordion .cds--accordion__item {
+  background: var(--accordion-item-header-bg-collapsed) !important;
   border-radius: var(--accordion-item-border-radius) !important;
   border: none !important;
   box-shadow: var(--accordion-item-elevation-box-shadow, none) !important;
   outline: none !important;
+}
+
+/* Apply expanded background when accordion item is open */
+.recursica-accordion.carbon-accordion .cds--accordion__item.cds--accordion__item--active {
+  background: var(--accordion-item-header-bg-expanded) !important;
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__item[data-divider='true'] {
@@ -44,7 +50,7 @@
 
 .recursica-accordion.carbon-accordion .cds--accordion__heading,
 .recursica-accordion.carbon-accordion .cds--accordion__button {
-  background: var(--accordion-item-header-bg) !important;
+  background: transparent !important;
   color: var(--accordion-item-header-text) !important;
   padding: var(--accordion-item-padding) !important;
   font-family: var(--accordion-item-header-font-family) !important;
@@ -62,6 +68,7 @@
   box-shadow: none !important;
   border-radius: var(--accordion-item-border-radius) !important;
 }
+
 
 .recursica-accordion.carbon-accordion .cds--accordion__heading *,
 .recursica-accordion.carbon-accordion .cds--accordion__button * {

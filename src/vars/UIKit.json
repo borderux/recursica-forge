@@ -2122,9 +2122,13 @@
           },
           "colors": {
             "layer-0": {
-              "background": {
+              "background-collapsed": {
                 "$type": "color",
                 "$value": null
+              },
+              "background-expanded": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",
@@ -2148,9 +2152,13 @@
               }
             },
             "layer-1": {
-              "background": {
+              "background-collapsed": {
                 "$type": "color",
                 "$value": null
+              },
+              "background-expanded": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",
@@ -2174,9 +2182,13 @@
               }
             },
             "layer-2": {
-              "background": {
+              "background-collapsed": {
                 "$type": "color",
                 "$value": null
+              },
+              "background-expanded": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",
@@ -2200,9 +2212,13 @@
               }
             },
             "layer-3": {
-              "background": {
+              "background-collapsed": {
                 "$type": "color",
                 "$value": null
+              },
+              "background-expanded": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "text": {
                 "$type": "color",
@@ -2992,6 +3008,13 @@
                 "bottom-padding": {
                   "$type": "dimension",
                   "$value": "{ui-kit.components.label.properties.stacked.bottom-padding}"
+                },
+                "min-height": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 20,
+                    "unit": "px"
+                  }
                 }
               },
               "variants": {
