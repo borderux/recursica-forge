@@ -19,28 +19,28 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `font/letter-spacing/${k}`, value: num })
       })
-    } catch {}
+    } catch { }
     return list
   }, [tokensJson])
 
   const items = useMemo(() => {
     const out: Array<{ name: string; value: number | string }> = flattened
-    const canonical = ['tightest','tighter','tight','default','wide','wider','widest']
+    const canonical = ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest']
     const weight = (n: string) => {
-      const raw = n.replace('font/letter-spacing/','')
+      const raw = n.replace('font/letter-spacing/', '')
       const key = raw === 'tighest' ? 'tightest' : raw
       const idx = canonical.indexOf(key)
       return idx === -1 ? Number.POSITIVE_INFINITY : idx
     }
-    return out.slice().sort((a,b) => weight(a.name) - weight(b.name))
+    return out.slice().sort((a, b) => weight(a.name) - weight(b.name))
   }, [flattened])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
-  const order = ['tightest','tighter','tight','default','wide','wider','widest'] as const
+  const order = ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest'] as const
   const defaultIdx = 3
   const scaleByTW = autoScale
-  const availableShorts = useMemo(() => new Set(flattened.map((f) => f.name.replace('font/letter-spacing/',''))), [flattened])
+  const availableShorts = useMemo(() => new Set(flattened.map((f) => f.name.replace('font/letter-spacing/', ''))), [flattened])
   const resolveShortToActual = (short: string): string => {
     if (availableShorts.has(short)) return short
     if (short === 'tightest' && availableShorts.has('tighest')) return 'tighest'
@@ -48,12 +48,12 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   }
   const getVal = (fullName: string): number => {
     // fullName is like 'font/letter-spacing/{short}'
-    const short = fullName.replace('font/letter-spacing/','')
+    const short = fullName.replace('font/letter-spacing/', '')
     const actual = resolveShortToActual(short)
     // Read directly from tokensJson - support both plural and singular
     try {
-      const v = (tokensJson as any)?.tokens?.font?.['letter-spacings']?.[actual]?.$value || 
-                (tokensJson as any)?.tokens?.font?.['letter-spacing']?.[actual]?.$value
+      const v = (tokensJson as any)?.tokens?.font?.['letter-spacings']?.[actual]?.$value ||
+        (tokensJson as any)?.tokens?.font?.['letter-spacing']?.[actual]?.$value
       const n = typeof v === 'number' ? v : parseFloat(v)
       return Number.isFinite(n) ? n : 0
     } catch {
@@ -98,7 +98,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   return (
     <div style={{ display: 'grid', gap: 0 }}>
       {items.map((it, index) => {
-        const keyName = it.name.replace('font/letter-spacing/','')
+        const keyName = it.name.replace('font/letter-spacing/', '')
         const label = keyName === 'tighest' ? 'Tightest' : toTitle(keyName)
         const current = Number(it.value)
         const isDefault = keyName === 'default'
@@ -107,15 +107,15 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
         const disabled = scaleByTW && !(isDefault || isTight || isWide)
         const letterSpacingVar = `--recursica-tokens-font-letter-spacings-${keyName === 'tighest' ? 'tightest' : keyName}`
         const isLast = index === items.length - 1
-        
+
         return (
-          <div key={it.name} style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'auto 1fr 350px', 
+          <div key={it.name} style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto 1fr 350px',
             gap: 0,
             alignItems: 'stretch',
           }}>
-            <label htmlFor={it.name} style={{ 
+            <label htmlFor={it.name} style={{
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
@@ -144,9 +144,9 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
             }}>
               {exampleText}
             </div>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               gap: 'var(--recursica-brand-dimensions-general-default)',
               borderLeft: `1px solid var(${layer1Base}-border-color)`,
@@ -173,9 +173,10 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
                 }}
                 layer="layer-0"
                 layout="stacked"
-                showInput={true}
+                showInput={false}
                 showValueLabel={true}
                 valueLabel={(val) => `${val >= 0 ? '+' : ''}${val.toFixed(2)}px`}
+                showMinMaxLabels={false}
               />
             </div>
           </div>

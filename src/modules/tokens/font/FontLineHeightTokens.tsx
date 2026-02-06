@@ -19,24 +19,24 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `font/line-height/${k}`, value: num })
       })
-    } catch {}
+    } catch { }
     return list
   }, [tokensJson])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
-  const order = ['shortest','shorter','short','default','tall','taller','tallest'] as const
+  const order = ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest'] as const
   const defaultIdx = order.indexOf('default')
 
   const getVal = (name: string): number => {
     // Read directly from tokensJson - support both plural and singular
-    const key = name.replace('font/line-height/','')
+    const key = name.replace('font/line-height/', '')
     try {
-      const v = (tokensJson as any)?.tokens?.font?.['line-heights']?.[key]?.$value || 
-                (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
+      const v = (tokensJson as any)?.tokens?.font?.['line-heights']?.[key]?.$value ||
+        (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
       const n = typeof v === 'number' ? v : parseFloat(v)
       if (Number.isFinite(n)) return n
-    } catch {}
+    } catch { }
     // sensible fallbacks if tokens are missing
     const fallbackDef = 1
     const fallbackD = 0.1
@@ -94,15 +94,15 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
         const disabled = scaleByST && !(isDefault || isShort || isTall)
         const lineHeightVar = `--recursica-tokens-font-line-heights-${k}`
         const isLast = index === order.length - 1
-        
+
         return (
-          <div key={name} style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'auto 1fr 350px', 
+          <div key={name} style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto 1fr 350px',
             gap: 0,
             alignItems: 'stretch',
           }}>
-            <label htmlFor={name} style={{ 
+            <label htmlFor={name} style={{
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
               color: `var(${layer0Base}-element-text-color)`,
               opacity: `var(${layer0Base}-element-text-high-emphasis)`,
@@ -130,9 +130,9 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
             }}>
               {exampleText}
             </div>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               gap: 'var(--recursica-brand-dimensions-general-default)',
               borderLeft: `1px solid var(${layer1Base}-border-color)`,
@@ -157,12 +157,12 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
                     updateToken(name, value)
                   }
                 }}
-                layer="layer-0"
+                layer="layer-1"
                 layout="stacked"
-                showInput={true}
+                showInput={false}
                 showValueLabel={true}
-                valueLabel={(val) => val.toFixed(2)}
-              />
+                valueLabel={(val: number) => `${val.toFixed(2)}`}
+                showMinMaxLabels={false} />
             </div>
           </div>
         )

@@ -31,6 +31,7 @@ import {
   ArrowsOutLineHorizontal,
   ArrowsOutLineVertical,
   ArrowsVertical,
+  Article,
   Asterisk,
   BugBeetle as Bug,
   CaretDoubleRight,
@@ -66,6 +67,7 @@ import {
   Minus,
   Moon,
   PaintBrush,
+  PaintBrushBroad,
   PaintBucket,
   Palette,
   Pause,
@@ -73,6 +75,7 @@ import {
   Plus,
   Queue,
   Resize,
+  Rows,
   Scales,
   SignOut,
   SlidersHorizontal,
@@ -214,12 +217,12 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'diamond': Diamond,
   'paint-bucket': PaintBucket,
   'copy-simple': CopySimple,
-  
+
   // Variants
   'variant-color': DiamondsFour,
   'variant-size': Resize,
   'resize': Resize,
-  
+
   // Other icons used in the app
   'chevron-down': CaretDown,
   'chevron-right': CaretRight,
@@ -244,7 +247,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'text-a-underline': TextAUnderline,
   'text-t-slash': TextTSlashIcon,
   'text-italic': TextItalic,
-  
+
   // Radix UI typography icons (wrapped to normalize props)
   'radix-font-italic': createRadixIconWrapper(FontItalicIcon),
   'radix-font-roman': createRadixIconWrapper(FontRomanIcon),
@@ -301,6 +304,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'x': X,
   'check-square': CheckSquare,
   'squares-four': SquaresFour,
+  'article': Article,
+  'paint-brush-broad': PaintBrushBroad,
+  'rows': Rows,
 }
 
 /**
@@ -314,7 +320,7 @@ export function getIcon(iconName: string): IconComponent | null {
     console.warn(`Icon "${iconName}" not found in icon map`)
     return null
   }
-  
+
   return IconComponent
 }
 

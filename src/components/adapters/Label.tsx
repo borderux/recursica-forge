@@ -43,7 +43,7 @@ export function Label({
 }: LabelProps) {
   const Component = useComponent('Label')
   const { mode } = useThemeMode()
-  
+
   // Get text CSS variables for reactive updates
   const labelFontSizeVar = getComponentTextCssVar('Label', 'label-text', 'font-size')
   const labelFontFamilyVar = getComponentTextCssVar('Label', 'label-text', 'font-family')
@@ -53,7 +53,7 @@ export function Label({
   const labelTextDecorationVar = getComponentTextCssVar('Label', 'label-text', 'text-decoration')
   const labelTextTransformVar = getComponentTextCssVar('Label', 'label-text', 'text-transform')
   const labelFontStyleVar = getComponentTextCssVar('Label', 'label-text', 'font-style')
-  
+
   const optionalFontSizeVar = getComponentTextCssVar('Label', 'optional-text', 'font-size')
   const optionalFontFamilyVar = getComponentTextCssVar('Label', 'optional-text', 'font-family')
   const optionalFontWeightVar = getComponentTextCssVar('Label', 'optional-text', 'font-weight')
@@ -62,10 +62,10 @@ export function Label({
   const optionalTextDecorationVar = getComponentTextCssVar('Label', 'optional-text', 'text-decoration')
   const optionalTextTransformVar = getComponentTextCssVar('Label', 'optional-text', 'text-transform')
   const optionalFontStyleVar = getComponentTextCssVar('Label', 'optional-text', 'font-style')
-  
+
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
-  
+
   // Get CSS variable for size-based width based on layout and size variants (moved up to use in listener)
   // Width is nested: variants.layouts.{layout}.variants.sizes.{size}.properties.width
   let widthVar: string | undefined
@@ -73,35 +73,35 @@ export function Label({
   widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layout, 'variants', 'sizes', effectiveSize, 'properties', 'width')
   const labelWidthVar = getComponentLevelCssVar('Label', 'label-width')
   const effectiveWidthVar = widthVar || labelWidthVar
-  
+
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     const textCssVars = [
-      labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar, 
+      labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
       labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
       optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
       optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar
     ]
-    
+
     // Include width CSS vars in the update check
     const widthCssVars = effectiveWidthVar ? [effectiveWidthVar, widthVar, labelWidthVar].filter(Boolean) : []
     const allCssVars = [...textCssVars, ...widthCssVars]
-    
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       // Update if any text or width CSS var was updated
-      const shouldUpdate = !detail?.cssVars || detail.cssVars.some((cssVar: string) => 
+      const shouldUpdate = !detail?.cssVars || detail.cssVars.some((cssVar: string) =>
         allCssVars.includes(cssVar) || cssVar.includes('label') || cssVar.includes('components-label')
       )
-      
+
       if (shouldUpdate) {
         // Force re-render by updating state
         setTextVarsUpdate(prev => prev + 1)
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
+
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       // Force re-render for text and width vars
@@ -111,7 +111,7 @@ export function Label({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
@@ -123,39 +123,29 @@ export function Label({
     optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar,
     effectiveWidthVar, widthVar, labelWidthVar, effectiveSize, layout
   ])
-  
+
   // Determine variant based on required prop if not explicitly set
   const styleVariant = variant === 'default' && required ? 'required' : variant
-  
+
   // Get CSS variables for colors
   // Text color and asterisk color are at component level, not variant-specific
   const textColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
-  const asteriskColorVar = styleVariant === 'required' 
+  const asteriskColorVar = styleVariant === 'required'
     ? buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'asterisk')
     : undefined
-  
+
   // Get CSS variables for text emphasis opacity
   const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
   const lowEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
-  
+
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
   const optionalTextGapVar = getComponentLevelCssVar('Label', 'label-optional-text-gap')
-  
-  // #region agent log
-  useEffect(() => {
-    if (effectiveWidthVar) {
-      const currentValue = readCssVar(effectiveWidthVar)
-      const resolvedValue = readCssVarResolved(effectiveWidthVar)
-      const rootValue = window.getComputedStyle(document.documentElement).getPropertyValue(effectiveWidthVar.replace('--', ''))
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Label.tsx:141',message:'Label width read',data:{effectiveWidthVar,widthVar,labelWidthVar,effectiveSize,layout,currentValue,resolvedValue,rootValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    }
-  }, [effectiveWidthVar, widthVar, labelWidthVar, effectiveSize, layout]);
-  // #endregion
-  
+
+
   // Get CSS variables for layout-specific spacing
   let layoutStyles: Record<string, string> = {}
-  
+
   if (layout === 'stacked') {
     const bottomPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'bottom-padding')
     layoutStyles.paddingBottom = `var(${bottomPaddingVar})`
@@ -175,7 +165,7 @@ export function Label({
     }
     // Note: gutter is used by parent container's gap property, not applied to label itself
   }
-  
+
   // Apply width/minWidth to layoutStyles
   if (effectiveWidthVar) {
     if (layout === 'side-by-side') {
@@ -186,7 +176,7 @@ export function Label({
       layoutStyles.width = `var(${effectiveWidthVar})`
     }
   }
-  
+
   if (!Component) {
     // Fallback to native label element
     return (
@@ -212,11 +202,11 @@ export function Label({
         }}
       >
         {styleVariant === 'optional' ? (
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
             justifyContent: 'center',
-            alignItems: layout === 'side-by-side' 
+            alignItems: layout === 'side-by-side'
               ? (align === 'right' ? 'flex-end' : 'flex-start')
               : (align === 'right' ? 'flex-end' : 'stretch'),
             gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
@@ -261,7 +251,7 @@ export function Label({
       </label>
     )
   }
-  
+
   return (
     <Suspense fallback={<label style={{ display: 'block' }}>{children}</label>}>
       <Component

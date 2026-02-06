@@ -38,21 +38,21 @@ export type TokenReferenceContext = {
  */
 export function extractBraceContent(value: any): string | null {
   if (value == null) return null
-  
+
   // Handle $value wrapper
   if (typeof value === 'object' && '$value' in value) {
     value = value.$value
   }
-  
+
   if (typeof value !== 'string') return null
-  
+
   const trimmed = value.trim()
   if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
     return null
   }
-  
+
   let inner = trimmed.slice(1, -1).trim()
-  
+
   // Normalize spaces to dots and clean up the reference
   // Handle cases like "{brand themes light palettes neutral.100. color tone}" 
   // → "{brand.themes.light.palettes.neutral.100.color.tone}"
@@ -62,7 +62,7 @@ export function extractBraceContent(value: any): string | null {
     .replace(/\s+/g, '.')        // Replace remaining spaces with dots
     .replace(/\.+/g, '.')         // Collapse multiple dots to single dot
     .replace(/^\.|\.$/g, '')      // Remove leading/trailing dots
-  
+
   return inner || null
 }
 
@@ -75,9 +75,9 @@ export function parseTokenReference(
 ): ParsedTokenReference | null {
   const inner = extractBraceContent(value)
   if (!inner) return null
-  
+
   const currentMode = context?.currentMode || 'light'
-  
+
   // Token references: {tokens.color.family.level} or {token.color.family.level}
   if (/^(tokens?|token)\./i.test(inner)) {
     const path = inner.replace(/^(tokens?|token)\./i, '').split('.').filter(Boolean)
@@ -87,7 +87,7 @@ export function parseTokenReference(
       resolvedPath: path.join('/')
     }
   }
-  
+
   // UIKit references: {ui-kit.*} or {ui-kit.*}
   if (/^ui-kit\./i.test(inner)) {
     const path = inner.replace(/^ui-kit\./i, '').split('.').filter(Boolean)
@@ -97,31 +97,31 @@ export function parseTokenReference(
       resolvedPath: inner
     }
   }
-  
+
   // Brand references
   if (/^brand\./i.test(inner) || /^theme\./i.test(inner)) {
     // Normalize "theme" to "brand"
     let normalized = inner.replace(/^theme\./i, 'brand.')
-    
+
     // Remove any theme specification from the reference
     // Strip out: brand.themes.light.*, brand.themes.dark.*, brand.light.*, brand.dark.*
     // All references should be theme-agnostic and use current mode from context
     normalized = normalized
       .replace(/^brand\.themes\.(?:light|dark)\./i, 'brand.')
       .replace(/^brand\.(?:light|dark)\./i, 'brand.')
-    
+
     const parts = normalized.split('.').filter(Boolean)
-    
+
     // Extract path parts (skip "brand" prefix)
-    const pathParts = parts.length > 0 && parts[0].toLowerCase() === 'brand' 
+    const pathParts = parts.length > 0 && parts[0].toLowerCase() === 'brand'
       ? parts.slice(1)
       : parts
-    
+
     // Build resolved path with current mode for internal use
-    const resolvedPath = pathParts.length > 0 
+    const resolvedPath = pathParts.length > 0
       ? `brand.themes.${currentMode}.${pathParts.join('.')}`
       : `brand.themes.${currentMode}`
-    
+
     return {
       type: 'brand',
       path: pathParts,
@@ -129,7 +129,7 @@ export function parseTokenReference(
       resolvedPath
     }
   }
-  
+
   return {
     type: 'unknown',
     path: inner.split('.').filter(Boolean),
@@ -147,15 +147,15 @@ export function resolveTokenReferenceToCssVar(
 ): string | null {
   const parsed = parseTokenReference(value, context)
   if (!parsed) return null
-  
+
   const mode = parsed.mode || context.currentMode || 'light'
-  
+
   // Token references → CSS token variables
   if (parsed.type === 'token') {
     const path = parsed.resolvedPath || parsed.path.join('/')
     return `var(--recursica-tokens-${path.replace(/\//g, '-')})`
   }
-  
+
   // UIKit references → CSS UIKit variables
   if (parsed.type === 'ui-kit') {
     // Handle UIKit self-references: 
@@ -167,10 +167,10 @@ export function resolveTokenReferenceToCssVar(
       .replace(/^ui-kit(\d+)/i, 'ui-kit.$1') // Fix "ui-kit0" → "ui-kit.0"
       .replace(/\.+/g, '.')  // Collapse multiple dots
       .replace(/^\.|\.$/g, '') // Remove leading/trailing dots
-    
+
     const parts = normalized.split('.').filter(Boolean)
     if (parts.length < 2) return null
-    
+
     // Determine if there's a mode number after "ui-kit"
     // If second part is a number (0 or 3), skip it; otherwise keep all parts after "ui-kit"
     let uikitPath: string
@@ -185,19 +185,19 @@ export function resolveTokenReferenceToCssVar(
       // Skip only "ui-kit", keep the rest (including "components")
       uikitPath = parts.slice(1).join('.')
     }
-    
+
     if (!uikitPath) return null
-    
+
     // Check if this is a globals reference (needs mode prefix)
     // Both globals and component references need mode prefix to match toCssVarName behavior
     // Globals references like {ui-kit.globals.form.*} → --recursica-ui-kit-themes-light-globals-form-...
     // Component references like {ui-kit.components.chip.*} → --recursica-ui-kit-themes-light-components-chip-...
     const isGlobalsRef = uikitPath.startsWith('globals.')
     const isComponentRef = uikitPath.startsWith('components.')
-    
+
     // Generate CSS var name by joining with hyphens
     const pathParts = uikitPath.split('.').filter(Boolean)
-    
+
     // For both globals and component references, include mode prefix to match toCssVarName behavior
     // This ensures references like {ui-kit.globals.form.field.colors.disabled}
     // resolve to --recursica-ui-kit-themes-light-globals-form-field-colors-disabled
@@ -209,35 +209,35 @@ export function resolveTokenReferenceToCssVar(
     } else {
       cssVarName = `--recursica-ui-kit-${pathParts.join('-')}`
     }
-    
+
     return `var(${cssVarName})`
   }
-  
+
   // Brand references → CSS brand variables
   if (parsed.type === 'brand') {
     const pathParts = parsed.path
-    
+
     // Brand-level references (no mode): {brand.dimensions.*}, {brand.typography.*}, {brand.states.*}, {brand.text-emphasis.*}
     if (pathParts.length > 0) {
       const firstPart = pathParts[0].toLowerCase()
-      
+
       if (firstPart === 'dimensions' || firstPart === 'dimension') {
         const dimPath = pathParts.slice(1).join('-')
         return `var(--recursica-brand-dimensions-${dimPath})`
       }
-      
+
       if (firstPart === 'states' || firstPart === 'state') {
         // States are theme-specific but referenced without theme in JSON
         const statePath = pathParts.slice(1).join('-')
         return `var(--recursica-brand-themes-${mode}-state-${statePath})`
       }
-      
+
       if (firstPart === 'text-emphasis' || firstPart === 'textemphasis') {
         // Text-emphasis is theme-specific but referenced without theme in JSON
         const emphasisPath = pathParts.slice(1).join('-')
         return `var(--recursica-brand-themes-${mode}-text-emphasis-${emphasisPath})`
       }
-      
+
       if (firstPart === 'typography') {
         // Typography CSS variables naming pattern (from typography.ts):
         // - font-size -> --recursica-brand-typography-{style}-font-size
@@ -248,18 +248,29 @@ export function resolveTokenReferenceToCssVar(
         const remainingParts = pathParts.slice(1)
         if (remainingParts.length >= 2) {
           const styleName = remainingParts[0] // e.g., "body-small"
-          const property = remainingParts.slice(1).join('-') // e.g., "font-size" or "line-height"
-          
-          // Special case: line-height does NOT get "font-" prefix
-          if (property === 'line-height') {
-            return `var(--recursica-brand-typography-${styleName}-line-height)`
+          let property = remainingParts.slice(1).join('-') // e.g., "font-size" or "line-height"
+
+          // Normalize common aliases to standard CSS property names
+          if (property === 'textCase' || property === 'text-case') property = 'text-transform'
+          if (property === 'textDecoration') property = 'text-decoration'
+          if (property === 'fontFamily') property = 'font-family'
+          if (property === 'fontSize') property = 'font-size'
+          if (property === 'fontWeight') property = 'font-weight'
+          if (property === 'letterSpacing') property = 'letter-spacing'
+          if (property === 'lineHeight') property = 'line-height'
+          if (property === 'fontStyle') property = 'font-style'
+
+          // Special case: line-height, text-transform, text-decoration do NOT get "font-" prefix
+          const noPrefixProperties = ['line-height', 'text-transform', 'text-decoration']
+          if (noPrefixProperties.includes(property)) {
+            return `var(--recursica-brand-typography-${styleName}-${property})`
           }
-          
+
           // Properties that already start with "font-" use as-is
           if (property.startsWith('font-')) {
             return `var(--recursica-brand-typography-${styleName}-${property})`
           }
-          
+
           // Other properties (like letter-spacing) get "font-" prefix
           return `var(--recursica-brand-typography-${styleName}-font-${property})`
         } else if (remainingParts.length === 1) {
@@ -274,7 +285,7 @@ export function resolveTokenReferenceToCssVar(
         }
       }
     }
-    
+
     // Layer references: layers.layer-0.properties.surface or layers.layer-0.property.surface or layers.0.property.surface
     // Support both "property" (singular) and "properties" (plural)
     const layerMatch = /^layers?\.(?:layer-)?(\d+)\.properties?\.(.+)$/i.exec(pathParts.join('.'))
@@ -283,7 +294,7 @@ export function resolveTokenReferenceToCssVar(
       const prop = layerMatch[2].replace(/\./g, '-')
       return `var(--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property-${prop})`
     }
-    
+
     // Layer element references: layers.layer-0.elements.text.color
     // Special handling for text.emphasis.low/high → brand-level text emphasis
     const layerElementEmphasisMatch = /^layers?\.(?:layer-)?(\d+)\.elements?\.text\.emphasis\.(low|high)$/i.exec(pathParts.join('.'))
@@ -292,27 +303,27 @@ export function resolveTokenReferenceToCssVar(
       // Text emphasis is stored at brand level, not layer-specific
       return `var(--recursica-brand-themes-${mode}-text-emphasis-${emphasis.toLowerCase()})`
     }
-    
+
     const layerElementMatch = /^layers?\.(?:layer-)?(\d+)\.elements?\.(.+)$/i.exec(pathParts.join('.'))
     if (layerElementMatch) {
       const layerNum = layerElementMatch[1]
       let elementPath = layerElementMatch[2].replace(/\./g, '-')
-      
+
       // Special handling: element.interactive → element-interactive-color
       if (elementPath === 'interactive') {
         elementPath = 'interactive-color'
       }
-      
+
       return `var(--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property-element-${elementPath})`
     }
-    
+
     // Palette core-colors references with state: palettes.core-colors.interactive.default.tone
     const paletteCoreColorsStateMatch = /^palettes?\.core-colors?\.([a-z0-9-]+)\.([a-z0-9-]+)\.(tone|on-tone)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsStateMatch) {
       const [, coreColor, state, type] = paletteCoreColorsStateMatch
       return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-${state}-${type})`
     }
-    
+
     // Palette core-colors references with property: palettes.core-colors.success.tone, palettes.core-colors.success.interactive, palettes.core-colors.success.on-tone
     const paletteCoreColorsPropertyMatch = /^palettes?\.core-colors?\.([a-z0-9-]+)\.(tone|on-tone|interactive)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsPropertyMatch) {
@@ -326,14 +337,14 @@ export function resolveTokenReferenceToCssVar(
         return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-interactive)`
       }
     }
-    
+
     // Palette core-colors references: palettes.core-colors.alert
     const paletteCoreColorsMatch = /^palettes?\.core-colors?\.(alert|warning|success|interactive|black|white)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsMatch) {
       const [, coreColor] = paletteCoreColorsMatch
       return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor})`
     }
-    
+
     // Palette references with full path: palettes.neutral.100.color.tone or palettes.neutral.default.color.tone
     const paletteFlexMatch = /^palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)\.color\.(tone|on-tone)$/i.exec(pathParts.join('.'))
     if (paletteFlexMatch) {
@@ -341,7 +352,7 @@ export function resolveTokenReferenceToCssVar(
       const cssLevel = level === 'default' ? 'primary' : level
       return `var(--recursica-brand-themes-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
     }
-    
+
     // Palette references: palettes.neutral.100.tone (legacy format without .color.)
     const paletteMatch = /^palettes?\.([a-z0-9-]+)\.(\d+|default|primary)\.(tone|on-tone)$/i.exec(pathParts.join('.'))
     if (paletteMatch) {
@@ -349,49 +360,49 @@ export function resolveTokenReferenceToCssVar(
       const cssLevel = level === 'default' ? 'primary' : level
       return `var(--recursica-brand-themes-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
     }
-    
+
     // Palette default/primary references: palettes.neutral.default or palettes.neutral.primary
     const paletteDefaultMatch = /^palettes?\.([a-z0-9-]+)\.(default|primary)$/i.exec(pathParts.join('.'))
     if (paletteDefaultMatch) {
       const [, paletteKey] = paletteDefaultMatch
       return `var(--recursica-brand-themes-${mode}-palettes-${paletteKey}-primary-tone)`
     }
-    
+
     // Palette alert/warning/success: palettes.alert (legacy format)
     const paletteCoreMatch = /^palettes?\.(alert|warning|success)$/i.exec(pathParts.join('.'))
     if (paletteCoreMatch) {
       const [, coreColor] = paletteCoreMatch
       return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor})`
     }
-    
+
     // Palette black/white shortcuts: palettes.black or palettes.white
     const paletteBWMatch = /^palettes?\.(black|white)$/i.exec(pathParts.join('.'))
     if (paletteBWMatch) {
       const [, color] = paletteBWMatch
       return `var(--recursica-brand-themes-${mode}-palettes-core-${color})`
     }
-    
+
     // Elevation references: elevations.elevation-0 or elevations.elevation-1
     const elevationKeyMatch = /^elevations?\.(elevation-\d+)$/i.exec(pathParts.join('.'))
     if (elevationKeyMatch) {
       const [, elevationKey] = elevationKeyMatch
       return `var(--recursica-brand-themes-${mode}-elevations-${elevationKey})`
     }
-    
+
     // Elevation references: elevations.elevation-0.x-axis
     const elevationMatch = /^elevations?\.elevation-(\d+)\.(.+)$/i.exec(pathParts.join('.'))
     if (elevationMatch) {
       const [, elevationNum, prop] = elevationMatch
       return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationNum}-${prop.replace(/\./g, '-')})`
     }
-    
+
     // State references: state.disabled or states.disabled
     const stateMatch = /^states?\.(.+)$/i.exec(pathParts.join('.'))
     if (stateMatch) {
       const statePath = stateMatch[1].replace(/\./g, '-')
       return `var(--recursica-brand-themes-${mode}-state-${statePath})`
     }
-    
+
     // Text-emphasis references: text-emphasis.low or text-emphasis.high
     const textEmphasisMatch = /^text-emphasis\.(low|high)$/i.exec(pathParts.join('.'))
     if (textEmphasisMatch) {
@@ -399,7 +410,7 @@ export function resolveTokenReferenceToCssVar(
       return `var(--recursica-brand-themes-${mode}-text-emphasis-${emphasis})`
     }
   }
-  
+
   return null
 }
 
@@ -413,7 +424,7 @@ export function resolveTokenReferenceToValue(
   depth = 0
 ): any {
   if (depth > 10) return undefined
-  
+
   const parsed = parseTokenReference(value, context)
   if (!parsed) {
     // Not a brace reference, return as-is
@@ -422,65 +433,65 @@ export function resolveTokenReferenceToValue(
     }
     return value
   }
-  
+
   // Token references → get from token index
   if (parsed.type === 'token' && context.tokenIndex) {
     const path = parsed.resolvedPath || parsed.path.join('/')
     const tokenValue = context.tokenIndex.get(path)
     return resolveTokenReferenceToValue(tokenValue, context, depth + 1)
   }
-  
+
   // Brand references → traverse theme JSON
   if (parsed.type === 'brand' && context.theme) {
     const root: any = (context.theme as any)?.brand ? (context.theme as any).brand : context.theme
     const themes = root?.themes || root
-    
+
     let node: any = themes
     const pathParts = parsed.path
-    
+
     // Always use the mode from parsed (which comes from context.currentMode)
     // parsed.mode is always set to currentMode from context
     const mode = parsed.mode || context.currentMode || 'light'
     node = node?.[mode]
-    
+
     // Traverse the path
     for (const part of pathParts) {
       if (!node) break
-      
+
       // Check direct property
       let next = node[part]
-      
+
       // If not found, check inside $value wrapper
       if (next == null && node && typeof node === 'object' && '$value' in node) {
         next = node.$value?.[part]
       }
-      
+
       node = next
     }
-    
+
     return resolveTokenReferenceToValue(node, context, depth + 1)
   }
-  
+
   // UIKit references → traverse UIKit JSON
   if (parsed.type === 'ui-kit' && context.uikit) {
     let node: any = context.uikit
-    
+
     for (const part of parsed.path) {
       if (!node) break
-      
+
       let next = node[part]
-      
+
       // Check inside $value wrapper
       if (next == null && node && typeof node === 'object' && '$value' in node) {
         next = node.$value?.[part]
       }
-      
+
       node = next
     }
-    
+
     return resolveTokenReferenceToValue(node, context, depth + 1)
   }
-  
+
   return undefined
 }
 
@@ -503,15 +514,15 @@ export function tokenReferenceUsesToken(
 ): boolean {
   const parsed = parseTokenReference(value, context)
   if (!parsed || parsed.type !== 'token') return false
-  
+
   const path = parsed.path
   if (path.length < 3) return false
-  
+
   // Check if path matches tokens.color.{family}.{level}
   if (path[0].toLowerCase() === 'color' && path[1] === family && path[2] === level) {
     return true
   }
-  
+
   return false
 }
 

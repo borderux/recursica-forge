@@ -309,7 +309,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     if (value == null) return null
     const valStr = String(value).trim()
     if (!valStr) return null
-    
+
     // If it's a token reference string (e.g., {tokens.font.decorations.none}), resolve it to CSS variable
     if (valStr.startsWith('{') && valStr.endsWith('}')) {
       try {
@@ -321,12 +321,12 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         if (cssVar) return cssVar
       } catch { }
     }
-    
+
     // If it's already a CSS variable, return as-is
     if (valStr.startsWith('var(')) {
       return valStr
     }
-    
+
     // Otherwise, try to find token by matching value
     try {
       const pluralCategory = pluralMap[category] || category
@@ -389,7 +389,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const style = (styleChoice != null ? styleChoice : (resolveTokenRef(spec?.fontStyle) ?? spec?.fontStyle ?? 'normal'))
 
     const transformChoice = (ch as any).transform ? getFontToken(`cases/${(ch as any).transform}`) : undefined
-    const transform = (transformChoice != null ? transformChoice : (resolveTokenRef(spec?.textTransform) ?? spec?.textTransform ?? 'none'))
+    const transformValue = spec?.textTransform ?? spec?.textCase ?? spec?.textcase
+    const transform = (transformChoice != null ? transformChoice : (resolveTokenRef(transformValue) ?? transformValue ?? 'none'))
 
     const decorationChoice = (ch as any).decoration ? getFontToken(`decorations/${(ch as any).decoration}`) : undefined
     const decoration = (decorationChoice != null ? decorationChoice : (resolveTokenRef(spec?.textDecoration) ?? spec?.textDecoration ?? 'none'))
