@@ -45,7 +45,7 @@ export default function Modal({
     const dividerColorVar = getComponentCssVar('Modal', 'colors', 'scroll-divider', layer)
 
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
-    const borderThicknessVar = getComponentLevelCssVar('Modal', 'border-thickness')
+    const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')
     const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-thickness')
     const horizontalPaddingVar = getComponentLevelCssVar('Modal', 'horizontal-padding')
     const verticalPaddingVar = getComponentLevelCssVar('Modal', 'vertical-padding')
@@ -124,7 +124,7 @@ export default function Modal({
         '--modal-divider': `var(${dividerColorVar})`,
         '--modal-divider-thickness': `var(${scrollDividerThicknessVar})`,
         '--modal-border-radius': `var(${borderRadiusVar})`,
-        '--modal-border-thickness': `var(${borderThicknessVar})`,
+        '--modal-border-thickness': `var(${borderSizeVar})`,
         '--modal-padding-x': `var(${horizontalPaddingVar})`,
         '--modal-padding-y': `var(${verticalPaddingVar})`,
         '--modal-button-gap': `var(${buttonGapVar}, 0px)`,

@@ -44,7 +44,7 @@ export default function ModalPreview({
     const dividerColorVar = getComponentCssVar('Modal', 'colors', 'scroll-divider', selectedLayer as ComponentLayer)
 
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
-    const borderThicknessVar = getComponentLevelCssVar('Modal', 'border-thickness')
+    const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')
     const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-thickness')
     const horizontalPaddingVar = getComponentLevelCssVar('Modal', 'horizontal-padding')
     const verticalPaddingVar = getComponentLevelCssVar('Modal', 'vertical-padding')
@@ -69,7 +69,7 @@ export default function ModalPreview({
         background: `var(${bgVar})`,
         borderRadius: `var(${borderRadiusVar})`,
         boxShadow: elevationBoxShadow || 'none',
-        border: `var(${borderThicknessVar}) solid var(${borderColorVar})`,
+        border: `var(${borderSizeVar}) solid var(${borderColorVar})`,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',

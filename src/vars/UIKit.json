@@ -4758,7 +4758,7 @@
             "$type": "dimension",
             "$value": "{brand.dimensions.border-radii.lg}"
           },
-          "border-thickness": {
+          "border-size": {
             "$type": "dimension",
             "$value": {
               "value": 1,

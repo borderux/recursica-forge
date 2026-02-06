@@ -78,7 +78,7 @@
                     "label": "Border color",
                     "visible": true
                 },
-                "border-thickness": {
+                "border-size": {
                     "icon": "rows",
                     "label": "Border size",
                     "visible": true,
