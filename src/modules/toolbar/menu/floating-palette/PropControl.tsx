@@ -374,13 +374,6 @@ export default function PropControl({
       if (componentName.toLowerCase() === 'breadcrumb' && label.toLowerCase().includes('read only')) {
         // Ensure we're using the read-only CSS variable, not the interactive one
         if (validPrimaryVar.includes('interactive') && !validPrimaryVar.includes('read-only')) {
-          console.error('PropControl: ERROR - Read-only color is using interactive CSS var!', {
-            validPrimaryVar,
-            propCssVar: propToRender.cssVar,
-            primaryVar,
-            cssVars,
-            path: propToRender.path
-          })
           // Try to find the correct CSS variable from the structure
           const structure = parseComponentStructure(componentName)
           const correctProp = structure.props.find(p => 
@@ -397,14 +390,12 @@ export default function PropControl({
           if (correctProp) {
             validPrimaryVar = correctProp.cssVar
             validCssVars = [correctProp.cssVar]
-            console.log('PropControl: Corrected read-only color CSS var to:', validPrimaryVar)
           }
         }
       }
       
       // Only render if we have a valid CSS var
       if (!validPrimaryVar || !validPrimaryVar.trim()) {
-        console.warn('PropControl: No valid CSS var for prop', propToRender.name, { primaryVar, cssVars, propCssVar: propToRender.cssVar })
         return null
       }
       
@@ -438,7 +429,6 @@ export default function PropControl({
       
       // Only render if we have a valid CSS var
       if (!validPrimaryVar || !validPrimaryVar.trim()) {
-        console.warn('PropControl: No valid CSS var for dimension prop', propToRender.name, { primaryVar, cssVars, propCssVar: propToRender.cssVar })
         return null
       }
       
@@ -465,7 +455,7 @@ export default function PropControl({
             }
           }
         } catch (error) {
-          console.warn('Failed to read min-height from UIKit.json:', error)
+          // Failed to read min-height from UIKit.json
         }
         // Fallback: use default values based on size variant if JSON read fails
         if (minPixelValue === undefined) {

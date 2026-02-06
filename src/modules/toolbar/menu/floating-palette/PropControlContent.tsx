@@ -1092,13 +1092,6 @@ export default function PropControlContent({
       if (componentName.toLowerCase() === 'breadcrumb' && label.toLowerCase().includes('read only')) {
         // Ensure we're using the read-only CSS variable, not the interactive one
         if (validPrimaryVar.includes('interactive') && !validPrimaryVar.includes('read-only')) {
-          console.error('PropControlContent: ERROR - Read-only color is using interactive CSS var!', {
-            validPrimaryVar,
-            propCssVar: propToRender.cssVar,
-            primaryVar,
-            cssVars,
-            path: propToRender.path
-          })
           // Try to find the correct CSS variable from the structure
           const structure = parseComponentStructure(componentName)
           const correctProp = structure.props.find(p =>
@@ -1120,7 +1113,6 @@ export default function PropControlContent({
       }
 
       if (!validPrimaryVar || !validPrimaryVar.trim()) {
-        console.warn('PropControlContent: No valid CSS var for prop', propToRender.name)
         return null
       }
 
@@ -3284,7 +3276,7 @@ export default function PropControlContent({
           return hasTextProps
         }
       } catch (error) {
-        console.warn('Error checking text property group:', error)
+        // Error checking text property group
       }
       return false
     })())
