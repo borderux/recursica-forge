@@ -444,7 +444,7 @@ export function EditFontVariantsModal({
     <Modal
       isOpen={open}
       onClose={handleClose}
-      title={`Edit weights and styles: ${fontName}`}
+      title={`Edit ${fontName}`}
       size={600}
       layer="layer-2"
       primaryActionLabel={loading ? 'Saving...' : 'Save'}

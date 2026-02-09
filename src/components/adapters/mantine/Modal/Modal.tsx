@@ -266,6 +266,8 @@ export default function Modal({
                         pointerEvents: 'auto',
                         cursor: draggable ? (isDragging ? 'grabbing' : 'grab') : 'default',
                         userSelect: isDragging ? 'none' : 'auto',
+                        overflow: 'hidden', // Ensure the group itself can constrain children
+                        minWidth: 0,       // Allow the flex container to shrink
                     }}
                 >
                     <span style={{
@@ -274,7 +276,6 @@ export default function Modal({
                         fontSize: 'var(--modal-header-font-size)',
                         fontWeight: 'var(--modal-header-font-weight)',
                         letterSpacing: 'var(--modal-header-letter-spacing)',
-                        lineHeight: 'var(--modal-header-line-height)',
                         fontStyle: 'var(--modal-header-font-style)',
                         textDecoration: 'var(--modal-header-text-decoration)',
                         textTransform: 'var(--modal-header-text-transform)',
@@ -283,13 +284,16 @@ export default function Modal({
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
+                        minWidth: 0,
                         flex: 1,
+                        padding: '0.1em 0', // Tiny padding to prevent descender clipping with overflow: hidden
+                        lineHeight: '1.2', // Slightly more than 1 to ensure descenders have room
                     } as any}>
                         {title}
                     </span>
                     <Button
                         variant="text"
-                        layer="layer-1" // Use layer-1 to ensure brand reddish color for text variant
+                        layer={layer}
                         onClick={(e) => {
                             e.stopPropagation()
                             onClose()
@@ -327,19 +331,23 @@ export default function Modal({
                     // Note: dynamic positioning is now handled via CSS variables and Modal.css
                 },
                 header: {
-                    backgroundColor: 'var(--modal-bg)',
+                    backgroundColor: 'transparent',
                     padding: 'var(--modal-padding-y) var(--modal-padding-x)',
                     margin: 0,
-                    borderBottom: scrollable ? '1px solid var(--modal-divider)' : 'none',
+                    borderBottom: scrollable ? 'var(--modal-divider-thickness) solid var(--modal-divider)' : 'none',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     zIndex: 2,
+                    minWidth: 0, // Allow header to shrink
                 },
                 title: {
                     flex: 1, // Ensure title group takes full width
+                    minWidth: 0, // Allow title container to shrink
+                    overflow: 'hidden', // Contain the group
                 },
                 body: {
+                    backgroundColor: 'transparent',
                     padding: 0,
                     display: 'flex',
                     flexDirection: 'column',
@@ -365,6 +373,7 @@ export default function Modal({
             <Box
                 className="recursica-modal-body"
                 style={{
+                    backgroundColor: 'transparent',
                     padding: padding ? 'var(--modal-padding-y) var(--modal-padding-x)' : 0,
                     overflowY: scrollable ? 'auto' : 'visible',
                     flex: 1,
@@ -387,8 +396,8 @@ export default function Modal({
                     className="recursica-modal-footer"
                     style={{
                         padding: 'var(--modal-padding-y) var(--modal-padding-x)',
-                        borderTop: scrollable ? '1px solid var(--modal-divider)' : 'none',
-                        backgroundColor: 'var(--modal-bg)',
+                        borderTop: scrollable ? 'var(--modal-divider-thickness) solid var(--modal-divider)' : 'none',
+                        backgroundColor: 'transparent',
                     }}
                 >
                     <Group justify="flex-end" gap="var(--modal-button-gap)">

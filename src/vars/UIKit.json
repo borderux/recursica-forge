@@ -5211,7 +5211,7 @@
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 542,
+              "value": 960,
               "unit": "px"
             }
           },
