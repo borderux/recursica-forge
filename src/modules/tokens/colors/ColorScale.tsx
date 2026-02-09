@@ -70,12 +70,12 @@ export function ColorScale({
     // Value is already filtered in onChange - keep raw value in localName for typing
     // Don't apply toTitleCase while typing, only on blur/debounce
     setLocalName(newValue)
-    
+
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
-    
+
     // Set new timer to debounce the actual change
     debounceTimerRef.current = setTimeout(() => {
       const v = toTitleCase(newValue)
@@ -107,7 +107,7 @@ export function ColorScale({
   }, [])
 
   const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
-  
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       <div style={{ marginBottom: 'var(--recursica-brand-dimensions-general-sm)' }}>
@@ -126,8 +126,9 @@ export function ColorScale({
             }
           }}
           layer="layer-1"
-          style={{ 
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)', 
+          minWidth={0}
+          style={{
+            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
             width: '100%',
           }}
         />
@@ -171,7 +172,7 @@ export function ColorScale({
           />
         )
       })}
-      <div style={{ 
+      <div style={{
         marginTop: 'var(--recursica-brand-dimensions-general-sm)',
         display: 'flex',
         justifyContent: 'center',

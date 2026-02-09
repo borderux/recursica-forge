@@ -948,10 +948,11 @@ export default function ColorTokens() {
       {/* Color scales grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: `100px repeat(${families.length}, 1fr)`,
-        columnGap: 'var(--recursica-brand-dimensions-general-md)',
+        gridTemplateColumns: `100px repeat(${families.length}, minmax(80px, 200px))`,
+        columnGap: 'var(--recursica-brand-dimensions-gutters-horizontal)',
         rowGap: 0,
-        alignItems: 'start'
+        alignItems: 'start',
+        justifyContent: 'start'
       }}>
         {/* Numerical scale column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
