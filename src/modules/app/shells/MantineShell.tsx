@@ -451,48 +451,49 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             </div>
           }
         />
-      </div>
-      <ExportValidationErrorModal
-        show={showValidationModal}
-        errors={validationErrors}
-        onClose={handleValidationModalClose}
-      />
-      <ExportSelectionModalWrapper
-        show={showSelectionModal}
-        onConfirm={handleSelectionConfirm}
-        onCancel={handleSelectionCancel}
-        onExportToGithub={handleExportToGithub}
-      />
-      <GitHubExportModalWrapper
-        show={showGitHubModal}
-        selectedFiles={githubExportFiles}
-        onCancel={handleGitHubExportCancel}
-        onSuccess={handleGitHubExportSuccess}
-      />
-      <ExportComplianceModal
-        show={showComplianceModal}
-        issues={complianceIssues}
-        onAcknowledge={handleAcknowledge}
-        onCancel={handleCancel}
-      />
-      {process.env.NODE_ENV === 'development' && (
-        <RandomizeOptionsModal
-          show={showRandomizeModal}
-          onRandomize={(options) => {
-            randomizeAllVariables(options)
-            setShowRandomizeModal(false)
-          }}
-          onCancel={() => setShowRandomizeModal(false)}
+        <ExportValidationErrorModal
+          show={showValidationModal}
+          errors={validationErrors}
+          onClose={handleValidationModalClose}
         />
-      )}
-      <ImportDirtyDataModal
-        show={showDirtyModal}
-        filesToImport={filesToImport}
-        onAcknowledge={handleDirtyAcknowledgeWithClose}
-        onCancel={handleDirtyCancel}
-      />
+        <ExportSelectionModalWrapper
+          show={showSelectionModal}
+          onConfirm={handleSelectionConfirm}
+          onCancel={handleSelectionCancel}
+          onExportToGithub={handleExportToGithub}
+        />
+        <GitHubExportModalWrapper
+          show={showGitHubModal}
+          selectedFiles={githubExportFiles}
+          onCancel={handleGitHubExportCancel}
+          onSuccess={handleGitHubExportSuccess}
+        />
+        <ExportComplianceModal
+          show={showComplianceModal}
+          issues={complianceIssues}
+          onAcknowledge={handleAcknowledge}
+          onCancel={handleCancel}
+        />
+        {process.env.NODE_ENV === 'development' && (
+          <RandomizeOptionsModal
+            show={showRandomizeModal}
+            onRandomize={(options) => {
+              randomizeAllVariables(options)
+              setShowRandomizeModal(false)
+            }}
+            onCancel={() => setShowRandomizeModal(false)}
+          />
+        )}
+        <ImportDirtyDataModal
+          show={showDirtyModal}
+          filesToImport={filesToImport}
+          onAcknowledge={handleDirtyAcknowledgeWithClose}
+          onCancel={handleDirtyCancel}
+        />
+          </div>
     </MantineProvider>
   )
 }
+
 
 

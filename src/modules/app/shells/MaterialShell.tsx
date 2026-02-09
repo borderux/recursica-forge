@@ -509,15 +509,6 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
           onAcknowledge={handleAcknowledge}
           onCancel={handleCancel}
         />
-        {process.env.NODE_ENV === 'development' && (
-          <RandomizeOptionsModal
-            show={showRandomizeModal}
-            onRandomize={(options) => {
-              randomizeAllVariables(options)
-              setShowRandomizeModal(false)
-            }}
-            onCancel={() => setShowRandomizeModal(false)}
-          />
         )}
         <ImportDirtyDataModal
           show={showDirtyModal}

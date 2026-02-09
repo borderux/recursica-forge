@@ -1560,6 +1560,7 @@ class VarsStore {
   public recomputeAndApplyAll() {
 
     // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
+    // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
     if (this.isRecomputing) {
       return
     }
@@ -2252,9 +2253,6 @@ class VarsStore {
             const key = `elevation-${level}`
             const modeDirections = this.state.elevation.directions[mode] || {}
             const dir = modeDirections[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
-            // #region agent log
-
-            // #endregion
             return dir
           }
           // Helper to read elevation values directly from Brand.json for the current mode
@@ -2286,10 +2284,6 @@ class VarsStore {
           const modeElevations: any = themes?.[mode]?.elevations || {}
           const baseElevationNode: any = modeElevations?.['elevation-0']?.['$value'] || {}
 
-          // #region agent log
-
-          // #endregion
-
           const vars: Record<string, string> = {}
           // Update tokens with mode-specific elevation values from Brand.json before generating CSS variables
           // This ensures token references resolve to the correct mode-specific values
@@ -2315,10 +2309,6 @@ class VarsStore {
             let yValue: number
             let hasCustomControls = false
 
-            // #region agent log
-
-            // #endregion
-
             if (control) {
               // Use user-customized control values for this mode
               blurValue = control.blur
@@ -2326,10 +2316,6 @@ class VarsStore {
               xValue = control.offsetX
               yValue = control.offsetY
               hasCustomControls = true
-
-              // #region agent log
-
-              // #endregion
             } else {
               // Read values directly from Brand.json for this mode
               const blurRaw = elevNode?.blur
@@ -2341,10 +2327,6 @@ class VarsStore {
               spreadValue = toNumeric(spreadRaw)
               xValue = toNumeric(xRaw)
               yValue = toNumeric(yRaw)
-
-              // #region agent log
-
-              // #endregion
             }
 
             const dir = dirForLevel(i)
@@ -2376,10 +2358,6 @@ class VarsStore {
             const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
             const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
             const alphaTok = modeAlphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
-
-            // #region agent log
-
-            // #endregion
             // Use tokenToCssVar to properly convert opacity token names to CSS vars (use original state tokens for non-elevation tokens)
             const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
 
@@ -2430,10 +2408,6 @@ class VarsStore {
             const finalYValue = dir.y === 'down' ? yValue : -yValue
             vars[`${prefixedScope}-x-axis`] = `${finalXValue}px`
             vars[`${prefixedScope}-y-axis`] = `${finalYValue}px`
-
-            // #region agent log
-
-            // #endregion
           }
           Object.assign(allVars, vars)
         } catch (e) {

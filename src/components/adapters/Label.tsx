@@ -143,6 +143,8 @@ export function Label({
   const optionalTextGapVar = getComponentLevelCssVar('Label', 'label-optional-text-gap')
 
 
+
+  // Get CSS variables for layout-specific spacing
   // Get CSS variables for layout-specific spacing
   let layoutStyles: Record<string, string> = {}
 

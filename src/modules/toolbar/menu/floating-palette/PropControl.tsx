@@ -15,8 +15,6 @@ import { useThemeMode } from '../../../theme/ThemeModeContext'
 import './PropControl.css' // Keep prop-control specific styles
 
 // Separate component for elevation control to properly use hooks
-// This component has been moved to its own file: ./ElevationPropControl.tsx
-// function ElevationPropControl(...) { ... }
 
 interface PropControlProps {
   prop: ComponentProp

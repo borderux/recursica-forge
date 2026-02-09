@@ -499,7 +499,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           onAcknowledge={handleDirtyAcknowledgeWithClose}
           onCancel={handleDirtyCancel}
         />
-      </div>
+          </div>
     </Theme>
   )
 }
