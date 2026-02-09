@@ -4428,7 +4428,7 @@
           "min-width": {
             "$type": "dimension",
             "$value": {
-              "value": 64,
+              "value": 180,
               "unit": "px"
             }
           },

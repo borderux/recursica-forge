@@ -49,7 +49,6 @@ export default function ComponentToolbar({
   const { tokens, theme, uikit } = useVars()
   const { showUnmapped, setShowUnmapped, debugMode, setDebugMode } = useDebugMode()
   const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 
   // Calculate unmapped count (same logic as ComponentsSidebar)
   const { unmappedCount, totalCount } = useMemo(() => {
@@ -106,9 +105,7 @@ export default function ComponentToolbar({
     return []
   }, [structure.variants, toolbarConfig, componentName, selectedVariants])
 
-  // Close any open dropdowns and prop controls when component changes
   useEffect(() => {
-    setOpenDropdown(null)
     setOpenPropControl(new Set())
   }, [componentName])
 
@@ -850,14 +847,6 @@ export default function ComponentToolbar({
                     selected={selectedVariants[variant.propName] || variant.variants[0]}
                     onSelect={(variantName) => {
                       onVariantChange(variant.propName, variantName)
-                    }}
-                    open={openDropdown === `variant-${variant.propName}`}
-                    onOpenChange={(isOpen) => {
-                      if (isOpen) {
-                        setOpenDropdown(`variant-${variant.propName}`)
-                      } else {
-                        setOpenDropdown(null)
-                      }
                     }}
                     className="full-width"
                   />
